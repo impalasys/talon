@@ -54,8 +54,6 @@ jobs:
           file: dockerfiles/oss-runtime.Dockerfile
           push: false
           load: false
-          cache-from: type=gha,scope=talon-runtime-image
-          cache-to: type=gha,mode=min,scope=talon-runtime-image
 
   envoy_image:
     name: Envoy Image
@@ -87,8 +85,6 @@ jobs:
           file: dockerfiles/envoy-cloudrun.Dockerfile
           push: false
           load: false
-          cache-from: type=gha,scope=talon-envoy-image
-          cache-to: type=gha,mode=max,scope=talon-envoy-image
 
   ui:
     name: UI
@@ -106,11 +102,11 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
-          cache-dependency-path: ui/pnpm-lock.yaml
+          cache-dependency-path: .copybara/talon/public/ui/pnpm-lock.yaml
 
       - name: Install UI dependencies
         working-directory: ui
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --lockfile-dir ../.copybara/talon/public/ui
 
       - name: Build UI
         working-directory: ui
@@ -126,7 +122,5 @@ jobs:
           file: dockerfiles/oss-ui.Dockerfile
           push: false
           load: false
-          cache-from: type=gha,scope=talon-ui-image
-          cache-to: type=gha,mode=max,scope=talon-ui-image
           build-args: |
             NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789
