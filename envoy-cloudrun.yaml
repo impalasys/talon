@@ -16,6 +16,10 @@ static_resources:
             - name: local_service
               domains: ["*"]
               routes:
+              - match: { prefix: "/v1/ui/" }
+                route:
+                  cluster: talon_ui_http_service
+                  timeout: 0s
               - match: { prefix: "/" }
                 route:
                   cluster: talon_grpc_service
@@ -69,3 +73,16 @@ static_resources:
               socket_address:
                 address: 127.0.0.1
                 port_value: 50051
+  - name: talon_ui_http_service
+    connect_timeout: 0.25s
+    type: STATIC
+    lb_policy: ROUND_ROBIN
+    load_assignment:
+      cluster_name: talon_ui_http_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 127.0.0.1
+                port_value: 50052

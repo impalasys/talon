@@ -37,6 +37,10 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+function buildGatewayChatUiUrl(gatewayUrl: string, ns: string, agent: string, sessionId: string) {
+  return `${normalizeGatewayUrl(gatewayUrl)}/v1/ui/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}`;
+}
+
 function areSelectionsEqual(left: Selection | null, right: Selection | null) {
   if (left === right) return true;
   if (!left || !right) return false;
@@ -770,6 +774,28 @@ function DebuggerPageContent() {
 
   const { messages, input, setInput, handleInputChange, append, setMessages, isLoading, data, stop } = useChat({
     api: '/api/chat',
+    fetch: async (input, init) => {
+      if (!init?.body || typeof init.body !== 'string') {
+        return fetch(input, init);
+      }
+
+      let parsedBody: any = null;
+      try {
+        parsedBody = JSON.parse(init.body);
+      } catch {
+        return fetch(input, init);
+      }
+
+      const targetGatewayUrl = parsedBody?.gatewayUrl;
+      const ns = parsedBody?.ns;
+      const agent = parsedBody?.agent;
+      const sessionId = parsedBody?.sessionId;
+      if (!targetGatewayUrl || !ns || !agent || !sessionId) {
+        return fetch(input, init);
+      }
+
+      return fetch(buildGatewayChatUiUrl(targetGatewayUrl, ns, agent, sessionId), init);
+    },
     initialMessages: [{ id: '1', role: 'system', content: 'Talon runtime initialized.' }]
   });
 
@@ -970,7 +996,7 @@ function DebuggerPageContent() {
 
   const resumeStream = async (ns: string, agent: string, sessionId: string) => {
     try {
-      const response = await fetch(`/api/chat?ns=${ns}&agent=${agent}&sessionId=${sessionId}&gatewayUrl=${encodeURIComponent(gatewayUrl)}`, {
+      const response = await fetch(buildGatewayChatUiUrl(gatewayUrl, ns, agent, sessionId), {
         headers: authToken ? {
           'Authorization': `Basic ${btoa(`:${authToken}`)}`
         } : undefined
@@ -1136,14 +1162,13 @@ function DebuggerPageContent() {
       headers['Authorization'] = `Basic ${btoa(`:${authToken}`)}`;
     }
 
-    const response = await fetch('/api/chat', {
+    const response = await fetch(buildGatewayChatUiUrl(gatewayUrl, activeSession.ns, activeSession.agent, activeSession.sessionId), {
       method: 'DELETE',
       headers,
       body: JSON.stringify({
         ns: activeSession.ns,
         agent: activeSession.agent,
         sessionId: activeSession.sessionId,
-        gatewayUrl,
       }),
     });
 

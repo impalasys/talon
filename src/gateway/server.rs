@@ -2,8 +2,10 @@ use crate::control::{scheduler::SchedulerBackend, KeyValueStore, MessagePublishe
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
+use axum::{routing::post, Router};
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct Gateway {
     pub auth_config: Option<AuthConfig>,
     pub kv: Arc<dyn KeyValueStore + Send + Sync>,
@@ -39,6 +41,24 @@ impl Gateway {
         }
     }
 
+    pub fn http_ui_router(&self) -> Router {
+        let cors = tower_http::cors::CorsLayer::new()
+            .allow_origin(tower_http::cors::Any)
+            .allow_headers(tower_http::cors::Any)
+            .allow_methods(tower_http::cors::Any)
+            .expose_headers(tower_http::cors::Any);
+
+        Router::new()
+            .route(
+                "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
+                post(crate::gateway::ui::post_chat)
+                    .get(crate::gateway::ui::get_chat)
+                    .delete(crate::gateway::ui::delete_chat),
+            )
+            .layer(cors)
+            .with_state(Arc::new(self.clone_internal()))
+    }
+
     pub async fn start_rpc_server(&self, addr: &str) -> Result<()> {
         use tonic::transport::Server;
         let addr = addr.parse()?;
@@ -70,6 +90,15 @@ impl Gateway {
             .await
             .map_err(|e| anyhow::anyhow!("Tonic server failed: {}", e))?;
 
+        Ok(())
+    }
+
+    pub async fn start_http_ui_server(&self, addr: &str) -> Result<()> {
+        let listener = tokio::net::TcpListener::bind(addr).await?;
+        tracing::info!("Gateway UI HTTP listening on {}", addr);
+        axum::serve(listener, self.http_ui_router())
+            .await
+            .map_err(|e| anyhow::anyhow!("Gateway UI HTTP server failed: {}", e))?;
         Ok(())
     }
 }
