@@ -1,0 +1,126 @@
+name: Talon OSS CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "internal-preview/**"
+
+concurrency:
+  group: talon-oss-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cargo:
+    name: Cargo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
+
+      - name: Cargo metadata
+        run: cargo metadata --locked
+
+      - name: Cargo build
+        run: cargo build --locked --bins
+
+      - name: Cargo test
+        run: cargo test --locked
+
+  runtime_image:
+    name: Runtime Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build runtime image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockerfiles/oss-runtime.Dockerfile
+          push: false
+          load: false
+
+  envoy_image:
+    name: Envoy Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install protobuf compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends protobuf-compiler
+
+      - name: Generate descriptor set
+        run: |
+          protoc -I. -Iproto -Ithird_party/googleapis \
+            --include_imports \
+            --include_source_info \
+            --experimental_allow_proto3_optional \
+            --descriptor_set_out=talon_gateway_proto-descriptor-set.proto.bin \
+            proto/gateway.proto
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build envoy image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockerfiles/envoy-cloudrun.Dockerfile
+          push: false
+          load: false
+
+  ui:
+    name: UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: ui/pnpm-lock.yaml
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Build UI
+        working-directory: ui
+        run: pnpm build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build UI image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: dockerfiles/oss-ui.Dockerfile
+          push: false
+          load: false
+          build-args: |
+            NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789

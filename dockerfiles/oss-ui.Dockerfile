@@ -9,7 +9,7 @@ RUN corepack enable
 WORKDIR /repo/ui
 
 COPY ui/package.json ./
-COPY .copybara/talon/public/ui/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY ui/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN pnpm install --frozen-lockfile
 
 FROM deps AS builder
