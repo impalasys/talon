@@ -68,6 +68,9 @@ jobs:
         working-directory: ui
         run: pnpm install --frozen-lockfile
 
+      - name: Build Talon E2E binaries
+        run: cargo build --locked --bin talon-server --bin talon-worker
+
       - name: Install Playwright browser
         working-directory: ui
         run: pnpm exec playwright install --with-deps chromium

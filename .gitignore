@@ -1,0 +1,7 @@
+target/
+tests/__pycache__/
+ui/.next/
+ui/node_modules/
+ui/playwright-report/
+ui/test-results/
+ui/tsconfig.tsbuildinfo

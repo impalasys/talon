@@ -10,7 +10,7 @@ const reuseExistingServer = process.env.REUSE_EXISTING_SERVER === 'true'
     : !process.env.CI;
 const DEFAULT_BACKEND_COMMAND = [
   'cd ..',
-  'cargo build --locked --bin talon-server --bin talon-worker',
+  'if [ ! -x target/debug/talon-server ] || [ ! -x target/debug/talon-worker ]; then cargo build --locked --bin talon-server --bin talon-worker; fi',
   `PYTHONPATH=.. PATH="$PWD/target/debug:$PATH" ${PYTHON_BIN} tests/run_e2e_stack.py`,
 ].join(' && ');
 
@@ -38,7 +38,7 @@ export default defineConfig({
       command: process.env.BACKEND_COMMAND || DEFAULT_BACKEND_COMMAND,
       url: `http://127.0.0.1:8090/`,
       reuseExistingServer,
-      timeout: 240000,
+      timeout: 600000,
       stdout: 'pipe',
       stderr: 'pipe',
     },
