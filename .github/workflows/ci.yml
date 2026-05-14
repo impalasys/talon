@@ -1,6 +1,7 @@
 name: Talon OSS CI
 
 # Managed by Copybara from impalasys/code.
+# Keep this repo-root workflow mirrored from the monorepo overlay.
 
 on:
   pull_request:
