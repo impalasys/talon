@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package talon.config;
+
+message TalonConfig {
+  map<string, LlmProviderConfig> providers = 1;
+  DatabaseConfig database = 2;
+  ServerConfig server = 3;
+  string default_provider = 4;
+  string workspace_dir = 5;
+  ControlPlaneConfig control_plane = 6;
+}
+
+message LlmProviderConfig {
+  oneof config {
+    OpenAiConfig openai = 1;
+    AnthropicConfig anthropic = 2;
+    GoogleConfig google = 3;
+    GenericConfig openai_compatible = 4;
+  }
+}
+
+message OpenAiConfig {
+  string model = 1;
+  Secret api_key = 2;
+  string org_id = 3;
+}
+
+message AnthropicConfig {
+  string model = 1;
+  Secret api_key = 2;
+}
+
+message GoogleConfig {
+  string model = 1;
+  Secret api_key = 2;
+}
+
+message GenericConfig {
+  string name = 1;
+  string base_url = 2;
+  string model = 3;
+  Secret api_key = 4;
+}
+
+message Secret {
+  oneof source {
+    string plain = 1;
+    SecretRef ref = 2;
+  }
+}
+
+message SecretRef {
+  enum Source {
+    ENV = 0;
+    GCP = 1;
+    KEYCHAIN = 2;
+    AWS = 3;
+    AZURE = 4;
+  }
+  Source source = 1;
+  string key = 2;
+}
+
+message DatabaseConfig {
+  string data_dir = 1;
+  string driver = 2;
+  Secret url = 3;
+}
+
+message MessageBrokerConfig {
+  string driver = 1;
+}
+
+message SchedulerCallbackAuthConfig {
+  oneof auth {
+    Secret shared_secret = 1;
+    GoogleOidcAuthConfig google_oidc = 2;
+  }
+}
+
+message GoogleOidcAuthConfig {
+  string audience = 1;
+  string service_account_email = 2;
+}
+
+message CloudTasksSchedulerConfig {
+  string project_id = 1;
+  string location = 2;
+  string queue = 3;
+  string target_url = 4;
+  SchedulerCallbackAuthConfig callback_auth = 5;
+}
+
+message SchedulerConfig {
+  oneof backend {
+    CloudTasksSchedulerConfig cloud_tasks = 1;
+  }
+}
+
+message ControlPlaneConfig {
+  DatabaseConfig database = 1;
+  MessageBrokerConfig message_broker = 2;
+  SchedulerConfig scheduler = 3;
+}
+
+message ServerConfig {
+  string host = 1;
+  uint32 port = 2;
+}

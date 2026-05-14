@@ -1,0 +1,128 @@
+services:
+  gateway:
+    build: 
+      context: .
+      dockerfile: dockerfiles/talon.Dockerfile
+    command: ["talon-server"]
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - POSTGRES_URL=postgres://talon:password@postgres:5432/talon
+      - GCP_PROJECT_ID=talon-local
+      - PUBSUB_EMULATOR_HOST=pubsub:8085
+      - TALON_SCHEDULER_DRIVER=local_postgres
+      - TALON_SCHEDULER_AUTH_TOKEN=${TALON_SCHEDULER_AUTH_TOKEN:-local-scheduler-token}
+      - TALON_LOCAL_SCHEDULER_TARGET_URL=http://worker:8081/schedules/fire
+      - TALON_LOCAL_SCHEDULER_RUNNER=0
+      - CEREBRAS_API_KEY
+      - NOVITA_API_KEY
+      - ANTHROPIC_API_KEY
+    env_file:
+      - .env
+    ports:
+      - "50051:50051"
+    depends_on:
+      - postgres
+      - pubsub
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:50051 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  worker:
+    build: 
+      context: .
+      dockerfile: dockerfiles/talon.Dockerfile
+    command: ["talon-worker"]
+    environment:
+      - RUST_LOG=${RUST_LOG:-info}
+      - POSTGRES_URL=postgres://talon:password@postgres:5432/talon
+      - GCP_PROJECT_ID=talon-local
+      - PUBSUB_EMULATOR_HOST=pubsub:8085
+      - TALON_SCHEDULER_DRIVER=local_postgres
+      - TALON_SCHEDULER_AUTH_TOKEN=${TALON_SCHEDULER_AUTH_TOKEN:-local-scheduler-token}
+      - TALON_LOCAL_SCHEDULER_TARGET_URL=http://worker:8081/schedules/fire
+      - TALON_LOCAL_SCHEDULER_RUNNER=1
+      - CEREBRAS_API_KEY
+      - NOVITA_API_KEY
+      - ANTHROPIC_API_KEY
+      - PULL_MODE=1
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - pubsub
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      # pgadmin-servers.json uses this user and password
+      POSTGRES_USER: talon
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: talon
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U talon"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  init-manifests:
+    build: 
+      context: .
+      dockerfile: ./dockerfiles/talon.Dockerfile
+    depends_on:
+      gateway:
+        condition: service_healthy
+    volumes:
+      - ./manifests:/manifests:ro
+    env_file:
+      - .env
+    environment:
+      - TALON_GATEWAY=http://gateway:50051
+    entrypoint: ["/usr/local/bin/talon-cli"]
+    command: ["apply", "-f", "/manifests/default_agent.yaml"]
+
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
+
+  envoy:
+    build:
+      context: .
+      dockerfile: dockerfiles/envoy.Dockerfile
+    depends_on:
+      - gateway
+    ports:
+      - "18789:8081"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    entrypoint: /bin/sh -c "echo 'postgres:5432:*:talon:password' > /tmp/pgpass && chmod 600 /tmp/pgpass && exec /entrypoint.sh"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@impala.systems
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./dockerfiles/pgadmin-servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      - postgres
+
+  ui:
+    build:
+      context: ..
+      dockerfile: talon/dockerfiles/ui.Dockerfile
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - gateway
+      - envoy
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
+  pgadmin-data:

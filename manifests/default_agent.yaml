@@ -1,0 +1,14 @@
+apiVersion: talon.impalasys.com/v1
+kind: AgentTemplate
+metadata:
+  name: default
+definition:
+  customSpec:
+    systemPrompt: "You are Talon, an autonomous system executing robust actions."
+    modelPolicy:
+      profiles:
+        - name: default
+          model:
+            provider: cerebras
+            name: gpt-oss-120b
+            temperature: 0.0

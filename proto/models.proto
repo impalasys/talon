@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package talon.models;
+import "proto/manifests.proto";
+
+// ---------------------------------------------------------
+// Persistent KeyValue Models
+// Used as the schema source-of-truth for runtime storage.
+// ---------------------------------------------------------
+
+message Agent {
+  string name = 1;
+  string ns = 2;
+  talon.manifests.AgentDefinition definition = 3;
+  talon.manifests.AgentSpec effective_spec = 4;
+  repeated string template_deps = 5;
+  map<string, string> labels = 7;
+}
+
+enum MessageRole {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_USER = 1;
+  ROLE_ASSISTANT = 2;
+  ROLE_SYSTEM = 3;
+}
+
+message SessionMessage {
+  string id = 1;
+  MessageRole role = 2;
+  string content = 3;
+  // Unix timestamp in microseconds.
+  int64 created_at = 4;
+  map<string, string> labels = 5;
+}
+
+message Session {
+  string id = 1;
+  string agent = 2;
+  string ns = 3;
+  string status = 4;
+  // Unix timestamp in microseconds.
+  int64 created_at = 5;
+  // Unix timestamp in microseconds.
+  int64 last_active = 6;
+  map<string, string> metadata = 7;
+  map<string, string> labels = 8;
+}
+
+message ScheduleTarget {
+  string agent = 1;
+  string session_mode = 2;
+  string session_id = 3;
+}
+
+message ScheduleSpec {
+  string kind = 1;
+  string cron = 2;
+  uint32 interval_seconds = 3;
+  string run_at = 4;
+  string timezone = 5;
+  ScheduleTarget target = 6;
+  string input_message = 7;
+  bool enabled = 8;
+}
+
+message ScheduleStatus {
+  uint64 revision = 1;
+  optional int64 next_run_at = 2;
+  optional string backend_handle = 3;
+  bool backend_armed = 4;
+  optional int64 last_run_at = 5;
+  optional string last_session_id = 6;
+  optional string last_error = 7;
+  optional int64 claimed_run_at = 8;
+  optional int64 claim_expires_at = 9;
+  repeated ScheduleEvent recent_events = 10;
+}
+
+message ScheduleEvent {
+  int64 timestamp = 1;
+  string phase = 2;
+  string outcome = 3;
+  string detail = 4;
+}
+
+message Schedule {
+  string name = 1;
+  string ns = 2;
+  ScheduleSpec spec = 3;
+  ScheduleStatus status = 4;
+  map<string, string> labels = 5;
+}
+
+message Namespace {
+  string name = 1;
+  string parent = 2; // e.g. "talon-system", "default:subs"
+  bool is_deleted = 3; // GC Tombstone
+  int64 deleted_at = 4;
+  map<string, string> labels = 5;
+}
+
+message Knowledge {
+  string path = 1; // e.g. "goals.md"
+  string content = 2;
+  int64 updated_at = 3;
+  string namespace = 4;
+  string name = 5;
+}
+
+message KnowledgeSearchResult {
+  string path = 1;
+  string snippet = 2;
+  float score = 3;
+  int64 timestamp = 4;
+  string namespace = 5;
+}

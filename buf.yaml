@@ -1,0 +1,9 @@
+version: v1
+deps:
+  - buf.build/googleapis/googleapis
+build:
+  excludes:
+    - proto/google
+    - venv
+    - tests/venv
+    - third_party

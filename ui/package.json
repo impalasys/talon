@@ -1,0 +1,50 @@
+{
+  "name": "@impalasys/talon-ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "playwright test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.17.1",
+  "dependencies": {
+    "@ai-sdk/openai": "3.0.51",
+    "@ai-sdk/react": "1.2.12",
+    "@connectrpc/connect": "^2.1.1",
+    "@connectrpc/connect-web": "^2.1.1",
+    "@tailgrids/icons": "^2.0.0",
+    "@tailwindcss/postcss": "^4.1.13",
+    "ai": "^5.0.52",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.29.2",
+    "js-yaml": "^4.1.1",
+    "lucide-react": "^0.400.0",
+    "next": "16.2.6",
+    "next-themes": "^0.4.6",
+    "react": "19.2.3",
+    "react-aria-components": "^1.16.0",
+    "react-dom": "19.2.3",
+    "streamdown": "^2.5.0",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@bufbuild/protobuf": "^2.11.0",
+    "@bufbuild/protoc-gen-es": "2.11.0",
+    "@bufbuild/protoplugin": "^2.11.0",
+    "@playwright/test": "^1.56.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "@types/node": "25.5.2",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "^19.1.9",
+    "typescript": "^5.9.3"
+  }
+}
