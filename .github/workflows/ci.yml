@@ -1,5 +1,7 @@
 name: Talon OSS CI
 
+# Managed by Copybara from impalasys/code.
+
 on:
   pull_request:
   push:
