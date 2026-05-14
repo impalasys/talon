@@ -1,0 +1,6 @@
+{
+  "theme": "dark",
+  "alias": "@",
+  "framework": "Next.js",
+  "mainCssFile": "app/globals.css"
+}

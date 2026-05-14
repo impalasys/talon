@@ -1,0 +1,185 @@
+import pytest
+import time
+import sys
+import os
+import grpc
+
+# Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
+
+from proto.gateway_pb2_grpc import GatewayServiceStub
+from proto.gateway_pb2 import (
+    CreateAgentRequest, 
+    CreateSessionRequest, 
+    SendMessageRequest,
+    GetSessionRequest,
+    CreateNamespaceRequest,
+    StreamSessionStepsRequest
+)
+from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model
+from proto.events_pb2 import STEP_TYPE_TOKEN
+import threading
+
+def test_single_turn_chat(gateway_channel, mock_llm_server):
+    stub = GatewayServiceStub(gateway_channel)
+    
+    # 0. Create Namespace
+    try:
+        stub.CreateNamespace(CreateNamespaceRequest(
+            name="talon-test",
+            recursive=True
+        ))
+    except grpc.RpcError as e:
+        if e.code() != grpc.StatusCode.ALREADY_EXISTS:
+            raise
+
+    # 1. Create Agent
+    agent_spec = AgentSpec(
+        model_policy={
+            "profiles": [
+                {
+                    "name": "default",
+                    "model": Model(
+                        provider="mock",
+                        name="minimax-m2.7",
+                        temperature=0.7,
+                    ),
+                }
+            ]
+        },
+        system_prompt="You are a helpful test assistant."
+    )
+    
+    agent = stub.CreateAgent(CreateAgentRequest(
+        ns="talon-test",
+        name="test-llm-agent",
+        definition=AgentDefinition(custom_spec=agent_spec),
+    ))
+    
+    assert agent.agent == "test-llm-agent"
+    
+    # 2. Create Session
+    session = stub.CreateSession(CreateSessionRequest(
+        agent="test-llm-agent",
+        ns="talon-test"
+    ))
+    session_id = session.session_id
+    assert session_id != ""
+    
+    # Wait for agent creation event to propagate? No, should be instant enough.
+    
+    # 3. Send Message
+    stub.SendMessage(SendMessageRequest(
+        agent="test-llm-agent",
+        session_id=session_id,
+        ns="talon-test",
+        message="What is the square root of 144?"
+    ))
+    
+    # 4. Long / Async Poll behavior to wait for IDLE
+    max_retries = 30
+    delay = 1.0
+    
+    success = False
+    messages = []
+    
+    print(f"\nPolling for message results in session {session_id}...")
+    for i in range(max_retries):
+        time.sleep(delay)
+        res = stub.GetSession(GetSessionRequest(
+            agent="test-llm-agent",
+            session_id=session_id,
+            ns="talon-test"
+        ))
+        
+        # In our implementation, we change status specifically mapping worker persistence.
+        status = res.state
+        messages = res.messages
+        
+        print(f"[{i}/{max_retries}] Session status: {status}, Messages: {len(messages)}")
+        
+        # We expect a USER message and then an ASSISTANT message
+        if status == "IDLE" and len(messages) >= 2:
+            success = True
+            break
+            
+    assert success, "Agent did not reply in time or failed to revert to IDLE"
+    
+    agent_message = messages[-1]
+    assert agent_message.role == 2 # MessageRole.ROLE_ASSISTANT
+    assert "12" in agent_message.content
+
+def test_streaming_chat(gateway_channel, mock_llm_server):
+    stub = GatewayServiceStub(gateway_channel)
+    
+    try:
+        stub.CreateNamespace(CreateNamespaceRequest(name="talon-stream-test", recursive=True))
+    except grpc.RpcError as e:
+        if e.code() != grpc.StatusCode.ALREADY_EXISTS:
+            raise
+
+    agent_spec = AgentSpec(
+        model_policy={
+            "profiles": [
+                {
+                    "name": "default",
+                    "model": Model(provider="mock", name="minimax", temperature=0.7),
+                }
+            ]
+        },
+        system_prompt="Stream me."
+    )
+    
+    agent = stub.CreateAgent(CreateAgentRequest(
+        ns="talon-stream-test",
+        name="stream-agent",
+        definition=AgentDefinition(custom_spec=agent_spec),
+    ))
+    
+    session = stub.CreateSession(CreateSessionRequest(
+        agent="stream-agent",
+        ns="talon-stream-test"
+    ))
+    session_id = session.session_id
+    
+    def send_msg():
+        # Delay to ensure the subscriber is fully connected to the emulator
+        time.sleep(2.0)
+        stub.SendMessage(SendMessageRequest(
+            agent="stream-agent",
+            session_id=session_id,
+            ns="talon-stream-test",
+            message="Stream test message"
+        ))
+
+    t = threading.Thread(target=send_msg)
+    t.start()
+
+    # The stream will block until the worker publishes the events.
+    stream_req = StreamSessionStepsRequest(
+        agent="stream-agent",
+        session_id=session_id,
+        ns="talon-stream-test"
+    )
+    events = []
+    try:
+        # We limit iteration to prevent infinite block if stream is buggy
+        for idx, event in enumerate(stub.StreamSessionSteps(stream_req)):
+            events.append(event)
+            if event.step_type == STEP_TYPE_TOKEN:
+                # The mock LLM only emits one token chunk, so we break after receiving it
+                break
+            if idx > 10:
+                break
+    except grpc.RpcError as e:
+        print("RPC ERROR:", e)
+        pass # Stream might close or error
+    t.join()
+    
+    assert len(events) >= 1
+    token_events = [event for event in events if event.step_type == STEP_TYPE_TOKEN]
+    assert len(token_events) >= 1
+    assert "received" in token_events[0].content
+
+if __name__ == '__main__':
+    sys.exit(pytest.main(sys.argv[1:] + [__file__]))

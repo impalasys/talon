@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Talon Local Engine Database",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "talon",
+      "Username": "talon",
+      "Shared": true,
+      "PassFile": "/tmp/pgpass"
+    }
+  }
+}

@@ -1,0 +1,575 @@
+syntax = "proto3";
+
+package talon.gateway;
+
+import "google/api/annotations.proto";
+import "proto/manifests.proto";
+import "proto/models.proto";
+import "proto/events.proto";
+
+service GatewayService {
+  // Agent Lifecycle
+  rpc CreateAgent(CreateAgentRequest) returns (AgentResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents"
+      body: "*"
+    };
+  }
+
+  rpc GetAgent(GetAgentRequest) returns (GetAgentResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/agents/{name}"
+    };
+  }
+
+  rpc ModifyAgent(ModifyAgentRequest) returns (AgentResponse) {
+    option (google.api.http) = {
+      put: "/v1/ns/{ns}/agents/{agent}"
+      body: "*"
+    };
+  }
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/agents"
+    };
+  }
+
+  // Agent Knowledge
+  rpc GetKnowledge(GetKnowledgeRequest) returns (KnowledgeResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/agents/{agent}/knowledge"
+    };
+  }
+  rpc SearchKnowledge(SearchKnowledgeRequest) returns (SearchKnowledgeResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents/{agent}/knowledge/search"
+      body: "*"
+    };
+  }
+  rpc CreateNamespaceKnowledge(CreateNamespaceKnowledgeRequest) returns (NamespaceKnowledgeResponse) {
+    option (google.api.http) = {
+      post: "/v1/namespaces/{ns}/knowledge"
+      body: "*"
+    };
+  }
+  rpc GetNamespaceKnowledge(GetNamespaceKnowledgeRequest) returns (NamespaceKnowledgeResponse) {
+    option (google.api.http) = {
+      get: "/v1/namespaces/{ns}/knowledge/{name}"
+    };
+  }
+  rpc ListNamespaceKnowledge(ListNamespaceKnowledgeRequest) returns (ListNamespaceKnowledgeResponse) {
+    option (google.api.http) = {
+      get: "/v1/namespaces/{ns}/knowledge"
+    };
+  }
+  rpc DeleteNamespaceKnowledge(DeleteNamespaceKnowledgeRequest) returns (DeleteNamespaceKnowledgeResponse) {
+    option (google.api.http) = {
+      delete: "/v1/namespaces/{ns}/knowledge/{name}"
+    };
+  }
+
+  // Agent Sessions
+  rpc CreateSession(CreateSessionRequest) returns (SessionResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents/{agent}/sessions"
+      body: "*"
+    };
+  }
+
+  rpc GetSession(GetSessionRequest) returns (SessionResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}"
+    };
+  }
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/agents/{agent}/sessions"
+    };
+  }
+  rpc DeleteSession(DeleteSessionRequest) returns (DeleteSessionResponse) {
+    option (google.api.http) = {
+      delete: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}"
+    };
+  }
+
+  // Interactive Comm
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/message"
+      body: "*"
+    };
+  }
+
+  rpc StopSessionGeneration(StopSessionGenerationRequest) returns (StopSessionGenerationResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}:stop"
+      body: "*"
+    };
+  }
+
+  rpc StreamSessionSteps(StreamSessionStepsRequest) returns (stream talon.events.SessionStepEvent) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/stream"
+    };
+  }
+
+  // Schedules
+  rpc CreateSchedule(CreateScheduleRequest) returns (ScheduleResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/schedules"
+      body: "*"
+    };
+  }
+  rpc GetSchedule(GetScheduleRequest) returns (ScheduleResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/schedules/{name}"
+    };
+  }
+  rpc ModifySchedule(ModifyScheduleRequest) returns (ScheduleResponse) {
+    option (google.api.http) = {
+      put: "/v1/ns/{ns}/schedules/{name}"
+      body: "*"
+    };
+  }
+  rpc ListSchedules(ListSchedulesRequest) returns (ListSchedulesResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/schedules"
+    };
+  }
+  rpc DeleteSchedule(DeleteScheduleRequest) returns (DeleteScheduleResponse) {
+    option (google.api.http) = {
+      delete: "/v1/ns/{ns}/schedules/{name}"
+    };
+  }
+
+  // Namespaces
+  rpc CreateNamespace(CreateNamespaceRequest) returns (NamespaceResponse) {
+    option (google.api.http) = {
+      post: "/v1/namespaces/{name}"
+      body: "*"
+    };
+  }
+  rpc GetNamespace(GetNamespaceRequest) returns (NamespaceResponse) {
+    option (google.api.http) = {
+      get: "/v1/namespaces/{name}"
+    };
+  }
+  rpc DeleteNamespace(DeleteNamespaceRequest) returns (NamespaceResponse) {
+    option (google.api.http) = {
+      delete: "/v1/namespaces/{name}"
+    };
+  }
+  rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
+    option (google.api.http) = {
+      get: "/v1/namespaces"
+    };
+  }
+
+  // Agent Templates
+  rpc CreateAgentTemplate(CreateAgentTemplateRequest) returns (AgentTemplateResponse) {
+    option (google.api.http) = {
+      post: "/v1/templates"
+      body: "*"
+    };
+  }
+  rpc GetAgentTemplate(GetAgentTemplateRequest) returns (AgentTemplateResponse) {
+    option (google.api.http) = {
+      get: "/v1/templates/{name}"
+    };
+  }
+  rpc ListAgentTemplates(ListAgentTemplatesRequest) returns (ListAgentTemplatesResponse) {
+    option (google.api.http) = {
+      get: "/v1/templates"
+    };
+  }
+  rpc DeleteAgentTemplate(DeleteAgentTemplateRequest) returns (DeleteAgentTemplateResponse) {
+    option (google.api.http) = {
+      delete: "/v1/templates/{name}"
+    };
+  }
+
+  // MCP Servers
+  rpc CreateMcpServer(CreateMcpServerRequest) returns (McpServerResponse) {
+    option (google.api.http) = {
+      post: "/v1/mcp-servers"
+      body: "*"
+    };
+  }
+  rpc GetMcpServer(GetMcpServerRequest) returns (McpServerResponse) {
+    option (google.api.http) = {
+      get: "/v1/mcp-servers/{name}"
+    };
+  }
+  rpc ListMcpServers(ListMcpServersRequest) returns (ListMcpServersResponse) {
+    option (google.api.http) = {
+      get: "/v1/mcp-servers"
+    };
+  }
+  rpc DeleteMcpServer(DeleteMcpServerRequest) returns (DeleteMcpServerResponse) {
+    option (google.api.http) = {
+      delete: "/v1/mcp-servers/{name}"
+    };
+  }
+
+  rpc CreateMcpServerBinding(CreateMcpServerBindingRequest) returns (McpServerBindingResponse) {
+    option (google.api.http) = {
+      post: "/v1/namespaces/{ns}/mcp-bindings"
+      body: "*"
+    };
+  }
+  rpc GetMcpServerBinding(GetMcpServerBindingRequest) returns (McpServerBindingResponse) {
+    option (google.api.http) = {
+      get: "/v1/namespaces/{ns}/mcp-bindings/{name}"
+    };
+  }
+  rpc ListMcpServerBindings(ListMcpServerBindingsRequest) returns (ListMcpServerBindingsResponse) {
+    option (google.api.http) = {
+      get: "/v1/namespaces/{ns}/mcp-bindings"
+    };
+  }
+  rpc DeleteMcpServerBinding(DeleteMcpServerBindingRequest) returns (DeleteMcpServerBindingResponse) {
+    option (google.api.http) = {
+      delete: "/v1/namespaces/{ns}/mcp-bindings/{name}"
+    };
+  }
+}
+
+// ---------------------------------------------------------
+// Agent Template Models
+// ---------------------------------------------------------
+
+message CreateAgentTemplateRequest {
+  talon.manifests.AgentTemplate template = 1;
+}
+
+message AgentTemplateResponse {
+  talon.manifests.AgentTemplate template = 1;
+}
+
+message GetAgentTemplateRequest {
+  string name = 1;
+}
+
+message DeleteAgentTemplateRequest {
+  string name = 1;
+}
+
+message DeleteAgentTemplateResponse {
+  bool success = 1;
+}
+
+message ListAgentTemplatesRequest {
+}
+
+message ListAgentTemplatesResponse {
+  repeated talon.manifests.AgentTemplate templates = 1;
+}
+
+message CreateMcpServerRequest {
+  talon.manifests.McpServer server = 1;
+}
+
+message GetMcpServerRequest {
+  string name = 1;
+}
+
+message ListMcpServersRequest {
+}
+
+message DeleteMcpServerRequest {
+  string name = 1;
+}
+
+message DeleteMcpServerResponse {
+  bool success = 1;
+}
+
+message McpServerResponse {
+  talon.manifests.McpServer server = 1;
+}
+
+message ListMcpServersResponse {
+  repeated talon.manifests.McpServer servers = 1;
+}
+
+message CreateMcpServerBindingRequest {
+  string ns = 1;
+  talon.manifests.McpServerBinding binding = 2;
+}
+
+message GetMcpServerBindingRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message ListMcpServerBindingsRequest {
+  string ns = 1;
+}
+
+message DeleteMcpServerBindingRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message DeleteMcpServerBindingResponse {
+  bool success = 1;
+}
+
+message McpServerBindingResponse {
+  talon.manifests.McpServerBinding binding = 1;
+}
+
+message ListMcpServerBindingsResponse {
+  repeated talon.manifests.McpServerBinding bindings = 1;
+}
+
+message GetAgentResponse {
+  talon.models.Agent agent = 1;
+}
+
+message GetAgentRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message CreateAgentRequest {
+  string ns = 1;
+  optional string name = 2;
+  talon.manifests.AgentDefinition definition = 3;
+  map<string, string> labels = 4;
+}
+
+message AgentResponse {
+  string agent = 1;
+  string ns = 2;
+  map<string, string> labels = 4;
+}
+
+
+
+message ListAgentsRequest {
+  string ns = 1;
+}
+
+message ListAgentsResponse {
+  repeated string agents = 1;
+}
+
+
+
+message ModifyAgentRequest {
+  string agent = 1;
+  string ns = 2;
+  talon.manifests.AgentDefinition definition = 3;
+  map<string, string> labels = 4;
+}
+
+// ---------------------------------------------------------
+// Agent Knowledge Data Models
+// ---------------------------------------------------------
+
+message GetKnowledgeRequest {
+  string agent = 1;
+  string ns = 2;
+  optional string path = 3; // If empty, returns all modules (summary)
+}
+
+message KnowledgeResponse {
+  repeated talon.models.Knowledge modules = 1;
+}
+
+message SearchKnowledgeRequest {
+  string agent = 1;
+  string ns = 2;
+  string query = 3;
+}
+
+message SearchKnowledgeResponse {
+  repeated talon.models.KnowledgeSearchResult results = 1;
+}
+
+message CreateNamespaceKnowledgeRequest {
+  string ns = 1;
+  talon.manifests.Knowledge knowledge = 2;
+}
+
+message GetNamespaceKnowledgeRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message ListNamespaceKnowledgeRequest {
+  string ns = 1;
+}
+
+message DeleteNamespaceKnowledgeRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message DeleteNamespaceKnowledgeResponse {
+  bool success = 1;
+}
+
+message NamespaceKnowledgeResponse {
+  talon.manifests.Knowledge knowledge = 1;
+}
+
+message ListNamespaceKnowledgeResponse {
+  repeated talon.manifests.Knowledge knowledge = 1;
+}
+
+// ---------------------------------------------------------
+// Agent Sessions Data Models
+// ---------------------------------------------------------
+
+message CreateSessionRequest {
+  string agent = 1;
+  string ns = 2;
+  map<string, string> labels = 3;
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+message ListSessionsRequest {
+  string agent = 1;
+  string ns = 2;
+}
+
+message SessionListItem {
+  string session_id = 1;
+  int64 updated_at = 2;
+  map<string, string> labels = 3;
+}
+
+message ListSessionsResponse {
+  repeated string session_ids = 1;
+  repeated SessionListItem sessions = 2;
+}
+
+message SessionResponse {
+  string session_id = 1;
+  string agent = 2;
+  string state = 3;
+  repeated talon.models.SessionMessage messages = 4;
+  repeated talon.events.SessionStepEvent steps = 5;
+  map<string, string> labels = 6;
+}
+
+message DeleteSessionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+message DeleteSessionResponse {
+  bool success = 1;
+}
+
+message CreateScheduleRequest {
+  string ns = 1;
+  talon.models.Schedule schedule = 2;
+}
+
+message GetScheduleRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message ModifyScheduleRequest {
+  string ns = 1;
+  string name = 2;
+  talon.models.Schedule schedule = 3;
+}
+
+message ListSchedulesRequest {
+  string ns = 1;
+}
+
+message ListSchedulesResponse {
+  repeated talon.models.Schedule schedules = 1;
+}
+
+message DeleteScheduleRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message DeleteScheduleResponse {
+  bool success = 1;
+}
+
+message ScheduleResponse {
+  talon.models.Schedule schedule = 1;
+}
+
+// ---------------------------------------------------------
+// Interactivity Data Models
+// ---------------------------------------------------------
+
+message SendMessageRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  string message = 4;
+  map<string, string> labels = 5;
+}
+
+message SendMessageResponse {
+  string reply = 1;
+  string session_id = 4;
+}
+
+message StopSessionGenerationRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+message StopSessionGenerationResponse {
+  bool success = 1;
+}
+
+message StreamSessionStepsRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+// -----------------------------------------
+// Namespaces
+// -----------------------------------------
+
+message CreateNamespaceRequest {
+  string name = 1;
+  bool recursive = 2;
+  map<string, string> labels = 3;
+}
+
+message GetNamespaceRequest {
+  string name = 1;
+}
+
+message DeleteNamespaceRequest {
+  string name = 1;
+}
+
+message ListNamespacesRequest {
+  optional string parent = 1;
+}
+
+message NamespaceResponse {
+  string name = 1;
+  optional string parent = 2;
+  bool is_deleted = 3;
+  int64 deleted_at = 4;
+  map<string, string> labels = 5;
+}
+
+message ListNamespacesResponse {
+  repeated NamespaceResponse namespaces = 1;
+}

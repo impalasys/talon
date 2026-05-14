@@ -1,0 +1,41 @@
+providers:
+  cerebras:
+    type: openai_compatible
+    name: cerebras
+    base_url: "https://api.cerebras.ai/v1"
+    model: gpt-oss-120b
+    api_key:
+      source: env
+      key: CEREBRAS_API_KEY
+  novita:
+    type: openai_compatible
+    name: novita
+    base_url: "https://api.novita.ai/v3/openai"
+    model: google/gemma-4-31b-it
+    api_key:
+      source: env
+      key: NOVITA_API_KEY
+  mock:
+    type: openai_compatible
+    name: mock
+    base_url: "http://127.0.0.1:8000"
+    model: google/gemma-4-31b-it
+    api_key:
+      source: env
+      key: NOVITA_API_KEY
+
+server:
+  host: "0.0.0.0"
+  port: 18789
+
+control_plane:
+  database:
+    driver: postgres
+    url:
+      source: env
+      key: POSTGRES_URL
+  message_broker:
+    driver: gcp_pubsub
+    project_id:
+      source: env
+      key: GCP_PROJECT_ID

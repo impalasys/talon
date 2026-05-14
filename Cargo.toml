@@ -1,0 +1,75 @@
+[package]
+name = "talon"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+bazel = []
+
+[dependencies]
+aead = "0.5"
+aes-gcm = "0.10"
+anyhow = "1.0"
+async-trait = "0.1"
+async-stream = "0.3"
+base64 = "0.21"
+bollard = "0.15"
+chrono = { version = "0.4", features = ["serde"] }
+chrono-tz = "0.10"
+cron = "0.12"
+jsonwebtoken = { version = "10.3", features = ["rust_crypto"] }
+futures = "0.3"
+redb = "1.0"
+reqwest = { version = "0.11", features = ["json", "stream"] }
+rmcp = { version = "1.4", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
+prost = "0.13"
+prost-types = "0.13"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sse-stream = "0.2"
+urlencoding = "2.1"
+tokio = { version = "1.0", features = ["full"] }
+tokio-tungstenite = "0.20"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tonic = "0.12.3"
+tonic-web = "0.12.3"
+axum = { version = "0.7", features = ["ws"] }
+tower = "0.5"
+tower-http = { version = "0.5", features = ["cors"] }
+toml = "0.8"
+serde_yaml = "0.9"
+minijinja = "2.12"
+google-cloud-secretmanager-v1 = "1.7"
+google-cloud-auth = "1.8"
+aws-config = "1.8"
+aws-sdk-secretsmanager = "1.103"
+azure_identity = "0.33"
+azure_security_keyvault_secrets = "0.12"
+uuid = { version = "1.23.0", features = ["v7"] }
+sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio"] }
+google-cloud-pubsub = "0.25.0"
+google-cloud-googleapis = { version = "0.13.0", features = ["pubsub"] }
+clap = { version = "4.6.0", features = ["derive"] }
+tokio-util = "0.7.18"
+
+[build-dependencies]
+prost-build = "0.13"
+tonic-build = "0.12.3"
+protoc-gen-prost = "0.4.0"
+protoc-gen-tonic = "0.4.0"
+
+[dev-dependencies]
+tempfile = "3.0"
+
+[[bin]]
+name = "talon-server"
+path = "src/bin/server.rs"
+
+[[bin]]
+name = "talon-worker"
+path = "src/bin/worker.rs"
+
+[[bin]]
+name = "talon-cli"
+path = "src/bin/cli.rs"

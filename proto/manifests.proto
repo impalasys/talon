@@ -1,0 +1,187 @@
+syntax = "proto3";
+
+package talon.manifests;
+
+import "google/protobuf/struct.proto";
+
+// Metadata for finding and grouping manifests
+message ObjectMeta {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> labels = 3;
+  map<string, string> annotations = 4;
+}
+
+// -----------------------------------------
+// Agent Template
+// -----------------------------------------
+
+message AgentTemplate {
+  string api_version = 1;
+  string kind = 2;
+  ObjectMeta metadata = 3;
+  AgentDefinition definition = 4;
+}
+
+message AgentSpec {
+  repeated Feature features = 1;
+  ModelPolicy model_policy = 2;
+  string system_prompt = 3;
+  repeated string mcp_server_refs = 4;
+  map<string, google.protobuf.ListValue> capabilities = 6;
+}
+
+message AgentDefinition {
+  oneof source {
+    AgentSpec custom_spec = 1;
+    TemplatedAgentSpec templated = 2;
+  }
+}
+
+message TemplatedAgentSpec {
+  string template_name = 1;
+  AgentSpecDelta delta = 2;
+}
+
+message AgentSpecDelta {
+  ModelPolicyDelta model_policy = 1;
+  PromptDelta system_prompt = 2;
+  FeatureSetDelta features = 3;
+  StringListDelta mcp_server_refs = 4;
+  CapabilitiesPolicyDelta capabilities = 6;
+}
+
+message PromptDelta {
+  oneof operation {
+    string replace = 1;
+    string prepend = 2;
+    string append = 3;
+  }
+}
+
+message FeatureSetDelta {
+  repeated Feature upsert = 1;
+  repeated string remove = 2;
+}
+
+message StringListDelta {
+  repeated string replace = 1;
+  repeated string add = 2;
+  repeated string remove = 3;
+}
+
+message CapabilitiesPolicyDelta {
+  map<string, google.protobuf.ListValue> replace = 1;
+}
+
+message Feature {
+  string name = 1;
+  string type = 2;
+  bool required = 3;
+}
+
+message Model {
+  string provider = 1;
+  string name = 2;
+  float temperature = 3;
+}
+
+message ModelProfile {
+  string name = 1;
+  Model model = 2;
+}
+
+message ModelPolicy {
+  repeated ModelProfile profiles = 1;
+}
+
+message ModelPolicyDelta {
+  repeated ModelProfile upsert = 1;
+}
+
+message McpServer {
+  string api_version = 1;
+  string kind = 2;
+  ObjectMeta metadata = 3;
+  McpServerSpec spec = 4;
+}
+
+message McpServerSpec {
+  string transport = 1;
+  string target = 2;
+  repeated string args = 3;
+  map<string, string> headers = 4;
+  bool disabled = 5;
+}
+
+message McpServerBinding {
+  string api_version = 1;
+  string kind = 2;
+  ObjectMeta metadata = 3;
+  McpServerBindingSpec spec = 4;
+}
+
+message McpServerBindingSpec {
+  string server_ref = 1;
+  repeated string args = 2;
+  map<string, string> headers = 3;
+  bool disabled = 4;
+  McpAuthBrokerSpec auth_broker = 5;
+  repeated string allowed_tool_names = 6;
+}
+
+message McpAuthBrokerSpec {
+  string kind = 1;
+  string url = 2;
+  int32 cache_ttl_seconds = 3;
+  string audience = 4;
+}
+
+message Knowledge {
+  string api_version = 1;
+  string kind = 2;
+  ObjectMeta metadata = 3;
+  KnowledgeSpec spec = 4;
+}
+
+message KnowledgeSpec {
+  string path = 1;
+  string content = 2;
+}
+
+// -----------------------------------------
+// Memory Provider
+// -----------------------------------------
+
+message MemoryProvider {
+  string api_version = 1;
+  string kind = 2;
+  ObjectMeta metadata = 3;
+  MemoryProviderSpec spec = 4;
+}
+
+message MemoryProviderSpec {
+  string driver = 1;
+  ConnectionConfig connection = 2;
+  SchemaConfig schema = 3;
+}
+
+message ConnectionConfig {
+  EnvSecret url = 1;
+  PoolConfig pool = 2;
+}
+
+message EnvSecret {
+  string source = 1;
+  string key = 2;
+}
+
+message PoolConfig {
+  int32 max_connections = 1;
+  int32 min_connections = 2;
+  int32 idle_timeout_seconds = 3;
+}
+
+message SchemaConfig {
+  string name = 1;
+}

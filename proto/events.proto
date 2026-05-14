@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package talon.events;
+
+enum SystemAction {
+    SYSTEM_ACTION_UNSPECIFIED = 0;
+    SYSTEM_ACTION_CREATE = 1;
+    SYSTEM_ACTION_UPDATE = 2;
+    SYSTEM_ACTION_DELETE = 3;
+    SYSTEM_ACTION_SUSPEND = 4;
+    SYSTEM_ACTION_RESUME = 5;
+}
+
+message LifecycleEvent {
+    string resource_type = 1;
+    string name = 2;
+    string ns = 3;
+    SystemAction action = 4;
+    int64 timestamp = 5;
+}
+
+enum MessageDirection {
+    MESSAGE_DIRECTION_UNSPECIFIED = 0;
+    MESSAGE_DIRECTION_INBOUND = 1;
+    MESSAGE_DIRECTION_OUTBOUND = 2;
+}
+
+message SessionMessageEvent {
+    string session_id = 1;
+    string message_id = 2;
+    MessageDirection direction = 3;
+    int64 timestamp = 4;
+    string agent = 5;
+    string message = 6;
+    string ns = 7;
+}
+
+message SessionControlEvent {
+    string session_id = 1;
+    string agent = 2;
+    string ns = 3;
+    string action = 4;
+    int64 timestamp = 5;
+}
+
+enum StepType {
+    STEP_TYPE_UNSPECIFIED = 0;
+    STEP_TYPE_TOKEN = 1;
+    STEP_TYPE_ACTION = 2;
+    STEP_TYPE_OBSERVATION = 3;
+    STEP_TYPE_DONE = 4;
+    STEP_TYPE_ERROR = 5;
+}
+
+message SessionStepEvent {
+    string session_id = 1;
+    StepType step_type = 2;
+    string content = 3;
+    int64 timestamp = 4;
+    string agent = 5;
+    string ns = 6;
+    string message_id = 7;
+    string name = 8;
+    string payload_json = 9;
+}
