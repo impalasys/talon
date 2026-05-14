@@ -642,6 +642,44 @@ function ensureAssistantMessage(messages: any[], messageId: string) {
   ];
 }
 
+function reconcileAssistantMessageId(messages: any[], fromMessageId: string, toMessageId: string) {
+  if (!fromMessageId || !toMessageId || fromMessageId === toMessageId) {
+    return messages;
+  }
+
+  const fromIndex = messages.findIndex(message => message.id === fromMessageId);
+  if (fromIndex < 0) {
+    return ensureAssistantMessage(messages, toMessageId);
+  }
+
+  const toIndex = messages.findIndex(message => message.id === toMessageId);
+  const nextMessages = [...messages];
+
+  if (toIndex >= 0) {
+    const fromMessage = nextMessages[fromIndex];
+    const toMessage = nextMessages[toIndex];
+    const mergedText = `${getMessageContent(toMessage)}${getMessageContent(fromMessage)}`;
+    const mergedToolInvocations = [
+      ...(Array.isArray(toMessage.toolInvocations) ? toMessage.toolInvocations : []),
+      ...(Array.isArray(fromMessage.toolInvocations) ? fromMessage.toolInvocations : []),
+    ];
+    nextMessages[toIndex] = {
+      ...toMessage,
+      content: mergedText,
+      parts: [{ type: 'text', text: mergedText }],
+      toolInvocations: mergedToolInvocations,
+    };
+    nextMessages.splice(fromIndex, 1);
+    return nextMessages;
+  }
+
+  nextMessages[fromIndex] = {
+    ...nextMessages[fromIndex],
+    id: toMessageId,
+  };
+  return nextMessages;
+}
+
 function appendAssistantText(messages: any[], messageId: string, chunk: string) {
   const existingIndex = messages.findIndex(message => message.id === messageId);
   const nextMessages = existingIndex >= 0 ? [...messages] : ensureAssistantMessage(messages, messageId);
@@ -1246,8 +1284,14 @@ function DebuggerPageContent() {
 
       const ensureLiveAssistant = (messageId?: string) => {
         const nextMessageId = messageId || assistantMessageId || crypto.randomUUID();
+        const previousMessageId = assistantMessageId;
         assistantMessageId = nextMessageId;
-        setMessages(prev => ensureAssistantMessage(prev, nextMessageId));
+        setMessages(prev => {
+          const reconciled = previousMessageId && previousMessageId !== nextMessageId
+            ? reconcileAssistantMessageId(prev, previousMessageId, nextMessageId)
+            : prev;
+          return ensureAssistantMessage(reconciled, nextMessageId);
+        });
         return nextMessageId;
       };
 
@@ -1332,6 +1376,8 @@ function DebuggerPageContent() {
           }
           await new Promise(resolve => setTimeout(resolve, 250));
         }
+      } else {
+        await loadSessionState(session);
       }
     } catch (err: any) {
       console.error("Submit Error:", err);
