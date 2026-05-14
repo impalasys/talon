@@ -28,9 +28,24 @@ async fn main() -> Result<()> {
     let gateway = Gateway::new(Some(auth_config), cp.kv, cp.pubsub, cp.scheduler);
 
     let rpc_addr = std::env::var("GRPC_ADDR").unwrap_or_else(|_| "0.0.0.0:50051".to_string());
-    gateway.start_rpc_server(&rpc_addr).await?;
+    let ui_addr = std::env::var("GATEWAY_UI_ADDR").unwrap_or_else(|_| "0.0.0.0:50052".to_string());
+    let rpc_gateway = gateway.clone();
+    let ui_gateway = gateway.clone();
 
-    tokio::signal::ctrl_c().await?;
-    println!("Shutting down...");
+    let rpc_task = tokio::spawn(async move { rpc_gateway.start_rpc_server(&rpc_addr).await });
+    let ui_task = tokio::spawn(async move { ui_gateway.start_http_ui_server(&ui_addr).await });
+
+    tokio::select! {
+        res = rpc_task => {
+            res??;
+        }
+        res = ui_task => {
+            res??;
+        }
+        _ = signal::ctrl_c() => {
+            println!("Shutting down...");
+        }
+    }
+
     Ok(())
 }

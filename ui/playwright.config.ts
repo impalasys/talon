@@ -2,6 +2,17 @@ import { defineConfig, devices } from '@playwright/test';
 
 const API_PORT = process.env.API_PORT || '18789';
 const WEB_PORT = process.env.WEB_PORT || '3000';
+const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
+const reuseExistingServer = process.env.REUSE_EXISTING_SERVER === 'true'
+  ? true
+  : process.env.REUSE_EXISTING_SERVER === 'false'
+    ? false
+    : !process.env.CI;
+const DEFAULT_BACKEND_COMMAND = [
+  'cd ..',
+  'if [ ! -x target/debug/talon-server ] || [ ! -x target/debug/talon-worker ]; then cargo build --locked --bin talon-server --bin talon-worker; fi',
+  `PYTHONPATH=.. PATH="$PWD/target/debug:$PATH" ${PYTHON_BIN} tests/run_e2e_stack.py`,
+].join(' && ');
 
 export default defineConfig({
   testDir: './e2e',
@@ -24,17 +35,17 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: process.env.BACKEND_COMMAND || `bazel build //talon:talon_server //talon:talon_worker && bazel run //talon/tests:run_e2e_stack`,
+      command: process.env.BACKEND_COMMAND || DEFAULT_BACKEND_COMMAND,
       url: `http://127.0.0.1:8090/`,
-      reuseExistingServer: !process.env.CI || process.env.REUSE_EXISTING_SERVER === 'true',
-      timeout: 120000,
+      reuseExistingServer,
+      timeout: 600000,
       stdout: 'pipe',
       stderr: 'pipe',
     },
     {
       command: `NEXT_PUBLIC_GATEWAY_URL=http://127.0.0.1:${API_PORT} pnpm dev -p ${WEB_PORT}`,
       url: `http://127.0.0.1:${WEB_PORT}`,
-      reuseExistingServer: !process.env.CI || process.env.REUSE_EXISTING_SERVER === 'true',
+      reuseExistingServer,
       timeout: 60000,
       stdout: 'pipe',
       stderr: 'pipe',

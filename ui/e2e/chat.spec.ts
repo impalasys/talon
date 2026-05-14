@@ -3,92 +3,103 @@ import { createClient } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
 import { GatewayService } from "../proto/proto/gateway_pb";
 
-test.describe('Chat Streaming', () => {
-  test('should display streaming text from the agent', async ({ page }) => {
-    page.on('console', msg => console.log(`BROWSER CONSOLE: ${msg.text()}`));
-    page.on('pageerror', error => console.log(`BROWSER ERROR: ${error.message}`));
-    
-    const API_PORT = process.env.API_PORT || '18789';
-    const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
-    const runId = Date.now().toString();
-    const testNs = `e2e-ns-${runId}`;
-    const testAgent = `e2e-agent-${runId}`;
+async function provisionSession(page: any) {
+  page.on('console', msg => console.log(`BROWSER CONSOLE: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`BROWSER ERROR: ${error.message}`));
 
-    // 1. Provision backend state using gRPC-Web directly
-    // This makes the test fast and robust by avoiding brittle context-menu UI interactions
-    const client = createClient(GatewayService, createGrpcWebTransport({ baseUrl: gatewayUrl }));
+  const API_PORT = process.env.API_PORT || '18789';
+  const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
+  const runId = Date.now().toString();
+  const testNs = `e2e-ns-${runId}`;
+  const testAgent = `e2e-agent-${runId}`;
 
-    await expect(async () => {
-      // Retry creating the namespace until the backend has fully started
-      await client.createNamespace({ name: testNs, recursive: true });
-    }).toPass({ timeout: 60000 });
+  const client = createClient(GatewayService, createGrpcWebTransport({ baseUrl: gatewayUrl }));
 
-    await client.createAgent({
-      ns: testNs,
-      name: testAgent,
-      definition: {
-        source: {
-          case: "customSpec",
-          value: {
-            modelPolicy: {
-              profiles: [
-                {
-                  name: "default",
-                  model: { provider: "mock", name: "minimax", temperature: 0.7 },
-                },
-              ],
-            },
-            systemPrompt: "Stream me",
-            mcpServerRefs: []
-          }
+  await expect(async () => {
+    await client.createNamespace({ name: testNs, recursive: true });
+  }).toPass({ timeout: 60000 });
+
+  await client.createAgent({
+    ns: testNs,
+    name: testAgent,
+    definition: {
+      source: {
+        case: "customSpec",
+        value: {
+          modelPolicy: {
+            profiles: [
+              {
+                name: "default",
+                model: { provider: "mock", name: "minimax", temperature: 0.7 },
+              },
+            ],
+          },
+          systemPrompt: "Stream me",
+          mcpServerRefs: []
         }
       }
-    });
+    }
+  });
 
-    const sessionRes = await client.createSession({
-      ns: testNs,
-      agent: testAgent
-    });
-    const sessionId = sessionRes.sessionId;
+  const sessionRes = await client.createSession({
+    ns: testNs,
+    agent: testAgent
+  });
 
-    // 2. Visit the page and Connect
-    await page.goto('/');
-    const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
-    const gatewayInput = page.locator('input[type="url"]');
-    await expect(gatewayInput).toBeVisible();
-    await gatewayInput.fill(gatewayUrl);
-    await connectButton.click();
-    await expect(page.locator('text=Connected')).toBeVisible({ timeout: 15000 });
+  await page.goto('/');
+  const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
+  const gatewayInput = page.locator('input[type="url"]');
+  await expect(gatewayInput).toBeVisible();
+  await gatewayInput.fill(gatewayUrl);
+  await connectButton.click();
+  await expect(page.locator('text=Connected')).toBeVisible({ timeout: 15000 });
 
-    // 3. Navigate to the Session in the Sidebar
-    const nsNode = page.locator('.truncate', { hasText: testNs }).first();
-    await expect(nsNode).toBeVisible({ timeout: 15000 });
-    await nsNode.click(); // Expand Namespace
+  const nsNode = page.locator('.truncate', { hasText: testNs }).first();
+  await expect(nsNode).toBeVisible({ timeout: 15000 });
+  await nsNode.click();
 
-    const agentNode = page.locator('.truncate', { hasText: testAgent }).first();
-    await expect(agentNode).toBeVisible({ timeout: 5000 });
-    await agentNode.click(); // Expand Agent
+  const agentNode = page.locator('.truncate', { hasText: testAgent }).first();
+  await expect(agentNode).toBeVisible({ timeout: 5000 });
+  await agentNode.click();
 
-    // Click on the specific session we created
-    const sessionLink = page.locator('.truncate', { hasText: /AM|PM|Mins|Secs/i }).first();
-    await expect(sessionLink).toBeVisible({ timeout: 5000 });
-    await sessionLink.click();
+  const sessionLink = page.locator('.truncate', { hasText: /AM|PM|Mins|Secs/i }).first();
+  await expect(sessionLink).toBeVisible({ timeout: 5000 });
+  await sessionLink.click();
 
-    // Now we should be in a session chat
-    await expect(page.locator('text=Talon runtime initialized.')).toBeVisible({ timeout: 5000 });
+  const chatInput = page.locator('textarea[placeholder="Ask Talon to perform a task..."]');
+  await expect(chatInput).toBeVisible({ timeout: 5000 });
 
-    // 4. Send a message that triggers the mock LLM streaming response
-    const chatInput = page.locator('textarea[placeholder="Ask Talon to perform a task..."]');
+  return { chatInput, sessionId: sessionRes.sessionId, gatewayUrl };
+}
+
+test.describe('Chat Streaming', () => {
+  test('should send chat messages through the gateway UI transport', async ({ page }) => {
+    const { chatInput } = await provisionSession(page);
     await chatInput.click();
     await page.keyboard.type('square root of 144');
     await page.waitForTimeout(1000);
     await chatInput.press('Enter');
+    await page.waitForTimeout(3000);
 
     // 5. Verify the streaming sequence
-    // Check for the Thinking status first
-    await expect(page.locator('text=⏳ Thinking...')).toBeVisible({ timeout: 10000 });
-    
-    // Wait for the final text from the stream
-    await expect(page.locator('text=The square root of 144 is 12.')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('square root of 144', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('The square root of 144 is 12.', { exact: true })).toBeVisible({ timeout: 30000 });
+  });
+
+  test('should render tool calls live without reloading the page', async ({ page }) => {
+    const { chatInput } = await provisionSession(page);
+
+    await chatInput.click();
+    await page.keyboard.type('lookup talon.impala.systems');
+    await chatInput.press('Enter');
+
+    await expect(page.getByText('lookup talon.impala.systems', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: 'Ran 1 tool' })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('⏳ Calling knowledge_search')).toBeVisible({ timeout: 10000 });
+
+    await page.getByRole('button', { name: 'Ran 1 tool' }).click();
+    await expect(page.getByText('Tool:')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('knowledge_search', { exact: true })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('I checked knowledge_search for talon.impala.systems.', { exact: true })).toBeVisible({ timeout: 30000 });
   });
 });
