@@ -54,6 +54,8 @@ jobs:
           file: dockerfiles/oss-runtime.Dockerfile
           push: false
           load: false
+          cache-from: type=gha,scope=talon-runtime-image
+          cache-to: type=gha,mode=max,scope=talon-runtime-image
 
   envoy_image:
     name: Envoy Image
@@ -85,6 +87,8 @@ jobs:
           file: dockerfiles/envoy-cloudrun.Dockerfile
           push: false
           load: false
+          cache-from: type=gha,scope=talon-envoy-image
+          cache-to: type=gha,mode=max,scope=talon-envoy-image
 
   ui:
     name: UI
@@ -122,5 +126,7 @@ jobs:
           file: dockerfiles/oss-ui.Dockerfile
           push: false
           load: false
+          cache-from: type=gha,scope=talon-ui-image
+          cache-to: type=gha,mode=max,scope=talon-ui-image
           build-args: |
             NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789

@@ -10,7 +10,8 @@ WORKDIR /repo/ui
 
 COPY ui/package.json ./
 COPY ui/pnpm-lock.yaml ./pnpm-lock.yaml
-RUN pnpm install --frozen-lockfile --config.node-linker=hoisted
+RUN --mount=type=cache,target=/pnpm/store \
+    pnpm install --frozen-lockfile --config.node-linker=hoisted
 
 FROM deps AS builder
 

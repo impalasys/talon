@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-FROM rust:1.91.1-slim AS builder
+FROM rust:1.91.1-slim AS chef
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
@@ -8,15 +8,36 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
 
+RUN cargo install cargo-chef --locked
+
 WORKDIR /usr/src/talon
 
+FROM chef AS planner
+
 COPY Cargo.toml Cargo.lock build.rs ./
+COPY third_party ./third_party
 COPY proto ./proto
 COPY src ./src
-COPY third_party ./third_party
 COPY talon.yaml ./talon.yaml
+RUN cargo chef prepare --recipe-path recipe.json
 
-RUN cargo build --release --locked --bins
+FROM chef AS builder
+
+COPY --from=planner /usr/src/talon/recipe.json recipe.json
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/src/talon/target \
+    cargo chef cook --release --recipe-path recipe.json
+
+COPY Cargo.toml Cargo.lock build.rs ./
+COPY third_party ./third_party
+COPY proto ./proto
+COPY src ./src
+COPY talon.yaml ./talon.yaml
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/src/talon/target \
+    cargo build --release --locked --bins
 
 FROM debian:bookworm-slim
 
