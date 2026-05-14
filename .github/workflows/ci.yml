@@ -186,3 +186,51 @@ jobs:
           path: |
             ui/playwright-report
             ui/test-results
+
+  dispatch_monorepo_import:
+    name: Dispatch Monorepo Import
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs:
+      - cargo
+      - runtime_image
+      - envoy_image
+      - ui
+      - ui_e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Select dispatch token
+        id: token
+        env:
+          MONOREPO_DISPATCH_TOKEN: ${{ secrets.MONOREPO_DISPATCH_TOKEN }}
+          COPYBARA_GITHUB_TOKEN: ${{ secrets.COPYBARA_GITHUB_TOKEN }}
+        run: |
+          token="${MONOREPO_DISPATCH_TOKEN}"
+          if [[ -z "${token}" ]]; then
+            token="${COPYBARA_GITHUB_TOKEN}"
+          fi
+          if [[ -z "${token}" ]]; then
+            echo "No monorepo dispatch token configured." >&2
+            exit 1
+          fi
+          echo "::add-mask::${token}"
+          echo "value=${token}" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch Talon import to monorepo
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.value }}
+        run: |
+          curl -fsSL -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/impalasys/code/dispatches \
+            -d @- <<'EOF'
+          {
+            "event_type": "talon_public_main_updated",
+            "client_payload": {
+              "public_sha": "${{ github.sha }}",
+              "public_ref": "${{ github.ref }}",
+              "source_repo": "${{ github.repository }}",
+              "workflow": "${{ github.workflow }}"
+            }
+          }
+          EOF
