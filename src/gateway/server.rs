@@ -42,12 +42,6 @@ impl Gateway {
     }
 
     pub fn http_ui_router(&self) -> Router {
-        let cors = tower_http::cors::CorsLayer::new()
-            .allow_origin(tower_http::cors::Any)
-            .allow_headers(tower_http::cors::Any)
-            .allow_methods(tower_http::cors::Any)
-            .expose_headers(tower_http::cors::Any);
-
         Router::new()
             .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
@@ -55,7 +49,6 @@ impl Gateway {
                     .get(crate::gateway::ui::get_chat)
                     .delete(crate::gateway::ui::delete_chat),
             )
-            .layer(cors)
             .with_state(Arc::new(self.clone_internal()))
     }
 
