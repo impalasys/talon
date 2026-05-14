@@ -1,3 +1,5 @@
+.env
+talon_gateway_proto-descriptor-set.proto.bin
 target/
 tests/__pycache__/
 ui/.next/

@@ -41,7 +41,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cp /usr/src/talon/target/release/talon-worker /usr/src/talon/dist/talon-worker && \
     cp /usr/src/talon/target/release/talon-cli /usr/src/talon/dist/talon-cli
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \

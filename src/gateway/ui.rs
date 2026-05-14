@@ -132,20 +132,15 @@ fn extract_tool_step_payload(step: &events::SessionStepEvent) -> Option<ToolStep
     })
 }
 
-async fn fetch_latest_tool_step(
-    gateway: &Arc<Gateway>,
-    headers: &HeaderMap,
-    path: &SessionPath,
-    step_type: i32,
-) -> Result<Option<ToolStepPayload>, Response> {
-    let response = fetch_session(gateway, headers, path).await?;
-
-    Ok(response
-        .steps
-        .iter()
+fn latest_tool_step_payload<'a, I>(steps: I, step_type: i32) -> Option<ToolStepPayload>
+where
+    I: IntoIterator<Item = &'a events::SessionStepEvent>,
+    I::IntoIter: DoubleEndedIterator,
+{
+    steps.into_iter()
         .rev()
         .find(|step| step.step_type == step_type)
-        .and_then(extract_tool_step_payload))
+        .and_then(extract_tool_step_payload)
 }
 
 async fn fetch_session(
@@ -254,7 +249,7 @@ pub async fn post_chat(
                 }
             };
 
-            for step in &response.steps {
+            for (step_idx, step) in response.steps.iter().enumerate() {
                 let dedup_key = step_dedup_key(step);
                 if !seen_steps.insert(dedup_key) {
                     continue;
@@ -282,12 +277,10 @@ pub async fn post_chat(
                 } else if step.step_type == StepType::Action as i32 {
                     let payload = match extract_tool_step_payload(step) {
                         Some(payload) => Some(payload),
-                        None => fetch_latest_tool_step(
-                            &gateway_for_stream,
-                            &headers_for_stream,
-                            &path_for_stream,
+                        None => latest_tool_step_payload(
+                            response.steps[..=step_idx].iter(),
                             StepType::Action as i32,
-                        ).await.ok().flatten(),
+                        ),
                     };
                     let tool_call_id = payload
                         .as_ref()
@@ -309,12 +302,10 @@ pub async fn post_chat(
                 } else if step.step_type == StepType::Observation as i32 {
                     let payload = match extract_tool_step_payload(step) {
                         Some(payload) => Some(payload),
-                        None => fetch_latest_tool_step(
-                            &gateway_for_stream,
-                            &headers_for_stream,
-                            &path_for_stream,
+                        None => latest_tool_step_payload(
+                            response.steps[..=step_idx].iter(),
                             StepType::Observation as i32,
-                        ).await.ok().flatten(),
+                        ),
                     };
                     if let Some(payload) = payload {
                         yield Ok::<_, Infallible>(data_stream_line("a", json!({
@@ -400,12 +391,10 @@ pub async fn get_chat(
         Err(status) => return map_status(status),
     };
 
-    let gateway_for_stream = gateway.clone();
-    let headers_for_stream = headers.clone();
-    let path_for_stream = path;
-
     let stream = async_stream::stream! {
         let mut steps = response.into_inner();
+        let mut latest_action_payload: Option<ToolStepPayload> = None;
+        let mut latest_observation_payload: Option<ToolStepPayload> = None;
         while let Some(step_result) = steps.next().await {
             let step = match step_result {
                 Ok(step) => step,
@@ -421,13 +410,11 @@ pub async fn get_chat(
                 }
             } else if step.step_type == StepType::Action as i32 {
                 let payload = match extract_tool_step_payload(&step) {
-                    Some(payload) => Some(payload),
-                    None => fetch_latest_tool_step(
-                        &gateway_for_stream,
-                        &headers_for_stream,
-                        &path_for_stream,
-                        StepType::Action as i32,
-                    ).await.ok().flatten(),
+                    Some(payload) => {
+                        latest_action_payload = Some(payload.clone());
+                        Some(payload)
+                    }
+                    None => latest_action_payload.clone(),
                 };
                 let tool_call_id = payload
                     .as_ref()
@@ -451,13 +438,11 @@ pub async fn get_chat(
                 })));
             } else if step.step_type == StepType::Observation as i32 {
                 let payload = match extract_tool_step_payload(&step) {
-                    Some(payload) => Some(payload),
-                    None => fetch_latest_tool_step(
-                        &gateway_for_stream,
-                        &headers_for_stream,
-                        &path_for_stream,
-                        StepType::Observation as i32,
-                    ).await.ok().flatten(),
+                    Some(payload) => {
+                        latest_observation_payload = Some(payload.clone());
+                        Some(payload)
+                    }
+                    None => latest_observation_payload.clone(),
                 };
                 if let Some(payload) = payload {
                     yield Ok::<_, Infallible>(ndjson_line(json!({

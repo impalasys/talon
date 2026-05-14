@@ -1,8 +1,8 @@
 services:
   gateway:
-    build: 
+    build:
       context: .
-      dockerfile: dockerfiles/talon.Dockerfile
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
     command: ["talon-server"]
     environment:
       - RUST_LOG=${RUST_LOG:-info}
@@ -16,23 +16,25 @@ services:
       - CEREBRAS_API_KEY
       - NOVITA_API_KEY
       - ANTHROPIC_API_KEY
+      - GATEWAY_UI_ADDR=0.0.0.0:50052
     env_file:
       - .env
     ports:
       - "50051:50051"
+      - "50052:50052"
     depends_on:
       - postgres
       - pubsub
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:50051 || exit 1"]
+      test: ["CMD-SHELL", "status=$$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{}' http://localhost:50052/v1/ui/ns/health/agents/health/sessions/health); [ \"$$status\" = \"400\" ] || [ \"$$status\" = \"422\" ]"]
       interval: 5s
       timeout: 5s
       retries: 12
 
   worker:
-    build: 
+    build:
       context: .
-      dockerfile: dockerfiles/talon.Dockerfile
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
     command: ["talon-worker"]
     environment:
       - RUST_LOG=${RUST_LOG:-info}
@@ -71,9 +73,9 @@ services:
       retries: 5
 
   init-manifests:
-    build: 
+    build:
       context: .
-      dockerfile: ./dockerfiles/talon.Dockerfile
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
     depends_on:
       gateway:
         condition: service_healthy
@@ -113,10 +115,13 @@ services:
 
   ui:
     build:
-      context: ..
-      dockerfile: talon/dockerfiles/ui.Dockerfile
+      context: .
+      dockerfile: dockerfiles/oss-ui.Dockerfile
+      args:
+        NEXT_PUBLIC_GATEWAY_URL: http://localhost:18789
     environment:
       - NODE_ENV=production
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789
     depends_on:
       - gateway
       - envoy
