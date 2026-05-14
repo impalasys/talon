@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useRef, useEffect, useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useChat } from '@ai-sdk/react';
 import { dump } from 'js-yaml';
 import { 
   Terminal, 
@@ -30,8 +29,6 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
 import { updateGatewayClient, getGatewayClient, buildGatewayHeaders, normalizeGatewayUrl } from '../lib/grpc';
-
-import { Streamdown } from 'streamdown';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -498,6 +495,14 @@ function normalizeMessageRole(role: unknown): 'user' | 'assistant' | 'system' {
   return 'assistant';
 }
 
+function isPlaceholderBootMessage(messages: any[]) {
+  return (
+    messages.length === 1 &&
+    messages[0]?.role === 'system' &&
+    getMessageContent(messages[0]) === 'Talon runtime initialized.'
+  );
+}
+
 function isActionStep(stepType: unknown): boolean {
   return stepType === 2 || stepType === 'STEP_TYPE_ACTION';
 }
@@ -771,40 +776,65 @@ function DebuggerPageContent() {
   const [resourceDocument, setResourceDocument] = useState<any | null>(null);
   const [resourceLoading, setResourceLoading] = useState(false);
   const [resourceError, setResourceError] = useState<string | null>(null);
-
-  const { messages, input, setInput, handleInputChange, append, setMessages, isLoading, data, stop } = useChat({
-    api: '/api/chat',
-    fetch: async (input, init) => {
-      if (!init?.body || typeof init.body !== 'string') {
-        return fetch(input, init);
-      }
-
-      let parsedBody: any = null;
-      try {
-        parsedBody = JSON.parse(init.body);
-      } catch {
-        return fetch(input, init);
-      }
-
-      const targetGatewayUrl = parsedBody?.gatewayUrl;
-      const ns = parsedBody?.ns;
-      const agent = parsedBody?.agent;
-      const sessionId = parsedBody?.sessionId;
-      if (!targetGatewayUrl || !ns || !agent || !sessionId) {
-        return fetch(input, init);
-      }
-
-      return fetch(buildGatewayChatUiUrl(targetGatewayUrl, ns, agent, sessionId), init);
+  const [messages, setMessages] = useState<any[]>([
+    { id: '1', role: 'system', content: 'Talon runtime initialized.' },
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const handleInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
+      setInput(event.target.value);
     },
-    initialMessages: [{ id: '1', role: 'system', content: 'Talon runtime initialized.' }]
-  });
-
+    [],
+  );
+  const stop = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
+  }, []);
   // Track the active session so the explorer can refresh
   const [activeSession, setActiveSession] = useState<{ ns: string; agent: string; sessionId: string } | null>(null);
+  const activeSessionRef = useRef<{ ns: string; agent: string; sessionId: string } | null>(null);
+  const gatewayUrlRef = useRef('');
+  const authTokenRef = useRef('');
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const [storageHydrated, setStorageHydrated] = useState(false);
   const lastSyncedQueryRef = useRef<string | null>(null);
+
+  const loadSessionState = useCallback(async (
+    session: { ns: string; agent: string; sessionId: string },
+    options?: { preserveExistingMessages?: boolean },
+  ) => {
+    const response = await fetch(`${gatewayUrlRef.current}/v1/ns/${session.ns}/agents/${session.agent}/sessions/${session.sessionId}`, {
+      headers: authTokenRef.current ? {
+        'Authorization': `Basic ${btoa(`:${authTokenRef.current}`)}`
+      } : undefined
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to load session: ${response.status}`);
+    }
+
+    const res = await response.json();
+    const hydratedMessages = hydrateMessagesWithSteps((res.messages || []).map((m: any) => ({
+      id: m.id || Math.random().toString(),
+      role: normalizeMessageRole(m.role),
+      content: m.content,
+      createdAt: m.createdAt ?? m.created_at,
+    })), res.steps);
+
+    setMessages(prev => {
+      if (options?.preserveExistingMessages && !isPlaceholderBootMessage(prev)) {
+        return prev;
+      }
+      return hydratedMessages;
+    });
+    setStreamEvents([]);
+    setActiveSession(session);
+    return res;
+  }, []);
 
   const handleSelectionChange = useCallback(
     (selection: Selection | null, historyMode: 'push' | 'replace' = 'push') => {
@@ -829,8 +859,16 @@ function DebuggerPageContent() {
   }, []);
 
   useEffect(() => {
-    setStreamEvents(extractStreamEvents(data));
-  }, [data]);
+    activeSessionRef.current = activeSession;
+  }, [activeSession]);
+
+  useEffect(() => {
+    gatewayUrlRef.current = gatewayUrl.trim();
+  }, [gatewayUrl]);
+
+  useEffect(() => {
+    authTokenRef.current = authToken.trim();
+  }, [authToken]);
 
   useEffect(() => {
     if (!storageHydrated) return;
@@ -874,30 +912,13 @@ function DebuggerPageContent() {
   useEffect(() => {
     if (isConnected && selectedNamespace?.type === 'session') {
       setIsSessionLoading(true);
-      fetch(`${gatewayUrl}/v1/ns/${selectedNamespace.ns}/agents/${selectedNamespace.agent!}/sessions/${selectedNamespace.sessionId}`, {
-        headers: authToken ? {
-          'Authorization': `Basic ${btoa(`:${authToken}`)}`
-        } : undefined
+      loadSessionState({ ns: selectedNamespace.ns, agent: selectedNamespace.agent!, sessionId: selectedNamespace.sessionId! }, {
+        preserveExistingMessages: true,
       })
         .then(res => {
-          if (!res.ok) {
-            throw new Error(`Failed to load session: ${res.status}`);
-          }
-          return res.json();
-        })
-        .then(res => {
-          setMessages(hydrateMessagesWithSteps((res.messages || []).map((m: any) => ({
-            id: m.id || Math.random().toString(),
-            role: normalizeMessageRole(m.role),
-            content: m.content,
-            createdAt: m.createdAt ?? m.created_at,
-          })), res.steps));
-          setStreamEvents([]);
-          setActiveSession({ ns: selectedNamespace.ns, agent: selectedNamespace.agent!, sessionId: selectedNamespace.sessionId! });
           setIsSessionLoading(false);
-
           if (res.state === 'PROCESSING') {
-             resumeStream(selectedNamespace.ns, selectedNamespace.agent!, selectedNamespace.sessionId!);
+            resumeStream(selectedNamespace.ns, selectedNamespace.agent!, selectedNamespace.sessionId!);
           }
         })
         .catch(err => {
@@ -909,7 +930,7 @@ function DebuggerPageContent() {
       setStreamEvents([]);
       setMessages([{ id: '1', role: 'system', content: 'Talon runtime initialized.' }]);
     }
-  }, [isConnected, selectedNamespace]);
+  }, [isConnected, loadSessionState, selectedNamespace]);
 
   useEffect(() => {
     if (!isConnected || !selectedNamespace || selectedNamespace.type === 'session') {
@@ -1109,44 +1130,134 @@ function DebuggerPageContent() {
     setStreamEvents([]);
 
     try {
-      let ns: string;
-      let agent: string;
-      let sessionId: string;
+      let session = activeSession;
 
-      if (activeSession) {
-        // Already tracking a session — send directly
-        ({ ns, agent, sessionId } = activeSession);
-      } else if (selectedNamespace?.type === 'session') {
-        // Session node selected but activeSession not hydrated yet (async effect race)
-        ns = selectedNamespace.ns;
-        agent = selectedNamespace.agent!;
-        sessionId = selectedNamespace.sessionId!;
-        setActiveSession({ ns, agent, sessionId });
-      } else if (selectedNamespace?.type === 'agent') {
-        // Agent selected — create a new session first
-        ns = selectedNamespace.ns;
-        agent = selectedNamespace.agent!;
+      if (!session && selectedNamespace?.type === 'session') {
+        session = {
+          ns: selectedNamespace.ns,
+          agent: selectedNamespace.agent!,
+          sessionId: selectedNamespace.sessionId!,
+        };
+        setActiveSession(session);
+      } else if (!session && selectedNamespace?.type === 'agent') {
+        const ns = selectedNamespace.ns;
+        const agent = selectedNamespace.agent!;
         const sessionRes = await getGatewayClient().createSession({ ns, agent });
-        sessionId = sessionRes.sessionId;
-        setActiveSession({ ns, agent, sessionId });
-      } else {
+        session = { ns, agent, sessionId: sessionRes.sessionId };
+        setActiveSession(session);
+      }
+
+      if (!session) {
         throw new Error('Select an agent or session before sending a message.');
       }
 
-      const appendOptions: any = { body: { ns, agent, sessionId, gatewayUrl } };
-      if (authToken) {
-        appendOptions.headers = { 'Authorization': `Basic ${btoa(`:${authToken}`)}` };
+      activeSessionRef.current = session;
+
+      const userMessage = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content: text,
+        parts: [{ type: 'text', text }],
+        createdAt: String(Date.now() * 1000),
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setIsLoading(true);
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (authTokenRef.current) {
+        headers['Authorization'] = `Basic ${btoa(`:${authTokenRef.current}`)}`;
       }
 
-      await append(
-        { role: 'user', content: text, createdAt: String(Date.now() * 1000) } as any,
-        appendOptions
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      const response = await globalThis.fetch(
+        buildGatewayChatUiUrl(gatewayUrlRef.current, session.ns, session.agent, session.sessionId),
+        {
+          method: 'POST',
+          headers,
+          signal: controller.signal,
+          body: JSON.stringify({
+            messages: [...messages, userMessage].map((message: any) => ({
+              role: message.role,
+              content: getMessageContent(message),
+              parts: Array.isArray(message.parts)
+                ? message.parts
+                : [{ type: 'text', text: getMessageContent(message) }],
+            })),
+          }),
+        },
       );
+      if (!response.ok) {
+        throw new Error(`Failed to send message: ${response.status}`);
+      }
+
+      const payload = await response.text();
+      let assistantText = '';
+      const nextStreamEvents: StreamEventItem[] = [];
+      for (const line of payload.split('\n')) {
+        if (!line) continue;
+        const separatorIndex = line.indexOf(':');
+        if (separatorIndex < 0) continue;
+
+        const code = line.slice(0, separatorIndex);
+        let part: any;
+        try {
+          part = JSON.parse(line.slice(separatorIndex + 1));
+        } catch {
+          continue;
+        }
+
+        if (code === '0' && typeof part === 'string') {
+          assistantText += part;
+        } else if (code === '9') {
+          nextStreamEvents.push({
+            type: 'tool_call',
+            content: typeof part?.toolName === 'string' ? part.toolName : 'tool',
+            name: part?.toolName,
+            payload: part,
+          });
+        } else if (code === 'a') {
+          nextStreamEvents.push({
+            type: 'tool_result',
+            content: typeof part?.toolCallId === 'string' ? part.toolCallId : 'tool_result',
+            payload: part,
+          });
+        } else if (code === '3') {
+          throw new Error(typeof part === 'string' ? part : 'Stream error');
+        }
+      }
+
+      setStreamEvents(nextStreamEvents);
+      if (assistantText) {
+        setMessages(prev => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            content: assistantText,
+            parts: [{ type: 'text', text: assistantText }],
+          },
+        ]);
+      } else {
+        for (let attempt = 0; attempt < 20; attempt++) {
+          const sessionState = await loadSessionState(session);
+          if (sessionState.state !== 'PROCESSING') {
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 250));
+        }
+      }
     } catch (err: any) {
       console.error("Submit Error:", err);
-      setError(err);
+      setError(err instanceof Error ? err : new Error(String(err)));
+    } finally {
+      abortControllerRef.current = null;
+      setIsLoading(false);
     }
-  }, [isLoading, activeSession, selectedNamespace, append, gatewayUrl, authToken, setInput]);
+  }, [isLoading, activeSession, loadSessionState, selectedNamespace, messages]);
 
   const handleSubmitForm = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1416,13 +1527,7 @@ function DebuggerPageContent() {
                             "min-w-0 overflow-hidden break-words text-[14px] leading-relaxed text-foreground/90 [overflow-wrap:anywhere] [&_code]:break-words [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:break-words",
                             m.role === 'system' && "font-mono text-[12px] text-muted-foreground"
                           )}>
-                            {m.role === 'assistant' ? (
-                              <Streamdown mode={isLoading && messages[messages.length - 1]?.id === m.id ? "streaming" : "static"}>
-                                {content}
-                              </Streamdown>
-                            ) : (
-                              <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{content}</div>
-                            )}
+                            <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{content}</div>
                           </div>
                         </div>
                       </motion.div>

@@ -2,15 +2,16 @@ use crate::control::events::{self, StepType};
 use crate::gateway::rpc::{proto, GrpcGatewayHandler};
 use crate::gateway::Gateway;
 use axum::extract::{Path, State};
-use axum::http::{header, HeaderMap, HeaderName, HeaderValue, StatusCode};
-use axum::response::sse::{Event, KeepAlive, Sse};
+use axum::http::{header, HeaderMap, HeaderName, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
 use futures::StreamExt;
 use serde::Deserialize;
 use serde_json::{json, Value};
+use std::collections::HashSet;
 use std::convert::Infallible;
 use std::sync::Arc;
+use std::time::Duration;
 use tonic::metadata::MetadataValue;
 use uuid::Uuid;
 
@@ -137,6 +138,21 @@ async fn fetch_latest_tool_step(
     path: &SessionPath,
     step_type: i32,
 ) -> Result<Option<ToolStepPayload>, Response> {
+    let response = fetch_session(gateway, headers, path).await?;
+
+    Ok(response
+        .steps
+        .iter()
+        .rev()
+        .find(|step| step.step_type == step_type)
+        .and_then(extract_tool_step_payload))
+}
+
+async fn fetch_session(
+    gateway: &Arc<Gateway>,
+    headers: &HeaderMap,
+    path: &SessionPath,
+) -> Result<proto::SessionResponse, Response> {
     let request = tonic_request(
         headers,
         proto::GetSessionRequest {
@@ -151,20 +167,31 @@ async fn fetch_latest_tool_step(
         .map_err(map_status)?
         .into_inner();
 
-    Ok(response
-        .steps
-        .iter()
-        .rev()
-        .find(|step| step.step_type == step_type)
-        .and_then(extract_tool_step_payload))
+    Ok(response)
 }
 
-fn sse_json(value: Value) -> Result<Event, Infallible> {
-    Ok(Event::default().data(value.to_string()))
+fn latest_assistant_message_text(response: &proto::SessionResponse) -> Option<String> {
+    response
+        .messages
+        .iter()
+        .rev()
+        .find(|message| message.role == 2 && !message.content.trim().is_empty())
+        .map(|message| message.content.clone())
 }
 
 fn ndjson_line(value: Value) -> Vec<u8> {
     format!("{}\n", value).into_bytes()
+}
+
+fn data_stream_line(code: &str, value: Value) -> Vec<u8> {
+    format!("{code}:{}\n", value).into_bytes()
+}
+
+fn step_dedup_key(step: &events::SessionStepEvent) -> String {
+    format!(
+        "{}:{}:{}:{}:{}",
+        step.message_id, step.timestamp, step.step_type, step.name, step.content
+    )
 }
 
 pub async fn post_chat(
@@ -177,7 +204,7 @@ pub async fn post_chat(
         return response_with_status(StatusCode::BAD_REQUEST, "message content is required");
     };
 
-    let request = match tonic_request(
+    let send_request = match tonic_request(
         &headers,
         proto::SendMessageRequest {
             ns: path.ns.clone(),
@@ -191,162 +218,161 @@ pub async fn post_chat(
         Err(response) => return response,
     };
 
-    if let Err(status) = gateway_handler(&gateway).handle_send_message(request).await {
+    let baseline_seen_steps = fetch_session(&gateway, &headers, &path)
+        .await
+        .map(|response| {
+            response
+                .steps
+                .iter()
+                .map(step_dedup_key)
+                .collect::<HashSet<_>>()
+        })
+        .unwrap_or_default();
+
+    if let Err(status) = gateway_handler(&gateway)
+        .handle_send_message(send_request)
+        .await
+    {
         return map_status(status);
     }
 
     let gateway_for_stream = gateway.clone();
     let headers_for_stream = headers.clone();
     let path_for_stream = path;
-    let message_id = Uuid::now_v7().to_string();
-    let text_part_id = Uuid::now_v7().to_string();
-
     let stream = async_stream::stream! {
-        yield sse_json(json!({ "type": "start", "messageId": message_id.clone() }));
-        yield sse_json(json!({ "type": "start-step" }));
+        let mut started_step = false;
+        let mut started_message_id: Option<String> = None;
+        let mut emitted_any_text = false;
+        let mut seen_steps = baseline_seen_steps;
 
-        let request = match tonic_request(
-            &headers_for_stream,
-            proto::StreamSessionStepsRequest {
-                ns: path_for_stream.ns.clone(),
-                agent: path_for_stream.agent.clone(),
-                session_id: path_for_stream.session_id.clone(),
-            },
-        ) {
-            Ok(request) => request,
-            Err(response) => {
-                let body = format!("{:?}", response);
-                yield sse_json(json!({ "type": "error", "errorText": body }));
-                yield sse_json(json!({ "type": "finish-step" }));
-                yield sse_json(json!({ "type": "finish" }));
-                yield Ok(Event::default().data("[DONE]"));
-                return;
-            }
-        };
-
-        let response = match gateway_handler(&gateway_for_stream).handle_stream_session_steps(request).await {
-            Ok(response) => response,
-            Err(status) => {
-                yield sse_json(json!({ "type": "error", "errorText": status.message() }));
-                yield sse_json(json!({ "type": "finish-step" }));
-                yield sse_json(json!({ "type": "finish" }));
-                yield Ok(Event::default().data("[DONE]"));
-                return;
-            }
-        };
-
-        let mut steps = response.into_inner();
-        let mut text_started = false;
-
-        while let Some(step_result) = steps.next().await {
-            let step = match step_result {
-                Ok(step) => step,
-                Err(status) => {
-                    yield sse_json(json!({ "type": "error", "errorText": status.message() }));
-                    break;
+        for _ in 0..300 {
+            let response = match fetch_session(&gateway_for_stream, &headers_for_stream, &path_for_stream).await {
+                Ok(response) => response,
+                Err(_) => {
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                    continue;
                 }
             };
 
-            if step.step_type == StepType::Token as i32 {
-                if step.content.is_empty() {
+            for step in &response.steps {
+                let dedup_key = step_dedup_key(step);
+                if !seen_steps.insert(dedup_key) {
                     continue;
                 }
-                if !text_started {
-                    text_started = true;
-                    yield sse_json(json!({ "type": "text-start", "id": text_part_id }));
+
+                if !started_step {
+                    let message_id = if step.message_id.is_empty() {
+                        Uuid::now_v7().to_string()
+                    } else {
+                        step.message_id.clone()
+                    };
+                    started_message_id = Some(message_id.clone());
+                    started_step = true;
+                    yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));
+                } else if started_message_id.as_deref() != Some(step.message_id.as_str()) && !step.message_id.is_empty() {
+                    started_message_id = Some(step.message_id.clone());
+                    yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": step.message_id })));
                 }
-                yield sse_json(json!({ "type": "text-delta", "id": text_part_id, "delta": step.content }));
-            } else if step.step_type == StepType::Action as i32 {
-                let payload = match extract_tool_step_payload(&step) {
-                    Some(payload) => Some(payload),
-                    None => match fetch_latest_tool_step(
-                        &gateway_for_stream,
-                        &headers_for_stream,
-                        &path_for_stream,
-                        StepType::Action as i32,
-                    ).await {
-                        Ok(payload) => payload,
-                        Err(response) => {
-                            yield sse_json(json!({ "type": "error", "errorText": format!("{:?}", response) }));
-                            None
-                        }
+
+                if step.step_type == StepType::Token as i32 {
+                    if !step.content.is_empty() {
+                        emitted_any_text = true;
+                        yield Ok::<_, Infallible>(data_stream_line("0", json!(step.content)));
                     }
-                };
-
-                let tool_call_id = payload
-                    .as_ref()
-                    .map(|payload| payload.tool_call_id.clone())
-                    .unwrap_or_else(|| format!("tool-{}", Uuid::now_v7()));
-                let tool_name = payload
-                    .as_ref()
-                    .map(|payload| payload.tool_name.clone())
-                    .unwrap_or_else(|| if step.name.is_empty() { "tool".to_string() } else { step.name.clone() });
-                let args = payload
-                    .as_ref()
-                    .map(|payload| payload.args.clone())
-                    .unwrap_or_else(|| json!({}));
-
-                yield sse_json(json!({
-                    "type": "tool-input-available",
-                    "toolCallId": tool_call_id,
-                    "toolName": tool_name,
-                    "input": args,
-                    "dynamic": true
-                }));
-            } else if step.step_type == StepType::Observation as i32 {
-                let payload = match extract_tool_step_payload(&step) {
-                    Some(payload) => Some(payload),
-                    None => match fetch_latest_tool_step(
-                        &gateway_for_stream,
-                        &headers_for_stream,
-                        &path_for_stream,
-                        StepType::Observation as i32,
-                    ).await {
-                        Ok(payload) => payload,
-                        Err(response) => {
-                            yield sse_json(json!({ "type": "error", "errorText": format!("{:?}", response) }));
-                            None
-                        }
+                } else if step.step_type == StepType::Action as i32 {
+                    let payload = match extract_tool_step_payload(step) {
+                        Some(payload) => Some(payload),
+                        None => fetch_latest_tool_step(
+                            &gateway_for_stream,
+                            &headers_for_stream,
+                            &path_for_stream,
+                            StepType::Action as i32,
+                        ).await.ok().flatten(),
+                    };
+                    let tool_call_id = payload
+                        .as_ref()
+                        .map(|payload| payload.tool_call_id.clone())
+                        .unwrap_or_else(|| format!("tool-{}", Uuid::now_v7()));
+                    let tool_name = payload
+                        .as_ref()
+                        .map(|payload| payload.tool_name.clone())
+                        .unwrap_or_else(|| if step.name.is_empty() { "tool".to_string() } else { step.name.clone() });
+                    let args = payload
+                        .as_ref()
+                        .map(|payload| payload.args.clone())
+                        .unwrap_or_else(|| json!({}));
+                    yield Ok::<_, Infallible>(data_stream_line("9", json!({
+                        "toolCallId": tool_call_id,
+                        "toolName": tool_name,
+                        "args": args
+                    })));
+                } else if step.step_type == StepType::Observation as i32 {
+                    let payload = match extract_tool_step_payload(step) {
+                        Some(payload) => Some(payload),
+                        None => fetch_latest_tool_step(
+                            &gateway_for_stream,
+                            &headers_for_stream,
+                            &path_for_stream,
+                            StepType::Observation as i32,
+                        ).await.ok().flatten(),
+                    };
+                    if let Some(payload) = payload {
+                        yield Ok::<_, Infallible>(data_stream_line("a", json!({
+                            "toolCallId": payload.tool_call_id,
+                            "result": payload.result
+                        })));
                     }
-                };
-
-                if let Some(payload) = payload {
-                    yield sse_json(json!({
-                        "type": "tool-output-available",
-                        "toolCallId": payload.tool_call_id,
-                        "output": payload.result,
-                        "dynamic": true
-                    }));
+                } else if step.step_type == StepType::Error as i32 {
+                    let error_text = if step.content.is_empty() {
+                        "Stream error".to_string()
+                    } else {
+                        step.content.clone()
+                    };
+                    yield Ok::<_, Infallible>(data_stream_line("3", json!(error_text)));
+                    return;
                 }
-            } else if step.step_type == StepType::Done as i32 {
-                break;
-            } else if step.step_type == StepType::Error as i32 {
-                let error_text = if step.content.is_empty() {
-                    "Stream error".to_string()
-                } else {
-                    step.content
-                };
-                yield sse_json(json!({ "type": "error", "errorText": error_text }));
-                break;
             }
+
+            if response.state != "PROCESSING" {
+                if !emitted_any_text {
+                    if let Some(text) = latest_assistant_message_text(&response) {
+                        if !started_step {
+                            let message_id = response
+                                .messages
+                                .iter()
+                                .rev()
+                                .find(|message| message.role == 2)
+                                .map(|message| message.id.clone())
+                                .unwrap_or_else(|| Uuid::now_v7().to_string());
+                            yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));
+                        }
+                        yield Ok::<_, Infallible>(data_stream_line("0", json!(text)));
+                    }
+                }
+                yield Ok::<_, Infallible>(data_stream_line("e", json!({
+                    "finishReason": "stop",
+                    "isContinued": false
+                })));
+                yield Ok::<_, Infallible>(data_stream_line("d", json!({
+                    "finishReason": "stop"
+                })));
+                return;
+            }
+
+            tokio::time::sleep(Duration::from_millis(100)).await;
         }
 
-        if text_started {
-            yield sse_json(json!({ "type": "text-end", "id": text_part_id }));
-        }
-        yield sse_json(json!({ "type": "finish-step" }));
-        yield sse_json(json!({ "type": "finish" }));
-        yield Ok(Event::default().data("[DONE]"));
+        yield Ok::<_, Infallible>(data_stream_line("3", json!("Timed out waiting for assistant response")));
     };
 
-    let mut response = Sse::new(stream)
-        .keep_alive(KeepAlive::default())
-        .into_response();
-    response.headers_mut().insert(
-        HeaderName::from_static("x-vercel-ai-ui-message-stream"),
-        HeaderValue::from_static("v1"),
-    );
-    response
+    (
+        [
+            (header::CONTENT_TYPE, "text/plain; charset=utf-8"),
+            (HeaderName::from_static("x-vercel-ai-data-stream"), "v1"),
+        ],
+        axum::body::Body::from_stream(stream),
+    )
+        .into_response()
 }
 
 pub async fn get_chat(
