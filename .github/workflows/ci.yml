@@ -55,7 +55,7 @@ jobs:
           push: false
           load: false
           cache-from: type=gha,scope=talon-runtime-image
-          cache-to: type=gha,mode=max,scope=talon-runtime-image
+          cache-to: type=gha,mode=min,scope=talon-runtime-image
 
   envoy_image:
     name: Envoy Image
