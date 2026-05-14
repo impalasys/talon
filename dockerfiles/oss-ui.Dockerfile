@@ -17,7 +17,19 @@ FROM deps AS builder
 ARG NEXT_PUBLIC_GATEWAY_URL=""
 ENV NEXT_PUBLIC_GATEWAY_URL=$NEXT_PUBLIC_GATEWAY_URL
 
-COPY ui ./
+COPY ui/app ./app
+COPY ui/components ./components
+COPY ui/lib ./lib
+COPY ui/proto ./proto
+COPY ui/public ./public
+COPY ui/utils ./utils
+COPY ui/global.d.ts ./global.d.ts
+COPY ui/next-env.d.ts ./next-env.d.ts
+COPY ui/next.config.mjs ./next.config.mjs
+COPY ui/postcss.config.mjs ./postcss.config.mjs
+COPY ui/tailgrids.config.json ./tailgrids.config.json
+COPY ui/tsconfig.json ./tsconfig.json
+COPY ui/types.d.ts ./types.d.ts
 RUN pnpm run build
 
 FROM node:22-slim AS runner
@@ -35,7 +47,7 @@ COPY --from=builder /repo/ui/package.json ./package.json
 COPY --from=builder /repo/ui/.next ./.next
 COPY --from=builder /repo/ui/node_modules ./node_modules
 COPY --from=builder /repo/ui/public ./public
-COPY --from=builder /repo/ui/next.config.ts ./next.config.ts
+COPY --from=builder /repo/ui/next.config.mjs ./next.config.mjs
 
 EXPOSE 3000
 
