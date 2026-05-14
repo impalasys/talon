@@ -102,11 +102,11 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
-          cache-dependency-path: .copybara/talon/public/ui/pnpm-lock.yaml
+          cache-dependency-path: ui/pnpm-lock.yaml
 
       - name: Install UI dependencies
         working-directory: ui
-        run: pnpm install --frozen-lockfile --lockfile-dir ../.copybara/talon/public/ui
+        run: pnpm install --frozen-lockfile
 
       - name: Build UI
         working-directory: ui

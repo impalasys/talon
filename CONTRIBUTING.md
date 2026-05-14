@@ -20,7 +20,7 @@ If your change touches the UI, also run:
 
 ```bash
 cd ui
-pnpm install --frozen-lockfile --lockfile-dir ../.copybara/talon/public/ui
+pnpm install --frozen-lockfile
 pnpm build
 ```
 
