@@ -21,7 +21,6 @@ COPY ui/app ./app
 COPY ui/components ./components
 COPY ui/lib ./lib
 COPY ui/proto ./proto
-COPY ui/public ./public
 COPY ui/utils ./utils
 COPY ui/global.d.ts ./global.d.ts
 COPY ui/next-env.d.ts ./next-env.d.ts
@@ -46,7 +45,6 @@ WORKDIR /app/ui
 COPY --from=builder /repo/ui/package.json ./package.json
 COPY --from=builder /repo/ui/.next ./.next
 COPY --from=builder /repo/ui/node_modules ./node_modules
-COPY --from=builder /repo/ui/public ./public
 COPY --from=builder /repo/ui/next.config.mjs ./next.config.mjs
 
 EXPOSE 3000
