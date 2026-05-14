@@ -338,6 +338,9 @@ pub async fn post_chat(
                             yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));
                         }
                         yield Ok::<_, Infallible>(data_stream_line("0", json!(text)));
+                    } else {
+                        tokio::time::sleep(Duration::from_millis(100)).await;
+                        continue;
                     }
                 }
                 yield Ok::<_, Infallible>(data_stream_line("e", json!({

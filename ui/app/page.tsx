@@ -592,11 +592,14 @@ function applyToolInvocationToMessages(
   toolName: string,
   args: unknown,
   result?: unknown,
+  assistantMessageId?: string,
 ) {
-  const lastAssistantIndex = [...messages]
-    .map((message, index) => ({ message, index }))
-    .reverse()
-    .find(({ message }) => message.role === 'assistant')?.index;
+  const lastAssistantIndex = assistantMessageId
+    ? messages.findIndex(message => message.id === assistantMessageId)
+    : [...messages]
+        .map((message, index) => ({ message, index }))
+        .reverse()
+        .find(({ message }) => message.role === 'assistant')?.index;
 
   if (lastAssistantIndex == null) return messages;
 
@@ -622,6 +625,43 @@ function applyToolInvocationToMessages(
     toolInvocations: Array.from(liveInvocations.values()),
   };
   return nextMessages;
+}
+
+function ensureAssistantMessage(messages: any[], messageId: string) {
+  if (messages.some(message => message.id === messageId)) {
+    return messages;
+  }
+  return [
+    ...messages,
+    {
+      id: messageId,
+      role: 'assistant',
+      content: '',
+      parts: [{ type: 'text', text: '' }],
+    },
+  ];
+}
+
+function appendAssistantText(messages: any[], messageId: string, chunk: string) {
+  const existingIndex = messages.findIndex(message => message.id === messageId);
+  const nextMessages = existingIndex >= 0 ? [...messages] : ensureAssistantMessage(messages, messageId);
+  const assistantIndex = existingIndex >= 0 ? existingIndex : nextMessages.findIndex(message => message.id === messageId);
+  const current = nextMessages[assistantIndex];
+  const nextContent = `${getMessageContent(current)}${chunk}`;
+  nextMessages[assistantIndex] = {
+    ...current,
+    content: nextContent,
+    parts: [{ type: 'text', text: nextContent }],
+  };
+  return nextMessages;
+}
+
+function sessionResponseHasAssistantText(response: any): boolean {
+  return Array.isArray(response?.messages) && response.messages.some((message: any) => {
+    return normalizeMessageRole(message?.role) === 'assistant'
+      && typeof message?.content === 'string'
+      && message.content.trim().length > 0;
+  });
 }
 
 function extractStreamEvents(data: unknown): StreamEventItem[] {
@@ -1194,57 +1234,100 @@ function DebuggerPageContent() {
         throw new Error(`Failed to send message: ${response.status}`);
       }
 
-      const payload = await response.text();
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('Gateway response body was empty.');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
       let assistantText = '';
-      const nextStreamEvents: StreamEventItem[] = [];
-      for (const line of payload.split('\n')) {
-        if (!line) continue;
-        const separatorIndex = line.indexOf(':');
-        if (separatorIndex < 0) continue;
+      let assistantMessageId: string | null = null;
 
-        const code = line.slice(0, separatorIndex);
-        let part: any;
-        try {
-          part = JSON.parse(line.slice(separatorIndex + 1));
-        } catch {
-          continue;
-        }
+      const ensureLiveAssistant = (messageId?: string) => {
+        const nextMessageId = messageId || assistantMessageId || crypto.randomUUID();
+        assistantMessageId = nextMessageId;
+        setMessages(prev => ensureAssistantMessage(prev, nextMessageId));
+        return nextMessageId;
+      };
 
-        if (code === '0' && typeof part === 'string') {
-          assistantText += part;
-        } else if (code === '9') {
-          nextStreamEvents.push({
-            type: 'tool_call',
-            content: typeof part?.toolName === 'string' ? part.toolName : 'tool',
-            name: part?.toolName,
-            payload: part,
-          });
-        } else if (code === 'a') {
-          nextStreamEvents.push({
-            type: 'tool_result',
-            content: typeof part?.toolCallId === 'string' ? part.toolCallId : 'tool_result',
-            payload: part,
-          });
-        } else if (code === '3') {
-          throw new Error(typeof part === 'string' ? part : 'Stream error');
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        while (true) {
+          const newlineIndex = buffer.indexOf('\n');
+          if (newlineIndex < 0) break;
+
+          const line = buffer.slice(0, newlineIndex);
+          buffer = buffer.slice(newlineIndex + 1);
+          if (!line) continue;
+
+          const separatorIndex = line.indexOf(':');
+          if (separatorIndex < 0) continue;
+
+          const code = line.slice(0, separatorIndex);
+          let part: any;
+          try {
+            part = JSON.parse(line.slice(separatorIndex + 1));
+          } catch {
+            continue;
+          }
+
+          if (code === 'f' && typeof part?.messageId === 'string' && part.messageId) {
+            ensureLiveAssistant(part.messageId);
+          } else if (code === '0' && typeof part === 'string') {
+            const messageId = ensureLiveAssistant();
+            assistantText += part;
+            setMessages(prev => appendAssistantText(prev, messageId, part));
+          } else if (code === '9') {
+            const messageId = ensureLiveAssistant();
+            setStreamEvents(prev => [
+              ...prev,
+              {
+                type: 'tool_call',
+                content: typeof part?.toolName === 'string' ? part.toolName : 'tool',
+                name: part?.toolName,
+                payload: part,
+              },
+            ]);
+            setMessages(prev => applyToolInvocationToMessages(
+              prev,
+              typeof part?.toolCallId === 'string' ? part.toolCallId : `tool-${crypto.randomUUID()}`,
+              typeof part?.toolName === 'string' ? part.toolName : 'tool',
+              part?.args,
+              undefined,
+              messageId,
+            ));
+          } else if (code === 'a') {
+            const messageId = ensureLiveAssistant();
+            setStreamEvents(prev => [
+              ...prev,
+              {
+                type: 'tool_result',
+                content: typeof part?.toolCallId === 'string' ? part.toolCallId : 'tool_result',
+                payload: part,
+              },
+            ]);
+            setMessages(prev => applyToolInvocationToMessages(
+              prev,
+              typeof part?.toolCallId === 'string' ? part.toolCallId : `tool-${crypto.randomUUID()}`,
+              '',
+              undefined,
+              part?.result,
+              messageId,
+            ));
+          } else if (code === '3') {
+            throw new Error(typeof part === 'string' ? part : 'Stream error');
+          }
         }
       }
 
-      setStreamEvents(nextStreamEvents);
-      if (assistantText) {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: 'assistant',
-            content: assistantText,
-            parts: [{ type: 'text', text: assistantText }],
-          },
-        ]);
-      } else {
-        for (let attempt = 0; attempt < 20; attempt++) {
+      if (!assistantText) {
+        for (let attempt = 0; attempt < 40; attempt++) {
           const sessionState = await loadSessionState(session);
-          if (sessionState.state !== 'PROCESSING') {
+          if (sessionResponseHasAssistantText(sessionState)) {
             break;
           }
           await new Promise(resolve => setTimeout(resolve, 250));
