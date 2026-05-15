@@ -1920,11 +1920,11 @@ mod tests {
         let mut vars = HashMap::new();
         vars.insert(
             "conic_mcp_target_url".to_string(),
-            "https://api.useconic.com/mcp".to_string(),
+            "https://api.example.com/mcp".to_string(),
         );
         let rendered = render_manifest_template("target: {{ vars.conic_mcp_target_url }}\n", &vars)
             .expect("render should succeed");
-        assert_eq!(rendered.trim_end(), "target: https://api.useconic.com/mcp");
+        assert_eq!(rendered.trim_end(), "target: https://api.example.com/mcp");
     }
 
     #[test]

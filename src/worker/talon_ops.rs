@@ -1511,7 +1511,7 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_rejects_unknown_params() {
         let error = parse_talon_ops_policy_from_target(
-            "https://worker.useconic.com/mcp/talon-ops?allowed_prefix=conic&wat=1",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&wat=1",
         )
         .expect_err("unknown params should fail");
 
@@ -1523,7 +1523,7 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_reads_known_params() {
         let policy = parse_talon_ops_policy_from_target(
-            "https://worker.useconic.com/mcp/talon-ops?allowed_prefix=conic&allowed_prefix=conic%3Awks%3A&session_messages=1&step_payloads=0&max_limit=25&max_lookback_s=60",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&allowed_prefix=conic%3Awks%3A&session_messages=1&step_payloads=0&max_limit=25&max_lookback_s=60",
         )
         .expect("policy should parse");
 

@@ -90,16 +90,16 @@ test.describe('Chat Streaming', () => {
     const { chatInput } = await provisionSession(page);
 
     await chatInput.click();
-    await page.keyboard.type('lookup talon.impala.systems');
+    await page.keyboard.type('lookup docs.example.com');
     await chatInput.press('Enter');
 
-    await expect(page.getByText('lookup talon.impala.systems', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('lookup docs.example.com', { exact: true })).toBeVisible({ timeout: 5000 });
     await expect(page.getByRole('button', { name: 'Ran 1 tool' })).toBeVisible({ timeout: 30000 });
     await expect(page.getByText('⏳ Calling knowledge_search')).toBeVisible({ timeout: 10000 });
 
     await page.getByRole('button', { name: 'Ran 1 tool' }).click();
     await expect(page.getByText('Tool:')).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('knowledge_search', { exact: true })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('I checked knowledge_search for talon.impala.systems.', { exact: true })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('I checked knowledge_search for docs.example.com.', { exact: true })).toBeVisible({ timeout: 30000 });
   });
 });

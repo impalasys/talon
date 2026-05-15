@@ -7,7 +7,7 @@ import asyncio
 
 app = FastAPI()
 
-TOOL_TRIGGER = "lookup talon.impala.systems"
+TOOL_TRIGGER = "lookup docs.example.com"
 TOOL_CALL_ID = "call_knowledge_search_1"
 TOOL_NAME = "knowledge_search"
 
@@ -49,7 +49,7 @@ def build_tool_call_response(model):
                             "type": "function",
                             "function": {
                                 "name": TOOL_NAME,
-                                "arguments": json.dumps({"query": "talon.impala.systems"}),
+                                "arguments": json.dumps({"query": "docs.example.com"}),
                             },
                         }
                     ],
@@ -79,7 +79,7 @@ async def stream_tool_call_response(model):
         {
             "index": 0,
             "function": {
-                "arguments": json.dumps({"query": "talon.impala.systems"}),
+                "arguments": json.dumps({"query": "docs.example.com"}),
             },
         },
     ]
@@ -168,7 +168,7 @@ async def chat_completions(request: Request):
     if should_emit_tool_call(messages, tools):
         reply = None
     elif is_tool_followup(messages):
-        reply = "I checked knowledge_search for talon.impala.systems."
+        reply = "I checked knowledge_search for docs.example.com."
     elif "square root of 144" in last_message.lower():
         reply = "The square root of 144 is 12."
     elif "hello" in last_message.lower():

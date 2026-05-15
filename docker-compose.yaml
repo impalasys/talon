@@ -105,7 +105,7 @@ services:
     image: dpage/pgadmin4
     entrypoint: /bin/sh -c "echo 'postgres:5432:*:talon:password' > /tmp/pgpass && chmod 600 /tmp/pgpass && exec /entrypoint.sh"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@impala.systems
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
       - pgadmin-data:/var/lib/pgadmin
