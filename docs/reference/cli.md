@@ -1,0 +1,60 @@
+---
+title: CLI
+sidebar_position: 2
+---
+
+`talon-cli` is the administrative entry point for common control-plane tasks.
+
+## Global flags
+
+- `--gateway`: gRPC gateway address, default `http://localhost:50051`
+- `--password`: basic-auth password
+- `--token`: bearer token
+- `--jwt-secret`: shared JWT secret for short-lived admin tokens
+- `--rest`: use HTTP-transcoded endpoints instead of native gRPC
+
+## Commands
+
+### `knowledge`
+
+Manage namespace knowledge artifacts directly by path.
+
+- `knowledge get`
+- `knowledge set`
+- `knowledge delete`
+- `knowledge sync`
+
+### `apply`
+
+Apply a manifest file, optionally with template variables.
+
+### `render`
+
+Render a manifest file after template substitution in YAML or JSON.
+
+### `get`
+
+Fetch a resource by kind, name, and optional namespace.
+
+### `delete`
+
+Delete a resource by kind, name, and optional namespace.
+
+### `gen`
+
+Generate a TypeScript client SDK from manifest files.
+
+## When to use `--rest`
+
+Use `--rest` when you want to exercise the HTTP-transcoded surface instead of native gRPC.
+
+That is useful for:
+
+- verifying Envoy route behavior
+- debugging HTTP clients
+- matching the public edge surface more closely
+
+## Notes
+
+- The CLI is best thought of as an operator/admin tool, not the only integration surface.
+- For service-to-service integrations, prefer the gateway contracts directly.

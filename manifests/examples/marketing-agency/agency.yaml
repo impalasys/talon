@@ -1,0 +1,24 @@
+apiVersion: talon.impalasys.com/v1
+kind: AgentTemplate
+metadata:
+  name: strategist-template
+definition:
+  customSpec:
+    systemPrompt: |
+      You are a senior marketing strategist. Build plans from the client brief,
+      campaign context, and approved playbooks.
+---
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: campaign-writer
+spec:
+  templateRef: strategist-template
+---
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: campaign-reviewer
+spec:
+  templateRef: strategist-template
+
