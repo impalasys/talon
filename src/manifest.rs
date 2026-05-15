@@ -969,7 +969,7 @@ spec:
   serverRef: talon-ops
   authBroker:
     kind: http_bearer
-    url: https://worker.useconic.com/mcp/talon-ops/auth
+    url: https://worker.example.com/mcp/talon-ops/auth
     cacheTtlSeconds: 3300
     audience: talon-ops
 "#,
@@ -984,7 +984,7 @@ spec:
         assert_eq!(spec.server_ref, "talon-ops");
         let broker = spec.auth_broker.expect("auth broker should exist");
         assert_eq!(broker.kind, "http_bearer");
-        assert_eq!(broker.url, "https://worker.useconic.com/mcp/talon-ops/auth");
+        assert_eq!(broker.url, "https://worker.example.com/mcp/talon-ops/auth");
         assert_eq!(broker.cache_ttl_seconds, 3300);
         assert_eq!(broker.audience, "talon-ops");
     }
