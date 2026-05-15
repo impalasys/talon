@@ -4,7 +4,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-mapfile -d '' files < <(git ls-files -z '*.rs')
+files=()
+while IFS= read -r -d '' file; do
+  files+=("$file")
+done < <(git ls-files -z '*.rs')
 
 if [[ "${#files[@]}" -eq 0 ]]; then
   exit 0
