@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /// Core system namespace for Talon Control Plane resources.
 /// Similar to Kubernetes' `kube-system`, this namespace is strictly for
 /// internal platform logic, template artifacts, and manifests that are globally accessible

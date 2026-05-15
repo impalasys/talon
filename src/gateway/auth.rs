@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Gateway Authentication - token/password auth middleware for the Gateway
 // This file is owned by: Agent 4 (Gateway Auth & Tools)
 

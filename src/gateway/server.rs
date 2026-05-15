@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use crate::control::{scheduler::SchedulerBackend, KeyValueStore, MessagePublisher};
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;

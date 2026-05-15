@@ -58,3 +58,9 @@ docker build -f dockerfiles/envoy-cloudrun.Dockerfile .
 ## License
 
 This repository is licensed under the GNU Affero General Public License v3.0. See `LICENSE`.
+
+## Contributions
+
+External contributions are accepted under the Talon Contributor License
+Agreement in `CLA.md`. Rust source files use the repository's standard copyright
+and SPDX header, enforced in CI.

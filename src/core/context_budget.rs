@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use super::executor::LoopMessage;
 use serde_json::{json, Map, Value};
 

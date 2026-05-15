@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Skill directory scanner and SKILL.md parser
 use anyhow::{anyhow, Result};
 use serde::Deserialize;

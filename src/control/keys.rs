@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /// Generates the standard KeyValue store path for an Agent
 /// e.g., "Agent/billing-bot-abc123"
 pub fn agent(id: &str) -> String {

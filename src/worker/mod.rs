@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use crate::config::Config;
 use crate::connectors::mcp::{invalidate_all_broker_auth_cache, invalidate_broker_auth_cache};
 use crate::control::topics;
