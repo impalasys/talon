@@ -84,7 +84,14 @@ impl SessionStreamHub {
         }
 
         let topic = topics::session_step_topic_for_shard(shard as u32);
-        let mut stream = self.pubsub.subscribe(&topic).await?;
+        let mut stream = match self.pubsub.subscribe(&topic).await {
+            Ok(stream) => stream,
+            Err(err) => {
+                let mut guard = state.lock().await;
+                guard.started = false;
+                return Err(err);
+            }
+        };
         tokio::spawn(async move {
             use futures::StreamExt;
             use prost::Message;
@@ -126,5 +133,132 @@ impl SessionStreamHub {
         });
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SessionStreamHub;
+    use crate::control::{events::{SessionStepEvent, StepType}, topics, MessagePublisher};
+    use prost::Message;
+    use std::collections::{HashMap, VecDeque};
+    use std::pin::Pin;
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+
+    #[derive(Default)]
+    struct FakePubSub {
+        batches: Mutex<HashMap<String, VecDeque<Vec<Vec<u8>>>>>,
+        subscribe_calls: Mutex<Vec<String>>,
+        fail_once_topics: Mutex<HashMap<String, usize>>,
+    }
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for FakePubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            self.subscribe_calls.lock().await.push(topic.to_string());
+
+            if let Some(remaining) = self.fail_once_topics.lock().await.get_mut(topic) {
+                if *remaining > 0 {
+                    *remaining -= 1;
+                    anyhow::bail!("subscribe failed for {}", topic);
+                }
+            }
+
+            let batch = self
+                .batches
+                .lock()
+                .await
+                .get_mut(topic)
+                .and_then(|entries| entries.pop_front())
+                .unwrap_or_default();
+            Ok(Box::pin(futures::stream::iter(batch)))
+        }
+    }
+
+    fn step_event(session_id: &str, content: &str) -> SessionStepEvent {
+        SessionStepEvent {
+            session_id: session_id.to_string(),
+            step_type: StepType::Token as i32,
+            content: content.to_string(),
+            timestamp: 1,
+            agent: "agent".to_string(),
+            ns: "default".to_string(),
+            message_id: "msg-1".to_string(),
+            name: String::new(),
+            payload_json: String::new(),
+        }
+    }
+
+    #[tokio::test]
+    async fn subscribe_retries_after_initial_pubsub_failure() {
+        let session_id = "session-retry";
+        let topic = topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+        let pubsub = Arc::new(FakePubSub::default());
+        pubsub
+            .fail_once_topics
+            .lock()
+            .await
+            .insert(topic.clone(), 1);
+        pubsub.batches.lock().await.insert(
+            topic.clone(),
+            VecDeque::from(vec![vec![step_event(session_id, "hello").encode_to_vec()]]),
+        );
+        let hub = SessionStreamHub::new(pubsub.clone());
+
+        let first = hub.subscribe(session_id).await;
+        assert!(first.is_err());
+
+        let mut receiver = hub.subscribe(session_id).await.expect("retry should succeed");
+        let event = receiver
+            .recv()
+            .await
+            .expect("event should be delivered")
+            .expect("event should decode");
+        assert_eq!(event.content, "hello");
+
+        let calls = pubsub.subscribe_calls.lock().await.clone();
+        assert_eq!(calls, vec![topic.clone(), topic]);
+    }
+
+    #[tokio::test]
+    async fn subscribe_skips_invalid_events_and_reinitializes_after_stream_end() {
+        let session_id = "session-end";
+        let topic = topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+        let pubsub = Arc::new(FakePubSub::default());
+        pubsub.batches.lock().await.insert(
+            topic.clone(),
+            VecDeque::from(vec![
+                vec![b"not-protobuf".to_vec(), step_event(session_id, "first").encode_to_vec()],
+                vec![step_event(session_id, "second").encode_to_vec()],
+            ]),
+        );
+        let hub = SessionStreamHub::new(pubsub.clone());
+
+        let mut first = hub.subscribe(session_id).await.expect("subscribe should succeed");
+        let first_event = first
+            .recv()
+            .await
+            .expect("first stream should yield")
+            .expect("first event should decode");
+        assert_eq!(first_event.content, "first");
+        assert!(first.recv().await.is_none());
+
+        let mut second = hub.subscribe(session_id).await.expect("resubscribe should succeed");
+        let second_event = second
+            .recv()
+            .await
+            .expect("second stream should yield")
+            .expect("second event should decode");
+        assert_eq!(second_event.content, "second");
+
+        assert_eq!(pubsub.subscribe_calls.lock().await.len(), 2);
     }
 }

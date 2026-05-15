@@ -112,6 +112,8 @@ impl ToolRegistry {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::skills::loader::Skill;
+    use std::path::PathBuf;
 
     #[test]
     fn test_register_and_get_builtin() {
@@ -160,6 +162,75 @@ mod tests {
         assert_eq!(tool.name, "test_tool");
         assert_eq!(tool.description, "desc");
         assert_eq!(tool.input_schema, schema);
+    }
+
+    #[test]
+    fn test_register_mcp_tools_overwrites_existing_definition() {
+        let mut registry = ToolRegistry::new();
+        registry.register_builtin("shared", "builtin", json!({"type": "string"}));
+
+        registry.register_mcp_tools(
+            "weather",
+            vec![McpTool {
+                name: "shared".to_string(),
+                description: "mcp".to_string(),
+                input_schema: json!({"type": "object", "properties": {"city": {"type": "string"}}}),
+            }],
+        );
+
+        let tool = registry.get_tool("shared").expect("tool should exist");
+        assert_eq!(tool.description, "mcp");
+        assert_eq!(tool.source, ToolSource::Mcp("weather".to_string()));
+        assert_eq!(tool.input_schema["properties"]["city"]["type"], "string");
+    }
+
+    #[test]
+    fn test_register_skills_uses_default_input_schema_and_overwrites_existing_tool() {
+        let mut registry = ToolRegistry::new();
+        registry.register_builtin("summarize", "builtin", json!({"type": "object"}));
+
+        registry.register_skills(vec![Skill {
+            name: "summarize".to_string(),
+            description: "Summarize input".to_string(),
+            instructions: "Use the summarizer.".to_string(),
+            path: PathBuf::from("/tmp/skills/summarize/SKILL.md"),
+        }]);
+
+        let tool = registry.get_tool("summarize").expect("skill tool should exist");
+        assert_eq!(tool.description, "Summarize input");
+        assert_eq!(tool.source, ToolSource::Skill("summarize".to_string()));
+        assert_eq!(tool.input_schema["type"], "object");
+        assert_eq!(tool.input_schema["required"], json!(["input"]));
+        assert_eq!(tool.input_schema["properties"]["input"]["type"], "string");
+    }
+
+    #[test]
+    fn test_to_provider_tools_includes_all_registered_sources() {
+        let mut registry = ToolRegistry::new();
+        registry.register_builtin("builtin", "builtin-desc", json!({"type": "object"}));
+        registry.register_mcp_tools(
+            "search",
+            vec![McpTool {
+                name: "mcp_tool".to_string(),
+                description: "mcp-desc".to_string(),
+                input_schema: json!({"type": "object", "properties": {"q": {"type": "string"}}}),
+            }],
+        );
+        registry.register_skills(vec![Skill {
+            name: "skill_tool".to_string(),
+            description: "skill-desc".to_string(),
+            instructions: "Do skill work.".to_string(),
+            path: PathBuf::from("/tmp/skills/skill_tool/SKILL.md"),
+        }]);
+
+        let provider_tools = registry.to_provider_tools();
+        assert_eq!(provider_tools.len(), 3);
+        assert!(provider_tools.iter().any(|tool| tool.name == "builtin"
+            && tool.description == "builtin-desc"));
+        assert!(provider_tools.iter().any(|tool| tool.name == "mcp_tool"
+            && tool.input_schema["properties"]["q"]["type"] == "string"));
+        assert!(provider_tools.iter().any(|tool| tool.name == "skill_tool"
+            && tool.input_schema["required"] == json!(["input"])));
     }
 
     #[test]

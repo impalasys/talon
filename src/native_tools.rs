@@ -394,3 +394,336 @@ fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: 
         })
         .unwrap_or(false)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::control::{scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend}, KeyValueStore, MessagePublisher};
+    use futures::stream;
+    use std::{pin::Pin, sync::Arc};
+    use tokio::sync::Mutex;
+
+    #[derive(Default)]
+    struct MockKvStore {
+        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+    }
+
+    #[async_trait::async_trait]
+    impl KeyValueStore for MockKvStore {
+        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .data
+                .lock()
+                .await
+                .get(&(ns.to_string(), key.to_string()))
+                .cloned())
+        }
+
+        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+            self.data
+                .lock()
+                .await
+                .insert((ns.to_string(), key.to_string()), value.to_vec());
+            Ok(())
+        }
+
+        async fn compare_and_swap(
+            &self,
+            ns: &str,
+            key: &str,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> anyhow::Result<bool> {
+            let mut data = self.data.lock().await;
+            let full_key = (ns.to_string(), key.to_string());
+            let current = data.get(&full_key).cloned();
+            let matches = match (current.as_deref(), expected) {
+                (None, None) => true,
+                (Some(current), Some(expected)) => current == expected,
+                _ => false,
+            };
+            if matches {
+                data.insert(full_key, value.to_vec());
+            }
+            Ok(matches)
+        }
+
+        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
+            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+            Ok(())
+        }
+
+        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+            let mut keys = self
+                .data
+                .lock()
+                .await
+                .keys()
+                .filter_map(|(stored_ns, key)| {
+                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
+                })
+                .collect::<Vec<_>>();
+            keys.sort();
+            Ok(keys)
+        }
+    }
+
+    #[derive(Default)]
+    struct MockPubSub;
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for MockPubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(stream::empty()))
+        }
+    }
+
+    #[derive(Default)]
+    struct MockScheduler {
+        scheduled: Mutex<Vec<ScheduleWakeupRequest>>,
+        cancelled: Mutex<Vec<String>>,
+    }
+
+    #[async_trait::async_trait]
+    impl SchedulerBackend for MockScheduler {
+        async fn schedule(&self, req: ScheduleWakeupRequest) -> anyhow::Result<ScheduledWakeup> {
+            self.scheduled.lock().await.push(req);
+            Ok(ScheduledWakeup {
+                handle: Some("handle-1".to_string()),
+                armed: true,
+            })
+        }
+
+        async fn cancel(&self, handle: &str) -> anyhow::Result<()> {
+            self.cancelled.lock().await.push(handle.to_string());
+            Ok(())
+        }
+    }
+
+    fn spec(capabilities: &[&str]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: String::new(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::from([(
+                "schedules".to_string(),
+                crate::gateway::rpc::protobuf_value::ListValue {
+                    values: capabilities
+                        .iter()
+                        .map(|action| crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(ProtoValueKind::StringValue((*action).to_string())),
+                        })
+                        .collect(),
+                },
+            )]),
+        }
+    }
+
+    fn control_plane(
+        kv: Arc<MockKvStore>,
+        scheduler: Arc<MockScheduler>,
+    ) -> ControlPlane {
+        ControlPlane {
+            kv,
+            pubsub: Arc::new(MockPubSub),
+            scheduler,
+        }
+    }
+
+    async fn seed_agent(kv: &MockKvStore, ns: &str, name: &str) {
+        kv.set_msg(
+            ns,
+            &keys::agent(name),
+            &models::Agent {
+                name: name.to_string(),
+                ns: ns.to_string(),
+                definition: Some(manifests::AgentDefinition::default()),
+                effective_spec: Some(manifests::AgentSpec::default()),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    #[test]
+    fn register_tools_respects_capabilities() {
+        let mut registry = ToolRegistry::new();
+        register_tools(&mut registry, &spec(&["inspect", "create"]));
+
+        assert!(registry.get_tool(LIST_SCHEDULES_TOOL).is_some());
+        assert!(registry.get_tool(GET_SCHEDULE_TOOL).is_some());
+        assert!(registry.get_tool(CREATE_SCHEDULE_TOOL).is_some());
+        assert!(registry.get_tool(UPDATE_SCHEDULE_TOOL).is_none());
+        assert!(registry.get_tool(DELETE_SCHEDULE_TOOL).is_none());
+    }
+
+    #[tokio::test]
+    async fn execute_tool_requires_capabilities() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv, scheduler);
+        let err = execute_tool(
+            &cp,
+            "conic:test",
+            "assistant",
+            &manifests::AgentSpec::default(),
+            LIST_SCHEDULES_TOOL,
+            &json!({}),
+        )
+        .await
+        .unwrap_err();
+
+        assert!(err.to_string().contains("agent does not have capability"));
+    }
+
+    #[tokio::test]
+    async fn create_get_list_update_and_delete_schedule_round_trip() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        seed_agent(kv.as_ref(), "conic:test", "assistant").await;
+        let cp = control_plane(kv.clone(), scheduler.clone());
+        let schedule_spec = spec(&["inspect", "create", "update", "delete"]);
+
+        let created = execute_tool(
+            &cp,
+            "conic:test",
+            "assistant",
+            &schedule_spec,
+            CREATE_SCHEDULE_TOOL,
+            &json!({
+                "name": "nightly",
+                "kind": "every",
+                "interval_seconds": 600,
+                "input_message": "run report",
+                "labels": {"tier":"prod"},
+                "enabled": true
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(created.contains("\"name\": \"nightly\""));
+        assert!(created.contains("\"backendArmed\": true"));
+        assert_eq!(scheduler.scheduled.lock().await.len(), 1);
+
+        let fetched = execute_tool(
+            &cp,
+            "conic:test",
+            "assistant",
+            &schedule_spec,
+            GET_SCHEDULE_TOOL,
+            &json!({"name":"nightly"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(fetched.contains("\"name\": \"nightly\""));
+        assert!(fetched.contains("\"tier\": \"prod\""));
+
+        let listed = execute_tool(
+            &cp,
+            "conic:test",
+            "assistant",
+            &schedule_spec,
+            LIST_SCHEDULES_TOOL,
+            &json!({"agent":"assistant","enabled":true}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(listed.contains("\"schedules\""));
+        assert!(listed.contains("\"nightly\""));
+
+        let updated = execute_tool(
+            &cp,
+            "conic:test",
+            "assistant",
+            &schedule_spec,
+            UPDATE_SCHEDULE_TOOL,
+            &json!({
+                "name": "nightly",
+                "input_message": "run report v2",
+                "session_mode": "reuse",
+                "session_id": "session-1"
+            }),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(updated.contains("run report v2"));
+        assert_eq!(
+            scheduler.cancelled.lock().await.clone(),
+            vec!["handle-1".to_string()]
+        );
+
+        let deleted = execute_tool(
+            &cp,
+            "conic:test",
+            "assistant",
+            &schedule_spec,
+            DELETE_SCHEDULE_TOOL,
+            &json!({"name":"nightly"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(deleted.contains("\"success\": true"));
+        assert!(
+            kv.get_msg::<models::Schedule>("conic:test", &keys::schedule("nightly"))
+                .await
+                .unwrap()
+                .is_none()
+        );
+    }
+
+    #[tokio::test]
+    async fn list_schedules_honors_limit_and_namespace_override() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        seed_agent(kv.as_ref(), "conic:other", "assistant").await;
+        let cp = control_plane(kv.clone(), scheduler);
+        let create_spec = spec(&["inspect", "create"]);
+
+        for name in ["a", "b"] {
+            execute_tool(
+                &cp,
+                "conic:other",
+                "assistant",
+                &create_spec,
+                CREATE_SCHEDULE_TOOL,
+                &json!({
+                    "namespace": "conic:other",
+                    "name": name,
+                    "kind": "every",
+                    "interval_seconds": 600,
+                    "input_message": "run report"
+                }),
+            )
+            .await
+            .unwrap();
+        }
+
+        let listed = execute_tool(
+            &cp,
+            "conic:test",
+            "assistant",
+            &spec(&["inspect"]),
+            LIST_SCHEDULES_TOOL,
+            &json!({"namespace":"conic:other","limit":1}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(listed.matches("\"name\":").count(), 1);
+    }
+}

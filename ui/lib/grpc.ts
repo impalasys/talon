@@ -13,12 +13,19 @@ export function buildGatewayHeaders(authToken?: string | null) {
   };
 }
 
+export function applyGatewayAuthorizationHeader(
+  headerTarget: { set(name: string, value: string): void },
+  authToken?: string | null,
+) {
+  const headers = buildGatewayHeaders(authToken);
+  if (headers?.Authorization) {
+    headerTarget.set("authorization", headers.Authorization);
+  }
+}
+
 const authInterceptor: Interceptor = (next) => async (req) => {
   if (typeof window !== 'undefined') {
-    const headers = buildGatewayHeaders(localStorage.getItem('talon_auth_token'));
-    if (headers?.Authorization) {
-      req.header.set("authorization", headers.Authorization);
-    }
+    applyGatewayAuthorizationHeader(req.header, localStorage.getItem('talon_auth_token'));
   }
   return await next(req);
 };

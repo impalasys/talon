@@ -328,6 +328,210 @@ fn manifest_json_payload(content: &str) -> Result<(String, serde_json::Value)> {
     }
 }
 
+fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (String, String) {
+    let mut parts = name.splitn(2, '/');
+    let ns_part = parts.next().unwrap_or("default");
+    let agent_name = parts.next().unwrap_or(ns_part);
+    let (mut final_ns, final_name) = if agent_name == ns_part {
+        ("default".to_string(), ns_part.to_string())
+    } else {
+        (ns_part.to_string(), agent_name.to_string())
+    };
+    if let Some(n) = namespace {
+        final_ns = n.clone();
+    }
+    (final_ns, final_name)
+}
+
+fn rest_get_path(kind: &str, name: &str, namespace: Option<&String>) -> Result<(String, &'static str)> {
+    match kind.to_lowercase().as_str() {
+        "agenttemplate" | "templates" | "template" => Ok((
+            format!("/v1/templates/{}", urlencoding::encode(name)),
+            "template",
+        )),
+        "mcpserver" | "mcpservers" | "mcp" => Ok((
+            format!("/v1/mcp-servers/{}", urlencoding::encode(name)),
+            "server",
+        )),
+        "agent" | "agents" => {
+            let (ns, agent_name) = agent_lookup_target(name, namespace);
+            Ok((
+                format!(
+                    "/v1/ns/{}/agents/{}",
+                    urlencoding::encode(&ns),
+                    urlencoding::encode(&agent_name)
+                ),
+                "agent",
+            ))
+        }
+        "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
+            let ns = namespace
+                .as_ref()
+                .context("namespace is required for McpServerBinding get")?;
+            Ok((
+                format!(
+                    "/v1/namespaces/{}/mcp-bindings/{}",
+                    urlencoding::encode(ns),
+                    urlencoding::encode(name)
+                ),
+                "binding",
+            ))
+        }
+        "namespace" | "namespaces" => Ok((
+            format!("/v1/namespaces/{}", urlencoding::encode(name)),
+            "namespace",
+        )),
+        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
+            let ns = namespace
+                .as_ref()
+                .context("Knowledge get requires --namespace")?;
+            Ok((
+                format!(
+                    "/v1/namespaces/{}/knowledge/{}",
+                    urlencoding::encode(ns),
+                    urlencoding::encode(name)
+                ),
+                "knowledge",
+            ))
+        }
+        "schedule" | "schedules" => {
+            let ns = namespace
+                .as_ref()
+                .context("Schedule get requires --namespace")?;
+            Ok((
+                format!(
+                    "/v1/ns/{}/schedules/{}",
+                    urlencoding::encode(ns),
+                    urlencoding::encode(name)
+                ),
+                "schedule",
+            ))
+        }
+        other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
+    }
+}
+
+fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Result<String> {
+    match kind.to_lowercase().as_str() {
+        "agenttemplate" | "templates" | "template" => {
+            Ok(format!("/v1/templates/{}", urlencoding::encode(name)))
+        }
+        "mcpserver" | "mcpservers" | "mcp" => {
+            Ok(format!("/v1/mcp-servers/{}", urlencoding::encode(name)))
+        }
+        "agent" | "agents" => {
+            let ns = namespace
+                .as_ref()
+                .context("namespace is required for Agent delete")?;
+            Ok(format!(
+                "/v1/ns/{}/agents/{}",
+                urlencoding::encode(ns),
+                urlencoding::encode(name)
+            ))
+        }
+        "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
+            let ns = namespace
+                .as_ref()
+                .context("namespace is required for McpServerBinding delete")?;
+            Ok(format!(
+                "/v1/namespaces/{}/mcp-bindings/{}",
+                urlencoding::encode(ns),
+                urlencoding::encode(name)
+            ))
+        }
+        "namespace" | "namespaces" => {
+            Ok(format!("/v1/namespaces/{}", urlencoding::encode(name)))
+        }
+        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
+            let ns = namespace
+                .as_ref()
+                .context("Knowledge delete requires --namespace")?;
+            Ok(format!(
+                "/v1/namespaces/{}/knowledge/{}",
+                urlencoding::encode(ns),
+                urlencoding::encode(name)
+            ))
+        }
+        other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
+    }
+}
+
+fn render_json_payload(content: &str) -> Result<serde_json::Value> {
+    let raw = parse_raw_manifest(content)?;
+    let manifest_value: serde_yaml::Value =
+        serde_yaml::from_str(content).context("Failed to parse rendered manifest")?;
+    match raw.kind.as_str() {
+        "AgentTemplate" => Ok(json!({ "template": manifest_value })),
+        "MCPServer" | "McpServer" => Ok(json!({ "server": manifest_value })),
+        "Agent" => Ok(json!({ "agent": manifest_value })),
+        "McpServerBinding" => {
+            let binding = talon::manifest::parse_mcp_server_binding(content)?;
+            let namespace = binding
+                .metadata
+                .as_ref()
+                .map(|meta| meta.namespace.clone())
+                .filter(|namespace| !namespace.is_empty())
+                .context("McpServerBinding missing metadata.namespace")?;
+            Ok(json!({
+                "ns": namespace,
+                "binding": binding,
+            }))
+        }
+        "Namespace" => {
+            let namespace = talon::manifest::parse_namespace(content)?;
+            Ok(json!({
+                "name": namespace.name,
+                "recursive": true,
+                "labels": namespace.labels,
+            }))
+        }
+        "Knowledge" => Ok(json!({ "knowledge": manifest_value })),
+        other => anyhow::bail!("Unsupported manifest kind '{}'", other),
+    }
+}
+
+async fn rest_get_yaml(
+    cli: &Cli,
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<String> {
+    let (path, response_key) = rest_get_path(kind, name, namespace)?;
+    let resp = rest_request_json(cli, reqwest::Method::GET, &path, None)
+        .await
+        .with_context(|| format!("Failed to fetch {} '{}'", kind, name))?;
+    let value = if response_key == "namespace" {
+        resp
+    } else {
+        resp.get(response_key)
+            .cloned()
+            .with_context(|| format!("REST response missing {}", response_key))?
+    };
+    serde_yaml::to_string(&value).with_context(|| format!("Failed to serialize {} YAML", kind))
+}
+
+async fn rest_delete_resource(
+    cli: &Cli,
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<String> {
+    let path = rest_delete_path(kind, name, namespace)?;
+    rest_request_json(cli, reqwest::Method::DELETE, &path, None)
+        .await
+        .with_context(|| format!("Failed to delete {} '{}'", kind, name))?;
+    Ok(format!("✓ {} '{}' deleted successfully.", kind, name))
+}
+
+async fn rest_apply_manifest(cli: &Cli, content: &str, agent_exists: bool) -> Result<String> {
+    let (_, payload) = manifest_json_payload(content)?;
+    let plan = build_rest_apply_plan(content, payload, agent_exists)?;
+    rest_request_json(cli, plan.method, &plan.path, Some(plan.payload))
+        .await
+        .with_context(|| format!("Gateway rejected {}", plan.success_label))?;
+    Ok(format!("✓ {} applied successfully.", plan.success_label))
+}
+
 fn knowledge_resource_name(path: &str) -> String {
     path.to_string()
 }
@@ -548,6 +752,36 @@ async fn knowledge_list(cli: &Cli, namespace: &str) -> Result<Vec<Knowledge>> {
     }
 }
 
+async fn sync_knowledge_dir(
+    cli: &Cli,
+    namespace: &str,
+    dir: &str,
+) -> Result<(usize, Vec<String>)> {
+    let root = Path::new(dir);
+    let files = collect_markdown_files(root)?;
+    let existing: Vec<Knowledge> = knowledge_list(cli, namespace).await?;
+    let existing_paths = existing
+        .into_iter()
+        .filter_map(|knowledge| knowledge.spec.map(|spec| spec.path))
+        .collect::<std::collections::HashSet<_>>();
+    let mut synced_paths = Vec::new();
+
+    for file in files {
+        let knowledge_path = relative_knowledge_path(root, &file)?;
+        let content = fs::read_to_string(&file)
+            .with_context(|| format!("Failed to read knowledge file '{}'", file.display()))?;
+        knowledge_set(cli, namespace, &knowledge_path, content).await?;
+        synced_paths.push(knowledge_path);
+    }
+
+    let unsynced_existing = existing_paths
+        .into_iter()
+        .filter(|path| !synced_paths.iter().any(|synced| synced == path))
+        .collect::<Vec<_>>();
+
+    Ok((synced_paths.len(), unsynced_existing))
+}
+
 #[derive(Subcommand)]
 enum Commands {
     /// Manage namespace knowledge artifacts directly by path.
@@ -644,6 +878,574 @@ enum KnowledgeCommands {
     },
 }
 
+#[derive(Debug)]
+struct RestApplyPlan {
+    method: reqwest::Method,
+    path: String,
+    payload: serde_json::Value,
+    success_label: String,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum GrpcGetTarget {
+    AgentTemplate { name: String },
+    Agent { ns: String, name: String },
+    McpServer { name: String },
+    Knowledge { ns: String, name: String },
+    Schedule { ns: String, name: String },
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum GrpcDeleteTarget {
+    AgentTemplate { name: String },
+    McpServer { name: String },
+    Knowledge { ns: String, name: String },
+}
+
+#[derive(Debug)]
+enum GrpcApplyPlan {
+    Agent {
+        ns: String,
+        name: String,
+        labels: HashMap<String, String>,
+        definition: talon::gateway::rpc::manifests::AgentDefinition,
+    },
+    AgentTemplate {
+        name: String,
+        template: talon::gateway::rpc::manifests::AgentTemplate,
+    },
+    McpServer {
+        name: String,
+        server: talon::gateway::rpc::manifests::McpServer,
+    },
+    Knowledge {
+        ns: String,
+        name: String,
+        knowledge: talon::gateway::rpc::manifests::Knowledge,
+    },
+}
+
+fn build_rest_apply_plan(
+    content: &str,
+    payload: serde_json::Value,
+    agent_exists: bool,
+) -> Result<RestApplyPlan> {
+    let raw = parse_raw_manifest(content)?;
+    match raw.kind.as_str() {
+        "AgentTemplate" => {
+            let template = talon::manifest::parse_agent_template(content)?;
+            let name = template
+                .metadata
+                .as_ref()
+                .map(|m| m.name.clone())
+                .unwrap_or_default();
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: "/v1/templates".to_string(),
+                payload,
+                success_label: format!("AgentTemplate '{}'", name),
+            })
+        }
+        "MCPServer" | "McpServer" => {
+            let server = talon::manifest::parse_mcp_server(content)?;
+            let meta = server
+                .metadata
+                .as_ref()
+                .context("MCPServer missing metadata")?;
+            if !meta.namespace.is_empty() {
+                anyhow::bail!(
+                    "MCPServer metadata.namespace is not supported; MCP servers are system resources in talon-system"
+                );
+            }
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: "/v1/mcp-servers".to_string(),
+                payload,
+                success_label: format!("MCPServer '{}'", meta.name),
+            })
+        }
+        "Agent" => {
+            let agent = talon::manifest::parse_agent(content)?;
+            let definition = payload
+                .get("definition")
+                .cloned()
+                .context("Agent payload missing definition")?;
+            let labels = payload
+                .get("labels")
+                .cloned()
+                .context("Agent payload missing labels")?;
+            let path = if agent_exists {
+                format!(
+                    "/v1/ns/{}/agents/{}",
+                    urlencoding::encode(&agent.ns),
+                    urlencoding::encode(&agent.name)
+                )
+            } else {
+                format!("/v1/ns/{}/agents", urlencoding::encode(&agent.ns))
+            };
+            let payload = if agent_exists {
+                json!({
+                    "ns": agent.ns,
+                    "agent": agent.name,
+                    "labels": labels,
+                    "definition": definition,
+                })
+            } else {
+                json!({
+                    "ns": agent.ns,
+                    "name": agent.name,
+                    "labels": labels,
+                    "definition": definition,
+                })
+            };
+            Ok(RestApplyPlan {
+                method: if agent_exists {
+                    reqwest::Method::PUT
+                } else {
+                    reqwest::Method::POST
+                },
+                path,
+                payload,
+                success_label: format!("Agent '{}/{}'", agent.ns, agent.name),
+            })
+        }
+        "McpServerBinding" => {
+            let binding = talon::manifest::parse_mcp_server_binding(content)?;
+            let meta = binding
+                .metadata
+                .as_ref()
+                .context("McpServerBinding missing metadata")?;
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: format!(
+                    "/v1/namespaces/{}/mcp-bindings",
+                    urlencoding::encode(&meta.namespace)
+                ),
+                payload: json!({ "ns": meta.namespace, "binding": binding }),
+                success_label: format!("McpServerBinding '{}/{}'", meta.namespace, meta.name),
+            })
+        }
+        "Namespace" => {
+            let namespace = talon::manifest::parse_namespace(content)?;
+            let name = namespace.name;
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: format!("/v1/namespaces/{}", urlencoding::encode(&name)),
+                payload: json!({
+                    "name": name,
+                    "recursive": true,
+                    "labels": namespace.labels,
+                }),
+                success_label: format!("Namespace '{}'", name),
+            })
+        }
+        "Knowledge" => {
+            let knowledge = talon::manifest::parse_knowledge(content)?;
+            let meta = knowledge
+                .metadata
+                .as_ref()
+                .context("Knowledge missing metadata")?;
+            if meta.namespace.is_empty() {
+                anyhow::bail!("Knowledge metadata.namespace is required");
+            }
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: format!(
+                    "/v1/namespaces/{}/knowledge",
+                    urlencoding::encode(&meta.namespace)
+                ),
+                payload,
+                success_label: format!("Knowledge '{}/{}'", meta.namespace, meta.name),
+            })
+        }
+        other => anyhow::bail!("Unsupported manifest kind '{}'", other),
+    }
+}
+
+fn feature_ts_type(kind: &str) -> &'static str {
+    match kind {
+        "integer" | "number" | "float" => "number",
+        "boolean" => "boolean",
+        _ => "string",
+    }
+}
+
+fn sdk_method_for_template(template: &talon::gateway::rpc::manifests::AgentTemplate) -> Option<String> {
+    let name = template.metadata.as_ref()?.name.clone();
+    let method_name = format!("create{}", to_camel_case(&name));
+    let mut args = Vec::new();
+
+    if let Some(definition) = &template.definition {
+        if let Some(
+            talon::gateway::rpc::manifests::agent_definition::Source::CustomSpec(spec),
+        ) = definition.source.as_ref()
+        {
+            for f in &spec.features {
+                let opt = if f.required { "" } else { "?" };
+                args.push(format!("{}{}: {}", f.name, opt, feature_ts_type(&f.r#type)));
+            }
+        }
+    }
+
+    let param_str = if args.is_empty() {
+        String::new()
+    } else {
+        format!(", inputs: {{ {} }}", args.join(", "))
+    };
+    let input_pass = if args.is_empty() {
+        "inputs: {}"
+    } else {
+        "inputs"
+    };
+
+    Some(format!(
+        r#"  async {method_name}(workspaceId: string{param_str}): Promise<any> {{
+    return fetch(`${{this.endpoint}}/api/agents`, {{
+      method: "POST",
+      headers: {{ "Content-Type": "application/json" }},
+      body: JSON.stringify({{ template: "{raw_name}", namespace: workspaceId, {input_pass} }})
+    }}).then(r => r.json());
+  }}"#,
+        method_name = method_name,
+        param_str = param_str,
+        raw_name = name,
+        input_pass = input_pass,
+    ))
+}
+
+fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
+    let mut class_methods = Vec::new();
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.extension().unwrap_or_default() != "yaml" {
+            continue;
+        }
+        let content = fs::read_to_string(&path)?;
+        if let Ok(template) = talon::manifest::parse_agent_template(&content) {
+            if let Some(method) = sdk_method_for_template(&template) {
+                class_methods.push(method);
+            }
+        }
+    }
+    Ok(class_methods)
+}
+
+fn grpc_get_target(kind: &str, name: &str, namespace: Option<&String>) -> Result<GrpcGetTarget> {
+    match kind.to_lowercase().as_str() {
+        "agenttemplate" | "templates" | "template" => Ok(GrpcGetTarget::AgentTemplate {
+            name: name.to_string(),
+        }),
+        "agent" | "agents" => {
+            let (ns, agent_name) = agent_lookup_target(name, namespace);
+            Ok(GrpcGetTarget::Agent {
+                ns,
+                name: agent_name,
+            })
+        }
+        "mcpserver" | "mcpservers" | "mcp" => Ok(GrpcGetTarget::McpServer {
+            name: name.to_string(),
+        }),
+        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
+            let ns = namespace
+                .cloned()
+                .context("Knowledge get requires --namespace")?;
+            Ok(GrpcGetTarget::Knowledge {
+                ns,
+                name: name.to_string(),
+            })
+        }
+        "schedule" | "schedules" => {
+            let ns = namespace
+                .cloned()
+                .context("Schedule get requires --namespace")?;
+            Ok(GrpcGetTarget::Schedule {
+                ns,
+                name: name.to_string(),
+            })
+        }
+        other => anyhow::bail!("Unsupported resource kind '{}'", other),
+    }
+}
+
+fn grpc_delete_target(
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<GrpcDeleteTarget> {
+    match kind.to_lowercase().as_str() {
+        "agenttemplate" | "templates" | "template" => Ok(GrpcDeleteTarget::AgentTemplate {
+            name: name.to_string(),
+        }),
+        "mcpserver" | "mcpservers" | "mcp" => Ok(GrpcDeleteTarget::McpServer {
+            name: name.to_string(),
+        }),
+        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
+            let ns = namespace
+                .cloned()
+                .context("Knowledge delete requires --namespace")?;
+            Ok(GrpcDeleteTarget::Knowledge {
+                ns,
+                name: name.to_string(),
+            })
+        }
+        other => anyhow::bail!("Unsupported resource kind '{}'", other),
+    }
+}
+
+fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
+    match parse_raw_manifest(content)?.kind.as_str() {
+        "Agent" => {
+            let agent = talon::manifest::parse_agent(content)?;
+            let definition = agent
+                .definition
+                .clone()
+                .context("Agent definition must be provided")?;
+            Ok(GrpcApplyPlan::Agent {
+                ns: agent.ns,
+                name: agent.name,
+                labels: agent.labels,
+                definition,
+            })
+        }
+        "AgentTemplate" => {
+            let template = talon::manifest::parse_agent_template(content)?;
+            let name = template
+                .metadata
+                .as_ref()
+                .map(|m| m.name.clone())
+                .unwrap_or_default();
+            Ok(GrpcApplyPlan::AgentTemplate { name, template })
+        }
+        "MCPServer" | "McpServer" => {
+            let server = talon::manifest::parse_mcp_server(content)?;
+            let meta = server
+                .metadata
+                .as_ref()
+                .context("MCPServer missing metadata")?;
+            if !meta.namespace.is_empty() {
+                anyhow::bail!(
+                    "MCPServer metadata.namespace is not supported; MCP servers are system resources in talon-system"
+                );
+            }
+            Ok(GrpcApplyPlan::McpServer {
+                name: meta.name.clone(),
+                server,
+            })
+        }
+        "Knowledge" => {
+            let knowledge = talon::manifest::parse_knowledge(content)?;
+            let meta = knowledge
+                .metadata
+                .as_ref()
+                .context("Knowledge missing metadata")?;
+            if meta.namespace.is_empty() {
+                anyhow::bail!("Knowledge metadata.namespace is required");
+            }
+            Ok(GrpcApplyPlan::Knowledge {
+                ns: meta.namespace.clone(),
+                name: meta.name.clone(),
+                knowledge,
+            })
+        }
+        other => anyhow::bail!("Unsupported manifest kind '{}'", other),
+    }
+}
+
+async fn grpc_get_yaml(
+    cli: &Cli,
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<String> {
+    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
+        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect()
+        .await
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
+    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+
+    match grpc_get_target(kind, name, namespace)? {
+        GrpcGetTarget::AgentTemplate { name } => {
+            let resp = client
+                .get_agent_template(GetAgentTemplateRequest { name: name.clone() })
+                .await
+                .with_context(|| format!("Failed to fetch AgentTemplate '{}'", name))?;
+            let template = resp
+                .into_inner()
+                .template
+                .context("Resource not found.")?;
+            talon::manifest::render_agent_template_yaml(&template)
+        }
+        GrpcGetTarget::Agent { ns, name } => {
+            let resp = client
+                .get_agent(talon::gateway::rpc::proto::GetAgentRequest {
+                    ns,
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to fetch Agent '{}'", name))?;
+            let agent = resp.into_inner().agent.context("Agent not found.")?;
+            talon::manifest::render_agent_yaml(&agent)
+        }
+        GrpcGetTarget::McpServer { name } => {
+            let resp = client
+                .get_mcp_server(GetMcpServerRequest { name: name.clone() })
+                .await
+                .with_context(|| format!("Failed to fetch MCPServer '{}'", name))?;
+            let server = resp.into_inner().server.context("Resource not found.")?;
+            serde_yaml::to_string(&server).context("Failed to serialize to YAML")
+        }
+        GrpcGetTarget::Knowledge { ns, name } => {
+            let resp = client
+                .get_namespace_knowledge(GetNamespaceKnowledgeRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to fetch Knowledge '{}/{}'", ns, name))?;
+            let knowledge = resp.into_inner().knowledge.context("Knowledge not found.")?;
+            talon::manifest::render_knowledge_yaml(&knowledge)
+        }
+        GrpcGetTarget::Schedule { ns, name } => {
+            let resp = client
+                .get_schedule(GetScheduleRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to fetch Schedule '{}/{}'", ns, name))?;
+            let schedule = resp.into_inner().schedule.context("Schedule not found.")?;
+            serde_yaml::to_string(&schedule_json(&schedule)).context("Failed to serialize Schedule YAML")
+        }
+    }
+}
+
+async fn grpc_delete_resource(
+    cli: &Cli,
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<String> {
+    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
+        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect()
+        .await
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
+    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+
+    match grpc_delete_target(kind, name, namespace)? {
+        GrpcDeleteTarget::AgentTemplate { name } => {
+            client
+                .delete_agent_template(DeleteAgentTemplateRequest { name: name.clone() })
+                .await
+                .with_context(|| format!("Failed to delete AgentTemplate '{}'", name))?;
+            Ok(format!("✓ AgentTemplate '{}' deleted successfully.", name))
+        }
+        GrpcDeleteTarget::McpServer { name } => {
+            client
+                .delete_mcp_server(DeleteMcpServerRequest { name: name.clone() })
+                .await
+                .with_context(|| format!("Failed to delete MCPServer '{}'", name))?;
+            Ok(format!("✓ MCPServer '{}' deleted successfully.", name))
+        }
+        GrpcDeleteTarget::Knowledge { ns, name } => {
+            client
+                .delete_namespace_knowledge(DeleteNamespaceKnowledgeRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to delete Knowledge '{}/{}'", ns, name))?;
+            Ok(format!("✓ Knowledge '{}/{}' deleted successfully.", ns, name))
+        }
+    }
+}
+
+async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
+    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
+        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect()
+        .await
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
+    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+
+    match build_grpc_apply_plan(content)? {
+        GrpcApplyPlan::Agent {
+            ns,
+            name,
+            labels,
+            definition,
+        } => {
+            let existing = client
+                .get_agent(talon::gateway::rpc::proto::GetAgentRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await;
+
+            match existing {
+                Ok(_) => {
+                    client
+                        .modify_agent(ModifyAgentRequest {
+                            ns: ns.clone(),
+                            agent: name.clone(),
+                            definition: Some(definition),
+                            labels,
+                        })
+                        .await
+                        .with_context(|| format!("Gateway rejected Agent '{}/{}'", ns, name))?;
+                }
+                Err(status) if status.code() == tonic::Code::NotFound => {
+                    client
+                        .create_agent(CreateAgentRequest {
+                            ns: ns.clone(),
+                            name: Some(name.clone()),
+                            definition: Some(definition),
+                            labels,
+                        })
+                        .await
+                        .with_context(|| format!("Gateway rejected Agent '{}/{}'", ns, name))?;
+                }
+                Err(status) => return Err(status.into()),
+            }
+            Ok(format!("✓ Agent '{}/{}' applied successfully.", ns, name))
+        }
+        GrpcApplyPlan::AgentTemplate { name, template } => {
+            client
+                .create_agent_template(CreateAgentTemplateRequest {
+                    template: Some(template),
+                })
+                .await
+                .with_context(|| format!("Gateway rejected template '{}'", name))?;
+            Ok(format!("✓ AgentTemplate '{}' applied successfully.", name))
+        }
+        GrpcApplyPlan::McpServer { name, server } => {
+            client
+                .create_mcp_server(CreateMcpServerRequest {
+                    server: Some(server),
+                })
+                .await
+                .context("Gateway rejected MCPServer")?;
+            Ok(format!("✓ MCPServer '{}' applied successfully.", name))
+        }
+        GrpcApplyPlan::Knowledge {
+            ns,
+            name,
+            knowledge,
+        } => {
+            client
+                .create_namespace_knowledge(CreateNamespaceKnowledgeRequest {
+                    ns: ns.clone(),
+                    knowledge: Some(knowledge),
+                })
+                .await
+                .with_context(|| format!("Gateway rejected Knowledge '{}/{}'", ns, name))?;
+            Ok(format!("✓ Knowledge '{}/{}' applied successfully.", ns, name))
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     talon::security::install_jwt_crypto_provider();
@@ -656,13 +1458,26 @@ async fn main() -> Result<()> {
         cli.password = resolve_gateway_password(&cli);
     }
 
+    let outcome = run_cli(&cli).await?;
+    if let Some(code) = outcome.exit_code {
+        std::process::exit(code);
+    }
+
+    Ok(())
+}
+
+struct RunOutcome {
+    exit_code: Option<i32>,
+}
+
+async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
     match &cli.command {
         Commands::Knowledge { command } => match command {
             KnowledgeCommands::Get { namespace, path } => {
                 let knowledge = knowledge_get(&cli, namespace, path).await?;
                 let Some(knowledge) = knowledge else {
                     eprintln!("Knowledge '{}/{}' not found.", namespace, path);
-                    std::process::exit(1);
+                    return Ok(RunOutcome { exit_code: Some(1) });
                 };
                 let content = knowledge
                     .spec
@@ -673,7 +1488,7 @@ async fn main() -> Result<()> {
                 if !content.ends_with('\n') {
                     println!();
                 }
-                return Ok(());
+                return Ok(RunOutcome { exit_code: None });
             }
             KnowledgeCommands::Set {
                 namespace,
@@ -684,42 +1499,21 @@ async fn main() -> Result<()> {
                 let value = read_knowledge_content(file, content)?;
                 knowledge_set(&cli, namespace, path, value).await?;
                 println!("✓ Knowledge '{}/{}' written successfully.", namespace, path);
-                return Ok(());
+                return Ok(RunOutcome { exit_code: None });
             }
             KnowledgeCommands::Delete { namespace, path } => {
                 knowledge_delete(&cli, namespace, path).await?;
                 println!("✓ Knowledge '{}/{}' deleted successfully.", namespace, path);
-                return Ok(());
+                return Ok(RunOutcome { exit_code: None });
             }
             KnowledgeCommands::Sync { namespace, dir } => {
                 let root = Path::new(dir);
-                let files = collect_markdown_files(root)?;
-                let existing: Vec<Knowledge> = knowledge_list(&cli, namespace).await?;
-                let existing_paths = existing
-                    .into_iter()
-                    .filter_map(|knowledge| knowledge.spec.map(|spec| spec.path))
-                    .collect::<std::collections::HashSet<_>>();
-                let mut synced_paths = Vec::new();
-
-                for file in files {
-                    let knowledge_path = relative_knowledge_path(root, &file)?;
-                    let content = fs::read_to_string(&file).with_context(|| {
-                        format!("Failed to read knowledge file '{}'", file.display())
-                    })?;
-                    knowledge_set(&cli, namespace, &knowledge_path, content).await?;
-                    synced_paths.push(knowledge_path);
-                }
-
+                let (synced_count, unsynced_existing) =
+                    sync_knowledge_dir(&cli, namespace, dir).await?;
                 println!(
                     "✓ Synced {} knowledge artifact(s) into '{}'.",
-                    synced_paths.len(),
-                    namespace
+                    synced_count, namespace
                 );
-
-                let unsynced_existing = existing_paths
-                    .into_iter()
-                    .filter(|path| !synced_paths.iter().any(|synced| synced == path))
-                    .collect::<Vec<_>>();
                 if !unsynced_existing.is_empty() {
                     eprintln!(
                         "Note: {} existing knowledge artifact(s) in '{}' were left untouched because they are not present in '{}'.",
@@ -728,382 +1522,31 @@ async fn main() -> Result<()> {
                         root.display()
                     );
                 }
-                return Ok(());
+                return Ok(RunOutcome { exit_code: None });
             }
         },
         Commands::Apply { file, vars } => {
             let content = render_manifest_file(file, vars)?;
-            let raw = parse_raw_manifest(&content)?;
 
             if cli.rest {
-                let (_, payload) = manifest_json_payload(&content)?;
-                match raw.kind.as_str() {
-                    "AgentTemplate" => {
-                        let template = talon::manifest::parse_agent_template(&content)?;
-                        let name = template
-                            .metadata
-                            .as_ref()
-                            .map(|m| m.name.clone())
-                            .unwrap_or_default();
-                        println!(
-                            "Applying AgentTemplate '{}' via REST gateway {}...",
-                            name, cli.gateway
-                        );
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::POST,
-                            "/v1/templates",
-                            Some(payload),
-                        )
-                        .await
-                        .with_context(|| format!("Gateway rejected template '{}'", name))?;
-                        println!("✓ AgentTemplate '{}' applied successfully.", name);
-                        return Ok(());
-                    }
-                    "MCPServer" | "McpServer" => {
-                        let server = talon::manifest::parse_mcp_server(&content)?;
-                        let meta = server
-                            .metadata
-                            .as_ref()
-                            .context("MCPServer missing metadata")?;
-                        let server_name = meta.name.clone();
-                        if !meta.namespace.is_empty() {
-                            anyhow::bail!(
-                                "MCPServer metadata.namespace is not supported; MCP servers are system resources in talon-system"
-                            );
-                        }
-                        println!(
-                            "Applying MCPServer '{}' via REST gateway {}...",
-                            server_name, cli.gateway
-                        );
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::POST,
-                            "/v1/mcp-servers",
-                            Some(payload),
-                        )
-                        .await
-                        .with_context(|| format!("Gateway rejected MCPServer '{}'", server_name))?;
-                        println!("✓ MCPServer '{}' applied successfully.", server_name);
-                        return Ok(());
-                    }
-                    "Agent" => {
-                        let agent = talon::manifest::parse_agent(&content)?;
-                        let name = agent.name.clone();
-                        let ns = agent.ns.clone();
-                        let definition = payload
-                            .get("definition")
-                            .cloned()
-                            .context("Agent payload missing definition")?;
-                        let labels = payload
-                            .get("labels")
-                            .cloned()
-                            .context("Agent payload missing labels")?;
-
-                        println!(
-                            "Applying Agent '{}/{}' via REST gateway {}...",
-                            ns, name, cli.gateway
-                        );
-                        let get_path = format!(
-                            "/v1/ns/{}/agents/{}",
-                            urlencoding::encode(&ns),
-                            urlencoding::encode(&name)
-                        );
-                        let exists = rest_request_json(&cli, reqwest::Method::GET, &get_path, None)
-                            .await
-                            .is_ok();
-                        let (method, path, payload) = if exists {
-                            (
-                                reqwest::Method::PUT,
-                                get_path,
-                                json!({
-                                    "ns": ns,
-                                    "agent": name,
-                                    "labels": labels,
-                                    "definition": definition,
-                                }),
-                            )
-                        } else {
-                            (
-                                reqwest::Method::POST,
-                                format!("/v1/ns/{}/agents", urlencoding::encode(&ns)),
-                                json!({
-                                    "ns": ns,
-                                    "name": name,
-                                    "labels": labels,
-                                    "definition": definition,
-                                }),
-                            )
-                        };
-                        rest_request_json(&cli, method, &path, Some(payload))
-                            .await
-                            .with_context(|| format!("Gateway rejected Agent '{}/{}'", ns, name))?;
-                        println!("✓ Agent '{}/{}' applied successfully.", ns, name);
-                        return Ok(());
-                    }
-                    "McpServerBinding" => {
-                        let binding = talon::manifest::parse_mcp_server_binding(&content)?;
-                        let meta = binding
-                            .metadata
-                            .as_ref()
-                            .context("McpServerBinding missing metadata")?;
-                        let ns = meta.namespace.clone();
-                        let name = meta.name.clone();
-                        println!(
-                            "Applying McpServerBinding '{}/{}' via REST gateway {}...",
-                            ns, name, cli.gateway
-                        );
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::POST,
-                            &format!("/v1/namespaces/{}/mcp-bindings", urlencoding::encode(&ns)),
-                            Some(json!({ "ns": ns, "binding": binding })),
-                        )
-                        .await
-                        .with_context(|| {
-                            format!("Gateway rejected McpServerBinding '{}/{}'", ns, name)
-                        })?;
-                        println!("✓ McpServerBinding '{}/{}' applied successfully.", ns, name);
-                        return Ok(());
-                    }
-                    "Namespace" => {
-                        let namespace = talon::manifest::parse_namespace(&content)?;
-                        println!(
-                            "Applying Namespace '{}' via REST gateway {}...",
-                            namespace.name, cli.gateway
-                        );
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::POST,
-                            &format!("/v1/namespaces/{}", urlencoding::encode(&namespace.name)),
-                            Some(json!({
-                                "name": namespace.name,
-                                "recursive": true,
-                                "labels": namespace.labels,
-                            })),
-                        )
-                        .await
-                        .with_context(|| {
-                            format!("Gateway rejected Namespace '{}'", namespace.name)
-                        })?;
-                        println!("✓ Namespace '{}' applied successfully.", namespace.name);
-                        return Ok(());
-                    }
-                    "Knowledge" => {
-                        let knowledge = talon::manifest::parse_knowledge(&content)?;
-                        let meta = knowledge
-                            .metadata
-                            .as_ref()
-                            .context("Knowledge missing metadata")?;
-                        let ns = meta.namespace.clone();
-                        let knowledge_name = meta.name.clone();
-                        if ns.is_empty() {
-                            anyhow::bail!("Knowledge metadata.namespace is required");
-                        }
-                        println!(
-                            "Applying Knowledge '{}/{}' via REST gateway {}...",
-                            ns, knowledge_name, cli.gateway
-                        );
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::POST,
-                            &format!("/v1/namespaces/{}/knowledge", urlencoding::encode(&ns)),
-                            Some(payload),
-                        )
-                        .await
-                        .with_context(|| {
-                            format!("Gateway rejected Knowledge '{}/{}'", ns, knowledge_name)
-                        })?;
-                        println!(
-                            "✓ Knowledge '{}/{}' applied successfully.",
-                            ns, knowledge_name
-                        );
-                        return Ok(());
-                    }
-                    other => {
-                        eprintln!("Error: Unsupported manifest kind '{}'", other);
-                        std::process::exit(1);
-                    }
-                }
-            }
-
-            match raw.kind.as_str() {
-                "Agent" => {
+                let agent_exists = if parse_raw_manifest(&content)?.kind == "Agent" {
                     let agent = talon::manifest::parse_agent(&content)?;
-                    let name = agent.name.clone();
-                    let ns = agent.ns.clone();
-                    let definition = agent
-                        .definition
-                        .clone()
-                        .context("Agent definition must be provided")?;
-
-                    println!("Applying Agent '{}/{}' via gateway {}...", ns, name, cli.gateway);
-
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    let existing = client
-                        .get_agent(talon::gateway::rpc::proto::GetAgentRequest {
-                            ns: ns.clone(),
-                            name: name.clone(),
-                        })
-                        .await;
-
-                    match existing {
-                        Ok(_) => {
-                            client
-                                .modify_agent(ModifyAgentRequest {
-                                    ns: ns.clone(),
-                                    agent: name.clone(),
-                                    definition: Some(definition),
-                                    labels: agent.labels.clone(),
-                                })
-                                .await
-                                .with_context(|| {
-                                    format!("Gateway rejected Agent '{}/{}'", ns, name)
-                                })?;
-                        }
-                        Err(status) if status.code() == tonic::Code::NotFound => {
-                            client
-                                .create_agent(CreateAgentRequest {
-                                    ns: ns.clone(),
-                                    name: Some(name.clone()),
-                                    definition: Some(definition),
-                                    labels: agent.labels.clone(),
-                                })
-                                .await
-                                .with_context(|| {
-                                    format!("Gateway rejected Agent '{}/{}'", ns, name)
-                                })?;
-                        }
-                        Err(status) => return Err(status.into()),
-                    }
-
-                    println!("✓ Agent '{}/{}' applied successfully.", ns, name);
-                }
-                "AgentTemplate" => {
-                    let template = talon::manifest::parse_agent_template(&content)?;
-                    let name = template
-                        .metadata
-                        .as_ref()
-                        .map(|m| m.name.clone())
-                        .unwrap_or_default();
-
-                    println!(
-                        "Applying AgentTemplate '{}' via gateway {}...",
-                        name, cli.gateway
+                    let get_path = format!(
+                        "/v1/ns/{}/agents/{}",
+                        urlencoding::encode(&agent.ns),
+                        urlencoding::encode(&agent.name)
                     );
-
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
+                    rest_request_json(&cli, reqwest::Method::GET, &get_path, None)
                         .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    client
-                        .create_agent_template(CreateAgentTemplateRequest {
-                            template: Some(template),
-                        })
-                        .await
-                        .with_context(|| format!("Gateway rejected template '{}'", name))?;
-
-                    println!("✓ AgentTemplate '{}' applied successfully.", name);
-                }
-                "MCPServer" | "McpServer" => {
-                    let server = talon::manifest::parse_mcp_server(&content)?;
-                    let meta = server
-                        .metadata
-                        .as_ref()
-                        .context("MCPServer missing metadata")?;
-                    let server_name = meta.name.clone();
-                    if !meta.namespace.is_empty() {
-                        anyhow::bail!(
-                            "MCPServer metadata.namespace is not supported; MCP servers are system resources in talon-system"
-                        );
-                    }
-
-                    println!(
-                        "Applying MCPServer '{}' via gateway {}...",
-                        server_name, cli.gateway
-                    );
-
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    client
-                        .create_mcp_server(CreateMcpServerRequest {
-                            server: Some(server),
-                        })
-                        .await
-                        .context("Gateway rejected MCPServer")?;
-
-                    println!("✓ MCPServer '{}' applied successfully.", server_name);
-                }
-                "Knowledge" => {
-                    let knowledge = talon::manifest::parse_knowledge(&content)?;
-                    let meta = knowledge
-                        .metadata
-                        .as_ref()
-                        .context("Knowledge missing metadata")?;
-                    let ns = meta.namespace.clone();
-                    let knowledge_name = meta.name.clone();
-                    if ns.is_empty() {
-                        anyhow::bail!("Knowledge metadata.namespace is required");
-                    }
-
-                    println!(
-                        "Applying Knowledge '{}/{}' via gateway {}...",
-                        ns, knowledge_name, cli.gateway
-                    );
-
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    client
-                        .create_namespace_knowledge(CreateNamespaceKnowledgeRequest {
-                            ns: ns.clone(),
-                            knowledge: Some(knowledge),
-                        })
-                        .await
-                        .with_context(|| {
-                            format!("Gateway rejected Knowledge '{}/{}'", ns, knowledge_name)
-                        })?;
-
-                    println!(
-                        "✓ Knowledge '{}/{}' applied successfully.",
-                        ns, knowledge_name
-                    );
-                }
-                other => {
-                    eprintln!("Error: Unsupported manifest kind '{}'", other);
-                    std::process::exit(1);
-                }
+                        .is_ok()
+                } else {
+                    false
+                };
+                println!("{}", rest_apply_manifest(&cli, &content, agent_exists).await?);
+                return Ok(RunOutcome { exit_code: None });
             }
+
+            println!("{}", grpc_apply_manifest(&cli, &content).await?);
         }
 
         Commands::Render { file, vars, format } => {
@@ -1113,76 +1556,12 @@ async fn main() -> Result<()> {
                     print!("{}", content);
                 }
                 RenderFormat::Json => {
-                    let raw = parse_raw_manifest(&content)?;
-                    let manifest_value: serde_yaml::Value = serde_yaml::from_str(&content)
-                        .context("Failed to parse rendered manifest")?;
-                    match raw.kind.as_str() {
-                        "AgentTemplate" => {
-                            println!(
-                                "{}",
-                                serde_json::to_string_pretty(
-                                    &json!({ "template": manifest_value })
-                                )
-                                .context("Failed to serialize AgentTemplate JSON")?
-                            );
-                        }
-                        "MCPServer" | "McpServer" => {
-                            println!(
-                                "{}",
-                                serde_json::to_string_pretty(&json!({ "server": manifest_value }))
-                                    .context("Failed to serialize MCPServer JSON")?
-                            );
-                        }
-                        "Agent" => {
-                            println!(
-                                "{}",
-                                serde_json::to_string_pretty(&json!({ "agent": manifest_value }))
-                                .context("Failed to serialize Agent JSON")?
-                            );
-                        }
-                        "McpServerBinding" => {
-                            let binding = talon::manifest::parse_mcp_server_binding(&content)?;
-                            let namespace = binding
-                                .metadata
-                                .as_ref()
-                                .map(|meta| meta.namespace.clone())
-                                .filter(|namespace| !namespace.is_empty())
-                                .context("McpServerBinding missing metadata.namespace")?;
-                            println!(
-                                "{}",
-                                serde_json::to_string_pretty(&json!({
-                                    "ns": namespace,
-                                    "binding": binding,
-                                }))
-                                .context("Failed to serialize McpServerBinding JSON")?
-                            );
-                        }
-                        "Namespace" => {
-                            let namespace = talon::manifest::parse_namespace(&content)?;
-                            println!(
-                                "{}",
-                                serde_json::to_string_pretty(&json!({
-                                    "name": namespace.name,
-                                    "recursive": true,
-                                    "labels": namespace.labels,
-                                }))
-                                .context("Failed to serialize Namespace JSON")?
-                            );
-                        }
-                        "Knowledge" => {
-                            println!(
-                                "{}",
-                                serde_json::to_string_pretty(
-                                    &json!({ "knowledge": manifest_value })
-                                )
-                                .context("Failed to serialize Knowledge JSON")?
-                            );
-                        }
-                        other => {
-                            eprintln!("Error: Unsupported manifest kind '{}'", other);
-                            std::process::exit(1);
-                        }
-                    }
+                    let payload = render_json_payload(&content)?;
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&payload)
+                            .context("Failed to serialize manifest JSON")?
+                    );
                 }
             }
         }
@@ -1193,343 +1572,10 @@ async fn main() -> Result<()> {
             namespace,
         } => {
             if cli.rest {
-                match kind.to_lowercase().as_str() {
-                    "agenttemplate" | "templates" | "template" => {
-                        let resp = rest_request_json(
-                            &cli,
-                            reqwest::Method::GET,
-                            &format!("/v1/templates/{}", urlencoding::encode(name)),
-                            None,
-                        )
-                        .await
-                        .with_context(|| format!("Failed to fetch AgentTemplate '{}'", name))?;
-                        let template = resp
-                            .get("template")
-                            .cloned()
-                            .context("REST response missing template")?;
-                        let yml = serde_yaml::to_string(&template)
-                            .context("Failed to serialize AgentTemplate YAML")?;
-                        println!("{}", yml);
-                        return Ok(());
-                    }
-                    "mcpserver" | "mcpservers" | "mcp" => {
-                        let resp = rest_request_json(
-                            &cli,
-                            reqwest::Method::GET,
-                            &format!("/v1/mcp-servers/{}", urlencoding::encode(name)),
-                            None,
-                        )
-                        .await
-                        .with_context(|| format!("Failed to fetch MCPServer '{}'", name))?;
-                        let server = resp
-                            .get("server")
-                            .cloned()
-                            .context("REST response missing server")?;
-                        let yml = serde_yaml::to_string(&server)
-                            .context("Failed to serialize MCPServer YAML")?;
-                        println!("{}", yml);
-                        return Ok(());
-                    }
-                    "agent" | "agents" => {
-                        let mut parts = name.splitn(2, '/');
-                        let ns_part = parts.next().unwrap_or("default");
-                        let agent_name = parts.next().unwrap_or(ns_part);
-                        let (mut final_ns, final_name) = if agent_name == ns_part {
-                            ("default".to_string(), ns_part.to_string())
-                        } else {
-                            (ns_part.to_string(), agent_name.to_string())
-                        };
-                        if let Some(n) = namespace {
-                            final_ns = n.clone();
-                        }
-                        let resp = rest_request_json(
-                            &cli,
-                            reqwest::Method::GET,
-                            &format!(
-                                "/v1/ns/{}/agents/{}",
-                                urlencoding::encode(&final_ns),
-                                urlencoding::encode(&final_name)
-                            ),
-                            None,
-                        )
-                        .await
-                        .with_context(|| format!("Failed to fetch Agent '{}'", name))?;
-                        let agent = resp
-                            .get("agent")
-                            .cloned()
-                            .context("REST response missing agent")?;
-                        let yml = serde_yaml::to_string(&agent)
-                            .context("Failed to serialize Agent YAML")?;
-                        println!("{}", yml);
-                        return Ok(());
-                    }
-                    "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
-                        let ns = namespace
-                            .as_ref()
-                            .context("namespace is required for McpServerBinding get")?;
-                        let resp = rest_request_json(
-                            &cli,
-                            reqwest::Method::GET,
-                            &format!(
-                                "/v1/namespaces/{}/mcp-bindings/{}",
-                                urlencoding::encode(ns),
-                                urlencoding::encode(name)
-                            ),
-                            None,
-                        )
-                        .await
-                        .with_context(|| {
-                            format!("Failed to fetch McpServerBinding '{}/{}'", ns, name)
-                        })?;
-                        let binding = resp
-                            .get("binding")
-                            .cloned()
-                            .context("REST response missing binding")?;
-                        let yml = serde_yaml::to_string(&binding)
-                            .context("Failed to serialize McpServerBinding YAML")?;
-                        println!("{}", yml);
-                        return Ok(());
-                    }
-                    "namespace" | "namespaces" => {
-                        let resp = rest_request_json(
-                            &cli,
-                            reqwest::Method::GET,
-                            &format!("/v1/namespaces/{}", urlencoding::encode(name)),
-                            None,
-                        )
-                        .await
-                        .with_context(|| format!("Failed to fetch Namespace '{}'", name))?;
-                        let yml = serde_yaml::to_string(&resp)
-                            .context("Failed to serialize Namespace YAML")?;
-                        println!("{}", yml);
-                        return Ok(());
-                    }
-                    "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-                        let final_ns = namespace
-                            .clone()
-                            .context("Knowledge get requires --namespace")?;
-                        let resp = rest_request_json(
-                            &cli,
-                            reqwest::Method::GET,
-                            &format!(
-                                "/v1/namespaces/{}/knowledge/{}",
-                                urlencoding::encode(&final_ns),
-                                urlencoding::encode(name)
-                            ),
-                            None,
-                        )
-                        .await
-                        .with_context(|| {
-                            format!("Failed to fetch Knowledge '{}/{}'", final_ns, name)
-                        })?;
-                        let knowledge = resp
-                            .get("knowledge")
-                            .cloned()
-                            .context("REST response missing knowledge")?;
-                        let yml = serde_yaml::to_string(&knowledge)
-                            .context("Failed to serialize Knowledge YAML")?;
-                        println!("{}", yml);
-                        return Ok(());
-                    }
-                    "schedule" | "schedules" => {
-                        let final_ns = namespace
-                            .clone()
-                            .context("Schedule get requires --namespace")?;
-                        let resp = rest_request_json(
-                            &cli,
-                            reqwest::Method::GET,
-                            &format!(
-                                "/v1/ns/{}/schedules/{}",
-                                urlencoding::encode(&final_ns),
-                                urlencoding::encode(name)
-                            ),
-                            None,
-                        )
-                        .await
-                        .with_context(|| {
-                            format!("Failed to fetch Schedule '{}/{}'", final_ns, name)
-                        })?;
-                        let schedule = resp
-                            .get("schedule")
-                            .cloned()
-                            .context("REST response missing schedule")?;
-                        let yml = serde_yaml::to_string(&schedule)
-                            .context("Failed to serialize Schedule YAML")?;
-                        println!("{}", yml);
-                        return Ok(());
-                    }
-                    other => {
-                        eprintln!("Error: Unsupported resource kind '{}' for REST mode", other);
-                        std::process::exit(1);
-                    }
-                }
+                println!("{}", rest_get_yaml(&cli, kind, name, namespace.as_ref()).await?);
+                return Ok(RunOutcome { exit_code: None });
             }
-            match kind.to_lowercase().as_str() {
-                "agenttemplate" | "templates" | "template" => {
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    let n = name.clone();
-                    if let Some(_ns) = namespace {
-                        // Optional: Prefix namespace if the API requires it, but current implementation uses name only.
-                        // We still pass it as name. If needed later we can update the protobuf.
-                    }
-
-                    let resp = client
-                        .get_agent_template(GetAgentTemplateRequest { name: n.clone() })
-                        .await
-                        .with_context(|| format!("Failed to fetch AgentTemplate '{}'", n))?;
-
-                    if let Some(template) = resp.into_inner().template {
-                        let yml = talon::manifest::render_agent_template_yaml(&template)?;
-                        println!("{}", yml);
-                    } else {
-                        eprintln!("Resource not found.");
-                        std::process::exit(1);
-                    }
-                }
-                "agent" | "agents" => {
-                    let mut parts = name.splitn(2, '/');
-                    let ns_part = parts.next().unwrap_or("default");
-                    let agent_name = parts.next().unwrap_or(ns_part);
-                    let (mut final_ns, final_name) = if agent_name == ns_part {
-                        ("default".to_string(), ns_part.to_string())
-                    } else {
-                        (ns_part.to_string(), agent_name.to_string())
-                    };
-
-                    if let Some(n) = namespace {
-                        final_ns = n.clone();
-                    }
-
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    let resp = client
-                        .get_agent(talon::gateway::rpc::proto::GetAgentRequest {
-                            ns: final_ns,
-                            name: final_name,
-                        })
-                        .await
-                        .with_context(|| format!("Failed to fetch Agent '{}'", name))?;
-
-                    if let Some(agent) = resp.into_inner().agent {
-                        let yml = talon::manifest::render_agent_yaml(&agent)?;
-                        println!("{}", yml);
-                    } else {
-                        eprintln!("Agent not found.");
-                        std::process::exit(1);
-                    }
-                }
-                "mcpserver" | "mcpservers" | "mcp" => {
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    let resp = client
-                        .get_mcp_server(GetMcpServerRequest { name: name.clone() })
-                        .await
-                        .with_context(|| format!("Failed to fetch MCPServer '{}'", name))?;
-
-                    if let Some(server) = resp.into_inner().server {
-                        let yml = serde_yaml::to_string(&server)
-                            .context("Failed to serialize to YAML")?;
-                        println!("{}", yml);
-                    } else {
-                        eprintln!("Resource not found.");
-                        std::process::exit(1);
-                    }
-                }
-                "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-                    let final_ns = namespace
-                        .clone()
-                        .context("Knowledge get requires --namespace")?;
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    let resp = client
-                        .get_namespace_knowledge(GetNamespaceKnowledgeRequest {
-                            ns: final_ns.clone(),
-                            name: name.clone(),
-                        })
-                        .await
-                        .with_context(|| {
-                            format!("Failed to fetch Knowledge '{}/{}'", final_ns, name)
-                        })?;
-
-                    if let Some(knowledge) = resp.into_inner().knowledge {
-                        let yml = talon::manifest::render_knowledge_yaml(&knowledge)?;
-                        println!("{}", yml);
-                    } else {
-                        eprintln!("Knowledge not found.");
-                        std::process::exit(1);
-                    }
-                }
-                "schedule" | "schedules" => {
-                    let final_ns = namespace
-                        .clone()
-                        .context("Schedule get requires --namespace")?;
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    let resp = client
-                        .get_schedule(GetScheduleRequest {
-                            ns: final_ns.clone(),
-                            name: name.clone(),
-                        })
-                        .await
-                        .with_context(|| {
-                            format!("Failed to fetch Schedule '{}/{}'", final_ns, name)
-                        })?;
-
-                    if let Some(schedule) = resp.into_inner().schedule {
-                        let yml = serde_yaml::to_string(&schedule_json(&schedule))
-                            .context("Failed to serialize Schedule YAML")?;
-                        println!("{}", yml);
-                    } else {
-                        eprintln!("Schedule not found.");
-                        std::process::exit(1);
-                    }
-                }
-                other => {
-                    eprintln!("Error: Unsupported resource kind '{}'", other);
-                    std::process::exit(1);
-                }
-            }
+            println!("{}", grpc_get_yaml(&cli, kind, name, namespace.as_ref()).await?);
         }
 
         Commands::Delete {
@@ -1538,246 +1584,21 @@ async fn main() -> Result<()> {
             namespace,
         } => {
             if cli.rest {
-                match kind.to_lowercase().as_str() {
-                    "agenttemplate" | "templates" | "template" => {
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::DELETE,
-                            &format!("/v1/templates/{}", urlencoding::encode(name)),
-                            None,
-                        )
-                        .await
-                        .with_context(|| format!("Failed to delete AgentTemplate '{}'", name))?;
-                        println!("✓ AgentTemplate '{}' deleted successfully.", name);
-                        return Ok(());
-                    }
-                    "mcpserver" | "mcpservers" | "mcp" => {
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::DELETE,
-                            &format!("/v1/mcp-servers/{}", urlencoding::encode(name)),
-                            None,
-                        )
-                        .await
-                        .with_context(|| format!("Failed to delete MCPServer '{}'", name))?;
-                        println!("✓ MCPServer '{}' deleted successfully.", name);
-                        return Ok(());
-                    }
-                    "agent" | "agents" => {
-                        let ns = namespace
-                            .as_ref()
-                            .context("namespace is required for Agent delete")?;
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::DELETE,
-                            &format!(
-                                "/v1/ns/{}/agents/{}",
-                                urlencoding::encode(ns),
-                                urlencoding::encode(name)
-                            ),
-                            None,
-                        )
-                        .await
-                        .with_context(|| format!("Failed to delete Agent '{}/{}'", ns, name))?;
-                        println!("✓ Agent '{}/{}' deleted successfully.", ns, name);
-                        return Ok(());
-                    }
-                    "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
-                        let ns = namespace
-                            .as_ref()
-                            .context("namespace is required for McpServerBinding delete")?;
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::DELETE,
-                            &format!(
-                                "/v1/namespaces/{}/mcp-bindings/{}",
-                                urlencoding::encode(ns),
-                                urlencoding::encode(name)
-                            ),
-                            None,
-                        )
-                        .await
-                        .with_context(|| {
-                            format!("Failed to delete McpServerBinding '{}/{}'", ns, name)
-                        })?;
-                        println!("✓ McpServerBinding '{}/{}' deleted successfully.", ns, name);
-                        return Ok(());
-                    }
-                    "namespace" | "namespaces" => {
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::DELETE,
-                            &format!("/v1/namespaces/{}", urlencoding::encode(name)),
-                            None,
-                        )
-                        .await
-                        .with_context(|| format!("Failed to delete Namespace '{}'", name))?;
-                        println!("✓ Namespace '{}' deleted successfully.", name);
-                        return Ok(());
-                    }
-                    "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-                        let final_ns = namespace
-                            .clone()
-                            .context("Knowledge delete requires --namespace")?;
-                        rest_request_json(
-                            &cli,
-                            reqwest::Method::DELETE,
-                            &format!(
-                                "/v1/namespaces/{}/knowledge/{}",
-                                urlencoding::encode(&final_ns),
-                                urlencoding::encode(name)
-                            ),
-                            None,
-                        )
-                        .await
-                        .with_context(|| {
-                            format!("Failed to delete Knowledge '{}/{}'", final_ns, name)
-                        })?;
-                        println!("✓ Knowledge '{}/{}' deleted successfully.", final_ns, name);
-                        return Ok(());
-                    }
-                    other => {
-                        eprintln!("Error: Unsupported resource kind '{}' for REST mode", other);
-                        std::process::exit(1);
-                    }
-                }
+                println!(
+                    "{}",
+                    rest_delete_resource(&cli, kind, name, namespace.as_ref()).await?
+                );
+                return Ok(RunOutcome { exit_code: None });
             }
-            match kind.to_lowercase().as_str() {
-                "agenttemplate" | "templates" | "template" => {
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    let n = name.clone();
-                    if let Some(_ns) = namespace {
-                        // Optional prefixing if needed. Currently backend uses 'name' for agenttemplate ID.
-                    }
-
-                    client
-                        .delete_agent_template(DeleteAgentTemplateRequest { name: n.clone() })
-                        .await
-                        .with_context(|| format!("Failed to delete AgentTemplate '{}'", n))?;
-
-                    println!("✓ AgentTemplate '{}' deleted successfully.", n);
-                }
-                "mcpserver" | "mcpservers" | "mcp" => {
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    client
-                        .delete_mcp_server(DeleteMcpServerRequest { name: name.clone() })
-                        .await
-                        .with_context(|| format!("Failed to delete MCPServer '{}'", name))?;
-
-                    println!("✓ MCPServer '{}' deleted successfully.", name);
-                }
-                "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-                    let final_ns = namespace
-                        .clone()
-                        .context("Knowledge delete requires --namespace")?;
-                    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-                        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-                        .connect()
-                        .await
-                        .with_context(|| {
-                            format!("Could not connect to gateway at {}", cli.gateway)
-                        })?;
-                    let mut client =
-                        GatewayServiceClient::with_interceptor(channel, auth_interceptor(&cli)?);
-
-                    client
-                        .delete_namespace_knowledge(DeleteNamespaceKnowledgeRequest {
-                            ns: final_ns.clone(),
-                            name: name.clone(),
-                        })
-                        .await
-                        .with_context(|| {
-                            format!("Failed to delete Knowledge '{}/{}'", final_ns, name)
-                        })?;
-
-                    println!("✓ Knowledge '{}/{}' deleted successfully.", final_ns, name);
-                }
-                other => {
-                    eprintln!("Error: Unsupported resource kind '{}'", other);
-                    std::process::exit(1);
-                }
-            }
+            println!(
+                "{}",
+                grpc_delete_resource(&cli, kind, name, namespace.as_ref()).await?
+            );
         }
 
         Commands::Gen { dir, out } => {
             println!("Generating Talon Client SDK from: {}", dir);
-            let mut class_methods = Vec::new();
-
-            for entry in fs::read_dir(dir)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.extension().unwrap_or_default() == "yaml" {
-                    let content = fs::read_to_string(&path)?;
-                    if let Ok(template) = talon::manifest::parse_agent_template(&content) {
-                        let name = match template.metadata.as_ref() {
-                            Some(m) => m.name.clone(),
-                            None => continue,
-                        };
-                        let method_name = format!("create{}", to_camel_case(&name));
-                        let mut args = Vec::new();
-
-                        if let Some(definition) = &template.definition {
-                            if let Some(
-                                talon::gateway::rpc::manifests::agent_definition::Source::CustomSpec(spec),
-                            ) = definition.source.as_ref()
-                            {
-                                for f in &spec.features {
-                                    let ts_type = match f.r#type.as_str() {
-                                        "integer" | "number" | "float" => "number",
-                                        "boolean" => "boolean",
-                                        _ => "string",
-                                    };
-                                    let opt = if f.required { "" } else { "?" };
-                                    args.push(format!("{}{}: {}", f.name, opt, ts_type));
-                                }
-                            }
-                        }
-
-                        let param_str = if args.is_empty() {
-                            String::new()
-                        } else {
-                            format!(", inputs: {{ {} }}", args.join(", "))
-                        };
-                        let input_pass = if args.is_empty() {
-                            "inputs: {}"
-                        } else {
-                            "inputs"
-                        };
-
-                        class_methods.push(format!(
-                            r#"  async {method_name}(workspaceId: string{param_str}): Promise<any> {{
-    return fetch(`${{this.endpoint}}/api/agents`, {{
-      method: "POST",
-      headers: {{ "Content-Type": "application/json" }},
-      body: JSON.stringify({{ template: "{raw_name}", namespace: workspaceId, {input_pass} }})
-    }}).then(r => r.json());
-  }}"#,
-                            method_name = method_name,
-                            param_str = param_str,
-                            raw_name = name,
-                            input_pass = input_pass,
-                        ));
-                    }
-                }
-            }
+            let class_methods = sdk_methods_from_dir(dir)?;
 
             let full_file = format!(
                 r#"// Auto-generated by talon-cli gen
@@ -1795,7 +1616,7 @@ export class TalonClient {{
         }
     }
 
-    Ok(())
+    Ok(RunOutcome { exit_code: None })
 }
 
 fn parse_raw_manifest(content: &str) -> Result<talon::manifest::RawManifest> {
@@ -1913,10 +1734,204 @@ fn to_camel_case(s: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_vars, render_manifest_template, resolve_manifest_sources};
+    use super::{
+        agent_lookup_target, auth_interceptor, build_grpc_apply_plan, build_rest_apply_plan, build_knowledge,
+        canonicalize_manifest_path, collect_markdown_files, feature_ts_type, knowledge_delete,
+        grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target, grpc_get_yaml, knowledge_get, knowledge_list, knowledge_resource_name, knowledge_set,
+        manifest_json_payload, parse_raw_manifest, parse_vars, read_knowledge_content,
+        relative_knowledge_path, render_json_payload, render_manifest_file,
+        render_manifest_template, rest_apply_manifest, rest_client, rest_delete_path, rest_delete_resource, rest_get_path, rest_get_yaml,
+        rest_request_json, resolve_authorization_header, resolve_manifest_sources, run_cli, schedule_json, sync_knowledge_dir,
+        sdk_method_for_template, sdk_methods_from_dir, to_camel_case, Cli, Commands,
+        GrpcApplyPlan, GrpcDeleteTarget, GrpcGetTarget, KnowledgeCommands, RenderFormat,
+    };
+    use axum::{
+        extract::{Path as AxumPath, State},
+        http::StatusCode,
+        routing::{delete, get, post},
+        Json, Router,
+    };
+    use futures::{stream, Stream};
+    use serde_json::json;
     use std::collections::HashMap;
     use std::fs;
+    use std::net::SocketAddr;
+    use std::pin::Pin;
+    use std::path::Path;
+    use std::sync::{Arc, Mutex, OnceLock};
     use std::time::{SystemTime, UNIX_EPOCH};
+    use tokio::net::TcpListener;
+    use tokio::sync::RwLock;
+    use tonic::transport::Server;
+    use tonic::service::Interceptor;
+    use tokio_stream::wrappers::TcpListenerStream;
+
+    use talon::control::{KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt};
+    use talon::control::keys;
+    use talon::control::scheduler::SchedulerBackend;
+    use talon::control::scheduler::NoopSchedulerBackend;
+    use talon::gateway::session_streams::SessionStreamHub;
+    use talon::gateway::server::Gateway;
+    use talon::gateway::rpc::{GrpcGatewayHandler, models, proto};
+
+    fn env_mutex() -> &'static Mutex<()> {
+        static MUTEX: OnceLock<Mutex<()>> = OnceLock::new();
+        MUTEX.get_or_init(|| Mutex::new(()))
+    }
+
+    fn temp_root(prefix: &str) -> std::path::PathBuf {
+        std::env::temp_dir().join(format!(
+            "{prefix}-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ))
+    }
+
+    fn cli() -> Cli {
+        Cli {
+            gateway: "http://localhost:50051".to_string(),
+            password: None,
+            token: None,
+            jwt_secret: None,
+            rest: false,
+            command: Commands::Knowledge {
+                command: KnowledgeCommands::Get {
+                    namespace: "conic".to_string(),
+                    path: "docs/test.md".to_string(),
+                },
+            },
+        }
+    }
+
+    fn rest_cli(gateway: String) -> Cli {
+        Cli {
+            gateway,
+            rest: true,
+            ..cli()
+        }
+    }
+
+    #[derive(Default)]
+    struct MockKvStore {
+        data: RwLock<HashMap<(String, String), Vec<u8>>>,
+    }
+
+    #[async_trait::async_trait]
+    impl KeyValueStore for MockKvStore {
+        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .data
+                .read()
+                .await
+                .get(&(ns.to_string(), k.to_string()))
+                .cloned())
+        }
+
+        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
+            self.data
+                .write()
+                .await
+                .insert((ns.to_string(), k.to_string()), v.to_vec());
+            Ok(())
+        }
+
+        async fn compare_and_swap(
+            &self,
+            ns: &str,
+            k: &str,
+            old: Option<&[u8]>,
+            new: &[u8],
+        ) -> anyhow::Result<bool> {
+            let mut data = self.data.write().await;
+            let key = (ns.to_string(), k.to_string());
+            let matches = match (data.get(&key), old) {
+                (None, None) => true,
+                (Some(current), Some(expected)) => current == expected,
+                _ => false,
+            };
+            if matches {
+                data.insert(key, new.to_vec());
+            }
+            Ok(matches)
+        }
+
+        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
+            self.data.write().await.remove(&(ns.to_string(), k.to_string()));
+            Ok(())
+        }
+
+        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
+            let mut keys = self
+                .data
+                .read()
+                .await
+                .keys()
+                .filter_map(|(stored_ns, key)| {
+                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
+                })
+                .collect::<Vec<_>>();
+            keys.sort();
+            Ok(keys)
+        }
+    }
+
+    #[derive(Default)]
+    struct MockPubSub;
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for MockPubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(stream::empty()))
+        }
+    }
+
+    async fn serve_grpc_gateway() -> (SocketAddr, Arc<MockKvStore>) {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(MockPubSub);
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let gateway = Arc::new(Gateway {
+            auth_config: None,
+            kv: kv.clone(),
+            pubsub: pubsub.clone(),
+            scheduler: Arc::new(NoopSchedulerBackend) as Arc<dyn SchedulerBackend>,
+            session_streams: Arc::new(SessionStreamHub::new(pubsub)),
+        });
+        let handler = GrpcGatewayHandler { gateway };
+        tokio::spawn(async move {
+            Server::builder()
+                .add_service(proto::gateway_service_server::GatewayServiceServer::new(
+                    handler,
+                ))
+                .serve_with_incoming(TcpListenerStream::new(listener))
+                .await
+                .unwrap();
+        });
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        (addr, kv)
+    }
+
+    async fn seed_namespace(kv: &Arc<MockKvStore>, namespace: &str) {
+        let value = models::Namespace {
+            name: namespace.to_string(),
+            parent: String::new(),
+            is_deleted: false,
+            deleted_at: 0,
+            labels: HashMap::new(),
+        };
+        kv.set_msg("talon-system:ns", &format!("Namespace/{namespace}"), &value)
+            .await
+            .unwrap();
+    }
 
     #[test]
     fn renders_minijinja_vars() {
@@ -1937,14 +1952,14 @@ mod tests {
     }
 
     #[test]
+    fn parse_vars_rejects_empty_key() {
+        let err = parse_vars(&["=value".to_string()]).expect_err("empty key should fail");
+        assert!(err.to_string().contains("key cannot be empty"));
+    }
+
+    #[test]
     fn resolves_knowledge_content_from_file() {
-        let temp_root = std::env::temp_dir().join(format!(
-            "talon-cli-knowledge-{}",
-            SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap()
-                .as_nanos()
-        ));
+        let temp_root = temp_root("talon-cli-knowledge");
         fs::create_dir_all(temp_root.join("knowledge")).unwrap();
         fs::write(temp_root.join("knowledge/playbook.md"), "# Shared\n").unwrap();
         let manifest_path = temp_root.join("manifest.yaml");
@@ -1956,5 +1971,2011 @@ mod tests {
         assert!(!resolved.contains("contentFromFile"));
 
         fs::remove_dir_all(temp_root).unwrap();
+    }
+
+    #[test]
+    fn parse_raw_manifest_extracts_kind() {
+        let raw = parse_raw_manifest(
+            "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: conic\n",
+        )
+        .unwrap();
+        assert_eq!(raw.kind, "Namespace");
+    }
+
+    #[test]
+    fn resolve_authorization_header_prefers_token_then_jwt_then_password() {
+        let _guard = env_mutex().lock().unwrap();
+        unsafe {
+            std::env::remove_var("TALON_GATEWAY_TOKEN");
+            std::env::remove_var("GATEWAY_TOKEN");
+            std::env::remove_var("TALON_JWT_SECRET");
+            std::env::remove_var("GATEWAY_JWT_SECRET");
+            std::env::remove_var("TALON_GATEWAY_PASSWORD");
+            std::env::remove_var("GATEWAY_PASSWORD");
+        }
+
+        let token_cli = Cli {
+            token: Some("token-1".to_string()),
+            ..cli()
+        };
+        assert_eq!(
+            resolve_authorization_header(&token_cli).unwrap().as_deref(),
+            Some("Bearer token-1")
+        );
+
+        let jwt_cli = Cli {
+            jwt_secret: Some("jwt-secret".to_string()),
+            ..cli()
+        };
+        let jwt_header = resolve_authorization_header(&jwt_cli).unwrap().unwrap();
+        assert!(jwt_header.starts_with("Bearer "));
+
+        let password_cli = Cli {
+            password: Some("pw".to_string()),
+            ..cli()
+        };
+        assert!(resolve_authorization_header(&password_cli)
+            .unwrap()
+            .unwrap()
+            .starts_with("Basic "));
+    }
+
+    #[test]
+    fn auth_interceptor_inserts_authorization_metadata() {
+        let cli = Cli {
+            token: Some("token-1".to_string()),
+            ..cli()
+        };
+        let mut interceptor = auth_interceptor(&cli).unwrap();
+        let request = tonic::Request::new(());
+        let request = interceptor.call(request).unwrap();
+        assert_eq!(
+            request
+                .metadata()
+                .get("authorization")
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            "Bearer token-1"
+        );
+    }
+
+    #[test]
+    fn auth_interceptor_supports_jwt_and_basic_password() {
+        let jwt_cli = Cli {
+            jwt_secret: Some("jwt-secret".to_string()),
+            ..cli()
+        };
+        let mut jwt = auth_interceptor(&jwt_cli).unwrap();
+        let jwt_req = jwt.call(tonic::Request::new(())).unwrap();
+        assert!(jwt_req
+            .metadata()
+            .get("authorization")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .starts_with("Bearer "));
+
+        let password_cli = Cli {
+            password: Some("pw".to_string()),
+            ..cli()
+        };
+        let mut password = auth_interceptor(&password_cli).unwrap();
+        let password_req = password.call(tonic::Request::new(())).unwrap();
+        assert!(password_req
+            .metadata()
+            .get("authorization")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .starts_with("Basic "));
+    }
+
+    #[test]
+    fn manifest_json_payload_supports_namespace_agent_and_knowledge() {
+        let namespace = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: conic\n",
+        )
+        .unwrap();
+        assert_eq!(namespace.0, "namespace");
+        assert_eq!(namespace.1["name"], "conic");
+
+        let agent = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: ctl\n  namespace: conic\ndefinition:\n  customSpec:\n    systemPrompt: test\n",
+        )
+        .unwrap();
+        assert_eq!(agent.0, "agent");
+        assert_eq!(agent.1["name"], "ctl");
+        assert_eq!(agent.1["ns"], "conic");
+
+        let knowledge = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: doc\n  namespace: conic\nspec:\n  path: docs/a.md\n  content: hello\n",
+        )
+        .unwrap();
+        assert_eq!(knowledge.0, "knowledge");
+        assert_eq!(knowledge.1["knowledge"]["kind"], "Knowledge");
+
+        let binding = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServerBinding\nmetadata:\n  name: github\n  namespace: conic\nspec:\n  serverRef: github\n",
+        )
+        .unwrap();
+        assert_eq!(binding.0, "binding");
+        assert_eq!(binding.1["ns"], "conic");
+        assert_eq!(binding.1["binding"]["kind"], "McpServerBinding");
+    }
+
+    #[test]
+    fn knowledge_helpers_build_expected_shape() {
+        assert_eq!(knowledge_resource_name("docs/a.md"), "docs/a.md");
+        let knowledge = build_knowledge("conic", "docs/a.md", "hello".to_string());
+        assert_eq!(knowledge.metadata.as_ref().unwrap().namespace, "conic");
+        assert_eq!(knowledge.spec.as_ref().unwrap().path, "docs/a.md");
+        assert_eq!(knowledge.spec.as_ref().unwrap().content, "hello");
+    }
+
+    #[test]
+    fn read_knowledge_content_validates_sources() {
+        let temp_root = temp_root("talon-cli-content");
+        fs::create_dir_all(&temp_root).unwrap();
+        let file = temp_root.join("note.md");
+        fs::write(&file, "hello").unwrap();
+
+        assert_eq!(
+            read_knowledge_content(&Some(file.display().to_string()), &None).unwrap(),
+            "hello"
+        );
+        assert_eq!(
+            read_knowledge_content(&None, &Some("inline".to_string())).unwrap(),
+            "inline"
+        );
+        assert!(read_knowledge_content(&Some("a".to_string()), &Some("b".to_string())).is_err());
+        assert!(read_knowledge_content(&None, &None).is_err());
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
+
+    #[test]
+    fn relative_knowledge_path_and_markdown_collection_work() {
+        let temp_root = temp_root("talon-cli-paths");
+        fs::create_dir_all(temp_root.join("docs/nested")).unwrap();
+        fs::write(temp_root.join("docs/one.md"), "one").unwrap();
+        fs::write(temp_root.join("docs/nested/two.MD"), "two").unwrap();
+        fs::write(temp_root.join("docs/skip.txt"), "skip").unwrap();
+
+        let relative =
+            relative_knowledge_path(&temp_root.join("docs"), &temp_root.join("docs/nested/two.MD"))
+                .unwrap();
+        assert_eq!(relative, "nested/two.MD");
+
+        let files = collect_markdown_files(&temp_root.join("docs")).unwrap();
+        assert_eq!(files.len(), 2);
+        assert!(files.iter().all(|path| path.extension().is_some()));
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
+
+    #[test]
+    fn relative_knowledge_path_rejects_invalid_inputs() {
+        let temp_root = temp_root("talon-cli-invalid-paths");
+        fs::create_dir_all(temp_root.join("docs")).unwrap();
+        fs::write(temp_root.join("outside.md"), "outside").unwrap();
+
+        let outside = relative_knowledge_path(&temp_root.join("docs"), &temp_root.join("outside.md"))
+            .expect_err("outside file should fail");
+        assert!(outside.to_string().contains("is not inside"));
+
+        let empty = relative_knowledge_path(&temp_root.join("docs"), &temp_root.join("docs"))
+            .expect_err("root path should fail");
+        assert!(empty.to_string().contains("cannot be empty"));
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
+
+    #[test]
+    fn canonicalize_manifest_path_and_to_camel_case_cover_edge_cases() {
+        let base = Path::new("/tmp/work");
+        assert_eq!(
+            canonicalize_manifest_path(base, "nested/file.md"),
+            base.join("nested/file.md")
+        );
+        assert_eq!(
+            canonicalize_manifest_path(base, "/abs/file.md"),
+            std::path::PathBuf::from("/abs/file.md")
+        );
+        assert_eq!(to_camel_case("mcp_server_binding"), "McpServerBinding");
+        assert_eq!(to_camel_case("agent-template"), "AgentTemplate");
+    }
+
+    #[test]
+    fn agent_lookup_target_defaults_and_overrides_namespace() {
+        assert_eq!(
+            agent_lookup_target("writer", None),
+            ("default".to_string(), "writer".to_string())
+        );
+        assert_eq!(
+            agent_lookup_target("ops/writer", None),
+            ("ops".to_string(), "writer".to_string())
+        );
+        let override_ns = "prod".to_string();
+        assert_eq!(
+            agent_lookup_target("ops/writer", Some(&override_ns)),
+            ("prod".to_string(), "writer".to_string())
+        );
+    }
+
+    #[test]
+    fn rest_route_helpers_cover_supported_resources_and_validation() {
+        let team = "team-a".to_string();
+
+        assert_eq!(
+            rest_get_path("template", "starter", None).unwrap(),
+            ("/v1/templates/starter".to_string(), "template")
+        );
+        assert_eq!(
+            rest_get_path("agent", "ops/writer", None).unwrap(),
+            ("/v1/ns/ops/agents/writer".to_string(), "agent")
+        );
+        assert_eq!(
+            rest_get_path("agent", "writer", Some(&team)).unwrap(),
+            ("/v1/ns/team-a/agents/writer".to_string(), "agent")
+        );
+        assert_eq!(
+            rest_get_path("schedule", "nightly sync", Some(&team)).unwrap(),
+            ("/v1/ns/team-a/schedules/nightly%20sync".to_string(), "schedule")
+        );
+        assert_eq!(
+            rest_delete_path("namespace", "team/a", None).unwrap(),
+            "/v1/namespaces/team%2Fa".to_string()
+        );
+        assert_eq!(
+            rest_delete_path("knowledge", "docs/guide.md", Some(&team)).unwrap(),
+            "/v1/namespaces/team-a/knowledge/docs%2Fguide.md".to_string()
+        );
+
+        let err = rest_get_path("mcpbinding", "writer-tools", None).unwrap_err();
+        assert!(format!("{err:#}").contains("namespace is required"));
+
+        let err = rest_delete_path("agent", "writer", None).unwrap_err();
+        assert!(format!("{err:#}").contains("namespace is required"));
+
+        let err = rest_get_path("unknown-kind", "writer", None).unwrap_err();
+        assert!(format!("{err:#}").contains("Unsupported resource kind"));
+    }
+
+    #[test]
+    fn grpc_target_helpers_cover_supported_resources_and_validation() {
+        let team = "team-a".to_string();
+
+        assert_eq!(
+            grpc_get_target("template", "starter", None).unwrap(),
+            GrpcGetTarget::AgentTemplate {
+                name: "starter".to_string()
+            }
+        );
+        assert_eq!(
+            grpc_get_target("agent", "ops/writer", None).unwrap(),
+            GrpcGetTarget::Agent {
+                ns: "ops".to_string(),
+                name: "writer".to_string()
+            }
+        );
+        assert_eq!(
+            grpc_get_target("agent", "writer", Some(&team)).unwrap(),
+            GrpcGetTarget::Agent {
+                ns: "team-a".to_string(),
+                name: "writer".to_string()
+            }
+        );
+        assert_eq!(
+            grpc_get_target("schedule", "nightly", Some(&team)).unwrap(),
+            GrpcGetTarget::Schedule {
+                ns: "team-a".to_string(),
+                name: "nightly".to_string()
+            }
+        );
+        assert_eq!(
+            grpc_delete_target("mcp", "docs", None).unwrap(),
+            GrpcDeleteTarget::McpServer {
+                name: "docs".to_string()
+            }
+        );
+        assert_eq!(
+            grpc_delete_target("knowledge", "docs/a.md", Some(&team)).unwrap(),
+            GrpcDeleteTarget::Knowledge {
+                ns: "team-a".to_string(),
+                name: "docs/a.md".to_string()
+            }
+        );
+
+        let err = grpc_get_target("knowledge", "docs/a.md", None).unwrap_err();
+        assert!(format!("{err:#}").contains("Knowledge get requires --namespace"));
+
+        let err = grpc_delete_target("knowledge", "docs/a.md", None).unwrap_err();
+        assert!(format!("{err:#}").contains("Knowledge delete requires --namespace"));
+
+        let err = grpc_get_target("unknown-kind", "writer", None).unwrap_err();
+        assert!(format!("{err:#}").contains("Unsupported resource kind"));
+    }
+
+    #[test]
+    fn render_manifest_file_applies_vars_and_resolves_sources() {
+        let temp_root = temp_root("talon-cli-render");
+        fs::create_dir_all(temp_root.join("knowledge")).unwrap();
+        fs::write(temp_root.join("knowledge/doc.md"), "rendered").unwrap();
+        let manifest_path = temp_root.join("manifest.yaml");
+        fs::write(
+            &manifest_path,
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: test\n  namespace: {{ vars.ns }}\nspec:\n  path: docs/test.md\n  contentFromFile: knowledge/doc.md\n",
+        )
+        .unwrap();
+
+        let rendered = render_manifest_file(
+            manifest_path.to_str().unwrap(),
+            &["ns=conic".to_string()],
+        )
+        .unwrap();
+        assert!(rendered.contains("namespace: conic"));
+        assert!(rendered.contains("content: rendered"));
+
+        fs::remove_dir_all(temp_root).unwrap();
+    }
+
+    #[test]
+    fn render_json_payload_supports_multiple_manifest_kinds() {
+        let namespace_json = render_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: team-a\n  labels:\n    owner: docs\n",
+        )
+        .unwrap();
+        assert_eq!(namespace_json["name"], "team-a");
+        assert_eq!(namespace_json["recursive"], true);
+
+        let agent_json = render_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: team-a\n  labels:\n    role: editor\ndefinition:\n  customSpec:\n    systemPrompt: Write crisply\n",
+        )
+        .unwrap();
+        assert_eq!(agent_json["agent"]["metadata"]["namespace"], "team-a");
+        assert_eq!(agent_json["agent"]["metadata"]["name"], "writer");
+
+        let binding_json = render_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServerBinding\nmetadata:\n  namespace: team-a\n  name: docs\nspec:\n  serverRef: docs-server\n",
+        )
+        .unwrap();
+        assert_eq!(binding_json["ns"], "team-a");
+        assert_eq!(binding_json["binding"]["metadata"]["name"], "docs");
+    }
+
+    #[test]
+    fn build_rest_apply_plan_covers_create_update_and_validation() {
+        let (_, agent_payload) = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: team-a\n  labels:\n    tier: prod\ndefinition:\n  customSpec:\n    systemPrompt: Write crisply\n",
+        )
+        .unwrap();
+        let create_plan = build_rest_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: team-a\n  labels:\n    tier: prod\ndefinition:\n  customSpec:\n    systemPrompt: Write crisply\n",
+            agent_payload.clone(),
+            false,
+        )
+        .unwrap();
+        assert_eq!(create_plan.method, reqwest::Method::POST);
+        assert_eq!(create_plan.path, "/v1/ns/team-a/agents");
+        assert_eq!(create_plan.payload["name"], "writer");
+        assert_eq!(create_plan.success_label, "Agent 'team-a/writer'");
+
+        let update_plan = build_rest_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: team-a\n  labels:\n    tier: prod\ndefinition:\n  customSpec:\n    systemPrompt: Write crisply\n",
+            agent_payload,
+            true,
+        )
+        .unwrap();
+        assert_eq!(update_plan.method, reqwest::Method::PUT);
+        assert_eq!(update_plan.path, "/v1/ns/team-a/agents/writer");
+        assert_eq!(update_plan.payload["agent"], "writer");
+
+        let (_, binding_payload) = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServerBinding\nmetadata:\n  name: docs\n  namespace: team-a\nspec:\n  serverRef: docs-server\n",
+        )
+        .unwrap();
+        let binding_plan = build_rest_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServerBinding\nmetadata:\n  name: docs\n  namespace: team-a\nspec:\n  serverRef: docs-server\n",
+            binding_payload,
+            false,
+        )
+        .unwrap();
+        assert_eq!(binding_plan.path, "/v1/namespaces/team-a/mcp-bindings");
+        assert_eq!(binding_plan.payload["ns"], "team-a");
+
+        let (_, namespace_payload) = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: team-a\n",
+        )
+        .unwrap();
+        let namespace_plan = build_rest_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: team-a\n",
+            namespace_payload,
+            false,
+        )
+        .unwrap();
+        assert_eq!(namespace_plan.path, "/v1/namespaces/team-a");
+        assert_eq!(namespace_plan.payload["recursive"], true);
+
+        let (_, mcp_payload) = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
+        )
+        .unwrap();
+        let mcp_plan = build_rest_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
+            mcp_payload,
+            false,
+        )
+        .unwrap();
+        assert_eq!(mcp_plan.path, "/v1/mcp-servers");
+
+        let err = build_rest_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs\n  namespace: team-a\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
+            json!({}),
+            false,
+        )
+        .unwrap_err();
+        assert!(format!("{err:#}").contains("metadata.namespace is not supported"));
+
+        let err = build_rest_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: doc\nspec:\n  path: docs/a.md\n  content: hi\n",
+            json!({}),
+            false,
+        )
+        .unwrap_err();
+        assert!(format!("{err:#}").contains("metadata.namespace is required"));
+    }
+
+    #[test]
+    fn build_grpc_apply_plan_covers_supported_manifests_and_validation() {
+        match build_grpc_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: team-a\n  labels:\n    tier: prod\ndefinition:\n  customSpec:\n    systemPrompt: Write crisply\n",
+        )
+        .unwrap()
+        {
+            GrpcApplyPlan::Agent {
+                ns,
+                name,
+                labels,
+                definition,
+            } => {
+                assert_eq!(ns, "team-a");
+                assert_eq!(name, "writer");
+                assert_eq!(labels.get("tier").map(String::as_str), Some("prod"));
+                assert!(definition.source.is_some());
+            }
+            other => panic!("unexpected plan: {other:?}"),
+        }
+
+        match build_grpc_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: release-writer\ndefinition:\n  customSpec:\n    instructions: Write\n",
+        )
+        .unwrap()
+        {
+            GrpcApplyPlan::AgentTemplate { name, template } => {
+                assert_eq!(name, "release-writer");
+                assert_eq!(
+                    template.metadata.as_ref().map(|m| m.name.as_str()),
+                    Some("release-writer")
+                );
+            }
+            other => panic!("unexpected plan: {other:?}"),
+        }
+
+        match build_grpc_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
+        )
+        .unwrap()
+        {
+            GrpcApplyPlan::McpServer { name, server } => {
+                assert_eq!(name, "docs");
+                assert_eq!(
+                    server.metadata.as_ref().map(|m| m.name.as_str()),
+                    Some("docs")
+                );
+            }
+            other => panic!("unexpected plan: {other:?}"),
+        }
+
+        match build_grpc_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: doc\n  namespace: team-a\nspec:\n  path: docs/a.md\n  content: hi\n",
+        )
+        .unwrap()
+        {
+            GrpcApplyPlan::Knowledge {
+                ns,
+                name,
+                knowledge,
+            } => {
+                assert_eq!(ns, "team-a");
+                assert_eq!(name, "doc");
+                assert_eq!(
+                    knowledge.metadata.as_ref().map(|m| m.namespace.as_str()),
+                    Some("team-a")
+                );
+            }
+            other => panic!("unexpected plan: {other:?}"),
+        }
+
+        let err = build_grpc_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs\n  namespace: team-a\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
+        )
+        .unwrap_err();
+        assert!(format!("{err:#}").contains("metadata.namespace is not supported"));
+
+        let err = build_grpc_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: doc\nspec:\n  path: docs/a.md\n  content: hi\n",
+        )
+        .unwrap_err();
+        assert!(format!("{err:#}").contains("metadata.namespace is required"));
+
+        let err = build_grpc_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: UnknownThing\nmetadata:\n  name: nope\n",
+        )
+        .unwrap_err();
+        assert!(format!("{err:#}").contains("Unsupported manifest kind"));
+    }
+
+    #[test]
+    fn sdk_generation_helpers_build_methods_and_filter_inputs() {
+        assert_eq!(feature_ts_type("integer"), "number");
+        assert_eq!(feature_ts_type("boolean"), "boolean");
+        assert_eq!(feature_ts_type("string"), "string");
+
+        let template = talon::manifest::parse_agent_template(
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: release-writer\ndefinition:\n  customSpec:\n    instructions: Write\n    features:\n      - name: title\n        type: string\n        required: true\n      - name: dryRun\n        type: boolean\n        required: false\n",
+        )
+        .unwrap();
+        let method = sdk_method_for_template(&template).unwrap();
+        assert!(method.contains("async createReleaseWriter"));
+        assert!(method.contains("title: string"));
+        assert!(method.contains("dryRun?: boolean"));
+        assert!(method.contains("template: \"release-writer\""));
+    }
+
+    #[test]
+    fn sdk_methods_from_dir_reads_yaml_templates_and_skips_others() {
+        let root = temp_root("talon-cli-sdk");
+        fs::create_dir_all(&root).unwrap();
+        fs::write(
+            root.join("writer.yaml"),
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: writer\ndefinition:\n  customSpec:\n    instructions: Write\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("research.yaml"),
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: research-helper\ndefinition:\n  customSpec:\n    instructions: Research\n    features:\n      - name: query\n        type: string\n        required: true\n",
+        )
+        .unwrap();
+        fs::write(root.join("notes.txt"), "ignored").unwrap();
+        fs::write(root.join("broken.yaml"), "kind: NotATemplate").unwrap();
+
+        let methods = sdk_methods_from_dir(root.to_str().unwrap()).unwrap();
+        assert_eq!(methods.len(), 2);
+        assert!(methods.iter().any(|m| m.contains("createWriter")));
+        assert!(methods.iter().any(|m| m.contains("createResearchHelper")));
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn resolve_manifest_sources_rejects_invalid_knowledge_source_combinations() {
+        let err = resolve_manifest_sources(
+            "manifest.yaml",
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: test\n  namespace: conic\nspec:\n  path: docs/test.md\n",
+        )
+        .unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("must set one of content or contentFromFile"));
+    }
+
+    #[test]
+    fn resolve_manifest_sources_passes_through_non_knowledge_and_rejects_duplicate_sources() {
+        let namespace = "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: conic\n";
+        assert_eq!(
+            resolve_manifest_sources("manifest.yaml", namespace).unwrap(),
+            namespace
+        );
+
+        let err = resolve_manifest_sources(
+            "manifest.yaml",
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: test\n  namespace: conic\nspec:\n  path: docs/test.md\n  content: inline\n  contentFromFile: docs/test.md\n",
+        )
+        .unwrap_err();
+        assert!(err.to_string().contains("only one of content or contentFromFile"));
+    }
+
+    #[test]
+    fn manifest_json_payload_rejects_unsupported_or_incomplete_manifests() {
+        let unsupported = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: UnknownThing\nmetadata:\n  name: test\n",
+        )
+        .unwrap_err();
+        assert!(unsupported.to_string().contains("Unsupported manifest kind"));
+
+        let missing_namespace = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServerBinding\nmetadata:\n  name: github\nspec:\n  serverRef: github\n",
+        )
+        .unwrap_err();
+        assert!(missing_namespace
+            .to_string()
+            .contains("namespace"));
+
+        let render_err = render_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: UnknownThing\nmetadata:\n  name: test\n",
+        )
+        .unwrap_err();
+        assert!(render_err.to_string().contains("Unsupported manifest kind"));
+    }
+
+    #[tokio::test]
+    async fn rest_client_sends_basic_authorization_header_from_password() {
+        let app = Router::new().route(
+            "/auth-check",
+            get(|headers: axum::http::HeaderMap| async move {
+                let auth = headers
+                    .get("authorization")
+                    .and_then(|value| value.to_str().ok())
+                    .unwrap_or_default()
+                    .to_string();
+                Json(json!({ "authorization": auth }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let cli = Cli {
+            gateway: format!("http://{addr}"),
+            password: Some("pw".to_string()),
+            rest: true,
+            ..cli()
+        };
+        let client = rest_client(&cli).unwrap();
+        let value: serde_json::Value = client
+            .get(format!("http://{addr}/auth-check"))
+            .send()
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        assert_eq!(value["authorization"], "Basic OnB3");
+
+        server.abort();
+    }
+
+    #[test]
+    fn schedule_json_renders_target_and_status_fields() {
+        let schedule = super::models::Schedule {
+            name: "nightly".to_string(),
+            ns: "conic".to_string(),
+            labels: HashMap::from([("tier".to_string(), "prod".to_string())]),
+            spec: Some(super::models::ScheduleSpec {
+                kind: "cron".to_string(),
+                cron: "0 0 * * *".to_string(),
+                interval_seconds: 0,
+                run_at: String::new(),
+                timezone: "UTC".to_string(),
+                target: Some(super::models::ScheduleTarget {
+                    agent: "ctl".to_string(),
+                    session_mode: "new".to_string(),
+                    session_id: String::new(),
+                }),
+                input_message: "ping".to_string(),
+                enabled: true,
+            }),
+            status: Some(super::models::ScheduleStatus {
+                revision: 3,
+                next_run_at: Some(123),
+                backend_handle: Some("handle".to_string()),
+                backend_armed: true,
+                last_run_at: Some(111),
+                last_session_id: Some("session-1".to_string()),
+                last_error: None,
+                claimed_run_at: None,
+                claim_expires_at: None,
+                recent_events: vec![super::models::ScheduleEvent {
+                    timestamp: 99,
+                    phase: "armed".to_string(),
+                    outcome: "ok".to_string(),
+                    detail: "scheduled".to_string(),
+                }],
+            }),
+        };
+
+        let json = schedule_json(&schedule);
+        assert_eq!(json["spec"]["target"]["agent"], "ctl");
+        assert_eq!(json["status"]["backendHandle"], "handle");
+        assert_eq!(json["status"]["recentEvents"][0]["phase"], "armed");
+    }
+
+    #[tokio::test]
+    async fn knowledge_rest_helpers_round_trip_and_handle_missing() {
+        #[derive(Clone, Default)]
+        struct AppState {
+            store: std::sync::Arc<tokio::sync::Mutex<HashMap<String, super::Knowledge>>>,
+        }
+
+        let state = AppState::default();
+        let app = Router::new()
+            .route(
+                "/v1/namespaces/:ns/knowledge",
+                get(
+                    |State(state): State<AppState>, AxumPath(ns): AxumPath<String>| async move {
+                        let values = state
+                            .store
+                            .lock()
+                            .await
+                            .values()
+                            .filter(|item| {
+                                item.metadata
+                                    .as_ref()
+                                    .map(|meta| meta.namespace == ns)
+                                    .unwrap_or(false)
+                            })
+                            .cloned()
+                            .collect::<Vec<_>>();
+                        Json(json!({ "knowledge": values }))
+                    },
+                )
+                .post(
+                    |State(state): State<AppState>,
+                     AxumPath(ns): AxumPath<String>,
+                     Json(payload): Json<serde_json::Value>| async move {
+                        let knowledge: super::Knowledge =
+                            serde_json::from_value(payload["knowledge"].clone()).unwrap();
+                        let name = knowledge.metadata.as_ref().unwrap().name.clone();
+                        assert_eq!(knowledge.metadata.as_ref().unwrap().namespace, ns);
+                        let encoded_name = urlencoding::encode(&name).into_owned();
+                        let mut store = state.store.lock().await;
+                        store.insert(name, knowledge.clone());
+                        store.insert(encoded_name, knowledge);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/namespaces/:ns/knowledge/*name",
+                get(
+                    |State(state): State<AppState>,
+                     AxumPath((_ns, name)): AxumPath<(String, String)>| async move {
+                        let decoded_name = urlencoding::decode(name.trim_start_matches('/'))
+                            .unwrap()
+                            .into_owned();
+                        match state.store.lock().await.get(&decoded_name).cloned() {
+                            Some(knowledge) => (StatusCode::OK, Json(json!({ "knowledge": knowledge }))),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<AppState>,
+                     AxumPath((_ns, name)): AxumPath<(String, String)>| async move {
+                        let decoded_name = urlencoding::decode(name.trim_start_matches('/'))
+                            .unwrap()
+                            .into_owned();
+                        state.store.lock().await.remove(&decoded_name);
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .with_state(state.clone());
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr: SocketAddr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let cli = rest_cli(format!("http://{addr}"));
+        let path = "docs-test.md";
+        let missing = knowledge_get(&cli, "conic", path).await.unwrap_err().to_string();
+        assert!(missing.contains("status=404 Not Found"));
+
+        knowledge_set(&cli, "conic", path, "hello".to_string())
+            .await
+            .unwrap();
+
+        let listed = knowledge_list(&cli, "conic").await.unwrap();
+        assert_eq!(listed.len(), 1);
+        assert_eq!(listed[0].metadata.as_ref().unwrap().name, path);
+        assert_eq!(listed[0].spec.as_ref().unwrap().content, "hello");
+
+        knowledge_delete(&cli, "conic", path).await.unwrap();
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn knowledge_rest_helpers_surface_server_errors() {
+        let app = Router::new()
+            .route(
+                "/v1/namespaces/:ns/knowledge",
+                post(|| async { (StatusCode::INTERNAL_SERVER_ERROR, "nope") }),
+            )
+            .route(
+                "/v1/namespaces/:ns/knowledge/:name",
+                delete(|| async { (StatusCode::INTERNAL_SERVER_ERROR, "delete failed") }),
+            );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let cli = rest_cli(format!("http://{addr}"));
+        let set_err = knowledge_set(&cli, "conic", "docs/test.md", "hello".to_string())
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(set_err.contains("Failed to write Knowledge"));
+
+        let delete_err = knowledge_delete(&cli, "conic", "docs/test.md")
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(delete_err.contains("Failed to delete Knowledge"));
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn knowledge_grpc_helpers_round_trip() {
+        let (addr, kv) = serve_grpc_gateway().await;
+        seed_namespace(&kv, "conic").await;
+
+        let cli = Cli {
+            gateway: format!("http://{addr}"),
+            ..cli()
+        };
+
+        knowledge_set(&cli, "conic", "docs/grpc.md", "hello grpc".to_string())
+            .await
+            .unwrap();
+
+        let got = knowledge_get(&cli, "conic", "docs/grpc.md")
+            .await
+            .unwrap()
+            .expect("knowledge should exist");
+        assert_eq!(got.spec.as_ref().unwrap().content, "hello grpc");
+
+        let listed = knowledge_list(&cli, "conic").await.unwrap();
+        assert_eq!(listed.len(), 1);
+        assert_eq!(listed[0].spec.as_ref().unwrap().path, "docs/grpc.md");
+
+        knowledge_delete(&cli, "conic", "docs/grpc.md").await.unwrap();
+        assert!(knowledge_get(&cli, "conic", "docs/grpc.md")
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn grpc_get_and_delete_helpers_round_trip_knowledge() {
+        let (addr, kv) = serve_grpc_gateway().await;
+        seed_namespace(&kv, "conic").await;
+        let namespace = "conic".to_string();
+
+        let cli = Cli {
+            gateway: format!("http://{addr}"),
+            ..cli()
+        };
+
+        knowledge_set(&cli, "conic", "docs/view.md", "grpc body".to_string())
+            .await
+            .unwrap();
+
+        let yaml = grpc_get_yaml(&cli, "knowledge", "docs/view.md", Some(&namespace))
+            .await
+            .unwrap();
+        assert!(yaml.contains("kind: Knowledge"));
+        assert!(yaml.contains("content: grpc body"));
+
+        let deleted = grpc_delete_resource(
+            &cli,
+            "knowledge",
+            "docs/view.md",
+            Some(&namespace),
+        )
+        .await
+        .unwrap();
+        assert!(deleted.contains("deleted successfully"));
+        assert!(knowledge_get(&cli, "conic", "docs/view.md")
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn grpc_apply_manifest_round_trips_knowledge_and_agent() {
+        let (addr, kv) = serve_grpc_gateway().await;
+        seed_namespace(&kv, "conic").await;
+
+        let cli = Cli {
+            gateway: format!("http://{addr}"),
+            ..cli()
+        };
+
+        let knowledge_message = grpc_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: docs/applied.md\n  namespace: conic\nspec:\n  path: docs/applied.md\n  content: from apply\n",
+        )
+        .await
+        .unwrap();
+        assert!(knowledge_message.contains("Knowledge 'conic/docs/applied.md' applied successfully."));
+        let got = knowledge_get(&cli, "conic", "docs/applied.md")
+            .await
+            .unwrap()
+            .expect("knowledge should exist");
+        assert_eq!(got.spec.as_ref().unwrap().content, "from apply");
+
+        let created = grpc_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: conic\n  labels:\n    tier: prod\ndefinition:\n  customSpec:\n    systemPrompt: First version\n    modelPolicy:\n      profiles:\n        - name: default\n          model:\n            provider: mock\n            name: test-model\n            temperature: 0.0\n",
+        )
+        .await
+        .unwrap();
+        assert!(created.contains("Agent 'conic/writer' applied successfully."));
+
+        let initial_yaml = grpc_get_yaml(&cli, "agent", "conic/writer", None)
+            .await
+            .unwrap();
+        assert!(initial_yaml.contains("systemPrompt: First version"));
+
+        let updated = grpc_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: conic\n  labels:\n    tier: prod\ndefinition:\n  customSpec:\n    systemPrompt: Updated version\n    modelPolicy:\n      profiles:\n        - name: default\n          model:\n            provider: mock\n            name: test-model\n            temperature: 0.0\n",
+        )
+        .await
+        .unwrap();
+        assert!(updated.contains("Agent 'conic/writer' applied successfully."));
+
+        let updated_yaml = grpc_get_yaml(&cli, "agent", "conic/writer", None)
+            .await
+            .unwrap();
+        assert!(updated_yaml.contains("systemPrompt: Updated version"));
+    }
+
+    #[tokio::test]
+    async fn grpc_apply_get_and_delete_round_trip_template_and_mcp_server() {
+        let (addr, _kv) = serve_grpc_gateway().await;
+        let cli = Cli {
+            gateway: format!("http://{addr}"),
+            ..cli()
+        };
+
+        let template_message = grpc_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: release-writer\ndefinition:\n  customSpec:\n    systemPrompt: Ship it\n    modelPolicy:\n      profiles:\n        - name: default\n          model:\n            provider: mock\n            name: template-model\n            temperature: 0.0\n",
+        )
+        .await
+        .unwrap();
+        assert!(template_message.contains("AgentTemplate 'release-writer' applied successfully."));
+
+        let template_yaml = grpc_get_yaml(&cli, "template", "release-writer", None)
+            .await
+            .unwrap();
+        assert!(template_yaml.contains("kind: AgentTemplate"));
+        assert!(template_yaml.contains("name: release-writer"));
+
+        let deleted_template = grpc_delete_resource(&cli, "template", "release-writer", None)
+            .await
+            .unwrap();
+        assert!(deleted_template.contains("deleted successfully"));
+
+        let mcp_message = grpc_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs-server\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
+        )
+        .await
+        .unwrap();
+        assert!(mcp_message.contains("MCPServer 'docs-server' applied successfully."));
+
+        let mcp_yaml = grpc_get_yaml(&cli, "mcp", "docs-server", None)
+            .await
+            .unwrap();
+        assert!(mcp_yaml.contains("name: docs-server"));
+        assert!(mcp_yaml.contains("transport: streamable-http"));
+
+        let deleted_mcp = grpc_delete_resource(&cli, "mcp", "docs-server", None)
+            .await
+            .unwrap();
+        assert!(deleted_mcp.contains("deleted successfully"));
+    }
+
+    #[tokio::test]
+    async fn grpc_get_yaml_renders_schedule_yaml() {
+        let (addr, kv) = serve_grpc_gateway().await;
+        seed_namespace(&kv, "conic").await;
+        let namespace = "conic".to_string();
+        kv.set_msg(
+            &namespace,
+            &keys::schedule("nightly"),
+            &models::Schedule {
+                name: "nightly".to_string(),
+                ns: namespace.clone(),
+                labels: HashMap::new(),
+                spec: Some(models::ScheduleSpec {
+                    kind: "cron".to_string(),
+                    cron: "0 0 * * *".to_string(),
+                    interval_seconds: 0,
+                    run_at: String::new(),
+                    timezone: "UTC".to_string(),
+                    target: Some(models::ScheduleTarget {
+                        agent: "writer".to_string(),
+                        session_mode: "new".to_string(),
+                        session_id: String::new(),
+                    }),
+                    input_message: "publish".to_string(),
+                    enabled: true,
+                }),
+                status: Some(models::ScheduleStatus {
+                    revision: 2,
+                    next_run_at: Some(123),
+                    backend_handle: Some("handle".to_string()),
+                    backend_armed: true,
+                    last_run_at: None,
+                    last_session_id: None,
+                    last_error: None,
+                    claimed_run_at: None,
+                    claim_expires_at: None,
+                    recent_events: Vec::new(),
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        let cli = Cli {
+            gateway: format!("http://{addr}"),
+            ..cli()
+        };
+        let yaml = grpc_get_yaml(&cli, "schedule", "nightly", Some(&namespace))
+            .await
+            .unwrap();
+        assert!(yaml.contains("backendHandle: handle"));
+        assert!(yaml.contains("cron: 0 0 * * *"));
+        assert!(yaml.contains("agent: writer"));
+    }
+
+    #[tokio::test]
+    async fn rest_apply_get_and_delete_helpers_cover_multiple_resource_kinds() {
+        #[derive(Clone, Default)]
+        struct RestState {
+            templates: Arc<tokio::sync::Mutex<HashMap<String, serde_json::Value>>>,
+            agents: Arc<tokio::sync::Mutex<HashMap<(String, String), serde_json::Value>>>,
+        }
+
+        let state = RestState::default();
+        let app = Router::new()
+            .route(
+                "/v1/templates",
+                post(
+                    |State(state): State<RestState>, Json(payload): Json<serde_json::Value>| async move {
+                        let template = payload["template"].clone();
+                        let name = template["metadata"]["name"].as_str().unwrap().to_string();
+                        state.templates.lock().await.insert(name, template);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/templates/:name",
+                get(
+                    |State(state): State<RestState>, AxumPath(name): AxumPath<String>| async move {
+                        let value = state.templates.lock().await.get(&name).cloned();
+                        match value {
+                            Some(template) => (StatusCode::OK, Json(json!({ "template": template }))),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>, AxumPath(name): AxumPath<String>| async move {
+                        state.templates.lock().await.remove(&name);
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/ns/:ns/agents",
+                post(
+                    |State(state): State<RestState>,
+                     AxumPath(ns): AxumPath<String>,
+                     Json(payload): Json<serde_json::Value>| async move {
+                        let name = payload["name"].as_str().unwrap().to_string();
+                        state.agents.lock().await.insert((ns, name), payload);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/ns/:ns/agents/:name",
+                get(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        let value = state.agents.lock().await.get(&(ns, name)).cloned();
+                        match value {
+                            Some(agent) => (StatusCode::OK, Json(json!({ "agent": agent }))),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .put(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>,
+                     Json(payload): Json<serde_json::Value>| async move {
+                        state.agents.lock().await.insert((ns, name), payload);
+                        Json(json!({ "ok": true }))
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        state.agents.lock().await.remove(&(ns, name));
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .with_state(state);
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let cli = rest_cli(format!("http://{addr}"));
+        let namespace = "conic".to_string();
+
+        let template_message = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: rest-template\ndefinition:\n  customSpec:\n    systemPrompt: REST template\n",
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(template_message.contains("AgentTemplate 'rest-template' applied successfully."));
+        let template_yaml = rest_get_yaml(&cli, "template", "rest-template", None)
+            .await
+            .unwrap();
+        assert!(template_yaml.contains("name: rest-template"));
+        let deleted_template = rest_delete_resource(&cli, "template", "rest-template", None)
+            .await
+            .unwrap();
+        assert!(deleted_template.contains("deleted successfully"));
+
+        let created_agent = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: conic\ndefinition:\n  customSpec:\n    systemPrompt: REST create\n",
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(created_agent.contains("Agent 'conic/writer' applied successfully."));
+        let created_yaml = rest_get_yaml(&cli, "agent", "conic/writer", None)
+            .await
+            .unwrap();
+        assert!(created_yaml.contains("systemPrompt: REST create"));
+
+        let updated_agent = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Agent\nmetadata:\n  name: writer\n  namespace: conic\ndefinition:\n  customSpec:\n    systemPrompt: REST update\n",
+            true,
+        )
+        .await
+        .unwrap();
+        assert!(updated_agent.contains("Agent 'conic/writer' applied successfully."));
+        let deleted_agent = rest_delete_resource(&cli, "agent", "writer", Some(&namespace))
+            .await
+            .unwrap();
+        assert!(deleted_agent.contains("deleted successfully"));
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn rest_apply_get_and_delete_helpers_cover_remaining_resource_kinds() {
+        #[derive(Clone, Default)]
+        struct RestState {
+            namespaces: Arc<tokio::sync::Mutex<HashMap<String, serde_json::Value>>>,
+            knowledge: Arc<tokio::sync::Mutex<HashMap<(String, String), serde_json::Value>>>,
+            bindings: Arc<tokio::sync::Mutex<HashMap<(String, String), serde_json::Value>>>,
+            servers: Arc<tokio::sync::Mutex<HashMap<String, serde_json::Value>>>,
+        }
+
+        let state = RestState::default();
+        let app = Router::new()
+            .route(
+                "/v1/namespaces/:name",
+                post(
+                    |State(state): State<RestState>,
+                     AxumPath(name): AxumPath<String>,
+                     Json(payload): Json<serde_json::Value>| async move {
+                        state.namespaces.lock().await.insert(name, payload.clone());
+                        Json(json!({ "ok": true }))
+                    },
+                )
+                .get(
+                    |State(state): State<RestState>, AxumPath(name): AxumPath<String>| async move {
+                        let value = state.namespaces.lock().await.get(&name).cloned();
+                        match value {
+                            Some(namespace) => (StatusCode::OK, Json(namespace)),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>, AxumPath(name): AxumPath<String>| async move {
+                        state.namespaces.lock().await.remove(&name);
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/namespaces/:ns/knowledge",
+                post(
+                    |State(state): State<RestState>,
+                     AxumPath(ns): AxumPath<String>,
+                     Json(payload): Json<serde_json::Value>| async move {
+                        let knowledge = payload["knowledge"].clone();
+                        let name = knowledge["metadata"]["name"].as_str().unwrap().to_string();
+                        state.knowledge.lock().await.insert((ns, name), knowledge);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/namespaces/:ns/knowledge/:name",
+                get(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        let key = (ns, urlencoding::decode(&name).unwrap().into_owned());
+                        let value = state.knowledge.lock().await.get(&key).cloned();
+                        match value {
+                            Some(knowledge) => {
+                                (StatusCode::OK, Json(json!({ "knowledge": knowledge })))
+                            }
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        let key = (ns, urlencoding::decode(&name).unwrap().into_owned());
+                        state.knowledge.lock().await.remove(&key);
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/namespaces/:ns/mcp-bindings",
+                post(
+                    |State(state): State<RestState>,
+                     AxumPath(ns): AxumPath<String>,
+                     Json(payload): Json<serde_json::Value>| async move {
+                        let binding = payload["binding"].clone();
+                        let name = binding["metadata"]["name"].as_str().unwrap().to_string();
+                        state.bindings.lock().await.insert((ns, name), binding);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/namespaces/:ns/mcp-bindings/:name",
+                get(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        let value = state.bindings.lock().await.get(&(ns, name)).cloned();
+                        match value {
+                            Some(binding) => (StatusCode::OK, Json(json!({ "binding": binding }))),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        state.bindings.lock().await.remove(&(ns, name));
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/mcp-servers",
+                post(
+                    |State(state): State<RestState>, Json(payload): Json<serde_json::Value>| async move {
+                        let server = payload["server"].clone();
+                        let name = server["metadata"]["name"].as_str().unwrap().to_string();
+                        state.servers.lock().await.insert(name, server);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/mcp-servers/:name",
+                get(
+                    |State(state): State<RestState>, AxumPath(name): AxumPath<String>| async move {
+                        let value = state.servers.lock().await.get(&name).cloned();
+                        match value {
+                            Some(server) => (StatusCode::OK, Json(json!({ "server": server }))),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>, AxumPath(name): AxumPath<String>| async move {
+                        state.servers.lock().await.remove(&name);
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .with_state(state);
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let cli = rest_cli(format!("http://{addr}"));
+        let namespace = "conic".to_string();
+
+        let namespace_message = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: conic\n",
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(namespace_message.contains("Namespace 'conic' applied successfully."));
+        let namespace_yaml = rest_get_yaml(&cli, "namespace", "conic", None)
+            .await
+            .unwrap();
+        assert!(namespace_yaml.contains("name: conic"));
+        let namespace_deleted = rest_delete_resource(&cli, "namespace", "conic", None)
+            .await
+            .unwrap();
+        assert!(namespace_deleted.contains("deleted successfully"));
+
+        let knowledge_message = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: docs/rest.md\n  namespace: conic\nspec:\n  path: docs/rest.md\n  content: rest body\n",
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(knowledge_message.contains("Knowledge 'conic/docs/rest.md' applied successfully."));
+        let knowledge_yaml = rest_get_yaml(&cli, "knowledge", "docs/rest.md", Some(&namespace))
+            .await
+            .unwrap();
+        assert!(knowledge_yaml.contains("content: rest body"));
+        let knowledge_deleted = rest_delete_resource(
+            &cli,
+            "knowledge",
+            "docs/rest.md",
+            Some(&namespace),
+        )
+        .await
+        .unwrap();
+        assert!(knowledge_deleted.contains("deleted successfully"));
+
+        let binding_message = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServerBinding\nmetadata:\n  name: docs\n  namespace: conic\nspec:\n  serverRef: docs-server\n",
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(binding_message.contains("McpServerBinding 'conic/docs' applied successfully."));
+        let binding_yaml = rest_get_yaml(&cli, "mcpbinding", "docs", Some(&namespace))
+            .await
+            .unwrap();
+        assert!(binding_yaml.contains("name: docs"));
+        let binding_deleted = rest_delete_resource(&cli, "mcpbinding", "docs", Some(&namespace))
+            .await
+            .unwrap();
+        assert!(binding_deleted.contains("deleted successfully"));
+
+        let server_message = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs-server\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(server_message.contains("MCPServer 'docs-server' applied successfully."));
+        let server_yaml = rest_get_yaml(&cli, "mcp", "docs-server", None)
+            .await
+            .unwrap();
+        assert!(server_yaml.contains("transport: streamable-http"));
+        let server_deleted = rest_delete_resource(&cli, "mcp", "docs-server", None)
+            .await
+            .unwrap();
+        assert!(server_deleted.contains("deleted successfully"));
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn sync_knowledge_dir_writes_markdown_and_reports_unsynced_paths() {
+        #[derive(Clone, Default)]
+        struct AppState {
+            store: Arc<tokio::sync::Mutex<HashMap<String, super::Knowledge>>>,
+        }
+
+        let state = AppState::default();
+        state.store.lock().await.insert(
+            "legacy.md".to_string(),
+            build_knowledge("conic", "legacy.md", "old".to_string()),
+        );
+
+        let app = Router::new()
+            .route(
+                "/v1/namespaces/:ns/knowledge",
+                get(
+                    |State(state): State<AppState>, AxumPath(ns): AxumPath<String>| async move {
+                        let values = state
+                            .store
+                            .lock()
+                            .await
+                            .values()
+                            .filter(|item| {
+                                item.metadata
+                                    .as_ref()
+                                    .map(|meta| meta.namespace == ns)
+                                    .unwrap_or(false)
+                            })
+                            .cloned()
+                            .collect::<Vec<_>>();
+                        Json(json!({ "knowledge": values }))
+                    },
+                )
+                .post(
+                    |State(state): State<AppState>, Json(payload): Json<serde_json::Value>| async move {
+                        let knowledge: super::Knowledge =
+                            serde_json::from_value(payload["knowledge"].clone()).unwrap();
+                        let name = knowledge.metadata.as_ref().unwrap().name.clone();
+                        state.store.lock().await.insert(name, knowledge);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .with_state(state.clone());
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let root = temp_root("talon-cli-sync");
+        fs::create_dir_all(root.join("nested")).unwrap();
+        fs::write(root.join("one.md"), "one").unwrap();
+        fs::write(root.join("nested/two.md"), "two").unwrap();
+        fs::write(root.join("skip.txt"), "skip").unwrap();
+
+        let cli = rest_cli(format!("http://{addr}"));
+        let (synced_count, unsynced_existing) =
+            sync_knowledge_dir(&cli, "conic", root.to_str().unwrap())
+                .await
+                .unwrap();
+        assert_eq!(synced_count, 2);
+        assert_eq!(unsynced_existing, vec!["legacy.md".to_string()]);
+
+        let stored = state.store.lock().await;
+        assert!(stored.contains_key("one.md"));
+        assert!(stored.contains_key("nested/two.md"));
+
+        drop(stored);
+        fs::remove_dir_all(root).unwrap();
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn rest_helpers_surface_missing_fields_and_server_errors() {
+        let app = Router::new()
+            .route("/v1/templates/:name", get(|| async { Json(json!({ "wrong": {} })) }))
+            .route(
+                "/v1/ns/:ns/agents/:name",
+                delete(|| async { (StatusCode::BAD_REQUEST, "cannot delete") }),
+            )
+            .route(
+                "/v1/mcp-servers",
+                post(|| async { (StatusCode::INTERNAL_SERVER_ERROR, "bad server") }),
+            );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let cli = rest_cli(format!("http://{addr}"));
+        let namespace = "conic".to_string();
+
+        let get_err = rest_get_yaml(&cli, "template", "missing-template", None)
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(get_err.contains("REST response missing template"));
+
+        let delete_err = rest_delete_resource(&cli, "agent", "writer", Some(&namespace))
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(delete_err.contains("Failed to delete agent 'writer'"));
+
+        let apply_err = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs-server\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
+            false,
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(apply_err.contains("Gateway rejected MCPServer 'docs-server'"));
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn run_cli_dispatches_render_and_gen_commands() {
+        let root = temp_root("talon-cli-run-render");
+        fs::create_dir_all(&root).unwrap();
+        let manifest = root.join("agent.yaml");
+        fs::write(
+            &manifest,
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: generated-writer\ndefinition:\n  customSpec:\n    systemPrompt: {{ vars.prompt }}\n",
+        )
+        .unwrap();
+
+        let render_yaml = Cli {
+            command: Commands::Render {
+                file: manifest.display().to_string(),
+                vars: vec!["prompt=Ship it".to_string()],
+                format: RenderFormat::Yaml,
+            },
+            ..cli()
+        };
+        assert!(run_cli(&render_yaml).await.unwrap().exit_code.is_none());
+
+        let render_json = Cli {
+            command: Commands::Render {
+                file: manifest.display().to_string(),
+                vars: vec!["prompt=Ship it".to_string()],
+                format: RenderFormat::Json,
+            },
+            ..cli()
+        };
+        assert!(run_cli(&render_json).await.unwrap().exit_code.is_none());
+
+        let out = root.join("client.ts");
+        let gen = Cli {
+            command: Commands::Gen {
+                dir: root.display().to_string(),
+                out: out.display().to_string(),
+            },
+            ..cli()
+        };
+        assert!(run_cli(&gen).await.unwrap().exit_code.is_none());
+        let generated = fs::read_to_string(&out).unwrap();
+        assert!(generated.contains("class TalonClient"));
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[tokio::test]
+    async fn run_cli_dispatches_knowledge_commands_and_missing_get() {
+        #[derive(Clone, Default)]
+        struct AppState {
+            store: Arc<tokio::sync::Mutex<HashMap<String, super::Knowledge>>>,
+        }
+
+        let state = AppState::default();
+        let app = Router::new()
+            .route(
+                "/v1/namespaces/:ns/knowledge",
+                get(
+                    |State(state): State<AppState>, AxumPath(ns): AxumPath<String>| async move {
+                        let values = state
+                            .store
+                            .lock()
+                            .await
+                            .values()
+                            .filter(|item| {
+                                item.metadata
+                                    .as_ref()
+                                    .map(|meta| meta.namespace == ns)
+                                    .unwrap_or(false)
+                            })
+                            .cloned()
+                            .collect::<Vec<_>>();
+                        Json(json!({ "knowledge": values }))
+                    },
+                )
+                .post(
+                    |State(state): State<AppState>, Json(payload): Json<serde_json::Value>| async move {
+                        let knowledge: super::Knowledge =
+                            serde_json::from_value(payload["knowledge"].clone()).unwrap();
+                        let name = knowledge.metadata.as_ref().unwrap().name.clone();
+                        state.store.lock().await.insert(name, knowledge);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/namespaces/:ns/knowledge/:name",
+                get(
+                    |State(state): State<AppState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        let key = (ns, urlencoding::decode(&name).unwrap().into_owned());
+                        let value = state.store.lock().await.get(&key.1).cloned().filter(|item| {
+                            item.metadata
+                                .as_ref()
+                                .map(|meta| meta.namespace == key.0)
+                                .unwrap_or(false)
+                        });
+                        match value {
+                            Some(knowledge) => {
+                                (StatusCode::OK, Json(json!({ "knowledge": knowledge })))
+                            }
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<AppState>,
+                     AxumPath((_ns, name)): AxumPath<(String, String)>| async move {
+                        let name = urlencoding::decode(&name).unwrap().into_owned();
+                        state.store.lock().await.remove(&name);
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .with_state(state.clone());
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let root = temp_root("talon-cli-run-knowledge");
+        fs::create_dir_all(&root).unwrap();
+        let file = root.join("article.md");
+        fs::write(&file, "knowledge body").unwrap();
+
+        let set = Cli {
+            gateway: format!("http://{addr}"),
+            rest: true,
+            command: Commands::Knowledge {
+                command: KnowledgeCommands::Set {
+                    namespace: "conic".to_string(),
+                    path: "docs/article.md".to_string(),
+                    file: Some(file.display().to_string()),
+                    content: None,
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&set).await.unwrap().exit_code.is_none());
+
+        let get = Cli {
+            gateway: format!("http://{addr}"),
+            rest: true,
+            command: Commands::Knowledge {
+                command: KnowledgeCommands::Get {
+                    namespace: "conic".to_string(),
+                    path: "docs/article.md".to_string(),
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&get).await.unwrap().exit_code.is_none());
+
+        let sync = Cli {
+            gateway: format!("http://{addr}"),
+            rest: true,
+            command: Commands::Knowledge {
+                command: KnowledgeCommands::Sync {
+                    namespace: "conic".to_string(),
+                    dir: root.display().to_string(),
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&sync).await.unwrap().exit_code.is_none());
+
+        let delete = Cli {
+            gateway: format!("http://{addr}"),
+            rest: true,
+            command: Commands::Knowledge {
+                command: KnowledgeCommands::Delete {
+                    namespace: "conic".to_string(),
+                    path: "docs/article.md".to_string(),
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&delete).await.unwrap().exit_code.is_none());
+
+        server.abort();
+
+        let (grpc_addr, _kv) = serve_grpc_gateway().await;
+        let missing = Cli {
+            gateway: format!("http://{grpc_addr}"),
+            command: Commands::Knowledge {
+                command: KnowledgeCommands::Get {
+                    namespace: "conic".to_string(),
+                    path: "docs/missing.md".to_string(),
+                },
+            },
+            ..cli()
+        };
+        assert_eq!(run_cli(&missing).await.unwrap().exit_code, Some(1));
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[tokio::test]
+    async fn run_cli_dispatches_rest_apply_get_and_delete() {
+        #[derive(Clone, Default)]
+        struct RestState {
+            templates: Arc<tokio::sync::Mutex<HashMap<String, serde_json::Value>>>,
+        }
+
+        let state = RestState::default();
+        let app = Router::new()
+            .route(
+                "/v1/templates",
+                post(
+                    |State(state): State<RestState>, Json(payload): Json<serde_json::Value>| async move {
+                        let template = payload["template"].clone();
+                        let name = template["metadata"]["name"].as_str().unwrap().to_string();
+                        state.templates.lock().await.insert(name, template);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/templates/:name",
+                get(
+                    |State(state): State<RestState>, AxumPath(name): AxumPath<String>| async move {
+                        let value = state.templates.lock().await.get(&name).cloned();
+                        match value {
+                            Some(template) => (StatusCode::OK, Json(json!({ "template": template }))),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>, AxumPath(name): AxumPath<String>| async move {
+                        state.templates.lock().await.remove(&name);
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .with_state(state);
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let root = temp_root("talon-cli-run-rest");
+        fs::create_dir_all(&root).unwrap();
+        let manifest = root.join("template.yaml");
+        fs::write(
+            &manifest,
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: rest-dispatch\ndefinition:\n  customSpec:\n    systemPrompt: REST dispatch\n",
+        )
+        .unwrap();
+
+        let apply = Cli {
+            gateway: format!("http://{addr}"),
+            rest: true,
+            command: Commands::Apply {
+                file: manifest.display().to_string(),
+                vars: Vec::new(),
+            },
+            ..cli()
+        };
+        assert!(run_cli(&apply).await.unwrap().exit_code.is_none());
+
+        let get = Cli {
+            gateway: format!("http://{addr}"),
+            rest: true,
+            command: Commands::Get {
+                kind: "template".to_string(),
+                name: "rest-dispatch".to_string(),
+                namespace: None,
+            },
+            ..cli()
+        };
+        assert!(run_cli(&get).await.unwrap().exit_code.is_none());
+
+        let delete = Cli {
+            gateway: format!("http://{addr}"),
+            rest: true,
+            command: Commands::Delete {
+                kind: "template".to_string(),
+                name: "rest-dispatch".to_string(),
+                namespace: None,
+            },
+            ..cli()
+        };
+        assert!(run_cli(&delete).await.unwrap().exit_code.is_none());
+
+        fs::remove_dir_all(root).unwrap();
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn run_cli_dispatches_grpc_apply_get_and_delete() {
+        let (addr, _kv) = serve_grpc_gateway().await;
+
+        let root = temp_root("talon-cli-run-grpc");
+        fs::create_dir_all(&root).unwrap();
+        let manifest = root.join("template.yaml");
+        fs::write(
+            &manifest,
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: grpc-dispatch\ndefinition:\n  customSpec:\n    systemPrompt: gRPC dispatch\n",
+        )
+        .unwrap();
+
+        let apply = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Apply {
+                file: manifest.display().to_string(),
+                vars: Vec::new(),
+            },
+            ..cli()
+        };
+        assert!(run_cli(&apply).await.unwrap().exit_code.is_none());
+
+        let get = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Get {
+                kind: "template".to_string(),
+                name: "grpc-dispatch".to_string(),
+                namespace: None,
+            },
+            ..cli()
+        };
+        assert!(run_cli(&get).await.unwrap().exit_code.is_none());
+
+        let delete = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Delete {
+                kind: "template".to_string(),
+                name: "grpc-dispatch".to_string(),
+                namespace: None,
+            },
+            ..cli()
+        };
+        assert!(run_cli(&delete).await.unwrap().exit_code.is_none());
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[tokio::test]
+    async fn grpc_helpers_surface_invalid_gateway_and_missing_resources() {
+        let invalid_cli = Cli {
+            gateway: "not-a-url".to_string(),
+            ..cli()
+        };
+        let invalid_get = grpc_get_yaml(&invalid_cli, "template", "starter", None)
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(
+            invalid_get.contains("Invalid gateway URL")
+                || invalid_get.contains("Could not connect to gateway")
+                || invalid_get.contains("transport error")
+        );
+
+        let invalid_delete = grpc_delete_resource(&invalid_cli, "template", "starter", None)
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(
+            invalid_delete.contains("Invalid gateway URL")
+                || invalid_delete.contains("Could not connect to gateway")
+                || invalid_delete.contains("transport error")
+        );
+
+        let invalid_apply = grpc_apply_manifest(
+            &invalid_cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: AgentTemplate\nmetadata:\n  name: starter\ndefinition:\n  customSpec:\n    systemPrompt: hi\n",
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(
+            invalid_apply.contains("Invalid gateway URL")
+                || invalid_apply.contains("Could not connect to gateway")
+                || invalid_apply.contains("transport error")
+        );
+
+        let (addr, _kv) = serve_grpc_gateway().await;
+        let cli = Cli {
+            gateway: format!("http://{addr}"),
+            ..cli()
+        };
+
+        let missing_template = grpc_get_yaml(&cli, "template", "missing-template", None)
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(missing_template.contains("Failed to fetch AgentTemplate"));
+
+        let missing_mcp = grpc_delete_resource(&cli, "mcp", "missing-server", None)
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(missing_mcp.contains("Failed to delete MCPServer"));
+    }
+
+    #[tokio::test]
+    async fn rest_request_json_handles_success_empty_body_and_errors() {
+        let app = Router::new()
+            .route(
+                "/json",
+                get(|| async { Json(json!({ "ok": true, "value": 7 })) }),
+            )
+            .route("/empty", delete(|| async { StatusCode::NO_CONTENT }))
+            .route("/bad-json", get(|| async { "not-json" }))
+            .route(
+                "/fail",
+                post(|| async { (StatusCode::BAD_REQUEST, "broken request") }),
+            );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let cli = rest_cli(format!("http://{addr}"));
+
+        let ok = rest_request_json(&cli, reqwest::Method::GET, "/json", None)
+            .await
+            .unwrap();
+        assert_eq!(ok["ok"], true);
+        assert_eq!(ok["value"], 7);
+
+        let empty = rest_request_json(&cli, reqwest::Method::DELETE, "/empty", None)
+            .await
+            .unwrap();
+        assert_eq!(empty, serde_json::Value::Null);
+
+        let parse_err = rest_request_json(&cli, reqwest::Method::GET, "/bad-json", None)
+            .await
+            .unwrap_err()
+            .to_string();
+        assert!(parse_err.contains("Failed to parse REST response JSON"));
+
+        let fail_err = rest_request_json(
+            &cli,
+            reqwest::Method::POST,
+            "/fail",
+            Some(json!({ "x": 1 })),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(fail_err.contains("status=400 Bad Request"));
+        assert!(fail_err.contains("broken request"));
+
+        server.abort();
     }
 }

@@ -14,11 +14,23 @@ from proto.gateway_pb2 import (
     SendMessageRequest,
     GetSessionRequest,
     CreateNamespaceRequest,
-    StreamSessionStepsRequest
+    StreamSessionStepsRequest,
+    CreateNamespaceKnowledgeRequest,
+    GetNamespaceKnowledgeRequest,
+    ListNamespaceKnowledgeRequest,
+    DeleteNamespaceKnowledgeRequest,
+    GetKnowledgeRequest,
+    SearchKnowledgeRequest,
+    CreateScheduleRequest,
+    GetScheduleRequest,
+    ListSchedulesRequest,
+    DeleteScheduleRequest,
 )
-from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model
+from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model, Knowledge, ObjectMeta, KnowledgeSpec
+from proto.models_pb2 import Schedule, ScheduleSpec, ScheduleTarget
 from proto.events_pb2 import STEP_TYPE_TOKEN
 import threading
+import uuid
 
 def test_single_turn_chat(gateway_channel, mock_llm_server):
     stub = GatewayServiceStub(gateway_channel)
@@ -180,6 +192,133 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     token_events = [event for event in events if event.step_type == STEP_TYPE_TOKEN]
     assert len(token_events) >= 1
     assert "received" in token_events[0].content
+
+def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
+    stub = GatewayServiceStub(gateway_channel)
+    run_id = uuid.uuid4().hex[:8]
+    namespace = f"talon-knowledge-{run_id}"
+    agent_name = f"knowledge-agent-{run_id}"
+
+    stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
+
+    agent_spec = AgentSpec(
+        model_policy={
+            "profiles": [
+                {
+                    "name": "default",
+                    "model": Model(provider="mock", name="minimax", temperature=0.7),
+                }
+            ]
+        },
+        system_prompt="Knowledge test agent."
+    )
+    stub.CreateAgent(CreateAgentRequest(
+        ns=namespace,
+        name=agent_name,
+        definition=AgentDefinition(custom_spec=agent_spec),
+    ))
+
+    created = stub.CreateNamespaceKnowledge(CreateNamespaceKnowledgeRequest(
+        ns=namespace,
+        knowledge=Knowledge(
+            metadata=ObjectMeta(name="guide"),
+            spec=KnowledgeSpec(
+                path="guide.md",
+                content="Talon stores runtime facts in guide documents."
+            ),
+        ),
+    ))
+    assert created.knowledge.metadata.name == "guide"
+
+    fetched = stub.GetNamespaceKnowledge(GetNamespaceKnowledgeRequest(
+        ns=namespace,
+        name="guide",
+    ))
+    assert fetched.knowledge.spec.path == "guide.md"
+    assert "runtime facts" in fetched.knowledge.spec.content
+
+    listed = stub.ListNamespaceKnowledge(ListNamespaceKnowledgeRequest(ns=namespace))
+    assert len(listed.knowledge) == 1
+    assert listed.knowledge[0].metadata.name == "guide"
+
+    modules = stub.GetKnowledge(GetKnowledgeRequest(
+        ns=namespace,
+        agent=agent_name,
+        path="guide.md",
+    ))
+    assert len(modules.modules) == 1
+    assert modules.modules[0].path == "guide.md"
+    assert "guide documents" in modules.modules[0].content
+
+    search = stub.SearchKnowledge(SearchKnowledgeRequest(
+        ns=namespace,
+        agent=agent_name,
+        query="runtime facts",
+    ))
+    assert len(search.results) >= 1
+    assert search.results[0].path == "guide.md"
+
+    deleted = stub.DeleteNamespaceKnowledge(DeleteNamespaceKnowledgeRequest(
+        ns=namespace,
+        name="guide",
+    ))
+    assert deleted.success is True
+
+def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
+    stub = GatewayServiceStub(gateway_channel)
+    run_id = uuid.uuid4().hex[:8]
+    namespace = f"talon-schedule-{run_id}"
+    agent_name = f"schedule-agent-{run_id}"
+    schedule_name = f"schedule-{run_id}"
+
+    stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
+
+    agent_spec = AgentSpec(
+        model_policy={
+            "profiles": [
+                {
+                    "name": "default",
+                    "model": Model(provider="mock", name="minimax", temperature=0.7),
+                }
+            ]
+        },
+        system_prompt="Schedule test agent."
+    )
+    stub.CreateAgent(CreateAgentRequest(
+        ns=namespace,
+        name=agent_name,
+        definition=AgentDefinition(custom_spec=agent_spec),
+    ))
+
+    created = stub.CreateSchedule(CreateScheduleRequest(
+        ns=namespace,
+        schedule=Schedule(
+            name=schedule_name,
+            spec=ScheduleSpec(
+                kind="every",
+                interval_seconds=300,
+                timezone="UTC",
+                target=ScheduleTarget(agent=agent_name, session_mode="new"),
+                input_message="Run a periodic check-in",
+                enabled=True,
+            ),
+            labels={"team": "ops"},
+        ),
+    ))
+    assert created.schedule.name == schedule_name
+    assert created.schedule.ns == namespace
+    assert created.schedule.status.backend_armed is False
+
+    fetched = stub.GetSchedule(GetScheduleRequest(ns=namespace, name=schedule_name))
+    assert fetched.schedule.name == schedule_name
+    assert fetched.schedule.spec.target.agent == agent_name
+
+    listed = stub.ListSchedules(ListSchedulesRequest(ns=namespace))
+    assert len(listed.schedules) == 1
+    assert listed.schedules[0].name == schedule_name
+
+    deleted = stub.DeleteSchedule(DeleteScheduleRequest(ns=namespace, name=schedule_name))
+    assert deleted.success is True
 
 if __name__ == '__main__':
     sys.exit(pytest.main(sys.argv[1:] + [__file__]))

@@ -733,4 +733,321 @@ mod tests {
         assert!(err.to_string().contains("'default' profile"));
     }
 
+    #[tokio::test]
+    async fn validates_missing_source_template_name_and_template_definition() {
+        let loader = MapTemplateLoader {
+            templates: HashMap::from([(
+                "missing-def".to_string(),
+                manifests::AgentTemplate {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "AgentTemplate".to_string(),
+                    metadata: None,
+                    definition: None,
+                },
+            )]),
+        };
+
+        let missing_source = resolve_agent_definition_with_loader(
+            &loader,
+            &manifests::AgentDefinition { source: None },
+        )
+        .await
+        .unwrap_err();
+        assert!(missing_source.to_string().contains("provide a source"));
+
+        let missing_name = resolve_agent_definition_with_loader(
+            &loader,
+            &templated_definition("   ", manifests::AgentSpecDelta::default()),
+        )
+        .await
+        .unwrap_err();
+        assert!(missing_name.to_string().contains("template_name is required"));
+
+        let missing_definition = resolve_agent_definition_with_loader(
+            &loader,
+            &templated_definition("missing-def", manifests::AgentSpecDelta::default()),
+        )
+        .await
+        .unwrap_err();
+        assert!(missing_definition.to_string().contains("missing definition"));
+    }
+
+    #[tokio::test]
+    async fn enforces_template_depth_limit() {
+        let mut templates = HashMap::new();
+        for idx in 0..=MAX_TEMPLATE_DEPTH {
+            let name = format!("t{idx}");
+            let definition = if idx == MAX_TEMPLATE_DEPTH {
+                custom_spec_definition(manifests::AgentSpec {
+                    features: vec![],
+                    model_policy: Some(model_policy(vec![("default", "gpt-5")])),
+                    system_prompt: "Base".to_string(),
+                    mcp_server_refs: vec![],
+                    capabilities: HashMap::new(),
+                })
+            } else {
+                templated_definition(&format!("t{}", idx + 1), manifests::AgentSpecDelta::default())
+            };
+            templates.insert(name.clone(), template(&name, definition));
+        }
+
+        let err = resolve_agent_definition_with_loader(
+            &MapTemplateLoader { templates },
+            &templated_definition("t0", manifests::AgentSpecDelta::default()),
+        )
+        .await
+        .unwrap_err();
+        assert!(err.to_string().contains("depth exceeded"));
+    }
+
+    #[test]
+    fn apply_prompt_feature_and_capability_deltas_cover_remaining_branches() {
+        let mut spec = manifests::AgentSpec {
+            features: vec![feature("search", "builtin"), feature("draft", "builtin")],
+            model_policy: Some(model_policy(vec![("default", "gpt-5")])),
+            system_prompt: "Base".to_string(),
+            mcp_server_refs: vec!["conic-api".to_string()],
+            capabilities: HashMap::from([(
+                "schedules".to_string(),
+                ListValue {
+                    values: vec![protobuf_string("inspect")],
+                },
+            )]),
+        };
+
+        apply_agent_spec_delta(
+            &mut spec,
+            &manifests::AgentSpecDelta {
+                system_prompt: Some(manifests::PromptDelta {
+                    operation: Some(manifests::prompt_delta::Operation::Replace(
+                        "Reset".to_string(),
+                    )),
+                }),
+                features: Some(manifests::FeatureSetDelta {
+                    upsert: vec![feature("search", "mcp"), feature("plan", "builtin")],
+                    remove: vec!["draft".to_string()],
+                }),
+                mcp_server_refs: Some(manifests::StringListDelta {
+                    replace: vec!["alt".to_string(), "alt".to_string()],
+                    ..Default::default()
+                }),
+                capabilities: Some(manifests::CapabilitiesPolicyDelta {
+                    replace: HashMap::from([(
+                        "sessions".to_string(),
+                        ListValue {
+                            values: vec![
+                                protobuf_string("inspect"),
+                                protobuf_string("read:messages"),
+                            ],
+                        },
+                    )]),
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+
+        assert_eq!(spec.system_prompt, "Reset");
+        assert_eq!(
+            spec.features.iter().map(|f| (f.name.as_str(), f.r#type.as_str())).collect::<Vec<_>>(),
+            vec![("search", "mcp"), ("plan", "builtin")]
+        );
+        assert_eq!(spec.mcp_server_refs, vec!["alt".to_string(), "alt".to_string()]);
+        assert!(spec.capabilities.contains_key("sessions"));
+
+        apply_agent_spec_delta(
+            &mut spec,
+            &manifests::AgentSpecDelta {
+                system_prompt: Some(manifests::PromptDelta {
+                    operation: Some(manifests::prompt_delta::Operation::Prepend(
+                        "Prefix: ".to_string(),
+                    )),
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert_eq!(spec.system_prompt, "Prefix: Reset");
+    }
+
+    #[test]
+    fn validate_agent_spec_rejects_duplicate_or_invalid_fields() {
+        let duplicate_feature = validate_agent_spec(&manifests::AgentSpec {
+            features: vec![feature("search", "builtin"), feature("search", "builtin")],
+            model_policy: Some(model_policy(vec![("default", "gpt-5")])),
+            system_prompt: "Base".to_string(),
+            mcp_server_refs: vec![],
+            capabilities: HashMap::new(),
+        })
+        .unwrap_err();
+        assert!(duplicate_feature.to_string().contains("Duplicate feature"));
+
+        let blank_mcp_ref = validate_agent_spec(&manifests::AgentSpec {
+            features: vec![],
+            model_policy: Some(model_policy(vec![("default", "gpt-5")])),
+            system_prompt: "Base".to_string(),
+            mcp_server_refs: vec![" ".to_string()],
+            capabilities: HashMap::new(),
+        })
+        .unwrap_err();
+        assert!(blank_mcp_ref.to_string().contains("must be non-empty"));
+
+        let duplicate_mcp_ref = validate_agent_spec(&manifests::AgentSpec {
+            features: vec![],
+            model_policy: Some(model_policy(vec![("default", "gpt-5")])),
+            system_prompt: "Base".to_string(),
+            mcp_server_refs: vec!["github".to_string(), "github".to_string()],
+            capabilities: HashMap::new(),
+        })
+        .unwrap_err();
+        assert!(duplicate_mcp_ref.to_string().contains("Duplicate MCP server ref"));
+    }
+
+    #[test]
+    fn validate_model_policy_and_capabilities_reject_invalid_entries() {
+        let missing_model = validate_model_policy(
+            &manifests::ModelPolicy {
+                profiles: vec![manifests::ModelProfile {
+                    name: "default".to_string(),
+                    model: None,
+                }],
+            },
+            "policy",
+        )
+        .unwrap_err();
+        assert!(missing_model.to_string().contains(".model is required"));
+
+        let duplicate_profile = validate_model_policy(
+            &manifests::ModelPolicy {
+                profiles: vec![
+                    model_profile("default", "gpt-5"),
+                    model_profile("default", "gpt-5-mini"),
+                ],
+            },
+            "policy",
+        )
+        .unwrap_err();
+        assert!(duplicate_profile.to_string().contains("Duplicate model profile"));
+
+        let invalid_capability = validate_capabilities_policy(
+            &HashMap::from([(
+                "bad".to_string(),
+                ListValue {
+                    values: vec![protobuf_string("inspect")],
+                },
+            )]),
+            "caps",
+        )
+        .unwrap_err();
+        assert!(invalid_capability.to_string().contains("unsupported action"));
+
+        let invalid_action_type = validate_capabilities_policy(
+            &HashMap::from([(
+                "sessions".to_string(),
+                ListValue {
+                    values: vec![crate::gateway::rpc::protobuf_value::Value {
+                        kind: Some(ProtoValueKind::NumberValue(3.0)),
+                    }],
+                },
+            )]),
+            "caps",
+        )
+        .unwrap_err();
+        assert!(invalid_action_type.to_string().contains("actions must be strings"));
+
+        let untrimmed_action = validate_capabilities_policy(
+            &HashMap::from([(
+                "sessions".to_string(),
+                ListValue {
+                    values: vec![protobuf_string(" inspect ")],
+                },
+            )]),
+            "caps",
+        )
+        .unwrap_err();
+        assert!(untrimmed_action.to_string().contains("must be trimmed"));
+    }
+
+    #[test]
+    fn validate_model_and_delta_entries_reject_missing_fields() {
+        let missing_provider = validate_model(
+            &manifests::Model {
+                provider: " ".to_string(),
+                name: "gpt-5".to_string(),
+                temperature: 0.2,
+            },
+            "model",
+        )
+        .unwrap_err();
+        assert!(missing_provider.to_string().contains(".provider is required"));
+
+        let missing_name = validate_model(
+            &manifests::Model {
+                provider: "openai".to_string(),
+                name: " ".to_string(),
+                temperature: 0.2,
+            },
+            "model",
+        )
+        .unwrap_err();
+        assert!(missing_name.to_string().contains(".name is required"));
+
+        let mut spec = manifests::AgentSpec {
+            features: vec![],
+            model_policy: Some(model_policy(vec![("default", "gpt-5")])),
+            system_prompt: "Base".to_string(),
+            mcp_server_refs: vec![],
+            capabilities: HashMap::new(),
+        };
+
+        let empty_profile_name = apply_agent_spec_delta(
+            &mut spec,
+            &manifests::AgentSpecDelta {
+                model_policy: Some(manifests::ModelPolicyDelta {
+                    upsert: vec![manifests::ModelProfile {
+                        name: " ".to_string(),
+                        model: Some(model("gpt-5")),
+                    }],
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap_err();
+        assert!(empty_profile_name.to_string().contains("non-empty name"));
+
+        let missing_model = apply_agent_spec_delta(
+            &mut spec,
+            &manifests::AgentSpecDelta {
+                model_policy: Some(manifests::ModelPolicyDelta {
+                    upsert: vec![manifests::ModelProfile {
+                        name: "interactive".to_string(),
+                        model: None,
+                    }],
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap_err();
+        assert!(missing_model.to_string().contains("missing model"));
+
+        let blank_feature = apply_agent_spec_delta(
+            &mut spec,
+            &manifests::AgentSpecDelta {
+                features: Some(manifests::FeatureSetDelta {
+                    upsert: vec![feature(" ", "builtin")],
+                    remove: vec![],
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap_err();
+        assert!(blank_feature.to_string().contains("non-empty name"));
+    }
+
+    fn protobuf_string(value: &str) -> crate::gateway::rpc::protobuf_value::Value {
+        crate::gateway::rpc::protobuf_value::Value {
+            kind: Some(ProtoValueKind::StringValue(value.to_string())),
+        }
+    }
+
 }

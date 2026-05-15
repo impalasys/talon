@@ -18,3 +18,26 @@ impl SchedulerBackend for NoopSchedulerBackend {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+
+    #[tokio::test]
+    async fn noop_scheduler_returns_default_wakeup_and_allows_cancel() {
+        let backend = NoopSchedulerBackend;
+        let wakeup = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "root".to_string(),
+                schedule_id: "schedule".to_string(),
+                revision: 1,
+                fire_at: Utc::now(),
+                payload: vec![1, 2, 3],
+            })
+            .await
+            .expect("schedule should succeed");
+        assert_eq!(wakeup, ScheduledWakeup::default());
+        backend.cancel("ignored-handle").await.expect("cancel should succeed");
+    }
+}

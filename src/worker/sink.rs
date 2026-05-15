@@ -389,7 +389,7 @@ fn token_publish_interval() -> Duration {
 
 #[cfg(test)]
 mod tests {
-    use super::PubSubSessionSink;
+    use super::{token_publish_interval, PubSubSessionSink};
     use crate::control::events::{SessionStepEvent, StepType};
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::core::executor::ExecutionSink;
@@ -551,5 +551,108 @@ mod tests {
         assert!(persisted.content.len() < raw_output.len());
         assert_eq!(payload["output"], raw_output);
         assert_eq!(payload["output_preview"], persisted.content);
+    }
+
+    #[tokio::test]
+    async fn done_and_error_persist_and_publish_expected_events() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            "reply-key",
+            Duration::from_secs(10),
+        );
+
+        sink.on_token("partial ").await;
+        sink.on_error("tool failed").await;
+        sink.on_done("final reply").await;
+        tokio::time::sleep(Duration::from_millis(25)).await;
+
+        let events = events.lock().await.clone();
+        assert!(events
+            .iter()
+            .any(|event| event.step_type == StepType::Error as i32 && event.content == "tool failed"));
+        assert!(events
+            .iter()
+            .any(|event| event.step_type == StepType::Done as i32 && event.content == "final reply"));
+
+        let entries = kv.entries.lock().await.clone();
+        let persisted_messages = entries
+            .iter()
+            .filter_map(|(_, _, value)| crate::gateway::rpc::models::SessionMessage::decode(value.as_slice()).ok())
+            .collect::<Vec<_>>();
+        assert!(persisted_messages
+            .iter()
+            .any(|msg| msg.id == "reply-1" && msg.content == "final reply"));
+
+        let persisted_steps = entries
+            .iter()
+            .filter_map(|(_, _, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .collect::<Vec<_>>();
+        assert!(persisted_steps
+            .iter()
+            .any(|event| event.step_type == StepType::Token as i32 && event.content == "partial "));
+        assert!(persisted_steps
+            .iter()
+            .any(|event| event.step_type == StepType::Error as i32 && event.content == "tool failed"));
+    }
+
+    #[tokio::test]
+    async fn summary_tracks_tokens_tool_calls_and_results() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv,
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            "reply-key",
+            Duration::from_millis(1),
+        );
+
+        sink.on_token("hi").await;
+        tokio::time::sleep(Duration::from_millis(2)).await;
+        sink.on_token(" there").await;
+        sink.on_tool_call("tool-1", "search", &json!({"q": "talon"})).await;
+        sink.on_tool_result("tool-1", "search", "result body").await;
+        sink.on_done("hi there").await;
+
+        let summary = sink.summary();
+        assert_eq!(summary.input_token_chunks, 2);
+        assert_eq!(summary.input_token_chars, "hi there".len());
+        assert!(summary.published_token_batches >= 1);
+        assert!(summary.published_token_chars >= "hi there".len());
+        assert_eq!(summary.tool_calls, 1);
+        assert_eq!(summary.tool_results, 1);
+        assert!(summary.duration_ms <= 10_000);
+    }
+
+    #[test]
+    fn token_publish_interval_uses_env_override_and_defaults() {
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        std::env::remove_var("TALON_TOKEN_BATCH_MS");
+        assert_eq!(token_publish_interval(), Duration::from_millis(250));
+
+        std::env::set_var("TALON_TOKEN_BATCH_MS", "5");
+        assert_eq!(token_publish_interval(), Duration::from_millis(5));
+
+        std::env::set_var("TALON_TOKEN_BATCH_MS", "0");
+        assert_eq!(token_publish_interval(), Duration::from_millis(250));
+
+        std::env::set_var("TALON_TOKEN_BATCH_MS", "not-a-number");
+        assert_eq!(token_publish_interval(), Duration::from_millis(250));
+
+        std::env::remove_var("TALON_TOKEN_BATCH_MS");
     }
 }

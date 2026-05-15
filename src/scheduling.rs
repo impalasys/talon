@@ -773,6 +773,7 @@ pub fn append_schedule_event(
 mod tests {
     use super::*;
     use crate::control::{scheduler::NoopSchedulerBackend, KeyValueStore, MessagePublisher};
+    use crate::gateway::rpc::manifests;
     use futures::stream;
     use std::pin::Pin;
     use std::sync::Arc;
@@ -852,6 +853,22 @@ mod tests {
         async fn publish(&self, _topic: &str, message: &[u8]) -> anyhow::Result<()> {
             self.messages.lock().await.push(message.to_vec());
             Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(stream::empty()))
+        }
+    }
+
+    struct FailingPubSub;
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for FailingPubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            anyhow::bail!("publish failed")
         }
 
         async fn subscribe(
@@ -1194,5 +1211,265 @@ mod tests {
             format_scheduled_message("hello-world-ping", "  Hello world!  "),
             "[Scheduled run: hello-world-ping]\nThis is an automated scheduled execution. Execute the task below. Do not create, update, or delete schedules unless the task explicitly asks for that.\n\nTask:\nHello world!"
         );
+    }
+
+    #[test]
+    fn normalization_and_parsing_helpers_cover_aliases_and_invalid_inputs() {
+        assert_eq!(normalize_schedule_kind(" interval "), "every");
+        assert_eq!(normalize_schedule_kind("Recurring"), "every");
+        assert_eq!(normalize_schedule_kind("cron"), "cron");
+
+        assert_eq!(normalize_session_mode(" fresh ").unwrap(), "new");
+        assert_eq!(normalize_session_mode("named").unwrap(), "reuse");
+        assert!(normalize_session_mode("weird")
+            .unwrap_err()
+            .to_string()
+            .contains("session_mode"));
+
+        assert_eq!(normalize_cron_expression("0 9 * * *"), "0 0 9 * * * *");
+        assert_eq!(normalize_cron_expression("0 */15 * * * *"), "0 */15 * * * * *");
+
+        let dt = parse_run_at("2026-05-03T09:00:00").unwrap();
+        let expected = DateTime::parse_from_rfc3339("2026-05-03T09:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+        assert_eq!(dt, expected);
+        assert!(parse_run_at("not-a-date")
+            .unwrap_err()
+            .to_string()
+            .contains("run_at must be RFC3339"));
+
+        assert_eq!(
+            parse_timezone("America/Los_Angeles").unwrap(),
+            chrono_tz::America::Los_Angeles
+        );
+        assert!(parse_timezone("Mars/Olympus")
+            .unwrap_err()
+            .to_string()
+            .contains("invalid IANA timezone"));
+    }
+
+    #[test]
+    fn validate_schedule_rejects_missing_fields_and_invalid_modes() {
+        let mut missing_name = schedule("every");
+        missing_name.name.clear();
+        assert!(validate_schedule(&missing_name)
+            .unwrap_err()
+            .to_string()
+            .contains("schedule name is required"));
+
+        let mut slash_name = schedule("every");
+        slash_name.name = "bad/name".to_string();
+        assert!(validate_schedule(&slash_name)
+            .unwrap_err()
+            .to_string()
+            .contains("cannot contain '/'"));
+
+        let mut missing_ns = schedule("every");
+        missing_ns.ns.clear();
+        assert!(validate_schedule(&missing_ns)
+            .unwrap_err()
+            .to_string()
+            .contains("schedule namespace is required"));
+
+        let mut missing_spec = schedule("every");
+        missing_spec.spec = None;
+        assert!(validate_schedule(&missing_spec)
+            .unwrap_err()
+            .to_string()
+            .contains("schedule spec is required"));
+
+        let mut missing_target = schedule("every");
+        missing_target.spec.as_mut().unwrap().target = None;
+        assert!(validate_schedule(&missing_target)
+            .unwrap_err()
+            .to_string()
+            .contains("schedule target is required"));
+
+        let mut missing_agent = schedule("every");
+        let target = missing_agent.spec.as_mut().unwrap().target.as_mut().unwrap();
+        target.agent.clear();
+        assert!(validate_schedule(&missing_agent)
+            .unwrap_err()
+            .to_string()
+            .contains("schedule target agent is required"));
+
+        let mut invalid_mode = schedule("every");
+        invalid_mode.spec.as_mut().unwrap().target.as_mut().unwrap().session_mode =
+            "odd".to_string();
+        assert!(validate_schedule(&invalid_mode)
+            .unwrap_err()
+            .to_string()
+            .contains("session_mode"));
+
+        let mut blank_message = schedule("every");
+        blank_message.spec.as_mut().unwrap().input_message = "   ".to_string();
+        assert!(validate_schedule(&blank_message)
+            .unwrap_err()
+            .to_string()
+            .contains("schedule input message is required"));
+
+        let mut invalid_kind = schedule("every");
+        invalid_kind.spec.as_mut().unwrap().kind = "mystery".to_string();
+        assert!(validate_schedule(&invalid_kind)
+            .unwrap_err()
+            .to_string()
+            .contains("schedule kind must be one of"));
+    }
+
+    #[test]
+    fn compute_next_run_handles_disabled_invalid_cron_and_non_every_alignment() {
+        let now = DateTime::parse_from_rfc3339("2026-05-02T12:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+
+        let mut disabled = schedule("every");
+        disabled.spec.as_mut().unwrap().enabled = false;
+        assert_eq!(initialize_schedule(&mut disabled, now).unwrap(), None);
+
+        let mut invalid_cron = schedule("cron");
+        invalid_cron.spec.as_mut().unwrap().cron = "bad cron".to_string();
+        assert!(validate_schedule(&invalid_cron)
+            .unwrap_err()
+            .to_string()
+            .contains("invalid cron expression"));
+
+        let cron = schedule("cron");
+        let fired_at = DateTime::parse_from_rfc3339("2026-05-03T09:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+        let aligned = compute_aligned_every_successor(&cron, fired_at, now)
+            .unwrap()
+            .unwrap();
+        assert!(aligned > now);
+    }
+
+    #[tokio::test]
+    async fn create_and_dispatch_schedule_cover_session_paths() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(MockPubSub::default());
+        let cp = ControlPlane {
+            kv: kv.clone(),
+            pubsub: pubsub.clone(),
+            scheduler: Arc::new(NoopSchedulerBackend),
+        };
+
+        let agent = models::Agent {
+            ns: "conic:test".to_string(),
+            name: "assistant".to_string(),
+            definition: Some(manifests::AgentDefinition {
+                source: Some(manifests::agent_definition::Source::CustomSpec(
+                    manifests::AgentSpec {
+                        features: Vec::new(),
+                        model_policy: None,
+                        system_prompt: "help".to_string(),
+                        mcp_server_refs: Vec::new(),
+                        capabilities: HashMap::new(),
+                    },
+                )),
+            }),
+            effective_spec: Some(manifests::AgentSpec::default()),
+            template_deps: Vec::new(),
+            labels: HashMap::new(),
+        };
+        kv.set_msg("conic:test", &keys::agent("assistant"), &agent)
+            .await
+            .unwrap();
+
+        let now = DateTime::parse_from_rfc3339("2026-05-02T12:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+        let session_id = create_session(&cp, "conic:test", "assistant")
+            .await
+            .unwrap();
+        let session = kv
+            .get_msg::<models::Session>("conic:test", &keys::session("assistant", &session_id))
+            .await
+            .unwrap()
+            .expect("session should be persisted");
+        assert_eq!(session.agent, "assistant");
+
+        let mut scheduled = schedule("every");
+        scheduled.spec.as_mut().unwrap().target.as_mut().unwrap().session_mode = "reuse".to_string();
+        scheduled.spec.as_mut().unwrap().target.as_mut().unwrap().session_id = session_id.clone();
+        let dispatched_session = dispatch_schedule(&cp, &scheduled, now).await.unwrap();
+        assert_eq!(dispatched_session, session_id);
+        assert_eq!(pubsub.messages.lock().await.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn send_message_releases_lock_when_publish_fails() {
+        let kv = Arc::new(MockKvStore::default());
+        let session = models::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "IDLE".to_string(),
+            created_at: 0,
+            last_active: 0,
+            metadata: HashMap::new(),
+            labels: HashMap::new(),
+        };
+        kv.set_msg(
+            "conic:test",
+            &keys::session("assistant", "session-1"),
+            &session,
+        )
+        .await
+        .unwrap();
+
+        let now = DateTime::parse_from_rfc3339("2026-05-02T12:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+        let err = send_message(
+            kv.as_ref(),
+            &FailingPubSub,
+            "conic:test",
+            "assistant",
+            "session-1",
+            "hello",
+            HashMap::new(),
+            now,
+        )
+        .await
+        .unwrap_err();
+        assert!(err.to_string().contains("publish failed"));
+
+        let updated = kv
+            .get_msg::<models::Session>("conic:test", &keys::session("assistant", "session-1"))
+            .await
+            .unwrap()
+            .expect("session should still exist");
+        assert_eq!(updated.status, "IDLE");
+    }
+
+    #[test]
+    fn release_claim_and_event_log_helpers_reset_and_trim() {
+        let mut schedule = schedule("every");
+        schedule.status = Some(models::ScheduleStatus {
+            revision: 1,
+            next_run_at: Some(1),
+            backend_handle: None,
+            backend_armed: false,
+            last_run_at: None,
+            last_session_id: None,
+            last_error: None,
+            claimed_run_at: Some(2),
+            claim_expires_at: Some(3),
+            recent_events: Vec::new(),
+        });
+
+        release_schedule_claim(&mut schedule);
+        let status = schedule.status.as_ref().unwrap();
+        assert_eq!(status.claimed_run_at, None);
+        assert_eq!(status.claim_expires_at, None);
+
+        for idx in 0..(MAX_RECENT_SCHEDULE_EVENTS + 5) {
+            append_schedule_event(&mut schedule, Utc::now(), "phase", "ok", format!("event-{idx}"));
+        }
+        let events = &schedule.status.as_ref().unwrap().recent_events;
+        assert_eq!(events.len(), MAX_RECENT_SCHEDULE_EVENTS);
+        assert!(events.first().unwrap().detail.ends_with("event-5"));
+        assert!(events.last().unwrap().detail.ends_with(&format!("event-{}", MAX_RECENT_SCHEDULE_EVENTS + 4)));
     }
 }

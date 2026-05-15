@@ -15,14 +15,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cargo:
-    name: Cargo
+  cargo_coverage:
+    name: Cargo Coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Cache Rust artifacts
         uses: Swatinem/rust-cache@v2
@@ -38,8 +41,40 @@ jobs:
       - name: Cargo build
         run: cargo build --locked --bins
 
-      - name: Cargo test
-        run: cargo test --locked
+      - name: Cargo coverage
+        run: |
+          cargo llvm-cov --locked \
+            --summary-only \
+            --ignore-filename-regex '(tests/generated|third_party|ui/proto|src/security/sandbox.rs|src/security/encryption.rs|src/memory/store.rs|src/orchestrator/mod.rs)' \
+            --fail-under-lines 35
+
+  python_integration:
+    name: Python Integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler docker.io
+
+      - name: Build Talon binaries
+        run: cargo build --locked --bin talon-server --bin talon-worker
+
+      - name: Install Python dependencies
+        run: pip install -r tests/requirements.txt
+
+      - name: Run Python integration tests
+        run: pytest --cov=tests --cov-report=term-missing --cov-fail-under=70 tests/test_chat.py
 
   runtime_image:
     name: Runtime Image
@@ -89,8 +124,8 @@ jobs:
           push: false
           load: false
 
-  ui:
-    name: UI
+  ui_unit:
+    name: UI Unit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -111,9 +146,59 @@ jobs:
         working-directory: ui
         run: pnpm install --frozen-lockfile
 
+      - name: Run UI unit tests
+        working-directory: ui
+        run: pnpm test:unit
+
       - name: Build UI
         working-directory: ui
         run: pnpm build
+
+  ui_e2e:
+    name: UI E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: ui/pnpm-lock.yaml
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
+
+      - name: Install Python dependencies
+        run: pip install -r tests/requirements.txt
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        working-directory: ui
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright suite
+        working-directory: ui
+        run: pnpm test:e2e
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

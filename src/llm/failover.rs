@@ -116,6 +116,7 @@ mod tests {
     use super::*;
     use crate::llm::mock::MockLlmProvider;
     use futures::StreamExt;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     struct FailingMockProvider;
     #[async_trait]
@@ -187,5 +188,124 @@ mod tests {
             ChatStreamEvent::TextDelta(text) => assert!(text.contains("Mock response")),
             other => panic!("Unexpected stream event: {:?}", other),
         }
+    }
+
+    struct CountingProvider {
+        embedding_calls: Arc<AtomicUsize>,
+        chat_calls: Arc<AtomicUsize>,
+        stream_calls: Arc<AtomicUsize>,
+        completion_calls: Arc<AtomicUsize>,
+        fail_until: usize,
+    }
+
+    #[async_trait]
+    impl LlmProvider for CountingProvider {
+        async fn generate_embedding(&self, _text: &str) -> Result<Embedding> {
+            let call = self.embedding_calls.fetch_add(1, Ordering::SeqCst);
+            if call < self.fail_until {
+                Err(anyhow!("embedding fail {}", call + 1))
+            } else {
+                Ok(vec![1.0, 2.0, 3.0])
+            }
+        }
+
+        async fn chat_completion(
+            &self,
+            _messages: Vec<ChatMessage>,
+            _tools: Vec<crate::llm::provider::Tool>,
+        ) -> Result<ChatResponse> {
+            let call = self.chat_calls.fetch_add(1, Ordering::SeqCst);
+            if call < self.fail_until {
+                Err(anyhow!("chat fail {}", call + 1))
+            } else {
+                Ok(ChatResponse {
+                    content: "chat ok".to_string(),
+                    tool_calls: vec![],
+                })
+            }
+        }
+
+        async fn stream_chat_completion(
+            &self,
+            _messages: Vec<ChatMessage>,
+            _tools: Vec<crate::llm::provider::Tool>,
+        ) -> Result<ChatStream> {
+            let call = self.stream_calls.fetch_add(1, Ordering::SeqCst);
+            if call < self.fail_until {
+                Err(anyhow!("stream fail {}", call + 1))
+            } else {
+                Ok(Box::pin(futures::stream::iter(vec![Ok(
+                    ChatStreamEvent::TextDelta("stream ok".to_string()),
+                )])))
+            }
+        }
+
+        async fn completion(&self, _prompt: &str) -> Result<String> {
+            let call = self.completion_calls.fetch_add(1, Ordering::SeqCst);
+            if call < self.fail_until {
+                Err(anyhow!("completion fail {}", call + 1))
+            } else {
+                Ok("completion ok".to_string())
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn failover_retries_same_provider_until_success_for_each_entrypoint() {
+        let provider = Arc::new(CountingProvider {
+            embedding_calls: Arc::new(AtomicUsize::new(0)),
+            chat_calls: Arc::new(AtomicUsize::new(0)),
+            stream_calls: Arc::new(AtomicUsize::new(0)),
+            completion_calls: Arc::new(AtomicUsize::new(0)),
+            fail_until: 2,
+        });
+        let mut failover = FailoverProvider::new(vec![provider.clone()]);
+        failover.max_retries = 3;
+
+        let embedding = failover.generate_embedding("hello").await.unwrap();
+        assert_eq!(embedding, vec![1.0, 2.0, 3.0]);
+        assert_eq!(provider.embedding_calls.load(Ordering::SeqCst), 3);
+
+        let response = failover.chat_completion(vec![], vec![]).await.unwrap();
+        assert_eq!(response.content, "chat ok");
+        assert_eq!(provider.chat_calls.load(Ordering::SeqCst), 3);
+
+        let stream = failover.stream_chat_completion(vec![], vec![]).await.unwrap();
+        let items: Vec<_> = stream.collect().await;
+        assert_eq!(items.len(), 1);
+        assert_eq!(provider.stream_calls.load(Ordering::SeqCst), 3);
+
+        let completion = failover.completion("hello").await.unwrap();
+        assert_eq!(completion, "completion ok");
+        assert_eq!(provider.completion_calls.load(Ordering::SeqCst), 3);
+    }
+
+    #[tokio::test]
+    async fn failover_returns_last_error_when_retries_exhaust() {
+        let provider = Arc::new(CountingProvider {
+            embedding_calls: Arc::new(AtomicUsize::new(0)),
+            chat_calls: Arc::new(AtomicUsize::new(0)),
+            stream_calls: Arc::new(AtomicUsize::new(0)),
+            completion_calls: Arc::new(AtomicUsize::new(0)),
+            fail_until: usize::MAX,
+        });
+        let mut failover = FailoverProvider::new(vec![provider.clone()]);
+        failover.max_retries = 2;
+
+        let err = failover.generate_embedding("hello").await.unwrap_err();
+        assert!(err.to_string().contains("embedding fail 2"));
+        assert_eq!(provider.embedding_calls.load(Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    async fn failover_handles_empty_provider_list_and_initial_usage_state() {
+        let failover = FailoverProvider::new(vec![]);
+        let err = failover.completion("hello").await.unwrap_err();
+        assert!(err.to_string().contains("No providers available"));
+
+        let usage = failover.usage.lock().unwrap();
+        assert_eq!(usage.prompt_tokens, 0);
+        assert_eq!(usage.completion_tokens, 0);
+        assert_eq!(usage.total_cost_usd, 0.0);
     }
 }

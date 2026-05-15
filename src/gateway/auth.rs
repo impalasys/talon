@@ -366,8 +366,104 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::{scheduler::NoopSchedulerBackend, KeyValueStore, MessagePublisher};
+    use crate::gateway::server::Gateway;
+    use axum::{
+        body::Body,
+        http::{Request as HttpRequest, StatusCode as HttpStatusCode},
+        middleware::from_fn_with_state,
+        routing::get,
+        Router,
+    };
+    use futures::stream;
     use jsonwebtoken::{encode, EncodingKey, Header};
+    use std::collections::HashMap;
+    use std::pin::Pin;
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
     use tonic::metadata::MetadataMap;
+    use tonic::service::Interceptor;
+    use tower::ServiceExt;
+
+    #[derive(Default)]
+    struct MockKvStore {
+        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+    }
+
+    #[async_trait::async_trait]
+    impl KeyValueStore for MockKvStore {
+        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .data
+                .lock()
+                .await
+                .get(&(ns.to_string(), key.to_string()))
+                .cloned())
+        }
+
+        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+            self.data
+                .lock()
+                .await
+                .insert((ns.to_string(), key.to_string()), value.to_vec());
+            Ok(())
+        }
+
+        async fn compare_and_swap(
+            &self,
+            _namespace: &str,
+            _key: &str,
+            _expected: Option<&[u8]>,
+            _value: &[u8],
+        ) -> anyhow::Result<bool> {
+            Ok(false)
+        }
+
+        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
+            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+            Ok(())
+        }
+
+        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+            let mut keys = self
+                .data
+                .lock()
+                .await
+                .keys()
+                .filter_map(|(stored_ns, key)| {
+                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
+                })
+                .collect::<Vec<_>>();
+            keys.sort();
+            Ok(keys)
+        }
+    }
+
+    #[derive(Default)]
+    struct MockPubSub;
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for MockPubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(stream::empty()))
+        }
+    }
+
+    fn gateway_with_auth(auth_config: Option<AuthConfig>) -> Arc<Gateway> {
+        Arc::new(Gateway::new(
+            auth_config,
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockPubSub),
+            Arc::new(NoopSchedulerBackend),
+        ))
+    }
 
     #[test]
     fn test_auth_config_builders() {
@@ -495,5 +591,219 @@ mod tests {
             Some("sess-2")
         )
         .is_err());
+    }
+
+    #[test]
+    fn test_basic_password_helpers_cover_invalid_and_matching_inputs() {
+        let encoded = general_purpose::STANDARD.encode(":secret");
+        let auth_header = format!("Basic {encoded}");
+        assert_eq!(
+            basic_password_from_auth_header(&auth_header).unwrap(),
+            Some("secret".to_string())
+        );
+        assert_eq!(basic_password_from_auth_header("Bearer token").unwrap(), None);
+        assert!(basic_password_from_auth_header("Basic !!!").is_err());
+
+        assert!(check_basic_password(&auth_header, Some(&"secret".to_string())).unwrap());
+        assert!(!check_basic_password(&auth_header, Some(&"wrong".to_string())).unwrap());
+        assert!(!check_basic_password(&auth_header, None).unwrap());
+    }
+
+    #[test]
+    fn test_check_auth_password_and_jwt_basic_fallback() {
+        let password = "pw".to_string();
+        let mut metadata = MetadataMap::new();
+        let encoded = general_purpose::STANDARD.encode(":pw");
+        metadata.insert(
+            "authorization",
+            format!("Basic {encoded}").parse().unwrap(),
+        );
+
+        assert!(check_auth(
+            &metadata,
+            &AuthConfig::password(password.clone()),
+            "ns",
+            None,
+            None
+        )
+        .is_ok());
+        assert!(check_auth(
+            &metadata,
+            &AuthConfig::jwt(password),
+            "ns",
+            None,
+            None
+        )
+        .is_ok());
+    }
+
+    #[test]
+    fn test_talon_auth_interceptor_covers_password_token_and_jwt_modes() {
+        let mut password_interceptor = TalonAuthInterceptor {
+            config: AuthConfig::password("pw".to_string()),
+        };
+        let mut password_request = tonic::Request::new(());
+        let encoded = general_purpose::STANDARD.encode(":pw");
+        password_request.metadata_mut().insert(
+            "authorization",
+            format!("Basic {encoded}").parse().unwrap(),
+        );
+        assert!(password_interceptor.call(password_request).is_ok());
+
+        let mut token_interceptor = TalonAuthInterceptor {
+            config: AuthConfig::tokens(vec!["good".to_string()]),
+        };
+        let mut token_request = tonic::Request::new(());
+        token_request
+            .metadata_mut()
+            .insert("authorization", "Bearer good".parse().unwrap());
+        assert!(token_interceptor.call(token_request).is_ok());
+
+        let secret = "jwt-secret";
+        let token = create_token(secret, Some("ns"), Some("agent"), Some("session"));
+        let mut jwt_interceptor = TalonAuthInterceptor {
+            config: AuthConfig::jwt(secret.to_string()),
+        };
+        let mut jwt_request = tonic::Request::new(());
+        jwt_request.metadata_mut().insert(
+            "authorization",
+            format!("Bearer {token}").parse().unwrap(),
+        );
+        let jwt_request = jwt_interceptor.call(jwt_request).unwrap();
+        let claims = jwt_request.extensions().get::<Claims>().unwrap();
+        assert_eq!(claims.ns.as_deref(), Some("ns"));
+        assert_eq!(claims.agent.as_deref(), Some("agent"));
+        assert_eq!(claims.session.as_deref(), Some("session"));
+
+        let mut wrong_scheme = TalonAuthInterceptor {
+            config: AuthConfig::password("pw".to_string()),
+        };
+        let mut wrong_scheme_request = tonic::Request::new(());
+        wrong_scheme_request
+            .metadata_mut()
+            .insert("authorization", "Bearer nope".parse().unwrap());
+        assert!(wrong_scheme.call(wrong_scheme_request).is_err());
+
+        let mut missing_bearer = TalonAuthInterceptor {
+            config: AuthConfig::tokens(vec!["good".to_string()]),
+        };
+        let mut missing_bearer_request = tonic::Request::new(());
+        missing_bearer_request
+            .metadata_mut()
+            .insert("authorization", "Basic Zm9vOmJhcg==".parse().unwrap());
+        assert!(missing_bearer.call(missing_bearer_request).is_err());
+
+        let mut invalid_jwt = TalonAuthInterceptor {
+            config: AuthConfig::jwt("jwt-secret".to_string()),
+        };
+        let mut invalid_jwt_request = tonic::Request::new(());
+        invalid_jwt_request
+            .metadata_mut()
+            .insert("authorization", "Bearer not-a-token".parse().unwrap());
+        assert!(invalid_jwt.call(invalid_jwt_request).is_err());
+    }
+
+    #[tokio::test]
+    async fn test_auth_layer_enforces_password_token_and_jwt_modes() {
+        async fn ok_handler() -> &'static str {
+            "ok"
+        }
+
+        let password_gateway = gateway_with_auth(Some(AuthConfig::password("pw".to_string())));
+        let password_app = Router::new()
+            .route("/", get(ok_handler))
+            .layer(from_fn_with_state(password_gateway.clone(), auth_layer))
+            .with_state(password_gateway);
+
+        let unauthorized = password_app
+            .clone()
+            .oneshot(HttpRequest::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(unauthorized.status(), HttpStatusCode::UNAUTHORIZED);
+
+        let encoded = general_purpose::STANDARD.encode(":pw");
+        let authorized = password_app
+            .oneshot(
+                HttpRequest::builder()
+                    .uri("/")
+                    .header(header::AUTHORIZATION, format!("Basic {encoded}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(authorized.status(), HttpStatusCode::OK);
+
+        let token_gateway = gateway_with_auth(Some(AuthConfig::tokens(vec!["good".to_string()])));
+        let token_app = Router::new()
+            .route("/", get(ok_handler))
+            .layer(from_fn_with_state(token_gateway.clone(), auth_layer))
+            .with_state(token_gateway);
+        let token_res = token_app
+            .oneshot(
+                HttpRequest::builder()
+                    .uri("/")
+                    .header(header::AUTHORIZATION, "Bearer good")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(token_res.status(), HttpStatusCode::OK);
+
+        let secret = "jwt-secret";
+        let jwt_gateway = gateway_with_auth(Some(AuthConfig::jwt(secret.to_string())));
+        let jwt_app = Router::new()
+            .route("/", get(ok_handler))
+            .layer(from_fn_with_state(jwt_gateway.clone(), auth_layer))
+            .with_state(jwt_gateway);
+        let token = create_token(secret, Some("ns"), None, None);
+        let jwt_res = jwt_app
+            .clone()
+            .oneshot(
+                HttpRequest::builder()
+                    .uri("/")
+                    .header(header::AUTHORIZATION, format!("Bearer {token}"))
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(jwt_res.status(), HttpStatusCode::OK);
+
+        let open_gateway = gateway_with_auth(Some(AuthConfig::open()));
+        let open_app = Router::new()
+            .route("/", get(ok_handler))
+            .layer(from_fn_with_state(open_gateway.clone(), auth_layer))
+            .with_state(open_gateway);
+        let open_res = open_app
+            .oneshot(HttpRequest::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(open_res.status(), HttpStatusCode::OK);
+
+        let none_gateway = gateway_with_auth(None);
+        let none_app = Router::new()
+            .route("/", get(ok_handler))
+            .layer(from_fn_with_state(none_gateway.clone(), auth_layer))
+            .with_state(none_gateway);
+        let none_res = none_app
+            .oneshot(HttpRequest::builder().uri("/").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(none_res.status(), HttpStatusCode::OK);
+
+        let jwt_bad = jwt_app
+            .oneshot(
+                HttpRequest::builder()
+                    .uri("/")
+                    .header(header::AUTHORIZATION, "Bearer invalid")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(jwt_bad.status(), HttpStatusCode::UNAUTHORIZED);
     }
 }

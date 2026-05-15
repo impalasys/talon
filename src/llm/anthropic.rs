@@ -12,6 +12,7 @@ pub struct AnthropicProvider {
     pub api_key: String,
     pub model: String,
     pub http_client: reqwest::Client,
+    pub api_base_url: Option<String>,
 }
 
 impl AnthropicProvider {
@@ -20,7 +21,15 @@ impl AnthropicProvider {
             api_key,
             model,
             http_client: reqwest::Client::new(),
+            api_base_url: None,
         }
+    }
+
+    fn messages_url(&self) -> String {
+        self.api_base_url
+            .as_deref()
+            .map(|base| format!("{}/v1/messages", base.trim_end_matches('/')))
+            .unwrap_or_else(|| "https://api.anthropic.com/v1/messages".to_string())
     }
 }
 
@@ -37,7 +46,7 @@ impl LlmProvider for AnthropicProvider {
     ) -> Result<ChatResponse> {
         // TODO: Translate OpenAI-format tool definitions to Anthropic's tool schema
         // and include them in the payload when _tools is non-empty.
-        let url = "https://api.anthropic.com/v1/messages";
+        let url = self.messages_url();
 
         let payload = json!({
             "model": self.model,
@@ -82,7 +91,7 @@ impl LlmProvider for AnthropicProvider {
         _messages: Vec<ChatMessage>,
         _tools: Vec<crate::llm::provider::Tool>,
     ) -> Result<ChatStream> {
-        let url = "https://api.anthropic.com/v1/messages";
+        let url = self.messages_url();
 
         let payload = json!({
             "model": self.model,
@@ -174,6 +183,18 @@ impl LlmProvider for AnthropicProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{routing::post, Json, Router};
+    use serde_json::json;
+    use tokio::net::TcpListener;
+
+    fn test_provider(base_url: String) -> AnthropicProvider {
+        AnthropicProvider {
+            api_key: "test-key".to_string(),
+            model: "claude-test".to_string(),
+            http_client: reqwest::Client::new(),
+            api_base_url: Some(base_url),
+        }
+    }
 
     #[tokio::test]
     async fn test_anthropic_sse_parsing() {
@@ -211,5 +232,154 @@ mod tests {
         }
 
         assert_eq!(items, vec!["hi"]);
+    }
+
+    #[tokio::test]
+    async fn chat_completion_handles_success_error_and_invalid_format() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let app = Router::new().route(
+            "/v1/messages",
+            post(|Json(body): Json<serde_json::Value>| async move {
+                let content = body["messages"][0]["content"].as_str().unwrap_or_default();
+                if content == "cause-error" {
+                    return (
+                        axum::http::StatusCode::BAD_REQUEST,
+                        Json(json!({"error":"bad request"})),
+                    );
+                }
+                if content == "bad-format" {
+                    return (
+                        axum::http::StatusCode::OK,
+                        Json(json!({"content":[{"type":"text"}]})),
+                    );
+                }
+                (
+                    axum::http::StatusCode::OK,
+                    Json(json!({"content":[{"text":"hello from anthropic"}]})),
+                )
+            }),
+        );
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = test_provider(format!("http://{}", addr));
+        let messages = vec![ChatMessage {
+            role: "user".to_string(),
+            content: "hello".to_string(),
+            tool_calls: None,
+            tool_call_id: None,
+        }];
+
+        let response = provider.chat_completion(messages.clone(), vec![]).await.unwrap();
+        assert_eq!(response.content, "hello from anthropic");
+        assert!(response.tool_calls.is_empty());
+
+        let api_err = provider
+            .chat_completion(
+                vec![ChatMessage {
+                    content: "cause-error".to_string(),
+                    ..messages[0].clone()
+                }],
+                vec![],
+            )
+            .await
+            .unwrap_err();
+        assert!(api_err.to_string().contains("Anthropic API error"));
+
+        let format_err = provider
+            .chat_completion(
+                vec![ChatMessage {
+                    content: "bad-format".to_string(),
+                    ..messages[0].clone()
+                }],
+                vec![],
+            )
+            .await
+            .unwrap_err();
+        assert!(format_err
+            .to_string()
+            .contains("Invalid Anthropic response format"));
+    }
+
+    #[tokio::test]
+    async fn stream_chat_completion_and_completion_cover_http_paths() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let app = Router::new().route(
+            "/v1/messages",
+            post(|Json(body): Json<serde_json::Value>| async move {
+                let content = body["messages"][0]["content"].as_str().unwrap_or_default();
+                if body["stream"].as_bool() == Some(true) {
+                    if content == "stream-error" {
+                        return (
+                            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                            "stream failed".to_string(),
+                        );
+                    }
+                    return (
+                        axum::http::StatusCode::OK,
+                        "event: content_block_delta\ndata: {\"delta\":{\"text\":\"hi\"}}\n\nevent: content_block_delta\ndata: {\"delta\":{\"text\":\" there\"}}\n\nevent: message_stop\ndata: {}\n".to_string(),
+                    );
+                }
+
+                (
+                    axum::http::StatusCode::OK,
+                    "{\"content\":[{\"text\":\"completion reply\"}]}".to_string(),
+                )
+            }),
+        );
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = test_provider(format!("http://{}", addr));
+        let messages = vec![ChatMessage {
+            role: "user".to_string(),
+            content: "stream".to_string(),
+            tool_calls: None,
+            tool_call_id: None,
+        }];
+
+        let mut stream = provider
+            .stream_chat_completion(messages.clone(), vec![])
+            .await
+            .unwrap();
+        let mut deltas = Vec::new();
+        while let Some(event) = stream.next().await {
+            match event.unwrap() {
+                ChatStreamEvent::TextDelta(text) => deltas.push(text),
+                other => panic!("unexpected stream event: {:?}", other),
+            }
+        }
+        assert_eq!(deltas, vec!["hi".to_string(), " there".to_string()]);
+
+        let completion = provider.completion("prompt").await.unwrap();
+        assert_eq!(completion, "completion reply");
+
+        let err = match provider
+            .stream_chat_completion(
+                vec![ChatMessage {
+                    content: "stream-error".to_string(),
+                    ..messages[0].clone()
+                }],
+                vec![],
+            )
+            .await
+        {
+            Ok(_) => panic!("expected stream error"),
+            Err(err) => err,
+        };
+        assert!(err.to_string().contains("Anthropic API error"));
+    }
+
+    #[tokio::test]
+    async fn generate_embedding_reports_unsupported_provider() {
+        let provider = AnthropicProvider::new("key".to_string(), "model".to_string());
+        let err = provider.generate_embedding("hello").await.unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("Anthropic does not natively support embeddings"));
     }
 }

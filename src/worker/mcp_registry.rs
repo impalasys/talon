@@ -159,15 +159,103 @@ fn filter_allowed_tools(tools: Vec<McpTool>, allowed_tool_names: &[String]) -> V
 
 #[cfg(test)]
 mod tests {
-    use super::filter_allowed_tools;
+    use super::{filter_allowed_tools, McpRegistry};
     use crate::connectors::mcp::McpTool;
+    use crate::control::{
+        scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
+        ProtoKeyValueStoreExt,
+    };
+    use crate::gateway::rpc::manifests;
     use serde_json::json;
+    use std::collections::HashMap;
+    use std::pin::Pin;
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+
+    #[derive(Default)]
+    struct MockKvStore {
+        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+    }
+
+    #[async_trait::async_trait]
+    impl KeyValueStore for MockKvStore {
+        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .data
+                .lock()
+                .await
+                .get(&(ns.to_string(), key.to_string()))
+                .cloned())
+        }
+
+        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+            self.data
+                .lock()
+                .await
+                .insert((ns.to_string(), key.to_string()), value.to_vec());
+            Ok(())
+        }
+
+        async fn compare_and_swap(
+            &self,
+            _ns: &str,
+            _key: &str,
+            _expected: Option<&[u8]>,
+            _value: &[u8],
+        ) -> anyhow::Result<bool> {
+            Ok(false)
+        }
+
+        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
+            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+            Ok(())
+        }
+
+        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+            let mut keys = self
+                .data
+                .lock()
+                .await
+                .keys()
+                .filter_map(|(stored_ns, key)| {
+                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
+                })
+                .collect::<Vec<_>>();
+            keys.sort();
+            Ok(keys)
+        }
+    }
+
+    #[derive(Default)]
+    struct MockPubSub;
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for MockPubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(futures::stream::empty()))
+        }
+    }
 
     fn tool(name: &str) -> McpTool {
         McpTool {
             name: name.to_string(),
             description: String::new(),
             input_schema: json!({"type": "object"}),
+        }
+    }
+
+    fn control_plane(kv: Arc<MockKvStore>) -> ControlPlane {
+        ControlPlane {
+            kv,
+            pubsub: Arc::new(MockPubSub),
+            scheduler: Arc::new(NoopSchedulerBackend),
         }
     }
 
@@ -202,5 +290,175 @@ mod tests {
 
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0].name, "get_file_contents");
+    }
+
+    #[tokio::test]
+    async fn invalidate_removes_named_entry_and_namespace_cache() {
+        let registry = McpRegistry::new();
+        registry.cache.write().await.insert(
+            "conic".to_string(),
+            HashMap::from([(
+                "github".to_string(),
+                Arc::new(super::ResolvedMcpServer {
+                    config: crate::connectors::mcp::McpConnectionConfig {
+                        server_name: "github".to_string(),
+                        server_ref: "github".to_string(),
+                        transport: "http".to_string(),
+                        target: "https://example.com".to_string(),
+                        args: Vec::new(),
+                        headers: HashMap::new(),
+                        disabled: false,
+                        namespace: Some("conic".to_string()),
+                        binding_name: Some("github".to_string()),
+                        agent_name: None,
+                        auth_broker: None,
+                    },
+                    tools: Vec::new(),
+                }),
+            )]),
+        );
+
+        registry.invalidate("conic", Some("github")).await;
+        assert!(registry.cache.read().await.get("conic").is_none());
+
+        registry.cache.write().await.insert(
+            "conic".to_string(),
+            HashMap::from([(
+                "docs".to_string(),
+                Arc::new(super::ResolvedMcpServer {
+                    config: crate::connectors::mcp::McpConnectionConfig {
+                        server_name: "docs".to_string(),
+                        server_ref: "docs".to_string(),
+                        transport: "http".to_string(),
+                        target: "https://example.com".to_string(),
+                        args: Vec::new(),
+                        headers: HashMap::new(),
+                        disabled: false,
+                        namespace: Some("conic".to_string()),
+                        binding_name: Some("docs".to_string()),
+                        agent_name: None,
+                        auth_broker: None,
+                    },
+                    tools: Vec::new(),
+                }),
+            )]),
+        );
+        registry.invalidate("conic", None).await;
+        assert!(registry.cache.read().await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn invalidate_all_clears_every_namespace() {
+        let registry = McpRegistry::new();
+        registry.cache.write().await.insert("one".to_string(), HashMap::new());
+        registry.cache.write().await.insert("two".to_string(), HashMap::new());
+
+        registry.invalidate_all().await;
+
+        assert!(registry.cache.read().await.is_empty());
+    }
+
+    #[tokio::test]
+    async fn resolve_server_errors_for_missing_binding_spec_or_server() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let registry = McpRegistry::new();
+
+        kv.set_msg(
+            "conic",
+            &crate::control::keys::mcp_server_binding("github"),
+            &manifests::McpServerBinding {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServerBinding".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "github".to_string(),
+                    namespace: "conic".to_string(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: None,
+            },
+        )
+        .await
+        .unwrap();
+
+        let missing_spec = registry
+            .resolve_server(&cp, "github", "conic")
+            .await
+            .unwrap_err();
+        assert!(missing_spec.to_string().contains("missing spec"));
+
+        kv.delete("conic", &crate::control::keys::mcp_server_binding("github"))
+            .await
+            .unwrap();
+        let missing_server = registry
+            .resolve_server(&cp, "github", "conic")
+            .await
+            .unwrap_err();
+        assert!(missing_server.to_string().contains("not found"));
+    }
+
+    #[tokio::test]
+    async fn resolve_server_merges_binding_and_returns_disabled_error_before_connecting() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let registry = McpRegistry::new();
+
+        kv.set_msg(
+            crate::control::ns::TALON_SYSTEM,
+            &crate::control::keys::mcp_server("docs-server"),
+            &manifests::McpServer {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServer".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "docs-server".to_string(),
+                    namespace: String::new(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerSpec {
+                    transport: "http".to_string(),
+                    target: "https://example.com/mcp".to_string(),
+                    args: vec!["--server".to_string()],
+                    headers: HashMap::from([("Authorization".to_string(), "Bearer token".to_string())]),
+                    disabled: false,
+                }),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            "conic",
+            &crate::control::keys::mcp_server_binding("docs"),
+            &manifests::McpServerBinding {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServerBinding".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "docs".to_string(),
+                    namespace: "conic".to_string(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerBindingSpec {
+                    server_ref: "docs-server".to_string(),
+                    args: vec!["--binding".to_string()],
+                    headers: HashMap::from([("Authorization".to_string(), "Bearer override".to_string())]),
+                    disabled: true,
+                    auth_broker: Some(manifests::McpAuthBrokerSpec {
+                        kind: "oauth".to_string(),
+                        url: "https://example.com/auth".to_string(),
+                        cache_ttl_seconds: 60,
+                        audience: "docs".to_string(),
+                    }),
+                    allowed_tool_names: vec!["search".to_string()],
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        let err = registry.resolve_server(&cp, "docs", "conic").await.unwrap_err();
+        assert!(err.to_string().contains("disabled"));
+        assert!(registry.cache.read().await.is_empty());
     }
 }

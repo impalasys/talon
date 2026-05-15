@@ -518,4 +518,96 @@ mod tests {
             .into_inner();
         assert_eq!(list_res.namespaces.len(), 0);
     }
+
+    #[tokio::test]
+    async fn test_namespace_validation_get_and_recreate_paths() {
+        let handler = setup_mock_gateway_handler();
+
+        let empty = handler
+            .handle_create_namespace(tonic::Request::new(proto::CreateNamespaceRequest {
+                name: String::new(),
+                recursive: false,
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect_err("empty namespace should fail");
+        assert_eq!(empty.code(), tonic::Code::InvalidArgument);
+
+        let missing = handler
+            .handle_get_namespace(tonic::Request::new(proto::GetNamespaceRequest {
+                name: "missing".to_string(),
+            }))
+            .await
+            .expect_err("missing namespace should fail");
+        assert_eq!(missing.code(), tonic::Code::NotFound);
+
+        let created = handler
+            .handle_create_namespace(tonic::Request::new(proto::CreateNamespaceRequest {
+                name: "team".to_string(),
+                recursive: false,
+                labels: HashMap::from([("env".to_string(), "dev".to_string())]),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(created.labels.get("env").map(String::as_str), Some("dev"));
+
+        let recreated = handler
+            .handle_create_namespace(tonic::Request::new(proto::CreateNamespaceRequest {
+                name: "team".to_string(),
+                recursive: false,
+                labels: HashMap::from([("owner".to_string(), "ops".to_string())]),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(recreated.labels.get("env").map(String::as_str), Some("dev"));
+        assert_eq!(recreated.labels.get("owner").map(String::as_str), Some("ops"));
+
+        let fetched = handler
+            .handle_get_namespace(tonic::Request::new(proto::GetNamespaceRequest {
+                name: "team".to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(fetched.labels.get("env").map(String::as_str), Some("dev"));
+        assert_eq!(fetched.labels.get("owner").map(String::as_str), Some("ops"));
+    }
+
+    #[tokio::test]
+    async fn test_delete_namespace_rejects_missing_and_already_deleted() {
+        let handler = setup_mock_gateway_handler();
+
+        let missing = handler
+            .handle_delete_namespace(tonic::Request::new(proto::DeleteNamespaceRequest {
+                name: "missing".to_string(),
+            }))
+            .await
+            .expect_err("missing namespace should fail");
+        assert_eq!(missing.code(), tonic::Code::NotFound);
+
+        handler
+            .handle_create_namespace(tonic::Request::new(proto::CreateNamespaceRequest {
+                name: "gone".to_string(),
+                recursive: false,
+                labels: HashMap::new(),
+            }))
+            .await
+            .unwrap();
+        handler
+            .handle_delete_namespace(tonic::Request::new(proto::DeleteNamespaceRequest {
+                name: "gone".to_string(),
+            }))
+            .await
+            .unwrap();
+
+        let deleted_again = handler
+            .handle_delete_namespace(tonic::Request::new(proto::DeleteNamespaceRequest {
+                name: "gone".to_string(),
+            }))
+            .await
+            .expect_err("second delete should fail");
+        assert_eq!(deleted_again.code(), tonic::Code::FailedPrecondition);
+    }
 }

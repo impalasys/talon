@@ -4725,6 +4725,7 @@ dependencies = [
  "sse-stream",
  "tempfile",
  "tokio",
+ "tokio-stream",
  "tokio-tungstenite 0.20.1",
  "tokio-util",
  "toml",
