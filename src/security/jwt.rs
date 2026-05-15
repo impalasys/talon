@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use std::sync::OnceLock;
 
 /// Install jsonwebtoken's process-global crypto provider exactly once.

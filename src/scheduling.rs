@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use anyhow::{anyhow, Context, Result};
 use chrono::{DateTime, Duration, LocalResult, NaiveDateTime, TimeZone, Utc};
 use chrono_tz::Tz;

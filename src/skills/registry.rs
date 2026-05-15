@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Unified tool registry merging MCP + built-in + skill tools
 use serde_json::{json, Value};
 use std::collections::HashMap;

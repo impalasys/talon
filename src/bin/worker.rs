@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use anyhow::Result;
 use axum::{
     body::Bytes, extract::State, http::HeaderMap, response::IntoResponse, routing::post, Json,

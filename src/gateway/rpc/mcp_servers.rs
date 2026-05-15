@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use super::{manifests, proto, GrpcGatewayHandler};
 use crate::control::{events, keys, ns, topics, ProtoKeyValueStoreExt};
 use prost::Message;

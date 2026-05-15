@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 fn main() -> std::io::Result<()> {
     // All message types in the manifests package get serde support so they can
     // be deserialized directly from YAML/JSON without shadow structs.

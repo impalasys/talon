@@ -1,3 +1,6 @@
+// Copyright (C) 2026 Impala Systems, Inc.
+// SPDX-License-Identifier: AGPL-3.0-only
+
 use anyhow::{Context, Result};
 use base64::Engine;
 use clap::{Parser, Subcommand};
