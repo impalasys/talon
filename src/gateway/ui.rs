@@ -11,9 +11,9 @@ use axum::Json;
 use futures::StreamExt;
 use serde::Deserialize;
 use serde_json::{json, Value};
+use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::convert::Infallible;
-use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::Arc;
 use std::time::Duration;
 use tonic::metadata::MetadataValue;
@@ -187,8 +187,7 @@ fn data_stream_line(code: &str, value: Value) -> Vec<u8> {
 }
 
 fn step_dedup_key(step: &events::SessionStepEvent) -> String {
-    let mut payload_hasher = DefaultHasher::new();
-    step.payload_json.hash(&mut payload_hasher);
+    let payload_hash = format!("{:x}", Sha256::digest(step.payload_json.as_bytes()));
     format!(
         "{}:{}:{}:{}:{}:{}",
         step.message_id,
@@ -196,7 +195,7 @@ fn step_dedup_key(step: &events::SessionStepEvent) -> String {
         step.step_type,
         step.name,
         step.content,
-        payload_hasher.finish()
+        payload_hash
     )
 }
 

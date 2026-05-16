@@ -11,6 +11,8 @@ use async_trait::async_trait;
 use futures::{stream, StreamExt};
 use serde_json::Value;
 
+const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
+
 #[derive(Debug, Clone, Copy)]
 struct RequestDebugStats {
     message_count: usize,
@@ -272,7 +274,9 @@ impl OpenAiCompatibleProvider {
                     payload["reasoning_effort"] = serde_json::json!(thinking.effort);
                 }
                 if let Some(budget_tokens) = thinking.budget_tokens {
-                    payload["max_completion_tokens"] = serde_json::json!(budget_tokens);
+                    let max_completion_tokens =
+                        budget_tokens.saturating_add(THINKING_COMPLETION_BUFFER_TOKENS);
+                    payload["max_completion_tokens"] = serde_json::json!(max_completion_tokens);
                 }
             }
 
@@ -862,7 +866,7 @@ mod tests {
             "/chat/completions",
             post(|Json(payload): Json<serde_json::Value>| async move {
                 assert_eq!(payload["reasoning_effort"], "high");
-                assert_eq!(payload["max_completion_tokens"], 2048);
+                assert_eq!(payload["max_completion_tokens"], 6144);
                 assert!(payload.get("reasoning").is_none());
                 Json(serde_json::json!({
                     "choices": [{
