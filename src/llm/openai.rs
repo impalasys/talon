@@ -88,6 +88,18 @@ impl OpenAiCompatibleProvider {
             })
     }
 
+    fn supports_stream_options_retry(&self, stream: bool, err_text: &str) -> bool {
+        stream
+            && {
+                let lower = err_text.to_ascii_lowercase();
+                lower.contains("stream_options")
+                    || lower.contains("include_usage")
+                    || lower.contains("unknown field")
+                    || lower.contains("unknown parameter")
+                    || lower.contains("unexpected field")
+            }
+    }
+
     fn debug_requests_enabled() -> bool {
         std::env::var("TALON_LLM_DEBUG_REQUESTS")
             .ok()
@@ -237,7 +249,7 @@ impl OpenAiCompatibleProvider {
         let url = format!("{}/chat/completions", self.base_url.trim_end_matches('/'));
         let serialized_messages = Self::serialize_messages(request.messages.clone());
 
-        let build_payload = |include_tools: bool| {
+        let build_payload = |include_tools: bool, include_stream_options: bool| {
             let mut payload = serde_json::json!({
                 "model": self.model,
                 "messages": serialized_messages,
@@ -245,9 +257,11 @@ impl OpenAiCompatibleProvider {
 
             if stream {
                 payload["stream"] = serde_json::json!(true);
-                payload["stream_options"] = serde_json::json!({
-                    "include_usage": true
-                });
+                if include_stream_options {
+                    payload["stream_options"] = serde_json::json!({
+                        "include_usage": true
+                    });
+                }
             }
 
             if include_tools && !request.tools.is_empty() {
@@ -284,7 +298,7 @@ impl OpenAiCompatibleProvider {
         };
 
         let initial_include_tools = !request.tools.is_empty();
-        let initial_payload = build_payload(initial_include_tools);
+        let initial_payload = build_payload(initial_include_tools, true);
         self.log_request_attempt(
             "initial",
             initial_include_tools,
@@ -317,6 +331,93 @@ impl OpenAiCompatibleProvider {
             initial_status,
             &err_text,
         );
+        if self.supports_stream_options_retry(stream, &err_text) {
+            let retry_payload = build_payload(initial_include_tools, false);
+            self.log_request_attempt(
+                "retry_without_stream_options",
+                initial_include_tools,
+                stream,
+                &serialized_messages,
+                &request.tools,
+                &retry_payload,
+            );
+            let retry_resp = self
+                .http_client
+                .post(&url)
+                .header("Authorization", format!("Bearer {}", self.api_key))
+                .json(&retry_payload)
+                .send()
+                .await?;
+
+            if retry_resp.status().is_success() {
+                return Ok(retry_resp);
+            }
+
+            let retry_status = retry_resp.status();
+            let retry_err_text = retry_resp.text().await?;
+            self.log_request_failure(
+                "retry_without_stream_options",
+                initial_include_tools,
+                stream,
+                &serialized_messages,
+                &request.tools,
+                &retry_payload,
+                retry_status,
+                &retry_err_text,
+            );
+
+            if self.supports_tool_retry_without_tools(
+                &request.messages,
+                &retry_err_text,
+                initial_include_tools,
+            ) {
+                let retry_without_tools_payload = build_payload(false, false);
+                self.log_request_attempt(
+                    "retry_without_stream_options_or_tools",
+                    false,
+                    stream,
+                    &serialized_messages,
+                    &request.tools,
+                    &retry_without_tools_payload,
+                );
+                let retry_without_tools_resp = self
+                    .http_client
+                    .post(&url)
+                    .header("Authorization", format!("Bearer {}", self.api_key))
+                    .json(&retry_without_tools_payload)
+                    .send()
+                    .await?;
+
+                if retry_without_tools_resp.status().is_success() {
+                    return Ok(retry_without_tools_resp);
+                }
+
+                let retry_without_tools_status = retry_without_tools_resp.status();
+                let retry_without_tools_err_text = retry_without_tools_resp.text().await?;
+                self.log_request_failure(
+                    "retry_without_stream_options_or_tools",
+                    false,
+                    stream,
+                    &serialized_messages,
+                    &request.tools,
+                    &retry_without_tools_payload,
+                    retry_without_tools_status,
+                    &retry_without_tools_err_text,
+                );
+                return Err(anyhow!(
+                    "OpenAI API error after retry_without_stream_options_or_tools: initial={}, retry_without_stream_options={}, retry_without_stream_options_or_tools={}",
+                    err_text,
+                    retry_err_text,
+                    retry_without_tools_err_text
+                ));
+            }
+
+            return Err(anyhow!(
+                "OpenAI API error after retry_without_stream_options: initial={}, retry_without_stream_options={}",
+                err_text,
+                retry_err_text
+            ));
+        }
         if self.supports_tool_retry_without_tools(
             &request.messages,
             &err_text,
@@ -324,7 +425,7 @@ impl OpenAiCompatibleProvider {
         ) {
             let retry_serialized_messages = serialized_messages.clone();
             let retry_payload = {
-                let mut payload = build_payload(false);
+                let mut payload = build_payload(false, true);
                 payload["messages"] = serde_json::json!(retry_serialized_messages);
                 payload
             };
@@ -1010,6 +1111,81 @@ mod tests {
 
         assert!(err.to_string().contains("OpenAI API error"));
         assert!(err.to_string().contains("bad request"));
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_retries_without_stream_options_when_rejected() {
+        let hits = Arc::new(AtomicUsize::new(0));
+        let app = Router::new().route(
+            "/chat/completions",
+            post({
+                let hits = hits.clone();
+                move |Json(payload): Json<serde_json::Value>| {
+                    let hits = hits.clone();
+                    async move {
+                        let hit = hits.fetch_add(1, Ordering::SeqCst);
+                        if hit == 0 {
+                            assert_eq!(
+                                payload["stream_options"],
+                                serde_json::json!({ "include_usage": true })
+                            );
+                            (
+                                axum::http::StatusCode::BAD_REQUEST,
+                                Json(serde_json::json!({
+                                    "message": "unknown field stream_options"
+                                })),
+                            )
+                        } else {
+                            assert!(payload.get("stream_options").is_none());
+                            (
+                                axum::http::StatusCode::OK,
+                                Json(serde_json::json!({
+                                    "choices": [{
+                                        "message": {
+                                            "content": "retried-ok"
+                                        }
+                                    }]
+                                })),
+                            )
+                        }
+                    }
+                }
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+
+        let response = provider
+            .send_chat_request(
+                ChatRequest {
+                    messages: vec![ChatMessage {
+                        role: "user".to_string(),
+                        content: "hi".to_string(),
+                        tool_calls: None,
+                        tool_call_id: None,
+                    }],
+                    tools: vec![],
+                    thinking: None,
+                },
+                true,
+            )
+            .await
+            .unwrap();
+
+        let payload: serde_json::Value = response.json().await.unwrap();
+        assert_eq!(payload["choices"][0]["message"]["content"], "retried-ok");
+        assert_eq!(hits.load(Ordering::SeqCst), 2);
         server.abort();
     }
 

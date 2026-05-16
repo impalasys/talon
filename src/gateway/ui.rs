@@ -11,7 +11,6 @@ use axum::Json;
 use futures::StreamExt;
 use serde::Deserialize;
 use serde_json::{json, Value};
-use sha2::{Digest, Sha256};
 use std::collections::HashSet;
 use std::convert::Infallible;
 use std::sync::Arc;
@@ -186,8 +185,17 @@ fn data_stream_line(code: &str, value: Value) -> Vec<u8> {
     format!("{code}:{}\n", value).into_bytes()
 }
 
+fn stable_payload_hash(payload: &str) -> u64 {
+    const FNV_OFFSET: u64 = 0xcbf29ce484222325;
+    const FNV_PRIME: u64 = 0x100000001b3;
+
+    payload.as_bytes().iter().fold(FNV_OFFSET, |hash, byte| {
+        hash.wrapping_mul(FNV_PRIME) ^ u64::from(*byte)
+    })
+}
+
 fn step_dedup_key(step: &events::SessionStepEvent) -> String {
-    let payload_hash = format!("{:x}", Sha256::digest(step.payload_json.as_bytes()));
+    let payload_hash = stable_payload_hash(&step.payload_json);
     format!(
         "{}:{}:{}:{}:{}:{}",
         step.message_id,
