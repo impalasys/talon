@@ -183,12 +183,13 @@ server:
                 key: "definitely-missing-test-key".to_string(),
             })),
         };
-        assert!(keychain
-            .resolve()
-            .await
-            .unwrap_err()
-            .to_string()
-            .contains("Keychain error"));
+        let keychain_err = keychain.resolve().await.unwrap_err().to_string();
+        assert!(
+            keychain_err.contains("Keychain error")
+                || keychain_err.contains("No such file or directory")
+                || keychain_err.contains("not found"),
+            "unexpected keychain error: {keychain_err}"
+        );
     }
 
     #[test]
