@@ -224,8 +224,10 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
                             result = h.dispatch(Some(&event_type), &message.message.data) => {
                                 if let Err(e) = result {
                                     tracing::error!(event_type = %event_type, error = %e, "Pull dispatch failed");
+                                    let _ = message.nack().await;
+                                } else {
+                                    let _ = message.ack().await;
                                 }
-                                let _ = message.ack().await;
                             }
                         }
                     }
@@ -474,9 +476,10 @@ async fn push_webhook(
             match handler.dispatch(event_type, &raw_bytes).await {
                 Ok(_) => axum::http::StatusCode::OK,
                 Err(e) => {
-                    eprintln!(
-                        "Failed to handle event {}: {}",
-                        parsed.message.message_id, e
+                    tracing::error!(
+                        message_id = %parsed.message.message_id,
+                        error = %e,
+                        "Failed to handle push event"
                     );
                     axum::http::StatusCode::INTERNAL_SERVER_ERROR
                 }

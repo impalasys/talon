@@ -5,6 +5,16 @@ use crate::control::KeyValueStore;
 use anyhow::Result;
 use sqlx::{PgPool, Row};
 
+fn validate_identifier(table: &str) -> Result<()> {
+    if table.is_empty() || !table.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '_') {
+        anyhow::bail!(
+            "Invalid table name '{}': only ASCII letters, numbers, and underscores are allowed",
+            table
+        );
+    }
+    Ok(())
+}
+
 fn like_prefix_pattern(prefix: &str) -> String {
     let mut escaped = String::with_capacity(prefix.len() + 1);
     for ch in prefix.chars() {
@@ -92,6 +102,7 @@ pub struct PostgresKvStore {
 
 impl PostgresKvStore {
     pub async fn new(url: &str, table: &str) -> Result<Self> {
+        validate_identifier(table)?;
         let pool = PgPool::connect(url).await?;
 
         let create_stmt = create_table_statement(table);
@@ -209,6 +220,7 @@ mod tests {
     use super::{
         compare_and_swap_query, create_table_statement, delete_prefix_query, delete_query,
         get_query, like_prefix_pattern, list_entries_query, list_keys_query, set_query,
+        validate_identifier,
         PostgresKvStore,
     };
     use crate::control::KeyValueStore;
@@ -248,6 +260,18 @@ mod tests {
         assert!(list_keys_query("talon_kv").contains("LIKE $2 ESCAPE '\\'"));
         assert!(list_entries_query("talon_kv").contains("SELECT key, value"));
         assert!(delete_prefix_query("talon_kv").contains("DELETE FROM talon_kv"));
+    }
+
+    #[test]
+    fn validate_identifier_rejects_invalid_table_names() {
+        validate_identifier("talon_kv").expect("underscores should be allowed");
+        validate_identifier("talon123").expect("alphanumeric names should be allowed");
+
+        let err = validate_identifier("talon-kv").unwrap_err();
+        assert!(err.to_string().contains("Invalid table name"));
+
+        let empty = validate_identifier("").unwrap_err();
+        assert!(empty.to_string().contains("Invalid table name"));
     }
 
     async fn init_test_store(database_url: &str) -> PostgresKvStore {

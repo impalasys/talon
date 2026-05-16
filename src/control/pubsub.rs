@@ -71,9 +71,10 @@ impl GcpPubSubPublisher {
                             e
                         ));
                     }
-                    eprintln!(
-                        "PubSub connection failed, retrying in 2 seconds... (Attempt {}) Error: {}",
-                        retries, e
+                    tracing::error!(
+                        attempt = retries,
+                        error = %e,
+                        "PubSub connection failed, retrying in 2 seconds"
                     );
                     tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                 }
@@ -127,7 +128,7 @@ impl Drop for SubscriptionGuard {
         let sub_id = self.sub_id.clone();
         tokio::spawn(async move {
             if let Err(e) = backend.delete_subscription(&sub_id).await {
-                eprintln!("Failed to cleanup PubSub subscription {}: {}", sub_id, e);
+                tracing::error!(subscription = %sub_id, error = %e, "Failed to cleanup PubSub subscription");
             }
         });
     }
