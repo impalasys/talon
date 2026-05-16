@@ -396,95 +396,10 @@ impl SchedulerBackend for LocalPostgresSchedulerBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::process::Command;
-    use std::sync::{Arc, OnceLock};
+    use crate::test_support::{docker_test_guard, PostgresContainer};
+    use std::sync::Arc;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
     use tokio::sync::{oneshot, Mutex};
-
-    fn docker_test_mutex() -> &'static std::sync::Mutex<()> {
-        static LOCK: OnceLock<std::sync::Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| std::sync::Mutex::new(()))
-    }
-
-    fn docker_test_guard() -> std::sync::MutexGuard<'static, ()> {
-        docker_test_mutex()
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-    }
-
-    struct PostgresContainer {
-        name: String,
-        port: u16,
-    }
-
-    impl PostgresContainer {
-        fn start() -> Self {
-            let name = format!("talon-rust-pg-{}", uuid::Uuid::now_v7());
-            let run = Command::new("docker")
-                .args([
-                    "run",
-                    "-d",
-                    "--rm",
-                    "--name",
-                    &name,
-                    "-e",
-                    "POSTGRES_USER=talon",
-                    "-e",
-                    "POSTGRES_PASSWORD=password",
-                    "-e",
-                    "POSTGRES_DB=talon",
-                    "-p",
-                    "127.0.0.1::5432",
-                    "postgres:15-alpine",
-                ])
-                .output()
-                .expect("docker run should succeed");
-            assert!(
-                run.status.success(),
-                "docker run failed: {}",
-                String::from_utf8_lossy(&run.stderr)
-            );
-
-            let inspect = Command::new("docker")
-                .args([
-                    "inspect",
-                    "-f",
-                    "{{(index (index .NetworkSettings.Ports \"5432/tcp\") 0).HostPort}}",
-                    &name,
-                ])
-                .output()
-                .expect("docker inspect should succeed");
-            assert!(
-                inspect.status.success(),
-                "docker inspect failed: {}",
-                String::from_utf8_lossy(&inspect.stderr)
-            );
-            let port = String::from_utf8_lossy(&inspect.stdout)
-                .trim()
-                .parse::<u16>()
-                .expect("host port should parse");
-
-            for _ in 0..30 {
-                let ready = Command::new("docker")
-                    .args(["exec", &name, "pg_isready", "-U", "talon", "-d", "talon"])
-                    .output()
-                    .expect("docker exec should succeed");
-                if ready.status.success() {
-                    return Self { name, port };
-                }
-                std::thread::sleep(Duration::from_millis(500));
-            }
-
-            panic!("postgres container did not become ready");
-        }
-
-        fn database_url(&self) -> String {
-            format!(
-                "postgres://talon:password@127.0.0.1:{}/talon",
-                self.port
-            )
-        }
-    }
 
     async fn init_test_backend(database_url: &str) -> LocalPostgresSchedulerBackend {
         let mut last_error = None;
@@ -542,14 +457,6 @@ mod tests {
         );
     }
 
-    impl Drop for PostgresContainer {
-        fn drop(&mut self) {
-            let _ = Command::new("docker")
-                .args(["rm", "-f", &self.name])
-                .output();
-        }
-    }
-
     #[derive(Clone, Default)]
     struct ReceivedWakeup {
         header: Option<String>,
@@ -573,7 +480,7 @@ mod tests {
     #[tokio::test]
     async fn schedule_claim_fail_cancel_and_deliver_round_trip() {
         let _guard = docker_test_guard();
-        let pg = PostgresContainer::start();
+        let pg = PostgresContainer::start("talon-rust-pg");
         let backend = init_test_backend(&pg.database_url()).await;
 
         let scheduled = backend
@@ -749,7 +656,7 @@ mod tests {
     #[tokio::test]
     async fn claim_due_wakeups_skips_future_canceled_delivered_and_claimed_rows() {
         let _guard = docker_test_guard();
-        let pg = PostgresContainer::start();
+        let pg = PostgresContainer::start("talon-rust-pg");
         let backend = init_test_backend(&pg.database_url()).await;
 
         let active = backend
@@ -843,7 +750,7 @@ mod tests {
     #[tokio::test]
     async fn deliver_wakeup_surfaces_http_error_without_marking_delivered() {
         let _guard = docker_test_guard();
-        let pg = PostgresContainer::start();
+        let pg = PostgresContainer::start("talon-rust-pg");
         let backend = init_test_backend(&pg.database_url()).await;
 
         let handle = backend
@@ -905,7 +812,7 @@ mod tests {
     #[tokio::test]
     async fn new_accepts_blank_runner_target_when_runner_disabled_and_rejects_bad_identifier() {
         let _guard = docker_test_guard();
-        let pg = PostgresContainer::start();
+        let pg = PostgresContainer::start("talon-rust-pg");
 
         let backend = init_backend_with_options(
             &pg.database_url(),
@@ -933,7 +840,7 @@ mod tests {
     #[tokio::test]
     async fn runner_enabled_delivers_due_wakeup_to_target() {
         let _guard = docker_test_guard();
-        let pg = PostgresContainer::start();
+        let pg = PostgresContainer::start("talon-rust-pg");
 
         let received = Arc::new(Mutex::new(None::<ReceivedWakeup>));
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0")

@@ -212,8 +212,7 @@ mod tests {
         PostgresKvStore,
     };
     use crate::control::KeyValueStore;
-    use std::process::Command;
-    use std::sync::OnceLock;
+    use crate::test_support::{docker_test_guard, PostgresContainer};
     use std::time::Duration;
 
     #[test]
@@ -251,99 +250,6 @@ mod tests {
         assert!(delete_prefix_query("talon_kv").contains("DELETE FROM talon_kv"));
     }
 
-    fn docker_test_mutex() -> &'static std::sync::Mutex<()> {
-        static LOCK: OnceLock<std::sync::Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| std::sync::Mutex::new(()))
-    }
-
-    fn docker_test_guard() -> std::sync::MutexGuard<'static, ()> {
-        docker_test_mutex()
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-    }
-
-    struct PostgresContainer {
-        name: String,
-        port: u16,
-    }
-
-    impl PostgresContainer {
-        fn start() -> Self {
-            let name = format!("talon-kv-pg-{}", uuid::Uuid::now_v7());
-            let run = Command::new("docker")
-                .args([
-                    "run",
-                    "-d",
-                    "--rm",
-                    "--name",
-                    &name,
-                    "-e",
-                    "POSTGRES_USER=talon",
-                    "-e",
-                    "POSTGRES_PASSWORD=password",
-                    "-e",
-                    "POSTGRES_DB=talon",
-                    "-p",
-                    "127.0.0.1::5432",
-                    "postgres:15-alpine",
-                ])
-                .output()
-                .expect("docker run should succeed");
-            assert!(
-                run.status.success(),
-                "docker run failed: {}",
-                String::from_utf8_lossy(&run.stderr)
-            );
-
-            let inspect = Command::new("docker")
-                .args([
-                    "inspect",
-                    "-f",
-                    "{{(index (index .NetworkSettings.Ports \"5432/tcp\") 0).HostPort}}",
-                    &name,
-                ])
-                .output()
-                .expect("docker inspect should succeed");
-            assert!(
-                inspect.status.success(),
-                "docker inspect failed: {}",
-                String::from_utf8_lossy(&inspect.stderr)
-            );
-            let port = String::from_utf8_lossy(&inspect.stdout)
-                .trim()
-                .parse::<u16>()
-                .expect("host port should parse");
-
-            for _ in 0..30 {
-                let ready = Command::new("docker")
-                    .args(["exec", &name, "pg_isready", "-U", "talon", "-d", "talon"])
-                    .output()
-                    .expect("docker exec should succeed");
-                if ready.status.success() {
-                    return Self { name, port };
-                }
-                std::thread::sleep(Duration::from_millis(500));
-            }
-
-            panic!("postgres container did not become ready");
-        }
-
-        fn database_url(&self) -> String {
-            format!(
-                "postgres://talon:password@127.0.0.1:{}/talon",
-                self.port
-            )
-        }
-    }
-
-    impl Drop for PostgresContainer {
-        fn drop(&mut self) {
-            let _ = Command::new("docker")
-                .args(["rm", "-f", &self.name])
-                .output();
-        }
-    }
-
     async fn init_test_store(database_url: &str) -> PostgresKvStore {
         let mut last_error = None;
         for _ in 0..20 {
@@ -364,7 +270,7 @@ mod tests {
     #[tokio::test]
     async fn postgres_kv_round_trip_compare_and_swap_and_prefix_ops() {
         let _guard = docker_test_guard();
-        let pg = PostgresContainer::start();
+        let pg = PostgresContainer::start("talon-kv-pg");
         let store = init_test_store(&pg.database_url()).await;
 
         assert!(store.get("ns", "missing").await.unwrap().is_none());

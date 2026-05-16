@@ -291,74 +291,7 @@ mod tests {
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
     use crate::gateway::rpc::models;
     use std::collections::HashMap;
-    use tokio::sync::Mutex;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, namespace: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(namespace.to_string(), key.to_string()))
-                .cloned())
-        }
-
-        async fn set(&self, namespace: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((namespace.to_string(), key.to_string()), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            namespace: &str,
-            key: &str,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let current = data.get(&(namespace.to_string(), key.to_string())).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert((namespace.to_string(), key.to_string()), value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, namespace: &str, key: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(namespace.to_string(), key.to_string()));
-            Ok(())
-        }
-
-        async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|(ns, key)| {
-                    (ns == namespace && key.starts_with(prefix)).then(|| key.clone())
-                })
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
+    use crate::test_support::MockKvStore;
     struct EnvGuard {
         key: &'static str,
         value: Option<String>,
