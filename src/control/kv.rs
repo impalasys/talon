@@ -5,6 +5,19 @@ use crate::control::KeyValueStore;
 use anyhow::Result;
 use sqlx::{PgPool, Row};
 
+const RESERVED_IDENTIFIERS: &[&str] = &[
+    "all", "analyse", "analyze", "and", "any", "array", "as", "asc", "asymmetric",
+    "authorization", "between", "binary", "both", "case", "cast", "check", "collate",
+    "column", "constraint", "create", "current_catalog", "current_date", "current_role",
+    "current_schema", "current_time", "current_timestamp", "current_user", "default",
+    "deferrable", "desc", "distinct", "do", "else", "end", "except", "false", "fetch",
+    "for", "foreign", "from", "grant", "group", "having", "in", "initially", "intersect",
+    "into", "is", "leading", "limit", "localtime", "localtimestamp", "not", "null",
+    "offset", "on", "only", "or", "order", "placing", "primary", "references", "returning",
+    "select", "session_user", "some", "symmetric", "table", "then", "to", "trailing", "true",
+    "union", "unique", "user", "using", "variadic", "when", "where", "window", "with",
+];
+
 fn validate_identifier(table: &str) -> Result<()> {
     if table.is_empty() || table.len() > 63 {
         anyhow::bail!(
@@ -23,6 +36,15 @@ fn validate_identifier(table: &str) -> Result<()> {
     if !chars.all(|ch| ch.is_ascii_alphanumeric() || ch == '_') {
         anyhow::bail!(
             "Invalid table name '{}': only ASCII letters, numbers, and underscores are allowed",
+            table
+        );
+    }
+    if RESERVED_IDENTIFIERS
+        .binary_search(&table.to_ascii_lowercase().as_str())
+        .is_ok()
+    {
+        anyhow::bail!(
+            "Invalid table name '{}': SQL reserved keywords are not allowed",
             table
         );
     }
@@ -302,6 +324,11 @@ mod tests {
 
         let too_long = validate_identifier(&"a".repeat(64)).unwrap_err();
         assert!(too_long.to_string().contains("between 1 and 63"));
+
+        let reserved = validate_identifier("select").unwrap_err();
+        assert!(reserved.to_string().contains("reserved keywords"));
+
+        validate_identifier("select_log").expect("non-keyword identifiers should be allowed");
     }
 
     async fn init_test_store(database_url: &str) -> PostgresKvStore {

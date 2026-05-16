@@ -49,6 +49,38 @@ trait PullSubscriptionBackend: Send + Sync {
     ) -> Result<()>;
 }
 
+async fn handle_pull_message<FDispatch, FutDispatch, FAck, FutAck, FNack, FutNack, EDispatch, EAck, ENack>(
+    event_type: &str,
+    cancellation_token: &CancellationToken,
+    receive_cancellation_token: &CancellationToken,
+    dispatch: FDispatch,
+    ack: FAck,
+    nack: FNack,
+) where
+    FDispatch: FnOnce() -> FutDispatch,
+    FutDispatch: std::future::Future<Output = std::result::Result<(), EDispatch>>,
+    FAck: FnOnce() -> FutAck,
+    FutAck: std::future::Future<Output = std::result::Result<(), EAck>>,
+    FNack: FnOnce() -> FutNack,
+    FutNack: std::future::Future<Output = std::result::Result<(), ENack>>,
+    EDispatch: std::fmt::Display,
+{
+    if cancellation_token.is_cancelled() || receive_cancellation_token.is_cancelled() {
+        let _ = nack().await;
+        return;
+    }
+
+    match dispatch().await {
+        Ok(()) => {
+            let _ = ack().await;
+        }
+        Err(err) => {
+            tracing::error!(event_type = %event_type, error = %err, "Pull dispatch failed");
+            let _ = nack().await;
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct PullSubscriptionSpec {
     topic_name: &'static str,
@@ -241,22 +273,15 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
                     let event_type = event_type.clone();
                     let cancellation_token = receive_loop_cancellation.clone();
                     async move {
-                        tokio::select! {
-                            _ = cancellation_token.cancelled() => {
-                                let _ = message.nack().await;
-                            }
-                            _ = receive_cancellation_token.cancelled() => {
-                                let _ = message.nack().await;
-                            }
-                            result = h.dispatch(Some(&event_type), &message.message.data) => {
-                                if let Err(e) = result {
-                                    tracing::error!(event_type = %event_type, error = %e, "Pull dispatch failed");
-                                    let _ = message.nack().await;
-                                } else {
-                                    let _ = message.ack().await;
-                                }
-                            }
-                        }
+                        handle_pull_message(
+                            &event_type,
+                            &cancellation_token,
+                            &receive_cancellation_token,
+                            || h.dispatch(Some(&event_type), &message.message.data),
+                            || message.ack(),
+                            || message.nack(),
+                        )
+                        .await;
                     }
                 },
                 cancellation_token.clone(),
@@ -669,9 +694,9 @@ async fn main() -> Result<()> {
 mod tests {
     use super::{
         build_worker_handler, fully_qualified_subscription, fully_qualified_topic,
-        maybe_spawn_pull_subscriptions, next_pull_error_backoff, next_pull_reconnect_delay,
-        pubsub_project_id, pull_mode_enabled, pull_subscription_specs, push_webhook,
-        resolved_pull_subscription_specs, run_pull_subscription_loop,
+        handle_pull_message, maybe_spawn_pull_subscriptions, next_pull_error_backoff,
+        next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled, pull_subscription_specs,
+        push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
         run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
         serve_worker_http, worker_bind_addr, worker_port, worker_router, PullSubscriptionBackend,
         ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
@@ -1692,6 +1717,120 @@ mod tests {
         .await;
 
         assert_eq!(attempts.load(std::sync::atomic::Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    async fn handle_pull_message_nacks_on_pre_dispatch_cancellation() {
+        let shutdown = CancellationToken::new();
+        shutdown.cancel();
+        let receive_shutdown = CancellationToken::new();
+        let dispatched = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let acked = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let nacked = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+        handle_pull_message(
+            "resource_lifecycle",
+            &shutdown,
+            &receive_shutdown,
+            {
+                let dispatched = dispatched.clone();
+                move || {
+                    let dispatched = dispatched.clone();
+                    async move {
+                        dispatched.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok::<(), anyhow::Error>(())
+                    }
+                }
+            },
+            {
+                let acked = acked.clone();
+                move || {
+                    let acked = acked.clone();
+                    async move {
+                        acked.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok::<(), anyhow::Error>(())
+                    }
+                }
+            },
+            {
+                let nacked = nacked.clone();
+                move || {
+                    let nacked = nacked.clone();
+                    async move {
+                        nacked.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok::<(), anyhow::Error>(())
+                    }
+                }
+            },
+        )
+        .await;
+
+        assert!(!dispatched.load(std::sync::atomic::Ordering::SeqCst));
+        assert!(!acked.load(std::sync::atomic::Ordering::SeqCst));
+        assert!(nacked.load(std::sync::atomic::Ordering::SeqCst));
+    }
+
+    #[tokio::test]
+    async fn handle_pull_message_finishes_inflight_dispatch_after_shutdown() {
+        let shutdown = CancellationToken::new();
+        let receive_shutdown = CancellationToken::new();
+        let dispatch_started = Arc::new(tokio::sync::Notify::new());
+        let release_dispatch = Arc::new(tokio::sync::Notify::new());
+        let dispatched = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let acked = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let nacked = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+        let task = tokio::spawn({
+            let shutdown = shutdown.clone();
+            let receive_shutdown = receive_shutdown.clone();
+            let dispatch_started = dispatch_started.clone();
+            let release_dispatch = release_dispatch.clone();
+            let dispatched = dispatched.clone();
+            let acked = acked.clone();
+            let nacked = nacked.clone();
+            async move {
+                handle_pull_message(
+                    "resource_lifecycle",
+                    &shutdown,
+                    &receive_shutdown,
+                    move || {
+                        let dispatch_started = dispatch_started.clone();
+                        let release_dispatch = release_dispatch.clone();
+                        let dispatched = dispatched.clone();
+                        async move {
+                            dispatch_started.notify_one();
+                            release_dispatch.notified().await;
+                            dispatched.store(true, std::sync::atomic::Ordering::SeqCst);
+                            Ok::<(), anyhow::Error>(())
+                        }
+                    },
+                    move || {
+                        let acked = acked.clone();
+                        async move {
+                            acked.store(true, std::sync::atomic::Ordering::SeqCst);
+                            Ok::<(), anyhow::Error>(())
+                        }
+                    },
+                    move || {
+                        let nacked = nacked.clone();
+                        async move {
+                            nacked.store(true, std::sync::atomic::Ordering::SeqCst);
+                            Ok::<(), anyhow::Error>(())
+                        }
+                    },
+                )
+                .await;
+            }
+        });
+
+        dispatch_started.notified().await;
+        shutdown.cancel();
+        release_dispatch.notify_one();
+        task.await.unwrap();
+
+        assert!(dispatched.load(std::sync::atomic::Ordering::SeqCst));
+        assert!(acked.load(std::sync::atomic::Ordering::SeqCst));
+        assert!(!nacked.load(std::sync::atomic::Ordering::SeqCst));
     }
 
     #[tokio::test]
