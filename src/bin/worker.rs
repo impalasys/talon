@@ -17,6 +17,27 @@ use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHa
 use tokio::{signal, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+#[cfg(test)]
+const HEALTHY_PULL_RUNTIME_RESET: std::time::Duration = std::time::Duration::from_millis(50);
+#[cfg(not(test))]
+const HEALTHY_PULL_RUNTIME_RESET: std::time::Duration = std::time::Duration::from_secs(30);
+
+fn next_pull_error_backoff(
+    attempts: &mut u32,
+    healthy_runtime: std::time::Duration,
+) -> std::time::Duration {
+    if healthy_runtime >= HEALTHY_PULL_RUNTIME_RESET {
+        *attempts = 0;
+    }
+    *attempts += 1;
+    std::time::Duration::from_secs(2u64.saturating_pow((*attempts).min(4)))
+}
+
+fn next_pull_reconnect_delay(attempts: &mut u32) -> std::time::Duration {
+    *attempts = 0;
+    std::time::Duration::from_secs(1)
+}
+
 #[async_trait::async_trait]
 trait PullSubscriptionBackend: Send + Sync {
     async fn ensure_topic(&self) -> Result<()>;
@@ -222,8 +243,12 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
                     let cancellation_token = receive_loop_cancellation.clone();
                     async move {
                         tokio::select! {
-                            _ = cancellation_token.cancelled() => {}
-                            _ = receive_cancellation_token.cancelled() => {}
+                            _ = cancellation_token.cancelled() => {
+                                let _ = message.nack().await;
+                            }
+                            _ = receive_cancellation_token.cancelled() => {
+                                let _ = message.nack().await;
+                            }
                             result = h.dispatch(Some(&event_type), &message.message.data) => {
                                 if let Err(e) = result {
                                     tracing::error!(event_type = %event_type, error = %e, "Pull dispatch failed");
@@ -298,8 +323,7 @@ async fn run_pull_subscription_loop<F, Fut>(
             match build_backend().await {
                 Ok(backend) => break backend,
                 Err(e) => {
-                    attempts += 1;
-                    let backoff_secs = 2u64.saturating_pow(attempts.min(4));
+                    let backoff = next_pull_error_backoff(&mut attempts, std::time::Duration::ZERO);
                     tracing::error!(
                         topic = %fq_topic,
                         subscription = %fq_subscription,
@@ -309,11 +333,12 @@ async fn run_pull_subscription_loop<F, Fut>(
                     );
                     tokio::select! {
                         _ = shutdown_token.cancelled() => return,
-                        _ = tokio::time::sleep(std::time::Duration::from_secs(backoff_secs)) => {}
+                        _ = tokio::time::sleep(backoff) => {}
                     }
                 }
             }
         };
+        let receive_started_at = std::time::Instant::now();
 
         match run_pull_subscription_with_backend(
             backend.as_ref(),
@@ -332,16 +357,14 @@ async fn run_pull_subscription_loop<F, Fut>(
                 if shutdown_token.is_cancelled() {
                     return;
                 }
-                attempts += 1;
-                let backoff_secs = 2u64.saturating_pow(attempts.min(4));
+                let reconnect_delay = next_pull_reconnect_delay(&mut attempts);
                 tokio::select! {
                     _ = shutdown_token.cancelled() => return,
-                    _ = tokio::time::sleep(std::time::Duration::from_secs(backoff_secs)) => {}
+                    _ = tokio::time::sleep(reconnect_delay) => {}
                 }
             }
             Err(e) => {
-                attempts += 1;
-                let backoff_secs = 2u64.saturating_pow(attempts.min(4));
+                let backoff = next_pull_error_backoff(&mut attempts, receive_started_at.elapsed());
                 tracing::error!(
                     topic = %fq_topic,
                     subscription = %fq_subscription,
@@ -351,7 +374,7 @@ async fn run_pull_subscription_loop<F, Fut>(
                 );
                 tokio::select! {
                     _ = shutdown_token.cancelled() => return,
-                    _ = tokio::time::sleep(std::time::Duration::from_secs(backoff_secs)) => {}
+                    _ = tokio::time::sleep(backoff) => {}
                 }
             }
         }
@@ -646,11 +669,12 @@ async fn main() -> Result<()> {
 mod tests {
     use super::{
         build_worker_handler, fully_qualified_subscription, fully_qualified_topic,
-        maybe_spawn_pull_subscriptions, pubsub_project_id, pull_mode_enabled,
-        pull_subscription_specs, push_webhook, resolved_pull_subscription_specs,
-        run_pull_subscription_loop, run_pull_subscription_with_backend, run_worker_main_with,
-        run_worker_with, schedule_fire, serve_worker_http, worker_bind_addr, worker_port,
-        worker_router, PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
+        maybe_spawn_pull_subscriptions, next_pull_error_backoff, next_pull_reconnect_delay,
+        pubsub_project_id, pull_mode_enabled, pull_subscription_specs, push_webhook,
+        resolved_pull_subscription_specs, run_pull_subscription_loop,
+        run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
+        serve_worker_http, worker_bind_addr, worker_port, worker_router, PullSubscriptionBackend,
+        ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
     use axum::body::Bytes;
@@ -910,6 +934,36 @@ mod tests {
             "projects/other/subscriptions/events-sub"
         );
         assert_eq!(worker_bind_addr("8081"), "0.0.0.0:8081");
+    }
+
+    #[test]
+    fn pull_retry_helpers_cover_reconnect_and_healthy_resets() {
+        let mut attempts = 0;
+        assert_eq!(
+            next_pull_error_backoff(&mut attempts, std::time::Duration::ZERO),
+            std::time::Duration::from_secs(2)
+        );
+        assert_eq!(attempts, 1);
+        assert_eq!(
+            next_pull_error_backoff(&mut attempts, std::time::Duration::ZERO),
+            std::time::Duration::from_secs(4)
+        );
+        assert_eq!(attempts, 2);
+
+        assert_eq!(
+            next_pull_error_backoff(
+                &mut attempts,
+                HEALTHY_PULL_RUNTIME_RESET + std::time::Duration::from_millis(1),
+            ),
+            std::time::Duration::from_secs(2)
+        );
+        assert_eq!(attempts, 1);
+
+        assert_eq!(
+            next_pull_reconnect_delay(&mut attempts),
+            std::time::Duration::from_secs(1)
+        );
+        assert_eq!(attempts, 0);
     }
 
     #[test]

@@ -113,6 +113,24 @@ async fn wait_for_server_tasks<F>(
 where
     F: std::future::Future,
 {
+    fn combine_task_results(
+        primary: Result<()>,
+        sibling: Result<()>,
+        sibling_name: &str,
+    ) -> Result<()> {
+        match (primary, sibling) {
+            (Ok(()), Ok(())) => Ok(()),
+            (Err(primary), Ok(())) => Err(primary),
+            (Ok(()), Err(sibling)) => Err(sibling),
+            (Err(primary), Err(sibling)) => Err(anyhow::anyhow!(
+                "{}; {} task also failed: {}",
+                primary,
+                sibling_name,
+                sibling
+            )),
+        }
+    }
+
     async fn join_with_grace(task: &mut JoinHandle<Result<()>>) -> Result<()> {
         match tokio::time::timeout(std::time::Duration::from_secs(1), &mut *task).await {
             Ok(result) => match result {
@@ -121,10 +139,8 @@ where
             },
             Err(_) => {
                 task.abort();
-                match task.await {
-                    Ok(inner) => inner,
-                    Err(err) => Err(err.into()),
-                }
+                let _ = task.await;
+                Ok(())
             }
         }
     }
@@ -157,24 +173,17 @@ where
 
     match result {
         Exit::Rpc(result) => {
-            let _ = tokio::time::timeout(std::time::Duration::from_secs(1), &mut ui_task).await;
-            if !ui_task.is_finished() {
-                ui_task.abort();
-            }
-            result
+            let ui_result = join_with_grace(&mut ui_task).await;
+            combine_task_results(result, ui_result, "ui")
         }
         Exit::Ui(result) => {
-            let _ = tokio::time::timeout(std::time::Duration::from_secs(1), &mut rpc_task).await;
-            if !rpc_task.is_finished() {
-                rpc_task.abort();
-            }
-            result
+            let rpc_result = join_with_grace(&mut rpc_task).await;
+            combine_task_results(result, rpc_result, "rpc")
         }
         Exit::Shutdown => {
             let rpc_result = join_with_grace(&mut rpc_task).await;
             let ui_result = join_with_grace(&mut ui_task).await;
-            rpc_result?;
-            ui_result
+            combine_task_results(rpc_result, ui_result, "ui")
         }
     }
 }
@@ -472,6 +481,21 @@ mod tests {
         .await
         .unwrap_err();
         assert!(err.to_string().contains("rpc failed"));
+
+        let shutdown_token = CancellationToken::new();
+        let rpc_err = tokio::spawn(async { anyhow::bail!("rpc failed") });
+        let ui_err = tokio::spawn(async { anyhow::bail!("ui failed") });
+        let err = wait_for_server_tasks(
+            rpc_err,
+            ui_err,
+            shutdown_token.child_token(),
+            futures::future::pending::<()>(),
+        )
+        .await
+        .unwrap_err();
+        let rendered = err.to_string();
+        assert!(rendered.contains("rpc failed"));
+        assert!(rendered.contains("ui task also failed: ui failed"));
     }
 
     #[tokio::test]
@@ -538,7 +562,7 @@ mod tests {
             let _ = rx.await;
         })
         .await
-        .unwrap_err();
+        .unwrap();
         shutdown_task.await.unwrap();
     }
 

@@ -13,9 +13,7 @@ fn validate_identifier(table: &str) -> Result<()> {
         );
     }
     let mut chars = table.chars();
-    let first = chars
-        .next()
-        .ok_or_else(|| anyhow::anyhow!("Invalid table name '{}': must not be empty", table))?;
+    let first = chars.next().expect("table name is not empty");
     if !first.is_ascii_alphabetic() && first != '_' {
         anyhow::bail!(
             "Invalid table name '{}': must start with a letter or underscore",
@@ -249,8 +247,7 @@ mod tests {
     use super::{
         compare_and_swap_query, create_table_statement, delete_prefix_query, delete_query,
         get_query, like_prefix_pattern, list_entries_query, list_keys_query, set_query,
-        validate_identifier,
-        PostgresKvStore,
+        validate_identifier, PostgresKvStore,
     };
     use crate::control::KeyValueStore;
     use crate::test_support::{docker_test_guard, PostgresContainer};
@@ -263,10 +260,7 @@ mod tests {
 
     #[test]
     fn like_prefix_pattern_escapes_like_metacharacters() {
-        assert_eq!(
-            like_prefix_pattern(r"Agent_%\path"),
-            r"Agent\_\%\\path%"
-        );
+        assert_eq!(like_prefix_pattern(r"Agent_%\path"), r"Agent\_\%\\path%");
     }
 
     #[test]
@@ -338,7 +332,10 @@ mod tests {
         store.set("ns", "prefix/a", b"one").await.unwrap();
         store.set("ns", "prefix/b", b"two").await.unwrap();
         store.set("ns", "other/c", b"three").await.unwrap();
-        assert_eq!(store.get("ns", "prefix/a").await.unwrap(), Some(b"one".to_vec()));
+        assert_eq!(
+            store.get("ns", "prefix/a").await.unwrap(),
+            Some(b"one".to_vec())
+        );
 
         let mut keys = store.list_keys("ns", "prefix/").await.unwrap();
         keys.sort();
@@ -372,6 +369,9 @@ mod tests {
         store.delete_prefix("ns", "prefix/").await.unwrap();
         assert!(store.get("ns", "prefix/a").await.unwrap().is_none());
         assert!(store.get("ns", "prefix/b").await.unwrap().is_none());
-        assert_eq!(store.get("ns", "other/c").await.unwrap(), Some(b"three".to_vec()));
+        assert_eq!(
+            store.get("ns", "other/c").await.unwrap(),
+            Some(b"three".to_vec())
+        );
     }
 }

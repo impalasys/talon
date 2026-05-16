@@ -112,7 +112,11 @@ impl GcpPubSubPublisher {
         if lock.contains(&fq_topic) {
             return Ok(fq_topic);
         }
+        drop(lock);
+
         self.backend.ensure_topic(&fq_topic).await?;
+
+        let mut lock = self.initialized_topics.write().await;
         lock.insert(fq_topic.clone());
         Ok(fq_topic)
     }
@@ -295,11 +299,7 @@ mod tests {
             Ok(())
         }
 
-        async fn ensure_subscription(
-            &self,
-            fq_topic: &str,
-            fq_sub: &str,
-        ) -> anyhow::Result<()> {
+        async fn ensure_subscription(&self, fq_topic: &str, fq_sub: &str) -> anyhow::Result<()> {
             if self
                 .fail_ensure_subscription
                 .lock()
@@ -372,10 +372,7 @@ mod tests {
             "projects/demo/topics/existing"
         );
         assert_eq!(
-            fully_qualified_subscription_name(
-                "acme",
-                "projects/demo/subscriptions/existing"
-            ),
+            fully_qualified_subscription_name("acme", "projects/demo/subscriptions/existing"),
             "projects/demo/subscriptions/existing"
         );
     }
@@ -419,8 +416,14 @@ mod tests {
         assert_eq!(
             *backend.published.lock().await,
             vec![
-                ("projects/project-123/topics/events".to_string(), b"one".to_vec()),
-                ("projects/project-123/topics/events".to_string(), b"two".to_vec()),
+                (
+                    "projects/project-123/topics/events".to_string(),
+                    b"one".to_vec()
+                ),
+                (
+                    "projects/project-123/topics/events".to_string(),
+                    b"two".to_vec()
+                ),
             ]
         );
         std::env::remove_var("GCP_PROJECT_ID");
@@ -482,7 +485,10 @@ mod tests {
             Some("projects/project-123/topics/bad-topic".to_string());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
 
-        let err = publisher.publish("bad-topic", b"payload").await.unwrap_err();
+        let err = publisher
+            .publish("bad-topic", b"payload")
+            .await
+            .unwrap_err();
         assert!(err.to_string().contains("topic failure"));
 
         *backend.fail_topic.lock().await = None;
@@ -523,13 +529,11 @@ mod tests {
             .expect("expected ensured subscription")
             .1
             .clone();
-        assert!(
-            backend
-                .deleted_subscriptions
-                .lock()
-                .await
-                .contains(&dynamic_subscription)
-        );
+        assert!(backend
+            .deleted_subscriptions
+            .lock()
+            .await
+            .contains(&dynamic_subscription));
         std::env::remove_var("GCP_PROJECT_ID");
     }
 
@@ -538,8 +542,7 @@ mod tests {
         let _lock = crate::test_support::env_lock();
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
-        *backend.fail_publish.lock().await =
-            Some("projects/project-123/topics/events".to_string());
+        *backend.fail_publish.lock().await = Some("projects/project-123/topics/events".to_string());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
 
         let err = publisher.publish("events", b"payload").await.unwrap_err();
@@ -597,13 +600,11 @@ mod tests {
         assert_eq!(value, b"named".to_vec());
         tokio::time::sleep(std::time::Duration::from_millis(10)).await;
 
-        assert!(
-            !backend
-                .deleted_subscriptions
-                .lock()
-                .await
-                .contains(&dynamic_subscription)
-        );
+        assert!(!backend
+            .deleted_subscriptions
+            .lock()
+            .await
+            .contains(&dynamic_subscription));
         std::env::remove_var("GCP_PROJECT_ID");
     }
 }
