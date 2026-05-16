@@ -10,6 +10,7 @@ use serde::Deserialize;
 use std::sync::Arc;
 use talon::config::{Config, ConfigExt};
 use talon::control::build_control_plane;
+use talon::control::pubsub::{fully_qualified_subscription_name, fully_qualified_topic_name};
 use talon::control::topics;
 use talon::control::ControlPlane;
 use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler};
@@ -78,22 +79,11 @@ where
 }
 
 fn fully_qualified_topic(project_id: &str, topic_name: &str) -> String {
-    if topic_name.starts_with("projects/") {
-        topic_name.to_string()
-    } else {
-        format!("projects/{}/topics/{}", project_id, topic_name)
-    }
+    fully_qualified_topic_name(project_id, topic_name)
 }
 
 fn fully_qualified_subscription(project_id: &str, subscription_name: &str) -> String {
-    if subscription_name.starts_with("projects/") {
-        subscription_name.to_string()
-    } else {
-        format!(
-            "projects/{}/subscriptions/{}",
-            project_id, subscription_name
-        )
-    }
+    fully_qualified_subscription_name(project_id, subscription_name)
 }
 
 fn worker_bind_addr(port: &str) -> String {
@@ -182,7 +172,11 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
     async fn ensure_topic(&self) -> Result<()> {
         let mut topic = self.client.topic(&self.topic_name);
         if !topic.exists(None).await? {
-            topic.create(None, None).await?;
+            if let Err(err) = topic.create(None, None).await {
+                if !topic.exists(None).await? {
+                    return Err(err.into());
+                }
+            }
         }
         Ok(())
     }
@@ -196,9 +190,14 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
                 ack_deadline_seconds: 300,
                 ..Default::default()
             };
-            subscription
+            if let Err(err) = subscription
                 .create(&self.topic_name, sub_config, None)
-                .await?;
+                .await
+            {
+                if !subscription.exists(None).await? {
+                    return Err(err.into());
+                }
+            }
         }
         Ok(())
     }
@@ -291,22 +290,31 @@ fn spawn_pull_subscription_task(
     tokio::spawn(async move {
         let fq_topic = topic_name.clone();
         let fq_subscription = subscription_name.clone();
-        let backend = match GcpPullSubscriptionBackend::new(
-            project_id,
-            topic_name,
-            subscription_name,
-        )
-        .await
-        {
-            Ok(backend) => backend,
-            Err(e) => {
-                tracing::error!(
-                    topic = %fq_topic,
-                    subscription = %fq_subscription,
-                    error = ?e,
-                    "Failed to initialize PubSub client for worker subscription"
-                );
-                return;
+        let mut attempts = 0u32;
+        let backend = loop {
+            match GcpPullSubscriptionBackend::new(
+                project_id.clone(),
+                topic_name.clone(),
+                subscription_name.clone(),
+            )
+            .await
+            {
+                Ok(backend) => break backend,
+                Err(e) => {
+                    attempts += 1;
+                    let backoff_secs = 2u64.saturating_pow(attempts.min(4));
+                    tracing::error!(
+                        topic = %fq_topic,
+                        subscription = %fq_subscription,
+                        attempt = attempts,
+                        error = ?e,
+                        "Failed to initialize PubSub client for worker subscription"
+                    );
+                    tokio::select! {
+                        _ = shutdown_token.cancelled() => return,
+                        _ = tokio::time::sleep(std::time::Duration::from_secs(backoff_secs)) => {}
+                    }
+                }
             }
         };
 
@@ -352,7 +360,7 @@ fn maybe_spawn_pull_subscriptions<F>(
         return;
     }
 
-    println!("Starting in PULL mode (background thread)...");
+    tracing::info!("Starting in PULL mode (background thread)...");
     for spec in resolved_pull_subscription_specs(&project_id) {
         spawn(
             handler.clone(),
@@ -369,7 +377,8 @@ async fn serve_worker_http(
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     let app = worker_router(handler);
-    println!(
+    tracing::info!(
+        port = %port,
         "Worker listening for Push events / Health checks on 0.0.0.0:{}",
         port
     );
@@ -416,7 +425,7 @@ where
     let result = tokio::select! {
         res = &mut serve_future => res,
         _ = &mut shutdown => {
-            println!("Shutting down worker...");
+            tracing::info!("Shutting down worker...");
             Ok(())
         }
     };
@@ -488,7 +497,7 @@ async fn push_webhook(
             axum::http::StatusCode::BAD_REQUEST
         }
     } else {
-        println!("Could not decode payload as GcpPushPayload!");
+        tracing::warn!("Could not decode payload as GcpPushPayload");
         axum::http::StatusCode::UNPROCESSABLE_ENTITY
     }
 }
@@ -525,7 +534,7 @@ async fn main() -> Result<()> {
     talon::security::install_jwt_crypto_provider();
     tracing_subscriber::fmt::init();
     tracing::info!("Starting Talon Worker Engine...");
-    println!("Connecting to control plane services...");
+    tracing::info!("Connecting to control plane services...");
     run_worker_main_with(
         || Ok(Arc::new(Config::load_default()?)),
         |config| {

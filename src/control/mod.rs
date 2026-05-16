@@ -329,9 +329,7 @@ mod tests {
 
     #[test]
     fn scheduler_callback_auth_prefers_shared_secret_over_oidc() {
-        let _lock = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _lock = crate::test_support::env_lock();
         let _driver = EnvGuard::remove("TALON_SCHEDULER_DRIVER");
         let _token = EnvGuard::set("TALON_SCHEDULER_AUTH_TOKEN", "secret-token");
         let _aud = EnvGuard::set("TALON_SCHEDULER_AUDIENCE", "https://example.com");
@@ -350,9 +348,7 @@ mod tests {
 
     #[test]
     fn configured_scheduler_reads_cloud_tasks_from_env() {
-        let _lock = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _lock = crate::test_support::env_lock();
         let _driver = EnvGuard::set("TALON_SCHEDULER_DRIVER", "cloud_tasks");
         let _project = EnvGuard::set("TALON_SCHEDULER_PROJECT_ID", "talon-project");
         let _location = EnvGuard::set("TALON_SCHEDULER_LOCATION", "us-central1");
@@ -385,9 +381,7 @@ mod tests {
 
     #[test]
     fn configured_scheduler_prefers_explicit_config() {
-        let _lock = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _lock = crate::test_support::env_lock();
         let _driver = EnvGuard::set("TALON_SCHEDULER_DRIVER", "cloud_tasks");
         let explicit = proto::SchedulerConfig {
             backend: Some(scheduler_config::Backend::CloudTasks(
@@ -414,18 +408,14 @@ mod tests {
 
     #[test]
     fn configured_scheduler_rejects_unknown_driver() {
-        let _lock = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _lock = crate::test_support::env_lock();
         let _driver = EnvGuard::set("TALON_SCHEDULER_DRIVER", "unknown");
         assert!(configured_scheduler(None).is_none());
     }
 
     #[test]
     fn configured_scheduler_returns_none_for_missing_or_blank_driver() {
-        let _lock = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _lock = crate::test_support::env_lock();
         let _driver = EnvGuard::remove("TALON_SCHEDULER_DRIVER");
         assert!(configured_scheduler(None).is_none());
 
@@ -435,9 +425,7 @@ mod tests {
 
     #[test]
     fn configured_scheduler_callback_auth_returns_none_for_blank_inputs_and_empty_email_default() {
-        let _lock = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _lock = crate::test_support::env_lock();
         let _token = EnvGuard::set("TALON_SCHEDULER_AUTH_TOKEN", "   ");
         let _aud = EnvGuard::remove("TALON_SCHEDULER_AUDIENCE");
         assert!(configured_scheduler_callback_auth_from_env().is_none());
@@ -456,9 +444,7 @@ mod tests {
 
     #[test]
     fn env_guard_restores_previous_values_on_drop() {
-        let _lock = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _lock = crate::test_support::env_lock();
         std::env::set_var("TALON_TEST_RESTORE", "before");
         {
             let _guard = EnvGuard::set("TALON_TEST_RESTORE", "after");
@@ -631,9 +617,7 @@ mod tests {
 
     #[test]
     fn configured_scheduler_falls_back_from_empty_explicit_config_to_env() {
-        let _lock = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _lock = crate::test_support::env_lock();
         let _driver = EnvGuard::set("TALON_SCHEDULER_DRIVER", "cloud_tasks");
         let _project = EnvGuard::set("TALON_SCHEDULER_PROJECT_ID", "env-project");
         let _location = EnvGuard::set("TALON_SCHEDULER_LOCATION", "env-location");

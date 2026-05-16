@@ -39,6 +39,12 @@ pub(crate) mod test_support {
         LOCK.get_or_init(|| Mutex::new(()))
     }
 
+    pub(crate) fn env_lock() -> std::sync::MutexGuard<'static, ()> {
+        env_mutex()
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
     pub(crate) fn async_env_mutex() -> &'static AsyncMutex<()> {
         static LOCK: OnceLock<AsyncMutex<()>> = OnceLock::new();
         LOCK.get_or_init(|| AsyncMutex::new(()))

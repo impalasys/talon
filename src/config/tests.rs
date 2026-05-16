@@ -87,7 +87,7 @@ server:
 
     #[tokio::test]
     async fn test_secret_resolution() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         unsafe {
             std::env::set_var("MY_TEST_SECRET", "resolved-value");
         }
@@ -107,7 +107,7 @@ server:
 
     #[tokio::test]
     async fn test_secret_resolution_reports_local_error_paths() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         unsafe {
             std::env::remove_var("MISSING_TEST_SECRET");
         }
@@ -241,7 +241,7 @@ api_key = "secret"
 
     #[test]
     fn test_load_default_uses_env_override_and_fallback_search() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         let dir = tempdir().unwrap();
         let original_dir = env::current_dir().unwrap();
 
@@ -276,7 +276,7 @@ api_key = "secret"
 
     #[test]
     fn test_load_default_errors_when_nothing_is_available() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         let dir = tempdir().unwrap();
         let original_dir = env::current_dir().unwrap();
         unsafe {

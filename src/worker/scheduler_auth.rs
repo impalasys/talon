@@ -407,7 +407,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
 
     #[tokio::test]
     async fn from_config_prefers_shared_secret_env() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "env-secret");
             std::env::remove_var("TALON_SCHEDULER_AUDIENCE");
@@ -433,7 +433,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
 
     #[tokio::test]
     async fn from_config_uses_google_oidc_env_when_no_shared_secret() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         unsafe {
             std::env::remove_var("TALON_SCHEDULER_AUTH_TOKEN");
             std::env::set_var("TALON_SCHEDULER_AUDIENCE", "https://worker.example.com/schedules");

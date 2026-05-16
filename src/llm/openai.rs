@@ -613,7 +613,7 @@ mod tests {
 
     #[test]
     fn debug_requests_enabled_parses_truthy_values() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         unsafe {
             std::env::remove_var("TALON_LLM_DEBUG_REQUESTS");
         }

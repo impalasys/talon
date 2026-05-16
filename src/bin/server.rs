@@ -112,7 +112,7 @@ where
             Err(err) => Err(err.into()),
         },
         _ = &mut shutdown => {
-            println!("Shutting down...");
+            tracing::info!("Shutting down...");
             Ok(())
         }
     };

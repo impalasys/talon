@@ -640,7 +640,7 @@ mod tests {
 
     #[test]
     fn token_publish_interval_uses_env_override_and_defaults() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         std::env::remove_var("TALON_TOKEN_BATCH_MS");
         assert_eq!(token_publish_interval(), Duration::from_millis(250));
 

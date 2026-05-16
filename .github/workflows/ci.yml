@@ -65,7 +65,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler docker.io
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
 
       - name: Build Talon binaries
         run: cargo build --locked --bin talon-server --bin talon-worker

@@ -167,7 +167,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_llm_prefers_spec_provider_and_model_for_openai_compatible() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         unsafe {
             std::env::remove_var("NOVITA_API_KEY");
             std::env::remove_var("NOVITA_BASE_URL");
@@ -208,7 +208,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_llm_uses_env_fallbacks_for_api_key_and_base_url() {
-        let _guard = crate::test_support::env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_lock();
         let app = Router::new().route(
             "/chat/completions",
             post(|| async {

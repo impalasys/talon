@@ -388,9 +388,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_prefers_explicit_google_oidc_over_env_secret() {
-        let _guard = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _guard = crate::test_support::env_lock();
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "stale-secret");
@@ -424,9 +422,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_uses_env_when_config_absent() {
-        let _guard = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _guard = crate::test_support::env_lock();
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "shared-secret");
@@ -451,9 +447,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_handles_blank_and_shared_secret_config() {
-        let _guard = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _guard = crate::test_support::env_lock();
         clear_scheduler_auth_env();
 
         let blank_cfg = crate::config::proto::SchedulerCallbackAuthConfig {
@@ -500,9 +494,7 @@ mod tests {
 
     #[tokio::test]
     async fn new_requires_scheduler_fields_and_reads_env_fallbacks() {
-        let _guard = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _guard = crate::test_support::env_lock();
         clear_scheduler_auth_env();
         unsafe {
             std::env::remove_var("TALON_SCHEDULER_PROJECT_ID");
@@ -560,9 +552,7 @@ mod tests {
 
     #[tokio::test]
     async fn new_prefers_trimmed_config_values_over_env() {
-        let _guard = crate::test_support::env_mutex()
-            .lock()
-            .expect("env lock poisoned");
+        let _guard = crate::test_support::env_lock();
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("GCP_PROJECT_ID", "env-project");
