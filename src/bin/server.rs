@@ -141,11 +141,17 @@ where
 
     match result {
         Exit::Rpc(result) => {
-            ui_task.abort();
+            let _ = tokio::time::timeout(std::time::Duration::from_secs(1), &mut ui_task).await;
+            if !ui_task.is_finished() {
+                ui_task.abort();
+            }
             result
         }
         Exit::Ui(result) => {
-            rpc_task.abort();
+            let _ = tokio::time::timeout(std::time::Duration::from_secs(1), &mut rpc_task).await;
+            if !rpc_task.is_finished() {
+                rpc_task.abort();
+            }
             result
         }
         Exit::Shutdown => {

@@ -204,7 +204,13 @@ pub(crate) mod test_support {
                 .parse::<u16>()
                 .expect("host port should parse");
 
-            for _ in 0..30 {
+            let max_attempts = std::env::var("TALON_TEST_PG_READY_ATTEMPTS")
+                .ok()
+                .and_then(|value| value.parse::<u32>().ok())
+                .filter(|attempts| *attempts > 0)
+                .unwrap_or(60);
+
+            for _ in 0..max_attempts {
                 let ready = Command::new("docker")
                     .args(["exec", &name, "pg_isready", "-U", "talon", "-d", "talon"])
                     .output()
