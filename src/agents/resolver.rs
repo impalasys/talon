@@ -148,6 +148,8 @@ fn apply_agent_spec_delta(
         apply_capabilities_policy_delta(&mut spec.capabilities, capabilities_delta)?;
     }
 
+    validate_agent_spec(spec)?;
+
     Ok(())
 }
 
@@ -828,7 +830,7 @@ mod tests {
                     remove: vec!["draft".to_string()],
                 }),
                 mcp_server_refs: Some(manifests::StringListDelta {
-                    replace: vec!["alt".to_string(), "alt".to_string()],
+                    replace: vec!["alt".to_string()],
                     ..Default::default()
                 }),
                 capabilities: Some(manifests::CapabilitiesPolicyDelta {
@@ -852,7 +854,7 @@ mod tests {
             spec.features.iter().map(|f| (f.name.as_str(), f.r#type.as_str())).collect::<Vec<_>>(),
             vec![("search", "mcp"), ("plan", "builtin")]
         );
-        assert_eq!(spec.mcp_server_refs, vec!["alt".to_string(), "alt".to_string()]);
+        assert_eq!(spec.mcp_server_refs, vec!["alt".to_string()]);
         assert!(spec.capabilities.contains_key("sessions"));
 
         apply_agent_spec_delta(
@@ -868,6 +870,21 @@ mod tests {
         )
         .unwrap();
         assert_eq!(spec.system_prompt, "Prefix: Reset");
+
+        let duplicate_ref = apply_agent_spec_delta(
+            &mut spec,
+            &manifests::AgentSpecDelta {
+                mcp_server_refs: Some(manifests::StringListDelta {
+                    replace: vec!["alt".to_string(), "alt".to_string()],
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+        )
+        .unwrap_err();
+        assert!(duplicate_ref
+            .to_string()
+            .contains("Duplicate MCP server ref"));
     }
 
     #[test]

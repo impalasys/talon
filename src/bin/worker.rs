@@ -223,7 +223,7 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
                             _ = receive_cancellation_token.cancelled() => {}
                             result = h.dispatch(Some(&event_type), &message.message.data) => {
                                 if let Err(e) = result {
-                                    eprintln!("Pull dispatch failed: {}", e);
+                                    tracing::error!(event_type = %event_type, error = %e, "Pull dispatch failed");
                                 }
                                 let _ = message.ack().await;
                             }
