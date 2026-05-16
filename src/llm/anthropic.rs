@@ -197,9 +197,15 @@ impl LlmProvider for AnthropicProvider {
                         } else if last_event == "message_start" || last_event == "message_delta" {
                             if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
                                 if let Some(usage) = extract_usage(&value) {
-                                    current_usage.input_tokens += usage.input_tokens;
-                                    current_usage.output_tokens += usage.output_tokens;
-                                    current_usage.reasoning_tokens += usage.reasoning_tokens;
+                                    if usage.input_tokens > 0 {
+                                        current_usage.input_tokens = usage.input_tokens;
+                                    }
+                                    if usage.output_tokens > 0 {
+                                        current_usage.output_tokens = usage.output_tokens;
+                                    }
+                                    if usage.reasoning_tokens > 0 {
+                                        current_usage.reasoning_tokens = usage.reasoning_tokens;
+                                    }
                                     current_usage.total_tokens =
                                         current_usage.input_tokens + current_usage.output_tokens;
                                     items.push(Ok(ChatStreamEvent::Usage(current_usage.clone())));
@@ -369,7 +375,7 @@ mod tests {
             "event: message_delta\n",
             "data: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":4,\"thinking_tokens\":2}}\n\n",
             "event: message_delta\n",
-            "data: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":3,\"thinking_tokens\":1}}\n\n",
+            "data: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":7,\"thinking_tokens\":3}}\n\n",
             "event: message_stop\n",
             "data: {}\n"
         );
@@ -396,9 +402,15 @@ mod tests {
                 if last_event == "message_start" || last_event == "message_delta" {
                     if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
                         if let Some(usage) = extract_usage(&value) {
-                            current_usage.input_tokens += usage.input_tokens;
-                            current_usage.output_tokens += usage.output_tokens;
-                            current_usage.reasoning_tokens += usage.reasoning_tokens;
+                            if usage.input_tokens > 0 {
+                                current_usage.input_tokens = usage.input_tokens;
+                            }
+                            if usage.output_tokens > 0 {
+                                current_usage.output_tokens = usage.output_tokens;
+                            }
+                            if usage.reasoning_tokens > 0 {
+                                current_usage.reasoning_tokens = usage.reasoning_tokens;
+                            }
                             current_usage.total_tokens =
                                 current_usage.input_tokens + current_usage.output_tokens;
                             usage_events.push(current_usage.clone());
