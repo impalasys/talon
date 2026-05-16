@@ -25,8 +25,7 @@ pub use crate::core::task::{EncryptedResult, Task, TaskResult, TaskStatus};
 pub use crate::knowledge::{KnowledgeBook, KvKnowledgeBook};
 pub use crate::security::encryption::SecurityProvider;
 
-#[cfg(test)]
-pub(crate) mod test_support {
+pub mod test_support {
     use crate::control::{KeyValueStore, MessagePublisher};
     use futures::stream;
     use std::collections::HashMap;
@@ -35,22 +34,22 @@ pub(crate) mod test_support {
     use std::sync::{Mutex, OnceLock};
     use tokio::sync::Mutex as AsyncMutex;
 
-    pub(crate) fn async_env_mutex() -> &'static AsyncMutex<()> {
+    pub fn async_env_mutex() -> &'static AsyncMutex<()> {
         static LOCK: OnceLock<AsyncMutex<()>> = OnceLock::new();
         LOCK.get_or_init(|| AsyncMutex::new(()))
     }
 
-    pub(crate) fn env_lock() -> tokio::sync::MutexGuard<'static, ()> {
+    pub fn env_lock() -> tokio::sync::MutexGuard<'static, ()> {
         async_env_mutex().blocking_lock()
     }
 
     #[derive(Default)]
-    pub(crate) struct MockKvStore {
+    pub struct MockKvStore {
         data: AsyncMutex<HashMap<(String, String), Vec<u8>>>,
     }
 
     impl MockKvStore {
-        pub(crate) fn new() -> Self {
+        pub fn new() -> Self {
             Self::default()
         }
     }
@@ -119,7 +118,7 @@ pub(crate) mod test_support {
     }
 
     #[derive(Default)]
-    pub(crate) struct EmptyPubSub;
+    pub struct EmptyPubSub;
 
     #[async_trait::async_trait]
     impl MessagePublisher for EmptyPubSub {
@@ -136,9 +135,9 @@ pub(crate) mod test_support {
     }
 
     #[derive(Default)]
-    pub(crate) struct RecordingPubSub {
-        pub(crate) streams: AsyncMutex<HashMap<String, Vec<Vec<u8>>>>,
-        pub(crate) published: AsyncMutex<Vec<(String, Vec<u8>)>>,
+    pub struct RecordingPubSub {
+        pub streams: AsyncMutex<HashMap<String, Vec<Vec<u8>>>>,
+        pub published: AsyncMutex<Vec<(String, Vec<u8>)>>,
     }
 
     #[async_trait::async_trait]
@@ -171,19 +170,19 @@ pub(crate) mod test_support {
         LOCK.get_or_init(|| Mutex::new(()))
     }
 
-    pub(crate) fn docker_test_guard() -> std::sync::MutexGuard<'static, ()> {
+    pub fn docker_test_guard() -> std::sync::MutexGuard<'static, ()> {
         docker_test_mutex()
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
-    pub(crate) struct PostgresContainer {
+    pub struct PostgresContainer {
         name: String,
         port: u16,
     }
 
     impl PostgresContainer {
-        pub(crate) fn start(prefix: &str) -> Self {
+        pub fn start(prefix: &str) -> Self {
             let name = format!("{}-{}", prefix, uuid::Uuid::now_v7());
             let run = Command::new("docker")
                 .args([
@@ -249,7 +248,7 @@ pub(crate) mod test_support {
             panic!("postgres container did not become ready");
         }
 
-        pub(crate) fn database_url(&self) -> String {
+        pub fn database_url(&self) -> String {
             format!("postgres://talon:password@127.0.0.1:{}/talon", self.port)
         }
     }

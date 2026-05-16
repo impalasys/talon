@@ -712,14 +712,14 @@ mod tests {
     use prost::Message;
     use serde_json::json;
     use std::collections::HashMap;
-    use std::pin::Pin;
     use std::sync::Arc;
     use talon::config::Config;
     use talon::control::{
-        events::LifecycleEvent, keys, scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore,
-        MessagePublisher, ProtoKeyValueStoreExt,
+        events::LifecycleEvent, keys, scheduler::NoopSchedulerBackend, ControlPlane,
+        KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use talon::gateway::rpc::models;
+    use talon::test_support::{EmptyPubSub, MockKvStore};
     use talon::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
@@ -728,96 +728,11 @@ mod tests {
     use tokio_util::sync::CancellationToken;
     use tower::ServiceExt;
 
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
-        }
-
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            ns: &str,
-            k: &str,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert(key, value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(ns.to_string(), k.to_string()));
-            Ok(())
-        }
-
-        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
-                })
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
-
-    #[derive(Default)]
-    struct MockPubSub;
-
-    #[async_trait::async_trait]
-    impl MessagePublisher for MockPubSub {
-        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
-            Ok(())
-        }
-
-        async fn subscribe(
-            &self,
-            _topic: &str,
-        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-            Ok(Box::pin(futures::stream::empty()))
-        }
-    }
-
     fn handler_with_auth(authenticator: SchedulerRequestAuthenticator) -> WorkerEventHandler {
         WorkerEventHandler {
             cp: Arc::new(ControlPlane {
                 kv: Arc::new(MockKvStore::default()),
-                pubsub: Arc::new(MockPubSub),
+                pubsub: Arc::new(EmptyPubSub),
                 scheduler: Arc::new(NoopSchedulerBackend),
             }),
             config: Arc::new(Config::default()),
@@ -1008,7 +923,7 @@ mod tests {
 
         let cp = Arc::new(ControlPlane {
             kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(MockPubSub),
+            pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
         });
         let config = Arc::new(Config::default());
@@ -1059,7 +974,7 @@ mod tests {
         kv.delete("root", "agents/b").await.unwrap();
         assert_eq!(kv.get("root", "agents/b").await.unwrap(), None);
 
-        let pubsub = MockPubSub;
+        let pubsub = EmptyPubSub;
         pubsub.publish("topic", b"payload").await.unwrap();
         let items = pubsub
             .subscribe("topic")
@@ -1291,7 +1206,7 @@ mod tests {
         let handler = WorkerEventHandler {
             cp: Arc::new(ControlPlane {
                 kv,
-                pubsub: Arc::new(MockPubSub),
+                pubsub: Arc::new(EmptyPubSub),
                 scheduler: Arc::new(NoopSchedulerBackend),
             }),
             config: Arc::new(Config::default()),
@@ -1353,7 +1268,7 @@ mod tests {
     async fn run_worker_with_routes_pull_mode_and_http_startup() {
         let cp = Arc::new(ControlPlane {
             kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(MockPubSub),
+            pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
         });
         let config = Arc::new(Config::default());
@@ -1399,7 +1314,7 @@ mod tests {
     async fn run_worker_with_surfaces_http_errors_without_pull_mode() {
         let cp = Arc::new(ControlPlane {
             kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(MockPubSub),
+            pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
         });
         let config = Arc::new(Config::default());
@@ -1438,7 +1353,7 @@ mod tests {
     async fn run_worker_with_awaits_http_shutdown_after_signal() {
         let cp = Arc::new(ControlPlane {
             kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(MockPubSub),
+            pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
         });
         let config = Arc::new(Config::default());
@@ -1487,7 +1402,7 @@ mod tests {
             |_| async {
                 Ok(Arc::new(ControlPlane {
                     kv: Arc::new(MockKvStore::default()),
-                    pubsub: Arc::new(MockPubSub),
+                    pubsub: Arc::new(EmptyPubSub),
                     scheduler: Arc::new(NoopSchedulerBackend),
                 }))
             },
@@ -1519,7 +1434,7 @@ mod tests {
             |_| async {
                 Ok(Arc::new(ControlPlane {
                     kv: Arc::new(MockKvStore::default()),
-                    pubsub: Arc::new(MockPubSub),
+                    pubsub: Arc::new(EmptyPubSub),
                     scheduler: Arc::new(NoopSchedulerBackend),
                 }))
             },
@@ -1542,7 +1457,7 @@ mod tests {
             |_| async {
                 Ok(Arc::new(ControlPlane {
                     kv: Arc::new(MockKvStore::default()),
-                    pubsub: Arc::new(MockPubSub),
+                    pubsub: Arc::new(EmptyPubSub),
                     scheduler: Arc::new(NoopSchedulerBackend),
                 }))
             },
@@ -1837,7 +1752,7 @@ mod tests {
     async fn run_worker_with_waits_for_pull_tasks_on_shutdown() {
         let cp = Arc::new(ControlPlane {
             kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(MockPubSub),
+            pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
         });
         let config = Arc::new(Config::default());

@@ -7,10 +7,7 @@ use serde_json::{json, Value};
 use std::collections::HashMap;
 
 use crate::control::{keys, ControlPlane, ProtoKeyValueStoreExt};
-use crate::gateway::rpc::{
-    manifests, models,
-    protobuf_value::value::Kind as ProtoValueKind,
-};
+use crate::gateway::rpc::{manifests, models, protobuf_value::value::Kind as ProtoValueKind};
 use crate::scheduling;
 use crate::skills::registry::ToolRegistry;
 
@@ -128,7 +125,10 @@ pub async fn execute_tool(
             let agent = opt_str(args, "agent");
             let enabled = args.get("enabled").and_then(Value::as_bool);
             let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
-            let mut entries = cp.kv.list_entries(namespace, keys::schedule_prefix()).await?;
+            let mut entries = cp
+                .kv
+                .list_entries(namespace, keys::schedule_prefix())
+                .await?;
             entries.sort_by(|a, b| a.0.cmp(&b.0));
             let mut schedules = Vec::new();
             for (key, value) in entries {
@@ -147,7 +147,11 @@ pub async fn execute_tool(
                     })
                     .unwrap_or(true);
                 let matches_enabled = enabled
-                    .map(|value| spec_model.map(|current| current.enabled == value).unwrap_or(false))
+                    .map(|value| {
+                        spec_model
+                            .map(|current| current.enabled == value)
+                            .unwrap_or(false)
+                    })
                     .unwrap_or(true);
                 if matches_agent && matches_enabled {
                     schedules.push(schedule_json(&schedule));
@@ -156,7 +160,9 @@ pub async fn execute_tool(
                     break;
                 }
             }
-            Ok(Some(serde_json::to_string_pretty(&json!({ "schedules": schedules }))?))
+            Ok(Some(serde_json::to_string_pretty(
+                &json!({ "schedules": schedules }),
+            )?))
         }
         GET_SCHEDULE_TOOL => {
             require_capability(spec, "schedules", "inspect")?;
@@ -173,7 +179,8 @@ pub async fn execute_tool(
         }
         CREATE_SCHEDULE_TOOL => {
             require_capability(spec, "schedules", "create")?;
-            let schedule = upsert_schedule(cp, current_namespace, current_agent, args, None).await?;
+            let schedule =
+                upsert_schedule(cp, current_namespace, current_agent, args, None).await?;
             Ok(Some(serde_json::to_string_pretty(&json!({
                 "schedule": schedule_json(&schedule),
                 "backendArmed": schedule.status.as_ref().map(|status| status.backend_armed).unwrap_or(false)
@@ -208,7 +215,9 @@ pub async fn execute_tool(
                 }
             }
             cp.kv.delete(namespace, &key).await?;
-            Ok(Some(serde_json::to_string_pretty(&json!({ "success": true }))?))
+            Ok(Some(serde_json::to_string_pretty(
+                &json!({ "success": true }),
+            )?))
         }
         _ => Ok(None),
     }
@@ -221,9 +230,13 @@ async fn upsert_schedule(
     args: &Value,
     existing: Option<models::Schedule>,
 ) -> Result<models::Schedule> {
-    let namespace = opt_str(args, "namespace").unwrap_or(current_namespace).to_string();
+    let namespace = opt_str(args, "namespace")
+        .unwrap_or(current_namespace)
+        .to_string();
     let name = req_str(args, "name")?.to_string();
-    let existing_spec = existing.as_ref().and_then(|schedule| schedule.spec.as_ref());
+    let existing_spec = existing
+        .as_ref()
+        .and_then(|schedule| schedule.spec.as_ref());
     let existing_target = existing_spec.and_then(|spec| spec.target.as_ref());
     let kind = scheduling::normalize_schedule_kind(
         opt_str(args, "kind")
@@ -275,7 +288,11 @@ async fn upsert_schedule(
         .and_then(Value::as_object)
         .map(|map| {
             map.iter()
-                .filter_map(|(key, value)| value.as_str().map(|current| (key.clone(), current.to_string())))
+                .filter_map(|(key, value)| {
+                    value
+                        .as_str()
+                        .map(|current| (key.clone(), current.to_string()))
+                })
                 .collect::<HashMap<_, _>>()
         })
         .or_else(|| existing.as_ref().map(|schedule| schedule.labels.clone()))
@@ -398,92 +415,10 @@ fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::{scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend}, KeyValueStore, MessagePublisher};
-    use futures::stream;
-    use std::{pin::Pin, sync::Arc};
+    use crate::control::scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
+    use crate::test_support::{EmptyPubSub, MockKvStore};
+    use std::sync::Arc;
     use tokio::sync::Mutex;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), key.to_string()))
-                .cloned())
-        }
-
-        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), key.to_string()), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            ns: &str,
-            key: &str,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let full_key = (ns.to_string(), key.to_string());
-            let current = data.get(&full_key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert(full_key, value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
-            Ok(())
-        }
-
-        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
-                })
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
-
-    #[derive(Default)]
-    struct MockPubSub;
-
-    #[async_trait::async_trait]
-    impl MessagePublisher for MockPubSub {
-        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
-            Ok(())
-        }
-
-        async fn subscribe(
-            &self,
-            _topic: &str,
-        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-            Ok(Box::pin(stream::empty()))
-        }
-    }
 
     #[derive(Default)]
     struct MockScheduler {
@@ -527,13 +462,10 @@ mod tests {
         }
     }
 
-    fn control_plane(
-        kv: Arc<MockKvStore>,
-        scheduler: Arc<MockScheduler>,
-    ) -> ControlPlane {
+    fn control_plane(kv: Arc<MockKvStore>, scheduler: Arc<MockScheduler>) -> ControlPlane {
         ControlPlane {
             kv,
-            pubsub: Arc::new(MockPubSub),
+            pubsub: Arc::new(EmptyPubSub),
             scheduler,
         }
     }
@@ -678,12 +610,11 @@ mod tests {
         .unwrap()
         .unwrap();
         assert!(deleted.contains("\"success\": true"));
-        assert!(
-            kv.get_msg::<models::Schedule>("conic:test", &keys::schedule("nightly"))
-                .await
-                .unwrap()
-                .is_none()
-        );
+        assert!(kv
+            .get_msg::<models::Schedule>("conic:test", &keys::schedule("nightly"))
+            .await
+            .unwrap()
+            .is_none());
     }
 
     #[tokio::test]

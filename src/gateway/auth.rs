@@ -366,8 +366,9 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::{scheduler::NoopSchedulerBackend, KeyValueStore, MessagePublisher};
+    use crate::control::scheduler::NoopSchedulerBackend;
     use crate::gateway::server::Gateway;
+    use crate::test_support::{EmptyPubSub, MockKvStore};
     use axum::{
         body::Body,
         http::{Request as HttpRequest, StatusCode as HttpStatusCode},
@@ -375,92 +376,17 @@ mod tests {
         routing::get,
         Router,
     };
-    use futures::stream;
     use jsonwebtoken::{encode, EncodingKey, Header};
-    use std::collections::HashMap;
-    use std::pin::Pin;
     use std::sync::Arc;
-    use tokio::sync::Mutex;
     use tonic::metadata::MetadataMap;
     use tonic::service::Interceptor;
     use tower::ServiceExt;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), key.to_string()))
-                .cloned())
-        }
-
-        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), key.to_string()), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            _namespace: &str,
-            _key: &str,
-            _expected: Option<&[u8]>,
-            _value: &[u8],
-        ) -> anyhow::Result<bool> {
-            Ok(false)
-        }
-
-        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
-            Ok(())
-        }
-
-        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
-                })
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
-
-    #[derive(Default)]
-    struct MockPubSub;
-
-    #[async_trait::async_trait]
-    impl MessagePublisher for MockPubSub {
-        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
-            Ok(())
-        }
-
-        async fn subscribe(
-            &self,
-            _topic: &str,
-        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-            Ok(Box::pin(stream::empty()))
-        }
-    }
 
     fn gateway_with_auth(auth_config: Option<AuthConfig>) -> Arc<Gateway> {
         Arc::new(Gateway::new(
             auth_config,
             Arc::new(MockKvStore::default()),
-            Arc::new(MockPubSub),
+            Arc::new(EmptyPubSub),
             Arc::new(NoopSchedulerBackend),
         ))
     }
@@ -601,7 +527,10 @@ mod tests {
             basic_password_from_auth_header(&auth_header).unwrap(),
             Some("secret".to_string())
         );
-        assert_eq!(basic_password_from_auth_header("Bearer token").unwrap(), None);
+        assert_eq!(
+            basic_password_from_auth_header("Bearer token").unwrap(),
+            None
+        );
         assert!(basic_password_from_auth_header("Basic !!!").is_err());
 
         assert!(check_basic_password(&auth_header, Some(&"secret".to_string())).unwrap());
@@ -614,10 +543,7 @@ mod tests {
         let password = "pw".to_string();
         let mut metadata = MetadataMap::new();
         let encoded = general_purpose::STANDARD.encode(":pw");
-        metadata.insert(
-            "authorization",
-            format!("Basic {encoded}").parse().unwrap(),
-        );
+        metadata.insert("authorization", format!("Basic {encoded}").parse().unwrap());
 
         assert!(check_auth(
             &metadata,
@@ -627,14 +553,7 @@ mod tests {
             None
         )
         .is_ok());
-        assert!(check_auth(
-            &metadata,
-            &AuthConfig::jwt(password),
-            "ns",
-            None,
-            None
-        )
-        .is_ok());
+        assert!(check_auth(&metadata, &AuthConfig::jwt(password), "ns", None, None).is_ok());
     }
 
     #[test]
@@ -644,10 +563,9 @@ mod tests {
         };
         let mut password_request = tonic::Request::new(());
         let encoded = general_purpose::STANDARD.encode(":pw");
-        password_request.metadata_mut().insert(
-            "authorization",
-            format!("Basic {encoded}").parse().unwrap(),
-        );
+        password_request
+            .metadata_mut()
+            .insert("authorization", format!("Basic {encoded}").parse().unwrap());
         assert!(password_interceptor.call(password_request).is_ok());
 
         let mut token_interceptor = TalonAuthInterceptor {
@@ -665,10 +583,9 @@ mod tests {
             config: AuthConfig::jwt(secret.to_string()),
         };
         let mut jwt_request = tonic::Request::new(());
-        jwt_request.metadata_mut().insert(
-            "authorization",
-            format!("Bearer {token}").parse().unwrap(),
-        );
+        jwt_request
+            .metadata_mut()
+            .insert("authorization", format!("Bearer {token}").parse().unwrap());
         let jwt_request = jwt_interceptor.call(jwt_request).unwrap();
         let claims = jwt_request.extensions().get::<Claims>().unwrap();
         assert_eq!(claims.ns.as_deref(), Some("ns"));

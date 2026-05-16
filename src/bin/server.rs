@@ -213,8 +213,6 @@ mod tests {
         select_auth_config, spawn_gateway_tasks, wait_for_server_tasks,
     };
     use futures::StreamExt;
-    use std::collections::HashMap;
-    use std::pin::Pin;
     use std::sync::Arc;
     use talon::config::Config;
     use talon::control::{
@@ -222,99 +220,14 @@ mod tests {
     };
     use talon::gateway::auth::AuthConfig;
     use talon::gateway::auth::AuthMode;
+    use talon::test_support::{EmptyPubSub, MockKvStore};
     use tokio::sync::oneshot;
-    use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, namespace: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(namespace.to_string(), key.to_string()))
-                .cloned())
-        }
-
-        async fn set(&self, namespace: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((namespace.to_string(), key.to_string()), value.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            namespace: &str,
-            key: &str,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let storage_key = (namespace.to_string(), key.to_string());
-            let current = data.get(&storage_key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert(storage_key, value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, namespace: &str, key: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(namespace.to_string(), key.to_string()));
-            Ok(())
-        }
-
-        async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|(ns, key)| {
-                    (ns == namespace && key.starts_with(prefix)).then(|| key.clone())
-                })
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
-
-    #[derive(Default)]
-    struct MockPubSub;
-
-    #[async_trait::async_trait]
-    impl MessagePublisher for MockPubSub {
-        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
-            Ok(())
-        }
-
-        async fn subscribe(
-            &self,
-            _topic: &str,
-        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-            Ok(Box::pin(futures::stream::empty()))
-        }
-    }
 
     fn test_control_plane() -> ControlPlane {
         ControlPlane {
             kv: Arc::new(MockKvStore::default()),
-            pubsub: Arc::new(MockPubSub),
+            pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
         }
     }
@@ -419,7 +332,7 @@ mod tests {
         kv.delete("root", "agents/b").await.unwrap();
         assert_eq!(kv.get("root", "agents/b").await.unwrap(), None);
 
-        let pubsub = MockPubSub;
+        let pubsub = EmptyPubSub;
         pubsub.publish("topic", b"payload").await.unwrap();
         let items = pubsub
             .subscribe("topic")
