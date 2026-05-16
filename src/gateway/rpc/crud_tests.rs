@@ -14,7 +14,7 @@ mod tests {
         ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
-    use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
+    use crate::gateway::server::Gateway;
     use futures::stream;
     use prost::Message;
     use std::collections::HashMap;
@@ -122,13 +122,12 @@ mod tests {
         let pubsub = Arc::new(MockPubSub {
             published: published.clone(),
         });
-        let gateway = Arc::new(Gateway {
-            auth_config: None,
-            kv: kv.clone(),
-            pubsub: pubsub.clone(),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            session_streams: Arc::new(SessionStreamHub::new(pubsub)),
-        });
+        let gateway = Arc::new(Gateway::new(
+            None,
+            kv.clone(),
+            pubsub.clone(),
+            Arc::new(NoopSchedulerBackend),
+        ));
         (GrpcGatewayHandler { gateway }, kv, published)
     }
 

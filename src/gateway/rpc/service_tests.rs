@@ -10,7 +10,7 @@ mod tests {
     };
     use crate::gateway::rpc::proto::gateway_service_server::GatewayService;
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
-    use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
+    use crate::gateway::server::Gateway;
     use futures::{stream, StreamExt};
     use prost::Message;
     use std::collections::HashMap;
@@ -156,13 +156,12 @@ mod tests {
             streams: streams.clone(),
             published: published.clone(),
         });
-        let gateway = Arc::new(Gateway {
-            auth_config: None,
-            kv: kv.clone(),
-            pubsub: pubsub.clone(),
-            scheduler: scheduler.clone(),
-            session_streams: Arc::new(SessionStreamHub::new(pubsub)),
-        });
+        let gateway = Arc::new(Gateway::new(
+            None,
+            kv.clone(),
+            pubsub.clone(),
+            scheduler.clone(),
+        ));
         (
             GrpcGatewayHandler { gateway },
             kv,

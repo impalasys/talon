@@ -75,23 +75,14 @@ impl SessionStreamHub {
         shard: usize,
         state: Arc<Mutex<ShardState>>,
     ) -> anyhow::Result<()> {
-        {
-            let mut guard = state.lock().await;
-            if guard.started {
-                return Ok(());
-            }
-            guard.started = true;
-        }
-
         let topic = topics::session_step_topic_for_shard(shard as u32);
-        let mut stream = match self.pubsub.subscribe(&topic).await {
-            Ok(stream) => stream,
-            Err(err) => {
-                let mut guard = state.lock().await;
-                guard.started = false;
-                return Err(err);
-            }
-        };
+        let mut guard = state.lock().await;
+        if guard.started {
+            return Ok(());
+        }
+        let mut stream = self.pubsub.subscribe(&topic).await?;
+        guard.started = true;
+        drop(guard);
         tokio::spawn(async move {
             use futures::StreamExt;
             use prost::Message;
@@ -226,6 +217,49 @@ mod tests {
 
         let calls = pubsub.subscribe_calls.lock().await.clone();
         assert_eq!(calls, vec![topic.clone(), topic]);
+    }
+
+    #[tokio::test]
+    async fn concurrent_subscribe_does_not_leave_shard_started_after_failed_subscribe() {
+        let session_id = "session-concurrent-retry";
+        let topic = topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+        let pubsub = Arc::new(FakePubSub::default());
+        pubsub
+            .fail_once_topics
+            .lock()
+            .await
+            .insert(topic.clone(), 1);
+        pubsub.batches.lock().await.insert(
+            topic.clone(),
+            VecDeque::from(vec![vec![step_event(session_id, "hello").encode_to_vec()]]),
+        );
+        let hub = Arc::new(SessionStreamHub::new(pubsub.clone()));
+
+        let first = {
+            let hub = hub.clone();
+            tokio::spawn(async move { hub.subscribe(session_id).await })
+        };
+        let second = {
+            let hub = hub.clone();
+            tokio::spawn(async move { hub.subscribe(session_id).await })
+        };
+
+        let first = first.await.expect("first task panicked");
+        let second = second.await.expect("second task panicked");
+        assert!(first.is_err() || second.is_err(), "one subscribe should observe the transient failure");
+
+        let mut receiver = if let Ok(receiver) = first {
+            receiver
+        } else {
+            second.expect("one subscribe should recover after retry")
+        };
+        let event = receiver
+            .recv()
+            .await
+            .expect("event should be delivered")
+            .expect("event should decode");
+        assert_eq!(event.content, "hello");
+        assert_eq!(pubsub.subscribe_calls.lock().await.len(), 2);
     }
 
     #[tokio::test]
