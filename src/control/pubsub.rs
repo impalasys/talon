@@ -7,6 +7,7 @@ use google_cloud_googleapis::pubsub::v1::ExpirationPolicy;
 use google_cloud_googleapis::pubsub::v1::PubsubMessage;
 use google_cloud_pubsub::client::{Client, ClientConfig};
 use google_cloud_pubsub::publisher::Publisher;
+use google_cloud_pubsub::subscriber::ReceivedMessage;
 use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 use std::sync::Arc;
@@ -209,9 +210,17 @@ impl PubSubBackend for GcpPubSubBackend {
     ) -> Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
         let mut receiver = self.client.subscription(fq_sub).subscribe(None).await?;
         let stream = async_stream::stream! {
+            let mut pending_ack: Option<ReceivedMessage> = None;
             while let Some(msg) = receiver.next().await {
-                let _ = msg.ack().await;
-                yield msg.message.data.to_vec();
+                if let Some(previous) = pending_ack.take() {
+                    let _ = previous.ack().await;
+                }
+                let data = msg.message.data.to_vec();
+                pending_ack = Some(msg);
+                yield data;
+            }
+            if let Some(previous) = pending_ack.take() {
+                let _ = previous.ack().await;
             }
         };
         Ok(Box::pin(stream))
