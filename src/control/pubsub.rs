@@ -5,7 +5,8 @@ use crate::control::MessagePublisher;
 use anyhow::Result;
 use google_cloud_googleapis::pubsub::v1::PubsubMessage;
 use google_cloud_pubsub::client::{Client, ClientConfig};
-use std::collections::HashSet;
+use google_cloud_pubsub::publisher::Publisher;
+use std::collections::{HashMap, HashSet};
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -29,6 +30,7 @@ trait PubSubBackend: Send + Sync {
 
 struct GcpPubSubBackend {
     client: Client,
+    publishers: RwLock<HashMap<String, Publisher>>,
 }
 
 fn configured_project_id() -> String {
@@ -79,7 +81,10 @@ impl GcpPubSubPublisher {
         };
 
         Ok(Self {
-            backend: Arc::new(GcpPubSubBackend { client }),
+            backend: Arc::new(GcpPubSubBackend {
+                client,
+                publishers: RwLock::new(HashMap::new()),
+            }),
             initialized_topics: Arc::new(RwLock::new(HashSet::new())),
         })
     }
@@ -139,8 +144,22 @@ impl PubSubBackend for GcpPubSubBackend {
     }
 
     async fn publish(&self, fq_topic: &str, payload: Vec<u8>) -> Result<()> {
-        let topic = self.client.topic(fq_topic);
-        let publisher = topic.new_publisher(None);
+        let publisher = {
+            let cached = self.publishers.read().await;
+            cached.get(fq_topic).cloned()
+        };
+        let publisher = match publisher {
+            Some(publisher) => publisher,
+            None => {
+                let topic = self.client.topic(fq_topic);
+                let publisher = topic.new_publisher(None);
+                let mut cached = self.publishers.write().await;
+                cached
+                    .entry(fq_topic.to_string())
+                    .or_insert_with(|| publisher.clone())
+                    .clone()
+            }
+        };
         let mut msg = PubsubMessage::default();
         msg.data = payload.into();
         let awaiter = publisher.publish(msg).await;

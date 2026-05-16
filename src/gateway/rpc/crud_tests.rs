@@ -276,9 +276,9 @@ mod tests {
         assert_eq!(listed.agents, vec!["agent-1".to_string()]);
 
         let published = published.lock().await;
-        assert_eq!(published.len(), 1);
-        assert_eq!(published[0].0, topics::RESOURCE_LIFECYCLE_TOPIC);
-        let event = events::LifecycleEvent::decode(published[0].1.as_slice())
+        assert_eq!(published.len(), 2);
+        assert_eq!(published[1].0, topics::RESOURCE_LIFECYCLE_TOPIC);
+        let event = events::LifecycleEvent::decode(published[1].1.as_slice())
             .expect("event should decode");
         assert_eq!(event.resource_type, "Agent");
         assert_eq!(event.name, "agent-1");

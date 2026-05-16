@@ -13,6 +13,8 @@ use talon::control::build_control_plane;
 use talon::control::topics;
 use talon::control::ControlPlane;
 use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler};
+use tokio::signal;
+use tokio_util::sync::CancellationToken;
 
 #[async_trait::async_trait]
 trait PullSubscriptionBackend: Send + Sync {
@@ -155,20 +157,30 @@ fn worker_router(handler: WorkerEventHandler) -> Router {
 }
 
 struct GcpPullSubscriptionBackend {
-    project_id: String,
+    client: google_cloud_pubsub::client::Client,
     topic_name: String,
     subscription_name: String,
+}
+
+impl GcpPullSubscriptionBackend {
+    async fn new(project_id: String, topic_name: String, subscription_name: String) -> Result<Self> {
+        use google_cloud_pubsub::client::{Client, ClientConfig};
+
+        let mut pubsub_config = ClientConfig::default().with_auth().await?;
+        pubsub_config.project_id = Some(project_id);
+        let client = Client::new(pubsub_config).await?;
+        Ok(Self {
+            client,
+            topic_name,
+            subscription_name,
+        })
+    }
 }
 
 #[async_trait::async_trait]
 impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
     async fn ensure_topic(&self) -> Result<()> {
-        use google_cloud_pubsub::client::{Client, ClientConfig};
-
-        let mut pubsub_config = ClientConfig::default().with_auth().await?;
-        pubsub_config.project_id = Some(self.project_id.clone());
-        let client = Client::new(pubsub_config).await?;
-        let mut topic = client.topic(&self.topic_name);
+        let mut topic = self.client.topic(&self.topic_name);
         if !topic.exists(None).await? {
             topic.create(None, None).await?;
         }
@@ -176,13 +188,9 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
     }
 
     async fn ensure_subscription(&self) -> Result<()> {
-        use google_cloud_pubsub::client::{Client, ClientConfig};
         use google_cloud_pubsub::subscription::SubscriptionConfig;
 
-        let mut pubsub_config = ClientConfig::default().with_auth().await?;
-        pubsub_config.project_id = Some(self.project_id.clone());
-        let client = Client::new(pubsub_config).await?;
-        let mut subscription = client.subscription(&self.subscription_name);
+        let mut subscription = self.client.subscription(&self.subscription_name);
         if !subscription.exists(None).await? {
             let sub_config = SubscriptionConfig {
                 ack_deadline_seconds: 300,
@@ -199,27 +207,30 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
         &self,
         handler: WorkerEventHandler,
         event_type: String,
-        cancellation_token: tokio_util::sync::CancellationToken,
+        cancellation_token: CancellationToken,
     ) -> Result<()> {
-        use google_cloud_pubsub::client::{Client, ClientConfig};
-
-        let mut pubsub_config = ClientConfig::default().with_auth().await?;
-        pubsub_config.project_id = Some(self.project_id.clone());
-        let client = Client::new(pubsub_config).await?;
-        let mut subscription = client.subscription(&self.subscription_name);
+        let mut subscription = self.client.subscription(&self.subscription_name);
+        let receive_loop_cancellation = cancellation_token.clone();
         subscription
             .receive(
-                move |message, _cancellation_token| {
+                move |message, receive_cancellation_token| {
                     let h = handler.clone();
                     let event_type = event_type.clone();
+                    let cancellation_token = receive_loop_cancellation.clone();
                     async move {
-                        if let Err(e) = h.dispatch(Some(&event_type), &message.message.data).await {
-                            eprintln!("Pull dispatch failed: {}", e);
+                        tokio::select! {
+                            _ = cancellation_token.cancelled() => {}
+                            _ = receive_cancellation_token.cancelled() => {}
+                            result = h.dispatch(Some(&event_type), &message.message.data) => {
+                                if let Err(e) = result {
+                                    eprintln!("Pull dispatch failed: {}", e);
+                                }
+                                let _ = message.ack().await;
+                            }
                         }
-                        let _ = message.ack().await;
                     }
                 },
-                cancellation_token,
+                cancellation_token.clone(),
                 None,
             )
             .await?;
@@ -231,7 +242,7 @@ async fn run_pull_subscription_with_backend(
     backend: &dyn PullSubscriptionBackend,
     pull_handler: WorkerEventHandler,
     spec: ResolvedPullSubscriptionSpec,
-    cancellation_token: tokio_util::sync::CancellationToken,
+    cancellation_token: CancellationToken,
 ) -> Result<()> {
     let fq_topic = spec.topic_name.clone();
     let fq_subscription = spec.subscription_name.clone();
@@ -268,6 +279,7 @@ fn spawn_pull_subscription_task(
     pull_handler: WorkerEventHandler,
     project_id: String,
     spec: ResolvedPullSubscriptionSpec,
+    shutdown_token: CancellationToken,
 ) {
     let ResolvedPullSubscriptionSpec {
         topic_name,
@@ -277,12 +289,24 @@ fn spawn_pull_subscription_task(
     tokio::spawn(async move {
         let fq_topic = topic_name.clone();
         let fq_subscription = subscription_name.clone();
-        let backend = GcpPullSubscriptionBackend {
+        let backend = match GcpPullSubscriptionBackend::new(
             project_id,
             topic_name,
             subscription_name,
+        )
+        .await
+        {
+            Ok(backend) => backend,
+            Err(e) => {
+                tracing::error!(
+                    topic = %fq_topic,
+                    subscription = %fq_subscription,
+                    error = ?e,
+                    "Failed to initialize PubSub client for worker subscription"
+                );
+                return;
+            }
         };
-        let cancellation_token = tokio_util::sync::CancellationToken::new();
 
         if let Err(e) =
             run_pull_subscription_with_backend(
@@ -293,7 +317,7 @@ fn spawn_pull_subscription_task(
                     subscription_name: fq_subscription.clone(),
                     event_type,
                 },
-                cancellation_token,
+                shutdown_token,
             )
             .await
         {
@@ -317,9 +341,10 @@ fn maybe_spawn_pull_subscriptions<F>(
     handler: WorkerEventHandler,
     pull_mode: bool,
     project_id: String,
+    shutdown_token: CancellationToken,
     mut spawn: F,
 ) where
-    F: FnMut(WorkerEventHandler, String, ResolvedPullSubscriptionSpec),
+    F: FnMut(WorkerEventHandler, String, ResolvedPullSubscriptionSpec, CancellationToken),
 {
     if !pull_mode {
         return;
@@ -327,49 +352,84 @@ fn maybe_spawn_pull_subscriptions<F>(
 
     println!("Starting in PULL mode (background thread)...");
     for spec in resolved_pull_subscription_specs(&project_id) {
-        spawn(handler.clone(), project_id.clone(), spec);
+        spawn(
+            handler.clone(),
+            project_id.clone(),
+            spec,
+            shutdown_token.child_token(),
+        );
     }
 }
 
-async fn serve_worker_http(handler: WorkerEventHandler, port: String) -> Result<()> {
+async fn serve_worker_http(
+    handler: WorkerEventHandler,
+    port: String,
+    shutdown_token: CancellationToken,
+) -> Result<()> {
     let app = worker_router(handler);
     println!(
         "Worker listening for Push events / Health checks on 0.0.0.0:{}",
         port
     );
     let listener = tokio::net::TcpListener::bind(worker_bind_addr(&port)).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_token.cancelled_owned())
+        .await?;
     Ok(())
 }
 
-async fn run_worker_with<FGet, FSpawn, FServe, Fut>(
+async fn run_worker_with<FGet, FSpawn, FServe, Fut, FShutdown>(
     cp: Arc<ControlPlane>,
     config: Arc<Config>,
     scheduler_authenticator: Arc<SchedulerRequestAuthenticator>,
     env_get: FGet,
     spawn: FSpawn,
     serve: FServe,
+    shutdown: FShutdown,
 ) -> Result<()>
 where
     FGet: Fn(&str) -> Option<String>,
-    FSpawn: Fn(WorkerEventHandler, bool, String),
-    FServe: Fn(WorkerEventHandler, String) -> Fut,
+    FSpawn: Fn(WorkerEventHandler, bool, String, CancellationToken),
+    FServe: Fn(WorkerEventHandler, String, CancellationToken) -> Fut,
     Fut: std::future::Future<Output = Result<()>>,
+    FShutdown: std::future::Future,
 {
     let handler = build_worker_handler(cp, config, scheduler_authenticator);
     let pull_mode = pull_mode_enabled(&env_get);
     let project_id = pubsub_project_id(&env_get);
-    spawn(handler.clone(), pull_mode, project_id);
-    serve(handler, worker_port(env_get)).await
+    let shutdown_token = CancellationToken::new();
+    spawn(
+        handler.clone(),
+        pull_mode,
+        project_id,
+        shutdown_token.child_token(),
+    );
+    tokio::pin!(shutdown);
+    let serve_future = serve(
+        handler,
+        worker_port(env_get),
+        shutdown_token.child_token(),
+    );
+    tokio::pin!(serve_future);
+    let result = tokio::select! {
+        res = &mut serve_future => res,
+        _ = &mut shutdown => {
+            println!("Shutting down worker...");
+            Ok(())
+        }
+    };
+    shutdown_token.cancel();
+    result
 }
 
-async fn run_worker_main_with<FLoad, FBuildCp, FBuildCpFuture, FBuildAuth, FBuildAuthFuture, FGet, FSpawn, FServe, Fut>(
+async fn run_worker_main_with<FLoad, FBuildCp, FBuildCpFuture, FBuildAuth, FBuildAuthFuture, FGet, FSpawn, FServe, Fut, FShutdown>(
     load_config: FLoad,
     build_cp: FBuildCp,
     build_auth: FBuildAuth,
     env_get: FGet,
     spawn: FSpawn,
     serve: FServe,
+    shutdown: FShutdown,
 ) -> Result<()>
 where
     FLoad: FnOnce() -> Result<Arc<Config>>,
@@ -378,14 +438,24 @@ where
     FBuildAuth: FnOnce(&Arc<Config>) -> FBuildAuthFuture,
     FBuildAuthFuture: std::future::Future<Output = Result<Arc<SchedulerRequestAuthenticator>>>,
     FGet: Fn(&str) -> Option<String>,
-    FSpawn: Fn(WorkerEventHandler, bool, String),
-    FServe: Fn(WorkerEventHandler, String) -> Fut,
+    FSpawn: Fn(WorkerEventHandler, bool, String, CancellationToken),
+    FServe: Fn(WorkerEventHandler, String, CancellationToken) -> Fut,
     Fut: std::future::Future<Output = Result<()>>,
+    FShutdown: std::future::Future,
 {
     let config = load_config()?;
     let cp = build_cp(&config).await?;
     let scheduler_authenticator = build_auth(&config).await?;
-    run_worker_with(cp, config, scheduler_authenticator, env_get, spawn, serve).await
+    run_worker_with(
+        cp,
+        config,
+        scheduler_authenticator,
+        env_get,
+        spawn,
+        serve,
+        shutdown,
+    )
+    .await
 }
 
 async fn push_webhook(
@@ -464,15 +534,17 @@ async fn main() -> Result<()> {
             async move { Ok(Arc::new(SchedulerRequestAuthenticator::from_config(&config).await?)) }
         },
         |name| std::env::var(name).ok(),
-        |pull_handler, pull_mode, project_id| {
+        |pull_handler, pull_mode, project_id, shutdown_token| {
             maybe_spawn_pull_subscriptions(
                 pull_handler,
                 pull_mode,
                 project_id,
+                shutdown_token,
                 spawn_pull_subscription_task,
             );
         },
-        |handler, port| async move { serve_worker_http(handler, port).await },
+        |handler, port, shutdown| async move { serve_worker_http(handler, port, shutdown).await },
+        signal::ctrl_c(),
     )
     .await
 }
@@ -512,6 +584,7 @@ mod tests {
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler,
     };
     use tokio::sync::Mutex;
+    use tokio_util::sync::CancellationToken;
     use tower::ServiceExt;
 
     #[derive(Default)]
@@ -819,20 +892,32 @@ mod tests {
         let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
         let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
 
-        maybe_spawn_pull_subscriptions(handler.clone(), false, "demo".to_string(), |_h, project_id, spec| {
+        maybe_spawn_pull_subscriptions(
+            handler.clone(),
+            false,
+            "demo".to_string(),
+            CancellationToken::new(),
+            |_h, project_id, spec, _shutdown_token| {
             spawned
                 .lock()
                 .expect("spawned lock poisoned")
                 .push((project_id, spec.topic_name, spec.subscription_name));
-        });
+            },
+        );
         assert!(spawned.lock().expect("spawned lock poisoned").is_empty());
 
-        maybe_spawn_pull_subscriptions(handler, true, "demo".to_string(), |_h, project_id, spec| {
+        maybe_spawn_pull_subscriptions(
+            handler,
+            true,
+            "demo".to_string(),
+            CancellationToken::new(),
+            |_h, project_id, spec, _shutdown_token| {
             spawned
                 .lock()
                 .expect("spawned lock poisoned")
                 .push((project_id, spec.topic_name, spec.subscription_name));
-        });
+            },
+        );
         let spawned = spawned.lock().expect("spawned lock poisoned");
         assert_eq!(spawned.len(), 3);
         assert!(spawned.iter().all(|(project_id, _, _)| project_id == "demo"));
@@ -1062,13 +1147,17 @@ mod tests {
         let port = probe.local_addr().expect("probe addr").port();
         drop(probe);
 
-        let task = tokio::spawn(serve_worker_http(handler.clone(), port.to_string()));
+        let task = tokio::spawn(serve_worker_http(
+            handler.clone(),
+            port.to_string(),
+            CancellationToken::new(),
+        ));
         tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         task.abort();
         let err = task.await.expect_err("task should abort");
         assert!(err.is_cancelled());
 
-        let err = serve_worker_http(handler, "not-a-port".to_string())
+        let err = serve_worker_http(handler, "not-a-port".to_string(), CancellationToken::new())
             .await
             .unwrap_err();
         assert!(err.to_string().contains("invalid port value"));
@@ -1097,17 +1186,18 @@ mod tests {
             },
             {
                 let spawned = spawned.clone();
-                move |_handler, pull_mode, project_id| {
+                move |_handler, pull_mode, project_id, _shutdown_token| {
                     spawned
                         .lock()
                         .expect("spawned lock poisoned")
                         .push((pull_mode, project_id));
                 }
             },
-            |_handler, port| async move {
+            |_handler, port, _shutdown_token| async move {
                 assert_eq!(port, "9099");
                 Ok(())
             },
+            futures::future::pending::<()>(),
         )
         .await;
 
@@ -1136,14 +1226,15 @@ mod tests {
             |_| None,
             {
                 let spawned = spawned.clone();
-                move |_handler, pull_mode, project_id| {
+                move |_handler, pull_mode, project_id, _shutdown_token| {
                     spawned
                         .lock()
                         .expect("spawned lock poisoned")
                         .push((pull_mode, project_id));
                 }
             },
-            |_handler, _port| async { anyhow::bail!("serve failed") },
+            |_handler, _port, _shutdown_token| async { anyhow::bail!("serve failed") },
+            futures::future::pending::<()>(),
         )
         .await
         .unwrap_err();
@@ -1166,8 +1257,9 @@ mod tests {
             })) },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
             |_| None,
-            |_handler, _pull_mode, _project_id| {},
-            |_handler, _port| async { Ok(()) },
+            |_handler, _pull_mode, _project_id, _shutdown_token| {},
+            |_handler, _port, _shutdown_token| async { Ok(()) },
+            futures::future::pending::<()>(),
         )
         .await
         .unwrap_err();
@@ -1178,8 +1270,9 @@ mod tests {
             |_| async { anyhow::bail!("control plane failed") },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
             |_| None,
-            |_handler, _pull_mode, _project_id| {},
-            |_handler, _port| async { Ok(()) },
+            |_handler, _pull_mode, _project_id, _shutdown_token| {},
+            |_handler, _port, _shutdown_token| async { Ok(()) },
+            futures::future::pending::<()>(),
         )
         .await
         .unwrap_err();
@@ -1194,8 +1287,9 @@ mod tests {
             })) },
             |_| async { anyhow::bail!("scheduler auth failed") },
             |_| None,
-            |_handler, _pull_mode, _project_id| {},
-            |_handler, _port| async { Ok(()) },
+            |_handler, _pull_mode, _project_id, _shutdown_token| {},
+            |_handler, _port, _shutdown_token| async { Ok(()) },
+            futures::future::pending::<()>(),
         )
         .await
         .unwrap_err();
@@ -1221,17 +1315,18 @@ mod tests {
             },
             {
                 let spawned = spawned.clone();
-                move |_handler, pull_mode, project_id| {
+                move |_handler, pull_mode, project_id, _shutdown_token| {
                     spawned
                         .lock()
                         .expect("spawned lock poisoned")
                         .push((pull_mode, project_id));
                 }
             },
-            |_handler, port| async move {
+            |_handler, port, _shutdown_token| async move {
                 assert_eq!(port, "8181");
                 Ok(())
             },
+            futures::future::pending::<()>(),
         )
         .await;
 

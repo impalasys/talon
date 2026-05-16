@@ -3,6 +3,7 @@
 
 use super::{models, proto, GrpcGatewayHandler};
 use crate::agents::resolver::resolve_agent_definition;
+use crate::control::events;
 use crate::control::keys;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
@@ -192,6 +193,19 @@ impl GrpcGatewayHandler {
             .set_msg(&req.ns, &agent_db_key, &agent)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to update agent state: {}", e)))?;
+
+        let event = events::LifecycleEvent {
+            ns: req.ns.clone(),
+            resource_type: "Agent".to_string(),
+            name: agent.name.clone(),
+            action: events::SystemAction::Update as i32,
+            timestamp: chrono::Utc::now().timestamp_micros(),
+        };
+        self.gateway
+            .pubsub
+            .publish(topics::RESOURCE_LIFECYCLE_TOPIC, &event.encode_to_vec())
+            .await
+            .map_err(|e| tonic::Status::internal(format!("PubSub publish failed: {}", e)))?;
 
         Ok(tonic::Response::new(proto::AgentResponse {
             agent: agent.name,

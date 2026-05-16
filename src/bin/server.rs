@@ -102,19 +102,25 @@ where
     let mut ui_task = ui_task;
     tokio::pin!(shutdown);
 
-    let result = tokio::select! {
-        res = &mut rpc_task => res??,
-        res = &mut ui_task => res??,
+    let result: Result<()> = tokio::select! {
+        res = &mut rpc_task => match res {
+            Ok(inner) => inner,
+            Err(err) => Err(err.into()),
+        },
+        res = &mut ui_task => match res {
+            Ok(inner) => inner,
+            Err(err) => Err(err.into()),
+        },
         _ = &mut shutdown => {
             println!("Shutting down...");
-            ()
+            Ok(())
         }
     };
 
     rpc_task.abort();
     ui_task.abort();
 
-    Ok(result)
+    result
 }
 
 #[tokio::main]
