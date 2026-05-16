@@ -421,7 +421,15 @@ async def test_mock_llm_chat_completions_endpoint_covers_json_and_streaming_path
         text = body.decode()
         assert response.status_code == 200
         assert "data: [DONE]" in text
-        assert "Hello! I am a mock LLM." in text
+        content_chunks = []
+        for event in text.split("\n\n"):
+            if not event.startswith("data: ") or event == "data: [DONE]":
+                continue
+            payload = json.loads(event[len("data: "):])
+            delta = payload["choices"][0]["delta"]
+            if "content" in delta:
+                content_chunks.append(delta["content"])
+        assert "".join(content_chunks).startswith("Hello! I am a mock LLM.")
 
 if __name__ == '__main__':
     sys.exit(pytest.main(sys.argv[1:] + [__file__]))
