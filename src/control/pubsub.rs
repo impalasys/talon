@@ -3,6 +3,7 @@
 
 use crate::control::MessagePublisher;
 use anyhow::Result;
+use google_cloud_googleapis::pubsub::v1::ExpirationPolicy;
 use google_cloud_googleapis::pubsub::v1::PubsubMessage;
 use google_cloud_pubsub::client::{Client, ClientConfig};
 use google_cloud_pubsub::publisher::Publisher;
@@ -182,6 +183,13 @@ impl PubSubBackend for GcpPubSubBackend {
     async fn ensure_subscription(&self, fq_topic: &str, fq_sub: &str) -> Result<()> {
         let sub_config = google_cloud_pubsub::subscription::SubscriptionConfig {
             ack_deadline_seconds: 60,
+            expiration_policy: Some(ExpirationPolicy {
+                ttl: Some(
+                    std::time::Duration::from_secs(24 * 60 * 60)
+                        .try_into()
+                        .expect("24 hour subscription ttl should convert"),
+                ),
+            }),
             ..Default::default()
         };
         let mut subscription = self.client.subscription(fq_sub);
@@ -231,7 +239,8 @@ impl MessagePublisher for GcpPubSubPublisher {
 
         // Create a temporary subscription for this stream
         let project = configured_project_id();
-        let sub_id = format!("{}-sub-{}", topic_name, uuid::Uuid::now_v7());
+        let base_name = topic_name.rsplit('/').next().unwrap_or(topic_name);
+        let sub_id = format!("{}-sub-{}", base_name, uuid::Uuid::now_v7());
         let fq_sub = fully_qualified_subscription_name(&project, &sub_id);
         self.backend.ensure_subscription(&fq_topic, &fq_sub).await?;
         let _guard = SubscriptionGuard {
@@ -473,6 +482,29 @@ mod tests {
             .1
             .starts_with("projects/project-123/subscriptions/events-sub-"));
         assert_eq!(backend.deleted_subscriptions.lock().await.len(), 1);
+        std::env::remove_var("GCP_PROJECT_ID");
+    }
+
+    #[tokio::test]
+    async fn subscribe_uses_topic_basename_for_temporary_subscription_id() {
+        let _lock = crate::test_support::async_env_mutex().lock().await;
+        std::env::set_var("GCP_PROJECT_ID", "project-123");
+        let backend = Arc::new(FakeBackend::default());
+        let publisher = GcpPubSubPublisher::with_backend(backend.clone());
+
+        let stream = publisher
+            .subscribe("projects/demo/topics/session-control")
+            .await
+            .unwrap();
+        drop(stream);
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+
+        let ensured = backend.ensured_subscriptions.lock().await.clone();
+        assert_eq!(ensured.len(), 1);
+        assert_eq!(ensured[0].0, "projects/demo/topics/session-control");
+        assert!(ensured[0]
+            .1
+            .starts_with("projects/project-123/subscriptions/session-control-sub-"));
         std::env::remove_var("GCP_PROJECT_ID");
     }
 
