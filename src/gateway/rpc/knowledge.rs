@@ -174,7 +174,10 @@ mod tests {
         }
 
         async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), k.to_string()));
+            self.data
+                .lock()
+                .await
+                .remove(&(ns.to_string(), k.to_string()));
             Ok(())
         }
 
@@ -281,8 +284,12 @@ mod tests {
 
         let modules = list_namespace_knowledge(kv, "acme:child").await.unwrap();
         assert_eq!(modules.len(), 2);
-        assert!(modules.iter().any(|m| m.path == "guide.md" && m.content == "child guide"));
-        assert!(modules.iter().any(|m| m.path == "shared.md" && m.content == "shared root"));
+        assert!(modules
+            .iter()
+            .any(|m| m.path == "guide.md" && m.content == "child guide"));
+        assert!(modules
+            .iter()
+            .any(|m| m.path == "shared.md" && m.content == "shared root"));
     }
 
     #[tokio::test]

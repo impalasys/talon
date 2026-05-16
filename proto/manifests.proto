@@ -84,6 +84,13 @@ message Model {
   string provider = 1;
   string name = 2;
   float temperature = 3;
+  ThinkingConfig thinking = 4;
+}
+
+message ThinkingConfig {
+  bool enabled = 1;
+  optional uint32 budget_tokens = 2;
+  string effort = 3;
 }
 
 message ModelProfile {

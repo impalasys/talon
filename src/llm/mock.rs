@@ -1,7 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::llm::provider::{ChatMessage, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider};
+use crate::llm::provider::{
+    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider,
+};
 use crate::memory::Embedding;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -16,21 +18,17 @@ impl LlmProvider for MockLlmProvider {
 
     async fn chat_completion(
         &self,
-        messages: Vec<ChatMessage>,
-        _tools: Vec<crate::llm::provider::Tool>,
+        request: ChatRequest,
     ) -> Result<ChatResponse> {
         Ok(ChatResponse {
-            content: format!("Mock response to {} messages", messages.len()),
+            content: format!("Mock response to {} messages", request.messages.len()),
             tool_calls: vec![],
+            usage: None,
         })
     }
 
-    async fn stream_chat_completion(
-        &self,
-        messages: Vec<ChatMessage>,
-        _tools: Vec<crate::llm::provider::Tool>,
-    ) -> Result<ChatStream> {
-        let response = self.chat_completion(messages, vec![]).await?;
+    async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+        let response = self.chat_completion(request).await?;
         let stream =
             futures::stream::once(async move { Ok(ChatStreamEvent::TextDelta(response.content)) });
         Ok(Box::pin(stream))
@@ -58,13 +56,16 @@ mod tests {
 
         let response = provider
             .chat_completion(
-                vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: "hi".to_string(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
-                vec![],
+                ChatRequest {
+                    messages: vec![ChatMessage {
+                        role: "user".to_string(),
+                        content: "hi".to_string(),
+                        tool_calls: None,
+                        tool_call_id: None,
+                    }],
+                    tools: vec![],
+                    thinking: None,
+                },
             )
             .await
             .expect("chat completion should succeed");
@@ -73,13 +74,16 @@ mod tests {
 
         let stream = provider
             .stream_chat_completion(
-                vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: "stream".to_string(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
-                vec![],
+                ChatRequest {
+                    messages: vec![ChatMessage {
+                        role: "user".to_string(),
+                        content: "stream".to_string(),
+                        tool_calls: None,
+                        tool_call_id: None,
+                    }],
+                    tools: vec![],
+                    thinking: None,
+                },
             )
             .await
             .expect("streaming should succeed");

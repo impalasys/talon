@@ -78,7 +78,8 @@ impl LocalPostgresSchedulerBackend {
         sqlx::query(&index_stmt).execute(&pool).await?;
 
         if runner_enabled {
-            let Some(target_url) = runner_target_url.filter(|value| !value.trim().is_empty()) else {
+            let Some(target_url) = runner_target_url.filter(|value| !value.trim().is_empty())
+            else {
                 warn!("local_postgres scheduler runner enabled without target URL; wakeups will not fire");
                 return Ok(Self { pool, table });
             };
@@ -88,7 +89,10 @@ impl LocalPostgresSchedulerBackend {
             };
             tokio::spawn(async move {
                 runner
-                    .run_loop(target_url, auth_token.filter(|value| !value.trim().is_empty()))
+                    .run_loop(
+                        target_url,
+                        auth_token.filter(|value| !value.trim().is_empty()),
+                    )
                     .await;
             });
         }
@@ -140,10 +144,7 @@ impl LocalPostgresSchedulerBackend {
                             )
                             .await
                             .map_err(|_| {
-                                anyhow!(
-                                    "timed out delivering scheduler wakeup to {}",
-                                    target_url
-                                )
+                                anyhow!("timed out delivering scheduler wakeup to {}", target_url)
                             })
                             .and_then(|result| result);
                             (
@@ -339,11 +340,7 @@ impl LocalPostgresSchedulerBackend {
 }
 
 fn validate_identifier(value: &str) -> Result<()> {
-    if value.is_empty()
-        || !value
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_')
-    {
+    if value.is_empty() || !value.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
         anyhow::bail!("invalid identifier: {}", value);
     }
     Ok(())
@@ -536,8 +533,7 @@ mod tests {
         .await
         .expect("canceled row should load");
         let canceled_at: i64 = canceled_row.try_get("canceled_at_micros").unwrap();
-        let canceled_claim_until: Option<i64> =
-            canceled_row.try_get("claim_until_micros").unwrap();
+        let canceled_claim_until: Option<i64> = canceled_row.try_get("claim_until_micros").unwrap();
         let canceled_error: String = canceled_row.try_get("last_error").unwrap();
         assert!(canceled_at > 0);
         assert!(canceled_claim_until.is_none());
@@ -614,7 +610,11 @@ mod tests {
         let _ = shutdown_tx.send(());
         server.await.expect("server task should finish");
 
-        let received = received.lock().await.clone().expect("request should be captured");
+        let received = received
+            .lock()
+            .await
+            .clone()
+            .expect("request should be captured");
         assert_eq!(received.header.as_deref(), Some("secret-token"));
         assert_eq!(received.body, br#"{"deliver":true}"#.to_vec());
 
@@ -640,7 +640,10 @@ mod tests {
             .await
             .expect("cancel schedule should succeed");
         let cancel_handle = scheduled_cancel.handle.expect("cancel handle");
-        backend.cancel(&cancel_handle).await.expect("cancel should succeed");
+        backend
+            .cancel(&cancel_handle)
+            .await
+            .expect("cancel should succeed");
         let cancel_row = sqlx::query(&format!(
             "SELECT canceled_at_micros FROM {} WHERE handle = $1",
             backend.table
@@ -720,7 +723,10 @@ mod tests {
             .handle
             .expect("claimed handle");
 
-        backend.cancel(&canceled).await.expect("cancel should succeed");
+        backend
+            .cancel(&canceled)
+            .await
+            .expect("cancel should succeed");
         backend
             .mark_delivered(&delivered)
             .await
@@ -856,9 +862,10 @@ mod tests {
             let expected_prefix = format!("{}:", SCHEDULER_AUTH_HEADER).to_ascii_lowercase();
             let header = request.lines().find_map(|line| {
                 let lower = line.to_ascii_lowercase();
-                lower
-                    .strip_prefix(&expected_prefix)
-                    .and_then(|_| line.split_once(':').map(|(_, value)| value.trim().to_string()))
+                lower.strip_prefix(&expected_prefix).and_then(|_| {
+                    line.split_once(':')
+                        .map(|(_, value)| value.trim().to_string())
+                })
             });
             let body = request
                 .split("\r\n\r\n")

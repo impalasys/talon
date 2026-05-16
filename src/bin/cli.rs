@@ -12,8 +12,8 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use talon::gateway::rpc::models;
 use talon::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
+use talon::gateway::rpc::models;
 use talon::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use talon::gateway::rpc::proto::{
     CreateAgentRequest, CreateAgentTemplateRequest, CreateMcpServerRequest,
@@ -343,7 +343,11 @@ fn agent_lookup_target(name: &str, namespace: Option<&String>) -> (String, Strin
     (final_ns, final_name)
 }
 
-fn rest_get_path(kind: &str, name: &str, namespace: Option<&String>) -> Result<(String, &'static str)> {
+fn rest_get_path(
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<(String, &'static str)> {
     match kind.to_lowercase().as_str() {
         "agenttemplate" | "templates" | "template" => Ok((
             format!("/v1/templates/{}", urlencoding::encode(name)),
@@ -439,9 +443,7 @@ fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Resul
                 urlencoding::encode(name)
             ))
         }
-        "namespace" | "namespaces" => {
-            Ok(format!("/v1/namespaces/{}", urlencoding::encode(name)))
-        }
+        "namespace" | "namespaces" => Ok(format!("/v1/namespaces/{}", urlencoding::encode(name))),
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             let ns = namespace
                 .as_ref()
@@ -752,11 +754,7 @@ async fn knowledge_list(cli: &Cli, namespace: &str) -> Result<Vec<Knowledge>> {
     }
 }
 
-async fn sync_knowledge_dir(
-    cli: &Cli,
-    namespace: &str,
-    dir: &str,
-) -> Result<(usize, Vec<String>)> {
+async fn sync_knowledge_dir(cli: &Cli, namespace: &str, dir: &str) -> Result<(usize, Vec<String>)> {
     let root = Path::new(dir);
     let files = collect_markdown_files(root)?;
     let existing: Vec<Knowledge> = knowledge_list(cli, namespace).await?;
@@ -1070,15 +1068,16 @@ fn feature_ts_type(kind: &str) -> &'static str {
     }
 }
 
-fn sdk_method_for_template(template: &talon::gateway::rpc::manifests::AgentTemplate) -> Option<String> {
+fn sdk_method_for_template(
+    template: &talon::gateway::rpc::manifests::AgentTemplate,
+) -> Option<String> {
     let name = template.metadata.as_ref()?.name.clone();
     let method_name = format!("create{}", to_camel_case(&name));
     let mut args = Vec::new();
 
     if let Some(definition) = &template.definition {
-        if let Some(
-            talon::gateway::rpc::manifests::agent_definition::Source::CustomSpec(spec),
-        ) = definition.source.as_ref()
+        if let Some(talon::gateway::rpc::manifests::agent_definition::Source::CustomSpec(spec)) =
+            definition.source.as_ref()
         {
             for f in &spec.features {
                 let opt = if f.required { "" } else { "?" };
@@ -1271,10 +1270,7 @@ async fn grpc_get_yaml(
                 .get_agent_template(GetAgentTemplateRequest { name: name.clone() })
                 .await
                 .with_context(|| format!("Failed to fetch AgentTemplate '{}'", name))?;
-            let template = resp
-                .into_inner()
-                .template
-                .context("Resource not found.")?;
+            let template = resp.into_inner().template.context("Resource not found.")?;
             talon::manifest::render_agent_template_yaml(&template)
         }
         GrpcGetTarget::Agent { ns, name } => {
@@ -1304,7 +1300,10 @@ async fn grpc_get_yaml(
                 })
                 .await
                 .with_context(|| format!("Failed to fetch Knowledge '{}/{}'", ns, name))?;
-            let knowledge = resp.into_inner().knowledge.context("Knowledge not found.")?;
+            let knowledge = resp
+                .into_inner()
+                .knowledge
+                .context("Knowledge not found.")?;
             talon::manifest::render_knowledge_yaml(&knowledge)
         }
         GrpcGetTarget::Schedule { ns, name } => {
@@ -1316,7 +1315,8 @@ async fn grpc_get_yaml(
                 .await
                 .with_context(|| format!("Failed to fetch Schedule '{}/{}'", ns, name))?;
             let schedule = resp.into_inner().schedule.context("Schedule not found.")?;
-            serde_yaml::to_string(&schedule_json(&schedule)).context("Failed to serialize Schedule YAML")
+            serde_yaml::to_string(&schedule_json(&schedule))
+                .context("Failed to serialize Schedule YAML")
         }
     }
 }
@@ -1357,7 +1357,10 @@ async fn grpc_delete_resource(
                 })
                 .await
                 .with_context(|| format!("Failed to delete Knowledge '{}/{}'", ns, name))?;
-            Ok(format!("✓ Knowledge '{}/{}' deleted successfully.", ns, name))
+            Ok(format!(
+                "✓ Knowledge '{}/{}' deleted successfully.",
+                ns, name
+            ))
         }
     }
 }
@@ -1441,7 +1444,10 @@ async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
                 })
                 .await
                 .with_context(|| format!("Gateway rejected Knowledge '{}/{}'", ns, name))?;
-            Ok(format!("✓ Knowledge '{}/{}' applied successfully.", ns, name))
+            Ok(format!(
+                "✓ Knowledge '{}/{}' applied successfully.",
+                ns, name
+            ))
         }
     }
 }
@@ -1542,7 +1548,10 @@ async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
                 } else {
                     false
                 };
-                println!("{}", rest_apply_manifest(&cli, &content, agent_exists).await?);
+                println!(
+                    "{}",
+                    rest_apply_manifest(&cli, &content, agent_exists).await?
+                );
                 return Ok(RunOutcome { exit_code: None });
             }
 
@@ -1572,10 +1581,16 @@ async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
             namespace,
         } => {
             if cli.rest {
-                println!("{}", rest_get_yaml(&cli, kind, name, namespace.as_ref()).await?);
+                println!(
+                    "{}",
+                    rest_get_yaml(&cli, kind, name, namespace.as_ref()).await?
+                );
                 return Ok(RunOutcome { exit_code: None });
             }
-            println!("{}", grpc_get_yaml(&cli, kind, name, namespace.as_ref()).await?);
+            println!(
+                "{}",
+                grpc_get_yaml(&cli, kind, name, namespace.as_ref()).await?
+            );
         }
 
         Commands::Delete {
@@ -1735,15 +1750,17 @@ fn to_camel_case(s: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        agent_lookup_target, auth_interceptor, build_grpc_apply_plan, build_rest_apply_plan, build_knowledge,
-        canonicalize_manifest_path, collect_markdown_files, feature_ts_type, knowledge_delete,
-        grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target, grpc_get_yaml, knowledge_get, knowledge_list, knowledge_resource_name, knowledge_set,
-        manifest_json_payload, parse_raw_manifest, parse_vars, read_knowledge_content,
-        relative_knowledge_path, render_json_payload, render_manifest_file,
-        render_manifest_template, rest_apply_manifest, rest_client, rest_delete_path, rest_delete_resource, rest_get_path, rest_get_yaml,
-        rest_request_json, resolve_authorization_header, resolve_manifest_sources, run_cli, schedule_json, sync_knowledge_dir,
-        sdk_method_for_template, sdk_methods_from_dir, to_camel_case, Cli, Commands,
-        GrpcApplyPlan, GrpcDeleteTarget, GrpcGetTarget, KnowledgeCommands, RenderFormat,
+        agent_lookup_target, auth_interceptor, build_grpc_apply_plan, build_knowledge,
+        build_rest_apply_plan, canonicalize_manifest_path, collect_markdown_files, feature_ts_type,
+        grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target,
+        grpc_get_yaml, knowledge_delete, knowledge_get, knowledge_list, knowledge_resource_name,
+        knowledge_set, manifest_json_payload, parse_raw_manifest, parse_vars,
+        read_knowledge_content, relative_knowledge_path, render_json_payload, render_manifest_file,
+        render_manifest_template, resolve_authorization_header, resolve_manifest_sources,
+        rest_apply_manifest, rest_client, rest_delete_path, rest_delete_resource, rest_get_path,
+        rest_get_yaml, rest_request_json, run_cli, schedule_json, sdk_method_for_template,
+        sdk_methods_from_dir, sync_knowledge_dir, to_camel_case, Cli, Commands, GrpcApplyPlan,
+        GrpcDeleteTarget, GrpcGetTarget, KnowledgeCommands, RenderFormat,
     };
     use axum::{
         extract::{Path as AxumPath, State},
@@ -1756,23 +1773,23 @@ mod tests {
     use std::collections::HashMap;
     use std::fs;
     use std::net::SocketAddr;
-    use std::pin::Pin;
     use std::path::Path;
+    use std::pin::Pin;
     use std::sync::{Arc, Mutex, OnceLock};
     use std::time::{SystemTime, UNIX_EPOCH};
     use tokio::net::TcpListener;
     use tokio::sync::RwLock;
-    use tonic::transport::Server;
-    use tonic::service::Interceptor;
     use tokio_stream::wrappers::TcpListenerStream;
+    use tonic::service::Interceptor;
+    use tonic::transport::Server;
 
-    use talon::control::{KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt};
     use talon::control::keys;
-    use talon::control::scheduler::SchedulerBackend;
     use talon::control::scheduler::NoopSchedulerBackend;
-    use talon::gateway::session_streams::SessionStreamHub;
+    use talon::control::scheduler::SchedulerBackend;
+    use talon::control::{KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt};
+    use talon::gateway::rpc::{models, proto, GrpcGatewayHandler};
     use talon::gateway::server::Gateway;
-    use talon::gateway::rpc::{GrpcGatewayHandler, models, proto};
+    use talon::gateway::session_streams::SessionStreamHub;
 
     fn env_mutex() -> &'static Mutex<()> {
         static MUTEX: OnceLock<Mutex<()>> = OnceLock::new();
@@ -1858,7 +1875,10 @@ mod tests {
         }
 
         async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data.write().await.remove(&(ns.to_string(), k.to_string()));
+            self.data
+                .write()
+                .await
+                .remove(&(ns.to_string(), k.to_string()));
             Ok(())
         }
 
@@ -2142,9 +2162,11 @@ mod tests {
         fs::write(temp_root.join("docs/nested/two.MD"), "two").unwrap();
         fs::write(temp_root.join("docs/skip.txt"), "skip").unwrap();
 
-        let relative =
-            relative_knowledge_path(&temp_root.join("docs"), &temp_root.join("docs/nested/two.MD"))
-                .unwrap();
+        let relative = relative_knowledge_path(
+            &temp_root.join("docs"),
+            &temp_root.join("docs/nested/two.MD"),
+        )
+        .unwrap();
         assert_eq!(relative, "nested/two.MD");
 
         let files = collect_markdown_files(&temp_root.join("docs")).unwrap();
@@ -2160,8 +2182,9 @@ mod tests {
         fs::create_dir_all(temp_root.join("docs")).unwrap();
         fs::write(temp_root.join("outside.md"), "outside").unwrap();
 
-        let outside = relative_knowledge_path(&temp_root.join("docs"), &temp_root.join("outside.md"))
-            .expect_err("outside file should fail");
+        let outside =
+            relative_knowledge_path(&temp_root.join("docs"), &temp_root.join("outside.md"))
+                .expect_err("outside file should fail");
         assert!(outside.to_string().contains("is not inside"));
 
         let empty = relative_knowledge_path(&temp_root.join("docs"), &temp_root.join("docs"))
@@ -2221,7 +2244,10 @@ mod tests {
         );
         assert_eq!(
             rest_get_path("schedule", "nightly sync", Some(&team)).unwrap(),
-            ("/v1/ns/team-a/schedules/nightly%20sync".to_string(), "schedule")
+            (
+                "/v1/ns/team-a/schedules/nightly%20sync".to_string(),
+                "schedule"
+            )
         );
         assert_eq!(
             rest_delete_path("namespace", "team/a", None).unwrap(),
@@ -2309,11 +2335,9 @@ mod tests {
         )
         .unwrap();
 
-        let rendered = render_manifest_file(
-            manifest_path.to_str().unwrap(),
-            &["ns=conic".to_string()],
-        )
-        .unwrap();
+        let rendered =
+            render_manifest_file(manifest_path.to_str().unwrap(), &["ns=conic".to_string()])
+                .unwrap();
         assert!(rendered.contains("namespace: conic"));
         assert!(rendered.contains("content: rendered"));
 
@@ -2572,7 +2596,8 @@ mod tests {
 
     #[test]
     fn resolve_manifest_sources_passes_through_non_knowledge_and_rejects_duplicate_sources() {
-        let namespace = "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: conic\n";
+        let namespace =
+            "apiVersion: talon.impalasys.com/v1\nkind: Namespace\nmetadata:\n  name: conic\n";
         assert_eq!(
             resolve_manifest_sources("manifest.yaml", namespace).unwrap(),
             namespace
@@ -2583,7 +2608,9 @@ mod tests {
             "apiVersion: talon.impalasys.com/v1\nkind: Knowledge\nmetadata:\n  name: test\n  namespace: conic\nspec:\n  path: docs/test.md\n  content: inline\n  contentFromFile: docs/test.md\n",
         )
         .unwrap_err();
-        assert!(err.to_string().contains("only one of content or contentFromFile"));
+        assert!(err
+            .to_string()
+            .contains("only one of content or contentFromFile"));
     }
 
     #[test]
@@ -2592,15 +2619,15 @@ mod tests {
             "apiVersion: talon.impalasys.com/v1\nkind: UnknownThing\nmetadata:\n  name: test\n",
         )
         .unwrap_err();
-        assert!(unsupported.to_string().contains("Unsupported manifest kind"));
+        assert!(unsupported
+            .to_string()
+            .contains("Unsupported manifest kind"));
 
         let missing_namespace = manifest_json_payload(
             "apiVersion: talon.impalasys.com/v1\nkind: McpServerBinding\nmetadata:\n  name: github\nspec:\n  serverRef: github\n",
         )
         .unwrap_err();
-        assert!(missing_namespace
-            .to_string()
-            .contains("namespace"));
+        assert!(missing_namespace.to_string().contains("namespace"));
 
         let render_err = render_json_payload(
             "apiVersion: talon.impalasys.com/v1\nkind: UnknownThing\nmetadata:\n  name: test\n",
@@ -2748,7 +2775,9 @@ mod tests {
                             .unwrap()
                             .into_owned();
                         match state.store.lock().await.get(&decoded_name).cloned() {
-                            Some(knowledge) => (StatusCode::OK, Json(json!({ "knowledge": knowledge }))),
+                            Some(knowledge) => {
+                                (StatusCode::OK, Json(json!({ "knowledge": knowledge })))
+                            }
                             None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
                         }
                     },
@@ -2774,7 +2803,10 @@ mod tests {
 
         let cli = rest_cli(format!("http://{addr}"));
         let path = "docs-test.md";
-        let missing = knowledge_get(&cli, "conic", path).await.unwrap_err().to_string();
+        let missing = knowledge_get(&cli, "conic", path)
+            .await
+            .unwrap_err()
+            .to_string();
         assert!(missing.contains("status=404 Not Found"));
 
         knowledge_set(&cli, "conic", path, "hello".to_string())
@@ -2849,7 +2881,9 @@ mod tests {
         assert_eq!(listed.len(), 1);
         assert_eq!(listed[0].spec.as_ref().unwrap().path, "docs/grpc.md");
 
-        knowledge_delete(&cli, "conic", "docs/grpc.md").await.unwrap();
+        knowledge_delete(&cli, "conic", "docs/grpc.md")
+            .await
+            .unwrap();
         assert!(knowledge_get(&cli, "conic", "docs/grpc.md")
             .await
             .unwrap()
@@ -2877,14 +2911,9 @@ mod tests {
         assert!(yaml.contains("kind: Knowledge"));
         assert!(yaml.contains("content: grpc body"));
 
-        let deleted = grpc_delete_resource(
-            &cli,
-            "knowledge",
-            "docs/view.md",
-            Some(&namespace),
-        )
-        .await
-        .unwrap();
+        let deleted = grpc_delete_resource(&cli, "knowledge", "docs/view.md", Some(&namespace))
+            .await
+            .unwrap();
         assert!(deleted.contains("deleted successfully"));
         assert!(knowledge_get(&cli, "conic", "docs/view.md")
             .await
@@ -2908,7 +2937,9 @@ mod tests {
         )
         .await
         .unwrap();
-        assert!(knowledge_message.contains("Knowledge 'conic/docs/applied.md' applied successfully."));
+        assert!(
+            knowledge_message.contains("Knowledge 'conic/docs/applied.md' applied successfully.")
+        );
         let got = knowledge_get(&cli, "conic", "docs/applied.md")
             .await
             .unwrap()
@@ -3357,14 +3388,10 @@ mod tests {
             .await
             .unwrap();
         assert!(knowledge_yaml.contains("content: rest body"));
-        let knowledge_deleted = rest_delete_resource(
-            &cli,
-            "knowledge",
-            "docs/rest.md",
-            Some(&namespace),
-        )
-        .await
-        .unwrap();
+        let knowledge_deleted =
+            rest_delete_resource(&cli, "knowledge", "docs/rest.md", Some(&namespace))
+                .await
+                .unwrap();
         assert!(knowledge_deleted.contains("deleted successfully"));
 
         let binding_message = rest_apply_manifest(
@@ -3482,7 +3509,10 @@ mod tests {
     #[tokio::test]
     async fn rest_helpers_surface_missing_fields_and_server_errors() {
         let app = Router::new()
-            .route("/v1/templates/:name", get(|| async { Json(json!({ "wrong": {} })) }))
+            .route(
+                "/v1/templates/:name",
+                get(|| async { Json(json!({ "wrong": {} })) }),
+            )
             .route(
                 "/v1/ns/:ns/agents/:name",
                 delete(|| async { (StatusCode::BAD_REQUEST, "cannot delete") }),

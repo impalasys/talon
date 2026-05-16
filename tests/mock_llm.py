@@ -10,6 +10,10 @@ app = FastAPI()
 TOOL_TRIGGER = "lookup docs.example.com"
 TOOL_CALL_ID = "call_knowledge_search_1"
 TOOL_NAME = "knowledge_search"
+DEFAULT_REASONING = [
+    "Inspecting the request.",
+    "Planning a concise answer.",
+]
 
 
 def last_message(messages):
@@ -118,6 +122,23 @@ async def stream_tool_call_response(model):
 
 
 async def stream_text_response(model, reply):
+    for reasoning in DEFAULT_REASONING:
+        reasoning_chunk = {
+            "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
+            "object": "chat.completion.chunk",
+            "created": int(time.time()),
+            "model": model,
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {"reasoning": reasoning + " "},
+                    "finish_reason": None
+                }
+            ]
+        }
+        yield f"data: {json.dumps(reasoning_chunk)}\n\n"
+        await asyncio.sleep(0.05)
+
     words = reply.split()
     for i, word in enumerate(words):
         chunk = word + (" " if i < len(words) - 1 else "")
@@ -141,6 +162,12 @@ async def stream_text_response(model, reply):
         "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
         "object": "chat.completion.chunk",
         "created": int(time.time()),
+        "usage": {
+            "prompt_tokens": 10,
+            "completion_tokens": 10,
+            "reasoning_tokens": 6,
+            "total_tokens": 26
+        },
         "model": model,
         "choices": [
             {
@@ -209,7 +236,8 @@ async def chat_completions(request: Request):
         "usage": {
             "prompt_tokens": 10,
             "completion_tokens": 10,
-            "total_tokens": 20
+            "reasoning_tokens": 6,
+            "total_tokens": 26
         }
     }
     return JSONResponse(content=response_json)

@@ -310,7 +310,10 @@ mod tests {
         }
 
         async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), k.to_string()));
+            self.data
+                .lock()
+                .await
+                .remove(&(ns.to_string(), k.to_string()));
             Ok(())
         }
 

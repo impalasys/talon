@@ -562,7 +562,10 @@ mod tests {
             .unwrap()
             .into_inner();
         assert_eq!(recreated.labels.get("env").map(String::as_str), Some("dev"));
-        assert_eq!(recreated.labels.get("owner").map(String::as_str), Some("ops"));
+        assert_eq!(
+            recreated.labels.get("owner").map(String::as_str),
+            Some("ops")
+        );
 
         let fetched = handler
             .handle_get_namespace(tonic::Request::new(proto::GetNamespaceRequest {

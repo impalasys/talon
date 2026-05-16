@@ -350,11 +350,13 @@ impl TalonOpsServer {
                     } else {
                         args.agent.clone()
                     },
-                    session_mode: crate::scheduling::normalize_session_mode(&args
-                        .session_mode
-                        .clone()
-                        .or_else(|| existing_target.map(|target| target.session_mode.clone()))
-                        .unwrap_or_else(|| "new".to_string()))?,
+                    session_mode: crate::scheduling::normalize_session_mode(
+                        &args
+                            .session_mode
+                            .clone()
+                            .or_else(|| existing_target.map(|target| target.session_mode.clone()))
+                            .unwrap_or_else(|| "new".to_string()),
+                    )?,
                     session_id: args
                         .session_id
                         .clone()
@@ -617,7 +619,9 @@ impl TalonOpsServer {
             .get_agent_model(&args.namespace, &args.name)
             .await
             .map_err(internal_mcp_error)?;
-        to_json_string(&json!({ "agent": crate::manifest::render_agent_json(&agent).map_err(internal_mcp_error)? }))
+        to_json_string(
+            &json!({ "agent": crate::manifest::render_agent_json(&agent).map_err(internal_mcp_error)? }),
+        )
     }
 
     #[tool(description = "List sessions in one or more visible namespaces and agents.")]
@@ -1473,12 +1477,11 @@ mod tests {
         parse_non_negative_i32_query_param, parse_talon_ops_access_claims,
         parse_talon_ops_policy_from_target, require_namespace_access, schedule_json,
         talon_jwt_secret, talon_ops_access_from_parts, talon_ops_access_from_request,
-        talon_ops_auth_broker, to_json_string, DeleteScheduleArgs, GetAgentArgs,
-        GetScheduleArgs, ListMcpBindingsArgs, ListMcpServersArgs, ListNamespacesArgs,
-        ListRecentStepsArgs, ListSchedulesArgs, ListSessionsArgs, McpAuthBrokerClaims,
-        McpAuthBrokerRequest, PutScheduleArgs, TalonOpsAccess, TalonOpsAccessClaims,
-        TalonOpsPolicy, TalonOpsServer, DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS,
-        DEFAULT_MAX_LIST_LIMIT, META_NS,
+        talon_ops_auth_broker, to_json_string, DeleteScheduleArgs, GetAgentArgs, GetScheduleArgs,
+        ListMcpBindingsArgs, ListMcpServersArgs, ListNamespacesArgs, ListRecentStepsArgs,
+        ListSchedulesArgs, ListSessionsArgs, McpAuthBrokerClaims, McpAuthBrokerRequest,
+        PutScheduleArgs, TalonOpsAccess, TalonOpsAccessClaims, TalonOpsPolicy, TalonOpsServer,
+        DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS, DEFAULT_MAX_LIST_LIMIT, META_NS,
     };
     use crate::config::Config;
     use crate::control::{
@@ -1502,11 +1505,7 @@ mod tests {
     use prost::Message;
     use rmcp::handler::server::wrapper::Parameters;
     use serde_json::json;
-    use std::{
-        collections::HashMap,
-        pin::Pin,
-        sync::Arc,
-    };
+    use std::{collections::HashMap, pin::Pin, sync::Arc};
     use tokio::sync::Mutex as AsyncMutex;
 
     #[derive(Default)]
@@ -1541,7 +1540,9 @@ mod tests {
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut entries = self.entries.write().await;
-            let current = entries.get(&(namespace.to_string(), key.to_string())).cloned();
+            let current = entries
+                .get(&(namespace.to_string(), key.to_string()))
+                .cloned();
             if current.as_deref() == expected {
                 entries.insert((namespace.to_string(), key.to_string()), value.to_vec());
                 Ok(true)
@@ -1716,6 +1717,7 @@ mod tests {
                                         provider: "mock".to_string(),
                                         name: "gpt-5".to_string(),
                                         temperature: 0.0,
+                                        thinking: None,
                                     }),
                                 }],
                             }),
@@ -1734,6 +1736,7 @@ mod tests {
                                 provider: "mock".to_string(),
                                 name: "gpt-5".to_string(),
                                 temperature: 0.0,
+                                thinking: None,
                             }),
                         }],
                     }),
@@ -1848,8 +1851,14 @@ mod tests {
 
     #[test]
     fn normalize_schedule_kind_maps_interval_to_every() {
-        assert_eq!(crate::scheduling::normalize_schedule_kind("interval"), "every");
-        assert_eq!(crate::scheduling::normalize_schedule_kind(" every "), "every");
+        assert_eq!(
+            crate::scheduling::normalize_schedule_kind("interval"),
+            "every"
+        );
+        assert_eq!(
+            crate::scheduling::normalize_schedule_kind(" every "),
+            "every"
+        );
         assert_eq!(crate::scheduling::normalize_schedule_kind("cron"), "cron");
     }
 
@@ -1894,7 +1903,10 @@ mod tests {
         assert!(parse_bool_query_param("enabled", "true").is_err());
 
         assert_eq!(parse_non_negative_i32_query_param("limit", "0").unwrap(), 0);
-        assert_eq!(parse_non_negative_i32_query_param("limit", "42").unwrap(), 42);
+        assert_eq!(
+            parse_non_negative_i32_query_param("limit", "42").unwrap(),
+            42
+        );
         assert!(parse_non_negative_i32_query_param("limit", "-1").is_err());
         assert!(parse_non_negative_i32_query_param("limit", "abc").is_err());
     }
@@ -1936,10 +1948,11 @@ mod tests {
             std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
         }
 
-        let access_token = mint_talon_ops_access_token("conic", "talon-ops", Some("cmo"), 4_102_444_800)
-            .expect("access token should mint");
-        let access_claims =
-            parse_talon_ops_access_claims(&format!("Bearer {access_token}")).expect("claims should parse");
+        let access_token =
+            mint_talon_ops_access_token("conic", "talon-ops", Some("cmo"), 4_102_444_800)
+                .expect("access token should mint");
+        let access_claims = parse_talon_ops_access_claims(&format!("Bearer {access_token}"))
+            .expect("claims should parse");
         assert_eq!(access_claims.namespace, "conic");
         assert_eq!(access_claims.binding_name, "talon-ops");
         assert_eq!(access_claims.agent_name.as_deref(), Some("cmo"));
@@ -2150,7 +2163,9 @@ mod tests {
         .await
         .expect("binding should persist");
 
-        let policy = load_talon_ops_policy(&kv).await.expect("policy should load");
+        let policy = load_talon_ops_policy(&kv)
+            .await
+            .expect("policy should load");
         assert_eq!(policy.allowed_namespace_prefixes, vec!["conic".to_string()]);
         assert!(policy.allow_session_messages);
 
@@ -2179,7 +2194,8 @@ mod tests {
                 }),
                 spec: Some(manifests::McpServerSpec {
                     transport: "streamable_http".to_string(),
-                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic".to_string(),
+                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic"
+                        .to_string(),
                     args: Vec::new(),
                     headers: HashMap::new(),
                     disabled: false,

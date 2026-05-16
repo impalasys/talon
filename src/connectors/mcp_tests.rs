@@ -4,8 +4,8 @@
 #[cfg(test)]
 mod tests {
     use crate::connectors::mcp::{
-        authorization_bearer_token, authorization_header, clear_broker_auth_cache_for_test,
-        call_tool_for_config, content_type_matches, format_tool_result,
+        authorization_bearer_token, authorization_header, call_tool_for_config,
+        clear_broker_auth_cache_for_test, content_type_matches, format_tool_result,
         invalidate_all_broker_auth_cache, invalidate_broker_auth_cache, list_tools_for_config,
         resolve_http_headers, validate_http_headers, AuthenticatedReqwestClient,
         McpAuthBrokerConfig, McpClient, McpConnectionConfig,
@@ -198,7 +198,10 @@ mod tests {
     #[test]
     fn test_format_tool_result_uses_text_when_structured_content_is_missing() {
         let result = format_tool_result(
-            &[Content::text("File content here"), Content::text("More text")],
+            &[
+                Content::text("File content here"),
+                Content::text("More text"),
+            ],
             None,
             json!([]),
         )
@@ -257,7 +260,10 @@ mod tests {
     fn test_format_tool_result_decodes_blob_and_serializes_non_text_blocks() {
         let result = format_tool_result(
             &[
-                Content::resource(ResourceContents::blob("SGVsbG8gYmxvYg==", "file:///blob.txt")),
+                Content::resource(ResourceContents::blob(
+                    "SGVsbG8gYmxvYg==",
+                    "file:///blob.txt",
+                )),
                 Content::image("ZmFrZQ==", "image/png"),
             ],
             None,
@@ -272,7 +278,8 @@ mod tests {
 
     #[test]
     fn test_format_tool_result_falls_back_to_pretty_printed_json() {
-        let result = format_tool_result(&[], None, json!({"ok": true, "items": [1, 2, 3]})).unwrap();
+        let result =
+            format_tool_result(&[], None, json!({"ok": true, "items": [1, 2, 3]})).unwrap();
         assert!(result.contains("\"ok\": true"));
         assert!(result.contains("\"items\": ["));
     }
@@ -396,10 +403,7 @@ mod tests {
                 transport: "http".to_string(),
                 target: "https://example.com/mcp".to_string(),
                 args: vec!["--flag".to_string()],
-                headers: HashMap::from([(
-                    "Authorization".to_string(),
-                    "Bearer token".to_string(),
-                )]),
+                headers: HashMap::from([("Authorization".to_string(), "Bearer token".to_string())]),
                 disabled: true,
             }),
         };
@@ -551,10 +555,7 @@ mod tests {
             transport: "http".to_string(),
             target: "https://api.githubcopilot.com/mcp/".to_string(),
             args: Vec::new(),
-            headers: HashMap::from([(
-                "Authorization".to_string(),
-                "Bearer static".to_string(),
-            )]),
+            headers: HashMap::from([("Authorization".to_string(), "Bearer static".to_string())]),
             disabled: false,
             namespace: Some("conic:wks:42".to_string()),
             binding_name: Some("github".to_string()),
@@ -740,11 +741,9 @@ mod tests {
             }),
         ))
         .await;
-        let invalid_json_addr = serve(Router::new().route(
-            "/broker",
-            post(|| async { (StatusCode::OK, "not-json") }),
-        ))
-        .await;
+        let invalid_json_addr =
+            serve(Router::new().route("/broker", post(|| async { (StatusCode::OK, "not-json") })))
+                .await;
         let empty_token_addr = serve(Router::new().route(
             "/broker",
             post(|| async {
@@ -800,7 +799,10 @@ mod tests {
             }),
             ..base_config.clone()
         };
-        let err = resolve_http_headers(&status_config).await.unwrap_err().to_string();
+        let err = resolve_http_headers(&status_config)
+            .await
+            .unwrap_err()
+            .to_string();
         assert!(err.contains("returned 502 Bad Gateway"));
         assert!(err.contains("truncated"));
 
@@ -954,12 +956,18 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_authenticated_reqwest_client_get_stream_handles_method_not_allowed_and_bad_content_type()
-    {
+    async fn test_authenticated_reqwest_client_get_stream_handles_method_not_allowed_and_bad_content_type(
+    ) {
         let app = Router::new().route(
             "/mcp",
-            get(|| async { (StatusCode::OK, [(axum::http::header::CONTENT_TYPE, "text/plain")], "nope") })
-                .post(|| async { StatusCode::METHOD_NOT_ALLOWED }),
+            get(|| async {
+                (
+                    StatusCode::OK,
+                    [(axum::http::header::CONTENT_TYPE, "text/plain")],
+                    "nope",
+                )
+            })
+            .post(|| async { StatusCode::METHOD_NOT_ALLOWED }),
         );
 
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -985,17 +993,14 @@ mod tests {
             .post_message(uri, ping_message(), None, None, HashMap::new())
             .await
             .unwrap_err();
-        assert!(matches!(
-            method_not_allowed,
-            StreamableHttpError::Client(_)
-        ));
+        assert!(matches!(method_not_allowed, StreamableHttpError::Client(_)));
 
         server.abort();
     }
 
     #[tokio::test]
-    async fn test_authenticated_reqwest_client_get_stream_uses_custom_headers_last_event_id_and_auth_override()
-    {
+    async fn test_authenticated_reqwest_client_get_stream_uses_custom_headers_last_event_id_and_auth_override(
+    ) {
         let app = Router::new().route(
             "/mcp",
             get(|headers: HeaderMap| async move {
@@ -1056,8 +1061,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_authenticated_reqwest_client_get_stream_rejects_missing_content_type_and_method_not_allowed()
-    {
+    async fn test_authenticated_reqwest_client_get_stream_rejects_missing_content_type_and_method_not_allowed(
+    ) {
         let missing_content_type_app = Router::new().route(
             "/mcp",
             get(|| async {
@@ -1142,8 +1147,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_authenticated_reqwest_client_delete_session_honors_custom_headers_and_surfaces_errors()
-    {
+    async fn test_authenticated_reqwest_client_delete_session_honors_custom_headers_and_surfaces_errors(
+    ) {
         let app = Router::new().route(
             "/mcp",
             delete(|headers: HeaderMap| async move {
@@ -1215,7 +1220,10 @@ mod tests {
                 (
                     [
                         (axum::http::header::CONTENT_TYPE, "text/event-stream"),
-                        (axum::http::header::HeaderName::from_static("mcp-session-id"), "session-xyz"),
+                        (
+                            axum::http::header::HeaderName::from_static("mcp-session-id"),
+                            "session-xyz",
+                        ),
                     ],
                     "data: {\"jsonrpc\":\"2.0\",\"method\":\"ping\"}\n\n",
                 )
@@ -1258,7 +1266,10 @@ mod tests {
             )
             .await
             .unwrap();
-        assert!(matches!(json_response, StreamableHttpPostResponse::Json(_, _)));
+        assert!(matches!(
+            json_response,
+            StreamableHttpPostResponse::Json(_, _)
+        ));
 
         let sse_response = client
             .post_message(
@@ -1279,8 +1290,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_authenticated_reqwest_client_post_message_uses_headers_and_rejects_unexpected_content_type()
-    {
+    async fn test_authenticated_reqwest_client_post_message_uses_headers_and_rejects_unexpected_content_type(
+    ) {
         let app = Router::new().route(
             "/mcp",
             post(|headers: HeaderMap| async move {
