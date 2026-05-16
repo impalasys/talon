@@ -35,20 +35,13 @@ pub(crate) mod test_support {
     use std::sync::{Mutex, OnceLock};
     use tokio::sync::Mutex as AsyncMutex;
 
-    pub(crate) fn env_mutex() -> &'static Mutex<()> {
-        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| Mutex::new(()))
-    }
-
-    pub(crate) fn env_lock() -> std::sync::MutexGuard<'static, ()> {
-        env_mutex()
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-    }
-
     pub(crate) fn async_env_mutex() -> &'static AsyncMutex<()> {
         static LOCK: OnceLock<AsyncMutex<()>> = OnceLock::new();
         LOCK.get_or_init(|| AsyncMutex::new(()))
+    }
+
+    pub(crate) fn env_lock() -> tokio::sync::MutexGuard<'static, ()> {
+        async_env_mutex().blocking_lock()
     }
 
     #[derive(Default)]

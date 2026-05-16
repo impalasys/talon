@@ -401,7 +401,7 @@ mod tests {
 
     #[tokio::test]
     async fn publish_caches_topic_initialization_and_records_payloads() {
-        let _lock = crate::test_support::env_lock();
+        let _lock = crate::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
@@ -431,7 +431,7 @@ mod tests {
 
     #[tokio::test]
     async fn publish_concurrently_initializes_topic_once() {
-        let _lock = crate::test_support::env_lock();
+        let _lock = crate::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = Arc::new(GcpPubSubPublisher::with_backend(backend.clone()));
@@ -457,7 +457,7 @@ mod tests {
 
     #[tokio::test]
     async fn subscribe_creates_and_cleans_up_temporary_subscription() {
-        let _lock = crate::test_support::env_lock();
+        let _lock = crate::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
@@ -478,7 +478,7 @@ mod tests {
 
     #[tokio::test]
     async fn publish_and_subscribe_surface_backend_failures() {
-        let _lock = crate::test_support::env_lock();
+        let _lock = crate::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         *backend.fail_topic.lock().await =
@@ -503,7 +503,7 @@ mod tests {
 
     #[tokio::test]
     async fn subscribe_stream_yields_received_messages_in_order() {
-        let _lock = crate::test_support::env_lock();
+        let _lock = crate::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         let publisher = GcpPubSubPublisher::with_backend(backend.clone());
@@ -539,7 +539,7 @@ mod tests {
 
     #[tokio::test]
     async fn publish_surfaces_backend_publish_failure_after_topic_init() {
-        let _lock = crate::test_support::env_lock();
+        let _lock = crate::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         *backend.fail_publish.lock().await = Some("projects/project-123/topics/events".to_string());
@@ -556,7 +556,7 @@ mod tests {
 
     #[tokio::test]
     async fn subscribe_surfaces_subscription_creation_failure() {
-        let _lock = crate::test_support::env_lock();
+        let _lock = crate::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         *backend.fail_ensure_subscription.lock().await = Some("events-sub-".to_string());
@@ -572,7 +572,7 @@ mod tests {
 
     #[tokio::test]
     async fn backend_named_receive_batches_and_cleanup_failure_path_are_exercised() {
-        let _lock = crate::test_support::env_lock();
+        let _lock = crate::test_support::async_env_mutex().lock().await;
         std::env::set_var("GCP_PROJECT_ID", "project-123");
         let backend = Arc::new(FakeBackend::default());
         *backend.fail_delete_contains.lock().await = Some("events-sub-".to_string());

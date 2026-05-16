@@ -388,7 +388,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_prefers_explicit_google_oidc_over_env_secret() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "stale-secret");
@@ -422,7 +422,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_uses_env_when_config_absent() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "shared-secret");
@@ -433,7 +433,8 @@ mod tests {
             std::env::set_var("TALON_SCHEDULER_AUDIENCE", "https://worker.example.com");
         }
 
-        let (auth_token, service_account_email, audience) = resolve_callback_auth(None).await.unwrap();
+        let (auth_token, service_account_email, audience) =
+            resolve_callback_auth(None).await.unwrap();
 
         assert_eq!(auth_token.as_deref(), Some("shared-secret"));
         assert_eq!(
@@ -447,7 +448,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_callback_auth_handles_blank_and_shared_secret_config() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
 
         let blank_cfg = crate::config::proto::SchedulerCallbackAuthConfig {
@@ -494,7 +495,7 @@ mod tests {
 
     #[tokio::test]
     async fn new_requires_scheduler_fields_and_reads_env_fallbacks() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
         unsafe {
             std::env::remove_var("TALON_SCHEDULER_PROJECT_ID");
@@ -516,19 +517,28 @@ mod tests {
             std::env::set_var("GCP_PROJECT_ID", "env-project");
             std::env::set_var("TALON_SCHEDULER_LOCATION", "us-central1");
             std::env::set_var("TALON_SCHEDULER_QUEUE", "jobs");
-            std::env::set_var("TALON_SCHEDULER_TARGET_URL", "https://worker.example.com/fire");
+            std::env::set_var(
+                "TALON_SCHEDULER_TARGET_URL",
+                "https://worker.example.com/fire",
+            );
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "env-secret");
             std::env::set_var(
                 "TALON_SCHEDULER_SERVICE_ACCOUNT_EMAIL",
                 "scheduler@example.com",
             );
-            std::env::set_var("TALON_SCHEDULER_AUDIENCE", "https://worker.example.com/fire");
+            std::env::set_var(
+                "TALON_SCHEDULER_AUDIENCE",
+                "https://worker.example.com/fire",
+            );
         }
 
         let backend = CloudTasksSchedulerBackend::new(&CloudTasksSchedulerConfig::default())
             .await
             .expect("backend should build from env");
-        assert_eq!(backend.parent, "projects/env-project/locations/us-central1/queues/jobs");
+        assert_eq!(
+            backend.parent,
+            "projects/env-project/locations/us-central1/queues/jobs"
+        );
         assert_eq!(backend.target_url, "https://worker.example.com/fire");
         assert_eq!(backend.auth_token.as_deref(), Some("env-secret"));
         assert_eq!(
@@ -552,7 +562,7 @@ mod tests {
 
     #[tokio::test]
     async fn new_prefers_trimmed_config_values_over_env() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
         unsafe {
             std::env::set_var("GCP_PROJECT_ID", "env-project");
@@ -585,7 +595,10 @@ mod tests {
         .await
         .expect("backend should build from config");
 
-        assert_eq!(backend.parent, "projects/cfg-project/locations/us-west1/queues/main");
+        assert_eq!(
+            backend.parent,
+            "projects/cfg-project/locations/us-west1/queues/main"
+        );
         assert_eq!(backend.target_url, "https://cfg.example.com/fire");
         assert_eq!(backend.auth_token.as_deref(), Some("env-secret"));
 

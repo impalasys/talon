@@ -33,8 +33,7 @@ fn next_pull_error_backoff(
     std::time::Duration::from_secs(2u64.saturating_pow((*attempts).min(4)))
 }
 
-fn next_pull_reconnect_delay(attempts: &mut u32) -> std::time::Duration {
-    *attempts = 0;
+fn next_pull_reconnect_delay() -> std::time::Duration {
     std::time::Duration::from_secs(1)
 }
 
@@ -357,7 +356,8 @@ async fn run_pull_subscription_loop<F, Fut>(
                 if shutdown_token.is_cancelled() {
                     return;
                 }
-                let reconnect_delay = next_pull_reconnect_delay(&mut attempts);
+                attempts = 0;
+                let reconnect_delay = next_pull_reconnect_delay();
                 tokio::select! {
                     _ = shutdown_token.cancelled() => return,
                     _ = tokio::time::sleep(reconnect_delay) => {}
@@ -960,9 +960,10 @@ mod tests {
         assert_eq!(attempts, 1);
 
         assert_eq!(
-            next_pull_reconnect_delay(&mut attempts),
+            next_pull_reconnect_delay(),
             std::time::Duration::from_secs(1)
         );
+        attempts = 0;
         assert_eq!(attempts, 0);
     }
 

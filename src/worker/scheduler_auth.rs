@@ -260,8 +260,8 @@ async fn verify_google_oidc_token(
 #[cfg(test)]
 mod tests {
     use super::{
-        authorize_shared_secret, google_oidc_certs_cache, load_google_oidc_decoding_key,
-        non_empty, CachedGoogleOidcCerts, SchedulerRequestAuthenticator,
+        authorize_shared_secret, google_oidc_certs_cache, load_google_oidc_decoding_key, non_empty,
+        CachedGoogleOidcCerts, SchedulerRequestAuthenticator,
     };
     use axum::http::{header, HeaderMap, HeaderValue};
     use jsonwebtoken::{encode, Algorithm, DecodingKey, EncodingKey, Header};
@@ -399,15 +399,14 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
             .authorize(&HeaderMap::new())
             .await
             .expect_err("expected deny all auth to reject");
-        assert!(
-            err.to_string()
-                .contains("scheduler request authentication is not configured")
-        );
+        assert!(err
+            .to_string()
+            .contains("scheduler request authentication is not configured"));
     }
 
     #[tokio::test]
     async fn from_config_prefers_shared_secret_env() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "env-secret");
             std::env::remove_var("TALON_SCHEDULER_AUDIENCE");
@@ -433,10 +432,13 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
 
     #[tokio::test]
     async fn from_config_uses_google_oidc_env_when_no_shared_secret() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         unsafe {
             std::env::remove_var("TALON_SCHEDULER_AUTH_TOKEN");
-            std::env::set_var("TALON_SCHEDULER_AUDIENCE", "https://worker.example.com/schedules");
+            std::env::set_var(
+                "TALON_SCHEDULER_AUDIENCE",
+                "https://worker.example.com/schedules",
+            );
             std::env::set_var(
                 "TALON_SCHEDULER_SERVICE_ACCOUNT_EMAIL",
                 "scheduler@example.iam.gserviceaccount.com",

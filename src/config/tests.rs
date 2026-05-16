@@ -7,8 +7,8 @@ mod tests {
     use prost::Message;
     use std::env;
     use std::io::Write;
-    use tempfile::NamedTempFile;
     use tempfile::tempdir;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn test_config_from_yaml() {
@@ -87,7 +87,7 @@ server:
 
     #[tokio::test]
     async fn test_secret_resolution() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         unsafe {
             std::env::set_var("MY_TEST_SECRET", "resolved-value");
         }
@@ -107,7 +107,7 @@ server:
 
     #[tokio::test]
     async fn test_secret_resolution_reports_local_error_paths() {
-        let _guard = crate::test_support::env_lock();
+        let _guard = crate::test_support::async_env_mutex().lock().await;
         unsafe {
             std::env::remove_var("MISSING_TEST_SECRET");
         }
@@ -317,7 +317,9 @@ api_key = "secret"
             database: Some(crate::config::DatabaseConfigWrapper {
                 data_dir: Some("./data".to_string()),
                 driver: Some("sqlite".to_string()),
-                url: Some(crate::config::SerdeSecret::Plain("postgres://db".to_string())),
+                url: Some(crate::config::SerdeSecret::Plain(
+                    "postgres://db".to_string(),
+                )),
             }),
             server: Some(crate::config::ServerConfigWrapper {
                 host: "0.0.0.0".to_string(),
@@ -372,11 +374,14 @@ api_key = "secret"
         );
 
         let provider = config.providers.get("primary").unwrap();
-        let Some(proto::llm_provider_config::Config::OpenaiCompatible(generic)) = &provider.config else {
+        let Some(proto::llm_provider_config::Config::OpenaiCompatible(generic)) = &provider.config
+        else {
             panic!("expected openai compatible provider");
         };
         assert_eq!(generic.base_url, "https://llm.example.com");
-        let Some(proto::secret::Source::Ref(secret_ref)) = &generic.api_key.as_ref().unwrap().source else {
+        let Some(proto::secret::Source::Ref(secret_ref)) =
+            &generic.api_key.as_ref().unwrap().source
+        else {
             panic!("expected secret ref");
         };
         assert_eq!(secret_ref.source, proto::secret_ref::Source::Azure as i32);
@@ -386,7 +391,9 @@ api_key = "secret"
             panic!("expected cloud tasks scheduler");
         };
         assert_eq!(cloud.project_id, "project");
-        let Some(proto::scheduler_callback_auth_config::Auth::GoogleOidc(oidc)) = cloud.callback_auth.unwrap().auth else {
+        let Some(proto::scheduler_callback_auth_config::Auth::GoogleOidc(oidc)) =
+            cloud.callback_auth.unwrap().auth
+        else {
             panic!("expected oidc auth");
         };
         assert_eq!(oidc.service_account_email, "svc@example.com");
