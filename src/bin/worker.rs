@@ -296,10 +296,7 @@ async fn run_pull_subscription_loop<F, Fut>(
     loop {
         let backend = loop {
             match build_backend().await {
-                Ok(backend) => {
-                    attempts = 0;
-                    break backend;
-                }
+                Ok(backend) => break backend,
                 Err(e) => {
                     attempts += 1;
                     let backoff_secs = 2u64.saturating_pow(attempts.min(4));
