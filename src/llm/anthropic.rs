@@ -14,6 +14,7 @@ use serde_json::json;
 const DEFAULT_MAX_TOKENS: u64 = 1024;
 const DEFAULT_THINKING_BUDGET_TOKENS: u64 = 1024;
 const MIN_THINKING_MAX_TOKENS: u64 = 4096;
+const THINKING_COMPLETION_BUFFER_TOKENS: u64 = 4096;
 
 pub struct AnthropicProvider {
     pub api_key: String,
@@ -50,7 +51,8 @@ impl AnthropicProvider {
             .budget_tokens
             .map(u64::from)
             .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS);
-        let max_tokens = MIN_THINKING_MAX_TOKENS.max(budget_tokens.saturating_add(1));
+        let max_tokens = MIN_THINKING_MAX_TOKENS
+            .max(budget_tokens.saturating_add(THINKING_COMPLETION_BUFFER_TOKENS));
         (
             max_tokens,
             Some(json!({
@@ -290,7 +292,7 @@ mod tests {
 
         let (max_tokens, payload) = AnthropicProvider::resolve_thinking_config(Some(&thinking));
 
-        assert_eq!(max_tokens, MIN_THINKING_MAX_TOKENS);
+        assert_eq!(max_tokens, 5120);
         assert_eq!(
             payload,
             Some(json!({
@@ -310,7 +312,7 @@ mod tests {
 
         let (max_tokens, payload) = AnthropicProvider::resolve_thinking_config(Some(&thinking));
 
-        assert_eq!(max_tokens, 5001);
+        assert_eq!(max_tokens, 9096);
         assert_eq!(
             payload,
             Some(json!({

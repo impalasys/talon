@@ -271,6 +271,9 @@ impl OpenAiCompatibleProvider {
                 if !thinking.effort.trim().is_empty() {
                     payload["reasoning_effort"] = serde_json::json!(thinking.effort);
                 }
+                if let Some(budget_tokens) = thinking.budget_tokens {
+                    payload["max_completion_tokens"] = serde_json::json!(budget_tokens);
+                }
             }
 
             payload
@@ -859,6 +862,7 @@ mod tests {
             "/chat/completions",
             post(|Json(payload): Json<serde_json::Value>| async move {
                 assert_eq!(payload["reasoning_effort"], "high");
+                assert_eq!(payload["max_completion_tokens"], 2048);
                 assert!(payload.get("reasoning").is_none());
                 Json(serde_json::json!({
                     "choices": [{
@@ -893,7 +897,7 @@ mod tests {
                 tools: vec![],
                 thinking: Some(ThinkingConfig {
                     enabled: true,
-                    budget_tokens: None,
+                    budget_tokens: Some(2048),
                     effort: "high".to_string(),
                 }),
             })
