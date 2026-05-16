@@ -101,9 +101,11 @@ def talon_infrastructure():
     # Copy talon.yaml so load_default() can find it in the test execution root
     config_src = REPO_ROOT / "talon.yaml"
     if config_src.exists():
-        shutil.copy(config_src, "talon.yaml")
-        print("Copied talon.yaml to test execution root.")
-    
+        config_dst = Path("talon.yaml").resolve()
+        if config_src.resolve() != config_dst:
+            shutil.copy(config_src, config_dst)
+            print("Copied talon.yaml to test execution root.")
+
     server_bin = get_binary_path("talon_server")
     worker_bin = get_binary_path("talon_worker")
     
