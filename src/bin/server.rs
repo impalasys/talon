@@ -10,6 +10,7 @@ use talon::gateway::auth::AuthConfig;
 use talon::gateway::server::Gateway;
 use tokio::task::JoinHandle;
 use tokio::signal;
+use tokio_util::sync::CancellationToken;
 
 fn select_auth_config<F>(mut get: F) -> AuthConfig
 where
@@ -44,11 +45,22 @@ fn spawn_gateway_tasks(
     gateway: Gateway,
     rpc_addr: String,
     ui_addr: String,
+    shutdown_token: CancellationToken,
 ) -> (JoinHandle<Result<()>>, JoinHandle<Result<()>>) {
     let rpc_gateway = gateway.clone();
     let ui_gateway = gateway;
-    let rpc_task = tokio::spawn(async move { rpc_gateway.start_rpc_server(&rpc_addr).await });
-    let ui_task = tokio::spawn(async move { ui_gateway.start_http_ui_server(&ui_addr).await });
+    let rpc_shutdown = shutdown_token.child_token();
+    let ui_shutdown = shutdown_token.child_token();
+    let rpc_task = tokio::spawn(async move {
+        rpc_gateway
+            .start_rpc_server_with_shutdown(&rpc_addr, rpc_shutdown.cancelled_owned())
+            .await
+    });
+    let ui_task = tokio::spawn(async move {
+        ui_gateway
+            .start_http_ui_server_with_shutdown(&ui_addr, ui_shutdown.cancelled_owned())
+            .await
+    });
     (rpc_task, ui_task)
 }
 
@@ -66,8 +78,10 @@ where
     let auth_config = select_auth_config(auth_get);
     let gateway = build_gateway(auth_config, cp);
     let (rpc_addr, ui_addr) = gateway_addresses(addr_get);
-    let (rpc_task, ui_task) = spawn_gateway_tasks(gateway, rpc_addr, ui_addr);
-    wait_for_server_tasks(rpc_task, ui_task, shutdown).await
+    let shutdown_token = CancellationToken::new();
+    let (rpc_task, ui_task) =
+        spawn_gateway_tasks(gateway, rpc_addr, ui_addr, shutdown_token.child_token());
+    wait_for_server_tasks(rpc_task, ui_task, shutdown_token, shutdown).await
 }
 
 async fn run_server_main_with<FLoad, FBuild, FBuildFuture, FGetAuth, FGetAddr, FShutdown>(
@@ -93,6 +107,7 @@ where
 async fn wait_for_server_tasks<F>(
     rpc_task: JoinHandle<Result<()>>,
     ui_task: JoinHandle<Result<()>>,
+    shutdown_token: CancellationToken,
     shutdown: F,
 ) -> Result<()>
 where
@@ -102,25 +117,50 @@ where
     let mut ui_task = ui_task;
     tokio::pin!(shutdown);
 
-    let result: Result<()> = tokio::select! {
-        res = &mut rpc_task => match res {
+    enum Exit {
+        Rpc(Result<()>),
+        Ui(Result<()>),
+        Shutdown,
+    }
+
+    let result = tokio::select! {
+        res = &mut rpc_task => Exit::Rpc(match res {
             Ok(inner) => inner,
             Err(err) => Err(err.into()),
-        },
-        res = &mut ui_task => match res {
+        }),
+        res = &mut ui_task => Exit::Ui(match res {
             Ok(inner) => inner,
             Err(err) => Err(err.into()),
-        },
+        }),
         _ = &mut shutdown => {
             tracing::info!("Shutting down...");
-            Ok(())
+            Exit::Shutdown
         }
-    };
+    }; 
+    shutdown_token.cancel();
 
-    rpc_task.abort();
-    ui_task.abort();
-
-    result
+    match result {
+        Exit::Rpc(result) => {
+            ui_task.abort();
+            result
+        }
+        Exit::Ui(result) => {
+            rpc_task.abort();
+            result
+        }
+        Exit::Shutdown => {
+            let rpc_result = match rpc_task.await {
+                Ok(inner) => inner,
+                Err(err) => Err(err.into()),
+            };
+            let ui_result = match ui_task.await {
+                Ok(inner) => inner,
+                Err(err) => Err(err.into()),
+            };
+            rpc_result?;
+            ui_result
+        }
+    }
 }
 
 #[tokio::main]
@@ -157,6 +197,7 @@ mod tests {
     use futures::StreamExt;
     use tokio::sync::oneshot;
     use tokio::sync::Mutex;
+    use tokio_util::sync::CancellationToken;
 
     #[derive(Default)]
     struct MockKvStore {
@@ -361,41 +402,60 @@ mod tests {
 
     #[tokio::test]
     async fn wait_for_server_tasks_returns_rpc_and_ui_results() {
+        let shutdown_token = CancellationToken::new();
         let rpc_ok = tokio::spawn(async { Ok(()) });
         let ui_pending = tokio::spawn(async {
             futures::future::pending::<()>().await;
             #[allow(unreachable_code)]
             Ok(())
         });
-        wait_for_server_tasks(rpc_ok, ui_pending, futures::future::pending::<()>())
+        wait_for_server_tasks(
+            rpc_ok,
+            ui_pending,
+            shutdown_token.child_token(),
+            futures::future::pending::<()>(),
+        )
             .await
             .unwrap();
 
+        let shutdown_token = CancellationToken::new();
         let rpc_pending = tokio::spawn(async {
             futures::future::pending::<()>().await;
             #[allow(unreachable_code)]
             Ok(())
         });
         let ui_err = tokio::spawn(async { anyhow::bail!("ui failed") });
-        let err = wait_for_server_tasks(rpc_pending, ui_err, futures::future::pending::<()>())
-            .await
-            .unwrap_err();
+        let err = wait_for_server_tasks(
+            rpc_pending,
+            ui_err,
+            shutdown_token.child_token(),
+            futures::future::pending::<()>(),
+        )
+        .await
+        .unwrap_err();
         assert!(err.to_string().contains("ui failed"));
 
+        let shutdown_token = CancellationToken::new();
         let rpc_err = tokio::spawn(async { anyhow::bail!("rpc failed") });
         let ui_pending = tokio::spawn(async {
             futures::future::pending::<()>().await;
             #[allow(unreachable_code)]
             Ok(())
         });
-        let err = wait_for_server_tasks(rpc_err, ui_pending, futures::future::pending::<()>())
-            .await
-            .unwrap_err();
+        let err = wait_for_server_tasks(
+            rpc_err,
+            ui_pending,
+            shutdown_token.child_token(),
+            futures::future::pending::<()>(),
+        )
+        .await
+        .unwrap_err();
         assert!(err.to_string().contains("rpc failed"));
     }
 
     #[tokio::test]
     async fn wait_for_server_tasks_returns_join_errors_and_shutdown() {
+        let shutdown_token = CancellationToken::new();
         let rpc_panic = tokio::spawn(async {
             panic!("rpc panic");
             #[allow(unreachable_code)]
@@ -406,28 +466,39 @@ mod tests {
             #[allow(unreachable_code)]
             Ok(())
         });
-        let err = wait_for_server_tasks(rpc_panic, ui_pending, futures::future::pending::<()>())
-            .await
-            .unwrap_err();
+        let err = wait_for_server_tasks(
+            rpc_panic,
+            ui_pending,
+            shutdown_token.child_token(),
+            futures::future::pending::<()>(),
+        )
+        .await
+        .unwrap_err();
         assert!(err.to_string().contains("rpc panic"));
 
-        let rpc_pending = tokio::spawn(async {
-            futures::future::pending::<()>().await;
-            #[allow(unreachable_code)]
+        let shutdown_token = CancellationToken::new();
+        let rpc_shutdown = shutdown_token.child_token();
+        let ui_shutdown = shutdown_token.child_token();
+        let rpc_pending = tokio::spawn(async move {
+            rpc_shutdown.cancelled().await;
             Ok(())
         });
-        let ui_pending = tokio::spawn(async {
-            futures::future::pending::<()>().await;
-            #[allow(unreachable_code)]
+        let ui_pending = tokio::spawn(async move {
+            ui_shutdown.cancelled().await;
             Ok(())
         });
         let (tx, rx) = oneshot::channel::<()>();
         let shutdown_task = tokio::spawn(async move {
             let _ = tx.send(());
         });
-        wait_for_server_tasks(rpc_pending, ui_pending, async move {
-            let _ = rx.await;
-        })
+        wait_for_server_tasks(
+            rpc_pending,
+            ui_pending,
+            shutdown_token,
+            async move {
+                let _ = rx.await;
+            },
+        )
         .await
         .unwrap();
         shutdown_task.await.unwrap();
@@ -451,6 +522,7 @@ mod tests {
             gateway,
             rpc_addr.to_string(),
             ui_addr.to_string(),
+            CancellationToken::new(),
         );
         tokio::time::sleep(std::time::Duration::from_millis(50)).await;
         rpc_task.abort();

@@ -6,13 +6,33 @@ use anyhow::Result;
 use sqlx::{PgPool, Row};
 
 fn validate_identifier(table: &str) -> Result<()> {
-    if table.is_empty() || !table.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '_') {
+    if table.is_empty() || table.len() > 63 {
+        anyhow::bail!(
+            "Invalid table name '{}': must be between 1 and 63 characters",
+            table
+        );
+    }
+    let mut chars = table.chars();
+    let first = chars
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("Invalid table name '{}': must not be empty", table))?;
+    if !first.is_ascii_alphabetic() && first != '_' {
+        anyhow::bail!(
+            "Invalid table name '{}': must start with a letter or underscore",
+            table
+        );
+    }
+    if !chars.all(|ch| ch.is_ascii_alphanumeric() || ch == '_') {
         anyhow::bail!(
             "Invalid table name '{}': only ASCII letters, numbers, and underscores are allowed",
             table
         );
     }
     Ok(())
+}
+
+fn quoted_identifier(table: &str) -> String {
+    format!("\"{}\"", table)
 }
 
 fn like_prefix_pattern(prefix: &str) -> String {
@@ -31,6 +51,7 @@ fn like_prefix_pattern(prefix: &str) -> String {
 }
 
 fn create_table_statement(table: &str) -> String {
+    let table = quoted_identifier(table);
     format!(
         "CREATE TABLE IF NOT EXISTS {} (
                 namespace VARCHAR(255) NOT NULL,
@@ -43,10 +64,14 @@ fn create_table_statement(table: &str) -> String {
 }
 
 fn get_query(table: &str) -> String {
-    format!("SELECT value FROM {} WHERE namespace = $1 AND key = $2", table)
+    format!(
+        "SELECT value FROM {} WHERE namespace = $1 AND key = $2",
+        quoted_identifier(table)
+    )
 }
 
 fn set_query(table: &str) -> String {
+    let table = quoted_identifier(table);
     format!(
         "INSERT INTO {} (namespace, key, value) VALUES ($1, $2, $3) 
              ON CONFLICT (namespace, key) DO UPDATE SET value = $3",
@@ -55,6 +80,7 @@ fn set_query(table: &str) -> String {
 }
 
 fn compare_and_swap_query(table: &str, expected: bool) -> String {
+    let table = quoted_identifier(table);
     if expected {
         format!(
             "UPDATE {} SET value = $3
@@ -71,27 +97,30 @@ fn compare_and_swap_query(table: &str, expected: bool) -> String {
 }
 
 fn delete_query(table: &str) -> String {
-    format!("DELETE FROM {} WHERE namespace = $1 AND key = $2", table)
+    format!(
+        "DELETE FROM {} WHERE namespace = $1 AND key = $2",
+        quoted_identifier(table)
+    )
 }
 
 fn list_keys_query(table: &str) -> String {
     format!(
         "SELECT key FROM {} WHERE namespace = $1 AND key LIKE $2 ESCAPE '\\'",
-        table
+        quoted_identifier(table)
     )
 }
 
 fn list_entries_query(table: &str) -> String {
     format!(
         "SELECT key, value FROM {} WHERE namespace = $1 AND key LIKE $2 ESCAPE '\\'",
-        table
+        quoted_identifier(table)
     )
 }
 
 fn delete_prefix_query(table: &str) -> String {
     format!(
         "DELETE FROM {} WHERE namespace = $1 AND key LIKE $2 ESCAPE '\\'",
-        table
+        quoted_identifier(table)
     )
 }
 
@@ -243,35 +272,42 @@ mod tests {
     #[test]
     fn sql_builders_use_expected_table_and_clauses() {
         let create = create_table_statement("talon_kv");
-        assert!(create.contains("CREATE TABLE IF NOT EXISTS talon_kv"));
+        assert!(create.contains("CREATE TABLE IF NOT EXISTS \"talon_kv\""));
         assert!(create.contains("PRIMARY KEY (namespace, key)"));
 
         assert_eq!(
             get_query("talon_kv"),
-            "SELECT value FROM talon_kv WHERE namespace = $1 AND key = $2"
+            "SELECT value FROM \"talon_kv\" WHERE namespace = $1 AND key = $2"
         );
         assert!(set_query("talon_kv").contains("ON CONFLICT (namespace, key) DO UPDATE"));
         assert!(compare_and_swap_query("talon_kv", true).contains("AND value = $4"));
         assert!(compare_and_swap_query("talon_kv", false).contains("DO NOTHING"));
         assert_eq!(
             delete_query("talon_kv"),
-            "DELETE FROM talon_kv WHERE namespace = $1 AND key = $2"
+            "DELETE FROM \"talon_kv\" WHERE namespace = $1 AND key = $2"
         );
         assert!(list_keys_query("talon_kv").contains("LIKE $2 ESCAPE '\\'"));
         assert!(list_entries_query("talon_kv").contains("SELECT key, value"));
-        assert!(delete_prefix_query("talon_kv").contains("DELETE FROM talon_kv"));
+        assert!(delete_prefix_query("talon_kv").contains("DELETE FROM \"talon_kv\""));
     }
 
     #[test]
     fn validate_identifier_rejects_invalid_table_names() {
         validate_identifier("talon_kv").expect("underscores should be allowed");
         validate_identifier("talon123").expect("alphanumeric names should be allowed");
+        validate_identifier("_talon").expect("leading underscore should be allowed");
 
         let err = validate_identifier("talon-kv").unwrap_err();
         assert!(err.to_string().contains("Invalid table name"));
 
         let empty = validate_identifier("").unwrap_err();
         assert!(empty.to_string().contains("Invalid table name"));
+
+        let starts_with_digit = validate_identifier("1talon").unwrap_err();
+        assert!(starts_with_digit.to_string().contains("must start"));
+
+        let too_long = validate_identifier(&"a".repeat(64)).unwrap_err();
+        assert!(too_long.to_string().contains("between 1 and 63"));
     }
 
     async fn init_test_store(database_url: &str) -> PostgresKvStore {

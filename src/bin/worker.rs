@@ -422,15 +422,14 @@ where
         shutdown_token.child_token(),
     );
     tokio::pin!(serve_future);
-    let result = tokio::select! {
-        res = &mut serve_future => res,
+    tokio::select! {
+        res = &mut serve_future => return res,
         _ = &mut shutdown => {
             tracing::info!("Shutting down worker...");
-            Ok(())
+            shutdown_token.cancel();
         }
-    };
-    shutdown_token.cancel();
-    result
+    }
+    serve_future.await
 }
 
 async fn run_worker_main_with<FLoad, FBuildCp, FBuildCpFuture, FBuildAuth, FBuildAuthFuture, FGet, FSpawn, FServe, Fut, FShutdown>(
@@ -1256,6 +1255,52 @@ mod tests {
             *spawned.lock().expect("spawned lock poisoned"),
             vec![(false, "talon-local".to_string())]
         );
+    }
+
+    #[tokio::test]
+    async fn run_worker_with_awaits_http_shutdown_after_signal() {
+        let cp = Arc::new(ControlPlane {
+            kv: Arc::new(MockKvStore::default()),
+            pubsub: Arc::new(MockPubSub),
+            scheduler: Arc::new(NoopSchedulerBackend),
+        });
+        let config = Arc::new(Config::default());
+        let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
+        let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+        let cancelled = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+        let result = run_worker_with(
+            cp,
+            config,
+            auth,
+            |_| None,
+            |_handler, _pull_mode, _project_id, _shutdown_token| {},
+            {
+                let cancelled = cancelled.clone();
+                move |_handler, _port, shutdown_token| {
+                    let cancelled = cancelled.clone();
+                    async move {
+                        shutdown_token.cancelled().await;
+                        cancelled.store(true, std::sync::atomic::Ordering::SeqCst);
+                        Ok(())
+                    }
+                }
+            },
+            async move {
+                let _ = shutdown_rx.await;
+            },
+        );
+
+        let signal_task = tokio::spawn(async move {
+            let _ = shutdown_tx.send(());
+        });
+
+        result.await.unwrap();
+        assert!(
+            cancelled.load(std::sync::atomic::Ordering::SeqCst),
+            "serve future should observe cancellation"
+        );
+        signal_task.await.unwrap();
     }
 
     #[tokio::test]

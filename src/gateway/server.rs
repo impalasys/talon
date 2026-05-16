@@ -56,6 +56,14 @@ impl Gateway {
     }
 
     pub async fn start_rpc_server(&self, addr: &str) -> Result<()> {
+        self.start_rpc_server_with_shutdown(addr, std::future::pending::<()>())
+            .await
+    }
+
+    pub async fn start_rpc_server_with_shutdown<F>(&self, addr: &str, shutdown: F) -> Result<()>
+    where
+        F: std::future::Future<Output = ()> + Send + 'static,
+    {
         use tonic::transport::Server;
         let addr = addr.parse()?;
         println!("gRPC Gateway listening on: {}", addr);
@@ -82,7 +90,7 @@ impl Gateway {
             .accept_http1(true)
             .layer(cors)
             .add_service(svc)
-            .serve(addr)
+            .serve_with_shutdown(addr, shutdown)
             .await
             .map_err(|e| anyhow::anyhow!("Tonic server failed: {}", e))?;
 
@@ -90,9 +98,18 @@ impl Gateway {
     }
 
     pub async fn start_http_ui_server(&self, addr: &str) -> Result<()> {
+        self.start_http_ui_server_with_shutdown(addr, std::future::pending::<()>())
+            .await
+    }
+
+    pub async fn start_http_ui_server_with_shutdown<F>(&self, addr: &str, shutdown: F) -> Result<()>
+    where
+        F: std::future::Future<Output = ()> + Send + 'static,
+    {
         let listener = tokio::net::TcpListener::bind(addr).await?;
         tracing::info!("Gateway UI HTTP listening on {}", addr);
         axum::serve(listener, self.http_ui_router())
+            .with_graceful_shutdown(shutdown)
             .await
             .map_err(|e| anyhow::anyhow!("Gateway UI HTTP server failed: {}", e))?;
         Ok(())
