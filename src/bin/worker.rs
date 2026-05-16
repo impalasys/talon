@@ -14,7 +14,7 @@ use talon::control::pubsub::{fully_qualified_subscription_name, fully_qualified_
 use talon::control::topics;
 use talon::control::ControlPlane;
 use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler};
-use tokio::signal;
+use tokio::{signal, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 #[async_trait::async_trait]
@@ -153,7 +153,11 @@ struct GcpPullSubscriptionBackend {
 }
 
 impl GcpPullSubscriptionBackend {
-    async fn new(project_id: String, topic_name: String, subscription_name: String) -> Result<Self> {
+    async fn new(
+        project_id: String,
+        topic_name: String,
+        subscription_name: String,
+    ) -> Result<Self> {
         use google_cloud_pubsub::client::{Client, ClientConfig};
 
         let mut pubsub_config = ClientConfig::default().with_auth().await?;
@@ -328,7 +332,15 @@ async fn run_pull_subscription_loop<F, Fut>(
                     subscription = %fq_subscription,
                     "PubSub receive loop exited normally"
                 );
-                return;
+                if shutdown_token.is_cancelled() {
+                    return;
+                }
+                attempts += 1;
+                let backoff_secs = 2u64.saturating_pow(attempts.min(4));
+                tokio::select! {
+                    _ = shutdown_token.cancelled() => return,
+                    _ = tokio::time::sleep(std::time::Duration::from_secs(backoff_secs)) => {}
+                }
             }
             Err(e) => {
                 attempts += 1;
@@ -354,7 +366,7 @@ fn spawn_pull_subscription_task(
     project_id: String,
     spec: ResolvedPullSubscriptionSpec,
     shutdown_token: CancellationToken,
-) {
+) -> JoinHandle<()> {
     let ResolvedPullSubscriptionSpec {
         topic_name,
         subscription_name,
@@ -383,7 +395,7 @@ fn spawn_pull_subscription_task(
             shutdown_token,
         )
         .await;
-    });
+    })
 }
 
 fn maybe_spawn_pull_subscriptions<F>(
@@ -392,21 +404,41 @@ fn maybe_spawn_pull_subscriptions<F>(
     project_id: String,
     shutdown_token: CancellationToken,
     mut spawn: F,
-) where
-    F: FnMut(WorkerEventHandler, String, ResolvedPullSubscriptionSpec, CancellationToken),
+) -> Vec<JoinHandle<()>>
+where
+    F: FnMut(
+        WorkerEventHandler,
+        String,
+        ResolvedPullSubscriptionSpec,
+        CancellationToken,
+    ) -> JoinHandle<()>,
 {
     if !pull_mode {
-        return;
+        return Vec::new();
     }
 
     tracing::info!("Starting in PULL mode (background thread)...");
+    let mut tasks = Vec::new();
     for spec in resolved_pull_subscription_specs(&project_id) {
-        spawn(
+        tasks.push(spawn(
             handler.clone(),
             project_id.clone(),
             spec,
             shutdown_token.child_token(),
-        );
+        ));
+    }
+    tasks
+}
+
+async fn join_pull_subscription_tasks(tasks: Vec<JoinHandle<()>>) {
+    for mut task in tasks {
+        match tokio::time::timeout(std::time::Duration::from_secs(1), &mut task).await {
+            Ok(_) => {}
+            Err(_) => {
+                task.abort();
+                let _ = task.await;
+            }
+        }
     }
 }
 
@@ -439,7 +471,7 @@ async fn run_worker_with<FGet, FSpawn, FServe, Fut, FShutdown>(
 ) -> Result<()>
 where
     FGet: Fn(&str) -> Option<String>,
-    FSpawn: Fn(WorkerEventHandler, bool, String, CancellationToken),
+    FSpawn: Fn(WorkerEventHandler, bool, String, CancellationToken) -> Vec<JoinHandle<()>>,
     FServe: Fn(WorkerEventHandler, String, CancellationToken) -> Fut,
     Fut: std::future::Future<Output = Result<()>>,
     FShutdown: std::future::Future,
@@ -448,30 +480,40 @@ where
     let pull_mode = pull_mode_enabled(&env_get);
     let project_id = pubsub_project_id(&env_get);
     let shutdown_token = CancellationToken::new();
-    spawn(
+    let pull_tasks = spawn(
         handler.clone(),
         pull_mode,
         project_id,
         shutdown_token.child_token(),
     );
     tokio::pin!(shutdown);
-    let serve_future = serve(
-        handler,
-        worker_port(env_get),
-        shutdown_token.child_token(),
-    );
+    let serve_future = serve(handler, worker_port(env_get), shutdown_token.child_token());
     tokio::pin!(serve_future);
-    tokio::select! {
-        res = &mut serve_future => return res,
+    let result = tokio::select! {
+        res = &mut serve_future => res,
         _ = &mut shutdown => {
             tracing::info!("Shutting down worker...");
             shutdown_token.cancel();
+            serve_future.await
         }
-    }
-    serve_future.await
+    };
+    shutdown_token.cancel();
+    join_pull_subscription_tasks(pull_tasks).await;
+    result
 }
 
-async fn run_worker_main_with<FLoad, FBuildCp, FBuildCpFuture, FBuildAuth, FBuildAuthFuture, FGet, FSpawn, FServe, Fut, FShutdown>(
+async fn run_worker_main_with<
+    FLoad,
+    FBuildCp,
+    FBuildCpFuture,
+    FBuildAuth,
+    FBuildAuthFuture,
+    FGet,
+    FSpawn,
+    FServe,
+    Fut,
+    FShutdown,
+>(
     load_config: FLoad,
     build_cp: FBuildCp,
     build_auth: FBuildAuth,
@@ -487,7 +529,7 @@ where
     FBuildAuth: FnOnce(&Arc<Config>) -> FBuildAuthFuture,
     FBuildAuthFuture: std::future::Future<Output = Result<Arc<SchedulerRequestAuthenticator>>>,
     FGet: Fn(&str) -> Option<String>,
-    FSpawn: Fn(WorkerEventHandler, bool, String, CancellationToken),
+    FSpawn: Fn(WorkerEventHandler, bool, String, CancellationToken) -> Vec<JoinHandle<()>>,
     FServe: Fn(WorkerEventHandler, String, CancellationToken) -> Fut,
     Fut: std::future::Future<Output = Result<()>>,
     FShutdown: std::future::Future,
@@ -581,7 +623,11 @@ async fn main() -> Result<()> {
         },
         |config| {
             let config = Arc::clone(config);
-            async move { Ok(Arc::new(SchedulerRequestAuthenticator::from_config(&config).await?)) }
+            async move {
+                Ok(Arc::new(
+                    SchedulerRequestAuthenticator::from_config(&config).await?,
+                ))
+            }
         },
         |name| std::env::var(name).ok(),
         |pull_handler, pull_mode, project_id, shutdown_token| {
@@ -591,7 +637,7 @@ async fn main() -> Result<()> {
                 project_id,
                 shutdown_token,
                 spawn_pull_subscription_task,
-            );
+            )
         },
         |handler, port, shutdown| async move { serve_worker_http(handler, port, shutdown).await },
         signal::ctrl_c(),
@@ -603,11 +649,11 @@ async fn main() -> Result<()> {
 mod tests {
     use super::{
         build_worker_handler, fully_qualified_subscription, fully_qualified_topic,
-        maybe_spawn_pull_subscriptions, pull_mode_enabled, pull_subscription_specs,
-        pubsub_project_id, push_webhook, resolved_pull_subscription_specs, run_worker_main_with,
-        run_pull_subscription_loop, run_pull_subscription_with_backend, run_worker_with, PullSubscriptionBackend,
-        ResolvedPullSubscriptionSpec,
-        schedule_fire, serve_worker_http, worker_bind_addr, worker_port, worker_router,
+        maybe_spawn_pull_subscriptions, pubsub_project_id, pull_mode_enabled,
+        pull_subscription_specs, push_webhook, resolved_pull_subscription_specs,
+        run_pull_subscription_loop, run_pull_subscription_with_backend, run_worker_main_with,
+        run_worker_with, schedule_fire, serve_worker_http, worker_bind_addr, worker_port,
+        worker_router, PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
     };
     use anyhow::Result;
     use axum::body::Bytes;
@@ -624,14 +670,13 @@ mod tests {
     use std::sync::Arc;
     use talon::config::Config;
     use talon::control::{
-        events::LifecycleEvent,
-        keys,
-        scheduler::NoopSchedulerBackend,
-        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        events::LifecycleEvent, keys, scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore,
+        MessagePublisher, ProtoKeyValueStoreExt,
     };
     use talon::gateway::rpc::models;
     use talon::worker::{
-        mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler,
+        mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
+        WorkerEventHandler,
     };
     use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
@@ -743,6 +788,7 @@ mod tests {
         fail_subscription: bool,
         fail_receive: bool,
         cancel_on_receive: bool,
+        cancel_token: Option<CancellationToken>,
     }
 
     #[async_trait::async_trait]
@@ -781,6 +827,9 @@ mod tests {
                 .push("receive");
             if self.cancel_on_receive {
                 _cancellation_token.cancel();
+            }
+            if let Some(token) = &self.cancel_token {
+                token.cancel();
             }
             if self.fail_receive {
                 anyhow::bail!("receive failed");
@@ -840,7 +889,10 @@ mod tests {
     fn pull_mode_helpers_cover_specs_and_qualified_names() {
         let specs = pull_subscription_specs();
         assert_eq!(specs.len(), 3);
-        assert_eq!(specs[0].topic_name, talon::control::topics::SESSION_DISPATCH_TOPIC);
+        assert_eq!(
+            specs[0].topic_name,
+            talon::control::topics::SESSION_DISPATCH_TOPIC
+        );
         assert_eq!(specs[1].event_type, "resource_lifecycle");
         assert_eq!(specs[2].subscription_name, "talon-session-control-sub");
 
@@ -857,10 +909,7 @@ mod tests {
             "projects/demo/subscriptions/events-sub"
         );
         assert_eq!(
-            fully_qualified_subscription(
-                "demo",
-                "projects/other/subscriptions/events-sub"
-            ),
+            fully_qualified_subscription("demo", "projects/other/subscriptions/events-sub"),
             "projects/other/subscriptions/events-sub"
         );
         assert_eq!(worker_bind_addr("8081"), "0.0.0.0:8081");
@@ -902,7 +951,10 @@ mod tests {
         kv.set("root", "agents/a", b"one").await.unwrap();
         kv.set("root", "agents/b", b"two").await.unwrap();
         kv.set("other", "agents/c", b"three").await.unwrap();
-        assert_eq!(kv.get("root", "agents/a").await.unwrap(), Some(b"one".to_vec()));
+        assert_eq!(
+            kv.get("root", "agents/a").await.unwrap(),
+            Some(b"one".to_vec())
+        );
 
         assert!(kv
             .compare_and_swap("root", "agents/new", None, b"created")
@@ -941,8 +993,8 @@ mod tests {
         assert!(items.is_empty());
     }
 
-    #[test]
-    fn maybe_spawn_pull_subscriptions_respects_pull_mode_and_emits_specs() {
+    #[tokio::test]
+    async fn maybe_spawn_pull_subscriptions_respects_pull_mode_and_emits_specs() {
         let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
         let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
 
@@ -952,10 +1004,12 @@ mod tests {
             "demo".to_string(),
             CancellationToken::new(),
             |_h, project_id, spec, _shutdown_token| {
-            spawned
-                .lock()
-                .expect("spawned lock poisoned")
-                .push((project_id, spec.topic_name, spec.subscription_name));
+                spawned.lock().expect("spawned lock poisoned").push((
+                    project_id,
+                    spec.topic_name,
+                    spec.subscription_name,
+                ));
+                tokio::spawn(async {})
             },
         );
         assert!(spawned.lock().expect("spawned lock poisoned").is_empty());
@@ -966,15 +1020,19 @@ mod tests {
             "demo".to_string(),
             CancellationToken::new(),
             |_h, project_id, spec, _shutdown_token| {
-            spawned
-                .lock()
-                .expect("spawned lock poisoned")
-                .push((project_id, spec.topic_name, spec.subscription_name));
+                spawned.lock().expect("spawned lock poisoned").push((
+                    project_id,
+                    spec.topic_name,
+                    spec.subscription_name,
+                ));
+                tokio::spawn(async {})
             },
         );
         let spawned = spawned.lock().expect("spawned lock poisoned");
         assert_eq!(spawned.len(), 3);
-        assert!(spawned.iter().all(|(project_id, _, _)| project_id == "demo"));
+        assert!(spawned
+            .iter()
+            .all(|(project_id, _, _)| project_id == "demo"));
         assert!(spawned[0].1.starts_with("projects/demo/topics/"));
         assert!(spawned[0].2.starts_with("projects/demo/subscriptions/"));
     }
@@ -1027,12 +1085,9 @@ mod tests {
     async fn push_webhook_rejects_invalid_payload_shapes_and_base64() {
         let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
 
-        let invalid_shape = push_webhook(
-            State(handler.clone()),
-            Json(json!({"unexpected": true})),
-        )
-        .await
-        .into_response();
+        let invalid_shape = push_webhook(State(handler.clone()), Json(json!({"unexpected": true})))
+            .await
+            .into_response();
         assert_eq!(invalid_shape.status(), StatusCode::UNPROCESSABLE_ENTITY);
 
         let invalid_base64 = push_webhook(
@@ -1067,7 +1122,7 @@ mod tests {
 
         let response = push_webhook(State(handler), Json(payload))
             .await
-        .into_response();
+            .into_response();
         assert_eq!(response.status(), StatusCode::OK);
     }
 
@@ -1108,9 +1163,9 @@ mod tests {
             HeaderValue::from_static("Bearer secret"),
         );
         let invalid_payload = schedule_fire(
-            State(handler_with_auth(SchedulerRequestAuthenticator::shared_secret(
-                "secret".to_string(),
-            ))),
+            State(handler_with_auth(
+                SchedulerRequestAuthenticator::shared_secret("secret".to_string()),
+            )),
             headers,
             Bytes::from_static(br#"not-json"#),
         )
@@ -1134,9 +1189,9 @@ mod tests {
         });
 
         let response = schedule_fire(
-            State(handler_with_auth(SchedulerRequestAuthenticator::shared_secret(
-                "secret".to_string(),
-            ))),
+            State(handler_with_auth(
+                SchedulerRequestAuthenticator::shared_secret("secret".to_string()),
+            )),
             headers,
             Bytes::from(serde_json::to_vec(&payload).unwrap()),
         )
@@ -1245,6 +1300,7 @@ mod tests {
                         .lock()
                         .expect("spawned lock poisoned")
                         .push((pull_mode, project_id));
+                    Vec::new()
                 }
             },
             |_handler, port, _shutdown_token| async move {
@@ -1285,6 +1341,7 @@ mod tests {
                         .lock()
                         .expect("spawned lock poisoned")
                         .push((pull_mode, project_id));
+                    Vec::new()
                 }
             },
             |_handler, _port, _shutdown_token| async { anyhow::bail!("serve failed") },
@@ -1317,7 +1374,7 @@ mod tests {
             config,
             auth,
             |_| None,
-            |_handler, _pull_mode, _project_id, _shutdown_token| {},
+            |_handler, _pull_mode, _project_id, _shutdown_token| Vec::new(),
             {
                 let cancelled = cancelled.clone();
                 move |_handler, _port, shutdown_token| {
@@ -1350,14 +1407,16 @@ mod tests {
     async fn run_worker_main_with_surfaces_bootstrap_failures() {
         let config_err = run_worker_main_with(
             || anyhow::bail!("config failed"),
-            |_| async { Ok(Arc::new(ControlPlane {
-                kv: Arc::new(MockKvStore::default()),
-                pubsub: Arc::new(MockPubSub),
-                scheduler: Arc::new(NoopSchedulerBackend),
-            })) },
+            |_| async {
+                Ok(Arc::new(ControlPlane {
+                    kv: Arc::new(MockKvStore::default()),
+                    pubsub: Arc::new(MockPubSub),
+                    scheduler: Arc::new(NoopSchedulerBackend),
+                }))
+            },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
             |_| None,
-            |_handler, _pull_mode, _project_id, _shutdown_token| {},
+            |_handler, _pull_mode, _project_id, _shutdown_token| Vec::new(),
             |_handler, _port, _shutdown_token| async { Ok(()) },
             futures::future::pending::<()>(),
         )
@@ -1370,7 +1429,7 @@ mod tests {
             |_| async { anyhow::bail!("control plane failed") },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
             |_| None,
-            |_handler, _pull_mode, _project_id, _shutdown_token| {},
+            |_handler, _pull_mode, _project_id, _shutdown_token| Vec::new(),
             |_handler, _port, _shutdown_token| async { Ok(()) },
             futures::future::pending::<()>(),
         )
@@ -1380,14 +1439,16 @@ mod tests {
 
         let auth_err = run_worker_main_with(
             || Ok(Arc::new(Config::default())),
-            |_| async { Ok(Arc::new(ControlPlane {
-                kv: Arc::new(MockKvStore::default()),
-                pubsub: Arc::new(MockPubSub),
-                scheduler: Arc::new(NoopSchedulerBackend),
-            })) },
+            |_| async {
+                Ok(Arc::new(ControlPlane {
+                    kv: Arc::new(MockKvStore::default()),
+                    pubsub: Arc::new(MockPubSub),
+                    scheduler: Arc::new(NoopSchedulerBackend),
+                }))
+            },
             |_| async { anyhow::bail!("scheduler auth failed") },
             |_| None,
-            |_handler, _pull_mode, _project_id, _shutdown_token| {},
+            |_handler, _pull_mode, _project_id, _shutdown_token| Vec::new(),
             |_handler, _port, _shutdown_token| async { Ok(()) },
             futures::future::pending::<()>(),
         )
@@ -1401,11 +1462,13 @@ mod tests {
         let spawned = Arc::new(std::sync::Mutex::new(Vec::<(bool, String)>::new()));
         let result = run_worker_main_with(
             || Ok(Arc::new(Config::default())),
-            |_| async { Ok(Arc::new(ControlPlane {
-                kv: Arc::new(MockKvStore::default()),
-                pubsub: Arc::new(MockPubSub),
-                scheduler: Arc::new(NoopSchedulerBackend),
-            })) },
+            |_| async {
+                Ok(Arc::new(ControlPlane {
+                    kv: Arc::new(MockKvStore::default()),
+                    pubsub: Arc::new(MockPubSub),
+                    scheduler: Arc::new(NoopSchedulerBackend),
+                }))
+            },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
             |name| match name {
                 "PULL_MODE" => Some("1".to_string()),
@@ -1420,6 +1483,7 @@ mod tests {
                         .lock()
                         .expect("spawned lock poisoned")
                         .push((pull_mode, project_id));
+                    Vec::new()
                 }
             },
             |_handler, port, _shutdown_token| async move {
@@ -1456,11 +1520,17 @@ mod tests {
             spec.clone(),
             tokio_util::sync::CancellationToken::new(),
         )
-            .await
-            .unwrap_err();
-        assert!(err.to_string().contains("Failed to create or inspect PubSub topic"));
+        .await
+        .unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("Failed to create or inspect PubSub topic"));
         assert_eq!(
-            topic_fail.calls.lock().expect("calls lock poisoned").as_slice(),
+            topic_fail
+                .calls
+                .lock()
+                .expect("calls lock poisoned")
+                .as_slice(),
             &["topic"]
         );
 
@@ -1498,8 +1568,8 @@ mod tests {
             spec.clone(),
             tokio_util::sync::CancellationToken::new(),
         )
-            .await
-            .unwrap_err();
+        .await
+        .unwrap_err();
         assert!(err
             .to_string()
             .contains("PubSub receive loop exited with error"));
@@ -1519,8 +1589,8 @@ mod tests {
             spec,
             tokio_util::sync::CancellationToken::new(),
         )
-            .await
-            .expect("successful path should return ok");
+        .await
+        .expect("successful path should return ok");
         assert_eq!(
             ok.calls.lock().expect("calls lock poisoned").as_slice(),
             &["topic", "subscription", "receive"]
@@ -1535,14 +1605,16 @@ mod tests {
             subscription_name: "projects/demo/subscriptions/events-sub".to_string(),
             event_type: "resource_lifecycle".to_string(),
         };
-        let attempts = Arc::new(std::sync::atomic::AtomicUsize::new(0));
         let shutdown = CancellationToken::new();
+        let attempts = Arc::new(std::sync::atomic::AtomicUsize::new(0));
 
         run_pull_subscription_loop(
             {
                 let attempts = attempts.clone();
+                let shutdown = shutdown.clone();
                 move || {
                     let attempts = attempts.clone();
+                    let shutdown = shutdown.clone();
                     async move {
                         let attempt = attempts.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
                         let backend = if attempt == 0 {
@@ -1553,6 +1625,7 @@ mod tests {
                         } else {
                             FakePullBackend {
                                 cancel_on_receive: true,
+                                cancel_token: Some(shutdown),
                                 ..Default::default()
                             }
                         };
@@ -1567,5 +1640,53 @@ mod tests {
         .await;
 
         assert_eq!(attempts.load(std::sync::atomic::Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    async fn run_worker_with_waits_for_pull_tasks_on_shutdown() {
+        let cp = Arc::new(ControlPlane {
+            kv: Arc::new(MockKvStore::default()),
+            pubsub: Arc::new(MockPubSub),
+            scheduler: Arc::new(NoopSchedulerBackend),
+        });
+        let config = Arc::new(Config::default());
+        let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
+        let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel::<()>();
+        let pull_task_cleaned_up = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+        let result = run_worker_with(
+            cp,
+            config,
+            auth,
+            |_| None,
+            {
+                let pull_task_cleaned_up = pull_task_cleaned_up.clone();
+                move |_handler, _pull_mode, _project_id, shutdown_token| {
+                    let pull_task_cleaned_up = pull_task_cleaned_up.clone();
+                    vec![tokio::spawn(async move {
+                        shutdown_token.cancelled().await;
+                        pull_task_cleaned_up.store(true, std::sync::atomic::Ordering::SeqCst);
+                    })]
+                }
+            },
+            |_handler, _port, shutdown_token| async move {
+                shutdown_token.cancelled().await;
+                Ok(())
+            },
+            async move {
+                let _ = shutdown_rx.await;
+            },
+        );
+
+        let signal_task = tokio::spawn(async move {
+            let _ = shutdown_tx.send(());
+        });
+
+        result.await.unwrap();
+        signal_task.await.unwrap();
+        assert!(
+            pull_task_cleaned_up.load(std::sync::atomic::Ordering::SeqCst),
+            "background pull tasks should finish before shutdown returns"
+        );
     }
 }

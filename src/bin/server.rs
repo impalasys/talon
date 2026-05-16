@@ -8,8 +8,8 @@ use talon::control::build_control_plane;
 use talon::control::ControlPlane;
 use talon::gateway::auth::AuthConfig;
 use talon::gateway::server::Gateway;
-use tokio::task::JoinHandle;
 use tokio::signal;
+use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
 fn select_auth_config<F>(mut get: F) -> AuthConfig
@@ -113,6 +113,22 @@ async fn wait_for_server_tasks<F>(
 where
     F: std::future::Future,
 {
+    async fn join_with_grace(task: &mut JoinHandle<Result<()>>) -> Result<()> {
+        match tokio::time::timeout(std::time::Duration::from_secs(1), &mut *task).await {
+            Ok(result) => match result {
+                Ok(inner) => inner,
+                Err(err) => Err(err.into()),
+            },
+            Err(_) => {
+                task.abort();
+                match task.await {
+                    Ok(inner) => inner,
+                    Err(err) => Err(err.into()),
+                }
+            }
+        }
+    }
+
     let mut rpc_task = rpc_task;
     let mut ui_task = ui_task;
     tokio::pin!(shutdown);
@@ -136,7 +152,7 @@ where
             tracing::info!("Shutting down...");
             Exit::Shutdown
         }
-    }; 
+    };
     shutdown_token.cancel();
 
     match result {
@@ -155,14 +171,8 @@ where
             result
         }
         Exit::Shutdown => {
-            let rpc_result = match rpc_task.await {
-                Ok(inner) => inner,
-                Err(err) => Err(err.into()),
-            };
-            let ui_result = match ui_task.await {
-                Ok(inner) => inner,
-                Err(err) => Err(err.into()),
-            };
+            let rpc_result = join_with_grace(&mut rpc_task).await;
+            let ui_result = join_with_grace(&mut ui_task).await;
             rpc_result?;
             ui_result
         }
@@ -193,14 +203,16 @@ mod tests {
         build_gateway, gateway_addresses, run_gateway_with, run_server_main_with,
         select_auth_config, spawn_gateway_tasks, wait_for_server_tasks,
     };
-    use talon::config::Config;
-    use talon::gateway::auth::AuthConfig;
-    use talon::gateway::auth::AuthMode;
-    use talon::control::{ControlPlane, KeyValueStore, MessagePublisher, scheduler::NoopSchedulerBackend};
+    use futures::StreamExt;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
-    use futures::StreamExt;
+    use talon::config::Config;
+    use talon::control::{
+        scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
+    };
+    use talon::gateway::auth::AuthConfig;
+    use talon::gateway::auth::AuthMode;
     use tokio::sync::oneshot;
     use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
@@ -367,7 +379,10 @@ mod tests {
         kv.set("root", "agents/a", b"one").await.unwrap();
         kv.set("root", "agents/b", b"two").await.unwrap();
         kv.set("other", "agents/c", b"three").await.unwrap();
-        assert_eq!(kv.get("root", "agents/a").await.unwrap(), Some(b"one".to_vec()));
+        assert_eq!(
+            kv.get("root", "agents/a").await.unwrap(),
+            Some(b"one".to_vec())
+        );
 
         assert!(kv
             .compare_and_swap("root", "agents/new", None, b"created")
@@ -421,8 +436,8 @@ mod tests {
             shutdown_token.child_token(),
             futures::future::pending::<()>(),
         )
-            .await
-            .unwrap();
+        .await
+        .unwrap();
 
         let shutdown_token = CancellationToken::new();
         let rpc_pending = tokio::spawn(async {
@@ -497,16 +512,33 @@ mod tests {
         let shutdown_task = tokio::spawn(async move {
             let _ = tx.send(());
         });
-        wait_for_server_tasks(
-            rpc_pending,
-            ui_pending,
-            shutdown_token,
-            async move {
-                let _ = rx.await;
-            },
-        )
+        wait_for_server_tasks(rpc_pending, ui_pending, shutdown_token, async move {
+            let _ = rx.await;
+        })
         .await
         .unwrap();
+        shutdown_task.await.unwrap();
+
+        let shutdown_token = CancellationToken::new();
+        let rpc_shutdown = shutdown_token.child_token();
+        let rpc_pending = tokio::spawn(async move {
+            rpc_shutdown.cancelled().await;
+            Ok(())
+        });
+        let ui_hung = tokio::spawn(async {
+            futures::future::pending::<()>().await;
+            #[allow(unreachable_code)]
+            Ok::<(), anyhow::Error>(())
+        });
+        let (tx, rx) = oneshot::channel::<()>();
+        let shutdown_task = tokio::spawn(async move {
+            let _ = tx.send(());
+        });
+        wait_for_server_tasks(rpc_pending, ui_hung, shutdown_token, async move {
+            let _ = rx.await;
+        })
+        .await
+        .unwrap_err();
         shutdown_task.await.unwrap();
     }
 
@@ -595,7 +627,9 @@ mod tests {
 
         tokio::time::sleep(std::time::Duration::from_millis(75)).await;
         let _ = tx.send(());
-        task.await.expect("task should join").expect("shutdown should succeed");
+        task.await
+            .expect("task should join")
+            .expect("shutdown should succeed");
     }
 
     #[tokio::test]
@@ -654,6 +688,8 @@ mod tests {
 
         tokio::time::sleep(std::time::Duration::from_millis(75)).await;
         let _ = tx.send(());
-        task.await.expect("task should join").expect("shutdown should succeed");
+        task.await
+            .expect("task should join")
+            .expect("shutdown should succeed");
     }
 }
