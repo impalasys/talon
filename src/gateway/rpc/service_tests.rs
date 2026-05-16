@@ -3,118 +3,20 @@
 
 #[cfg(test)]
 mod tests {
+    use crate::test_support::{MockKvStore, RecordingPubSub};
     use crate::control::{
         events::{LifecycleEvent, SessionControlEvent, SessionStepEvent, StepType},
         scheduler::SchedulerBackend,
-        topics, KeyValueStore, MessagePublisher,
+        topics,
     };
     use crate::gateway::rpc::proto::gateway_service_server::GatewayService;
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
     use crate::gateway::server::Gateway;
-    use futures::{stream, StreamExt};
+    use futures::StreamExt;
     use prost::Message;
     use std::collections::HashMap;
-    use std::pin::Pin;
     use std::sync::Arc;
     use tokio::sync::Mutex;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
-        }
-
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            ns: &str,
-            k: &str,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert(key, value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(ns.to_string(), k.to_string()));
-            Ok(())
-        }
-
-        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
-                })
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
-
-    struct MockPubSub {
-        streams: Arc<Mutex<HashMap<String, Vec<Vec<u8>>>>>,
-        published: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl MessagePublisher for MockPubSub {
-        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
-            self.published
-                .lock()
-                .await
-                .push((topic.to_string(), message.to_vec()));
-            Ok(())
-        }
-
-        async fn subscribe(
-            &self,
-            topic: &str,
-        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-            let data = self
-                .streams
-                .lock()
-                .await
-                .get(topic)
-                .cloned()
-                .unwrap_or_default();
-            Ok(Box::pin(stream::iter(data)))
-        }
-    }
 
     #[derive(Default)]
     struct RecordingScheduler {
@@ -145,30 +47,18 @@ mod tests {
         GrpcGatewayHandler,
         Arc<MockKvStore>,
         Arc<RecordingScheduler>,
-        Arc<Mutex<HashMap<String, Vec<Vec<u8>>>>>,
-        Arc<Mutex<Vec<(String, Vec<u8>)>>>,
+        Arc<RecordingPubSub>,
     ) {
         let kv = Arc::new(MockKvStore::default());
         let scheduler = Arc::new(RecordingScheduler::default());
-        let streams = Arc::new(Mutex::new(HashMap::new()));
-        let published = Arc::new(Mutex::new(Vec::new()));
-        let pubsub = Arc::new(MockPubSub {
-            streams: streams.clone(),
-            published: published.clone(),
-        });
+        let pubsub = Arc::new(RecordingPubSub::default());
         let gateway = Arc::new(Gateway::new(
             None,
             kv.clone(),
             pubsub.clone(),
             scheduler.clone(),
         ));
-        (
-            GrpcGatewayHandler { gateway },
-            kv,
-            scheduler,
-            streams,
-            published,
-        )
+        (GrpcGatewayHandler { gateway }, kv, scheduler, pubsub)
     }
 
     fn custom_agent_definition(model_name: &str) -> manifests::AgentDefinition {
@@ -203,7 +93,12 @@ mod tests {
         }
     }
 
-    fn knowledge_manifest(name: &str, namespace: &str, path: &str, content: &str) -> manifests::Knowledge {
+    fn knowledge_manifest(
+        name: &str,
+        namespace: &str,
+        path: &str,
+        content: &str,
+    ) -> manifests::Knowledge {
         manifests::Knowledge {
             api_version: String::new(),
             kind: String::new(),
@@ -279,8 +174,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn gateway_service_forwards_crud_and_runtime_methods() {
-        let (handler, _kv, scheduler, streams, published) = setup_handler();
+    async fn gateway_service_forwards_resource_crud_methods() {
+        let (handler, _kv, _scheduler, _pubsub) = setup_handler();
 
         let namespace = handler
             .create_namespace(tonic::Request::new(proto::CreateNamespaceRequest {
@@ -309,12 +204,10 @@ mod tests {
             .await
             .unwrap()
             .into_inner();
-        assert!(
-            listed_namespaces
-                .namespaces
-                .iter()
-                .any(|entry| entry.name == "acme")
-        );
+        assert!(listed_namespaces
+            .namespaces
+            .iter()
+            .any(|entry| entry.name == "acme"));
 
         let agent = handler
             .create_agent(tonic::Request::new(proto::CreateAgentRequest {
@@ -337,7 +230,10 @@ mod tests {
             .unwrap()
             .into_inner();
         assert_eq!(
-            fetched_agent.agent.as_ref().map(|agent| agent.name.as_str()),
+            fetched_agent
+                .agent
+                .as_ref()
+                .map(|agent| agent.name.as_str()),
             Some("agent-1")
         );
 
@@ -400,8 +296,7 @@ mod tests {
         );
         assert_eq!(
             handler
-                .list_agent_templates(tonic::Request::new(proto::ListAgentTemplatesRequest {
-                }))
+                .list_agent_templates(tonic::Request::new(proto::ListAgentTemplatesRequest {}))
                 .await
                 .unwrap()
                 .into_inner()
@@ -451,8 +346,7 @@ mod tests {
         );
         assert_eq!(
             handler
-                .list_mcp_servers(tonic::Request::new(proto::ListMcpServersRequest {
-                }))
+                .list_mcp_servers(tonic::Request::new(proto::ListMcpServersRequest {}))
                 .await
                 .unwrap()
                 .into_inner()
@@ -462,12 +356,10 @@ mod tests {
         );
 
         let binding = handler
-            .create_mcp_server_binding(tonic::Request::new(
-                proto::CreateMcpServerBindingRequest {
-                    ns: "acme".to_string(),
-                    binding: Some(mcp_binding("binding-1", "acme", "server-1")),
-                },
-            ))
+            .create_mcp_server_binding(tonic::Request::new(proto::CreateMcpServerBindingRequest {
+                ns: "acme".to_string(),
+                binding: Some(mcp_binding("binding-1", "acme", "server-1")),
+            }))
             .await
             .unwrap()
             .into_inner();
@@ -481,12 +373,10 @@ mod tests {
         );
         assert_eq!(
             handler
-                .get_mcp_server_binding(tonic::Request::new(
-                    proto::GetMcpServerBindingRequest {
-                        ns: "acme".to_string(),
-                        name: "binding-1".to_string(),
-                    },
-                ))
+                .get_mcp_server_binding(tonic::Request::new(proto::GetMcpServerBindingRequest {
+                    ns: "acme".to_string(),
+                    name: "binding-1".to_string(),
+                },))
                 .await
                 .unwrap()
                 .into_inner()
@@ -537,12 +427,10 @@ mod tests {
 
         assert_eq!(
             handler
-                .get_namespace_knowledge(tonic::Request::new(
-                    proto::GetNamespaceKnowledgeRequest {
-                        ns: "acme".to_string(),
-                        name: "guide".to_string(),
-                    },
-                ))
+                .get_namespace_knowledge(tonic::Request::new(proto::GetNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    name: "guide".to_string(),
+                },))
                 .await
                 .unwrap()
                 .into_inner()
@@ -594,6 +482,56 @@ mod tests {
                 .len(),
             1
         );
+    }
+
+    #[tokio::test]
+    async fn gateway_service_forwards_session_and_schedule_methods() {
+        let (handler, _kv, scheduler, pubsub) = setup_handler();
+
+        handler
+            .create_namespace(tonic::Request::new(proto::CreateNamespaceRequest {
+                name: "acme".to_string(),
+                recursive: false,
+                labels: HashMap::new(),
+            }))
+            .await
+            .unwrap();
+        handler
+            .create_agent(tonic::Request::new(proto::CreateAgentRequest {
+                ns: "acme".to_string(),
+                name: Some("agent-1".to_string()),
+                definition: Some(custom_agent_definition("gpt-5")),
+                labels: HashMap::new(),
+            }))
+            .await
+            .unwrap();
+        handler
+            .create_mcp_server(tonic::Request::new(proto::CreateMcpServerRequest {
+                server: Some(mcp_server("server-1", "")),
+            }))
+            .await
+            .unwrap();
+        handler
+            .create_mcp_server_binding(tonic::Request::new(proto::CreateMcpServerBindingRequest {
+                ns: "acme".to_string(),
+                binding: Some(mcp_binding("binding-1", "acme", "server-1")),
+            }))
+            .await
+            .unwrap();
+        handler
+            .create_namespace_knowledge(tonic::Request::new(
+                proto::CreateNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    knowledge: Some(knowledge_manifest(
+                        "guide",
+                        "acme",
+                        "guide.md",
+                        "rust systems guide",
+                    )),
+                },
+            ))
+            .await
+            .unwrap();
 
         let created_session = handler
             .create_session(tonic::Request::new(proto::CreateSessionRequest {
@@ -607,7 +545,7 @@ mod tests {
         let session_id = created_session.session_id.clone();
         let session_topic =
             topics::session_step_topic_for_shard(topics::session_step_shard(&session_id));
-        streams.lock().await.insert(
+        pubsub.streams.lock().await.insert(
             session_topic,
             vec![
                 SessionStepEvent {
@@ -680,13 +618,11 @@ mod tests {
         );
         assert!(
             handler
-                .stop_session_generation(tonic::Request::new(
-                    proto::StopSessionGenerationRequest {
-                        session_id: session_id.clone(),
-                        agent: "agent-1".to_string(),
-                        ns: "acme".to_string(),
-                    },
-                ))
+                .stop_session_generation(tonic::Request::new(proto::StopSessionGenerationRequest {
+                    session_id: session_id.clone(),
+                    agent: "agent-1".to_string(),
+                    ns: "acme".to_string(),
+                },))
                 .await
                 .unwrap()
                 .into_inner()
@@ -839,7 +775,7 @@ mod tests {
             .into_inner();
         assert_eq!(deleted_namespace.name, "acme");
 
-        let published = published.lock().await;
+        let published = pubsub.published.lock().await;
         assert!(published.iter().any(|(topic, payload)| {
             topic == topics::RESOURCE_LIFECYCLE_TOPIC
                 && LifecycleEvent::decode(payload.as_slice())
@@ -856,7 +792,7 @@ mod tests {
 
     #[tokio::test]
     async fn gateway_service_delete_schedule_succeeds_without_existing_record() {
-        let (handler, _kv, scheduler, _streams, _published) = setup_handler();
+        let (handler, _kv, scheduler, _pubsub) = setup_handler();
 
         let response = handler
             .delete_schedule(tonic::Request::new(proto::DeleteScheduleRequest {

@@ -3,132 +3,31 @@
 
 #[cfg(test)]
 mod tests {
+    use crate::test_support::{MockKvStore, RecordingPubSub};
     use crate::control::{
-        events,
-        keys,
-        ns,
-        scheduler::NoopSchedulerBackend,
-        topics,
-        KeyValueStore,
-        MessagePublisher,
-        ProtoKeyValueStoreExt,
+        events, keys, ns, scheduler::NoopSchedulerBackend, topics,
+        KeyValueStore, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
     use crate::gateway::server::Gateway;
-    use futures::stream;
     use prost::Message;
     use std::collections::HashMap;
-    use std::pin::Pin;
     use std::sync::Arc;
-    use tokio::sync::Mutex;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
-        }
-
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            ns: &str,
-            k: &str,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert(key, value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(ns.to_string(), k.to_string()));
-            Ok(())
-        }
-
-        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
-                })
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
-
-    struct MockPubSub {
-        published: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl MessagePublisher for MockPubSub {
-        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
-            self.published
-                .lock()
-                .await
-                .push((topic.to_string(), message.to_vec()));
-            Ok(())
-        }
-
-        async fn subscribe(
-            &self,
-            _topic: &str,
-        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-            Ok(Box::pin(stream::empty()))
-        }
-    }
 
     fn setup_handler() -> (
         GrpcGatewayHandler,
         Arc<MockKvStore>,
-        Arc<Mutex<Vec<(String, Vec<u8>)>>>,
+        Arc<RecordingPubSub>,
     ) {
         let kv = Arc::new(MockKvStore::default());
-        let published = Arc::new(Mutex::new(Vec::new()));
-        let pubsub = Arc::new(MockPubSub {
-            published: published.clone(),
-        });
+        let pubsub = Arc::new(RecordingPubSub::default());
         let gateway = Arc::new(Gateway::new(
             None,
             kv.clone(),
             pubsub.clone(),
             Arc::new(NoopSchedulerBackend),
         ));
-        (GrpcGatewayHandler { gateway }, kv, published)
+        (GrpcGatewayHandler { gateway }, kv, pubsub)
     }
 
     async fn seed_namespace(kv: &Arc<MockKvStore>, namespace: &str) {
@@ -221,7 +120,7 @@ mod tests {
 
     #[tokio::test]
     async fn create_get_modify_and_list_agent_round_trip() {
-        let (handler, kv, published) = setup_handler();
+        let (handler, kv, pubsub) = setup_handler();
         seed_namespace(&kv, "acme").await;
 
         let create = handler
@@ -251,7 +150,10 @@ mod tests {
             .await
             .expect("get should succeed")
             .into_inner();
-        assert_eq!(got.agent.as_ref().map(|agent| agent.name.as_str()), Some("agent-1"));
+        assert_eq!(
+            got.agent.as_ref().map(|agent| agent.name.as_str()),
+            Some("agent-1")
+        );
 
         let modified = handler
             .handle_modify_agent(tonic::Request::new(proto::ModifyAgentRequest {
@@ -263,7 +165,10 @@ mod tests {
             .await
             .expect("modify should succeed")
             .into_inner();
-        assert_eq!(modified.labels.get("tier").map(String::as_str), Some("gold"));
+        assert_eq!(
+            modified.labels.get("tier").map(String::as_str),
+            Some("gold")
+        );
 
         let listed = handler
             .handle_list_agents(tonic::Request::new(proto::ListAgentsRequest {
@@ -274,11 +179,11 @@ mod tests {
             .into_inner();
         assert_eq!(listed.agents, vec!["agent-1".to_string()]);
 
-        let published = published.lock().await;
+        let published = pubsub.published.lock().await;
         assert_eq!(published.len(), 2);
         assert_eq!(published[1].0, topics::RESOURCE_LIFECYCLE_TOPIC);
-        let event = events::LifecycleEvent::decode(published[1].1.as_slice())
-            .expect("event should decode");
+        let event =
+            events::LifecycleEvent::decode(published[1].1.as_slice()).expect("event should decode");
         assert_eq!(event.resource_type, "Agent");
         assert_eq!(event.name, "agent-1");
     }
@@ -415,11 +320,9 @@ mod tests {
         let (handler, _, _) = setup_handler();
 
         let created = handler
-            .handle_create_agent_template(tonic::Request::new(
-                proto::CreateAgentTemplateRequest {
-                    template: Some(agent_template("researcher", "")),
-                },
-            ))
+            .handle_create_agent_template(tonic::Request::new(proto::CreateAgentTemplateRequest {
+                template: Some(agent_template("researcher", "")),
+            }))
             .await
             .expect("template create should succeed")
             .into_inner();
@@ -435,9 +338,7 @@ mod tests {
         );
 
         let listed = handler
-            .handle_list_agent_templates(tonic::Request::new(
-                proto::ListAgentTemplatesRequest {},
-            ))
+            .handle_list_agent_templates(tonic::Request::new(proto::ListAgentTemplatesRequest {}))
             .await
             .expect("template list should succeed")
             .into_inner();
@@ -460,22 +361,18 @@ mod tests {
         );
 
         let deleted = handler
-            .handle_delete_agent_template(tonic::Request::new(
-                proto::DeleteAgentTemplateRequest {
-                    name: "researcher".to_string(),
-                },
-            ))
+            .handle_delete_agent_template(tonic::Request::new(proto::DeleteAgentTemplateRequest {
+                name: "researcher".to_string(),
+            }))
             .await
             .expect("template delete should succeed")
             .into_inner();
         assert!(deleted.success);
 
         let wrong_namespace = handler
-            .handle_create_agent_template(tonic::Request::new(
-                proto::CreateAgentTemplateRequest {
-                    template: Some(agent_template("bad-template", "custom")),
-                },
-            ))
+            .handle_create_agent_template(tonic::Request::new(proto::CreateAgentTemplateRequest {
+                template: Some(agent_template("bad-template", "custom")),
+            }))
             .await
             .expect_err("custom namespace should fail");
         assert_eq!(wrong_namespace.code(), tonic::Code::InvalidArgument);
@@ -483,7 +380,7 @@ mod tests {
 
     #[tokio::test]
     async fn mcp_server_crud_publishes_lifecycle_events() {
-        let (handler, _, published) = setup_handler();
+        let (handler, _, pubsub) = setup_handler();
 
         let created = handler
             .handle_create_mcp_server(tonic::Request::new(proto::CreateMcpServerRequest {
@@ -536,7 +433,7 @@ mod tests {
             .into_inner();
         assert!(deleted.success);
 
-        let published = published.lock().await;
+        let published = pubsub.published.lock().await;
         assert_eq!(published.len(), 2);
         let create_event = events::LifecycleEvent::decode(published[0].1.as_slice())
             .expect("create event should decode");
@@ -548,7 +445,7 @@ mod tests {
 
     #[tokio::test]
     async fn mcp_binding_crud_and_validation_paths() {
-        let (handler, _, published) = setup_handler();
+        let (handler, _, pubsub) = setup_handler();
         handler
             .handle_create_mcp_server(tonic::Request::new(proto::CreateMcpServerRequest {
                 server: Some(mcp_server("http-server", "", "http")),
@@ -582,12 +479,10 @@ mod tests {
         assert_eq!(listed.bindings.len(), 1);
 
         let fetched = handler
-            .handle_get_mcp_server_binding(tonic::Request::new(
-                proto::GetMcpServerBindingRequest {
-                    ns: "acme".to_string(),
-                    name: "search-binding".to_string(),
-                },
-            ))
+            .handle_get_mcp_server_binding(tonic::Request::new(proto::GetMcpServerBindingRequest {
+                ns: "acme".to_string(),
+                name: "search-binding".to_string(),
+            }))
             .await
             .expect("binding get should succeed")
             .into_inner();
@@ -613,13 +508,16 @@ mod tests {
         assert_eq!(invalid_namespace.code(), tonic::Code::InvalidArgument);
 
         invalid_binding.metadata = Some(metadata("bad-auth", "acme"));
-        invalid_binding.spec.as_mut().expect("spec should exist").auth_broker =
-            Some(manifests::McpAuthBrokerSpec {
-                kind: "http_bearer".to_string(),
-                url: "not-a-url".to_string(),
-                cache_ttl_seconds: 0,
-                audience: String::new(),
-            });
+        invalid_binding
+            .spec
+            .as_mut()
+            .expect("spec should exist")
+            .auth_broker = Some(manifests::McpAuthBrokerSpec {
+            kind: "http_bearer".to_string(),
+            url: "not-a-url".to_string(),
+            cache_ttl_seconds: 0,
+            audience: String::new(),
+        });
         let invalid_broker = handler
             .handle_create_mcp_server_binding(tonic::Request::new(
                 proto::CreateMcpServerBindingRequest {
@@ -643,7 +541,7 @@ mod tests {
             .into_inner();
         assert!(deleted.success);
 
-        let published = published.lock().await;
+        let published = pubsub.published.lock().await;
         assert!(
             published
                 .iter()
@@ -866,8 +764,7 @@ mod tests {
         assert_eq!(empty_tool_name_err.code(), tonic::Code::InvalidArgument);
 
         let mut spaced_tool_name = mcp_binding("binding", "acme", "http-server");
-        spaced_tool_name.spec.as_mut().unwrap().allowed_tool_names =
-            vec![" search ".to_string()];
+        spaced_tool_name.spec.as_mut().unwrap().allowed_tool_names = vec![" search ".to_string()];
         let spaced_tool_name_err = handler
             .handle_create_mcp_server_binding(tonic::Request::new(
                 proto::CreateMcpServerBindingRequest {
@@ -885,34 +782,28 @@ mod tests {
         let (handler, _, _) = setup_handler();
 
         let get_missing_ns = handler
-            .handle_get_mcp_server_binding(tonic::Request::new(
-                proto::GetMcpServerBindingRequest {
-                    ns: String::new(),
-                    name: "binding".to_string(),
-                },
-            ))
+            .handle_get_mcp_server_binding(tonic::Request::new(proto::GetMcpServerBindingRequest {
+                ns: String::new(),
+                name: "binding".to_string(),
+            }))
             .await
             .expect_err("missing get namespace should fail");
         assert_eq!(get_missing_ns.code(), tonic::Code::InvalidArgument);
 
         let get_missing_name = handler
-            .handle_get_mcp_server_binding(tonic::Request::new(
-                proto::GetMcpServerBindingRequest {
-                    ns: "acme".to_string(),
-                    name: String::new(),
-                },
-            ))
+            .handle_get_mcp_server_binding(tonic::Request::new(proto::GetMcpServerBindingRequest {
+                ns: "acme".to_string(),
+                name: String::new(),
+            }))
             .await
             .expect_err("missing get name should fail");
         assert_eq!(get_missing_name.code(), tonic::Code::InvalidArgument);
 
         let get_not_found = handler
-            .handle_get_mcp_server_binding(tonic::Request::new(
-                proto::GetMcpServerBindingRequest {
-                    ns: "acme".to_string(),
-                    name: "missing".to_string(),
-                },
-            ))
+            .handle_get_mcp_server_binding(tonic::Request::new(proto::GetMcpServerBindingRequest {
+                ns: "acme".to_string(),
+                name: "missing".to_string(),
+            }))
             .await
             .expect_err("missing binding should fail");
         assert_eq!(get_not_found.code(), tonic::Code::NotFound);

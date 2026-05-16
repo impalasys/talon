@@ -28,6 +28,7 @@ pub use crate::security::encryption::SecurityProvider;
 #[cfg(test)]
 pub(crate) mod test_support {
     use crate::control::{KeyValueStore, MessagePublisher};
+    use futures::stream;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::process::Command;
@@ -141,6 +142,37 @@ pub(crate) mod test_support {
         }
     }
 
+    #[derive(Default)]
+    pub(crate) struct RecordingPubSub {
+        pub(crate) streams: AsyncMutex<HashMap<String, Vec<Vec<u8>>>>,
+        pub(crate) published: AsyncMutex<Vec<(String, Vec<u8>)>>,
+    }
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for RecordingPubSub {
+        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
+            self.published
+                .lock()
+                .await
+                .push((topic.to_string(), message.to_vec()));
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            let data = self
+                .streams
+                .lock()
+                .await
+                .get(topic)
+                .cloned()
+                .unwrap_or_default();
+            Ok(Box::pin(stream::iter(data)))
+        }
+    }
+
     fn docker_test_mutex() -> &'static Mutex<()> {
         static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
         LOCK.get_or_init(|| Mutex::new(()))
@@ -225,10 +257,7 @@ pub(crate) mod test_support {
         }
 
         pub(crate) fn database_url(&self) -> String {
-            format!(
-                "postgres://talon:password@127.0.0.1:{}/talon",
-                self.port
-            )
+            format!("postgres://talon:password@127.0.0.1:{}/talon", self.port)
         }
     }
 

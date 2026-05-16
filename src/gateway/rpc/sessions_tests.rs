@@ -3,6 +3,7 @@
 
 #[cfg(test)]
 mod tests {
+    use crate::test_support::{MockKvStore, RecordingPubSub};
     use crate::control::{
         events::{SessionStepEvent, StepType},
         keys,
@@ -11,106 +12,13 @@ mod tests {
     };
     use crate::gateway::rpc::{manifests, models};
     use crate::gateway::rpc::{proto, GrpcGatewayHandler};
-    use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
+    use crate::gateway::server::Gateway;
     use futures::{stream, StreamExt};
     use prost::Message;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
     use tokio::sync::Mutex;
-
-    #[derive(Default)]
-    struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
-        }
-
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
-            Ok(())
-        }
-
-        async fn compare_and_swap(
-            &self,
-            ns: &str,
-            k: &str,
-            expected: Option<&[u8]>,
-            value: &[u8],
-        ) -> anyhow::Result<bool> {
-            let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
-            let matches = match (current.as_deref(), expected) {
-                (None, None) => true,
-                (Some(current), Some(expected)) => current == expected,
-                _ => false,
-            };
-            if matches {
-                data.insert(key, value.to_vec());
-            }
-            Ok(matches)
-        }
-
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(ns.to_string(), k.to_string()));
-            Ok(())
-        }
-
-        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
-            let mut keys = self
-                .data
-                .lock()
-                .await
-                .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
-                })
-                .collect::<Vec<_>>();
-            keys.sort();
-            Ok(keys)
-        }
-    }
-
-    struct MockPubSub {
-        pub streams: Arc<Mutex<HashMap<String, Vec<Vec<u8>>>>>,
-        pub published: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
-    }
-
-    #[async_trait::async_trait]
-    impl MessagePublisher for MockPubSub {
-        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
-            self.published
-                .lock()
-                .await
-                .push((topic.to_string(), message.to_vec()));
-            Ok(())
-        }
-
-        async fn subscribe(
-            &self,
-            topic: &str,
-        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-            let map = self.streams.lock().await;
-            let data = map.get(topic).cloned().unwrap_or_default();
-            Ok(Box::pin(stream::iter(data)))
-        }
-    }
 
     struct FailingPubSub {
         fail_publish: bool,
@@ -234,22 +142,14 @@ mod tests {
 
     fn setup_mock_gateway_handler(
         kv: Arc<MockKvStore>,
-        streams: Arc<Mutex<HashMap<String, Vec<Vec<u8>>>>>,
-        published: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
+        pubsub: Arc<RecordingPubSub>,
     ) -> GrpcGatewayHandler {
-        let gateway = Arc::new(Gateway {
-            auth_config: None,
+        let gateway = Arc::new(Gateway::new(
+            None,
             kv,
-            pubsub: Arc::new(MockPubSub {
-                streams: streams.clone(),
-                published: published.clone(),
-            }),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            session_streams: Arc::new(SessionStreamHub::new(Arc::new(MockPubSub {
-                streams,
-                published,
-            }))),
-        });
+            pubsub,
+            Arc::new(NoopSchedulerBackend),
+        ));
         GrpcGatewayHandler { gateway }
     }
 
@@ -257,13 +157,12 @@ mod tests {
         kv: Arc<dyn KeyValueStore + Send + Sync>,
         pubsub: Arc<dyn MessagePublisher + Send + Sync>,
     ) -> GrpcGatewayHandler {
-        let gateway = Arc::new(Gateway {
-            auth_config: None,
+        let gateway = Arc::new(Gateway::new(
+            None,
             kv,
-            pubsub: pubsub.clone(),
-            scheduler: Arc::new(NoopSchedulerBackend),
-            session_streams: Arc::new(SessionStreamHub::new(pubsub)),
-        });
+            pubsub,
+            Arc::new(NoopSchedulerBackend),
+        ));
         GrpcGatewayHandler { gateway }
     }
 
@@ -310,9 +209,8 @@ mod tests {
     #[tokio::test]
     async fn test_create_session_requires_existing_agent_and_persists_labels() {
         let kv = Arc::new(MockKvStore::default());
-        let streams = Arc::new(Mutex::new(HashMap::new()));
-        let published = Arc::new(Mutex::new(Vec::new()));
-        let handler = setup_mock_gateway_handler(kv.clone(), streams, published.clone());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), pubsub.clone());
 
         let missing = handler
             .handle_create_session(tonic::Request::new(proto::CreateSessionRequest {
@@ -341,14 +239,17 @@ mod tests {
         assert_eq!(response.labels.get("team").map(String::as_str), Some("ops"));
 
         let stored = kv
-            .get_msg::<models::Session>("default", &keys::session("test-agent", &response.session_id))
+            .get_msg::<models::Session>(
+                "default",
+                &keys::session("test-agent", &response.session_id),
+            )
             .await
             .unwrap()
             .expect("session should be stored");
         assert_eq!(stored.status, "IDLE");
         assert_eq!(stored.labels.get("team").map(String::as_str), Some("ops"));
 
-        let published = published.lock().await;
+        let published = pubsub.published.lock().await;
         assert_eq!(published.len(), 1);
         assert_eq!(published[0].0, topics::RESOURCE_LIFECYCLE_TOPIC);
     }
@@ -424,8 +325,8 @@ mod tests {
     #[tokio::test]
     async fn test_get_session_skips_nested_missing_and_invalid_payloads() {
         let kv = Arc::new(MockKvStore::default());
-        let streams = Arc::new(Mutex::new(HashMap::new()));
-        let handler = setup_mock_gateway_handler(kv.clone(), streams, Arc::new(Mutex::new(Vec::new())));
+        let handler =
+            setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         let ns = "default";
         let agent = "test-agent";
@@ -465,7 +366,10 @@ mod tests {
 
         kv.set(
             ns,
-            &format!("{}/nested", keys::session_message(agent, session_id, message_id)),
+            &format!(
+                "{}/nested",
+                keys::session_message(agent, session_id, message_id)
+            ),
             b"should-be-ignored",
         )
         .await
@@ -526,8 +430,7 @@ mod tests {
     async fn test_get_session_surfaces_not_found_and_list_errors() {
         let missing = setup_mock_gateway_handler(
             Arc::new(MockKvStore::default()),
-            Arc::new(Mutex::new(HashMap::new())),
-            Arc::new(Mutex::new(Vec::new())),
+            Arc::new(RecordingPubSub::default()),
         );
         let err = missing
             .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
@@ -563,10 +466,10 @@ mod tests {
             fail_delete_key: None,
             extra_list_keys: Vec::new(),
         });
-        let handler = setup_gateway_handler_with(kv, Arc::new(MockPubSub {
-            streams: Arc::new(Mutex::new(HashMap::new())),
-            published: Arc::new(Mutex::new(Vec::new())),
-        }));
+        let handler = setup_gateway_handler_with(
+            kv,
+            Arc::new(RecordingPubSub::default()),
+        );
 
         let err = handler
             .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
@@ -585,7 +488,10 @@ mod tests {
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([
                 (
-                    ("default".to_string(), keys::session("test-agent", "session-1")),
+                    (
+                        "default".to_string(),
+                        keys::session("test-agent", "session-1"),
+                    ),
                     models::Session {
                         id: "session-1".to_string(),
                         agent: "test-agent".to_string(),
@@ -625,10 +531,7 @@ mod tests {
         });
         let handler = setup_gateway_handler_with(
             kv,
-            Arc::new(MockPubSub {
-                streams: Arc::new(Mutex::new(HashMap::new())),
-                published: Arc::new(Mutex::new(Vec::new())),
-            }),
+            Arc::new(RecordingPubSub::default()),
         );
 
         let err = handler
@@ -646,8 +549,8 @@ mod tests {
     #[tokio::test]
     async fn test_send_message_maps_common_errors() {
         let kv = Arc::new(MockKvStore::default());
-        let streams = Arc::new(Mutex::new(HashMap::new()));
-        let handler = setup_mock_gateway_handler(kv.clone(), streams, Arc::new(Mutex::new(Vec::new())));
+        let handler =
+            setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         let empty = handler
             .handle_send_message(tonic::Request::new(proto::SendMessageRequest {
@@ -733,7 +636,10 @@ mod tests {
         assert_eq!(sent.session_id, "idle-session");
 
         let stored_message_keys = kv
-            .list_keys("default", &keys::session_message_prefix("test-agent", "idle-session"))
+            .list_keys(
+                "default",
+                &keys::session_message_prefix("test-agent", "idle-session"),
+            )
             .await
             .unwrap();
         assert_eq!(stored_message_keys.len(), 1);
@@ -741,7 +647,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_stream_session_steps() {
-        let streams = Arc::new(Mutex::new(HashMap::new()));
+        let pubsub = Arc::new(RecordingPubSub::default());
 
         let session_id = "test-session-123";
         let topic_name =
@@ -772,7 +678,7 @@ mod tests {
         };
 
         {
-            let mut map = streams.lock().await;
+            let mut map = pubsub.streams.lock().await;
             map.insert(
                 topic_name,
                 vec![event1.encode_to_vec(), event2.encode_to_vec()],
@@ -781,8 +687,7 @@ mod tests {
 
         let handler = setup_mock_gateway_handler(
             Arc::new(MockKvStore::default()),
-            streams,
-            Arc::new(Mutex::new(Vec::new())),
+            pubsub,
         );
         let req = tonic::Request::new(proto::StreamSessionStepsRequest {
             session_id: session_id.to_string(),
@@ -808,8 +713,8 @@ mod tests {
     #[tokio::test]
     async fn test_list_sessions_returns_updated_at_sorted_desc() {
         let kv = Arc::new(MockKvStore::default());
-        let streams = Arc::new(Mutex::new(HashMap::new()));
-        let handler = setup_mock_gateway_handler(kv.clone(), streams, Arc::new(Mutex::new(Vec::new())));
+        let handler =
+            setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         let ns = "default";
         let agent = "test-agent";
@@ -896,9 +801,15 @@ mod tests {
         let session_key = keys::session("test-agent", "session-1");
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([
-                (("default".to_string(), session_key.clone()), b"ignored".to_vec()),
                 (
-                    ("default".to_string(), keys::session("test-agent", "session-2")),
+                    ("default".to_string(), session_key.clone()),
+                    b"ignored".to_vec(),
+                ),
+                (
+                    (
+                        "default".to_string(),
+                        keys::session("test-agent", "session-2"),
+                    ),
                     models::Session {
                         id: "session-2".to_string(),
                         agent: "test-agent".to_string(),
@@ -966,9 +877,8 @@ mod tests {
     #[tokio::test]
     async fn test_delete_session_removes_session_messages_and_steps() {
         let kv = Arc::new(MockKvStore::default());
-        let streams = Arc::new(Mutex::new(HashMap::new()));
-        let published = Arc::new(Mutex::new(Vec::new()));
-        let handler = setup_mock_gateway_handler(kv.clone(), streams, published.clone());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), pubsub.clone());
 
         let ns = "default";
         let agent = "test-agent";
@@ -1034,35 +944,31 @@ mod tests {
             .into_inner();
 
         assert!(response.success);
-        assert!(
-            kv.get(ns, &keys::session(agent, session_id))
-                .await
-                .unwrap()
-                .is_none()
-        );
-        assert!(
-            kv.get(ns, &keys::session_message(agent, session_id, message_id))
-                .await
-                .unwrap()
-                .is_none()
-        );
-        assert!(
-            kv.get(
+        assert!(kv
+            .get(ns, &keys::session(agent, session_id))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(kv
+            .get(ns, &keys::session_message(agent, session_id, message_id))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(kv
+            .get(
                 ns,
                 &keys::session_message_step(agent, session_id, message_id, step_id)
             )
             .await
             .unwrap()
-            .is_none()
-        );
-        assert!(
-            kv.list_keys(ns, &keys::session_message_prefix(agent, session_id))
-                .await
-                .unwrap()
-                .is_empty()
-        );
+            .is_none());
+        assert!(kv
+            .list_keys(ns, &keys::session_message_prefix(agent, session_id))
+            .await
+            .unwrap()
+            .is_empty());
 
-        let published = published.lock().await;
+        let published = pubsub.published.lock().await;
         assert_eq!(published.len(), 1);
         assert_eq!(published[0].0, topics::RESOURCE_LIFECYCLE_TOPIC);
     }
@@ -1094,7 +1000,9 @@ mod tests {
             .await
             .expect_err("delete descendants failure should surface");
         assert_eq!(err.code(), tonic::Code::Internal);
-        assert!(err.message().contains("Failed to delete session descendants"));
+        assert!(err
+            .message()
+            .contains("Failed to delete session descendants"));
 
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
@@ -1162,9 +1070,8 @@ mod tests {
     #[tokio::test]
     async fn test_stop_session_generation_publishes_session_control_event() {
         let kv = Arc::new(MockKvStore::default());
-        let streams = Arc::new(Mutex::new(HashMap::new()));
-        let published = Arc::new(Mutex::new(Vec::new()));
-        let handler = setup_mock_gateway_handler(kv.clone(), streams, published.clone());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), pubsub.clone());
 
         let ns = "default";
         let agent = "test-agent";
@@ -1197,7 +1104,7 @@ mod tests {
 
         assert!(response.success);
 
-        let published = published.lock().await;
+        let published = pubsub.published.lock().await;
         assert_eq!(published.len(), 1);
         assert_eq!(published[0].0, topics::SESSION_CONTROL_TOPIC);
         let event = crate::control::events::SessionControlEvent::decode(published[0].1.as_slice())
@@ -1212,8 +1119,7 @@ mod tests {
     async fn test_stop_session_generation_requires_existing_session() {
         let handler = setup_mock_gateway_handler(
             Arc::new(MockKvStore::default()),
-            Arc::new(Mutex::new(HashMap::new())),
-            Arc::new(Mutex::new(Vec::new())),
+            Arc::new(RecordingPubSub::default()),
         );
 
         let err = handler
@@ -1283,13 +1189,11 @@ mod tests {
         );
 
         let err = match handler
-            .handle_stream_session_steps(tonic::Request::new(
-                proto::StreamSessionStepsRequest {
-                    session_id: "session-1".to_string(),
-                    agent: "test-agent".to_string(),
-                    ns: "default".to_string(),
-                },
-            ))
+            .handle_stream_session_steps(tonic::Request::new(proto::StreamSessionStepsRequest {
+                session_id: "session-1".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+            }))
             .await
         {
             Ok(_) => panic!("subscribe failure should surface"),
@@ -1297,6 +1201,8 @@ mod tests {
         };
 
         assert_eq!(err.code(), tonic::Code::Internal);
-        assert!(err.message().contains("Failed to subscribe to session stream"));
+        assert!(err
+            .message()
+            .contains("Failed to subscribe to session stream"));
     }
 }
