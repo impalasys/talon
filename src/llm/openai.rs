@@ -11,6 +11,7 @@ use async_trait::async_trait;
 use futures::{stream, StreamExt};
 use serde_json::Value;
 
+const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
 const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
 
 #[derive(Debug, Clone, Copy)]
@@ -287,11 +288,12 @@ impl OpenAiCompatibleProvider {
                 if !thinking.effort.trim().is_empty() {
                     payload["reasoning_effort"] = serde_json::json!(thinking.effort);
                 }
-                if let Some(budget_tokens) = thinking.budget_tokens {
-                    let max_completion_tokens =
-                        budget_tokens.saturating_add(THINKING_COMPLETION_BUFFER_TOKENS);
-                    payload["max_completion_tokens"] = serde_json::json!(max_completion_tokens);
-                }
+                let budget_tokens = thinking
+                    .budget_tokens
+                    .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS);
+                let max_completion_tokens =
+                    budget_tokens.saturating_add(THINKING_COMPLETION_BUFFER_TOKENS);
+                payload["max_completion_tokens"] = serde_json::json!(max_completion_tokens);
             }
 
             payload
@@ -629,6 +631,7 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
         .unwrap_or(0);
     let reasoning_tokens = usage
         .get("reasoning_tokens")
+        .or_else(|| usage.get("thinking_tokens"))
         .or_else(|| usage.pointer("/completion_tokens_details/reasoning_tokens"))
         .and_then(|v| v.as_u64())
         .unwrap_or(0);
@@ -961,6 +964,23 @@ mod tests {
         assert_eq!(usage.total_tokens, 30);
     }
 
+    #[test]
+    fn extract_usage_accepts_thinking_tokens_fallback() {
+        let usage = extract_usage(&serde_json::json!({
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 20,
+                "thinking_tokens": 6
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(usage.input_tokens, 10);
+        assert_eq!(usage.output_tokens, 20);
+        assert_eq!(usage.reasoning_tokens, 6);
+        assert_eq!(usage.total_tokens, 30);
+    }
+
     #[tokio::test]
     async fn send_chat_request_uses_reasoning_effort_field() {
         let app = Router::new().route(
@@ -1004,6 +1024,56 @@ mod tests {
                     enabled: true,
                     budget_tokens: Some(2048),
                     effort: "high".to_string(),
+                }),
+            })
+            .await
+            .unwrap();
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_defaults_completion_budget_for_thinking() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|Json(payload): Json<serde_json::Value>| async move {
+                assert_eq!(payload["reasoning_effort"], "medium");
+                assert_eq!(payload["max_completion_tokens"], 5120);
+                Json(serde_json::json!({
+                    "choices": [{
+                        "message": {
+                            "content": "ok"
+                        }
+                    }]
+                }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+
+        provider
+            .chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                tools: vec![],
+                thinking: Some(ThinkingConfig {
+                    enabled: true,
+                    budget_tokens: None,
+                    effort: "medium".to_string(),
                 }),
             })
             .await
