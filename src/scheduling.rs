@@ -358,13 +358,7 @@ pub async fn arm_schedule(
     let detail = format!("next run at {}", fire_at.to_rfc3339());
     let outcome = if backend_armed { "armed" } else { "pending" }.to_string();
     let _ = status;
-    append_schedule_event(
-        schedule,
-        Utc::now(),
-        "arm",
-        outcome,
-        detail,
-    );
+    append_schedule_event(schedule, Utc::now(), "arm", outcome, detail);
     Ok(())
 }
 
@@ -426,7 +420,10 @@ pub async fn dispatch_schedule(
 
     let scheduled_prompt = format_scheduled_message(&schedule.name, &spec.input_message);
     let mut labels = HashMap::new();
-    labels.insert("talon.impalasys.com/message-source".to_string(), "schedule".to_string());
+    labels.insert(
+        "talon.impalasys.com/message-source".to_string(),
+        "schedule".to_string(),
+    );
     labels.insert(
         "talon.impalasys.com/schedule-name".to_string(),
         schedule.name.clone(),
@@ -1227,7 +1224,10 @@ mod tests {
             .contains("session_mode"));
 
         assert_eq!(normalize_cron_expression("0 9 * * *"), "0 0 9 * * * *");
-        assert_eq!(normalize_cron_expression("0 */15 * * * *"), "0 */15 * * * * *");
+        assert_eq!(
+            normalize_cron_expression("0 */15 * * * *"),
+            "0 */15 * * * * *"
+        );
 
         let dt = parse_run_at("2026-05-03T09:00:00").unwrap();
         let expected = DateTime::parse_from_rfc3339("2026-05-03T09:00:00Z")
@@ -1287,7 +1287,13 @@ mod tests {
             .contains("schedule target is required"));
 
         let mut missing_agent = schedule("every");
-        let target = missing_agent.spec.as_mut().unwrap().target.as_mut().unwrap();
+        let target = missing_agent
+            .spec
+            .as_mut()
+            .unwrap()
+            .target
+            .as_mut()
+            .unwrap();
         target.agent.clear();
         assert!(validate_schedule(&missing_agent)
             .unwrap_err()
@@ -1295,8 +1301,14 @@ mod tests {
             .contains("schedule target agent is required"));
 
         let mut invalid_mode = schedule("every");
-        invalid_mode.spec.as_mut().unwrap().target.as_mut().unwrap().session_mode =
-            "odd".to_string();
+        invalid_mode
+            .spec
+            .as_mut()
+            .unwrap()
+            .target
+            .as_mut()
+            .unwrap()
+            .session_mode = "odd".to_string();
         assert!(validate_schedule(&invalid_mode)
             .unwrap_err()
             .to_string()
@@ -1390,8 +1402,22 @@ mod tests {
         assert_eq!(session.agent, "assistant");
 
         let mut scheduled = schedule("every");
-        scheduled.spec.as_mut().unwrap().target.as_mut().unwrap().session_mode = "reuse".to_string();
-        scheduled.spec.as_mut().unwrap().target.as_mut().unwrap().session_id = session_id.clone();
+        scheduled
+            .spec
+            .as_mut()
+            .unwrap()
+            .target
+            .as_mut()
+            .unwrap()
+            .session_mode = "reuse".to_string();
+        scheduled
+            .spec
+            .as_mut()
+            .unwrap()
+            .target
+            .as_mut()
+            .unwrap()
+            .session_id = session_id.clone();
         let dispatched_session = dispatch_schedule(&cp, &scheduled, now).await.unwrap();
         assert_eq!(dispatched_session, session_id);
         assert_eq!(pubsub.messages.lock().await.len(), 2);
@@ -1465,11 +1491,21 @@ mod tests {
         assert_eq!(status.claim_expires_at, None);
 
         for idx in 0..(MAX_RECENT_SCHEDULE_EVENTS + 5) {
-            append_schedule_event(&mut schedule, Utc::now(), "phase", "ok", format!("event-{idx}"));
+            append_schedule_event(
+                &mut schedule,
+                Utc::now(),
+                "phase",
+                "ok",
+                format!("event-{idx}"),
+            );
         }
         let events = &schedule.status.as_ref().unwrap().recent_events;
         assert_eq!(events.len(), MAX_RECENT_SCHEDULE_EVENTS);
         assert!(events.first().unwrap().detail.ends_with("event-5"));
-        assert!(events.last().unwrap().detail.ends_with(&format!("event-{}", MAX_RECENT_SCHEDULE_EVENTS + 4)));
+        assert!(events
+            .last()
+            .unwrap()
+            .detail
+            .ends_with(&format!("event-{}", MAX_RECENT_SCHEDULE_EVENTS + 4)));
     }
 }

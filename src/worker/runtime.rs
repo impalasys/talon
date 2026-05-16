@@ -14,10 +14,10 @@ use crate::core::executor::{
     AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
 };
 use crate::gateway::rpc::models;
+use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 use crate::knowledge::KvKnowledgeBook;
 use crate::llm::ToolCall;
 use crate::skills::registry::ToolRegistry;
-use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 
 /// Fully-assembled, ready-to-run environment for one agent session.
 /// Build it from identity coordinates; it resolves everything else
@@ -242,7 +242,8 @@ fn visible_tools_for_agent(
         return tools.to_vec();
     }
 
-    tools.iter()
+    tools
+        .iter()
         .filter(|tool| {
             if is_schedule_tool_name(&tool.name) {
                 return match tool.name.as_str() {
@@ -274,7 +275,10 @@ fn visible_tools_for_agent(
 fn is_schedule_tool_name(name: &str) -> bool {
     matches!(
         name,
-        "list_schedules" | "get_schedule" | "create_schedule" | "update_schedule"
+        "list_schedules"
+            | "get_schedule"
+            | "create_schedule"
+            | "update_schedule"
             | "delete_schedule"
     )
 }
@@ -363,11 +367,11 @@ fn tool_result_message_from_step(step: &SessionStepEvent) -> Option<LoopMessage>
 #[cfg(test)]
 mod tests {
     use super::{
-        builtin_tool_names, has_capability_action, qualify_mcp_tool_name, tool_result_message_from_step,
-        visible_tools_for_agent, AgentRuntime,
+        builtin_tool_names, has_capability_action, qualify_mcp_tool_name,
+        tool_result_message_from_step, visible_tools_for_agent, AgentRuntime,
     };
-    use crate::connectors::mcp::McpConnectionConfig;
     use crate::config::{Config, ProviderConfig};
+    use crate::connectors::mcp::McpConnectionConfig;
     use crate::control::{
         events::{SessionStepEvent, StepType},
         scheduler::NoopSchedulerBackend,
@@ -426,7 +430,10 @@ mod tests {
         }
 
         async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+            self.data
+                .lock()
+                .await
+                .remove(&(ns.to_string(), key.to_string()));
             Ok(())
         }
 
@@ -480,10 +487,7 @@ mod tests {
 
     fn runtime_config() -> Config {
         Config {
-            providers: HashMap::from([(
-                "mock".to_string(),
-                ProviderConfig { config: None },
-            )]),
+            providers: HashMap::from([("mock".to_string(), ProviderConfig { config: None })]),
             default_provider: "mock".to_string(),
             ..Config::default()
         }
@@ -593,11 +597,9 @@ mod tests {
                             values: actions
                                 .iter()
                                 .map(|action| protobuf_value::Value {
-                                    kind: Some(
-                                        protobuf_value::value::Kind::StringValue(
-                                            (*action).to_string(),
-                                        ),
-                                    ),
+                                    kind: Some(protobuf_value::value::Kind::StringValue(
+                                        (*action).to_string(),
+                                    )),
                                 })
                                 .collect(),
                         },
@@ -643,7 +645,10 @@ mod tests {
 
         let visible =
             visible_tools_for_agent(&config("talon-ops", Some("talon-ops")), &tools, &spec);
-        let names = visible.into_iter().map(|tool| tool.name).collect::<Vec<_>>();
+        let names = visible
+            .into_iter()
+            .map(|tool| tool.name)
+            .collect::<Vec<_>>();
 
         assert!(names.contains(&"list_schedules".to_string()));
         assert!(names.contains(&"create_schedule".to_string()));
@@ -717,10 +722,13 @@ mod tests {
         let config = runtime_config();
         let registry = crate::worker::mcp_registry::McpRegistry::new();
 
-        let missing = match AgentRuntime::build("conic", "missing", "session-1", &cp, &config, &registry).await {
-            Ok(_) => panic!("expected missing agent error"),
-            Err(err) => err,
-        };
+        let missing =
+            match AgentRuntime::build("conic", "missing", "session-1", &cp, &config, &registry)
+                .await
+            {
+                Ok(_) => panic!("expected missing agent error"),
+                Err(err) => err,
+            };
         assert!(missing.to_string().contains("Agent 'missing' not found"));
 
         kv.set_msg(
@@ -738,7 +746,16 @@ mod tests {
         .await
         .unwrap();
 
-        let no_spec = match AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry).await {
+        let no_spec = match AgentRuntime::build(
+            "conic",
+            "writer",
+            "session-1",
+            &cp,
+            &config,
+            &registry,
+        )
+        .await
+        {
             Ok(_) => panic!("expected missing effective spec error"),
             Err(err) => err,
         };
@@ -849,10 +866,9 @@ mod tests {
         .await
         .unwrap();
 
-        let runtime =
-            AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
-                .await
-                .unwrap();
+        let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+            .await
+            .unwrap();
 
         assert_eq!(runtime.context.agent_id, "writer");
         assert_eq!(runtime.context.history.len(), 3);

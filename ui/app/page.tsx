@@ -193,10 +193,17 @@ function selectionIcon(selection: Selection | null) {
 }
 
 type StreamEventItem = {
-  type: 'status' | 'tool_call' | 'tool_result' | 'error';
+  type: 'status' | 'tool_call' | 'tool_result' | 'reasoning' | 'usage' | 'error';
   content: string;
   name?: string;
   payload?: unknown;
+};
+
+type UsageSummary = {
+  inputTokens?: number;
+  outputTokens?: number;
+  reasoningTokens?: number;
+  totalTokens?: number;
 };
 
 type ScheduleDocument = {
@@ -488,6 +495,25 @@ function getMessageToolInvocations(message: any): ToolInvocationItem[] {
   return Array.from(toolInvocations.values());
 }
 
+function getMessageReasoningContent(message: any): string {
+  if (typeof message?.reasoningContent === 'string') {
+    return message.reasoningContent;
+  }
+
+  if (!Array.isArray(message?.parts)) return '';
+  return message.parts
+    .filter((part: any) => part?.type === 'reasoning' && typeof part.text === 'string')
+    .map((part: any) => part.text)
+    .join('');
+}
+
+function getMessageUsage(message: any): UsageSummary | null {
+  if (message?.usage && typeof message.usage === 'object') {
+    return message.usage as UsageSummary;
+  }
+  return null;
+}
+
 function normalizeMessageRole(role: unknown): 'user' | 'assistant' | 'system' {
   if (role === 1 || role === 'ROLE_USER') return 'user';
   if (role === 2 || role === 'ROLE_ASSISTANT') return 'assistant';
@@ -509,6 +535,14 @@ function isActionStep(stepType: unknown): boolean {
 
 function isObservationStep(stepType: unknown): boolean {
   return stepType === 3 || stepType === 'STEP_TYPE_OBSERVATION';
+}
+
+function isReasoningStep(stepType: unknown): boolean {
+  return stepType === 6 || stepType === 'STEP_TYPE_REASONING';
+}
+
+function isUsageStep(stepType: unknown): boolean {
+  return stepType === 7 || stepType === 'STEP_TYPE_USAGE';
 }
 
 function parseObjectPayload(payload: unknown): Record<string, unknown> {
@@ -570,14 +604,58 @@ function buildToolInvocationsFromSteps(steps: any[] | undefined): Map<string, To
   return byMessage;
 }
 
+function buildReasoningFromSteps(steps: any[] | undefined): Map<string, string> {
+  const byMessage = new Map<string, string>();
+  if (!Array.isArray(steps)) return byMessage;
+
+  for (const step of steps) {
+    const messageId = step?.messageId;
+    if (!messageId || !isReasoningStep(step?.stepType) || typeof step?.content !== 'string') continue;
+    byMessage.set(messageId, `${byMessage.get(messageId) ?? ''}${step.content}`);
+  }
+
+  return byMessage;
+}
+
+function buildUsageFromSteps(steps: any[] | undefined): Map<string, UsageSummary> {
+  const byMessage = new Map<string, UsageSummary>();
+  if (!Array.isArray(steps)) return byMessage;
+
+  for (const step of steps) {
+    const messageId = step?.messageId;
+    if (!messageId || !isUsageStep(step?.stepType)) continue;
+
+    const payload = parseJsonObject(step.payloadJson);
+    byMessage.set(messageId, {
+      inputTokens: typeof payload.input_tokens === 'number' ? payload.input_tokens : undefined,
+      outputTokens: typeof payload.output_tokens === 'number' ? payload.output_tokens : undefined,
+      reasoningTokens: typeof payload.reasoning_tokens === 'number' ? payload.reasoning_tokens : undefined,
+      totalTokens: typeof payload.total_tokens === 'number' ? payload.total_tokens : undefined,
+    });
+  }
+
+  return byMessage;
+}
+
 function hydrateMessagesWithSteps(messages: any[], steps: any[] | undefined) {
   const toolInvocationsByMessage = buildToolInvocationsFromSteps(steps);
+  const reasoningByMessage = buildReasoningFromSteps(steps);
+  const usageByMessage = buildUsageFromSteps(steps);
 
   return messages.map((message) => {
     if (message.role !== 'assistant') return message;
     const toolInvocations = toolInvocationsByMessage.get(message.id);
-    if (!toolInvocations || toolInvocations.length === 0) return message;
-    return { ...message, toolInvocations };
+    const reasoningContent = reasoningByMessage.get(message.id);
+    const usage = usageByMessage.get(message.id);
+    if ((!toolInvocations || toolInvocations.length === 0) && !reasoningContent && !usage) {
+      return message;
+    }
+    return {
+      ...message,
+      ...(toolInvocations && toolInvocations.length > 0 ? { toolInvocations } : {}),
+      ...(reasoningContent ? { reasoningContent } : {}),
+      ...(usage ? { usage } : {}),
+    };
   });
 }
 
@@ -638,6 +716,7 @@ function ensureAssistantMessage(messages: any[], messageId: string) {
       role: 'assistant',
       content: '',
       parts: [{ type: 'text', text: '' }],
+      reasoningContent: '',
     },
   ];
 }
@@ -659,6 +738,7 @@ function reconcileAssistantMessageId(messages: any[], fromMessageId: string, toM
     const fromMessage = nextMessages[fromIndex];
     const toMessage = nextMessages[toIndex];
     const mergedText = `${getMessageContent(toMessage)}${getMessageContent(fromMessage)}`;
+    const mergedReasoning = `${getMessageReasoningContent(toMessage)}${getMessageReasoningContent(fromMessage)}`;
     const mergedToolInvocations = [
       ...(Array.isArray(toMessage.toolInvocations) ? toMessage.toolInvocations : []),
       ...(Array.isArray(fromMessage.toolInvocations) ? fromMessage.toolInvocations : []),
@@ -667,7 +747,9 @@ function reconcileAssistantMessageId(messages: any[], fromMessageId: string, toM
       ...toMessage,
       content: mergedText,
       parts: [{ type: 'text', text: mergedText }],
+      reasoningContent: mergedReasoning,
       toolInvocations: mergedToolInvocations,
+      usage: toMessage.usage ?? fromMessage.usage,
     };
     nextMessages.splice(fromIndex, 1);
     return nextMessages;
@@ -694,6 +776,41 @@ function appendAssistantText(messages: any[], messageId: string, chunk: string) 
   return nextMessages;
 }
 
+function appendAssistantReasoning(messages: any[], messageId: string, chunk: string) {
+  const existingIndex = messages.findIndex(message => message.id === messageId);
+  const nextMessages = existingIndex >= 0 ? [...messages] : ensureAssistantMessage(messages, messageId);
+  const assistantIndex = existingIndex >= 0 ? existingIndex : nextMessages.findIndex(message => message.id === messageId);
+  const current = nextMessages[assistantIndex];
+  nextMessages[assistantIndex] = {
+    ...current,
+    reasoningContent: `${getMessageReasoningContent(current)}${chunk}`,
+  };
+  return nextMessages;
+}
+
+function applyUsageToMessages(messages: any[], messageId: string, usage: UsageSummary) {
+  const existingIndex = messages.findIndex(message => message.id === messageId);
+  const nextMessages = existingIndex >= 0 ? [...messages] : ensureAssistantMessage(messages, messageId);
+  const assistantIndex = existingIndex >= 0 ? existingIndex : nextMessages.findIndex(message => message.id === messageId);
+  const current = nextMessages[assistantIndex];
+  nextMessages[assistantIndex] = {
+    ...current,
+    usage,
+  };
+  return nextMessages;
+}
+
+function formatUsageSummary(usage: UsageSummary | null) {
+  if (!usage) return '';
+  const parts = [
+    typeof usage.reasoningTokens === 'number' ? `${usage.reasoningTokens} reasoning` : '',
+    typeof usage.outputTokens === 'number' ? `${usage.outputTokens} output` : '',
+    typeof usage.inputTokens === 'number' ? `${usage.inputTokens} input` : '',
+  ].filter(Boolean);
+  const total = typeof usage.totalTokens === 'number' ? `${usage.totalTokens} total` : '';
+  return [parts.join(' • '), total].filter(Boolean).join(' • ');
+}
+
 function sessionResponseHasAssistantText(response: any): boolean {
   return Array.isArray(response?.messages) && response.messages.some((message: any) => {
     return normalizeMessageRole(message?.role) === 'assistant'
@@ -715,6 +832,8 @@ function extractStreamEvents(data: unknown): StreamEventItem[] {
           candidate.type === 'status' ||
           candidate.type === 'tool_call' ||
           candidate.type === 'tool_result' ||
+          candidate.type === 'reasoning' ||
+          candidate.type === 'usage' ||
           candidate.type === 'error'
         ) &&
         typeof candidate.content === 'string'
@@ -850,6 +969,7 @@ function DebuggerPageContent() {
   const [isRightSidebarHovered, setIsRightSidebarHovered] = useState(false);
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const [expandedToolMessages, setExpandedToolMessages] = useState<Record<string, boolean>>({});
+  const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [resourceYaml, setResourceYaml] = useState<string>('');
   const [resourceDocument, setResourceDocument] = useState<any | null>(null);
   const [resourceLoading, setResourceLoading] = useState(false);
@@ -1137,6 +1257,18 @@ function DebuggerPageContent() {
               }
               return newMsgs;
             });
+          } else if (part.type === 'reasoning') {
+            setMessages(prev => {
+              const newMsgs = [...prev];
+              const last = newMsgs[newMsgs.length - 1];
+              if (last && last.role === 'assistant') {
+                newMsgs[newMsgs.length - 1] = {
+                  ...last,
+                  reasoningContent: `${getMessageReasoningContent(last)}${String(part.value ?? '')}`,
+                };
+              }
+              return newMsgs;
+            });
           } else if (part.type === 'tool_call') {
             setMessages(prev => applyToolInvocationToMessages(
               prev,
@@ -1152,6 +1284,18 @@ function DebuggerPageContent() {
               undefined,
               part.value?.result,
             ));
+          } else if (part.type === 'usage') {
+            setMessages(prev => {
+              const newMsgs = [...prev];
+              const last = newMsgs[newMsgs.length - 1];
+              if (last && last.role === 'assistant') {
+                newMsgs[newMsgs.length - 1] = {
+                  ...last,
+                  usage: part.value,
+                };
+              }
+              return newMsgs;
+            });
           } else if (part.type === 'error') {
             setError(new Error(String(part.value)));
           }
@@ -1167,6 +1311,10 @@ function DebuggerPageContent() {
   }, [messages, isLoading, error]);
 
   const getLatestStatus = () => {
+    const reasoningItems = streamEvents.filter(item => item.type === 'reasoning');
+    if (reasoningItems.length > 0) {
+      return 'Thinking';
+    }
     const statusItems = streamEvents.filter(item => item.type === 'status');
     if (statusItems.length > 0) {
       return statusItems[statusItems.length - 1].content;
@@ -1180,6 +1328,13 @@ function DebuggerPageContent() {
 
   const toggleToolMessage = useCallback((messageId: string) => {
     setExpandedToolMessages(prev => ({
+      ...prev,
+      [messageId]: !prev[messageId],
+    }));
+  }, []);
+
+  const toggleThinkingMessage = useCallback((messageId: string) => {
+    setExpandedThinkingMessages(prev => ({
       ...prev,
       [messageId]: !prev[messageId],
     }));
@@ -1325,6 +1480,16 @@ function DebuggerPageContent() {
             const messageId = ensureLiveAssistant();
             assistantText += part;
             setMessages(prev => appendAssistantText(prev, messageId, part));
+          } else if (code === 'g' && typeof part === 'string') {
+            const messageId = ensureLiveAssistant();
+            setStreamEvents(prev => [
+              ...prev,
+              {
+                type: 'reasoning',
+                content: part,
+              },
+            ]);
+            setMessages(prev => appendAssistantReasoning(prev, messageId, part));
           } else if (code === '9') {
             const messageId = ensureLiveAssistant();
             setStreamEvents(prev => [
@@ -1362,6 +1527,17 @@ function DebuggerPageContent() {
               part?.result,
               messageId,
             ));
+          } else if (code === 'h' && part && typeof part === 'object') {
+            const messageId = ensureLiveAssistant();
+            setStreamEvents(prev => [
+              ...prev,
+              {
+                type: 'usage',
+                content: formatUsageSummary(part as UsageSummary),
+                payload: part,
+              },
+            ]);
+            setMessages(prev => applyUsageToMessages(prev, messageId, part as UsageSummary));
           } else if (code === '3') {
             throw new Error(typeof part === 'string' ? part : 'Stream error');
           }
@@ -1576,6 +1752,9 @@ function DebuggerPageContent() {
                       (() => {
                         const toolInvocations = getMessageToolInvocations(m);
                         const content = getMessageContent(m);
+                        const reasoningContent = getMessageReasoningContent(m);
+                        const usage = getMessageUsage(m);
+                        const usageSummary = formatUsageSummary(usage);
                         return (
                       <motion.div 
                         key={m.id}
@@ -1647,6 +1826,37 @@ function DebuggerPageContent() {
                                       )}
                                     </div>
                                   ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {reasoningContent && (
+                            <div className="pb-2">
+                              <button
+                                type="button"
+                                onClick={() => toggleThinkingMessage(m.id)}
+                                className="group/thinking inline-flex w-full items-center justify-between rounded-lg border border-amber-200/50 bg-amber-50/40 px-3 py-2 text-left transition-colors hover:bg-amber-50/60 dark:border-amber-500/20 dark:bg-amber-500/10"
+                              >
+                                <span className="text-[12px] font-medium text-amber-900/80 dark:text-amber-100/80">
+                                  Thinking{usageSummary ? ` • ${usageSummary}` : ''}
+                                </span>
+                                <ChevronRight
+                                  className={cn(
+                                    "h-4 w-4 text-amber-900/60 transition-all duration-200 opacity-0 group-hover/thinking:opacity-100 dark:text-amber-100/60",
+                                    expandedThinkingMessages[m.id] && "rotate-90 opacity-100"
+                                  )}
+                                />
+                              </button>
+
+                              {expandedThinkingMessages[m.id] && (
+                                <div className="mt-3 rounded-lg border border-amber-200/50 bg-amber-50/30 p-3 dark:border-amber-500/20 dark:bg-amber-500/5">
+                                  <div className="mb-2 text-[11px] uppercase tracking-wide text-amber-900/60 dark:text-amber-100/60">
+                                    Raw Reasoning
+                                  </div>
+                                  <div className="whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed text-amber-950/85 [overflow-wrap:anywhere] dark:text-amber-50/85">
+                                    {reasoningContent}
+                                  </div>
                                 </div>
                               )}
                             </div>

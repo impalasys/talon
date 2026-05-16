@@ -207,7 +207,10 @@ mod tests {
         }
 
         async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+            self.data
+                .lock()
+                .await
+                .remove(&(ns.to_string(), key.to_string()));
             Ok(())
         }
 
@@ -350,8 +353,16 @@ mod tests {
     #[tokio::test]
     async fn invalidate_all_clears_every_namespace() {
         let registry = McpRegistry::new();
-        registry.cache.write().await.insert("one".to_string(), HashMap::new());
-        registry.cache.write().await.insert("two".to_string(), HashMap::new());
+        registry
+            .cache
+            .write()
+            .await
+            .insert("one".to_string(), HashMap::new());
+        registry
+            .cache
+            .write()
+            .await
+            .insert("two".to_string(), HashMap::new());
 
         registry.invalidate_all().await;
 
@@ -420,7 +431,10 @@ mod tests {
                     transport: "http".to_string(),
                     target: "https://example.com/mcp".to_string(),
                     args: vec!["--server".to_string()],
-                    headers: HashMap::from([("Authorization".to_string(), "Bearer token".to_string())]),
+                    headers: HashMap::from([(
+                        "Authorization".to_string(),
+                        "Bearer token".to_string(),
+                    )]),
                     disabled: false,
                 }),
             },
@@ -442,7 +456,10 @@ mod tests {
                 spec: Some(manifests::McpServerBindingSpec {
                     server_ref: "docs-server".to_string(),
                     args: vec!["--binding".to_string()],
-                    headers: HashMap::from([("Authorization".to_string(), "Bearer override".to_string())]),
+                    headers: HashMap::from([(
+                        "Authorization".to_string(),
+                        "Bearer override".to_string(),
+                    )]),
                     disabled: true,
                     auth_broker: Some(manifests::McpAuthBrokerSpec {
                         kind: "oauth".to_string(),
@@ -457,7 +474,10 @@ mod tests {
         .await
         .unwrap();
 
-        let err = registry.resolve_server(&cp, "docs", "conic").await.unwrap_err();
+        let err = registry
+            .resolve_server(&cp, "docs", "conic")
+            .await
+            .unwrap_err();
         assert!(err.to_string().contains("disabled"));
         assert!(registry.cache.read().await.is_empty());
     }

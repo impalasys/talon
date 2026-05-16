@@ -119,8 +119,8 @@ impl Gateway {
 #[cfg(test)]
 mod tests {
     use super::Gateway;
-    use crate::gateway::auth::AuthConfig;
     use crate::control::{scheduler::NoopSchedulerBackend, KeyValueStore, MessagePublisher};
+    use crate::gateway::auth::AuthConfig;
     use axum::body::Body;
     use axum::http::{Method, Request, StatusCode};
     use futures::stream;

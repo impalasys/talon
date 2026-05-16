@@ -24,8 +24,9 @@ pub struct WorkerEventHandler {
     pub config: Arc<Config>,
     pub mcp_registry: Arc<mcp_registry::McpRegistry>,
     pub scheduler_authenticator: Arc<scheduler_auth::SchedulerRequestAuthenticator>,
-    pub session_cancellations:
-        Arc<tokio::sync::Mutex<std::collections::HashMap<String, tokio_util::sync::CancellationToken>>>,
+    pub session_cancellations: Arc<
+        tokio::sync::Mutex<std::collections::HashMap<String, tokio_util::sync::CancellationToken>>,
+    >,
 }
 
 impl WorkerEventHandler {
@@ -277,18 +278,12 @@ mod tests {
         topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{manifests, models};
-    use crate::worker::{
-        mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
-    };
+    use crate::worker::{mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator};
     use async_trait::async_trait;
     use chrono::{Duration, Utc};
     use futures::stream;
     use prost::Message;
-    use std::{
-        collections::HashMap,
-        pin::Pin,
-        sync::Arc,
-    };
+    use std::{collections::HashMap, pin::Pin, sync::Arc};
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -337,7 +332,10 @@ mod tests {
         }
 
         async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+            self.data
+                .lock()
+                .await
+                .remove(&(ns.to_string(), key.to_string()));
             Ok(())
         }
 
@@ -483,18 +481,26 @@ mod tests {
             )),
             Some("resource_lifecycle")
         );
-        assert_eq!(WorkerEventHandler::event_type_for_subscription("unknown"), None);
+        assert_eq!(
+            WorkerEventHandler::event_type_for_subscription("unknown"),
+            None
+        );
     }
 
     #[tokio::test]
     async fn dispatch_rejects_unknown_event_types_and_payloads() {
-        let handler = handler(Arc::new(MockKvStore::default()), Arc::new(MockPubSub::default()));
+        let handler = handler(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockPubSub::default()),
+        );
 
         let unknown_type = handler
             .dispatch(Some("wat"), &[])
             .await
             .expect_err("unknown event type should fail");
-        assert!(unknown_type.to_string().contains("Unknown worker event type"));
+        assert!(unknown_type
+            .to_string()
+            .contains("Unknown worker event type"));
 
         let unknown_payload = handler
             .dispatch(None, b"not-protobuf")
@@ -511,11 +517,10 @@ mod tests {
         let pubsub = Arc::new(MockPubSub::default());
         let handler = handler(kv, pubsub);
 
-        handler
-            .session_cancellations
-            .lock()
-            .await
-            .insert("session-1".to_string(), tokio_util::sync::CancellationToken::new());
+        handler.session_cancellations.lock().await.insert(
+            "session-1".to_string(),
+            tokio_util::sync::CancellationToken::new(),
+        );
 
         let lifecycle = LifecycleEvent {
             resource_type: "McpServerBinding".to_string(),
@@ -544,7 +549,10 @@ mod tests {
 
     #[tokio::test]
     async fn handle_schedule_wakeup_returns_ok_when_no_schedule_matches() {
-        let handler = handler(Arc::new(MockKvStore::default()), Arc::new(MockPubSub::default()));
+        let handler = handler(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockPubSub::default()),
+        );
 
         handler
             .handle_schedule_wakeup(crate::scheduling::ScheduleWakeupPayload {

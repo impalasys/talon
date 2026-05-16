@@ -526,7 +526,10 @@ mod tests {
         )
         .await
         .unwrap();
-        assert_eq!(wrote.as_deref(), Some("KnowledgeBook: wrote artifact 'goals.md'."));
+        assert_eq!(
+            wrote.as_deref(),
+            Some("KnowledgeBook: wrote artifact 'goals.md'.")
+        );
 
         let got = execute_tool(
             &book,

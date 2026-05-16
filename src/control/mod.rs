@@ -164,42 +164,44 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
     println!("Initializing GcpPubSubPublisher...");
     let pubsub = std::sync::Arc::new(pubsub::GcpPubSubPublisher::new().await?);
 
-    let scheduler: std::sync::Arc<dyn scheduler::SchedulerBackend + Send + Sync> =
-        if matches!(scheduler_driver().as_deref(), Some("local_postgres")) {
-            match scheduler::LocalPostgresSchedulerBackend::new(
-                &pg_url,
-                std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
-                std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
-                std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
-                std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
-                    .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
-                    .unwrap_or(false),
-            )
-            .await
-            {
+    let scheduler: std::sync::Arc<dyn scheduler::SchedulerBackend + Send + Sync> = if matches!(
+        scheduler_driver().as_deref(),
+        Some("local_postgres")
+    ) {
+        match scheduler::LocalPostgresSchedulerBackend::new(
+            &pg_url,
+            std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
+            std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
+            std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
+            std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
+                .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+                .unwrap_or(false),
+        )
+        .await
+        {
+            Ok(backend) => std::sync::Arc::new(backend),
+            Err(err) => {
+                tracing::warn!(error = %err, "Failed to initialize local_postgres scheduler; using noop");
+                std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
+            }
+        }
+    } else {
+        match configured_scheduler(cp.scheduler.as_ref()) {
+            Some(crate::config::proto::SchedulerConfig {
+                backend: Some(crate::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
+            }) => match scheduler::CloudTasksSchedulerBackend::new(&cfg).await {
                 Ok(backend) => std::sync::Arc::new(backend),
                 Err(err) => {
-                    tracing::warn!(error = %err, "Failed to initialize local_postgres scheduler; using noop");
+                    tracing::warn!(error = %err, "Failed to initialize Cloud Tasks scheduler; using noop");
                     std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
                 }
+            },
+            Some(crate::config::proto::SchedulerConfig { backend: None }) => {
+                std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
             }
-        } else {
-            match configured_scheduler(cp.scheduler.as_ref()) {
-                Some(crate::config::proto::SchedulerConfig {
-                    backend: Some(crate::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
-                }) => match scheduler::CloudTasksSchedulerBackend::new(&cfg).await {
-                    Ok(backend) => std::sync::Arc::new(backend),
-                    Err(err) => {
-                        tracing::warn!(error = %err, "Failed to initialize Cloud Tasks scheduler; using noop");
-                        std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
-                    }
-                },
-                Some(crate::config::proto::SchedulerConfig { backend: None }) => {
-                    std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
-                }
-                None => std::sync::Arc::new(scheduler::NoopSchedulerBackend::default()),
-            }
-        };
+            None => std::sync::Arc::new(scheduler::NoopSchedulerBackend::default()),
+        }
+    };
 
     Ok(ControlPlane {
         kv,
@@ -290,8 +292,8 @@ mod tests {
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
     use crate::gateway::rpc::models;
-    use std::collections::HashMap;
     use crate::test_support::MockKvStore;
+    use std::collections::HashMap;
     struct EnvGuard {
         key: &'static str,
         value: Option<String>,
@@ -448,15 +450,9 @@ mod tests {
         std::env::set_var("TALON_TEST_RESTORE", "before");
         {
             let _guard = EnvGuard::set("TALON_TEST_RESTORE", "after");
-            assert_eq!(
-                std::env::var("TALON_TEST_RESTORE").as_deref(),
-                Ok("after")
-            );
+            assert_eq!(std::env::var("TALON_TEST_RESTORE").as_deref(), Ok("after"));
         }
-        assert_eq!(
-            std::env::var("TALON_TEST_RESTORE").as_deref(),
-            Ok("before")
-        );
+        assert_eq!(std::env::var("TALON_TEST_RESTORE").as_deref(), Ok("before"));
         std::env::remove_var("TALON_TEST_RESTORE");
     }
 
@@ -476,7 +472,10 @@ mod tests {
         kv.delete_prefix("ns", "prefix/").await.unwrap();
         assert!(kv.get("ns", "prefix/a").await.unwrap().is_none());
         assert!(kv.get("ns", "prefix/b").await.unwrap().is_none());
-        assert_eq!(kv.get("ns", "other/c").await.unwrap(), Some(b"three".to_vec()));
+        assert_eq!(
+            kv.get("ns", "other/c").await.unwrap(),
+            Some(b"three".to_vec())
+        );
 
         let session = models::Session {
             id: "session-1".to_string(),

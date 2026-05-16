@@ -58,6 +58,7 @@ mod tests {
                                 provider: "mock".to_string(),
                                 name: model_name.to_string(),
                                 temperature: 0.7,
+                                thinking: None,
                             }),
                         }],
                     }),

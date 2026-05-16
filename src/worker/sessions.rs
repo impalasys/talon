@@ -118,14 +118,12 @@ impl WorkerEventHandler {
             );
 
             execute_with_panic_boundary(
-                runtime
-                    .executor
-                    .execute(
-                        &mut runtime.context,
-                        &event.message,
-                        &sink,
-                        Some(&cancellation_token),
-                    ),
+                runtime.executor.execute(
+                    &mut runtime.context,
+                    &event.message,
+                    &sink,
+                    Some(&cancellation_token),
+                ),
                 &sink,
                 &event.agent,
                 &event.session_id,
@@ -209,8 +207,8 @@ mod tests {
     use crate::config::Config;
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
-        scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
-        ProtoKeyValueStoreExt,
+        scheduler::NoopSchedulerBackend,
+        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::core::executor::ExecutionSink;
     use crate::gateway::rpc::{manifests, models};
@@ -220,10 +218,10 @@ mod tests {
     };
     use async_trait::async_trait;
     use futures::stream;
+    use serde_json::Value;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
-    use serde_json::Value;
     use std::sync::Mutex;
     use tokio::sync::Mutex as AsyncMutex;
     use tokio_util::sync::CancellationToken;
@@ -247,8 +245,10 @@ mod tests {
     #[async_trait]
     impl ExecutionSink for CaptureErrorSink {
         async fn on_token(&self, _: &str) {}
+        async fn on_reasoning(&self, _: &str) {}
         async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
         async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
+        async fn on_usage(&self, _: &crate::llm::ChatUsage) {}
         async fn on_done(&self, _: &str) {}
         async fn on_error(&self, err: &str) {
             self.errors.lock().unwrap().push(err.to_string());
@@ -301,7 +301,10 @@ mod tests {
         }
 
         async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+            self.data
+                .lock()
+                .await
+                .remove(&(ns.to_string(), key.to_string()));
             Ok(())
         }
 
@@ -398,9 +401,10 @@ mod tests {
     #[tokio::test]
     async fn execute_with_panic_boundary_reports_success_and_string_panic() {
         let sink = CaptureErrorSink::new();
-        let ok = execute_with_panic_boundary(async { Ok("done".to_string()) }, &sink, "infra", "s1")
-            .await
-            .unwrap();
+        let ok =
+            execute_with_panic_boundary(async { Ok("done".to_string()) }, &sink, "infra", "s1")
+                .await
+                .unwrap();
         assert_eq!(ok, SessionCompletionStatus::Completed);
         assert!(sink.errors().is_empty());
 

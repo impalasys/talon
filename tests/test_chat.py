@@ -32,9 +32,12 @@ from proto.gateway_pb2 import (
 )
 from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model, Knowledge, ObjectMeta, KnowledgeSpec
 from proto.models_pb2 import Schedule, ScheduleSpec, ScheduleTarget
-from proto.events_pb2 import STEP_TYPE_TOKEN
 import threading
 import uuid
+
+STEP_TYPE_TOKEN = 1
+STEP_TYPE_REASONING = 6
+STEP_TYPE_USAGE = 7
 
 def test_single_turn_chat(gateway_channel, mock_llm_server):
     stub = GatewayServiceStub(gateway_channel)
@@ -180,12 +183,20 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     events = []
     try:
         # We limit iteration to prevent infinite block if stream is buggy
+        saw_reasoning = False
+        saw_token = False
+        saw_usage = False
         for idx, event in enumerate(stub.StreamSessionSteps(stream_req)):
             events.append(event)
+            if event.step_type == STEP_TYPE_REASONING:
+                saw_reasoning = True
             if event.step_type == STEP_TYPE_TOKEN:
-                # The mock LLM only emits one token chunk, so we break after receiving it
+                saw_token = True
+            if event.step_type == STEP_TYPE_USAGE:
+                saw_usage = True
+            if saw_reasoning and saw_token and saw_usage:
                 break
-            if idx > 10:
+            if idx > 20:
                 break
     except grpc.RpcError as e:
         print("RPC ERROR:", e)
@@ -193,9 +204,17 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     t.join()
     
     assert len(events) >= 1
+    reasoning_events = [event for event in events if event.step_type == STEP_TYPE_REASONING]
     token_events = [event for event in events if event.step_type == STEP_TYPE_TOKEN]
+    usage_events = [event for event in events if event.step_type == STEP_TYPE_USAGE]
+    assert len(reasoning_events) >= 1
     assert len(token_events) >= 1
-    assert "received" in token_events[0].content
+    assert len(usage_events) >= 1
+    assert "Inspecting the request" in reasoning_events[0].content
+    streamed_text = "".join(event.content for event in token_events)
+    assert "received" in streamed_text
+    usage_payload = json.loads(usage_events[0].payload_json)
+    assert usage_payload["reasoning_tokens"] == 6
 
 def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     stub = GatewayServiceStub(gateway_channel)
