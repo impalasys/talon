@@ -276,30 +276,26 @@ async fn run_pull_subscription_with_backend(
     Ok(())
 }
 
-fn spawn_pull_subscription_task(
+async fn run_pull_subscription_loop<F, Fut>(
+    mut build_backend: F,
     pull_handler: WorkerEventHandler,
-    project_id: String,
     spec: ResolvedPullSubscriptionSpec,
     shutdown_token: CancellationToken,
-) {
-    let ResolvedPullSubscriptionSpec {
-        topic_name,
-        subscription_name,
-        event_type,
-    } = spec;
-    tokio::spawn(async move {
-        let fq_topic = topic_name.clone();
-        let fq_subscription = subscription_name.clone();
-        let mut attempts = 0u32;
+) where
+    F: FnMut() -> Fut,
+    Fut: std::future::Future<Output = Result<Box<dyn PullSubscriptionBackend>>>,
+{
+    let fq_topic = spec.topic_name.clone();
+    let fq_subscription = spec.subscription_name.clone();
+    let mut attempts = 0u32;
+
+    loop {
         let backend = loop {
-            match GcpPullSubscriptionBackend::new(
-                project_id.clone(),
-                topic_name.clone(),
-                subscription_name.clone(),
-            )
-            .await
-            {
-                Ok(backend) => break backend,
+            match build_backend().await {
+                Ok(backend) => {
+                    attempts = 0;
+                    break backend;
+                }
                 Err(e) => {
                     attempts += 1;
                     let backoff_secs = 2u64.saturating_pow(attempts.min(4));
@@ -318,32 +314,75 @@ fn spawn_pull_subscription_task(
             }
         };
 
-        if let Err(e) =
-            run_pull_subscription_with_backend(
-                &backend,
-                pull_handler,
-                ResolvedPullSubscriptionSpec {
-                    topic_name: fq_topic.clone(),
-                    subscription_name: fq_subscription.clone(),
-                    event_type,
-                },
-                shutdown_token,
-            )
-            .await
+        match run_pull_subscription_with_backend(
+            backend.as_ref(),
+            pull_handler.clone(),
+            spec.clone(),
+            shutdown_token.child_token(),
+        )
+        .await
         {
-            tracing::error!(
-                topic = %fq_topic,
-                subscription = %fq_subscription,
-                error = ?e,
-                "PubSub receive loop exited with error"
-            );
-        } else {
-            tracing::warn!(
-                topic = %fq_topic,
-                subscription = %fq_subscription,
-                "PubSub receive loop exited normally"
-            );
+            Ok(()) => {
+                tracing::warn!(
+                    topic = %fq_topic,
+                    subscription = %fq_subscription,
+                    "PubSub receive loop exited normally"
+                );
+                return;
+            }
+            Err(e) => {
+                attempts += 1;
+                let backoff_secs = 2u64.saturating_pow(attempts.min(4));
+                tracing::error!(
+                    topic = %fq_topic,
+                    subscription = %fq_subscription,
+                    attempt = attempts,
+                    error = ?e,
+                    "PubSub receive loop exited with error"
+                );
+                tokio::select! {
+                    _ = shutdown_token.cancelled() => return,
+                    _ = tokio::time::sleep(std::time::Duration::from_secs(backoff_secs)) => {}
+                }
+            }
         }
+    }
+}
+
+fn spawn_pull_subscription_task(
+    pull_handler: WorkerEventHandler,
+    project_id: String,
+    spec: ResolvedPullSubscriptionSpec,
+    shutdown_token: CancellationToken,
+) {
+    let ResolvedPullSubscriptionSpec {
+        topic_name,
+        subscription_name,
+        event_type,
+    } = spec;
+    tokio::spawn(async move {
+        let spec = ResolvedPullSubscriptionSpec {
+            topic_name: topic_name.clone(),
+            subscription_name: subscription_name.clone(),
+            event_type,
+        };
+        run_pull_subscription_loop(
+            || {
+                let project_id = project_id.clone();
+                let topic_name = topic_name.clone();
+                let subscription_name = subscription_name.clone();
+                async move {
+                    Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
+                        GcpPullSubscriptionBackend::new(project_id, topic_name, subscription_name)
+                            .await?,
+                    ))
+                }
+            },
+            pull_handler,
+            spec,
+            shutdown_token,
+        )
+        .await;
     });
 }
 
@@ -566,7 +605,7 @@ mod tests {
         build_worker_handler, fully_qualified_subscription, fully_qualified_topic,
         maybe_spawn_pull_subscriptions, pull_mode_enabled, pull_subscription_specs,
         pubsub_project_id, push_webhook, resolved_pull_subscription_specs, run_worker_main_with,
-        run_pull_subscription_with_backend, run_worker_with, PullSubscriptionBackend,
+        run_pull_subscription_loop, run_pull_subscription_with_backend, run_worker_with, PullSubscriptionBackend,
         ResolvedPullSubscriptionSpec,
         schedule_fire, serve_worker_http, worker_bind_addr, worker_port, worker_router,
     };
@@ -703,6 +742,7 @@ mod tests {
         fail_topic: bool,
         fail_subscription: bool,
         fail_receive: bool,
+        cancel_on_receive: bool,
     }
 
     #[async_trait::async_trait]
@@ -739,6 +779,9 @@ mod tests {
                 .lock()
                 .expect("calls lock poisoned")
                 .push("receive");
+            if self.cancel_on_receive {
+                _cancellation_token.cancel();
+            }
             if self.fail_receive {
                 anyhow::bail!("receive failed");
             }
@@ -1482,5 +1525,47 @@ mod tests {
             ok.calls.lock().expect("calls lock poisoned").as_slice(),
             &["topic", "subscription", "receive"]
         );
+    }
+
+    #[tokio::test]
+    async fn run_pull_subscription_loop_retries_after_receive_failure() {
+        let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
+        let spec = ResolvedPullSubscriptionSpec {
+            topic_name: "projects/demo/topics/events".to_string(),
+            subscription_name: "projects/demo/subscriptions/events-sub".to_string(),
+            event_type: "resource_lifecycle".to_string(),
+        };
+        let attempts = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let shutdown = CancellationToken::new();
+
+        run_pull_subscription_loop(
+            {
+                let attempts = attempts.clone();
+                move || {
+                    let attempts = attempts.clone();
+                    async move {
+                        let attempt = attempts.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+                        let backend = if attempt == 0 {
+                            FakePullBackend {
+                                fail_receive: true,
+                                ..Default::default()
+                            }
+                        } else {
+                            FakePullBackend {
+                                cancel_on_receive: true,
+                                ..Default::default()
+                            }
+                        };
+                        Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(backend))
+                    }
+                }
+            },
+            handler,
+            spec,
+            shutdown,
+        )
+        .await;
+
+        assert_eq!(attempts.load(std::sync::atomic::Ordering::SeqCst), 2);
     }
 }
