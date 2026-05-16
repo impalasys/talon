@@ -13,6 +13,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use std::collections::HashSet;
 use std::convert::Infallible;
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::Arc;
 use std::time::Duration;
 use tonic::metadata::MetadataValue;
@@ -186,9 +187,16 @@ fn data_stream_line(code: &str, value: Value) -> Vec<u8> {
 }
 
 fn step_dedup_key(step: &events::SessionStepEvent) -> String {
+    let mut payload_hasher = DefaultHasher::new();
+    step.payload_json.hash(&mut payload_hasher);
     format!(
         "{}:{}:{}:{}:{}:{}",
-        step.message_id, step.timestamp, step.step_type, step.name, step.content, step.payload_json
+        step.message_id,
+        step.timestamp,
+        step.step_type,
+        step.name,
+        step.content,
+        payload_hasher.finish()
     )
 }
 
@@ -935,7 +943,10 @@ mod tests {
             String::from_utf8(data_stream_line("0", json!("hello"))).unwrap(),
             "0:\"hello\"\n"
         );
-        assert_eq!(step_dedup_key(&step), "msg-1:7:1:name:hello");
+        let key = step_dedup_key(&step);
+        assert!(key.starts_with("msg-1:7:1:name:hello:"));
+        assert!(!key.ends_with(':'));
+        assert_eq!(key, step_dedup_key(&step));
     }
 
     #[tokio::test]

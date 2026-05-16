@@ -266,9 +266,7 @@ impl OpenAiCompatibleProvider {
 
             if let Some(thinking) = request.thinking.as_ref().filter(|thinking| thinking.enabled) {
                 if !thinking.effort.trim().is_empty() {
-                    payload["reasoning"] = serde_json::json!({
-                        "effort": thinking.effort
-                    });
+                    payload["reasoning_effort"] = serde_json::json!(thinking.effort);
                 }
             }
 
@@ -316,13 +314,8 @@ impl OpenAiCompatibleProvider {
         ) {
             let retry_serialized_messages = serialized_messages.clone();
             let retry_payload = {
-                let mut payload = serde_json::json!({
-                    "model": self.model,
-                    "messages": retry_serialized_messages,
-                });
-                if stream {
-                    payload["stream"] = serde_json::json!(true);
-                }
+                let mut payload = build_payload(false);
+                payload["messages"] = serde_json::json!(retry_serialized_messages);
                 payload
             };
             self.log_request_attempt(
@@ -531,7 +524,7 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
     let total_tokens = usage
         .get("total_tokens")
         .and_then(|v| v.as_u64())
-        .unwrap_or(input_tokens + output_tokens + reasoning_tokens);
+        .unwrap_or(input_tokens + output_tokens);
 
     Some(ChatUsage {
         input_tokens,
@@ -545,6 +538,7 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
 mod tests {
     use super::*;
     use axum::{extract::State, routing::post, Json, Router};
+    use crate::gateway::rpc::manifests::ThinkingConfig;
     use std::{
         net::SocketAddr,
         sync::{
@@ -835,6 +829,73 @@ mod tests {
         let payload: serde_json::Value = response.json().await.unwrap();
         assert_eq!(payload["choices"][0]["message"]["content"], "retried-ok");
         assert_eq!(hits.load(Ordering::SeqCst), 2);
+
+        server.abort();
+    }
+
+    #[test]
+    fn extract_usage_does_not_double_count_reasoning_tokens() {
+        let usage = extract_usage(&serde_json::json!({
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 20,
+                "reasoning_tokens": 6
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(usage.input_tokens, 10);
+        assert_eq!(usage.output_tokens, 20);
+        assert_eq!(usage.reasoning_tokens, 6);
+        assert_eq!(usage.total_tokens, 30);
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_uses_reasoning_effort_field() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|Json(payload): Json<serde_json::Value>| async move {
+                assert_eq!(payload["reasoning_effort"], "high");
+                assert!(payload.get("reasoning").is_none());
+                Json(serde_json::json!({
+                    "choices": [{
+                        "message": {
+                            "content": "ok"
+                        }
+                    }]
+                }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+
+        provider
+            .chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                tools: vec![],
+                thinking: Some(ThinkingConfig {
+                    enabled: true,
+                    budget_tokens: None,
+                    effort: "high".to_string(),
+                }),
+            })
+            .await
+            .unwrap();
 
         server.abort();
     }

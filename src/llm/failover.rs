@@ -108,6 +108,7 @@ impl LlmProvider for FailoverProvider {
 mod tests {
     use super::*;
     use crate::llm::mock::MockLlmProvider;
+    use crate::llm::ChatStreamEvent;
     use futures::StreamExt;
     use std::sync::atomic::{AtomicUsize, Ordering};
 

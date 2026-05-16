@@ -4,11 +4,16 @@
 use crate::llm::provider::{
     ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
 };
+use crate::gateway::rpc::manifests;
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use futures::{stream, StreamExt};
 use serde_json::json;
+
+const DEFAULT_MAX_TOKENS: u64 = 1024;
+const DEFAULT_THINKING_BUDGET_TOKENS: u64 = 1024;
+const MIN_THINKING_MAX_TOKENS: u64 = 4096;
 
 pub struct AnthropicProvider {
     pub api_key: String,
@@ -33,6 +38,27 @@ impl AnthropicProvider {
             .map(|base| format!("{}/v1/messages", base.trim_end_matches('/')))
             .unwrap_or_else(|| "https://api.anthropic.com/v1/messages".to_string())
     }
+
+    fn resolve_thinking_config(
+        thinking: Option<&manifests::ThinkingConfig>,
+    ) -> (u64, Option<serde_json::Value>) {
+        let Some(thinking) = thinking.filter(|thinking| thinking.enabled) else {
+            return (DEFAULT_MAX_TOKENS, None);
+        };
+
+        let budget_tokens = thinking
+            .budget_tokens
+            .map(u64::from)
+            .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS);
+        let max_tokens = MIN_THINKING_MAX_TOKENS.max(budget_tokens.saturating_add(1));
+        (
+            max_tokens,
+            Some(json!({
+                "type": "enabled",
+                "budget_tokens": budget_tokens,
+            })),
+        )
+    }
 }
 
 #[async_trait]
@@ -48,10 +74,12 @@ impl LlmProvider for AnthropicProvider {
         // TODO: Translate OpenAI-format tool definitions to Anthropic's tool schema
         // and include them in the payload when _tools is non-empty.
         let url = self.messages_url();
+        let (max_tokens, thinking_payload) =
+            Self::resolve_thinking_config(request.thinking.as_ref());
 
         let mut payload = json!({
             "model": self.model,
-            "max_tokens": 1024,
+            "max_tokens": max_tokens,
             "messages": request.messages.iter().map(|m| {
                 json!({
                     "role": m.role,
@@ -59,13 +87,7 @@ impl LlmProvider for AnthropicProvider {
                 })
             }).collect::<Vec<_>>(),
         });
-        if let Some(thinking) = request.thinking.filter(|thinking| thinking.enabled) {
-            let mut thinking_payload = json!({
-                "type": "enabled"
-            });
-            if let Some(budget_tokens) = thinking.budget_tokens {
-                thinking_payload["budget_tokens"] = json!(budget_tokens);
-            }
+        if let Some(thinking_payload) = thinking_payload {
             payload["thinking"] = thinking_payload;
         }
 
@@ -99,10 +121,12 @@ impl LlmProvider for AnthropicProvider {
 
     async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
         let url = self.messages_url();
+        let (max_tokens, thinking_payload) =
+            Self::resolve_thinking_config(request.thinking.as_ref());
 
         let mut payload = json!({
             "model": self.model,
-            "max_tokens": 1024,
+            "max_tokens": max_tokens,
             "messages": request.messages.iter().map(|m| {
                 json!({
                     "role": m.role,
@@ -111,13 +135,7 @@ impl LlmProvider for AnthropicProvider {
             }).collect::<Vec<_>>(),
             "stream": true,
         });
-        if let Some(thinking) = request.thinking.filter(|thinking| thinking.enabled) {
-            let mut thinking_payload = json!({
-                "type": "enabled"
-            });
-            if let Some(budget_tokens) = thinking.budget_tokens {
-                thinking_payload["budget_tokens"] = json!(budget_tokens);
-            }
+        if let Some(thinking_payload) = thinking_payload {
             payload["thinking"] = thinking_payload;
         }
 
@@ -230,7 +248,7 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
     let total_tokens = usage
         .get("total_tokens")
         .and_then(|v| v.as_u64())
-        .unwrap_or(input_tokens + output_tokens + reasoning_tokens);
+        .unwrap_or(input_tokens + output_tokens);
 
     Some(ChatUsage {
         input_tokens,
@@ -244,8 +262,49 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
 mod tests {
     use super::*;
     use axum::{routing::post, Json, Router};
+    use crate::gateway::rpc::manifests::ThinkingConfig;
     use serde_json::json;
     use tokio::net::TcpListener;
+
+    #[test]
+    fn resolve_thinking_config_defaults_budget_and_max_tokens() {
+        let thinking = ThinkingConfig {
+            enabled: true,
+            budget_tokens: None,
+            effort: String::new(),
+        };
+
+        let (max_tokens, payload) = AnthropicProvider::resolve_thinking_config(Some(&thinking));
+
+        assert_eq!(max_tokens, MIN_THINKING_MAX_TOKENS);
+        assert_eq!(
+            payload,
+            Some(json!({
+                "type": "enabled",
+                "budget_tokens": DEFAULT_THINKING_BUDGET_TOKENS,
+            }))
+        );
+    }
+
+    #[test]
+    fn resolve_thinking_config_expands_max_tokens_for_large_budget() {
+        let thinking = ThinkingConfig {
+            enabled: true,
+            budget_tokens: Some(5000),
+            effort: String::new(),
+        };
+
+        let (max_tokens, payload) = AnthropicProvider::resolve_thinking_config(Some(&thinking));
+
+        assert_eq!(max_tokens, 5001);
+        assert_eq!(
+            payload,
+            Some(json!({
+                "type": "enabled",
+                "budget_tokens": 5000,
+            }))
+        );
+    }
 
     fn test_provider(base_url: String) -> AnthropicProvider {
         AnthropicProvider {
