@@ -18,7 +18,12 @@ use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHa
 trait PullSubscriptionBackend: Send + Sync {
     async fn ensure_topic(&self) -> Result<()>;
     async fn ensure_subscription(&self) -> Result<()>;
-    async fn receive(&self, handler: WorkerEventHandler, event_type: String) -> Result<()>;
+    async fn receive(
+        &self,
+        handler: WorkerEventHandler,
+        event_type: String,
+        cancellation_token: tokio_util::sync::CancellationToken,
+    ) -> Result<()>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -164,13 +169,10 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
         pubsub_config.project_id = Some(self.project_id.clone());
         let client = Client::new(pubsub_config).await?;
         let mut topic = client.topic(&self.topic_name);
-        match topic.exists(None).await? {
-            true => Ok(()),
-            false => {
-                topic.create(None, None).await?;
-                Ok(())
-            }
+        if !topic.exists(None).await? {
+            topic.create(None, None).await?;
         }
+        Ok(())
     }
 
     async fn ensure_subscription(&self) -> Result<()> {
@@ -181,24 +183,25 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
         pubsub_config.project_id = Some(self.project_id.clone());
         let client = Client::new(pubsub_config).await?;
         let mut subscription = client.subscription(&self.subscription_name);
-        match subscription.exists(None).await? {
-            true => Ok(()),
-            false => {
-                let sub_config = SubscriptionConfig {
-                    ack_deadline_seconds: 300,
-                    ..Default::default()
-                };
-                subscription
-                    .create(&self.topic_name, sub_config, None)
-                    .await?;
-                Ok(())
-            }
+        if !subscription.exists(None).await? {
+            let sub_config = SubscriptionConfig {
+                ack_deadline_seconds: 300,
+                ..Default::default()
+            };
+            subscription
+                .create(&self.topic_name, sub_config, None)
+                .await?;
         }
+        Ok(())
     }
 
-    async fn receive(&self, handler: WorkerEventHandler, event_type: String) -> Result<()> {
+    async fn receive(
+        &self,
+        handler: WorkerEventHandler,
+        event_type: String,
+        cancellation_token: tokio_util::sync::CancellationToken,
+    ) -> Result<()> {
         use google_cloud_pubsub::client::{Client, ClientConfig};
-        use tokio_util::sync::CancellationToken;
 
         let mut pubsub_config = ClientConfig::default().with_auth().await?;
         pubsub_config.project_id = Some(self.project_id.clone());
@@ -216,7 +219,7 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
                         let _ = message.ack().await;
                     }
                 },
-                CancellationToken::new(),
+                cancellation_token,
                 None,
             )
             .await?;
@@ -228,6 +231,7 @@ async fn run_pull_subscription_with_backend(
     backend: &dyn PullSubscriptionBackend,
     pull_handler: WorkerEventHandler,
     spec: ResolvedPullSubscriptionSpec,
+    cancellation_token: tokio_util::sync::CancellationToken,
 ) -> Result<()> {
     let fq_topic = spec.topic_name.clone();
     let fq_subscription = spec.subscription_name.clone();
@@ -248,7 +252,7 @@ async fn run_pull_subscription_with_backend(
         )
     })?;
     backend
-        .receive(pull_handler, event_type)
+        .receive(pull_handler, event_type, cancellation_token)
         .await
         .map_err(|err| {
             anyhow::anyhow!(
@@ -278,13 +282,19 @@ fn spawn_pull_subscription_task(
             topic_name,
             subscription_name,
         };
+        let cancellation_token = tokio_util::sync::CancellationToken::new();
 
         if let Err(e) =
-            run_pull_subscription_with_backend(&backend, pull_handler, ResolvedPullSubscriptionSpec {
-                topic_name: fq_topic.clone(),
-                subscription_name: fq_subscription.clone(),
-                event_type,
-            })
+            run_pull_subscription_with_backend(
+                &backend,
+                pull_handler,
+                ResolvedPullSubscriptionSpec {
+                    topic_name: fq_topic.clone(),
+                    subscription_name: fq_subscription.clone(),
+                    event_type,
+                },
+                cancellation_token,
+            )
             .await
         {
             tracing::error!(
@@ -635,7 +645,12 @@ mod tests {
             Ok(())
         }
 
-        async fn receive(&self, _handler: WorkerEventHandler, _event_type: String) -> Result<()> {
+        async fn receive(
+            &self,
+            _handler: WorkerEventHandler,
+            _event_type: String,
+            _cancellation_token: tokio_util::sync::CancellationToken,
+        ) -> Result<()> {
             self.calls
                 .lock()
                 .expect("calls lock poisoned")
@@ -1240,7 +1255,12 @@ mod tests {
             fail_topic: true,
             ..Default::default()
         };
-        let err = run_pull_subscription_with_backend(&topic_fail, handler.clone(), spec.clone())
+        let err = run_pull_subscription_with_backend(
+            &topic_fail,
+            handler.clone(),
+            spec.clone(),
+            tokio_util::sync::CancellationToken::new(),
+        )
             .await
             .unwrap_err();
         assert!(err.to_string().contains("Failed to create or inspect PubSub topic"));
@@ -1257,6 +1277,7 @@ mod tests {
             &subscription_fail,
             handler.clone(),
             spec.clone(),
+            tokio_util::sync::CancellationToken::new(),
         )
         .await
         .unwrap_err();
@@ -1276,7 +1297,12 @@ mod tests {
             fail_receive: true,
             ..Default::default()
         };
-        let err = run_pull_subscription_with_backend(&receive_fail, handler.clone(), spec.clone())
+        let err = run_pull_subscription_with_backend(
+            &receive_fail,
+            handler.clone(),
+            spec.clone(),
+            tokio_util::sync::CancellationToken::new(),
+        )
             .await
             .unwrap_err();
         assert!(err
@@ -1292,7 +1318,12 @@ mod tests {
         );
 
         let ok = FakePullBackend::default();
-        run_pull_subscription_with_backend(&ok, handler, spec)
+        run_pull_subscription_with_backend(
+            &ok,
+            handler,
+            spec,
+            tokio_util::sync::CancellationToken::new(),
+        )
             .await
             .expect("successful path should return ok");
         assert_eq!(

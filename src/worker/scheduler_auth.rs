@@ -301,11 +301,6 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
         email_verified: Option<bool>,
     }
 
-    fn env_mutex() -> &'static Mutex<()> {
-        static MUTEX: OnceLock<Mutex<()>> = OnceLock::new();
-        MUTEX.get_or_init(|| Mutex::new(()))
-    }
-
     fn oidc_cache_mutex() -> &'static Mutex<()> {
         static MUTEX: OnceLock<Mutex<()>> = OnceLock::new();
         MUTEX.get_or_init(|| Mutex::new(()))
@@ -412,7 +407,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
 
     #[tokio::test]
     async fn from_config_prefers_shared_secret_env() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         unsafe {
             std::env::set_var("TALON_SCHEDULER_AUTH_TOKEN", "env-secret");
             std::env::remove_var("TALON_SCHEDULER_AUDIENCE");
@@ -438,7 +433,7 @@ Ta+L+6WG4XpG1Qg7OQIDAQAB
 
     #[tokio::test]
     async fn from_config_uses_google_oidc_env_when_no_shared_secret() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         unsafe {
             std::env::remove_var("TALON_SCHEDULER_AUTH_TOKEN");
             std::env::set_var("TALON_SCHEDULER_AUDIENCE", "https://worker.example.com/schedules");

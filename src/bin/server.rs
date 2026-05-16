@@ -98,21 +98,23 @@ async fn wait_for_server_tasks<F>(
 where
     F: std::future::Future,
 {
-    tokio::select! {
-        res = rpc_task => {
-            res??;
-        }
-        res = ui_task => {
-            res??;
-        }
-        _ = async {
-            let _ = shutdown.await;
-        } => {
-            println!("Shutting down...");
-        }
-    }
+    let mut rpc_task = rpc_task;
+    let mut ui_task = ui_task;
+    tokio::pin!(shutdown);
 
-    Ok(())
+    let result = tokio::select! {
+        res = &mut rpc_task => res??,
+        res = &mut ui_task => res??,
+        _ = &mut shutdown => {
+            println!("Shutting down...");
+            ()
+        }
+    };
+
+    rpc_task.abort();
+    ui_task.abort();
+
+    Ok(result)
 }
 
 #[tokio::main]

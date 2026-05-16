@@ -95,13 +95,7 @@ mod tests {
     use axum::{routing::post, Json, Router};
     use serde_json::json;
     use std::collections::HashMap;
-    use std::sync::{Mutex, OnceLock};
     use tokio::net::TcpListener;
-
-    fn env_mutex() -> &'static Mutex<()> {
-        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| Mutex::new(()))
-    }
 
     fn config_with_provider(name: &str, provider: ProviderConfig) -> Config {
         Config {
@@ -173,7 +167,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_llm_prefers_spec_provider_and_model_for_openai_compatible() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         unsafe {
             std::env::remove_var("NOVITA_API_KEY");
             std::env::remove_var("NOVITA_BASE_URL");
@@ -214,7 +208,7 @@ mod tests {
 
     #[tokio::test]
     async fn resolve_llm_uses_env_fallbacks_for_api_key_and_base_url() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         let app = Router::new().route(
             "/chat/completions",
             post(|| async {

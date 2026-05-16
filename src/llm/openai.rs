@@ -494,13 +494,7 @@ mod tests {
             Arc,
         },
     };
-    use std::sync::{Mutex, OnceLock};
     use tokio::net::TcpListener;
-
-    fn env_mutex() -> &'static Mutex<()> {
-        static MUTEX: OnceLock<Mutex<()>> = OnceLock::new();
-        MUTEX.get_or_init(|| Mutex::new(()))
-    }
 
     #[test]
     fn request_debug_stats_measure_payload_and_schemas() {
@@ -619,7 +613,7 @@ mod tests {
 
     #[test]
     fn debug_requests_enabled_parses_truthy_values() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         unsafe {
             std::env::remove_var("TALON_LLM_DEBUG_REQUESTS");
         }

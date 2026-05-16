@@ -7,14 +7,8 @@ mod tests {
     use prost::Message;
     use std::env;
     use std::io::Write;
-    use std::sync::{Mutex, OnceLock};
     use tempfile::NamedTempFile;
     use tempfile::tempdir;
-
-    fn env_mutex() -> &'static Mutex<()> {
-        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-        LOCK.get_or_init(|| Mutex::new(()))
-    }
 
     #[test]
     fn test_config_from_yaml() {
@@ -93,7 +87,7 @@ server:
 
     #[tokio::test]
     async fn test_secret_resolution() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         unsafe {
             std::env::set_var("MY_TEST_SECRET", "resolved-value");
         }
@@ -113,7 +107,7 @@ server:
 
     #[tokio::test]
     async fn test_secret_resolution_reports_local_error_paths() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         unsafe {
             std::env::remove_var("MISSING_TEST_SECRET");
         }
@@ -247,7 +241,7 @@ api_key = "secret"
 
     #[test]
     fn test_load_default_uses_env_override_and_fallback_search() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         let dir = tempdir().unwrap();
         let original_dir = env::current_dir().unwrap();
 
@@ -282,7 +276,7 @@ api_key = "secret"
 
     #[test]
     fn test_load_default_errors_when_nothing_is_available() {
-        let _guard = env_mutex().lock().unwrap();
+        let _guard = crate::test_support::env_mutex().lock().unwrap();
         let dir = tempdir().unwrap();
         let original_dir = env::current_dir().unwrap();
         unsafe {
