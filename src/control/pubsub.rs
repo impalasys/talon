@@ -108,8 +108,11 @@ impl GcpPubSubPublisher {
             }
         }
 
-        self.backend.ensure_topic(&fq_topic).await?;
         let mut lock = self.initialized_topics.write().await;
+        if lock.contains(&fq_topic) {
+            return Ok(fq_topic);
+        }
+        self.backend.ensure_topic(&fq_topic).await?;
         lock.insert(fq_topic.clone());
         Ok(fq_topic)
     }
@@ -419,6 +422,32 @@ mod tests {
                 ("projects/project-123/topics/events".to_string(), b"one".to_vec()),
                 ("projects/project-123/topics/events".to_string(), b"two".to_vec()),
             ]
+        );
+        std::env::remove_var("GCP_PROJECT_ID");
+    }
+
+    #[tokio::test]
+    async fn publish_concurrently_initializes_topic_once() {
+        let _lock = crate::test_support::env_lock();
+        std::env::set_var("GCP_PROJECT_ID", "project-123");
+        let backend = Arc::new(FakeBackend::default());
+        let publisher = Arc::new(GcpPubSubPublisher::with_backend(backend.clone()));
+
+        let first = {
+            let publisher = publisher.clone();
+            tokio::spawn(async move { publisher.publish("events", b"one").await })
+        };
+        let second = {
+            let publisher = publisher.clone();
+            tokio::spawn(async move { publisher.publish("events", b"two").await })
+        };
+
+        first.await.expect("first task panicked").unwrap();
+        second.await.expect("second task panicked").unwrap();
+
+        assert_eq!(
+            *backend.ensured_topics.lock().await,
+            vec!["projects/project-123/topics/events".to_string()]
         );
         std::env::remove_var("GCP_PROJECT_ID");
     }
