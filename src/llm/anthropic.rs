@@ -159,6 +159,7 @@ impl LlmProvider for AnthropicProvider {
 
         let mut buffer = String::new();
         let mut last_event = String::new();
+        let mut current_usage = ChatUsage::default();
 
         let sse_stream = line_stream.flat_map(move |result| match result {
             Ok(bytes) => {
@@ -196,7 +197,12 @@ impl LlmProvider for AnthropicProvider {
                         } else if last_event == "message_start" || last_event == "message_delta" {
                             if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
                                 if let Some(usage) = extract_usage(&value) {
-                                    items.push(Ok(ChatStreamEvent::Usage(usage)));
+                                    current_usage.input_tokens += usage.input_tokens;
+                                    current_usage.output_tokens += usage.output_tokens;
+                                    current_usage.reasoning_tokens += usage.reasoning_tokens;
+                                    current_usage.total_tokens =
+                                        current_usage.input_tokens + current_usage.output_tokens;
+                                    items.push(Ok(ChatStreamEvent::Usage(current_usage.clone())));
                                 }
                             }
                         } else if last_event == "message_stop" {
@@ -231,7 +237,9 @@ impl LlmProvider for AnthropicProvider {
 }
 
 fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
-    let usage = result.get("usage")?;
+    let usage = result
+        .get("usage")
+        .or_else(|| result.pointer("/message/usage"))?;
     let input_tokens = usage
         .get("input_tokens")
         .and_then(|v| v.as_u64())
@@ -351,6 +359,80 @@ mod tests {
         }
 
         assert_eq!(items, vec!["hi"]);
+    }
+
+    #[tokio::test]
+    async fn anthropic_usage_events_accumulate_across_stream_messages() {
+        let sse_data = concat!(
+            "event: message_start\n",
+            "data: {\"type\":\"message_start\",\"message\":{\"usage\":{\"input_tokens\":10}}}\n\n",
+            "event: message_delta\n",
+            "data: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":4,\"thinking_tokens\":2}}\n\n",
+            "event: message_delta\n",
+            "data: {\"type\":\"message_delta\",\"usage\":{\"output_tokens\":3,\"thinking_tokens\":1}}\n\n",
+            "event: message_stop\n",
+            "data: {}\n"
+        );
+
+        let mut buffer = String::new();
+        let mut last_event = String::new();
+        let mut current_usage = ChatUsage::default();
+        let mut usage_events = Vec::new();
+
+        buffer.push_str(sse_data);
+        while let Some(pos) = buffer.find('\n') {
+            let line = buffer.drain(..=pos).collect::<String>();
+            let line = line.trim();
+            if line.is_empty() {
+                continue;
+            }
+
+            if let Some(event) = line.strip_prefix("event: ") {
+                last_event = event.to_string();
+                continue;
+            }
+
+            if let Some(data) = line.strip_prefix("data: ") {
+                if last_event == "message_start" || last_event == "message_delta" {
+                    if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
+                        if let Some(usage) = extract_usage(&value) {
+                            current_usage.input_tokens += usage.input_tokens;
+                            current_usage.output_tokens += usage.output_tokens;
+                            current_usage.reasoning_tokens += usage.reasoning_tokens;
+                            current_usage.total_tokens =
+                                current_usage.input_tokens + current_usage.output_tokens;
+                            usage_events.push(current_usage.clone());
+                        }
+                    }
+                } else if last_event == "message_stop" {
+                    break;
+                }
+            }
+        }
+
+        assert_eq!(
+            usage_events,
+            vec![
+                ChatUsage {
+                    input_tokens: 10,
+                    output_tokens: 0,
+                    reasoning_tokens: 0,
+                    total_tokens: 10,
+                },
+                ChatUsage {
+                    input_tokens: 10,
+                    output_tokens: 4,
+                    reasoning_tokens: 2,
+                    total_tokens: 14,
+                },
+                ChatUsage {
+                    input_tokens: 10,
+                    output_tokens: 7,
+                    reasoning_tokens: 3,
+                    total_tokens: 17,
+                },
+            ]
+        );
     }
 
     #[tokio::test]
