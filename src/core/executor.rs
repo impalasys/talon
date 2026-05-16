@@ -18,6 +18,7 @@ use crate::core::context_budget::{compact_history_for_llm, tool_result_preview};
 use crate::control::ControlPlane;
 use crate::knowledge::KnowledgeBook;
 use crate::llm::{ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall};
+use crate::llm::resolver::resolve_model_profile;
 use crate::skills::registry::ToolRegistry;
 
 const DEFAULT_EXECUTION_TURN_LIMIT: usize = 25;
@@ -330,12 +331,7 @@ impl AgentExecutor {
 
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
-            let thinking = self
-                .agent_spec
-                .model_policy
-                .as_ref()
-                .and_then(|policy| policy.profiles.iter().find(|profile| profile.name == "default"))
-                .and_then(|profile| profile.model.as_ref())
+            let thinking = resolve_model_profile(self.agent_spec.model_policy.as_ref())
                 .and_then(|model| model.thinking.clone());
             let mut stream = self
                 .llm

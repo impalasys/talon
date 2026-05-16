@@ -5,8 +5,22 @@ use anyhow::Result;
 use std::sync::Arc;
 
 use crate::config::Config;
-use crate::gateway::rpc::manifests::AgentSpec;
+use crate::gateway::rpc::manifests::{self, AgentSpec};
 use crate::llm::LlmProvider;
+
+pub fn resolve_model_profile(
+    policy: Option<&manifests::ModelPolicy>,
+) -> Option<&manifests::Model> {
+    policy
+        .and_then(|policy| {
+            policy
+                .profiles
+                .iter()
+                .find(|profile| profile.name == "default")
+                .or_else(|| policy.profiles.iter().find(|profile| profile.model.is_some()))
+        })
+        .and_then(|profile| profile.model.as_ref())
+}
 
 /// Resolve the correct LLM provider for an agent given its spec and the
 /// system configuration. Preference order:
@@ -17,18 +31,9 @@ pub async fn resolve_llm(
     spec: &AgentSpec,
     config: &Config,
 ) -> Result<Arc<dyn LlmProvider + Send + Sync>> {
-    let default_profile = spec
-        .model_policy
-        .as_ref()
-        .and_then(|policy| {
-            policy
-                .profiles
-                .iter()
-                .find(|profile| profile.name == "default")
-        })
-        .and_then(|profile| profile.model.as_ref());
-    let spec_provider = default_profile.map(|m| m.provider.as_str());
-    let spec_model = default_profile.map(|m| m.name.as_str());
+    let selected_model = resolve_model_profile(spec.model_policy.as_ref());
+    let spec_provider = selected_model.map(|m| m.provider.as_str());
+    let spec_model = selected_model.map(|m| m.name.as_str());
 
     let default_key = if config.default_provider.is_empty() {
         config.providers.keys().next().map(|k| k.as_str())
@@ -89,7 +94,7 @@ pub async fn resolve_llm(
 
 #[cfg(test)]
 mod tests {
-    use super::resolve_llm;
+    use super::{resolve_llm, resolve_model_profile};
     use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::gateway::rpc::manifests;
     use axum::{routing::post, Json, Router};
@@ -136,6 +141,30 @@ mod tests {
                 }],
             }),
         }
+    }
+
+    #[test]
+    fn resolve_model_profile_falls_back_to_first_profile_with_model() {
+        let policy = manifests::ModelPolicy {
+            profiles: vec![
+                manifests::ModelProfile {
+                    name: "secondary".to_string(),
+                    model: Some(manifests::Model {
+                        provider: "openai".to_string(),
+                        name: "fallback-model".to_string(),
+                        temperature: 0.0,
+                        thinking: None,
+                    }),
+                },
+                manifests::ModelProfile {
+                    name: "empty".to_string(),
+                    model: None,
+                },
+            ],
+        };
+
+        let model = resolve_model_profile(Some(&policy)).unwrap();
+        assert_eq!(model.name, "fallback-model");
     }
 
     #[tokio::test]

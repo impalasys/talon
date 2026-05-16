@@ -44,9 +44,12 @@ pub struct PubSubSessionSink {
     accumulated: Mutex<String>,
     persisted_text_buffer: Mutex<String>,
     pending_token_event_buffer: Mutex<String>,
+    persisted_reasoning_buffer: Mutex<String>,
+    pending_reasoning_event_buffer: Mutex<String>,
     next_step_index: Mutex<u64>,
     last_flush: Mutex<Instant>,
     last_token_publish: Mutex<Instant>,
+    last_reasoning_publish: Mutex<Instant>,
     input_token_chunks: Mutex<u64>,
     input_token_chars: Mutex<usize>,
     published_token_batches: Mutex<u64>,
@@ -106,9 +109,12 @@ impl PubSubSessionSink {
             accumulated: Mutex::new(String::new()),
             persisted_text_buffer: Mutex::new(String::new()),
             pending_token_event_buffer: Mutex::new(String::new()),
+            persisted_reasoning_buffer: Mutex::new(String::new()),
+            pending_reasoning_event_buffer: Mutex::new(String::new()),
             next_step_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
             last_token_publish: Mutex::new(Instant::now()),
+            last_reasoning_publish: Mutex::new(Instant::now()),
             input_token_chunks: Mutex::new(0),
             input_token_chars: Mutex::new(0),
             published_token_batches: Mutex::new(0),
@@ -186,6 +192,32 @@ impl PubSubSessionSink {
         *self.published_token_batches.lock().unwrap() += 1;
         *self.published_token_chars.lock().unwrap() += content.len();
         self.publish_event(AgentEvent::Token(content)).await;
+    }
+
+    async fn flush_persisted_reasoning(&self) {
+        let content = {
+            let mut buffer = self.persisted_reasoning_buffer.lock().unwrap();
+            if buffer.is_empty() {
+                return;
+            }
+            std::mem::take(&mut *buffer)
+        };
+
+        self.persist_step(StepType::Reasoning, String::new(), content, String::new())
+            .await;
+    }
+
+    async fn flush_reasoning_event_buffer(&self) {
+        let content = {
+            let mut buffer = self.pending_reasoning_event_buffer.lock().unwrap();
+            if buffer.is_empty() {
+                return;
+            }
+            std::mem::take(&mut *buffer)
+        };
+
+        *self.last_reasoning_publish.lock().unwrap() = Instant::now();
+        self.publish_event(AgentEvent::Reasoning(content)).await;
     }
 
     async fn publish_event(&self, event: AgentEvent) {
@@ -275,6 +307,11 @@ impl PubSubSessionSink {
         last.elapsed() >= self.token_publish_interval
     }
 
+    fn should_flush_reasoning_event(&self) -> bool {
+        let last = self.last_reasoning_publish.lock().unwrap();
+        last.elapsed() >= self.token_publish_interval
+    }
+
     pub fn summary(&self) -> SessionRunSummary {
         SessionRunSummary {
             duration_ms: self.started_at.elapsed().as_millis(),
@@ -315,21 +352,26 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_reasoning(&self, reasoning: &str) {
         *self.reasoning_chunks.lock().unwrap() += 1;
         *self.reasoning_chars.lock().unwrap() += reasoning.len();
-        self.persist_step(
-            StepType::Reasoning,
-            String::new(),
-            reasoning.to_string(),
-            String::new(),
-        )
-        .await;
-        self.publish_event(AgentEvent::Reasoning(reasoning.to_string()))
-            .await;
+        self.persisted_reasoning_buffer
+            .lock()
+            .unwrap()
+            .push_str(reasoning);
+        self.pending_reasoning_event_buffer
+            .lock()
+            .unwrap()
+            .push_str(reasoning);
+        if self.should_flush_reasoning_event() {
+            self.flush_persisted_reasoning().await;
+            self.flush_reasoning_event_buffer().await;
+        }
     }
 
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value) {
         *self.tool_calls.lock().unwrap() += 1;
         self.flush_persisted_text().await;
         self.flush_token_event_buffer().await;
+        self.flush_persisted_reasoning().await;
+        self.flush_reasoning_event_buffer().await;
         self.persist_step(
             StepType::Action,
             name.to_string(),
@@ -351,6 +393,8 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &str) {
         *self.tool_results.lock().unwrap() += 1;
+        self.flush_persisted_reasoning().await;
+        self.flush_reasoning_event_buffer().await;
         let preview = tool_result_preview(result);
         self.persist_step(
             StepType::Observation,
@@ -374,6 +418,8 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn on_usage(&self, usage: &ChatUsage) {
         *self.usage_events.lock().unwrap() += 1;
+        self.flush_persisted_reasoning().await;
+        self.flush_reasoning_event_buffer().await;
         self.persist_step(
             StepType::Usage,
             String::new(),
@@ -387,6 +433,8 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_done(&self, reply: &str) {
         self.flush_persisted_text().await;
         self.flush_token_event_buffer().await;
+        self.flush_persisted_reasoning().await;
+        self.flush_reasoning_event_buffer().await;
         // Final KV write (complete message)
         let kv = self.kv.clone();
         let ns = self.ns.clone();
@@ -412,6 +460,8 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_error(&self, err: &str) {
         self.flush_persisted_text().await;
         self.flush_token_event_buffer().await;
+        self.flush_persisted_reasoning().await;
+        self.flush_reasoning_event_buffer().await;
         self.persist_step(
             StepType::Error,
             String::new(),
@@ -559,6 +609,46 @@ mod tests {
         assert_eq!(events[0].content, "drafting request");
         assert_eq!(events[1].step_type, StepType::Action as i32);
         assert_eq!(events[1].name, "create_prompt");
+    }
+
+    #[tokio::test]
+    async fn reasoning_events_are_batched_by_time_window() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            "reply-key",
+            Duration::from_millis(5),
+        );
+
+        sink.on_reasoning("first").await;
+        tokio::time::sleep(Duration::from_millis(10)).await;
+        sink.on_reasoning(" second").await;
+        sink.on_done("final reply").await;
+
+        let events = events.lock().await.clone();
+        let reasoning_events = events
+            .iter()
+            .filter(|event| event.step_type == StepType::Reasoning as i32)
+            .map(|event| event.content.clone())
+            .collect::<Vec<_>>();
+        assert_eq!(reasoning_events, vec!["first second".to_string()]);
+
+        let entries = kv.entries.lock().await.clone();
+        let persisted_reasoning = entries
+            .iter()
+            .filter_map(|(_, _, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .filter(|event| event.step_type == StepType::Reasoning as i32)
+            .map(|event| event.content)
+            .collect::<Vec<_>>();
+        assert_eq!(persisted_reasoning, vec!["first second".to_string()]);
     }
 
     #[tokio::test]

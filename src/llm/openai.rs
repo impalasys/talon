@@ -243,6 +243,9 @@ impl OpenAiCompatibleProvider {
 
             if stream {
                 payload["stream"] = serde_json::json!(true);
+                payload["stream_options"] = serde_json::json!({
+                    "include_usage": true
+                });
             }
 
             if include_tools && !request.tools.is_empty() {
@@ -1088,9 +1091,15 @@ mod tests {
 
     #[tokio::test]
     async fn stream_chat_completion_emits_text_and_tool_call_deltas() {
+        let payloads = Arc::new(std::sync::Mutex::new(Vec::new()));
         let app = Router::new().route(
             "/chat/completions",
-            post(|| async {
+            post({
+                let payloads = payloads.clone();
+                move |Json(payload): Json<serde_json::Value>| {
+                    let payloads = payloads.clone();
+                    async move {
+                        payloads.lock().unwrap().push(payload);
                 axum::response::Response::builder()
                     .status(axum::http::StatusCode::OK)
                     .header("content-type", "text/event-stream")
@@ -1102,6 +1111,8 @@ mod tests {
                         ),
                     ))
                     .unwrap()
+                    }
+                }
             }),
         );
 
@@ -1148,6 +1159,11 @@ mod tests {
         }
 
         assert!(stream.next().await.is_none());
+        let recorded_payloads = payloads.lock().unwrap();
+        assert_eq!(
+            recorded_payloads[0]["stream_options"],
+            serde_json::json!({ "include_usage": true })
+        );
         server.abort();
     }
 
