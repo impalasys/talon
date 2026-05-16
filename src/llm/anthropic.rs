@@ -225,7 +225,7 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
     let total_tokens = usage
         .get("total_tokens")
         .and_then(|v| v.as_u64())
-        .unwrap_or(input_tokens + output_tokens + reasoning_tokens);
+        .unwrap_or(input_tokens + output_tokens);
 
     Some(ChatUsage {
         input_tokens,
@@ -287,6 +287,23 @@ mod tests {
         }
 
         assert_eq!(items, vec!["hi"]);
+    }
+
+    #[test]
+    fn extract_usage_does_not_double_count_thinking_tokens() {
+        let parsed = extract_usage(&serde_json::json!({
+            "usage": {
+                "input_tokens": 13,
+                "output_tokens": 17,
+                "thinking_tokens": 5
+            }
+        }))
+        .expect("usage should parse");
+
+        assert_eq!(parsed.input_tokens, 13);
+        assert_eq!(parsed.output_tokens, 17);
+        assert_eq!(parsed.reasoning_tokens, 5);
+        assert_eq!(parsed.total_tokens, 30);
     }
 
     #[tokio::test]

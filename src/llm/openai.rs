@@ -243,6 +243,9 @@ impl OpenAiCompatibleProvider {
 
             if stream {
                 payload["stream"] = serde_json::json!(true);
+                payload["stream_options"] = serde_json::json!({
+                    "include_usage": true
+                });
             }
 
             if include_tools && !request.tools.is_empty() {
@@ -266,9 +269,7 @@ impl OpenAiCompatibleProvider {
 
             if let Some(thinking) = request.thinking.as_ref().filter(|thinking| thinking.enabled) {
                 if !thinking.effort.trim().is_empty() {
-                    payload["reasoning"] = serde_json::json!({
-                        "effort": thinking.effort
-                    });
+                    payload["reasoning_effort"] = serde_json::json!(thinking.effort);
                 }
             }
 
@@ -530,7 +531,7 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
     let total_tokens = usage
         .get("total_tokens")
         .and_then(|v| v.as_u64())
-        .unwrap_or(input_tokens + output_tokens + reasoning_tokens);
+        .unwrap_or(input_tokens + output_tokens);
 
     Some(ChatUsage {
         input_tokens,
@@ -593,6 +594,23 @@ mod tests {
         assert!(stats.message_chars > 0);
         assert!(stats.tool_schema_chars > 0);
         assert!(stats.payload_chars >= stats.message_chars);
+    }
+
+    #[test]
+    fn extract_usage_does_not_double_count_reasoning_tokens() {
+        let parsed = extract_usage(&serde_json::json!({
+            "usage": {
+                "prompt_tokens": 11,
+                "completion_tokens": 19,
+                "reasoning_tokens": 7
+            }
+        }))
+        .expect("usage should parse");
+
+        assert_eq!(parsed.input_tokens, 11);
+        assert_eq!(parsed.output_tokens, 19);
+        assert_eq!(parsed.reasoning_tokens, 7);
+        assert_eq!(parsed.total_tokens, 30);
     }
 
     #[test]
@@ -834,6 +852,63 @@ mod tests {
         let payload: serde_json::Value = response.json().await.unwrap();
         assert_eq!(payload["choices"][0]["message"]["content"], "retried-ok");
         assert_eq!(hits.load(Ordering::SeqCst), 2);
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_sets_stream_usage_and_reasoning_effort() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|Json(payload): Json<serde_json::Value>| async move {
+                assert_eq!(payload["stream"], serde_json::json!(true));
+                assert_eq!(
+                    payload["stream_options"],
+                    serde_json::json!({ "include_usage": true })
+                );
+                assert_eq!(payload["reasoning_effort"], serde_json::json!("medium"));
+                Json(serde_json::json!({
+                    "choices": [{
+                        "message": {
+                            "content": "ok"
+                        }
+                    }]
+                }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr: SocketAddr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+
+        provider
+            .send_chat_request(
+                ChatRequest {
+                    messages: vec![ChatMessage {
+                        role: "user".to_string(),
+                        content: "hi".to_string(),
+                        tool_calls: None,
+                        tool_call_id: None,
+                    }],
+                    tools: vec![],
+                    thinking: Some(crate::gateway::rpc::manifests::ThinkingConfig {
+                        enabled: true,
+                        budget_tokens: None,
+                        effort: "medium".to_string(),
+                    }),
+                },
+                true,
+            )
+            .await
+            .unwrap();
 
         server.abort();
     }
