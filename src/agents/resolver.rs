@@ -402,6 +402,7 @@ mod tests {
             provider: "openai".to_string(),
             name: name.to_string(),
             temperature: 0.2,
+            thinking: None,
         }
     }
 
@@ -992,6 +993,7 @@ mod tests {
                 provider: " ".to_string(),
                 name: "gpt-5".to_string(),
                 temperature: 0.2,
+                thinking: None,
             },
             "model",
         )
@@ -1003,6 +1005,7 @@ mod tests {
                 provider: "openai".to_string(),
                 name: " ".to_string(),
                 temperature: 0.2,
+                thinking: None,
             },
             "model",
         )

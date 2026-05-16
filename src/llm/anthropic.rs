@@ -1,7 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::llm::provider::{ChatMessage, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider};
+use crate::llm::provider::{
+    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
+};
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -41,23 +43,31 @@ impl LlmProvider for AnthropicProvider {
 
     async fn chat_completion(
         &self,
-        messages: Vec<ChatMessage>,
-        _tools: Vec<crate::llm::provider::Tool>,
+        request: ChatRequest,
     ) -> Result<ChatResponse> {
         // TODO: Translate OpenAI-format tool definitions to Anthropic's tool schema
         // and include them in the payload when _tools is non-empty.
         let url = self.messages_url();
 
-        let payload = json!({
+        let mut payload = json!({
             "model": self.model,
             "max_tokens": 1024,
-            "messages": messages.iter().map(|m| {
+            "messages": request.messages.iter().map(|m| {
                 json!({
                     "role": m.role,
                     "content": m.content
                 })
             }).collect::<Vec<_>>(),
         });
+        if let Some(thinking) = request.thinking.filter(|thinking| thinking.enabled) {
+            let mut thinking_payload = json!({
+                "type": "enabled"
+            });
+            if let Some(budget_tokens) = thinking.budget_tokens {
+                thinking_payload["budget_tokens"] = json!(budget_tokens);
+            }
+            payload["thinking"] = thinking_payload;
+        }
 
         let resp = self
             .http_client
@@ -83,20 +93,17 @@ impl LlmProvider for AnthropicProvider {
         Ok(ChatResponse {
             content,
             tool_calls: vec![],
+            usage: extract_usage(&result),
         })
     }
 
-    async fn stream_chat_completion(
-        &self,
-        _messages: Vec<ChatMessage>,
-        _tools: Vec<crate::llm::provider::Tool>,
-    ) -> Result<ChatStream> {
+    async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
         let url = self.messages_url();
 
-        let payload = json!({
+        let mut payload = json!({
             "model": self.model,
             "max_tokens": 1024,
-            "messages": _messages.iter().map(|m| {
+            "messages": request.messages.iter().map(|m| {
                 json!({
                     "role": m.role,
                     "content": m.content
@@ -104,6 +111,15 @@ impl LlmProvider for AnthropicProvider {
             }).collect::<Vec<_>>(),
             "stream": true,
         });
+        if let Some(thinking) = request.thinking.filter(|thinking| thinking.enabled) {
+            let mut thinking_payload = json!({
+                "type": "enabled"
+            });
+            if let Some(budget_tokens) = thinking.budget_tokens {
+                thinking_payload["budget_tokens"] = json!(budget_tokens);
+            }
+            payload["thinking"] = thinking_payload;
+        }
 
         let resp = self
             .http_client
@@ -151,6 +167,19 @@ impl LlmProvider for AnthropicProvider {
                                 {
                                     items.push(Ok(ChatStreamEvent::TextDelta(text.to_string())));
                                 }
+                                if let Some(thinking) =
+                                    value.pointer("/delta/thinking").and_then(|v| v.as_str())
+                                {
+                                    items.push(Ok(ChatStreamEvent::ReasoningDelta(
+                                        thinking.to_string(),
+                                    )));
+                                }
+                            }
+                        } else if last_event == "message_start" || last_event == "message_delta" {
+                            if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
+                                if let Some(usage) = extract_usage(&value) {
+                                    items.push(Ok(ChatStreamEvent::Usage(usage)));
+                                }
                             }
                         } else if last_event == "message_stop" {
                             break;
@@ -167,17 +196,48 @@ impl LlmProvider for AnthropicProvider {
 
     async fn completion(&self, prompt: &str) -> Result<String> {
         self.chat_completion(
-            vec![ChatMessage {
-                role: "user".to_string(),
-                content: prompt.to_string(),
-                tool_calls: None,
-                tool_call_id: None,
-            }],
-            vec![],
+            ChatRequest {
+                messages: vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: prompt.to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                tools: vec![],
+                thinking: None,
+            },
         )
         .await
         .map(|r| r.content)
     }
+}
+
+fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
+    let usage = result.get("usage")?;
+    let input_tokens = usage
+        .get("input_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let output_tokens = usage
+        .get("output_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let reasoning_tokens = usage
+        .get("thinking_tokens")
+        .or_else(|| usage.get("reasoning_tokens"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let total_tokens = usage
+        .get("total_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(input_tokens + output_tokens + reasoning_tokens);
+
+    Some(ChatUsage {
+        input_tokens,
+        output_tokens,
+        reasoning_tokens,
+        total_tokens,
+    })
 }
 
 #[cfg(test)]
@@ -272,30 +332,39 @@ mod tests {
             tool_call_id: None,
         }];
 
-        let response = provider.chat_completion(messages.clone(), vec![]).await.unwrap();
+        let response = provider
+            .chat_completion(ChatRequest {
+                messages: messages.clone(),
+                tools: vec![],
+                thinking: None,
+            })
+            .await
+            .unwrap();
         assert_eq!(response.content, "hello from anthropic");
         assert!(response.tool_calls.is_empty());
 
         let api_err = provider
-            .chat_completion(
-                vec![ChatMessage {
+            .chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
                     content: "cause-error".to_string(),
                     ..messages[0].clone()
                 }],
-                vec![],
-            )
+                tools: vec![],
+                thinking: None,
+            })
             .await
             .unwrap_err();
         assert!(api_err.to_string().contains("Anthropic API error"));
 
         let format_err = provider
-            .chat_completion(
-                vec![ChatMessage {
+            .chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
                     content: "bad-format".to_string(),
                     ..messages[0].clone()
                 }],
-                vec![],
-            )
+                tools: vec![],
+                thinking: None,
+            })
             .await
             .unwrap_err();
         assert!(format_err
@@ -343,7 +412,11 @@ mod tests {
         }];
 
         let mut stream = provider
-            .stream_chat_completion(messages.clone(), vec![])
+            .stream_chat_completion(ChatRequest {
+                messages: messages.clone(),
+                tools: vec![],
+                thinking: None,
+            })
             .await
             .unwrap();
         let mut deltas = Vec::new();
@@ -359,13 +432,14 @@ mod tests {
         assert_eq!(completion, "completion reply");
 
         let err = match provider
-            .stream_chat_completion(
-                vec![ChatMessage {
+            .stream_chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
                     content: "stream-error".to_string(),
                     ..messages[0].clone()
                 }],
-                vec![],
-            )
+                tools: vec![],
+                thinking: None,
+            })
             .await
         {
             Ok(_) => panic!("expected stream error"),

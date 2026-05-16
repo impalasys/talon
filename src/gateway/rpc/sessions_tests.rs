@@ -178,6 +178,7 @@ mod tests {
                                 provider: "mock".to_string(),
                                 name: "gpt-5".to_string(),
                                 temperature: 0.0,
+                                thinking: None,
                             }),
                         }],
                     }),

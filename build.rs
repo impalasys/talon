@@ -17,6 +17,7 @@ fn main() -> std::io::Result<()> {
         ".talon.manifests.KnowledgeSpec",
         ".talon.manifests.ObjectMeta",
         ".talon.manifests.Model",
+        ".talon.manifests.ThinkingConfig",
         ".talon.manifests.ModelProfile",
         ".talon.manifests.ModelPolicy",
         ".talon.manifests.ModelPolicyDelta",

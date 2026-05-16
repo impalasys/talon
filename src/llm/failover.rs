@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::llm::provider::{ChatMessage, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider};
+use crate::llm::provider::{ChatRequest, ChatResponse, ChatStream, LlmProvider};
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -78,26 +78,19 @@ impl LlmProvider for FailoverProvider {
 
     async fn chat_completion(
         &self,
-        messages: Vec<ChatMessage>,
-        tools: Vec<crate::llm::provider::Tool>,
+        request: ChatRequest,
     ) -> Result<ChatResponse> {
         self.with_failover(|p| {
-            let messages = messages.clone();
-            let tools = tools.clone();
-            async move { p.chat_completion(messages, tools).await }
+            let request = request.clone();
+            async move { p.chat_completion(request).await }
         })
         .await
     }
 
-    async fn stream_chat_completion(
-        &self,
-        messages: Vec<ChatMessage>,
-        tools: Vec<crate::llm::provider::Tool>,
-    ) -> Result<ChatStream> {
+    async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
         self.with_failover(|p| {
-            let messages = messages.clone();
-            let tools = tools.clone();
-            async move { p.stream_chat_completion(messages, tools).await }
+            let request = request.clone();
+            async move { p.stream_chat_completion(request).await }
         })
         .await
     }
@@ -126,16 +119,11 @@ mod tests {
         }
         async fn chat_completion(
             &self,
-            _messages: Vec<ChatMessage>,
-            _tools: Vec<crate::llm::provider::Tool>,
+            _request: ChatRequest,
         ) -> Result<ChatResponse> {
             Err(anyhow!("Always fails"))
         }
-        async fn stream_chat_completion(
-            &self,
-            _messages: Vec<ChatMessage>,
-            _tools: Vec<crate::llm::provider::Tool>,
-        ) -> Result<ChatStream> {
+        async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
             Err(anyhow!("Always fails"))
         }
         async fn completion(&self, _prompt: &str) -> Result<String> {
@@ -179,7 +167,11 @@ mod tests {
         let mut failover = FailoverProvider::new(providers);
         failover.max_retries = 1;
         let stream = failover
-            .stream_chat_completion(vec![], vec![])
+            .stream_chat_completion(ChatRequest {
+                messages: vec![],
+                tools: vec![],
+                thinking: None,
+            })
             .await
             .unwrap();
         let items: Vec<_> = stream.collect().await;
@@ -211,8 +203,7 @@ mod tests {
 
         async fn chat_completion(
             &self,
-            _messages: Vec<ChatMessage>,
-            _tools: Vec<crate::llm::provider::Tool>,
+            _request: ChatRequest,
         ) -> Result<ChatResponse> {
             let call = self.chat_calls.fetch_add(1, Ordering::SeqCst);
             if call < self.fail_until {
@@ -221,15 +212,12 @@ mod tests {
                 Ok(ChatResponse {
                     content: "chat ok".to_string(),
                     tool_calls: vec![],
+                    usage: None,
                 })
             }
         }
 
-        async fn stream_chat_completion(
-            &self,
-            _messages: Vec<ChatMessage>,
-            _tools: Vec<crate::llm::provider::Tool>,
-        ) -> Result<ChatStream> {
+        async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
             let call = self.stream_calls.fetch_add(1, Ordering::SeqCst);
             if call < self.fail_until {
                 Err(anyhow!("stream fail {}", call + 1))
@@ -266,11 +254,25 @@ mod tests {
         assert_eq!(embedding, vec![1.0, 2.0, 3.0]);
         assert_eq!(provider.embedding_calls.load(Ordering::SeqCst), 3);
 
-        let response = failover.chat_completion(vec![], vec![]).await.unwrap();
+        let response = failover
+            .chat_completion(ChatRequest {
+                messages: vec![],
+                tools: vec![],
+                thinking: None,
+            })
+            .await
+            .unwrap();
         assert_eq!(response.content, "chat ok");
         assert_eq!(provider.chat_calls.load(Ordering::SeqCst), 3);
 
-        let stream = failover.stream_chat_completion(vec![], vec![]).await.unwrap();
+        let stream = failover
+            .stream_chat_completion(ChatRequest {
+                messages: vec![],
+                tools: vec![],
+                thinking: None,
+            })
+            .await
+            .unwrap();
         let items: Vec<_> = stream.collect().await;
         assert_eq!(items.len(), 1);
         assert_eq!(provider.stream_calls.load(Ordering::SeqCst), 3);

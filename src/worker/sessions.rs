@@ -247,8 +247,10 @@ mod tests {
     #[async_trait]
     impl ExecutionSink for CaptureErrorSink {
         async fn on_token(&self, _: &str) {}
+        async fn on_reasoning(&self, _: &str) {}
         async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
         async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
+        async fn on_usage(&self, _: &crate::llm::ChatUsage) {}
         async fn on_done(&self, _: &str) {}
         async fn on_error(&self, err: &str) {
             self.errors.lock().unwrap().push(err.to_string());

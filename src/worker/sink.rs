@@ -12,6 +12,7 @@ use crate::control::{topics, KeyValueStore, MessagePublisher};
 use crate::core::context_budget::tool_result_preview;
 use crate::core::executor::{AgentEvent, ExecutionSink};
 use crate::gateway::rpc::models;
+use crate::llm::ChatUsage;
 
 #[derive(Debug, Clone)]
 pub struct SessionRunSummary {
@@ -20,8 +21,11 @@ pub struct SessionRunSummary {
     pub input_token_chars: usize,
     pub published_token_batches: u64,
     pub published_token_chars: usize,
+    pub reasoning_chunks: u64,
+    pub reasoning_chars: usize,
     pub tool_calls: u64,
     pub tool_results: u64,
+    pub usage_events: u64,
 }
 
 /// Production sink: accumulates tokens, throttle-flushes partial text to KV,
@@ -47,8 +51,11 @@ pub struct PubSubSessionSink {
     input_token_chars: Mutex<usize>,
     published_token_batches: Mutex<u64>,
     published_token_chars: Mutex<usize>,
+    reasoning_chunks: Mutex<u64>,
+    reasoning_chars: Mutex<usize>,
     tool_calls: Mutex<u64>,
     tool_results: Mutex<u64>,
+    usage_events: Mutex<u64>,
 }
 
 impl PubSubSessionSink {
@@ -106,8 +113,11 @@ impl PubSubSessionSink {
             input_token_chars: Mutex::new(0),
             published_token_batches: Mutex::new(0),
             published_token_chars: Mutex::new(0),
+            reasoning_chunks: Mutex::new(0),
+            reasoning_chars: Mutex::new(0),
             tool_calls: Mutex::new(0),
             tool_results: Mutex::new(0),
+            usage_events: Mutex::new(0),
         }
     }
 
@@ -180,8 +190,8 @@ impl PubSubSessionSink {
 
     async fn publish_event(&self, event: AgentEvent) {
         let (step_type, name, content, payload_json) = match event {
-            AgentEvent::Thought(content) => {
-                (StepType::Observation, String::new(), content, String::new())
+            AgentEvent::Reasoning(content) => {
+                (StepType::Reasoning, String::new(), content, String::new())
             }
             AgentEvent::Action { id, name, input } => (
                 StepType::Action,
@@ -204,6 +214,12 @@ impl PubSubSessionSink {
                 .unwrap_or_else(|_| "{}".to_string()),
             ),
             AgentEvent::Token(content) => (StepType::Token, String::new(), content, String::new()),
+            AgentEvent::Usage(usage) => (
+                StepType::Usage,
+                String::new(),
+                String::new(),
+                serde_json::to_string(&usage).unwrap_or_else(|_| "{}".to_string()),
+            ),
             AgentEvent::Done(reply) => (StepType::Done, String::new(), reply, String::new()),
             AgentEvent::Error(err) => (StepType::Error, String::new(), err, String::new()),
         };
@@ -266,8 +282,11 @@ impl PubSubSessionSink {
             input_token_chars: *self.input_token_chars.lock().unwrap(),
             published_token_batches: *self.published_token_batches.lock().unwrap(),
             published_token_chars: *self.published_token_chars.lock().unwrap(),
+            reasoning_chunks: *self.reasoning_chunks.lock().unwrap(),
+            reasoning_chars: *self.reasoning_chars.lock().unwrap(),
             tool_calls: *self.tool_calls.lock().unwrap(),
             tool_results: *self.tool_results.lock().unwrap(),
+            usage_events: *self.usage_events.lock().unwrap(),
         }
     }
 }
@@ -291,6 +310,20 @@ impl ExecutionSink for PubSubSessionSink {
         if self.should_flush_token_event() {
             self.flush_token_event_buffer().await;
         }
+    }
+
+    async fn on_reasoning(&self, reasoning: &str) {
+        *self.reasoning_chunks.lock().unwrap() += 1;
+        *self.reasoning_chars.lock().unwrap() += reasoning.len();
+        self.persist_step(
+            StepType::Reasoning,
+            String::new(),
+            reasoning.to_string(),
+            String::new(),
+        )
+        .await;
+        self.publish_event(AgentEvent::Reasoning(reasoning.to_string()))
+            .await;
     }
 
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value) {
@@ -337,6 +370,18 @@ impl ExecutionSink for PubSubSessionSink {
             output: result.to_string(),
         })
         .await;
+    }
+
+    async fn on_usage(&self, usage: &ChatUsage) {
+        *self.usage_events.lock().unwrap() += 1;
+        self.persist_step(
+            StepType::Usage,
+            String::new(),
+            String::new(),
+            serde_json::to_string(usage).unwrap_or_else(|_| "{}".to_string()),
+        )
+        .await;
+        self.publish_event(AgentEvent::Usage(usage.clone())).await;
     }
 
     async fn on_done(&self, reply: &str) {

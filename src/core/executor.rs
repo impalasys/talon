@@ -16,9 +16,8 @@ use crate::config::Config;
 use crate::connectors::mcp::{call_tool_for_config, McpConnectionConfig};
 use crate::core::context_budget::{compact_history_for_llm, tool_result_preview};
 use crate::control::ControlPlane;
-use crate::gateway::rpc::manifests;
 use crate::knowledge::KnowledgeBook;
-use crate::llm::{ChatMessage, ChatStreamEvent, LlmProvider, ToolCall};
+use crate::llm::{ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall};
 use crate::skills::registry::ToolRegistry;
 
 const DEFAULT_EXECUTION_TURN_LIMIT: usize = 25;
@@ -45,7 +44,7 @@ pub struct LoopMessage {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type", content = "data")]
 pub enum AgentEvent {
-    Thought(String),
+    Reasoning(String),
     Action {
         id: String,
         name: String,
@@ -57,6 +56,7 @@ pub enum AgentEvent {
         output: String,
     },
     Token(String),
+    Usage(ChatUsage),
     Done(String),
     Error(String),
 }
@@ -98,12 +98,16 @@ impl ExecutionContext {
 /// PubSub, accumulate for tests, log to stdout, etc.
 #[async_trait]
 pub trait ExecutionSink: Send + Sync {
-    /// A reasoning token or streaming text chunk from the model.
+    /// A streaming text chunk from the model.
     async fn on_token(&self, token: &str);
+    /// A reasoning chunk from the model.
+    async fn on_reasoning(&self, reasoning: &str);
     /// The agent chose to call a tool.
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value);
     /// The tool returned a result.
     async fn on_tool_result(&self, id: &str, name: &str, result: &str);
+    /// Usage metadata for the completed model turn.
+    async fn on_usage(&self, usage: &ChatUsage);
     /// The execution completed successfully with a final reply.
     async fn on_done(&self, reply: &str);
     /// The execution failed.
@@ -116,8 +120,10 @@ pub struct NullSink;
 #[async_trait]
 impl ExecutionSink for NullSink {
     async fn on_token(&self, _: &str) {}
+    async fn on_reasoning(&self, _: &str) {}
     async fn on_tool_call(&self, _: &str, _: &str, _: &Value) {}
     async fn on_tool_result(&self, _: &str, _: &str, _: &str) {}
+    async fn on_usage(&self, _: &ChatUsage) {}
     async fn on_done(&self, _: &str) {}
     async fn on_error(&self, _: &str) {}
 }
@@ -147,6 +153,12 @@ impl ExecutionSink for CaptureSink {
             .unwrap()
             .push(AgentEvent::Token(token.to_string()));
     }
+    async fn on_reasoning(&self, reasoning: &str) {
+        self.events
+            .lock()
+            .unwrap()
+            .push(AgentEvent::Reasoning(reasoning.to_string()));
+    }
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value) {
         self.events.lock().unwrap().push(AgentEvent::Action {
             id: id.to_string(),
@@ -160,6 +172,12 @@ impl ExecutionSink for CaptureSink {
             name: name.to_string(),
             output: result.to_string(),
         });
+    }
+    async fn on_usage(&self, usage: &ChatUsage) {
+        self.events
+            .lock()
+            .unwrap()
+            .push(AgentEvent::Usage(usage.clone()));
     }
     async fn on_done(&self, reply: &str) {
         self.events
@@ -312,7 +330,21 @@ impl AgentExecutor {
 
             let mut final_reply = String::new();
             let mut tool_calls_by_index: BTreeMap<usize, ToolCall> = BTreeMap::new();
-            let mut stream = self.llm.stream_chat_completion(messages, tools).await?;
+            let thinking = self
+                .agent_spec
+                .model_policy
+                .as_ref()
+                .and_then(|policy| policy.profiles.iter().find(|profile| profile.name == "default"))
+                .and_then(|profile| profile.model.as_ref())
+                .and_then(|model| model.thinking.clone());
+            let mut stream = self
+                .llm
+                .stream_chat_completion(ChatRequest {
+                    messages,
+                    tools,
+                    thinking,
+                })
+                .await?;
 
             loop {
                 let next_chunk = if let Some(token) = cancellation_token {
@@ -343,6 +375,9 @@ impl AgentExecutor {
                         final_reply.push_str(&token);
                         sink.on_token(&token).await;
                     }
+                    ChatStreamEvent::ReasoningDelta(reasoning) => {
+                        sink.on_reasoning(&reasoning).await;
+                    }
                     ChatStreamEvent::ToolCallDelta(delta) => {
                         let entry =
                             tool_calls_by_index
@@ -362,6 +397,9 @@ impl AgentExecutor {
                         if let Some(arguments) = delta.arguments {
                             entry.arguments.push_str(&arguments);
                         }
+                    }
+                    ChatStreamEvent::Usage(usage) => {
+                        sink.on_usage(&usage).await;
                     }
                 }
             }
@@ -453,7 +491,7 @@ mod tests {
     };
     use crate::knowledge::{KnowledgeBook, KnowledgeEntry, KnowledgeResult};
     use crate::llm::provider::{
-        ChatMessage, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider, Tool,
+        ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider,
     };
     use crate::memory::Embedding;
     use crate::skills::registry::ToolRegistry;
@@ -602,22 +640,21 @@ mod tests {
 
         async fn chat_completion(
             &self,
-            messages: Vec<ChatMessage>,
-            _tools: Vec<Tool>,
+            request: ChatRequest,
         ) -> Result<ChatResponse> {
-            self.seen_messages.lock().unwrap().push(messages);
+            self.seen_messages
+                .lock()
+                .unwrap()
+                .push(request.messages.clone());
             Ok(ChatResponse {
                 content: "resolved".to_string(),
                 tool_calls: Vec::new(),
+                usage: None,
             })
         }
 
-        async fn stream_chat_completion(
-            &self,
-            messages: Vec<ChatMessage>,
-            tools: Vec<Tool>,
-        ) -> Result<ChatStream> {
-            let response = self.chat_completion(messages, tools).await?;
+        async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+            let response = self.chat_completion(request).await?;
             Ok(Box::pin(futures::stream::once(async move {
                 Ok(ChatStreamEvent::TextDelta(response.content))
             })))
@@ -650,18 +687,16 @@ mod tests {
 
         async fn chat_completion(
             &self,
-            _messages: Vec<ChatMessage>,
-            _tools: Vec<Tool>,
+            _request: ChatRequest,
         ) -> Result<ChatResponse> {
             unreachable!("stream_chat_completion is used in this test");
         }
 
-        async fn stream_chat_completion(
-            &self,
-            messages: Vec<ChatMessage>,
-            _tools: Vec<Tool>,
-        ) -> Result<ChatStream> {
-            self.seen_messages.lock().unwrap().push(messages);
+        async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+            self.seen_messages
+                .lock()
+                .unwrap()
+                .push(request.messages.clone());
             let mut call_count = self.call_count.lock().unwrap();
             let stream = if *call_count == 0 {
                 *call_count += 1;
@@ -867,17 +902,12 @@ mod tests {
 
         async fn chat_completion(
             &self,
-            _messages: Vec<ChatMessage>,
-            _tools: Vec<Tool>,
+            _request: ChatRequest,
         ) -> Result<ChatResponse> {
             unreachable!("stream_chat_completion is used in this test");
         }
 
-        async fn stream_chat_completion(
-            &self,
-            _messages: Vec<ChatMessage>,
-            _tools: Vec<Tool>,
-        ) -> Result<ChatStream> {
+        async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
             Ok(Box::pin(futures::stream::unfold(0usize, |state| async move {
                 tokio::time::sleep(std::time::Duration::from_millis(20)).await;
                 let token = match state {

@@ -187,8 +187,8 @@ fn data_stream_line(code: &str, value: Value) -> Vec<u8> {
 
 fn step_dedup_key(step: &events::SessionStepEvent) -> String {
     format!(
-        "{}:{}:{}:{}:{}",
-        step.message_id, step.timestamp, step.step_type, step.name, step.content
+        "{}:{}:{}:{}:{}:{}",
+        step.message_id, step.timestamp, step.step_type, step.name, step.content, step.payload_json
     )
 }
 
@@ -277,6 +277,10 @@ pub async fn post_chat(
                         emitted_any_text = true;
                         yield Ok::<_, Infallible>(data_stream_line("0", json!(step.content)));
                     }
+                } else if step.step_type == StepType::Reasoning as i32 {
+                    if !step.content.is_empty() {
+                        yield Ok::<_, Infallible>(data_stream_line("g", json!(step.content)));
+                    }
                 } else if step.step_type == StepType::Action as i32 {
                     let payload = match extract_tool_step_payload(step) {
                         Some(payload) => Some(payload),
@@ -316,6 +320,10 @@ pub async fn post_chat(
                             "result": payload.result
                         })));
                     }
+                } else if step.step_type == StepType::Usage as i32 {
+                    let usage = serde_json::from_str::<Value>(&step.payload_json)
+                        .unwrap_or_else(|_| json!({}));
+                    yield Ok::<_, Infallible>(data_stream_line("h", usage));
                 } else if step.step_type == StepType::Error as i32 {
                     let error_text = if step.content.is_empty() {
                         "Stream error".to_string()
@@ -414,6 +422,10 @@ pub async fn get_chat(
                 if !step.content.is_empty() {
                     yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "text", "value": step.content })));
                 }
+            } else if step.step_type == StepType::Reasoning as i32 {
+                if !step.content.is_empty() {
+                    yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "reasoning", "value": step.content })));
+                }
             } else if step.step_type == StepType::Action as i32 {
                 let payload = match extract_tool_step_payload(&step) {
                     Some(payload) => {
@@ -459,6 +471,13 @@ pub async fn get_chat(
                         }
                     })));
                 }
+            } else if step.step_type == StepType::Usage as i32 {
+                let usage = serde_json::from_str::<Value>(&step.payload_json)
+                    .unwrap_or_else(|_| json!({}));
+                yield Ok::<_, Infallible>(ndjson_line(json!({
+                    "type": "usage",
+                    "value": usage
+                })));
             } else if step.step_type == StepType::Done as i32 {
                 break;
             } else if step.step_type == StepType::Error as i32 {

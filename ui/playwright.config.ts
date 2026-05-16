@@ -1,8 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
+import fs from 'fs';
 
 const API_PORT = process.env.API_PORT || '18789';
 const WEB_PORT = process.env.WEB_PORT || '3000';
-const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
+const DEFAULT_PYTHON_BIN = fs.existsSync('/usr/bin/python3') ? '/usr/bin/python3' : 'python3';
+const PYTHON_BIN = process.env.PYTHON_BIN || DEFAULT_PYTHON_BIN;
 const reuseExistingServer = process.env.REUSE_EXISTING_SERVER === 'true'
   ? true
   : process.env.REUSE_EXISTING_SERVER === 'false'

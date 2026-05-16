@@ -131,6 +131,7 @@ mod tests {
                         provider: provider.to_string(),
                         name: name.to_string(),
                         temperature: 0.0,
+                        thinking: None,
                     }),
                 }],
             }),
