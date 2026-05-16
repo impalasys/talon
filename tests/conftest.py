@@ -45,7 +45,7 @@ def get_binary_path(name):
 
     raise FileNotFoundError(f"Could not find binary {name}")
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def talon_infrastructure():
     print("\nStarting Postgres container...")
     postgres = PostgresContainer("postgres:15-alpine", dbname="talon", username="talon", password="password")
@@ -95,7 +95,9 @@ def talon_infrastructure():
     
     # Use an isolated port to guarantee we don't accidentally talk to a host docker-compose talon_server 
     test_grpc_port = 50052
+    test_ui_port = 50053
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
+    env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     
     # Copy talon.yaml so load_default() can find it in the test execution root
@@ -194,7 +196,7 @@ def test_grpc_port():
     return 50052
 
 @pytest.fixture
-def gateway_channel(test_grpc_port):
+def gateway_channel(talon_infrastructure, test_grpc_port):
     """Returns a connected gRPC channel to the Talon gateway."""
     channel = grpc.insecure_channel(f"127.0.0.1:{test_grpc_port}")
     yield channel
