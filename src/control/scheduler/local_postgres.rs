@@ -392,3 +392,533 @@ impl SchedulerBackend for LocalPostgresSchedulerBackend {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_support::{docker_test_guard, PostgresContainer};
+    use std::sync::Arc;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::sync::{oneshot, Mutex};
+
+    async fn init_test_backend(database_url: &str) -> LocalPostgresSchedulerBackend {
+        let mut last_error = None;
+        for _ in 0..20 {
+            match LocalPostgresSchedulerBackend::new(
+                database_url,
+                Some("talon_scheduler_test".to_string()),
+                None,
+                None,
+                false,
+            )
+            .await
+            {
+                Ok(backend) => return backend,
+                Err(err) => {
+                    last_error = Some(err);
+                    tokio::time::sleep(Duration::from_millis(500)).await;
+                }
+            }
+        }
+        panic!(
+            "backend should initialize: {}",
+            last_error.expect("expected initialization error")
+        );
+    }
+
+    async fn init_backend_with_options(
+        database_url: &str,
+        table: Option<String>,
+        runner_target_url: Option<String>,
+        auth_token: Option<String>,
+        runner_enabled: bool,
+    ) -> LocalPostgresSchedulerBackend {
+        let mut last_error = None;
+        for _ in 0..20 {
+            match LocalPostgresSchedulerBackend::new(
+                database_url,
+                table.clone(),
+                runner_target_url.clone(),
+                auth_token.clone(),
+                runner_enabled,
+            )
+            .await
+            {
+                Ok(backend) => return backend,
+                Err(err) => {
+                    last_error = Some(err);
+                    tokio::time::sleep(Duration::from_millis(500)).await;
+                }
+            }
+        }
+        panic!(
+            "backend should initialize: {}",
+            last_error.expect("expected initialization error")
+        );
+    }
+
+    #[derive(Clone, Default)]
+    struct ReceivedWakeup {
+        header: Option<String>,
+        body: Vec<u8>,
+    }
+
+    #[test]
+    fn validate_identifier_rejects_invalid_names_and_retry_delay_caps() {
+        assert!(validate_identifier("valid_table_01").is_ok());
+        assert!(validate_identifier("").is_err());
+        assert!(validate_identifier("bad-name").is_err());
+        assert!(validate_identifier("bad name").is_err());
+
+        assert_eq!(compute_retry_delay_seconds(0), 5);
+        assert_eq!(compute_retry_delay_seconds(1), 5);
+        assert_eq!(compute_retry_delay_seconds(2), 10);
+        assert_eq!(compute_retry_delay_seconds(3), 20);
+        assert_eq!(compute_retry_delay_seconds(20), 300);
+    }
+
+    #[tokio::test]
+    async fn schedule_claim_fail_cancel_and_deliver_round_trip() {
+        let _guard = docker_test_guard();
+        let pg = PostgresContainer::start("talon-rust-pg");
+        let backend = init_test_backend(&pg.database_url()).await;
+
+        let scheduled = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "schedule-1".to_string(),
+                revision: 7,
+                fire_at: Utc::now() - chrono::Duration::seconds(1),
+                payload: br#"{"ok":true}"#.to_vec(),
+            })
+            .await
+            .expect("schedule should succeed");
+        let handle = scheduled.handle.expect("handle should be present");
+
+        let wakeups = backend
+            .claim_due_wakeups(10)
+            .await
+            .expect("claim should succeed");
+        assert_eq!(wakeups.len(), 1);
+        assert_eq!(wakeups[0].handle, handle);
+        assert_eq!(wakeups[0].namespace, "acme");
+        assert_eq!(wakeups[0].schedule_id, "schedule-1");
+        assert_eq!(wakeups[0].revision, 7);
+        assert_eq!(wakeups[0].attempts, 1);
+
+        backend
+            .mark_delivery_failed(&handle, 1, "transient")
+            .await
+            .expect("mark failure should succeed");
+        let failure_row = sqlx::query(&format!(
+            "SELECT last_error, claim_until_micros FROM {} WHERE handle = $1",
+            backend.table
+        ))
+        .bind(&handle)
+        .fetch_one(&backend.pool)
+        .await
+        .expect("failed row should load");
+        let last_error: String = failure_row.try_get("last_error").unwrap();
+        let claim_until_micros: i64 = failure_row.try_get("claim_until_micros").unwrap();
+        assert_eq!(last_error, "transient");
+        assert!(claim_until_micros > Utc::now().timestamp_micros());
+
+        backend
+            .mark_delivery_failed(&handle, MAX_DELIVERY_ATTEMPTS, "permanent")
+            .await
+            .expect("terminal failure should succeed");
+        let canceled_row = sqlx::query(&format!(
+            "SELECT canceled_at_micros, claim_until_micros, last_error FROM {} WHERE handle = $1",
+            backend.table
+        ))
+        .bind(&handle)
+        .fetch_one(&backend.pool)
+        .await
+        .expect("canceled row should load");
+        let canceled_at: i64 = canceled_row.try_get("canceled_at_micros").unwrap();
+        let canceled_claim_until: Option<i64> =
+            canceled_row.try_get("claim_until_micros").unwrap();
+        let canceled_error: String = canceled_row.try_get("last_error").unwrap();
+        assert!(canceled_at > 0);
+        assert!(canceled_claim_until.is_none());
+        assert_eq!(canceled_error, "permanent");
+
+        let scheduled_deliver = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "schedule-2".to_string(),
+                revision: 8,
+                fire_at: Utc::now() - chrono::Duration::seconds(1),
+                payload: br#"{"deliver":true}"#.to_vec(),
+            })
+            .await
+            .expect("second schedule should succeed");
+        let deliver_handle = scheduled_deliver.handle.expect("deliver handle");
+
+        let wakeup = backend
+            .claim_due_wakeups(10)
+            .await
+            .expect("second claim should succeed")
+            .into_iter()
+            .find(|wakeup| wakeup.handle == deliver_handle)
+            .expect("expected deliver wakeup");
+
+        let received = Arc::new(Mutex::new(None::<ReceivedWakeup>));
+        let (shutdown_tx, shutdown_rx) = oneshot::channel::<()>();
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("listener should bind");
+        let addr = listener.local_addr().unwrap();
+        let received_state = received.clone();
+        let server = tokio::spawn(async move {
+            tokio::select! {
+                _ = async {
+                    let (mut socket, _) = listener.accept().await.expect("accept should succeed");
+                    let mut buffer = vec![0_u8; 4096];
+                    let bytes_read = socket.read(&mut buffer).await.expect("read should succeed");
+                    let request = String::from_utf8_lossy(&buffer[..bytes_read]);
+                    let expected_prefix = format!("{}:", SCHEDULER_AUTH_HEADER).to_ascii_lowercase();
+                    let header = request.lines().find_map(|line| {
+                        let lower = line.to_ascii_lowercase();
+                        lower
+                            .strip_prefix(&expected_prefix)
+                            .map(|_| line.split_once(':').map(|(_, value)| value.trim().to_string()))
+                            .flatten()
+                    });
+                    let body = request
+                        .split("\r\n\r\n")
+                        .nth(1)
+                        .unwrap_or_default()
+                        .as_bytes()
+                        .to_vec();
+                    *received_state.lock().await = Some(ReceivedWakeup { header, body });
+                    socket
+                        .write_all(b"HTTP/1.1 200 OK\r\ncontent-length: 0\r\n\r\n")
+                        .await
+                        .expect("write should succeed");
+                } => {}
+                _ = shutdown_rx => {}
+            }
+        });
+
+        let client = Client::builder().build().unwrap();
+        backend
+            .deliver_wakeup(
+                &client,
+                &format!("http://{}/", addr),
+                Some("secret-token"),
+                &wakeup,
+            )
+            .await
+            .expect("delivery should succeed");
+        let _ = shutdown_tx.send(());
+        server.await.expect("server task should finish");
+
+        let received = received.lock().await.clone().expect("request should be captured");
+        assert_eq!(received.header.as_deref(), Some("secret-token"));
+        assert_eq!(received.body, br#"{"deliver":true}"#.to_vec());
+
+        let delivered_row = sqlx::query(&format!(
+            "SELECT delivered_at_micros FROM {} WHERE handle = $1",
+            backend.table
+        ))
+        .bind(&deliver_handle)
+        .fetch_one(&backend.pool)
+        .await
+        .expect("delivered row should load");
+        let delivered_at: i64 = delivered_row.try_get("delivered_at_micros").unwrap();
+        assert!(delivered_at > 0);
+
+        let scheduled_cancel = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "schedule-3".to_string(),
+                revision: 9,
+                fire_at: Utc::now() + chrono::Duration::seconds(60),
+                payload: br#"{"cancel":true}"#.to_vec(),
+            })
+            .await
+            .expect("cancel schedule should succeed");
+        let cancel_handle = scheduled_cancel.handle.expect("cancel handle");
+        backend.cancel(&cancel_handle).await.expect("cancel should succeed");
+        let cancel_row = sqlx::query(&format!(
+            "SELECT canceled_at_micros FROM {} WHERE handle = $1",
+            backend.table
+        ))
+        .bind(&cancel_handle)
+        .fetch_one(&backend.pool)
+        .await
+        .expect("cancel row should load");
+        let canceled_at: i64 = cancel_row.try_get("canceled_at_micros").unwrap();
+        assert!(canceled_at > 0);
+    }
+
+    #[tokio::test]
+    async fn claim_due_wakeups_skips_future_canceled_delivered_and_claimed_rows() {
+        let _guard = docker_test_guard();
+        let pg = PostgresContainer::start("talon-rust-pg");
+        let backend = init_test_backend(&pg.database_url()).await;
+
+        let active = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "active".to_string(),
+                revision: 1,
+                fire_at: Utc::now() - chrono::Duration::seconds(1),
+                payload: br#"{"active":true}"#.to_vec(),
+            })
+            .await
+            .expect("active schedule should succeed")
+            .handle
+            .expect("active handle");
+        let future = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "future".to_string(),
+                revision: 2,
+                fire_at: Utc::now() + chrono::Duration::seconds(60),
+                payload: br#"{"future":true}"#.to_vec(),
+            })
+            .await
+            .expect("future schedule should succeed")
+            .handle
+            .expect("future handle");
+        let canceled = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "canceled".to_string(),
+                revision: 3,
+                fire_at: Utc::now() - chrono::Duration::seconds(1),
+                payload: br#"{"canceled":true}"#.to_vec(),
+            })
+            .await
+            .expect("canceled schedule should succeed")
+            .handle
+            .expect("canceled handle");
+        let delivered = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "delivered".to_string(),
+                revision: 4,
+                fire_at: Utc::now() - chrono::Duration::seconds(1),
+                payload: br#"{"delivered":true}"#.to_vec(),
+            })
+            .await
+            .expect("delivered schedule should succeed")
+            .handle
+            .expect("delivered handle");
+        let claimed = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "claimed".to_string(),
+                revision: 5,
+                fire_at: Utc::now() - chrono::Duration::seconds(1),
+                payload: br#"{"claimed":true}"#.to_vec(),
+            })
+            .await
+            .expect("claimed schedule should succeed")
+            .handle
+            .expect("claimed handle");
+
+        backend.cancel(&canceled).await.expect("cancel should succeed");
+        backend
+            .mark_delivered(&delivered)
+            .await
+            .expect("mark delivered should succeed");
+        sqlx::query(&format!(
+            "UPDATE {} SET claim_until_micros = $2 WHERE handle = $1",
+            backend.table
+        ))
+        .bind(&claimed)
+        .bind(Utc::now().timestamp_micros() + 60_000_000)
+        .execute(&backend.pool)
+        .await
+        .expect("claim lease update should succeed");
+
+        let wakeups = backend
+            .claim_due_wakeups(10)
+            .await
+            .expect("claim should succeed");
+        let handles: Vec<_> = wakeups.into_iter().map(|w| w.handle).collect();
+        assert_eq!(handles, vec![active]);
+
+        for skipped in [future, canceled, delivered, claimed] {
+            assert!(!handles.contains(&skipped));
+        }
+    }
+
+    #[tokio::test]
+    async fn deliver_wakeup_surfaces_http_error_without_marking_delivered() {
+        let _guard = docker_test_guard();
+        let pg = PostgresContainer::start("talon-rust-pg");
+        let backend = init_test_backend(&pg.database_url()).await;
+
+        let handle = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "error".to_string(),
+                revision: 11,
+                fire_at: Utc::now() - chrono::Duration::seconds(1),
+                payload: br#"{"error":true}"#.to_vec(),
+            })
+            .await
+            .expect("schedule should succeed")
+            .handle
+            .expect("handle");
+        let wakeup = backend
+            .claim_due_wakeups(1)
+            .await
+            .expect("claim should succeed")
+            .into_iter()
+            .find(|wakeup| wakeup.handle == handle)
+            .expect("expected wakeup");
+
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("listener should bind");
+        let addr = listener.local_addr().expect("addr should exist");
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.expect("accept should succeed");
+            let mut buffer = vec![0_u8; 4096];
+            let _ = socket.read(&mut buffer).await.expect("read should succeed");
+            socket
+                .write_all(b"HTTP/1.1 500 Internal Server Error\r\ncontent-length: 0\r\n\r\n")
+                .await
+                .expect("write should succeed");
+        });
+
+        let client = Client::builder().build().expect("client should build");
+        let err = backend
+            .deliver_wakeup(&client, &format!("http://{}/", addr), None, &wakeup)
+            .await
+            .expect_err("delivery should fail");
+        assert!(err.to_string().contains("500"));
+        server.await.expect("server task should finish");
+
+        let row = sqlx::query(&format!(
+            "SELECT delivered_at_micros, attempts FROM {} WHERE handle = $1",
+            backend.table
+        ))
+        .bind(&handle)
+        .fetch_one(&backend.pool)
+        .await
+        .expect("row should load");
+        let delivered_at: Option<i64> = row.try_get("delivered_at_micros").unwrap();
+        let attempts: i32 = row.try_get("attempts").unwrap();
+        assert!(delivered_at.is_none());
+        assert_eq!(attempts, 1);
+    }
+
+    #[tokio::test]
+    async fn new_accepts_blank_runner_target_when_runner_disabled_and_rejects_bad_identifier() {
+        let _guard = docker_test_guard();
+        let pg = PostgresContainer::start("talon-rust-pg");
+
+        let backend = init_backend_with_options(
+            &pg.database_url(),
+            None,
+            Some("   ".to_string()),
+            Some("secret".to_string()),
+            false,
+        )
+        .await;
+        assert_eq!(backend.table, DEFAULT_TABLE);
+
+        let err = LocalPostgresSchedulerBackend::new(
+            &pg.database_url(),
+            Some("bad-table-name".to_string()),
+            None,
+            None,
+            false,
+        )
+        .await
+        .err()
+        .expect("invalid table name should fail");
+        assert!(err.to_string().contains("invalid identifier"));
+    }
+
+    #[tokio::test]
+    async fn runner_enabled_delivers_due_wakeup_to_target() {
+        let _guard = docker_test_guard();
+        let pg = PostgresContainer::start("talon-rust-pg");
+
+        let received = Arc::new(Mutex::new(None::<ReceivedWakeup>));
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("listener should bind");
+        let addr = listener.local_addr().expect("listener addr");
+        let received_state = received.clone();
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.expect("accept should succeed");
+            let mut buffer = vec![0_u8; 4096];
+            let bytes_read = socket.read(&mut buffer).await.expect("read should succeed");
+            let request = String::from_utf8_lossy(&buffer[..bytes_read]);
+            let expected_prefix = format!("{}:", SCHEDULER_AUTH_HEADER).to_ascii_lowercase();
+            let header = request.lines().find_map(|line| {
+                let lower = line.to_ascii_lowercase();
+                lower
+                    .strip_prefix(&expected_prefix)
+                    .and_then(|_| line.split_once(':').map(|(_, value)| value.trim().to_string()))
+            });
+            let body = request
+                .split("\r\n\r\n")
+                .nth(1)
+                .unwrap_or_default()
+                .as_bytes()
+                .to_vec();
+            *received_state.lock().await = Some(ReceivedWakeup { header, body });
+            socket
+                .write_all(b"HTTP/1.1 200 OK\r\ncontent-length: 0\r\n\r\n")
+                .await
+                .expect("write should succeed");
+        });
+
+        let backend = init_backend_with_options(
+            &pg.database_url(),
+            Some("talon_scheduler_runner_test".to_string()),
+            Some(format!("http://{}/", addr)),
+            Some("runner-secret".to_string()),
+            true,
+        )
+        .await;
+
+        let scheduled = backend
+            .schedule(ScheduleWakeupRequest {
+                namespace: "acme".to_string(),
+                schedule_id: "runner-schedule".to_string(),
+                revision: 12,
+                fire_at: Utc::now() - chrono::Duration::seconds(1),
+                payload: br#"{"runner":true}"#.to_vec(),
+            })
+            .await
+            .expect("schedule should succeed");
+        let handle = scheduled.handle.expect("handle should be present");
+
+        for _ in 0..40 {
+            if received.lock().await.is_some() {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+
+        let captured = received
+            .lock()
+            .await
+            .clone()
+            .expect("runner should deliver wakeup");
+        assert_eq!(captured.header.as_deref(), Some("runner-secret"));
+        assert_eq!(captured.body, br#"{"runner":true}"#.to_vec());
+        server.await.expect("server should finish");
+
+        let row = sqlx::query(&format!(
+            "SELECT delivered_at_micros FROM {} WHERE handle = $1",
+            backend.table
+        ))
+        .bind(&handle)
+        .fetch_one(&backend.pool)
+        .await
+        .expect("delivered row should load");
+        let delivered_at: i64 = row.try_get("delivered_at_micros").unwrap();
+        assert!(delivered_at > 0);
+    }
+}

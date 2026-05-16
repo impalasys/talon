@@ -1,0 +1,15 @@
+[run]
+branch = True
+source =
+    .
+omit =
+    tests/generated/*
+    tests/test_*.py
+    tests/run_e2e_stack.py
+
+[report]
+omit =
+    tests/generated/*
+    tests/test_*.py
+    tests/run_e2e_stack.py
+    */site-packages/*

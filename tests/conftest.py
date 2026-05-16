@@ -5,9 +5,11 @@ import grpc
 import requests
 import sys
 import os
+from pathlib import Path
 
 # Important: Add generated protos to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from testcontainers.postgres import PostgresContainer
 from testcontainers.core.container import DockerContainer
@@ -15,16 +17,35 @@ import shutil
 
 SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+def binary_candidates(name):
+    yield name
+    if "_" in name:
+        yield name.replace("_", "-")
+    if "-" in name:
+        yield name.replace("-", "_")
 
 def get_binary_path(name):
-    # Ensure .exe extension on Windows, though we are mostly on MAC/Linux
-    path = os.path.abspath(f"talon/{name}")
-    if os.path.exists(path):
-        return path
-        
-    raise FileNotFoundError(f"Could not find binary {name} at {path}")
+    workspace = os.environ.get("BUILD_WORKSPACE_DIRECTORY")
+    for candidate in binary_candidates(name):
+        if workspace:
+            path = Path(workspace) / "bazel-bin" / "talon" / candidate
+            if path.exists():
+                return str(path)
 
-@pytest.fixture(scope="session", autouse=True)
+        for base in (REPO_ROOT / "target" / "debug", REPO_ROOT / "target" / "release"):
+            path = base / candidate
+            if path.exists():
+                return str(path)
+
+        resolved = shutil.which(candidate)
+        if resolved:
+            return resolved
+
+    raise FileNotFoundError(f"Could not find binary {name}")
+
+@pytest.fixture(scope="session")
 def talon_infrastructure():
     print("\nStarting Postgres container...")
     postgres = PostgresContainer("postgres:15-alpine", dbname="talon", username="talon", password="password")
@@ -74,15 +95,19 @@ def talon_infrastructure():
     
     # Use an isolated port to guarantee we don't accidentally talk to a host docker-compose talon_server 
     test_grpc_port = 50052
+    test_ui_port = 50053
     env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
+    env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     
     # Copy talon.yaml so load_default() can find it in the test execution root
-    config_src = os.path.abspath("talon/talon.yaml")
-    if os.path.exists(config_src):
-        shutil.copy(config_src, "talon.yaml")
-        print("Copied talon.yaml to test execution root.")
-    
+    config_src = REPO_ROOT / "talon.yaml"
+    if config_src.exists():
+        config_dst = Path("talon.yaml").resolve()
+        if config_src.resolve() != config_dst:
+            shutil.copy(config_src, config_dst)
+            print("Copied talon.yaml to test execution root.")
+
     server_bin = get_binary_path("talon_server")
     worker_bin = get_binary_path("talon_worker")
     
@@ -144,7 +169,7 @@ def mock_llm_server():
     print("\nStarting mock LLM server...")
     import threading
     import uvicorn
-    from talon.tests.mock_llm import app
+    from mock_llm import app
     
     server_thread = threading.Thread(
         target=uvicorn.run,
@@ -171,7 +196,7 @@ def test_grpc_port():
     return 50052
 
 @pytest.fixture
-def gateway_channel(test_grpc_port):
+def gateway_channel(talon_infrastructure, test_grpc_port):
     """Returns a connected gRPC channel to the Talon gateway."""
     channel = grpc.insecure_channel(f"127.0.0.1:{test_grpc_port}")
     yield channel

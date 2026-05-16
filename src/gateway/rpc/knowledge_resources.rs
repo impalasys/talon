@@ -250,3 +250,367 @@ impl GrpcGatewayHandler {
         ))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::hydrate_knowledge_manifest;
+    use crate::control::{KeyValueStore, ProtoKeyValueStoreExt};
+    use crate::gateway::rpc::{manifests, proto, GrpcGatewayHandler};
+    use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
+    use async_trait::async_trait;
+    use futures::stream;
+    use std::collections::HashMap;
+    use std::pin::Pin;
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+
+    #[derive(Default)]
+    struct MockKvStore {
+        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+    }
+
+    #[async_trait]
+    impl KeyValueStore for MockKvStore {
+        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .data
+                .lock()
+                .await
+                .get(&(ns.to_string(), k.to_string()))
+                .cloned())
+        }
+
+        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
+            self.data
+                .lock()
+                .await
+                .insert((ns.to_string(), k.to_string()), v.to_vec());
+            Ok(())
+        }
+
+        async fn compare_and_swap(
+            &self,
+            ns: &str,
+            k: &str,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> anyhow::Result<bool> {
+            let mut data = self.data.lock().await;
+            let key = (ns.to_string(), k.to_string());
+            let current = data.get(&key).cloned();
+            let matches = match (current.as_deref(), expected) {
+                (None, None) => true,
+                (Some(current), Some(expected)) => current == expected,
+                _ => false,
+            };
+            if matches {
+                data.insert(key, value.to_vec());
+            }
+            Ok(matches)
+        }
+
+        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
+            self.data.lock().await.remove(&(ns.to_string(), k.to_string()));
+            Ok(())
+        }
+
+        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
+            let mut keys = self
+                .data
+                .lock()
+                .await
+                .keys()
+                .filter_map(|(stored_ns, key)| {
+                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
+                })
+                .collect::<Vec<_>>();
+            keys.sort();
+            Ok(keys)
+        }
+    }
+
+    #[derive(Default)]
+    struct MockPubSub;
+
+    #[async_trait]
+    impl crate::control::MessagePublisher for MockPubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(stream::empty()))
+        }
+    }
+
+    fn metadata(name: &str, namespace: &str) -> manifests::ObjectMeta {
+        manifests::ObjectMeta {
+            name: name.to_string(),
+            namespace: namespace.to_string(),
+            labels: HashMap::new(),
+            annotations: HashMap::new(),
+        }
+    }
+
+    fn manifest(name: &str, namespace: &str, path: &str, content: &str) -> manifests::Knowledge {
+        manifests::Knowledge {
+            api_version: String::new(),
+            kind: String::new(),
+            metadata: Some(metadata(name, namespace)),
+            spec: Some(manifests::KnowledgeSpec {
+                path: path.to_string(),
+                content: content.to_string(),
+            }),
+        }
+    }
+
+    fn handler(kv: Arc<MockKvStore>) -> GrpcGatewayHandler {
+        let pubsub = Arc::new(MockPubSub);
+        GrpcGatewayHandler {
+            gateway: Arc::new(Gateway {
+                auth_config: None,
+                kv,
+                pubsub: pubsub.clone(),
+                scheduler: Arc::new(crate::control::scheduler::NoopSchedulerBackend),
+                session_streams: Arc::new(SessionStreamHub::new(pubsub)),
+            }),
+        }
+    }
+
+    #[tokio::test]
+    async fn hydrate_knowledge_manifest_reads_normalized_content_from_kv() {
+        let kv = Arc::new(MockKvStore::default());
+        let entry = crate::knowledge::KnowledgeEntry {
+            namespace: "acme".to_string(),
+            name: "guide".to_string(),
+            path: "folder/guide.md".to_string(),
+            content: "normalized content".to_string(),
+            updated_at: 1,
+        };
+        kv.set(
+            "acme",
+            "Knowledge/guide.md",
+            &serde_json::to_vec(&entry).unwrap(),
+        )
+        .await
+        .unwrap();
+
+        let hydrated = hydrate_knowledge_manifest(
+            &(kv.clone() as Arc<dyn KeyValueStore + Send + Sync>),
+            "acme",
+            manifest("guide", "acme", "guide.md", "stale"),
+        )
+        .await
+        .unwrap();
+
+        let spec = hydrated.spec.unwrap();
+        assert_eq!(spec.path, "folder/guide.md");
+        assert_eq!(spec.content, "normalized content");
+    }
+
+    #[tokio::test]
+    async fn create_namespace_knowledge_rejects_path_claim_conflicts() {
+        let kv = Arc::new(MockKvStore::default());
+        kv.set(
+            "acme",
+            "Knowledge/guide.md",
+            &serde_json::to_vec(&crate::knowledge::KnowledgeEntry {
+                namespace: "acme".to_string(),
+                name: "other".to_string(),
+                path: "guide.md".to_string(),
+                content: "existing".to_string(),
+                updated_at: 1,
+            })
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+        let status = handler(kv)
+            .handle_create_namespace_knowledge(tonic::Request::new(
+                proto::CreateNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    knowledge: Some(manifest("guide", "acme", "guide.md", "new")),
+                },
+            ))
+            .await
+            .expect_err("path conflict should fail");
+
+        assert_eq!(status.code(), tonic::Code::AlreadyExists);
+    }
+
+    #[tokio::test]
+    async fn create_namespace_knowledge_replaces_old_path_for_same_resource() {
+        let kv = Arc::new(MockKvStore::default());
+        kv.set_msg(
+            "acme",
+            "KnowledgeResource/guide",
+            &manifest("guide", "acme", "old.md", "old content"),
+        )
+        .await
+        .unwrap();
+        kv.set(
+            "acme",
+            "Knowledge/old.md",
+            &serde_json::to_vec(&crate::knowledge::KnowledgeEntry {
+                namespace: "acme".to_string(),
+                name: "guide".to_string(),
+                path: "old.md".to_string(),
+                content: "old content".to_string(),
+                updated_at: 1,
+            })
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+
+        let handler = handler(kv.clone());
+        let response = handler
+            .handle_create_namespace_knowledge(tonic::Request::new(
+                proto::CreateNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    knowledge: Some(manifest("guide", "acme", "new.md", "new content")),
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert_eq!(
+            response
+                .knowledge
+                .as_ref()
+                .and_then(|entry| entry.spec.as_ref())
+                .map(|spec| spec.path.as_str()),
+            Some("new.md")
+        );
+        assert!(kv.get("acme", "Knowledge/old.md").await.unwrap().is_none());
+        assert!(kv.get("acme", "Knowledge/new.md").await.unwrap().is_some());
+    }
+
+    #[tokio::test]
+    async fn delete_namespace_knowledge_returns_not_found_for_missing_resource() {
+        let status = handler(Arc::new(MockKvStore::default()))
+            .handle_delete_namespace_knowledge(tonic::Request::new(
+                proto::DeleteNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    name: "missing".to_string(),
+                },
+            ))
+            .await
+            .expect_err("missing resource should fail");
+
+        assert_eq!(status.code(), tonic::Code::NotFound);
+    }
+
+    #[tokio::test]
+    async fn create_namespace_knowledge_validates_required_fields() {
+        let handler = handler(Arc::new(MockKvStore::default()));
+
+        let missing = handler
+            .handle_create_namespace_knowledge(tonic::Request::new(
+                proto::CreateNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    knowledge: None,
+                },
+            ))
+            .await
+            .expect_err("missing manifest should fail");
+        assert_eq!(missing.code(), tonic::Code::InvalidArgument);
+
+        let wrong_namespace = handler
+            .handle_create_namespace_knowledge(tonic::Request::new(
+                proto::CreateNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    knowledge: Some(manifest("guide", "other", "guide.md", "text")),
+                },
+            ))
+            .await
+            .expect_err("namespace mismatch should fail");
+        assert_eq!(wrong_namespace.code(), tonic::Code::InvalidArgument);
+
+        let mut missing_path = manifest("guide", "acme", "guide.md", "text");
+        missing_path.spec.as_mut().unwrap().path.clear();
+        let missing_path = handler
+            .handle_create_namespace_knowledge(tonic::Request::new(
+                proto::CreateNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    knowledge: Some(missing_path),
+                },
+            ))
+            .await
+            .expect_err("missing path should fail");
+        assert_eq!(missing_path.code(), tonic::Code::InvalidArgument);
+    }
+
+    #[tokio::test]
+    async fn get_and_list_namespace_knowledge_round_trip() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler(kv.clone());
+
+        handler
+            .handle_create_namespace_knowledge(tonic::Request::new(
+                proto::CreateNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    knowledge: Some(manifest("guide", "acme", "guide.md", "content")),
+                },
+            ))
+            .await
+            .unwrap();
+
+        let fetched = handler
+            .handle_get_namespace_knowledge(tonic::Request::new(
+                proto::GetNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    name: "guide".to_string(),
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(
+            fetched
+                .knowledge
+                .as_ref()
+                .and_then(|knowledge| knowledge.metadata.as_ref())
+                .map(|metadata| metadata.name.as_str()),
+            Some("guide")
+        );
+
+        let listed = handler
+            .handle_list_namespace_knowledge(tonic::Request::new(
+                proto::ListNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(listed.knowledge.len(), 1);
+        assert_eq!(
+            listed.knowledge[0]
+                .metadata
+                .as_ref()
+                .map(|metadata| metadata.name.as_str()),
+            Some("guide")
+        );
+    }
+
+    #[tokio::test]
+    async fn get_namespace_knowledge_returns_not_found_for_missing_resource() {
+        let status = handler(Arc::new(MockKvStore::default()))
+            .handle_get_namespace_knowledge(tonic::Request::new(
+                proto::GetNamespaceKnowledgeRequest {
+                    ns: "acme".to_string(),
+                    name: "missing".to_string(),
+                },
+            ))
+            .await
+            .expect_err("missing knowledge should fail");
+
+        assert_eq!(status.code(), tonic::Code::NotFound);
+    }
+}

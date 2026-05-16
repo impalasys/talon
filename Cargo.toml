@@ -61,6 +61,7 @@ protoc-gen-tonic = "0.4.0"
 
 [dev-dependencies]
 tempfile = "3.0"
+tokio-stream = { version = "0.1", features = ["net"] }
 
 [[bin]]
 name = "talon-server"

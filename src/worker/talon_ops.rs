@@ -1468,9 +1468,195 @@ fn internal_mcp_error(error: impl std::fmt::Display) -> McpError {
 #[cfg(test)]
 mod tests {
     use super::{
-        bounded_limit, parse_talon_ops_policy_from_target, TalonOpsAccess, TalonOpsPolicy,
-        DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS, DEFAULT_MAX_LIST_LIMIT,
+        bearer_token, bounded_limit, load_talon_ops_binding, load_talon_ops_policy,
+        mint_talon_ops_access_token, parse_bool_query_param, parse_mcp_auth_broker_claims,
+        parse_non_negative_i32_query_param, parse_talon_ops_access_claims,
+        parse_talon_ops_policy_from_target, require_namespace_access, schedule_json,
+        talon_jwt_secret, talon_ops_access_from_parts, talon_ops_access_from_request,
+        talon_ops_auth_broker, to_json_string, DeleteScheduleArgs, GetAgentArgs,
+        GetScheduleArgs, ListMcpBindingsArgs, ListMcpServersArgs, ListNamespacesArgs,
+        ListRecentStepsArgs, ListSchedulesArgs, ListSessionsArgs, McpAuthBrokerClaims,
+        McpAuthBrokerRequest, PutScheduleArgs, TalonOpsAccess, TalonOpsAccessClaims,
+        TalonOpsPolicy, TalonOpsServer, DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS,
+        DEFAULT_MAX_LIST_LIMIT, META_NS,
     };
+    use crate::config::Config;
+    use crate::control::{
+        keys, scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
+        ProtoKeyValueStoreExt,
+    };
+    use crate::gateway::rpc::{manifests, models};
+    use crate::worker::{
+        mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
+        WorkerEventHandler,
+    };
+    use async_trait::async_trait;
+    use axum::{
+        extract::State,
+        http::{header, HeaderMap, HeaderValue, Request, StatusCode},
+        response::IntoResponse,
+        Json,
+    };
+    use futures::stream;
+    use jsonwebtoken::{encode, EncodingKey, Header};
+    use prost::Message;
+    use rmcp::handler::server::wrapper::Parameters;
+    use serde_json::json;
+    use std::{
+        collections::HashMap,
+        pin::Pin,
+        sync::Arc,
+    };
+    use tokio::sync::Mutex as AsyncMutex;
+
+    #[derive(Default)]
+    struct MockKvStore {
+        entries: Arc<tokio::sync::RwLock<HashMap<(String, String), Vec<u8>>>>,
+    }
+
+    #[async_trait]
+    impl KeyValueStore for MockKvStore {
+        async fn get(&self, namespace: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .entries
+                .read()
+                .await
+                .get(&(namespace.to_string(), key.to_string()))
+                .cloned())
+        }
+
+        async fn set(&self, namespace: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+            self.entries
+                .write()
+                .await
+                .insert((namespace.to_string(), key.to_string()), value.to_vec());
+            Ok(())
+        }
+
+        async fn compare_and_swap(
+            &self,
+            namespace: &str,
+            key: &str,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> anyhow::Result<bool> {
+            let mut entries = self.entries.write().await;
+            let current = entries.get(&(namespace.to_string(), key.to_string())).cloned();
+            if current.as_deref() == expected {
+                entries.insert((namespace.to_string(), key.to_string()), value.to_vec());
+                Ok(true)
+            } else {
+                Ok(false)
+            }
+        }
+
+        async fn delete(&self, namespace: &str, key: &str) -> anyhow::Result<()> {
+            self.entries
+                .write()
+                .await
+                .remove(&(namespace.to_string(), key.to_string()));
+            Ok(())
+        }
+
+        async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+            Ok(self
+                .entries
+                .read()
+                .await
+                .keys()
+                .filter(|(ns, key)| ns == namespace && key.starts_with(prefix))
+                .map(|(_, key)| key.clone())
+                .collect())
+        }
+    }
+
+    #[derive(Default)]
+    struct MockPubSub;
+
+    #[async_trait]
+    impl MessagePublisher for MockPubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(stream::empty()))
+        }
+    }
+
+    fn env_mutex() -> &'static AsyncMutex<()> {
+        crate::test_support::async_env_mutex()
+    }
+
+    fn handler_with_kv(kv: Arc<MockKvStore>) -> WorkerEventHandler {
+        WorkerEventHandler {
+            cp: Arc::new(ControlPlane {
+                kv,
+                pubsub: Arc::new(MockPubSub),
+                scheduler: Arc::new(NoopSchedulerBackend),
+            }),
+            config: Arc::new(Config::default()),
+            mcp_registry: Arc::new(McpRegistry::new()),
+            scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
+        }
+    }
+
+    async fn seed_talon_ops_binding(kv: &MockKvStore, namespace: &str, binding_name: &str) {
+        kv.set_msg(
+            crate::control::ns::TALON_SYSTEM,
+            &keys::mcp_server("talon-ops"),
+            &manifests::McpServer {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServer".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "talon-ops".to_string(),
+                    namespace: String::new(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerSpec {
+                    transport: "streamable_http".to_string(),
+                    target: format!(
+                        "https://worker.example.com/mcp/talon-ops?allowed_prefix={namespace}"
+                    ),
+                    args: Vec::new(),
+                    headers: HashMap::new(),
+                    disabled: false,
+                }),
+            },
+        )
+        .await
+        .expect("talon-ops server should persist");
+        kv.set_msg(
+            namespace,
+            &keys::mcp_server_binding(binding_name),
+            &manifests::McpServerBinding {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServerBinding".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: binding_name.to_string(),
+                    namespace: namespace.to_string(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerBindingSpec {
+                    server_ref: "talon-ops".to_string(),
+                    args: Vec::new(),
+                    headers: HashMap::new(),
+                    disabled: false,
+                    auth_broker: None,
+                    allowed_tool_names: Vec::new(),
+                }),
+            },
+        )
+        .await
+        .expect("binding should persist");
+    }
+
     fn access(prefixes: &[&str]) -> TalonOpsAccess {
         TalonOpsAccess {
             namespace: "conic".to_string(),
@@ -1487,6 +1673,80 @@ mod tests {
                 max_history_lookback_seconds: DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS,
             },
         }
+    }
+
+    fn parts_with_access(access: TalonOpsAccess) -> axum::http::request::Parts {
+        let mut request = Request::builder().uri("/").body(()).unwrap();
+        request.extensions_mut().insert(access);
+        let (parts, _) = request.into_parts();
+        parts
+    }
+
+    async fn seed_namespace(kv: &MockKvStore, name: &str, parent: &str) {
+        kv.set_msg(
+            META_NS,
+            &format!("Namespace/{name}"),
+            &models::Namespace {
+                name: name.to_string(),
+                parent: parent.to_string(),
+                is_deleted: false,
+                deleted_at: 0,
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    async fn seed_agent(kv: &MockKvStore, namespace: &str, name: &str) {
+        kv.set_msg(
+            namespace,
+            &keys::agent(name),
+            &models::Agent {
+                name: name.to_string(),
+                ns: namespace.to_string(),
+                definition: Some(manifests::AgentDefinition {
+                    source: Some(manifests::agent_definition::Source::CustomSpec(
+                        manifests::AgentSpec {
+                            features: Vec::new(),
+                            model_policy: Some(manifests::ModelPolicy {
+                                profiles: vec![manifests::ModelProfile {
+                                    name: "default".to_string(),
+                                    model: Some(manifests::Model {
+                                        provider: "mock".to_string(),
+                                        name: "gpt-5".to_string(),
+                                        temperature: 0.0,
+                                    }),
+                                }],
+                            }),
+                            system_prompt: "You are helpful.".to_string(),
+                            mcp_server_refs: Vec::new(),
+                            capabilities: HashMap::new(),
+                        },
+                    )),
+                }),
+                effective_spec: Some(manifests::AgentSpec {
+                    features: Vec::new(),
+                    model_policy: Some(manifests::ModelPolicy {
+                        profiles: vec![manifests::ModelProfile {
+                            name: "default".to_string(),
+                            model: Some(manifests::Model {
+                                provider: "mock".to_string(),
+                                name: "gpt-5".to_string(),
+                                temperature: 0.0,
+                            }),
+                        }],
+                    }),
+                    system_prompt: "You are helpful.".to_string(),
+                    mcp_server_refs: Vec::new(),
+                    capabilities: HashMap::new(),
+                }),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
     }
 
     #[test]
@@ -1541,9 +1801,824 @@ mod tests {
     }
 
     #[test]
+    fn parse_talon_ops_policy_from_target_rejects_invalid_values_and_duplicates() {
+        let duplicate = parse_talon_ops_policy_from_target(
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&session_messages=1&session_messages=0",
+        )
+        .expect_err("duplicate singleton params should fail");
+        assert!(duplicate.to_string().contains("may only be specified once"));
+
+        let invalid_bool = parse_talon_ops_policy_from_target(
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&session_messages=yes",
+        )
+        .expect_err("invalid boolean should fail");
+        assert!(invalid_bool.to_string().contains("must be 0 or 1"));
+
+        let invalid_int = parse_talon_ops_policy_from_target(
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&max_limit=-1",
+        )
+        .expect_err("negative integers should fail");
+        assert!(invalid_int.to_string().contains("must be non-negative"));
+
+        let missing_prefix = parse_talon_ops_policy_from_target(
+            "https://worker.example.com/mcp/talon-ops?session_messages=1",
+        )
+        .expect_err("missing allowed_prefix should fail");
+        assert!(missing_prefix
+            .to_string()
+            .contains("must define at least one allowed_prefix"));
+    }
+
+    #[test]
+    fn parse_talon_ops_policy_from_target_uses_defaults_when_optionals_absent() {
+        let policy = parse_talon_ops_policy_from_target(
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic",
+        )
+        .expect("policy should parse");
+
+        assert_eq!(policy.allowed_namespace_prefixes, vec!["conic".to_string()]);
+        assert!(!policy.allow_session_messages);
+        assert!(!policy.allow_step_payloads);
+        assert_eq!(policy.max_list_limit, DEFAULT_MAX_LIST_LIMIT);
+        assert_eq!(
+            policy.max_history_lookback_seconds,
+            DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS
+        );
+    }
+
+    #[test]
     fn normalize_schedule_kind_maps_interval_to_every() {
         assert_eq!(crate::scheduling::normalize_schedule_kind("interval"), "every");
         assert_eq!(crate::scheduling::normalize_schedule_kind(" every "), "every");
         assert_eq!(crate::scheduling::normalize_schedule_kind("cron"), "cron");
+    }
+
+    #[test]
+    fn talon_ops_access_uses_configured_limits_and_bounded_limit() {
+        let access = TalonOpsAccess {
+            namespace: "conic".to_string(),
+            binding_name: "talon-ops".to_string(),
+            agent_name: None,
+            policy: TalonOpsPolicy {
+                allowed_namespace_prefixes: vec!["conic".to_string()],
+                allow_session_messages: false,
+                allow_step_payloads: false,
+                max_list_limit: 12,
+                max_history_lookback_seconds: 42,
+            },
+        };
+
+        assert_eq!(access.max_list_limit(), 12);
+        assert_eq!(access.max_history_lookback_seconds(), 42);
+        assert_eq!(bounded_limit(&access, None), 12);
+        assert_eq!(bounded_limit(&access, Some(5)), 5);
+        assert_eq!(bounded_limit(&access, Some(99)), 12);
+    }
+
+    #[test]
+    fn bearer_token_requires_bearer_prefix() {
+        assert_eq!(
+            bearer_token("Bearer abc123").expect("token should parse"),
+            "abc123"
+        );
+        assert_eq!(
+            bearer_token("Basic abc123").expect_err("non-bearer should fail"),
+            "missing bearer token"
+        );
+    }
+
+    #[test]
+    fn query_param_parsers_accept_valid_values_and_reject_invalid_ones() {
+        assert!(parse_bool_query_param("enabled", "1").unwrap());
+        assert!(!parse_bool_query_param("enabled", "0").unwrap());
+        assert!(parse_bool_query_param("enabled", "true").is_err());
+
+        assert_eq!(parse_non_negative_i32_query_param("limit", "0").unwrap(), 0);
+        assert_eq!(parse_non_negative_i32_query_param("limit", "42").unwrap(), 42);
+        assert!(parse_non_negative_i32_query_param("limit", "-1").is_err());
+        assert!(parse_non_negative_i32_query_param("limit", "abc").is_err());
+    }
+
+    #[test]
+    fn talon_jwt_secret_prefers_talon_and_falls_back_to_gateway() {
+        let _guard = env_mutex().blocking_lock();
+        unsafe {
+            std::env::remove_var("TALON_JWT_SECRET");
+            std::env::remove_var("GATEWAY_JWT_SECRET");
+        }
+        assert!(talon_jwt_secret().is_none());
+
+        unsafe {
+            std::env::set_var("GATEWAY_JWT_SECRET", "gateway-secret");
+        }
+        assert_eq!(talon_jwt_secret().as_deref(), Some("gateway-secret"));
+
+        unsafe {
+            std::env::set_var("TALON_JWT_SECRET", "talon-secret");
+        }
+        assert_eq!(talon_jwt_secret().as_deref(), Some("talon-secret"));
+
+        unsafe {
+            std::env::set_var("TALON_JWT_SECRET", "   ");
+        }
+        assert_eq!(talon_jwt_secret().as_deref(), Some("gateway-secret"));
+
+        unsafe {
+            std::env::remove_var("TALON_JWT_SECRET");
+            std::env::remove_var("GATEWAY_JWT_SECRET");
+        }
+    }
+
+    #[test]
+    fn access_and_auth_broker_claims_round_trip_from_minted_tokens() {
+        let _guard = env_mutex().blocking_lock();
+        unsafe {
+            std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
+        }
+
+        let access_token = mint_talon_ops_access_token("conic", "talon-ops", Some("cmo"), 4_102_444_800)
+            .expect("access token should mint");
+        let access_claims =
+            parse_talon_ops_access_claims(&format!("Bearer {access_token}")).expect("claims should parse");
+        assert_eq!(access_claims.namespace, "conic");
+        assert_eq!(access_claims.binding_name, "talon-ops");
+        assert_eq!(access_claims.agent_name.as_deref(), Some("cmo"));
+
+        let broker_claims_token = jsonwebtoken::encode(
+            &jsonwebtoken::Header::default(),
+            &super::McpAuthBrokerClaims {
+                sub: "talon-ops".to_string(),
+                aud: "conic-mcp-auth-broker".to_string(),
+                exp: 4_102_444_800usize,
+                namespace: "conic".to_string(),
+                binding_name: "talon-ops".to_string(),
+                agent_name: None,
+            },
+            &jsonwebtoken::EncodingKey::from_secret("secret-for-tests".as_bytes()),
+        )
+        .expect("broker token should mint");
+        let broker_claims = parse_mcp_auth_broker_claims(&format!("Bearer {broker_claims_token}"))
+            .expect("broker claims should parse");
+        assert_eq!(broker_claims.namespace, "conic");
+        assert_eq!(broker_claims.binding_name, "talon-ops");
+        assert!(broker_claims.agent_name.is_none());
+
+        let invalid = parse_talon_ops_access_claims("Bearer definitely-not-a-jwt")
+            .expect_err("invalid token should fail");
+        assert!(invalid.contains("invalid token"));
+
+        unsafe {
+            std::env::remove_var("TALON_JWT_SECRET");
+        }
+    }
+
+    #[test]
+    fn claim_parsers_reject_blank_namespace_or_binding() {
+        let _guard = env_mutex().blocking_lock();
+        unsafe {
+            std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
+        }
+
+        let access_token = encode(
+            &Header::default(),
+            &TalonOpsAccessClaims {
+                sub: "talon-ops".to_string(),
+                aud: "talon-ops".to_string(),
+                exp: 4_102_444_800usize,
+                namespace: " ".to_string(),
+                binding_name: "talon-ops".to_string(),
+                agent_name: None,
+            },
+            &EncodingKey::from_secret("secret-for-tests".as_bytes()),
+        )
+        .expect("access token should mint");
+        assert!(
+            parse_talon_ops_access_claims(&format!("Bearer {access_token}"))
+                .expect_err("blank namespace should fail")
+                .contains("missing namespace or binding claim")
+        );
+
+        let broker_token = encode(
+            &Header::default(),
+            &McpAuthBrokerClaims {
+                sub: "talon-ops".to_string(),
+                aud: "conic-mcp-auth-broker".to_string(),
+                exp: 4_102_444_800usize,
+                namespace: "conic".to_string(),
+                binding_name: " ".to_string(),
+                agent_name: None,
+            },
+            &EncodingKey::from_secret("secret-for-tests".as_bytes()),
+        )
+        .expect("broker token should mint");
+        assert!(
+            parse_mcp_auth_broker_claims(&format!("Bearer {broker_token}"))
+                .expect_err("blank binding should fail")
+                .contains("missing namespace or binding claim")
+        );
+
+        unsafe {
+            std::env::remove_var("TALON_JWT_SECRET");
+        }
+    }
+
+    #[test]
+    fn talon_ops_access_from_parts_requires_extension() {
+        let request = Request::builder().uri("/").body(()).unwrap();
+        let (parts, _) = request.into_parts();
+        let error = talon_ops_access_from_parts(&parts).expect_err("missing extension should fail");
+        assert!(format!("{error:?}").contains("missing extension"));
+
+        let mut request = Request::builder().uri("/").body(()).unwrap();
+        request.extensions_mut().insert(access(&["conic"]));
+        let (parts, _) = request.into_parts();
+        let extracted = talon_ops_access_from_parts(&parts).expect("extension should load");
+        assert_eq!(extracted.namespace, "conic");
+    }
+
+    #[test]
+    fn to_json_string_serializes_objects() {
+        assert_eq!(
+            to_json_string(&json!({"ok": true, "count": 2})).unwrap(),
+            r#"{"count":2,"ok":true}"#
+        );
+    }
+
+    #[test]
+    fn require_namespace_access_rejects_out_of_scope_namespace() {
+        let access = access(&["conic", "conic:wks:"]);
+        require_namespace_access(&access, "conic:wks:1").expect("namespace should be allowed");
+        let error = require_namespace_access(&access, "default")
+            .expect_err("out of scope namespace should fail");
+        assert!(format!("{error:?}").contains("outside binding scope"));
+    }
+
+    #[test]
+    fn schedule_json_includes_target_and_status_details() {
+        let schedule = models::Schedule {
+            name: "nightly".to_string(),
+            ns: "conic".to_string(),
+            labels: HashMap::from([("tier".to_string(), "prod".to_string())]),
+            spec: Some(models::ScheduleSpec {
+                kind: "cron".to_string(),
+                cron: "0 0 * * *".to_string(),
+                interval_seconds: 0,
+                run_at: String::new(),
+                timezone: "UTC".to_string(),
+                target: Some(models::ScheduleTarget {
+                    agent: "ctl".to_string(),
+                    session_mode: "new".to_string(),
+                    session_id: String::new(),
+                }),
+                input_message: "ping".to_string(),
+                enabled: true,
+            }),
+            status: Some(models::ScheduleStatus {
+                revision: 7,
+                next_run_at: Some(111),
+                backend_handle: Some("handle-1".to_string()),
+                backend_armed: true,
+                last_run_at: Some(101),
+                last_session_id: Some("session-1".to_string()),
+                last_error: Some("none".to_string()),
+                claimed_run_at: Some(0),
+                claim_expires_at: Some(0),
+                recent_events: vec![models::ScheduleEvent {
+                    timestamp: 99,
+                    phase: "armed".to_string(),
+                    outcome: "ok".to_string(),
+                    detail: "scheduled".to_string(),
+                }],
+            }),
+        };
+
+        let json = schedule_json(&schedule);
+        assert_eq!(json["name"], "nightly");
+        assert_eq!(json["spec"]["target"]["agent"], "ctl");
+        assert_eq!(json["status"]["backendHandle"], "handle-1");
+        assert_eq!(json["status"]["recentEvents"][0]["phase"], "armed");
+    }
+
+    #[tokio::test]
+    async fn load_talon_ops_policy_and_binding_validate_kv_records() {
+        let kv = MockKvStore::default();
+        kv.set_msg(
+            crate::control::ns::TALON_SYSTEM,
+            &keys::mcp_server("talon-ops"),
+            &manifests::McpServer {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServer".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "talon-ops".to_string(),
+                    namespace: String::new(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerSpec {
+                    transport: "streamable_http".to_string(),
+                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&session_messages=1".to_string(),
+                    args: Vec::new(),
+                    headers: HashMap::new(),
+                    disabled: false,
+                }),
+            },
+        )
+        .await
+        .expect("talon-ops server should persist");
+        kv.set_msg(
+            "conic",
+            &keys::mcp_server_binding("talon-ops"),
+            &manifests::McpServerBinding {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServerBinding".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "talon-ops".to_string(),
+                    namespace: "conic".to_string(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerBindingSpec {
+                    server_ref: "talon-ops".to_string(),
+                    args: Vec::new(),
+                    headers: HashMap::new(),
+                    disabled: false,
+                    auth_broker: None,
+                    allowed_tool_names: Vec::new(),
+                }),
+            },
+        )
+        .await
+        .expect("binding should persist");
+
+        let policy = load_talon_ops_policy(&kv).await.expect("policy should load");
+        assert_eq!(policy.allowed_namespace_prefixes, vec!["conic".to_string()]);
+        assert!(policy.allow_session_messages);
+
+        let access = load_talon_ops_binding(&kv, "conic", "talon-ops", Some("ctl"))
+            .await
+            .expect("binding should load");
+        assert_eq!(access.namespace, "conic");
+        assert_eq!(access.binding_name, "talon-ops");
+        assert_eq!(access.agent_name.as_deref(), Some("ctl"));
+    }
+
+    #[tokio::test]
+    async fn load_talon_ops_binding_rejects_missing_or_wrong_server_binding() {
+        let kv = MockKvStore::default();
+        kv.set_msg(
+            crate::control::ns::TALON_SYSTEM,
+            &keys::mcp_server("talon-ops"),
+            &manifests::McpServer {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServer".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "talon-ops".to_string(),
+                    namespace: String::new(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerSpec {
+                    transport: "streamable_http".to_string(),
+                    target: "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic".to_string(),
+                    args: Vec::new(),
+                    headers: HashMap::new(),
+                    disabled: false,
+                }),
+            },
+        )
+        .await
+        .expect("talon-ops server should persist");
+
+        let missing = load_talon_ops_binding(&kv, "conic", "talon-ops", None)
+            .await
+            .expect_err("missing binding should fail");
+        assert!(missing.to_string().contains("not found"));
+
+        kv.set_msg(
+            "conic",
+            &keys::mcp_server_binding("wrong"),
+            &manifests::McpServerBinding {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServerBinding".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "wrong".to_string(),
+                    namespace: "conic".to_string(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerBindingSpec {
+                    server_ref: "github".to_string(),
+                    args: Vec::new(),
+                    headers: HashMap::new(),
+                    disabled: false,
+                    auth_broker: None,
+                    allowed_tool_names: Vec::new(),
+                }),
+            },
+        )
+        .await
+        .expect("wrong binding should persist");
+
+        let wrong = load_talon_ops_binding(&kv, "conic", "wrong", None)
+            .await
+            .expect_err("wrong server ref should fail");
+        assert!(wrong.to_string().contains("does not reference talon-ops"));
+    }
+
+    #[tokio::test]
+    async fn talon_ops_access_from_request_checks_header_and_binding() {
+        let kv = Arc::new(MockKvStore::default());
+        seed_talon_ops_binding(kv.as_ref(), "conic", "talon-ops").await;
+        let handler = handler_with_kv(kv);
+
+        let missing = talon_ops_access_from_request(&handler, None)
+            .await
+            .expect_err("missing header should fail");
+        assert_eq!(missing.0, StatusCode::UNAUTHORIZED);
+
+        let _guard = env_mutex().lock().await;
+        unsafe {
+            std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
+        }
+        let token = mint_talon_ops_access_token("conic", "talon-ops", Some("ctl"), 4_102_444_800)
+            .expect("access token should mint");
+        let header = HeaderValue::from_str(&format!("Bearer {token}")).unwrap();
+        let access = talon_ops_access_from_request(&handler, Some(&header))
+            .await
+            .expect("binding should load");
+        assert_eq!(access.namespace, "conic");
+        assert_eq!(access.binding_name, "talon-ops");
+        assert_eq!(access.agent_name.as_deref(), Some("ctl"));
+
+        let invalid = HeaderValue::from_static("Bearer bad-token");
+        let invalid_error = talon_ops_access_from_request(&handler, Some(&invalid))
+            .await
+            .expect_err("invalid token should fail");
+        assert_eq!(invalid_error.0, StatusCode::UNAUTHORIZED);
+
+        unsafe {
+            std::env::remove_var("TALON_JWT_SECRET");
+        }
+    }
+
+    #[tokio::test]
+    async fn talon_ops_auth_broker_validates_request_and_mints_token() {
+        let kv = Arc::new(MockKvStore::default());
+        seed_talon_ops_binding(kv.as_ref(), "conic", "talon-ops").await;
+        let handler = handler_with_kv(kv);
+        let _guard = env_mutex().lock().await;
+        unsafe {
+            std::env::set_var("TALON_JWT_SECRET", "secret-for-tests");
+        }
+
+        let broker_claims_token = encode(
+            &Header::default(),
+            &McpAuthBrokerClaims {
+                sub: "talon-ops".to_string(),
+                aud: "conic-mcp-auth-broker".to_string(),
+                exp: 4_102_444_800usize,
+                namespace: "conic".to_string(),
+                binding_name: "talon-ops".to_string(),
+                agent_name: Some("ctl".to_string()),
+            },
+            &EncodingKey::from_secret("secret-for-tests".as_bytes()),
+        )
+        .expect("broker token should mint");
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {broker_claims_token}")).unwrap(),
+        );
+
+        let mismatched = talon_ops_auth_broker(
+            State(handler.clone()),
+            headers.clone(),
+            Json(McpAuthBrokerRequest {
+                namespace: "other".to_string(),
+                binding_name: "talon-ops".to_string(),
+                server_ref: None,
+                agent_name: Some("ctl".to_string()),
+                audience: None,
+            }),
+        )
+        .await
+        .into_response();
+        assert_eq!(mismatched.status(), StatusCode::FORBIDDEN);
+
+        let unsupported_server = talon_ops_auth_broker(
+            State(handler.clone()),
+            headers.clone(),
+            Json(McpAuthBrokerRequest {
+                namespace: "conic".to_string(),
+                binding_name: "talon-ops".to_string(),
+                server_ref: Some("github".to_string()),
+                agent_name: Some("ctl".to_string()),
+                audience: None,
+            }),
+        )
+        .await
+        .into_response();
+        assert_eq!(unsupported_server.status(), StatusCode::BAD_REQUEST);
+
+        let response = talon_ops_auth_broker(
+            State(handler),
+            headers,
+            Json(McpAuthBrokerRequest {
+                namespace: "conic".to_string(),
+                binding_name: "talon-ops".to_string(),
+                server_ref: Some("talon-ops".to_string()),
+                agent_name: Some("ctl".to_string()),
+                audience: Some("talon-ops".to_string()),
+            }),
+        )
+        .await
+        .into_response();
+        assert_eq!(response.status(), StatusCode::OK);
+
+        unsafe {
+            std::env::remove_var("TALON_JWT_SECRET");
+        }
+    }
+
+    #[tokio::test]
+    async fn talon_ops_server_lists_visible_resources_and_filters_sessions() {
+        let kv = Arc::new(MockKvStore::default());
+        seed_talon_ops_binding(kv.as_ref(), "conic", "talon-ops").await;
+        seed_namespace(kv.as_ref(), "conic", "").await;
+        seed_namespace(kv.as_ref(), "conic:child", "conic").await;
+        seed_namespace(kv.as_ref(), "default", "").await;
+        seed_agent(kv.as_ref(), "conic", "alpha").await;
+        seed_agent(kv.as_ref(), "conic", "beta").await;
+        seed_agent(kv.as_ref(), "default", "hidden").await;
+
+        kv.set_msg(
+            "conic",
+            &keys::session("alpha", "session-old"),
+            &models::Session {
+                id: "session-old".to_string(),
+                agent: "alpha".to_string(),
+                ns: "conic".to_string(),
+                status: "IDLE".to_string(),
+                created_at: 10,
+                last_active: 100,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            "conic",
+            &keys::session("beta", "session-new"),
+            &models::Session {
+                id: "session-new".to_string(),
+                agent: "beta".to_string(),
+                ns: "conic".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 20,
+                last_active: 200,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            "conic",
+            &keys::session_message("beta", "session-new", "msg-1"),
+            &models::SessionMessage {
+                id: "msg-1".to_string(),
+                role: 1,
+                content: "hello".to_string(),
+                created_at: 150,
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set(
+            "conic",
+            &keys::session_message_step("beta", "session-new", "msg-1", "step-1"),
+            &crate::control::events::SessionStepEvent {
+                session_id: "session-new".to_string(),
+                step_type: crate::control::events::StepType::Action as i32,
+                content: "tool".to_string(),
+                timestamp: 175,
+                agent: "beta".to_string(),
+                ns: "conic".to_string(),
+                message_id: "msg-1".to_string(),
+                name: "search".to_string(),
+                payload_json: "{\"q\":\"talon\"}".to_string(),
+            }
+            .encode_to_vec(),
+        )
+        .await
+        .unwrap();
+
+        kv.set_msg(
+            "conic",
+            &keys::mcp_server_binding("talon-ops"),
+            &manifests::McpServerBinding {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServerBinding".to_string(),
+                metadata: Some(manifests::ObjectMeta {
+                    name: "talon-ops".to_string(),
+                    namespace: "conic".to_string(),
+                    labels: HashMap::new(),
+                    annotations: HashMap::new(),
+                }),
+                spec: Some(manifests::McpServerBindingSpec {
+                    server_ref: "talon-ops".to_string(),
+                    args: Vec::new(),
+                    headers: HashMap::new(),
+                    disabled: false,
+                    auth_broker: None,
+                    allowed_tool_names: Vec::new(),
+                }),
+            },
+        )
+        .await
+        .unwrap();
+
+        let server = TalonOpsServer::new(handler_with_kv(kv));
+        let parts = parts_with_access(access(&["conic"]));
+
+        let namespaces: String = server
+            .list_namespaces(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(ListNamespacesArgs {
+                    parent: None,
+                    prefix: Some("conic".to_string()),
+                    limit: Some(10),
+                }),
+            )
+            .await
+            .unwrap();
+        let namespaces_json: serde_json::Value = serde_json::from_str(&namespaces).unwrap();
+        assert_eq!(namespaces_json["namespaces"].as_array().unwrap().len(), 2);
+
+        let agent: String = server
+            .get_agent(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(GetAgentArgs {
+                    namespace: "conic".to_string(),
+                    name: "alpha".to_string(),
+                }),
+            )
+            .await
+            .unwrap();
+        assert!(agent.contains("alpha"));
+
+        let sessions: String = server
+            .list_sessions(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(ListSessionsArgs {
+                    namespace: "conic".to_string(),
+                    agent: None,
+                    state: Some("PROCESSING".to_string()),
+                    limit: Some(10),
+                    updated_since: Some(150),
+                }),
+            )
+            .await
+            .unwrap();
+        let sessions_json: serde_json::Value = serde_json::from_str(&sessions).unwrap();
+        assert_eq!(sessions_json["sessions"].as_array().unwrap().len(), 1);
+        assert_eq!(sessions_json["sessions"][0]["id"], "session-new");
+
+        let recent_steps: String = server
+            .list_recent_steps(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(ListRecentStepsArgs {
+                    namespace: "conic".to_string(),
+                    agent: Some("beta".to_string()),
+                    session_id: Some("session-new".to_string()),
+                    limit: Some(10),
+                    since: Some(150),
+                }),
+            )
+            .await
+            .unwrap();
+        let steps_json: serde_json::Value = serde_json::from_str(&recent_steps).unwrap();
+        assert_eq!(steps_json["steps"].as_array().unwrap().len(), 1);
+        assert_eq!(steps_json["steps"][0]["name"], "search");
+
+        let bindings: String = server
+            .list_mcp_bindings(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(ListMcpBindingsArgs {
+                    namespace: "conic".to_string(),
+                    limit: Some(10),
+                }),
+            )
+            .await
+            .unwrap();
+        let bindings_json: serde_json::Value = serde_json::from_str(&bindings).unwrap();
+        assert_eq!(bindings_json["bindings"].as_array().unwrap().len(), 1);
+
+        let servers: String = server
+            .list_mcp_servers(Parameters(ListMcpServersArgs { limit: Some(10) }))
+            .await
+            .unwrap();
+        let servers_json: serde_json::Value = serde_json::from_str(&servers).unwrap();
+        assert_eq!(servers_json["servers"].as_array().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn talon_ops_server_manages_schedule_lifecycle() {
+        let kv = Arc::new(MockKvStore::default());
+        let server = TalonOpsServer::new(handler_with_kv(kv.clone()));
+        let parts = parts_with_access(access(&["conic"]));
+
+        let created: String = server
+            .create_schedule(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(PutScheduleArgs {
+                    namespace: "conic".to_string(),
+                    name: "nightly".to_string(),
+                    labels: Some(HashMap::from([("tier".to_string(), "prod".to_string())])),
+                    kind: "every".to_string(),
+                    cron: None,
+                    interval_seconds: Some(3600),
+                    run_at: None,
+                    timezone: Some("UTC".to_string()),
+                    agent: "alpha".to_string(),
+                    session_mode: Some("new".to_string()),
+                    session_id: None,
+                    input_message: "ping".to_string(),
+                    enabled: Some(true),
+                }),
+            )
+            .await
+            .unwrap();
+        let created_json: serde_json::Value = serde_json::from_str(&created).unwrap();
+        assert_eq!(created_json["schedule"]["name"], "nightly");
+        assert_eq!(created_json["schedule"]["spec"]["target"]["agent"], "alpha");
+
+        let listed: String = server
+            .list_schedules(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(ListSchedulesArgs {
+                    namespace: "conic".to_string(),
+                    agent: Some("alpha".to_string()),
+                    enabled: Some(true),
+                    limit: Some(10),
+                }),
+            )
+            .await
+            .unwrap();
+        let listed_json: serde_json::Value = serde_json::from_str(&listed).unwrap();
+        assert_eq!(listed_json["schedules"].as_array().unwrap().len(), 1);
+
+        let updated: String = server
+            .update_schedule(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(PutScheduleArgs {
+                    namespace: "conic".to_string(),
+                    name: "nightly".to_string(),
+                    labels: None,
+                    kind: "".to_string(),
+                    cron: None,
+                    interval_seconds: Some(7200),
+                    run_at: None,
+                    timezone: None,
+                    agent: "".to_string(),
+                    session_mode: Some("reuse".to_string()),
+                    session_id: Some("session-1".to_string()),
+                    input_message: "".to_string(),
+                    enabled: Some(false),
+                }),
+            )
+            .await
+            .unwrap();
+        let updated_json: serde_json::Value = serde_json::from_str(&updated).unwrap();
+        assert_eq!(updated_json["schedule"]["spec"]["intervalSeconds"], 7200);
+        assert_eq!(updated_json["schedule"]["spec"]["enabled"], false);
+
+        let fetched: String = server
+            .get_schedule(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(GetScheduleArgs {
+                    namespace: "conic".to_string(),
+                    name: "nightly".to_string(),
+                }),
+            )
+            .await
+            .unwrap();
+        let fetched_json: serde_json::Value = serde_json::from_str(&fetched).unwrap();
+        assert_eq!(fetched_json["schedule"]["name"], "nightly");
+
+        let deleted: String = server
+            .delete_schedule(
+                rmcp::handler::server::common::Extension(parts),
+                Parameters(DeleteScheduleArgs {
+                    namespace: "conic".to_string(),
+                    name: "nightly".to_string(),
+                }),
+            )
+            .await
+            .unwrap();
+        let deleted_json: serde_json::Value = serde_json::from_str(&deleted).unwrap();
+        assert_eq!(deleted_json["deleted"], true);
     }
 }

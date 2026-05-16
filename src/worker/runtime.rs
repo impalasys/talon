@@ -362,10 +362,105 @@ fn tool_result_message_from_step(step: &SessionStepEvent) -> Option<LoopMessage>
 
 #[cfg(test)]
 mod tests {
-    use super::{qualify_mcp_tool_name, tool_result_message_from_step};
+    use super::{
+        builtin_tool_names, has_capability_action, qualify_mcp_tool_name, tool_result_message_from_step,
+        visible_tools_for_agent, AgentRuntime,
+    };
     use crate::connectors::mcp::McpConnectionConfig;
-    use crate::control::events::{SessionStepEvent, StepType};
+    use crate::config::{Config, ProviderConfig};
+    use crate::control::{
+        events::{SessionStepEvent, StepType},
+        scheduler::NoopSchedulerBackend,
+        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+    };
+    use crate::gateway::rpc::{manifests, models, protobuf_value};
+    use futures::stream;
     use std::collections::HashMap;
+    use std::pin::Pin;
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+
+    #[derive(Default)]
+    struct MockKvStore {
+        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+    }
+
+    #[async_trait::async_trait]
+    impl KeyValueStore for MockKvStore {
+        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .data
+                .lock()
+                .await
+                .get(&(ns.to_string(), key.to_string()))
+                .cloned())
+        }
+
+        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+            self.data
+                .lock()
+                .await
+                .insert((ns.to_string(), key.to_string()), value.to_vec());
+            Ok(())
+        }
+
+        async fn compare_and_swap(
+            &self,
+            ns: &str,
+            key: &str,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> anyhow::Result<bool> {
+            let mut data = self.data.lock().await;
+            let full_key = (ns.to_string(), key.to_string());
+            let current = data.get(&full_key).cloned();
+            let matches = match (current.as_deref(), expected) {
+                (None, None) => true,
+                (Some(current), Some(expected)) => current == expected,
+                _ => false,
+            };
+            if matches {
+                data.insert(full_key, value.to_vec());
+            }
+            Ok(matches)
+        }
+
+        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
+            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+            Ok(())
+        }
+
+        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+            let mut keys = self
+                .data
+                .lock()
+                .await
+                .keys()
+                .filter_map(|(stored_ns, key)| {
+                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
+                })
+                .collect::<Vec<_>>();
+            keys.sort();
+            Ok(keys)
+        }
+    }
+
+    #[derive(Default)]
+    struct MockPubSub;
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for MockPubSub {
+        async fn publish(&self, _topic: &str, _message: &[u8]) -> anyhow::Result<()> {
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(stream::empty()))
+        }
+    }
 
     fn config(server_name: &str, binding_name: Option<&str>) -> McpConnectionConfig {
         McpConnectionConfig {
@@ -380,6 +475,25 @@ mod tests {
             binding_name: binding_name.map(str::to_string),
             agent_name: None,
             auth_broker: None,
+        }
+    }
+
+    fn runtime_config() -> Config {
+        Config {
+            providers: HashMap::from([(
+                "mock".to_string(),
+                ProviderConfig { config: None },
+            )]),
+            default_provider: "mock".to_string(),
+            ..Config::default()
+        }
+    }
+
+    fn control_plane(kv: Arc<MockKvStore>) -> ControlPlane {
+        ControlPlane {
+            kv,
+            pubsub: Arc::new(MockPubSub),
+            scheduler: Arc::new(NoopSchedulerBackend),
         }
     }
 
@@ -462,5 +576,294 @@ mod tests {
         assert!(
             message.content.contains("chars omitted") || message.content.contains("_truncated")
         );
+    }
+
+    fn spec_with_capabilities(capabilities: &[(&str, &[&str])]) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: String::new(),
+            mcp_server_refs: Vec::new(),
+            capabilities: capabilities
+                .iter()
+                .map(|(name, actions)| {
+                    (
+                        (*name).to_string(),
+                        protobuf_value::ListValue {
+                            values: actions
+                                .iter()
+                                .map(|action| protobuf_value::Value {
+                                    kind: Some(
+                                        protobuf_value::value::Kind::StringValue(
+                                            (*action).to_string(),
+                                        ),
+                                    ),
+                                })
+                                .collect(),
+                        },
+                    )
+                })
+                .collect(),
+        }
+    }
+
+    fn tool(name: &str) -> crate::connectors::mcp::McpTool {
+        crate::connectors::mcp::McpTool {
+            name: name.to_string(),
+            description: String::new(),
+            input_schema: serde_json::json!({"type":"object"}),
+        }
+    }
+
+    #[test]
+    fn visible_tools_for_non_talon_ops_binding_returns_all_tools() {
+        let tools = vec![tool("list_schedules"), tool("custom_tool")];
+        let visible = visible_tools_for_agent(
+            &config("github", Some("github")),
+            &tools,
+            &spec_with_capabilities(&[]),
+        );
+
+        assert_eq!(visible.len(), 2);
+    }
+
+    #[test]
+    fn visible_tools_for_talon_ops_binding_filters_by_capabilities() {
+        let tools = vec![
+            tool("list_schedules"),
+            tool("create_schedule"),
+            tool("delete_schedule"),
+            tool("list_sessions"),
+            tool("custom_tool"),
+        ];
+        let spec = spec_with_capabilities(&[
+            ("schedules", &["inspect", "create"]),
+            ("sessions", &["inspect"]),
+        ]);
+
+        let visible =
+            visible_tools_for_agent(&config("talon-ops", Some("talon-ops")), &tools, &spec);
+        let names = visible.into_iter().map(|tool| tool.name).collect::<Vec<_>>();
+
+        assert!(names.contains(&"list_schedules".to_string()));
+        assert!(names.contains(&"create_schedule".to_string()));
+        assert!(names.contains(&"list_sessions".to_string()));
+        assert!(names.contains(&"custom_tool".to_string()));
+        assert!(!names.contains(&"delete_schedule".to_string()));
+    }
+
+    #[test]
+    fn has_capability_action_matches_only_present_actions() {
+        let spec = spec_with_capabilities(&[("schedules", &["inspect", "create"])]);
+
+        assert!(has_capability_action(&spec, "schedules", "inspect"));
+        assert!(!has_capability_action(&spec, "schedules", "delete"));
+        assert!(!has_capability_action(&spec, "sessions", "inspect"));
+    }
+
+    #[test]
+    fn tool_result_message_requires_tool_call_id() {
+        let step = SessionStepEvent {
+            session_id: "session-1".to_string(),
+            step_type: StepType::Observation as i32,
+            content: "preview".to_string(),
+            timestamp: 0,
+            agent: "cmo".to_string(),
+            ns: "conic:wks:13".to_string(),
+            message_id: "message-1".to_string(),
+            name: "mcp_github_get_file_contents".to_string(),
+            payload_json: serde_json::json!({
+                "output_preview": "small preview",
+            })
+            .to_string(),
+        };
+
+        assert!(tool_result_message_from_step(&step).is_none());
+    }
+
+    #[test]
+    fn tool_result_message_falls_back_to_step_content_when_payload_has_no_output() {
+        let step = SessionStepEvent {
+            session_id: "session-1".to_string(),
+            step_type: StepType::Observation as i32,
+            content: "fallback output".to_string(),
+            timestamp: 0,
+            agent: "cmo".to_string(),
+            ns: "conic:wks:13".to_string(),
+            message_id: "message-1".to_string(),
+            name: "mcp_demo_tool".to_string(),
+            payload_json: serde_json::json!({
+                "tool_call_id": "tool-1"
+            })
+            .to_string(),
+        };
+
+        let message = tool_result_message_from_step(&step).unwrap();
+        assert_eq!(message.content, "fallback output");
+    }
+
+    #[test]
+    fn builtin_tool_names_contains_expected_schedule_and_knowledge_tools() {
+        let names = builtin_tool_names();
+        assert!(names.contains(&crate::knowledge::KNOWLEDGE_GET_TOOL));
+        assert!(names.contains(&crate::native_tools::CREATE_SCHEDULE_TOOL));
+        assert!(names.contains(&crate::native_tools::DELETE_SCHEDULE_TOOL));
+    }
+
+    #[tokio::test]
+    async fn agent_runtime_build_errors_for_missing_agent_or_effective_spec() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+
+        let missing = match AgentRuntime::build("conic", "missing", "session-1", &cp, &config, &registry).await {
+            Ok(_) => panic!("expected missing agent error"),
+            Err(err) => err,
+        };
+        assert!(missing.to_string().contains("Agent 'missing' not found"));
+
+        kv.set_msg(
+            "conic",
+            &crate::control::keys::agent("writer"),
+            &models::Agent {
+                name: "writer".to_string(),
+                ns: "conic".to_string(),
+                definition: None,
+                effective_spec: None,
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let no_spec = match AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry).await {
+            Ok(_) => panic!("expected missing effective spec error"),
+            Err(err) => err,
+        };
+        assert!(no_spec.to_string().contains("has no effective spec"));
+    }
+
+    #[tokio::test]
+    async fn agent_runtime_build_assembles_history_and_skips_bad_entries() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: vec!["missing-server".to_string()],
+            capabilities: HashMap::new(),
+        };
+
+        kv.set_msg(
+            "conic",
+            &crate::control::keys::agent("writer"),
+            &models::Agent {
+                name: "writer".to_string(),
+                ns: "conic".to_string(),
+                definition: None,
+                effective_spec: Some(spec),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            "conic",
+            &crate::control::keys::session_message("writer", "session-1", "msg-1"),
+            &models::SessionMessage {
+                id: "msg-1".to_string(),
+                role: 1,
+                content: "hello".to_string(),
+                created_at: 10,
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            "conic",
+            &crate::control::keys::session_message("writer", "session-1", "msg-2"),
+            &models::SessionMessage {
+                id: "msg-2".to_string(),
+                role: 2,
+                content: "assistant reply".to_string(),
+                created_at: 20,
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set(
+            "conic",
+            &crate::control::keys::session_message("writer", "session-1", "msg-2/sub"),
+            b"nested",
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            "conic",
+            &crate::control::keys::session_message_step("writer", "session-1", "msg-2", "step-1"),
+            &SessionStepEvent {
+                session_id: "session-1".to_string(),
+                step_type: StepType::Action as i32,
+                content: String::new(),
+                timestamp: 21,
+                agent: "writer".to_string(),
+                ns: "conic".to_string(),
+                message_id: "msg-2".to_string(),
+                name: "search".to_string(),
+                payload_json: serde_json::json!({
+                    "tool_call_id": "call-1",
+                    "input": { "q": "talon" }
+                })
+                .to_string(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            "conic",
+            &crate::control::keys::session_message_step("writer", "session-1", "msg-2", "step-2"),
+            &SessionStepEvent {
+                session_id: "session-1".to_string(),
+                step_type: StepType::Observation as i32,
+                content: "tool output".to_string(),
+                timestamp: 22,
+                agent: "writer".to_string(),
+                ns: "conic".to_string(),
+                message_id: "msg-2".to_string(),
+                name: "search".to_string(),
+                payload_json: serde_json::json!({
+                    "tool_call_id": "call-1",
+                    "output_preview": "tool preview"
+                })
+                .to_string(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let runtime =
+            AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+                .await
+                .unwrap();
+
+        assert_eq!(runtime.context.agent_id, "writer");
+        assert_eq!(runtime.context.history.len(), 3);
+        assert_eq!(runtime.context.history[0].role, "user");
+        assert_eq!(runtime.context.history[0].content, "hello");
+        assert_eq!(runtime.context.history[1].role, "assistant");
+        assert_eq!(
+            runtime.context.history[1].tool_calls.as_ref().unwrap()[0].name,
+            "search"
+        );
+        assert_eq!(runtime.context.history[2].role, "tool");
+        assert_eq!(runtime.context.history[2].content, "tool preview");
     }
 }

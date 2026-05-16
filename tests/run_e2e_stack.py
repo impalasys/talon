@@ -9,6 +9,7 @@ import tempfile
 
 # Add generated protos to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from testcontainers.postgres import PostgresContainer
 from testcontainers.core.container import DockerContainer
@@ -198,7 +199,7 @@ def main():
     print("Starting mock LLM server...")
     import threading
     import uvicorn
-    from talon.tests.mock_llm import app
+    from mock_llm import app
     
     server_thread = threading.Thread(
         target=uvicorn.run,

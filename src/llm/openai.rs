@@ -486,6 +486,15 @@ impl LlmProvider for OpenAiCompatibleProvider {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum::{extract::State, routing::post, Json, Router};
+    use std::{
+        net::SocketAddr,
+        sync::{
+            atomic::{AtomicUsize, Ordering},
+            Arc,
+        },
+    };
+    use tokio::net::TcpListener;
 
     #[test]
     fn request_debug_stats_measure_payload_and_schemas() {
@@ -602,6 +611,53 @@ mod tests {
         ));
     }
 
+    #[test]
+    fn debug_requests_enabled_parses_truthy_values() {
+        let _guard = crate::test_support::env_lock();
+        unsafe {
+            std::env::remove_var("TALON_LLM_DEBUG_REQUESTS");
+        }
+        assert!(!OpenAiCompatibleProvider::debug_requests_enabled());
+
+        for value in ["1", "true", "YES", " on "] {
+            unsafe {
+                std::env::set_var("TALON_LLM_DEBUG_REQUESTS", value);
+            }
+            assert!(OpenAiCompatibleProvider::debug_requests_enabled());
+        }
+
+        unsafe {
+            std::env::set_var("TALON_LLM_DEBUG_REQUESTS", "false");
+            std::env::remove_var("TALON_LLM_DEBUG_REQUESTS");
+        }
+    }
+
+    #[test]
+    fn truncate_for_log_preserves_short_strings_and_trims_long_strings() {
+        assert_eq!(
+            OpenAiCompatibleProvider::truncate_for_log("hello", 10),
+            "hello"
+        );
+        assert_eq!(
+            OpenAiCompatibleProvider::truncate_for_log("abcdef", 3),
+            "abc"
+        );
+    }
+
+    #[test]
+    fn serialize_messages_omits_absent_tool_fields() {
+        let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
+            role: "user".to_string(),
+            content: "hello".to_string(),
+            tool_calls: None,
+            tool_call_id: None,
+        }]);
+
+        assert_eq!(serialized[0]["role"], "user");
+        assert!(serialized[0].get("tool_calls").is_none());
+        assert!(serialized[0].get("tool_call_id").is_none());
+    }
+
     #[tokio::test]
     async fn test_openai_sse_parsing() {
         let sse_data = "data: {\"choices\":[{\"delta\":{\"content\":\"hello\"}}]}\n\ndata: {\"choices\":[{\"delta\":{\"content\":\" world\"}}]}\n\ndata: [DONE]\n";
@@ -634,5 +690,399 @@ mod tests {
         }
 
         assert_eq!(items, vec!["hello", " world"]);
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_retries_without_tools_for_novita() {
+        let hits = Arc::new(AtomicUsize::new(0));
+        let app = Router::new()
+            .route(
+                "/novita.ai/chat/completions",
+                post(
+                    move |State(hits): State<Arc<AtomicUsize>>,
+                          Json(payload): Json<serde_json::Value>| async move {
+                        let hit = hits.fetch_add(1, Ordering::SeqCst);
+                        if hit == 0 {
+                            assert!(payload.get("tools").is_some());
+                            (
+                                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                                Json(serde_json::json!({
+                                    "message": "internal_server_error"
+                                })),
+                            )
+                        } else {
+                            assert!(payload.get("tools").is_none());
+                            (
+                                axum::http::StatusCode::OK,
+                                Json(serde_json::json!({
+                                    "choices": [{
+                                        "message": {
+                                            "content": "retried-ok"
+                                        }
+                                    }]
+                                })),
+                            )
+                        }
+                    },
+                ),
+            )
+            .with_state(hits.clone());
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr: SocketAddr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}/novita.ai"),
+            "model".to_string(),
+        );
+        let messages = vec![
+            ChatMessage {
+                role: "assistant".to_string(),
+                content: "".to_string(),
+                tool_calls: Some(vec![crate::llm::provider::ToolCall {
+                    id: "call_1".to_string(),
+                    name: "search".to_string(),
+                    arguments: "{\"q\":\"x\"}".to_string(),
+                }]),
+                tool_call_id: None,
+            },
+            ChatMessage {
+                role: "tool".to_string(),
+                content: "{\"ok\":true}".to_string(),
+                tool_calls: None,
+                tool_call_id: Some("call_1".to_string()),
+            },
+        ];
+        let tools = vec![crate::llm::provider::Tool {
+            name: "search".to_string(),
+            description: "find things".to_string(),
+            input_schema: serde_json::json!({"type": "object"}),
+        }];
+
+        let response = provider.send_chat_request(messages, tools, false).await.unwrap();
+        let payload: serde_json::Value = response.json().await.unwrap();
+        assert_eq!(payload["choices"][0]["message"]["content"], "retried-ok");
+        assert_eq!(hits.load(Ordering::SeqCst), 2);
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn chat_completion_parses_text_and_tool_calls_from_response() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                Json(serde_json::json!({
+                    "choices": [{
+                        "message": {
+                            "content": "done",
+                            "tool_calls": [{
+                                "id": "call_1",
+                                "function": {
+                                    "name": "search",
+                                    "arguments": "{\"q\":\"talon\"}"
+                                }
+                            }]
+                        }
+                    }]
+                }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+        let result = provider
+            .chat_completion(
+                vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                vec![],
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(result.content, "done");
+        assert_eq!(result.tool_calls.len(), 1);
+        assert_eq!(result.tool_calls[0].id, "call_1");
+        assert_eq!(result.tool_calls[0].name, "search");
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_surfaces_non_retryable_error() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                (
+                    axum::http::StatusCode::BAD_REQUEST,
+                    Json(serde_json::json!({
+                        "message": "bad request"
+                    })),
+                )
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+        let err = provider
+            .send_chat_request(
+                vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                vec![],
+                false,
+            )
+            .await
+            .unwrap_err();
+
+        assert!(err.to_string().contains("OpenAI API error"));
+        assert!(err.to_string().contains("bad request"));
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_surfaces_failed_novita_retry() {
+        let hits = Arc::new(AtomicUsize::new(0));
+        let app = Router::new()
+            .route(
+                "/novita.ai/chat/completions",
+                post(
+                    move |State(hits): State<Arc<AtomicUsize>>,
+                          Json(payload): Json<serde_json::Value>| async move {
+                        let hit = hits.fetch_add(1, Ordering::SeqCst);
+                        if hit == 0 {
+                            assert!(payload.get("tools").is_some());
+                            (
+                                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                                Json(serde_json::json!({
+                                    "message": "internal_server_error"
+                                })),
+                            )
+                        } else {
+                            assert!(payload.get("tools").is_none());
+                            (
+                                axum::http::StatusCode::BAD_GATEWAY,
+                                Json(serde_json::json!({
+                                    "message": "retry still failed"
+                                })),
+                            )
+                        }
+                    },
+                ),
+            )
+            .with_state(hits.clone());
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}/novita.ai"),
+            "model".to_string(),
+        );
+        let err = provider
+            .send_chat_request(
+                vec![
+                    ChatMessage {
+                        role: "assistant".to_string(),
+                        content: "".to_string(),
+                        tool_calls: Some(vec![crate::llm::provider::ToolCall {
+                            id: "call_1".to_string(),
+                            name: "search".to_string(),
+                            arguments: "{\"q\":\"x\"}".to_string(),
+                        }]),
+                        tool_call_id: None,
+                    },
+                    ChatMessage {
+                        role: "tool".to_string(),
+                        content: "{\"ok\":true}".to_string(),
+                        tool_calls: None,
+                        tool_call_id: Some("call_1".to_string()),
+                    },
+                ],
+                vec![crate::llm::provider::Tool {
+                    name: "search".to_string(),
+                    description: "find things".to_string(),
+                    input_schema: serde_json::json!({"type": "object"}),
+                }],
+                false,
+            )
+            .await
+            .unwrap_err();
+
+        let text = err.to_string();
+        assert!(text.contains("retry_without_tools"));
+        assert!(text.contains("internal_server_error"));
+        assert!(text.contains("retry still failed"));
+        assert_eq!(hits.load(Ordering::SeqCst), 2);
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn stream_chat_completion_emits_text_and_tool_call_deltas() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                axum::response::Response::builder()
+                    .status(axum::http::StatusCode::OK)
+                    .header("content-type", "text/event-stream")
+                    .body(axum::body::Body::from(
+                        concat!(
+                            "data: {\"choices\":[{\"delta\":{\"content\":\"hello\"}}]}\n\n",
+                            "data: {\"choices\":[{\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call_1\",\"function\":{\"name\":\"search\",\"arguments\":\"{\\\"q\\\":\\\"talon\\\"}\"}}]}}]}\n\n",
+                            "data: [DONE]\n"
+                        ),
+                    ))
+                    .unwrap()
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+        let mut stream = provider
+            .stream_chat_completion(
+                vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                vec![],
+            )
+            .await
+            .unwrap();
+
+        let first = stream.next().await.unwrap().unwrap();
+        match first {
+            ChatStreamEvent::TextDelta(text) => assert_eq!(text, "hello"),
+            other => panic!("unexpected event: {other:?}"),
+        }
+
+        let second = stream.next().await.unwrap().unwrap();
+        match second {
+            ChatStreamEvent::ToolCallDelta(delta) => {
+                assert_eq!(delta.index, 0);
+                assert_eq!(delta.id.as_deref(), Some("call_1"));
+                assert_eq!(delta.name.as_deref(), Some("search"));
+                assert_eq!(delta.arguments.as_deref(), Some("{\"q\":\"talon\"}"));
+            }
+            other => panic!("unexpected event: {other:?}"),
+        }
+
+        assert!(stream.next().await.is_none());
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn stream_chat_completion_surfaces_stream_errors() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                axum::response::Response::builder()
+                    .status(axum::http::StatusCode::OK)
+                    .header("content-type", "text/event-stream")
+                    .body(axum::body::Body::from("data: {not-json}\n\n"))
+                    .unwrap()
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+        let mut stream = provider
+            .stream_chat_completion(
+                vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                vec![],
+            )
+            .await
+            .unwrap();
+
+        assert!(stream.next().await.is_none());
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn completion_returns_chat_content() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                Json(serde_json::json!({
+                    "choices": [{
+                        "message": {
+                            "content": "plain completion"
+                        }
+                    }]
+                }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+        let text = provider.completion("hello").await.unwrap();
+        assert_eq!(text, "plain completion");
+        server.abort();
     }
 }

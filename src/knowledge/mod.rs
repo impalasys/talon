@@ -302,9 +302,13 @@ impl KnowledgeEntry {
 
 #[cfg(test)]
 mod tests {
-    use super::{KnowledgeBook, KnowledgeEntry, KvKnowledgeBook};
+    use super::{
+        execute_tool, KnowledgeBook, KnowledgeEntry, KvKnowledgeBook, KNOWLEDGE_GET_TOOL,
+        KNOWLEDGE_SEARCH_TOOL, KNOWLEDGE_WRITE_TOOL,
+    };
     use crate::control::KeyValueStore;
     use async_trait::async_trait;
+    use serde_json::json;
     use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::Mutex;
@@ -452,5 +456,126 @@ mod tests {
         let results = book.search("conic:wks:13", "framework", 5).await.unwrap();
         assert_eq!(results.len(), 1);
         assert_eq!(results[0].namespace, "conic:wks:13");
+    }
+
+    #[tokio::test]
+    async fn normalize_entry_and_find_entry_cover_fallback_and_ambiguous_matches() {
+        let kv = Arc::new(MockKvStore::new());
+        let book = KvKnowledgeBook::new(kv.clone());
+
+        kv.set("conic", "Knowledge/notes/Plan.md", b"plain text body")
+            .await
+            .unwrap();
+        let resolved = book.find_entry("conic", "plan.md").await.unwrap().unwrap();
+        assert_eq!(resolved.namespace, "conic");
+        assert_eq!(resolved.path(), "notes/Plan.md");
+        assert_eq!(resolved.content, "plain text body");
+
+        kv.set("conic", "Knowledge/other/Plan.md", b"another body")
+            .await
+            .unwrap();
+        let ambiguous = book.find_entry("conic", "plan.md").await.unwrap();
+        assert!(ambiguous.is_none());
+    }
+
+    #[tokio::test]
+    async fn search_scores_path_matches_and_respects_limit_ordering() {
+        let kv = Arc::new(MockKvStore::new());
+        let book = KvKnowledgeBook::new(kv.clone());
+
+        for (path, content) in [
+            ("framework", "exact basename"),
+            ("playbooks/framework", "suffix match"),
+            ("notes/framework-guide", "contains path"),
+            ("misc/ideas", "mentions framework in body"),
+        ] {
+            let entry = KnowledgeEntry {
+                namespace: "conic".to_string(),
+                name: path.to_string(),
+                path: path.to_string(),
+                content: content.to_string(),
+                updated_at: 0,
+            };
+            kv.set(
+                "conic",
+                &format!("Knowledge/{}", path),
+                &serde_json::to_vec(&entry).unwrap(),
+            )
+            .await
+            .unwrap();
+        }
+
+        let results = book.search("conic", "framework", 3).await.unwrap();
+        assert_eq!(results.len(), 3);
+        assert_eq!(results[0].path, "framework");
+        assert_eq!(results[1].path, "playbooks/framework");
+        assert_eq!(results[2].path, "notes/framework-guide");
+        assert!(results[0].excerpt.contains("Matched artifact path"));
+    }
+
+    #[tokio::test]
+    async fn execute_tool_covers_write_get_search_and_unknown_paths() {
+        let kv = Arc::new(MockKvStore::new());
+        let book = KvKnowledgeBook::new(kv.clone());
+
+        let wrote = execute_tool(
+            &book,
+            "conic",
+            KNOWLEDGE_WRITE_TOOL,
+            &json!({"path":"goals.md","content":"ship it"}),
+        )
+        .await
+        .unwrap();
+        assert_eq!(wrote.as_deref(), Some("KnowledgeBook: wrote artifact 'goals.md'."));
+
+        let got = execute_tool(
+            &book,
+            "conic",
+            KNOWLEDGE_GET_TOOL,
+            &json!({"path":"goals.md"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(got.contains("[conic:goals.md]"));
+        assert!(got.contains("ship it"));
+
+        let missing = execute_tool(
+            &book,
+            "conic",
+            KNOWLEDGE_GET_TOOL,
+            &json!({"path":"missing.md"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(missing.contains("artifact 'missing.md' not found"));
+
+        let search = execute_tool(
+            &book,
+            "conic",
+            KNOWLEDGE_SEARCH_TOOL,
+            &json!({"query":"ship"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(search.contains("[conic:goals.md]"));
+
+        let empty_search = execute_tool(
+            &book,
+            "conic",
+            KNOWLEDGE_SEARCH_TOOL,
+            &json!({"query":"absent"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(empty_search.contains("no matching artifacts found"));
+
+        let unknown = execute_tool(&book, "conic", "unknown_tool", &json!({}))
+            .await
+            .unwrap();
+        assert!(unknown.is_none());
     }
 }

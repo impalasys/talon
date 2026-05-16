@@ -915,7 +915,9 @@ impl AgentDefinitionYaml {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_agent, parse_mcp_server_binding};
+    use super::*;
+    use crate::gateway::rpc::{manifests, models};
+    use std::collections::HashMap;
 
     #[test]
     fn parse_agent_manifest_supports_internal_agent() {
@@ -1008,5 +1010,615 @@ metadata:
             namespace.labels.get("visibility").map(String::as_str),
             Some("internal")
         );
+    }
+
+    #[test]
+    fn parse_agent_template_supports_templated_definition_delta() {
+        let template = parse_agent_template(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: AgentTemplate
+metadata:
+  name: assistant
+definition:
+  templated:
+    templateName: base
+    delta:
+      systemPrompt:
+        append: " extra context"
+      mcpServerRefs:
+        add:
+          - talon-ops
+"#,
+        )
+        .expect("template manifest should parse");
+
+        let definition = template.definition.expect("template definition should exist");
+        match definition.source.expect("template source should exist") {
+            manifests::agent_definition::Source::Templated(templated) => {
+                assert_eq!(templated.template_name, "base");
+                let delta = templated.delta.expect("delta should exist");
+                assert!(delta.system_prompt.is_some());
+                assert!(delta.mcp_server_refs.is_some());
+            }
+            other => panic!("expected templated definition, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_agent_rejects_missing_namespace() {
+        let error = parse_agent(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: ctl
+definition:
+  customSpec:
+    systemPrompt: test
+"#,
+        )
+        .expect_err("missing namespace should fail");
+
+        assert!(error.to_string().contains("metadata.namespace is required"));
+    }
+
+    #[test]
+    fn parse_namespace_rejects_nested_namespace_field() {
+        let error = parse_namespace(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: child
+  namespace: parent
+"#,
+        )
+        .expect_err("namespace metadata.namespace should be empty");
+
+        assert!(error.to_string().contains("must be empty"));
+    }
+
+    #[test]
+    fn parse_mcp_server_and_knowledge_round_trip() {
+        let server = parse_mcp_server(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: McpServer
+metadata:
+  name: github
+spec:
+  transport: stdio
+  target: gh
+  args:
+    - api
+  headers:
+    Authorization: Bearer token
+  disabled: true
+"#,
+        )
+        .expect("mcp server manifest should parse");
+
+        let spec = server.spec.expect("server spec");
+        assert_eq!(spec.transport, "stdio");
+        assert_eq!(spec.target, "gh");
+        assert_eq!(spec.args, vec!["api"]);
+        assert_eq!(
+            spec.headers.get("Authorization").map(String::as_str),
+            Some("Bearer token")
+        );
+        assert!(spec.disabled);
+
+        let knowledge = parse_knowledge(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Knowledge
+metadata:
+  name: handbook
+  namespace: conic
+spec:
+  path: /docs/handbook
+  content: hello
+"#,
+        )
+        .expect("knowledge manifest should parse");
+        let rendered = render_knowledge_yaml(&knowledge).expect("knowledge yaml should render");
+
+        assert!(rendered.contains("kind: Knowledge"));
+        assert!(rendered.contains("path: /docs/handbook"));
+        assert!(rendered.contains("content: hello"));
+    }
+
+    #[test]
+    fn render_agent_template_yaml_round_trips_custom_spec() {
+        let template = manifests::AgentTemplate {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "AgentTemplate".to_string(),
+            metadata: Some(manifests::ObjectMeta {
+                name: "assistant".to_string(),
+                namespace: String::new(),
+                labels: std::collections::HashMap::from([(
+                    "visibility".to_string(),
+                    "internal".to_string(),
+                )]),
+                annotations: std::collections::HashMap::new(),
+            }),
+            definition: Some(manifests::AgentDefinition {
+                source: Some(manifests::agent_definition::Source::CustomSpec(
+                    manifests::AgentSpec {
+                        features: vec![manifests::Feature {
+                            name: "search".to_string(),
+                            r#type: "builtin".to_string(),
+                            required: true,
+                        }],
+                        model_policy: Some(manifests::ModelPolicy {
+                            profiles: vec![manifests::ModelProfile {
+                                name: "default".to_string(),
+                                model: Some(manifests::Model {
+                                    provider: "openai".to_string(),
+                                    name: "gpt-4.1".to_string(),
+                                    temperature: 0.2,
+                                }),
+                            }],
+                        }),
+                        system_prompt: "be useful".to_string(),
+                        mcp_server_refs: vec!["talon-ops".to_string()],
+                        capabilities: std::collections::HashMap::new(),
+                    },
+                )),
+            }),
+        };
+
+        let rendered = render_agent_template_yaml(&template).expect("template yaml should render");
+        let reparsed = parse_agent_template(&rendered).expect("rendered template should parse");
+        let reparsed_meta = reparsed.metadata.expect("metadata should exist");
+
+        assert_eq!(reparsed_meta.name, "assistant");
+        assert_eq!(
+            reparsed_meta.labels.get("visibility").map(String::as_str),
+            Some("internal")
+        );
+    }
+
+    #[test]
+    fn render_agent_yaml_and_json_include_definition_and_effective_spec() {
+        let agent = models::Agent {
+            name: "ctl".to_string(),
+            ns: "conic".to_string(),
+            definition: Some(manifests::AgentDefinition {
+                source: Some(manifests::agent_definition::Source::Templated(
+                    manifests::TemplatedAgentSpec {
+                        template_name: "assistant".to_string(),
+                        delta: Some(manifests::AgentSpecDelta {
+                            model_policy: None,
+                            system_prompt: Some(manifests::PromptDelta {
+                                operation: Some(
+                                    manifests::prompt_delta::Operation::Append(
+                                        " extra".to_string(),
+                                    ),
+                                ),
+                            }),
+                            features: None,
+                            mcp_server_refs: None,
+                            capabilities: None,
+                        }),
+                    },
+                )),
+            }),
+            effective_spec: Some(manifests::AgentSpec {
+                features: vec![manifests::Feature {
+                    name: "search".to_string(),
+                    r#type: "builtin".to_string(),
+                    required: false,
+                }],
+                model_policy: Some(manifests::ModelPolicy {
+                    profiles: vec![manifests::ModelProfile {
+                        name: "default".to_string(),
+                        model: Some(manifests::Model {
+                            provider: "openai".to_string(),
+                            name: "gpt-4.1".to_string(),
+                            temperature: 0.1,
+                        }),
+                    }],
+                }),
+                system_prompt: "test".to_string(),
+                mcp_server_refs: vec!["talon-ops".to_string()],
+                capabilities: std::collections::HashMap::from([(
+                    "schedules".to_string(),
+                    crate::gateway::rpc::protobuf_value::ListValue {
+                        values: vec![crate::gateway::rpc::protobuf_value::Value {
+                            kind: Some(
+                                crate::gateway::rpc::protobuf_value::value::Kind::StringValue(
+                                    "read".to_string(),
+                                ),
+                            ),
+                        }],
+                    },
+                )]),
+            }),
+            template_deps: vec!["assistant".to_string()],
+            labels: std::collections::HashMap::from([(
+                "visibility".to_string(),
+                "internal".to_string(),
+            )]),
+        };
+
+        let yaml = render_agent_yaml(&agent).expect("agent yaml should render");
+        let json = render_agent_json(&agent).expect("agent json should render");
+
+        assert!(yaml.contains("templateName: assistant"));
+        assert!(yaml.contains("systemPrompt: test"));
+        assert_eq!(json["name"], "ctl");
+        assert_eq!(json["ns"], "conic");
+        assert_eq!(json["templateDeps"][0], "assistant");
+        assert_eq!(json["labels"]["visibility"], "internal");
+    }
+
+    #[test]
+    fn render_helpers_require_mandatory_fields() {
+        let missing_definition = models::Agent {
+            name: "ctl".to_string(),
+            ns: "conic".to_string(),
+            definition: None,
+            effective_spec: None,
+            template_deps: Vec::new(),
+            labels: std::collections::HashMap::new(),
+        };
+        assert!(render_agent_yaml(&missing_definition).is_err());
+        assert!(render_agent_json(&missing_definition).is_err());
+
+        let missing_knowledge = manifests::Knowledge {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Knowledge".to_string(),
+            metadata: None,
+            spec: None,
+        };
+        assert!(render_knowledge_yaml(&missing_knowledge).is_err());
+    }
+
+    #[test]
+    fn parse_agent_template_rejects_conflicting_definition_sources() {
+        let error = parse_agent_template(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: AgentTemplate
+metadata:
+  name: assistant
+definition:
+  customSpec:
+    systemPrompt: test
+  templated:
+    templateName: base
+"#,
+        )
+        .expect_err("conflicting definition sources should fail");
+
+        assert!(error
+            .to_string()
+            .contains("must set only one of customSpec or templated"));
+    }
+
+    #[test]
+    fn parse_helpers_reject_wrong_kinds_and_missing_required_sources() {
+        let wrong_agent = parse_agent(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: ctl
+  namespace: conic
+definition:
+  customSpec:
+    systemPrompt: hi
+"#,
+        )
+        .expect_err("wrong kind should fail");
+        assert!(wrong_agent.to_string().contains("Expected kind 'Agent'"));
+
+        let wrong_server = parse_mcp_server(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: github
+spec:
+  transport: streamable_http
+  target: https://example.com
+"#,
+        )
+        .expect_err("wrong kind should fail");
+        assert!(wrong_server.to_string().contains("Expected kind 'McpServer'"));
+
+        let wrong_binding = parse_mcp_server_binding(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: github
+  namespace: conic
+spec:
+  serverRef: github
+"#,
+        )
+        .expect_err("wrong kind should fail");
+        assert!(wrong_binding
+            .to_string()
+            .contains("Expected kind 'McpServerBinding'"));
+
+        let wrong_knowledge = parse_knowledge(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: notes
+spec:
+  path: docs/a
+  content: hi
+"#,
+        )
+        .expect_err("wrong kind should fail");
+        assert!(wrong_knowledge.to_string().contains("Expected kind 'Knowledge'"));
+
+        let missing_definition = parse_agent_template(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: AgentTemplate
+metadata:
+  name: assistant
+definition: {}
+"#,
+        )
+        .expect_err("missing definition source should fail");
+        assert!(missing_definition
+            .to_string()
+            .contains("must set one of customSpec or templated"));
+    }
+
+    #[test]
+    fn templated_and_prompt_delta_manifests_validate_remaining_branches() {
+        let empty_template_name = TemplatedAgentSpecManifest {
+            template_name: "   ".to_string(),
+            delta: AgentSpecDeltaManifest::default(),
+        }
+        .into_proto()
+        .expect_err("blank template name should fail");
+        assert!(empty_template_name
+            .to_string()
+            .contains("templateName is required"));
+
+        let prompt_conflict = PromptDeltaManifest {
+            replace: Some("a".to_string()),
+            prepend: Some("b".to_string()),
+            append: None,
+        }
+        .into_proto()
+        .expect_err("multiple prompt delta operations should fail");
+        assert!(prompt_conflict
+            .to_string()
+            .contains("set only one of replace, prepend, or append"));
+
+        let prompt_none = PromptDeltaManifest {
+            replace: None,
+            prepend: None,
+            append: None,
+        }
+        .into_proto()
+        .expect("empty prompt delta should still serialize");
+        assert!(prompt_none.operation.is_none());
+    }
+
+    #[test]
+    fn capabilities_policy_and_agent_spec_round_trip_non_string_actions() {
+        let proto = capabilities_policy_into_proto(HashMap::from([(
+            "sessions".to_string(),
+            vec!["inspect".to_string(), "read:messages".to_string()],
+        )]));
+        let mut with_non_string = proto.clone();
+        with_non_string.insert(
+            "schedules".to_string(),
+            ListValue {
+                values: vec![Value {
+                    kind: Some(value::Kind::NumberValue(1.0)),
+                }],
+            },
+        );
+
+        let manifest = capabilities_policy_from_proto(&with_non_string);
+        assert_eq!(
+            manifest.get("sessions").cloned(),
+            Some(vec!["inspect".to_string(), "read:messages".to_string()])
+        );
+        assert_eq!(manifest.get("schedules").cloned(), Some(Vec::new()));
+
+        let delta = CapabilitiesPolicyDeltaManifest {
+            replace: Some(HashMap::from([(
+                "sessions".to_string(),
+                vec!["inspect".to_string()],
+            )])),
+        };
+        let round_trip = CapabilitiesPolicyDeltaManifest::from_proto(&delta.into_proto());
+        assert_eq!(
+            round_trip
+                .replace
+                .as_ref()
+                .and_then(|m| m.get("sessions"))
+                .cloned(),
+            Some(vec!["inspect".to_string()])
+        );
+
+        let spec = AgentSpecManifest {
+            features: vec![FeatureManifest {
+                name: "search".to_string(),
+                type_name: "builtin".to_string(),
+                required: false,
+            }],
+            model_policy: Some(ModelPolicyManifest {
+                profiles: vec![ModelProfileManifest {
+                    name: "default".to_string(),
+                    model: ModelManifest {
+                        provider: "openai".to_string(),
+                        name: "gpt-5".to_string(),
+                        temperature: 0.2,
+                    },
+                }],
+            }),
+            system_prompt: "Base".to_string(),
+            mcp_server_refs: vec!["github".to_string()],
+            capabilities: Some(HashMap::from([(
+                "sessions".to_string(),
+                vec!["inspect".to_string()],
+            )])),
+        };
+        let round_trip = AgentSpecManifest::from_proto(&spec.into_proto());
+        assert_eq!(
+            round_trip
+                .capabilities
+                .as_ref()
+                .and_then(|m| m.get("sessions"))
+                .cloned(),
+            Some(vec!["inspect".to_string()])
+        );
+    }
+
+    #[test]
+    fn render_helpers_require_proto_sources_for_agent_template() {
+        let missing_definition_source = render_agent_template_yaml(&manifests::AgentTemplate {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "AgentTemplate".to_string(),
+            metadata: Some(manifests::ObjectMeta {
+                name: "assistant".to_string(),
+                namespace: String::new(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+            }),
+            definition: Some(manifests::AgentDefinition { source: None }),
+        })
+        .expect_err("missing proto source should fail");
+        assert!(missing_definition_source
+            .to_string()
+            .contains("AgentDefinition missing source"));
+
+        let missing_metadata = render_agent_template_yaml(&manifests::AgentTemplate {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "AgentTemplate".to_string(),
+            metadata: None,
+            definition: Some(manifests::AgentDefinition {
+                source: Some(manifests::agent_definition::Source::CustomSpec(
+                    manifests::AgentSpec::default(),
+                )),
+            }),
+        })
+        .expect_err("missing metadata should fail");
+        assert!(missing_metadata.to_string().contains("missing metadata"));
+    }
+
+    #[test]
+    fn proto_conversion_helpers_cover_missing_defaults_and_errors() {
+        let err = AgentDefinitionManifest {
+            custom_spec: None,
+            templated: None,
+        }
+        .into_proto()
+        .unwrap_err();
+        assert!(err.to_string().contains("must set one"));
+
+        let err = AgentDefinitionManifest::from_proto(&manifests::AgentDefinition { source: None })
+            .unwrap_err();
+        assert!(err.to_string().contains("missing source"));
+
+        let err = TemplatedAgentSpecManifest {
+            template_name: " ".to_string(),
+            delta: AgentSpecDeltaManifest::default(),
+        }
+        .into_proto()
+        .unwrap_err();
+        assert!(err.to_string().contains("templateName is required"));
+
+        let templated = TemplatedAgentSpecManifest::from_proto(&manifests::TemplatedAgentSpec {
+            template_name: "template".to_string(),
+            delta: None,
+        })
+        .expect("templated proto should deserialize");
+        assert_eq!(templated.template_name, "template");
+        assert!(templated.delta.model_policy.is_none());
+        assert!(templated.delta.system_prompt.is_none());
+        assert!(templated.delta.features.is_none());
+        assert!(templated.delta.mcp_server_refs.is_none());
+        assert!(templated.delta.capabilities.is_none());
+
+        let yaml_err = AgentDefinitionYaml::from_proto(&manifests::AgentDefinition { source: None })
+            .unwrap_err();
+        assert!(yaml_err.to_string().contains("missing source"));
+
+        let profile = ModelProfileManifest::from_proto(&manifests::ModelProfile {
+            name: "blank".to_string(),
+            model: None,
+        });
+        assert_eq!(profile.name, "blank");
+        assert_eq!(profile.model.provider, "");
+        assert_eq!(profile.model.name, "");
+        assert_eq!(profile.model.temperature, 0.0);
+
+        let spec = AgentSpecManifest::from_proto(&manifests::AgentSpec {
+            features: vec![],
+            model_policy: None,
+            system_prompt: "prompt".to_string(),
+            mcp_server_refs: vec!["server".to_string()],
+            capabilities: HashMap::new(),
+        });
+        assert!(spec.capabilities.is_none());
+        assert_eq!(spec.system_prompt, "prompt");
+        assert_eq!(spec.mcp_server_refs, vec!["server".to_string()]);
+    }
+
+    #[test]
+    fn prompt_and_capability_helpers_cover_all_proto_shapes() {
+        let prepend = PromptDeltaManifest::from_proto(&manifests::PromptDelta {
+            operation: Some(manifests::prompt_delta::Operation::Prepend(
+                "before".to_string(),
+            )),
+        });
+        assert_eq!(prepend.prepend.as_deref(), Some("before"));
+        assert!(prepend.replace.is_none());
+        assert!(prepend.append.is_none());
+
+        let append = PromptDeltaManifest::from_proto(&manifests::PromptDelta {
+            operation: Some(manifests::prompt_delta::Operation::Append("after".to_string())),
+        });
+        assert_eq!(append.append.as_deref(), Some("after"));
+        assert!(append.replace.is_none());
+        assert!(append.prepend.is_none());
+
+        let replace = CapabilitiesPolicyDeltaManifest::from_proto(
+            &manifests::CapabilitiesPolicyDelta {
+                replace: HashMap::from([(
+                    "tools".to_string(),
+                    ListValue {
+                        values: vec![
+                            Value {
+                                kind: Some(value::Kind::StringValue("read".to_string())),
+                            },
+                            Value {
+                                kind: Some(value::Kind::BoolValue(true)),
+                            },
+                        ],
+                    },
+                )]),
+            },
+        );
+        assert_eq!(
+            replace.replace,
+            Some(HashMap::from([(
+                "tools".to_string(),
+                vec!["read".to_string()],
+            )]))
+        );
+
+        let empty = CapabilitiesPolicyDeltaManifest::from_proto(
+            &manifests::CapabilitiesPolicyDelta {
+                replace: HashMap::new(),
+            },
+        );
+        assert!(empty.replace.is_none());
     }
 }

@@ -3,10 +3,14 @@ import time
 import sys
 import os
 import grpc
+import json
+import httpx
 
 # Important: Add generated protos to path so "proto.xxx" resolves locally and not to proto_plus
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 
+import conftest
+import mock_llm
 from proto.gateway_pb2_grpc import GatewayServiceStub
 from proto.gateway_pb2 import (
     CreateAgentRequest, 
@@ -14,11 +18,23 @@ from proto.gateway_pb2 import (
     SendMessageRequest,
     GetSessionRequest,
     CreateNamespaceRequest,
-    StreamSessionStepsRequest
+    StreamSessionStepsRequest,
+    CreateNamespaceKnowledgeRequest,
+    GetNamespaceKnowledgeRequest,
+    ListNamespaceKnowledgeRequest,
+    DeleteNamespaceKnowledgeRequest,
+    GetKnowledgeRequest,
+    SearchKnowledgeRequest,
+    CreateScheduleRequest,
+    GetScheduleRequest,
+    ListSchedulesRequest,
+    DeleteScheduleRequest,
 )
-from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model
+from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model, Knowledge, ObjectMeta, KnowledgeSpec
+from proto.models_pb2 import Schedule, ScheduleSpec, ScheduleTarget
 from proto.events_pb2 import STEP_TYPE_TOKEN
 import threading
+import uuid
 
 def test_single_turn_chat(gateway_channel, mock_llm_server):
     stub = GatewayServiceStub(gateway_channel)
@@ -180,6 +196,240 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     token_events = [event for event in events if event.step_type == STEP_TYPE_TOKEN]
     assert len(token_events) >= 1
     assert "received" in token_events[0].content
+
+def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
+    stub = GatewayServiceStub(gateway_channel)
+    run_id = uuid.uuid4().hex[:8]
+    namespace = f"talon-knowledge-{run_id}"
+    agent_name = f"knowledge-agent-{run_id}"
+
+    stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
+
+    agent_spec = AgentSpec(
+        model_policy={
+            "profiles": [
+                {
+                    "name": "default",
+                    "model": Model(provider="mock", name="minimax", temperature=0.7),
+                }
+            ]
+        },
+        system_prompt="Knowledge test agent."
+    )
+    stub.CreateAgent(CreateAgentRequest(
+        ns=namespace,
+        name=agent_name,
+        definition=AgentDefinition(custom_spec=agent_spec),
+    ))
+
+    created = stub.CreateNamespaceKnowledge(CreateNamespaceKnowledgeRequest(
+        ns=namespace,
+        knowledge=Knowledge(
+            metadata=ObjectMeta(name="guide"),
+            spec=KnowledgeSpec(
+                path="guide.md",
+                content="Talon stores runtime facts in guide documents."
+            ),
+        ),
+    ))
+    assert created.knowledge.metadata.name == "guide"
+
+    fetched = stub.GetNamespaceKnowledge(GetNamespaceKnowledgeRequest(
+        ns=namespace,
+        name="guide",
+    ))
+    assert fetched.knowledge.spec.path == "guide.md"
+    assert "runtime facts" in fetched.knowledge.spec.content
+
+    listed = stub.ListNamespaceKnowledge(ListNamespaceKnowledgeRequest(ns=namespace))
+    assert len(listed.knowledge) == 1
+    assert listed.knowledge[0].metadata.name == "guide"
+
+    modules = stub.GetKnowledge(GetKnowledgeRequest(
+        ns=namespace,
+        agent=agent_name,
+        path="guide.md",
+    ))
+    assert len(modules.modules) == 1
+    assert modules.modules[0].path == "guide.md"
+    assert "guide documents" in modules.modules[0].content
+
+    search = stub.SearchKnowledge(SearchKnowledgeRequest(
+        ns=namespace,
+        agent=agent_name,
+        query="runtime facts",
+    ))
+    assert len(search.results) >= 1
+    assert search.results[0].path == "guide.md"
+
+    deleted = stub.DeleteNamespaceKnowledge(DeleteNamespaceKnowledgeRequest(
+        ns=namespace,
+        name="guide",
+    ))
+    assert deleted.success is True
+
+def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
+    stub = GatewayServiceStub(gateway_channel)
+    run_id = uuid.uuid4().hex[:8]
+    namespace = f"talon-schedule-{run_id}"
+    agent_name = f"schedule-agent-{run_id}"
+    schedule_name = f"schedule-{run_id}"
+
+    stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
+
+    agent_spec = AgentSpec(
+        model_policy={
+            "profiles": [
+                {
+                    "name": "default",
+                    "model": Model(provider="mock", name="minimax", temperature=0.7),
+                }
+            ]
+        },
+        system_prompt="Schedule test agent."
+    )
+    stub.CreateAgent(CreateAgentRequest(
+        ns=namespace,
+        name=agent_name,
+        definition=AgentDefinition(custom_spec=agent_spec),
+    ))
+
+    created = stub.CreateSchedule(CreateScheduleRequest(
+        ns=namespace,
+        schedule=Schedule(
+            name=schedule_name,
+            spec=ScheduleSpec(
+                kind="every",
+                interval_seconds=300,
+                timezone="UTC",
+                target=ScheduleTarget(agent=agent_name, session_mode="new"),
+                input_message="Run a periodic check-in",
+                enabled=True,
+            ),
+            labels={"team": "ops"},
+        ),
+    ))
+    assert created.schedule.name == schedule_name
+    assert created.schedule.ns == namespace
+    assert created.schedule.status.backend_armed is False
+
+    fetched = stub.GetSchedule(GetScheduleRequest(ns=namespace, name=schedule_name))
+    assert fetched.schedule.name == schedule_name
+    assert fetched.schedule.spec.target.agent == agent_name
+
+    listed = stub.ListSchedules(ListSchedulesRequest(ns=namespace))
+    assert len(listed.schedules) == 1
+    assert listed.schedules[0].name == schedule_name
+
+    deleted = stub.DeleteSchedule(DeleteScheduleRequest(ns=namespace, name=schedule_name))
+    assert deleted.success is True
+
+def test_conftest_binary_helpers_cover_candidate_and_path_resolution(monkeypatch):
+    assert list(conftest.binary_candidates("talon_server")) == [
+        "talon_server",
+        "talon-server",
+    ]
+    assert list(conftest.binary_candidates("talon-worker")) == [
+        "talon-worker",
+        "talon_worker",
+    ]
+
+    monkeypatch.delenv("BUILD_WORKSPACE_DIRECTORY", raising=False)
+    monkeypatch.setattr(conftest.shutil, "which", lambda name: f"/usr/bin/{name}")
+    assert conftest.get_binary_path("talon_server") == "/usr/bin/talon_server"
+
+
+def test_mock_llm_helper_functions_cover_message_and_tool_detection():
+    messages = [{"role": "user", "content": "please lookup docs.example.com"}]
+    assert mock_llm.last_message(messages) == messages[-1]
+    assert mock_llm.last_message([]) == {}
+    assert mock_llm.last_message_text(messages) == "please lookup docs.example.com"
+    assert mock_llm.last_message_text([{"content": ["not", "a", "string"]}]) == ""
+    assert mock_llm.should_emit_tool_call(messages, [{"type": "function"}]) is True
+    assert mock_llm.should_emit_tool_call(messages, []) is False
+    assert mock_llm.is_tool_followup(
+        [{"role": "tool", "tool_call_id": mock_llm.TOOL_CALL_ID}]
+    ) is True
+    assert mock_llm.is_tool_followup([{"role": "assistant"}]) is False
+
+    response = mock_llm.build_tool_call_response("mock-model")
+    tool_call = response["choices"][0]["message"]["tool_calls"][0]
+    assert response["model"] == "mock-model"
+    assert tool_call["function"]["name"] == mock_llm.TOOL_NAME
+    assert json.loads(tool_call["function"]["arguments"]) == {"query": "docs.example.com"}
+
+
+@pytest.mark.asyncio
+async def test_mock_llm_stream_helpers_cover_text_and_tool_chunks():
+    tool_chunks = [chunk async for chunk in mock_llm.stream_tool_call_response("mock-model")]
+    assert tool_chunks[-1] == "data: [DONE]\n\n"
+    assert any(mock_llm.TOOL_NAME in chunk for chunk in tool_chunks)
+
+    text_chunks = [chunk async for chunk in mock_llm.stream_text_response("mock-model", "hello world")]
+    assert text_chunks[-1] == "data: [DONE]\n\n"
+    assert any("hello " in chunk or "world" in chunk for chunk in text_chunks)
+
+
+@pytest.mark.asyncio
+async def test_mock_llm_chat_completions_endpoint_covers_json_and_streaming_paths():
+    transport = httpx.ASGITransport(app=mock_llm.app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+        standard = await client.post(
+            "/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "What is the square root of 144?"}],
+            },
+        )
+        assert standard.status_code == 200
+        assert "12" in standard.json()["choices"][0]["message"]["content"]
+
+        tool_call = await client.post(
+            "/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "user", "content": "Please lookup docs.example.com"}],
+                "tools": [{"type": "function"}],
+            },
+        )
+        assert tool_call.status_code == 200
+        assert (
+            tool_call.json()["choices"][0]["message"]["tool_calls"][0]["function"]["name"]
+            == mock_llm.TOOL_NAME
+        )
+
+        followup = await client.post(
+            "/chat/completions",
+            json={
+                "model": "mock-model",
+                "messages": [{"role": "tool", "tool_call_id": mock_llm.TOOL_CALL_ID}],
+            },
+        )
+        assert followup.status_code == 200
+        assert "docs.example.com" in followup.json()["choices"][0]["message"]["content"]
+
+        async with client.stream(
+            "POST",
+            "/chat/completions",
+            json={
+                "model": "mock-model",
+                "stream": True,
+                "messages": [{"role": "user", "content": "hello"}],
+            },
+        ) as response:
+            body = await response.aread()
+        text = body.decode()
+        assert response.status_code == 200
+        assert "data: [DONE]" in text
+        content_chunks = []
+        for event in text.split("\n\n"):
+            if not event.startswith("data: ") or event == "data: [DONE]":
+                continue
+            payload = json.loads(event[len("data: "):])
+            delta = payload["choices"][0]["delta"]
+            if "content" in delta:
+                content_chunks.append(delta["content"])
+        assert "".join(content_chunks).startswith("Hello! I am a mock LLM.")
 
 if __name__ == '__main__':
     sys.exit(pytest.main(sys.argv[1:] + [__file__]))

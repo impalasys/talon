@@ -439,7 +439,10 @@ impl AgentExecutor {
 
 #[cfg(test)]
 mod tests {
-    use super::{AgentEvent, AgentExecutor, CaptureSink, ContextAssembler, ExecutionContext, LoopMessage};
+    use super::{
+        AgentEvent, AgentExecutor, CaptureSink, ContextAssembler, ExecutionContext, ExecutionSink,
+        LoopMessage,
+    };
     use crate::config::Config;
     use crate::control::scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
     use crate::control::{ControlPlane, KeyValueStore, MessagePublisher};
@@ -457,9 +460,11 @@ mod tests {
     use anyhow::Result;
     use async_trait::async_trait;
     use futures::Stream;
+    use serde_json::json;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::{Arc, Mutex};
+    use tempfile::tempdir;
     use tokio_util::sync::CancellationToken;
 
     #[derive(Default)]
@@ -536,6 +541,51 @@ mod tests {
             _limit: usize,
         ) -> Result<Vec<KnowledgeResult>> {
             Ok(Vec::new())
+        }
+    }
+
+    #[derive(Default)]
+    struct RecordingKnowledgeBook {
+        writes: Mutex<Vec<(String, String, String)>>,
+    }
+
+    #[async_trait]
+    impl KnowledgeBook for RecordingKnowledgeBook {
+        async fn get(&self, ns: &str, path: &str) -> Result<Option<KnowledgeEntry>> {
+            Ok((path == "notes/plan.md").then(|| KnowledgeEntry {
+                namespace: ns.to_string(),
+                name: "plan".to_string(),
+                path: path.to_string(),
+                content: "remember the plan".to_string(),
+                updated_at: 42,
+            }))
+        }
+
+        async fn write(&self, ns: &str, path: &str, content: &str) -> Result<()> {
+            self.writes.lock().unwrap().push((
+                ns.to_string(),
+                path.to_string(),
+                content.to_string(),
+            ));
+            Ok(())
+        }
+
+        async fn search(
+            &self,
+            ns: &str,
+            query: &str,
+            _limit: usize,
+        ) -> Result<Vec<KnowledgeResult>> {
+            if query == "plan" {
+                Ok(vec![KnowledgeResult {
+                    namespace: ns.to_string(),
+                    path: "notes/plan.md".to_string(),
+                    excerpt: "remember the plan".to_string(),
+                    updated_at: 42,
+                }])
+            } else {
+                Ok(Vec::new())
+            }
         }
     }
 
@@ -884,5 +934,110 @@ mod tests {
             sink.events().last(),
             Some(AgentEvent::Done(content)) if content == "Hello"
         ));
+    }
+
+    #[tokio::test]
+    async fn context_assembler_reads_existing_files_and_defaults_missing_ones() {
+        let dir = tempdir().expect("tempdir");
+        tokio::fs::write(dir.path().join("SOUL.md"), "soul body")
+            .await
+            .expect("write soul");
+        tokio::fs::write(dir.path().join("USER.md"), "user body")
+            .await
+            .expect("write user");
+
+        let assembled = ContextAssembler::new(dir.path()).assemble().await.expect("assemble");
+        assert!(assembled.contains("soul body"));
+        assert!(assembled.contains("user body"));
+        assert!(assembled.contains("(No AGENTS.md provided)"));
+    }
+
+    #[tokio::test]
+    async fn capture_sink_records_all_event_types() {
+        let sink = CaptureSink::new();
+        sink.on_token("tok").await;
+        sink.on_tool_call("id-1", "tool", &json!({"x": 1})).await;
+        sink.on_tool_result("id-1", "tool", "result").await;
+        sink.on_done("done").await;
+        sink.on_error("boom").await;
+
+        assert_eq!(
+            sink.events(),
+            vec![
+                AgentEvent::Token("tok".to_string()),
+                AgentEvent::Action {
+                    id: "id-1".to_string(),
+                    name: "tool".to_string(),
+                    input: json!({"x": 1}),
+                },
+                AgentEvent::Observation {
+                    id: "id-1".to_string(),
+                    name: "tool".to_string(),
+                    output: "result".to_string(),
+                },
+                AgentEvent::Done("done".to_string()),
+                AgentEvent::Error("boom".to_string()),
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn executor_execute_tool_covers_knowledge_and_unknown_paths() {
+        let knowledge = Arc::new(RecordingKnowledgeBook::default());
+        let executor = AgentExecutor::new(
+            Arc::new(RecordingLlmProvider::default()),
+            ContextAssembler::new("."),
+            Arc::new(tokio::sync::RwLock::new(ToolRegistry::new())),
+            Arc::new(Config::default()),
+            knowledge.clone(),
+            "conic:wks:13".to_string(),
+            "cmo".to_string(),
+            ControlPlane {
+                kv: Arc::new(NoopKv),
+                pubsub: Arc::new(NoopPubSub),
+                scheduler: Arc::new(NoopScheduler),
+            },
+            manifests::AgentSpec::default(),
+            HashMap::new(),
+        );
+
+        let write = executor
+            .execute_tool(
+                crate::knowledge::KNOWLEDGE_WRITE_TOOL,
+                r#"{"path":"notes/plan.md","content":"remember the plan"}"#,
+            )
+            .await
+            .expect("knowledge write");
+        assert!(write.contains("wrote artifact"));
+
+        let get = executor
+            .execute_tool(
+                crate::knowledge::KNOWLEDGE_GET_TOOL,
+                r#"{"path":"notes/plan.md"}"#,
+            )
+            .await
+            .expect("knowledge get");
+        assert!(get.contains("[conic:wks:13:notes/plan.md]"));
+
+        let search = executor
+            .execute_tool(crate::knowledge::KNOWLEDGE_SEARCH_TOOL, r#"{"query":"plan"}"#)
+            .await
+            .expect("knowledge search");
+        assert!(search.contains("remember the plan"));
+
+        let unknown = executor
+            .execute_tool("missing_tool", "not-json")
+            .await
+            .expect("unknown tool should not error");
+        assert_eq!(unknown, "Tool 'missing_tool' not found.");
+
+        assert_eq!(
+            knowledge.writes.lock().unwrap().as_slice(),
+            &[(
+                "conic:wks:13".to_string(),
+                "notes/plan.md".to_string(),
+                "remember the plan".to_string(),
+            )]
+        );
     }
 }

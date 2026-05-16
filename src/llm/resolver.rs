@@ -86,3 +86,164 @@ pub async fn resolve_llm(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_llm;
+    use crate::config::{proto, Config, ProviderConfig, Secret};
+    use crate::gateway::rpc::manifests;
+    use axum::{routing::post, Json, Router};
+    use serde_json::json;
+    use std::collections::HashMap;
+    use tokio::net::TcpListener;
+
+    fn config_with_provider(name: &str, provider: ProviderConfig) -> Config {
+        Config {
+            providers: HashMap::from([(name.to_string(), provider)]),
+            default_provider: name.to_string(),
+            ..Config::default()
+        }
+    }
+
+    fn openai_compatible_provider(base_url: String, api_key: Option<Secret>) -> ProviderConfig {
+        ProviderConfig {
+            config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
+                proto::GenericConfig {
+                    name: String::new(),
+                    base_url,
+                    model: "config-model".to_string(),
+                    api_key,
+                },
+            )),
+        }
+    }
+
+    fn spec_with_default_model(provider: &str, name: &str) -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            features: Vec::new(),
+            system_prompt: String::new(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+            model_policy: Some(manifests::ModelPolicy {
+                profiles: vec![manifests::ModelProfile {
+                    name: "default".to_string(),
+                    model: Some(manifests::Model {
+                        provider: provider.to_string(),
+                        name: name.to_string(),
+                        temperature: 0.0,
+                    }),
+                }],
+            }),
+        }
+    }
+
+    #[tokio::test]
+    async fn resolve_llm_uses_mock_when_provider_config_is_unrecognized() {
+        let config = Config {
+            providers: HashMap::from([("primary".to_string(), ProviderConfig { config: None })]),
+            default_provider: "primary".to_string(),
+            ..Config::default()
+        };
+        let spec = manifests::AgentSpec::default();
+
+        let llm = resolve_llm(&spec, &config).await.unwrap();
+        let response = llm.completion("hello").await.unwrap();
+        assert_eq!(response, "Mock response for: hello");
+    }
+
+    #[tokio::test]
+    async fn resolve_llm_errors_when_selected_provider_is_missing() {
+        let config = Config {
+            default_provider: "missing".to_string(),
+            ..Config::default()
+        };
+
+        let err = match resolve_llm(&manifests::AgentSpec::default(), &config).await {
+            Ok(_) => panic!("expected missing provider error"),
+            Err(err) => err,
+        };
+        assert!(err.to_string().contains("LLM provider 'missing' not found"));
+    }
+
+    #[tokio::test]
+    async fn resolve_llm_prefers_spec_provider_and_model_for_openai_compatible() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        unsafe {
+            std::env::remove_var("NOVITA_API_KEY");
+            std::env::remove_var("NOVITA_BASE_URL");
+        }
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                Json(json!({
+                    "choices": [{
+                        "message": {
+                            "content": "resolved via spec provider",
+                            "tool_calls": []
+                        }
+                    }]
+                }))
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+
+        let config = config_with_provider(
+            "secondary",
+            openai_compatible_provider(
+                format!("http://{addr}"),
+                Some(Secret {
+                    source: Some(proto::secret::Source::Plain("api-key".to_string())),
+                }),
+            ),
+        );
+        let spec = spec_with_default_model("secondary", "spec-model");
+        let llm = resolve_llm(&spec, &config).await.unwrap();
+        let response = llm.completion("ping").await.unwrap();
+        assert_eq!(response, "resolved via spec provider");
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn resolve_llm_uses_env_fallbacks_for_api_key_and_base_url() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                Json(json!({
+                    "choices": [{
+                        "message": {
+                            "content": "resolved via env override",
+                            "tool_calls": []
+                        }
+                    }]
+                }))
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
+
+        unsafe {
+            std::env::set_var("NOVITA_API_KEY", "env-key");
+            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
+        }
+        let config = config_with_provider(
+            "primary",
+            openai_compatible_provider("https://unused.example.com".to_string(), None),
+        );
+        let llm = resolve_llm(&manifests::AgentSpec::default(), &config)
+            .await
+            .unwrap();
+        let response = llm.completion("ping").await.unwrap();
+        assert_eq!(response, "resolved via env override");
+
+        unsafe {
+            std::env::remove_var("NOVITA_API_KEY");
+            std::env::remove_var("NOVITA_BASE_URL");
+        }
+        server.abort();
+    }
+}

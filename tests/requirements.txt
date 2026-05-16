@@ -1,7 +1,9 @@
 pytest
+pytest-cov
 pytest-asyncio
 grpcio
 grpcio-tools
+googleapis-common-protos
 fastapi
 uvicorn
 httpx

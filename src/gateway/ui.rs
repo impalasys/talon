@@ -512,8 +512,147 @@ pub async fn delete_chat(
 
 #[cfg(test)]
 mod tests {
-    use super::{extract_tool_step_payload, last_message_text, UiMessage, UiPart};
-    use crate::control::events::{SessionStepEvent, StepType};
+    use super::{
+        data_stream_line, delete_chat, extract_tool_step_payload, fetch_session, get_chat,
+        last_message_text, latest_assistant_message_text, latest_tool_step_payload, map_status,
+        ndjson_line, post_chat, step_dedup_key, tonic_request, ChatRequestBody, SessionPath,
+        UiMessage, UiPart,
+    };
+    use crate::control::events::{SessionControlEvent, SessionStepEvent, StepType};
+    use crate::control::{
+        keys,
+        scheduler::NoopSchedulerBackend,
+        topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+    };
+    use crate::gateway::rpc::{models, proto};
+    use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
+    use axum::body::to_bytes;
+    use axum::extract::{Path, State};
+    use axum::http::{header, HeaderMap, HeaderValue, StatusCode};
+    use axum::Json;
+    use futures::stream;
+    use prost::Message;
+    use serde_json::{json, Value};
+    use std::collections::HashMap;
+    use std::pin::Pin;
+    use std::sync::Arc;
+    use tokio::sync::Mutex;
+
+    #[derive(Default)]
+    struct MockKvStore {
+        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+    }
+
+    #[async_trait::async_trait]
+    impl KeyValueStore for MockKvStore {
+        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self
+                .data
+                .lock()
+                .await
+                .get(&(ns.to_string(), k.to_string()))
+                .cloned())
+        }
+
+        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
+            self.data
+                .lock()
+                .await
+                .insert((ns.to_string(), k.to_string()), v.to_vec());
+            Ok(())
+        }
+
+        async fn compare_and_swap(
+            &self,
+            ns: &str,
+            k: &str,
+            expected: Option<&[u8]>,
+            value: &[u8],
+        ) -> anyhow::Result<bool> {
+            let mut data = self.data.lock().await;
+            let key = (ns.to_string(), k.to_string());
+            let current = data.get(&key).cloned();
+            let matches = match (current.as_deref(), expected) {
+                (None, None) => true,
+                (Some(current), Some(expected)) => current == expected,
+                _ => false,
+            };
+            if matches {
+                data.insert(key, value.to_vec());
+            }
+            Ok(matches)
+        }
+
+        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
+            self.data
+                .lock()
+                .await
+                .remove(&(ns.to_string(), k.to_string()));
+            Ok(())
+        }
+
+        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
+            let mut keys = self
+                .data
+                .lock()
+                .await
+                .keys()
+                .filter_map(|(stored_ns, key)| {
+                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
+                })
+                .collect::<Vec<_>>();
+            keys.sort();
+            Ok(keys)
+        }
+    }
+
+    struct MockPubSub {
+        streams: Arc<Mutex<HashMap<String, Vec<Vec<u8>>>>>,
+        published: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
+    }
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for MockPubSub {
+        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
+            self.published
+                .lock()
+                .await
+                .push((topic.to_string(), message.to_vec()));
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            let data = self
+                .streams
+                .lock()
+                .await
+                .get(topic)
+                .cloned()
+                .unwrap_or_default();
+            Ok(Box::pin(stream::iter(data)))
+        }
+    }
+
+    fn setup_gateway(
+        kv: Arc<MockKvStore>,
+        streams: Arc<Mutex<HashMap<String, Vec<Vec<u8>>>>>,
+        published: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
+    ) -> Arc<Gateway> {
+        let pubsub = Arc::new(MockPubSub {
+            streams: streams.clone(),
+            published: published.clone(),
+        });
+        Arc::new(Gateway {
+            auth_config: None,
+            kv,
+            pubsub: pubsub.clone(),
+            scheduler: Arc::new(NoopSchedulerBackend),
+            session_streams: Arc::new(SessionStreamHub::new(pubsub)),
+        })
+    }
 
     #[test]
     fn last_message_text_prefers_content_then_text_parts() {
@@ -532,6 +671,25 @@ mod tests {
         ];
 
         assert_eq!(last_message_text(&messages).as_deref(), Some("world"));
+    }
+
+    #[test]
+    fn last_message_text_uses_text_parts_when_content_is_empty() {
+        let messages = vec![UiMessage {
+            content: Some("   ".to_string()),
+            parts: vec![
+                UiPart {
+                    kind: Some("text".to_string()),
+                    text: Some("hello".to_string()),
+                },
+                UiPart {
+                    kind: Some("text".to_string()),
+                    text: Some(" world".to_string()),
+                },
+            ],
+        }];
+
+        assert_eq!(last_message_text(&messages).as_deref(), Some("hello world"));
     }
 
     #[test]
@@ -555,5 +713,442 @@ mod tests {
         assert_eq!(payload.tool_name, "search");
         assert_eq!(payload.args["q"], "rust");
         assert_eq!(payload.result["ok"], true);
+    }
+
+    #[test]
+    fn extract_tool_step_payload_defaults_and_rejects_invalid_payloads() {
+        let fallback_step = SessionStepEvent {
+            session_id: "s".to_string(),
+            step_type: StepType::Observation as i32,
+            content: "fallback-result".to_string(),
+            timestamp: 0,
+            agent: "agent".to_string(),
+            ns: "ns".to_string(),
+            message_id: "message".to_string(),
+            name: String::new(),
+            payload_json: r#"{"tool_call_id":"call-9"}"#.to_string(),
+        };
+        let payload = extract_tool_step_payload(&fallback_step).expect("payload should parse");
+        assert_eq!(payload.tool_name, "tool");
+        assert_eq!(payload.args, json!({}));
+        assert_eq!(payload.result, Value::String("fallback-result".to_string()));
+
+        let missing_id = SessionStepEvent {
+            payload_json: r#"{"input":{"q":"rust"}}"#.to_string(),
+            ..fallback_step.clone()
+        };
+        assert!(extract_tool_step_payload(&missing_id).is_none());
+
+        let empty_id = SessionStepEvent {
+            payload_json: r#"{"tool_call_id":""}"#.to_string(),
+            ..fallback_step.clone()
+        };
+        assert!(extract_tool_step_payload(&empty_id).is_none());
+
+        let invalid_json = SessionStepEvent {
+            payload_json: "{not-json}".to_string(),
+            ..fallback_step
+        };
+        assert!(extract_tool_step_payload(&invalid_json).is_none());
+    }
+
+    #[test]
+    fn latest_tool_step_payload_returns_last_matching_entry() {
+        let steps = vec![
+            SessionStepEvent {
+                session_id: "s".to_string(),
+                step_type: StepType::Action as i32,
+                content: String::new(),
+                timestamp: 1,
+                agent: "agent".to_string(),
+                ns: "ns".to_string(),
+                message_id: "msg-1".to_string(),
+                name: "first".to_string(),
+                payload_json: r#"{"tool_call_id":"call-1","input":{"q":"first"}}"#.to_string(),
+            },
+            SessionStepEvent {
+                session_id: "s".to_string(),
+                step_type: StepType::Observation as i32,
+                content: String::new(),
+                timestamp: 2,
+                agent: "agent".to_string(),
+                ns: "ns".to_string(),
+                message_id: "msg-1".to_string(),
+                name: "obs".to_string(),
+                payload_json: r#"{"tool_call_id":"call-1","output":{"ok":true}}"#.to_string(),
+            },
+            SessionStepEvent {
+                session_id: "s".to_string(),
+                step_type: StepType::Action as i32,
+                content: String::new(),
+                timestamp: 3,
+                agent: "agent".to_string(),
+                ns: "ns".to_string(),
+                message_id: "msg-2".to_string(),
+                name: "second".to_string(),
+                payload_json: r#"{"tool_call_id":"call-2","input":{"q":"second"}}"#.to_string(),
+            },
+        ];
+
+        let payload = latest_tool_step_payload(steps.iter(), StepType::Action as i32).unwrap();
+        assert_eq!(payload.tool_call_id, "call-2");
+        assert_eq!(payload.tool_name, "second");
+        assert_eq!(payload.args["q"], "second");
+    }
+
+    #[test]
+    fn tonic_request_rejects_non_utf8_authorization_headers() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_bytes(&[0xFF]).expect("header value"),
+        );
+
+        let response = tonic_request(&headers, ()).expect_err("invalid auth should fail");
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[test]
+    fn tonic_request_copies_valid_authorization_headers() {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer demo-token"),
+        );
+
+        let request = tonic_request(&headers, "payload").expect("valid auth should pass");
+        assert_eq!(request.get_ref(), &"payload");
+        assert_eq!(
+            request
+                .metadata()
+                .get("authorization")
+                .and_then(|value| value.to_str().ok()),
+            Some("Bearer demo-token")
+        );
+    }
+
+    #[test]
+    fn map_status_translates_common_tonic_codes() {
+        assert_eq!(
+            map_status(tonic::Status::unauthenticated("no auth")).status(),
+            StatusCode::UNAUTHORIZED
+        );
+        assert_eq!(
+            map_status(tonic::Status::invalid_argument("bad")).status(),
+            StatusCode::BAD_REQUEST
+        );
+        assert_eq!(
+            map_status(tonic::Status::not_found("gone")).status(),
+            StatusCode::NOT_FOUND
+        );
+        assert_eq!(
+            map_status(tonic::Status::permission_denied("nope")).status(),
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            map_status(tonic::Status::resource_exhausted("busy")).status(),
+            StatusCode::CONFLICT
+        );
+        assert_eq!(
+            map_status(tonic::Status::internal("boom")).status(),
+            StatusCode::INTERNAL_SERVER_ERROR
+        );
+    }
+
+    #[test]
+    fn latest_assistant_message_text_returns_last_non_empty_assistant_message() {
+        let response = proto::SessionResponse {
+            session_id: "s".to_string(),
+            agent: "agent".to_string(),
+            state: "IDLE".to_string(),
+            messages: vec![
+                models::SessionMessage {
+                    id: "m1".to_string(),
+                    role: 1,
+                    content: "user".to_string(),
+                    created_at: 1,
+                    labels: HashMap::new(),
+                },
+                models::SessionMessage {
+                    id: "m2".to_string(),
+                    role: 2,
+                    content: String::new(),
+                    created_at: 2,
+                    labels: HashMap::new(),
+                },
+                models::SessionMessage {
+                    id: "m3".to_string(),
+                    role: 2,
+                    content: "done".to_string(),
+                    created_at: 3,
+                    labels: HashMap::new(),
+                },
+            ],
+            steps: Vec::new(),
+            labels: HashMap::new(),
+        };
+
+        assert_eq!(
+            latest_assistant_message_text(&response).as_deref(),
+            Some("done")
+        );
+    }
+
+    #[test]
+    fn framing_and_dedup_helpers_return_stable_output() {
+        let step = SessionStepEvent {
+            session_id: "s".to_string(),
+            step_type: StepType::Token as i32,
+            content: "hello".to_string(),
+            timestamp: 7,
+            agent: "agent".to_string(),
+            ns: "ns".to_string(),
+            message_id: "msg-1".to_string(),
+            name: "name".to_string(),
+            payload_json: String::new(),
+        };
+
+        assert_eq!(
+            String::from_utf8(ndjson_line(json!({"type":"text","value":"hello"}))).unwrap(),
+            "{\"type\":\"text\",\"value\":\"hello\"}\n"
+        );
+        assert_eq!(
+            String::from_utf8(data_stream_line("0", json!("hello"))).unwrap(),
+            "0:\"hello\"\n"
+        );
+        assert_eq!(step_dedup_key(&step), "msg-1:7:1:name:hello");
+    }
+
+    #[tokio::test]
+    async fn fetch_session_reads_seeded_session_state() {
+        let kv = Arc::new(MockKvStore::default());
+        kv.set_msg(
+            "default",
+            &keys::session("agent", "session-1"),
+            &models::Session {
+                id: "session-1".to_string(),
+                agent: "agent".to_string(),
+                ns: "default".to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: HashMap::new(),
+                labels: HashMap::from([("env".to_string(), "test".to_string())]),
+            },
+        )
+        .await
+        .unwrap();
+        let gateway = setup_gateway(
+            kv,
+            Arc::new(Mutex::new(HashMap::new())),
+            Arc::new(Mutex::new(Vec::new())),
+        );
+
+        let response = fetch_session(
+            &gateway,
+            &HeaderMap::new(),
+            &SessionPath {
+                ns: "default".to_string(),
+                agent: "agent".to_string(),
+                session_id: "session-1".to_string(),
+            },
+        )
+        .await
+        .expect("session should load");
+
+        assert_eq!(response.session_id, "session-1");
+        assert_eq!(response.state, "IDLE");
+        assert_eq!(response.labels.get("env").map(String::as_str), Some("test"));
+    }
+
+    #[tokio::test]
+    async fn post_chat_rejects_empty_messages_before_backend_dispatch() {
+        let gateway = setup_gateway(
+            Arc::new(MockKvStore::default()),
+            Arc::new(Mutex::new(HashMap::new())),
+            Arc::new(Mutex::new(Vec::new())),
+        );
+
+        let response = post_chat(
+            State(gateway),
+            Path(SessionPath {
+                ns: "default".to_string(),
+                agent: "agent".to_string(),
+                session_id: "session-1".to_string(),
+            }),
+            HeaderMap::new(),
+            Json(ChatRequestBody {
+                messages: vec![UiMessage {
+                    content: None,
+                    parts: vec![UiPart {
+                        kind: Some("text".to_string()),
+                        text: Some("   ".to_string()),
+                    }],
+                }],
+            }),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        assert!(String::from_utf8_lossy(&body).contains("message content is required"));
+    }
+
+    #[tokio::test]
+    async fn post_chat_maps_missing_session_to_not_found() {
+        let gateway = setup_gateway(
+            Arc::new(MockKvStore::default()),
+            Arc::new(Mutex::new(HashMap::new())),
+            Arc::new(Mutex::new(Vec::new())),
+        );
+
+        let response = post_chat(
+            State(gateway),
+            Path(SessionPath {
+                ns: "default".to_string(),
+                agent: "agent".to_string(),
+                session_id: "missing-session".to_string(),
+            }),
+            HeaderMap::new(),
+            Json(ChatRequestBody {
+                messages: vec![UiMessage {
+                    content: Some("hello".to_string()),
+                    parts: vec![],
+                }],
+            }),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        assert!(String::from_utf8_lossy(&body).contains("Session not found"));
+    }
+
+    #[tokio::test]
+    async fn get_chat_streams_tool_calls_results_and_text() {
+        let session_id = "session-123";
+        let topic_name =
+            topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+        let streams = Arc::new(Mutex::new(HashMap::from([(
+            topic_name,
+            vec![
+                SessionStepEvent {
+                    session_id: session_id.to_string(),
+                    step_type: StepType::Action as i32,
+                    content: String::new(),
+                    timestamp: 1,
+                    agent: "agent".to_string(),
+                    ns: "default".to_string(),
+                    message_id: "msg-1".to_string(),
+                    name: "search".to_string(),
+                    payload_json: r#"{"tool_call_id":"call-1","input":{"q":"rust"}}"#.to_string(),
+                }
+                .encode_to_vec(),
+                SessionStepEvent {
+                    session_id: session_id.to_string(),
+                    step_type: StepType::Observation as i32,
+                    content: "fallback".to_string(),
+                    timestamp: 2,
+                    agent: "agent".to_string(),
+                    ns: "default".to_string(),
+                    message_id: "msg-1".to_string(),
+                    name: "search".to_string(),
+                    payload_json: r#"{"tool_call_id":"call-1","output":{"ok":true}}"#.to_string(),
+                }
+                .encode_to_vec(),
+                SessionStepEvent {
+                    session_id: session_id.to_string(),
+                    step_type: StepType::Token as i32,
+                    content: "Hello".to_string(),
+                    timestamp: 3,
+                    agent: "agent".to_string(),
+                    ns: "default".to_string(),
+                    message_id: "msg-1".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                }
+                .encode_to_vec(),
+                SessionStepEvent {
+                    session_id: session_id.to_string(),
+                    step_type: StepType::Done as i32,
+                    content: String::new(),
+                    timestamp: 4,
+                    agent: "agent".to_string(),
+                    ns: "default".to_string(),
+                    message_id: "msg-1".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                }
+                .encode_to_vec(),
+            ],
+        )])));
+        let gateway = setup_gateway(
+            Arc::new(MockKvStore::default()),
+            streams,
+            Arc::new(Mutex::new(Vec::new())),
+        );
+
+        let response = get_chat(
+            State(gateway),
+            Path(SessionPath {
+                ns: "default".to_string(),
+                agent: "agent".to_string(),
+                session_id: session_id.to_string(),
+            }),
+            HeaderMap::new(),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let text = String::from_utf8(body.to_vec()).unwrap();
+        assert!(text.contains(r#""type":"tool_call""#));
+        assert!(text.contains(r#""toolCallId":"call-1""#));
+        assert!(text.contains(r#""type":"tool_result""#));
+        assert!(text.contains(r#""ok":true"#));
+        assert!(text.contains(r#""type":"text","value":"Hello""#));
+    }
+
+    #[tokio::test]
+    async fn delete_chat_stops_generation_and_returns_no_content() {
+        let kv = Arc::new(MockKvStore::default());
+        kv.set_msg(
+            "default",
+            &keys::session("agent", "session-1"),
+            &models::Session {
+                id: "session-1".to_string(),
+                agent: "agent".to_string(),
+                ns: "default".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        let published = Arc::new(Mutex::new(Vec::new()));
+        let gateway = setup_gateway(kv, Arc::new(Mutex::new(HashMap::new())), published.clone());
+
+        let response = delete_chat(
+            State(gateway),
+            Path(SessionPath {
+                ns: "default".to_string(),
+                agent: "agent".to_string(),
+                session_id: "session-1".to_string(),
+            }),
+            HeaderMap::new(),
+            Json(Value::Null),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::NO_CONTENT);
+
+        let published = published.lock().await;
+        assert_eq!(published.len(), 1);
+        assert_eq!(published[0].0, topics::SESSION_CONTROL_TOPIC);
+        let event = SessionControlEvent::decode(published[0].1.as_slice()).unwrap();
+        assert_eq!(event.action, "stop_generation");
     }
 }
