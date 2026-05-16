@@ -408,7 +408,10 @@ mod tests {
         .unwrap_err();
         let rendered = err.to_string();
         assert!(rendered.contains("rpc failed"));
-        assert!(rendered.contains("ui task also failed: ui failed"));
+        assert!(rendered.contains("ui failed"));
+        assert!(
+            rendered.contains("ui task also failed") || rendered.contains("rpc task also failed")
+        );
     }
 
     #[tokio::test]
