@@ -26,6 +26,13 @@ const UI_STREAM_TOOL_RESULT_CODE = "a";
 const UI_STREAM_USAGE_CODE = "h";
 const UI_STREAM_ERROR_CODE = "3";
 
+function createLocalMessageId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `msg-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 export function sessionResponseHasAssistantText(response: any): boolean {
   return Array.isArray(response?.messages) && response.messages.some((message: any) => {
     return (
@@ -123,7 +130,7 @@ export async function streamUiSubmission(options: {
   let assistantMessageId: string | null = null;
 
   const ensureLiveAssistant = (messageId?: string) => {
-    const nextMessageId = messageId || assistantMessageId || crypto.randomUUID();
+    const nextMessageId = messageId || assistantMessageId || createLocalMessageId();
     const previousMessageId = assistantMessageId;
     assistantMessageId = nextMessageId;
     setMessages((prev) => {
@@ -184,7 +191,7 @@ export async function streamUiSubmission(options: {
         setMessages((prev) =>
           applyToolInvocationToMessages(
             prev,
-            typeof part?.toolCallId === "string" ? part.toolCallId : `tool-${crypto.randomUUID()}`,
+            typeof part?.toolCallId === "string" ? part.toolCallId : `tool-${createLocalMessageId()}`,
             typeof part?.toolName === "string" ? part.toolName : "tool",
             part?.args,
             undefined,
@@ -204,7 +211,7 @@ export async function streamUiSubmission(options: {
         setMessages((prev) =>
           applyToolInvocationToMessages(
             prev,
-            typeof part?.toolCallId === "string" ? part.toolCallId : `tool-${crypto.randomUUID()}`,
+            typeof part?.toolCallId === "string" ? part.toolCallId : `tool-${createLocalMessageId()}`,
             "",
             undefined,
             part?.result,

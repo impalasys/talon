@@ -36,6 +36,8 @@ export type TalonCopilotProps = {
   autoFocus?: boolean;
   disabled?: boolean;
   talonIcon?: React.ReactNode;
+  timestampLocale?: Intl.LocalesArgument;
+  formatTimestamp?: (message: CopilotMessage) => string;
 };
 
 const bootMessage: CopilotMessage[] = [
@@ -81,7 +83,14 @@ function isSameSession(
   );
 }
 
-function formatMessageTimestamp(message: CopilotMessage) {
+function createLocalMessageId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `msg-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function defaultFormatMessageTimestamp(message: CopilotMessage, timestampLocale?: Intl.LocalesArgument) {
   function normalizeEpochToMilliseconds(value: unknown) {
     let normalized: number | null = null;
     if (typeof value === "bigint") {
@@ -110,12 +119,12 @@ function formatMessageTimestamp(message: CopilotMessage) {
     return null;
   }
 
-  function formatTimestamp(value: unknown) {
+  function formatTimestampValue(value: unknown) {
     const timestampMs = normalizeEpochToMilliseconds(value);
     if (timestampMs === null) {
       return "—";
     }
-    return new Date(timestampMs).toLocaleString([], {
+    return new Date(timestampMs).toLocaleString(timestampLocale, {
       year: "numeric",
       month: "numeric",
       day: "numeric",
@@ -154,10 +163,10 @@ function formatMessageTimestamp(message: CopilotMessage) {
 
   const explicit = message?.createdAt ?? (message as CopilotMessage & { created_at?: string | number | bigint }).created_at;
   if (explicit !== undefined && explicit !== null && explicit !== "") {
-    return formatTimestamp(explicit);
+    return formatTimestampValue(explicit);
   }
   const inferred = millisecondsFromUuidLike(message?.id) ?? millisecondsFromUlidLike(message?.id);
-  return inferred ? formatTimestamp(inferred) : "—";
+  return inferred ? formatTimestampValue(inferred) : "—";
 }
 
 function MarkdownMessage({ children }: { children: string }) {
@@ -299,6 +308,8 @@ export function TalonCopilot({
   autoFocus = true,
   disabled = false,
   talonIcon = <DefaultTalonIcon />,
+  timestampLocale,
+  formatTimestamp,
 }: TalonCopilotProps) {
   const [messages, setMessages] = useState<CopilotMessage[]>(bootMessage);
   const [input, setInput] = useState("");
@@ -368,6 +379,23 @@ export function TalonCopilot({
     }
     return headers;
   }, [authToken]);
+
+  const resolvedTimestampFormatter = useMemo(() => {
+    if (formatTimestamp) {
+      return formatTimestamp;
+    }
+    return (message: CopilotMessage) => defaultFormatMessageTimestamp(message, timestampLocale);
+  }, [formatTimestamp, timestampLocale]);
+
+  const inputRows = useMemo(() => {
+    let rowCount = 1;
+    for (let index = 0; index < input.length; index += 1) {
+      if (input.charCodeAt(index) === 10) {
+        rowCount += 1;
+      }
+    }
+    return Math.min(rowCount, 8);
+  }, [input]);
 
   const getSessionState = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
@@ -539,7 +567,7 @@ export function TalonCopilot({
       }
 
       const userMessage: CopilotMessage = {
-        id: crypto.randomUUID(),
+        id: createLocalMessageId(),
         role: "user",
         content: text,
         parts: [{ type: "text", text }],
@@ -652,7 +680,7 @@ export function TalonCopilot({
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontSize: 13, fontWeight: 600 }}>{message.role === "user" ? "Operator" : "Talon"}</span>
                     <span style={{ fontSize: 11, opacity: 0.64, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
-                      {formatMessageTimestamp(message)}
+                      {resolvedTimestampFormatter(message)}
                     </span>
                   </div>
 
@@ -836,7 +864,7 @@ export function TalonCopilot({
               placeholder={placeholder}
               autoFocus={autoFocus}
               disabled={disabled}
-              rows={Math.min((input || "").split("\n").length, 8) || 1}
+              rows={inputRows}
               style={{
                 flex: 1,
                 resize: "none",
