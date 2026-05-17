@@ -19,7 +19,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@talonai/copilot": ["../packages/copilot/src/index.ts"]
     },
     "plugins": [
       {

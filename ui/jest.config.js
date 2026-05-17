@@ -11,9 +11,14 @@ const customJestConfig = {
     '<rootDir>/e2e/',
     '/node_modules/',
   ],
+  moduleNameMapper: {
+    '^@talonai/copilot$': '<rootDir>/../packages/copilot/src/index.ts',
+    '^streamdown$': '<rootDir>/test/streamdownMock.js',
+  },
   collectCoverage: true,
   collectCoverageFrom: [
     'lib/**/*.{ts,tsx}',
+    '../packages/copilot/src/**/*.{ts,tsx}',
     '!**/*.d.ts',
     '!proto/**',
     '!e2e/**',
