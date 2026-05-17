@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ChevronRight, Send, Square, User } from "lucide-react";
 import { Streamdown } from "streamdown";
 import {
@@ -129,7 +129,7 @@ function formatMessageTimestamp(message: CopilotMessage) {
   function millisecondsFromUuidLike(id: unknown) {
     if (typeof id !== "string") return null;
     const compactHex = id.replace(/[^0-9a-fA-F]/g, "");
-    if (compactHex.length >= 12) {
+    if (compactHex.length >= 32 && compactHex.charAt(12) === "7") {
       const time = parseInt(compactHex.slice(0, 12), 16);
       return Number.isNaN(time) ? null : time;
     }
@@ -333,10 +333,6 @@ export function TalonCopilot({
     }
     bottomRef.current?.scrollIntoView({ behavior });
   }, []);
-
-  useLayoutEffect(() => {
-    scrollTranscriptToBottom("auto");
-  }, [currentSession?.sessionId, messages, streamEvents, isLoading, error, scrollTranscriptToBottom]);
 
   useEffect(() => {
     const rafId = window.requestAnimationFrame(() => {

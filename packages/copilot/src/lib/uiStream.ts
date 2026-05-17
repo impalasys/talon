@@ -18,6 +18,14 @@ export type StreamEventItem = {
   payload?: unknown;
 };
 
+const UI_STREAM_ASSISTANT_MESSAGE_ID_CODE = "f";
+const UI_STREAM_TEXT_CHUNK_CODE = "0";
+const UI_STREAM_REASONING_CHUNK_CODE = "g";
+const UI_STREAM_TOOL_CALL_CODE = "9";
+const UI_STREAM_TOOL_RESULT_CODE = "a";
+const UI_STREAM_USAGE_CODE = "h";
+const UI_STREAM_ERROR_CODE = "3";
+
 export function sessionResponseHasAssistantText(response: any): boolean {
   return Array.isArray(response?.messages) && response.messages.some((message: any) => {
     return (
@@ -152,17 +160,17 @@ export async function streamUiSubmission(options: {
         continue;
       }
 
-      if (code === "f" && typeof part?.messageId === "string" && part.messageId) {
+      if (code === UI_STREAM_ASSISTANT_MESSAGE_ID_CODE && typeof part?.messageId === "string" && part.messageId) {
         ensureLiveAssistant(part.messageId);
-      } else if (code === "0" && typeof part === "string") {
+      } else if (code === UI_STREAM_TEXT_CHUNK_CODE && typeof part === "string") {
         const messageId = ensureLiveAssistant();
         assistantText += part;
         setMessages((prev) => appendAssistantText(prev, messageId, part));
-      } else if (code === "g" && typeof part === "string") {
+      } else if (code === UI_STREAM_REASONING_CHUNK_CODE && typeof part === "string") {
         const messageId = ensureLiveAssistant();
         setStreamEvents((prev) => [...prev, { type: "reasoning", content: part }]);
         setMessages((prev) => appendAssistantReasoning(prev, messageId, part));
-      } else if (code === "9") {
+      } else if (code === UI_STREAM_TOOL_CALL_CODE) {
         const messageId = ensureLiveAssistant();
         setStreamEvents((prev) => [
           ...prev,
@@ -183,7 +191,7 @@ export async function streamUiSubmission(options: {
             messageId,
           ),
         );
-      } else if (code === "a") {
+      } else if (code === UI_STREAM_TOOL_RESULT_CODE) {
         const messageId = ensureLiveAssistant();
         setStreamEvents((prev) => [
           ...prev,
@@ -203,7 +211,7 @@ export async function streamUiSubmission(options: {
             messageId,
           ),
         );
-      } else if (code === "h" && part && typeof part === "object") {
+      } else if (code === UI_STREAM_USAGE_CODE && part && typeof part === "object") {
         const messageId = ensureLiveAssistant();
         setStreamEvents((prev) => [
           ...prev,
@@ -214,7 +222,7 @@ export async function streamUiSubmission(options: {
           },
         ]);
         setMessages((prev) => applyUsageToMessages(prev, messageId, part as UsageSummary));
-      } else if (code === "3") {
+      } else if (code === UI_STREAM_ERROR_CODE) {
         throw new Error(typeof part === "string" ? part : "Stream error");
       }
     }
