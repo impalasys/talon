@@ -798,6 +798,7 @@ impl ModelManifest {
             provider: self.provider,
             name: self.name,
             temperature: self.temperature,
+            thinking: None,
         }
     }
 
@@ -1158,6 +1159,7 @@ spec:
                                     provider: "openai".to_string(),
                                     name: "gpt-4.1".to_string(),
                                     temperature: 0.2,
+                                    thinking: None,
                                 }),
                             }],
                         }),
@@ -1218,6 +1220,7 @@ spec:
                             provider: "openai".to_string(),
                             name: "gpt-4.1".to_string(),
                             temperature: 0.1,
+                            thinking: None,
                         }),
                     }],
                 }),

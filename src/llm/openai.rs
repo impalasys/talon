@@ -2,13 +2,17 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::llm::provider::{
-    ChatMessage, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider, ToolCallDelta,
+    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
+    ToolCallDelta,
 };
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use futures::{stream, StreamExt};
 use serde_json::Value;
+
+const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
+const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
 
 #[derive(Debug, Clone, Copy)]
 struct RequestDebugStats {
@@ -83,6 +87,18 @@ impl OpenAiCompatibleProvider {
             && messages.iter().any(|m| {
                 m.role == "tool" || m.tool_calls.as_ref().is_some_and(|calls| !calls.is_empty())
             })
+    }
+
+    fn supports_stream_options_retry(&self, stream: bool, err_text: &str) -> bool {
+        stream
+            && {
+                let lower = err_text.to_ascii_lowercase();
+                lower.contains("stream_options")
+                    || lower.contains("include_usage")
+                    || lower.contains("unknown field")
+                    || lower.contains("unknown parameter")
+                    || lower.contains("unexpected field")
+            }
     }
 
     fn debug_requests_enabled() -> bool {
@@ -228,14 +244,13 @@ impl OpenAiCompatibleProvider {
 
     async fn send_chat_request(
         &self,
-        messages: Vec<ChatMessage>,
-        tools: Vec<crate::llm::provider::Tool>,
+        request: ChatRequest,
         stream: bool,
     ) -> Result<reqwest::Response> {
         let url = format!("{}/chat/completions", self.base_url.trim_end_matches('/'));
-        let serialized_messages = Self::serialize_messages(messages.clone());
+        let serialized_messages = Self::serialize_messages(request.messages.clone());
 
-        let build_payload = |include_tools: bool| {
+        let build_payload = |include_tools: bool, include_stream_options: bool| {
             let mut payload = serde_json::json!({
                 "model": self.model,
                 "messages": serialized_messages,
@@ -243,10 +258,16 @@ impl OpenAiCompatibleProvider {
 
             if stream {
                 payload["stream"] = serde_json::json!(true);
+                if include_stream_options {
+                    payload["stream_options"] = serde_json::json!({
+                        "include_usage": true
+                    });
+                }
             }
 
-            if include_tools && !tools.is_empty() {
-                let openai_tools: Vec<serde_json::Value> = tools
+            if include_tools && !request.tools.is_empty() {
+                let openai_tools: Vec<serde_json::Value> = request
+                    .tools
                     .iter()
                     .map(|tool| {
                         serde_json::json!({
@@ -263,17 +284,29 @@ impl OpenAiCompatibleProvider {
                 payload["tool_choice"] = serde_json::json!("auto");
             }
 
+            if let Some(thinking) = request.thinking.as_ref().filter(|thinking| thinking.enabled) {
+                if !thinking.effort.trim().is_empty() {
+                    payload["reasoning_effort"] = serde_json::json!(thinking.effort);
+                }
+                let budget_tokens = thinking
+                    .budget_tokens
+                    .unwrap_or(DEFAULT_THINKING_BUDGET_TOKENS);
+                let max_completion_tokens =
+                    budget_tokens.saturating_add(THINKING_COMPLETION_BUFFER_TOKENS);
+                payload["max_completion_tokens"] = serde_json::json!(max_completion_tokens);
+            }
+
             payload
         };
 
-        let initial_include_tools = !tools.is_empty();
-        let initial_payload = build_payload(initial_include_tools);
+        let initial_include_tools = !request.tools.is_empty();
+        let initial_payload = build_payload(initial_include_tools, true);
         self.log_request_attempt(
             "initial",
             initial_include_tools,
             stream,
             &serialized_messages,
-            &tools,
+            &request.tools,
             &initial_payload,
         );
         let initial_resp = self
@@ -295,29 +328,110 @@ impl OpenAiCompatibleProvider {
             initial_include_tools,
             stream,
             &serialized_messages,
-            &tools,
+            &request.tools,
             &initial_payload,
             initial_status,
             &err_text,
         );
-        if self.supports_tool_retry_without_tools(&messages, &err_text, initial_include_tools) {
-            let retry_serialized_messages = serialized_messages.clone();
-            let retry_payload = {
-                let mut payload = serde_json::json!({
-                    "model": self.model,
-                    "messages": retry_serialized_messages,
-                });
-                if stream {
-                    payload["stream"] = serde_json::json!(true);
+        if self.supports_stream_options_retry(stream, &err_text) {
+            let retry_payload = build_payload(initial_include_tools, false);
+            self.log_request_attempt(
+                "retry_without_stream_options",
+                initial_include_tools,
+                stream,
+                &serialized_messages,
+                &request.tools,
+                &retry_payload,
+            );
+            let retry_resp = self
+                .http_client
+                .post(&url)
+                .header("Authorization", format!("Bearer {}", self.api_key))
+                .json(&retry_payload)
+                .send()
+                .await?;
+
+            if retry_resp.status().is_success() {
+                return Ok(retry_resp);
+            }
+
+            let retry_status = retry_resp.status();
+            let retry_err_text = retry_resp.text().await?;
+            self.log_request_failure(
+                "retry_without_stream_options",
+                initial_include_tools,
+                stream,
+                &serialized_messages,
+                &request.tools,
+                &retry_payload,
+                retry_status,
+                &retry_err_text,
+            );
+
+            if self.supports_tool_retry_without_tools(
+                &request.messages,
+                &retry_err_text,
+                initial_include_tools,
+            ) {
+                let retry_without_tools_payload = build_payload(false, false);
+                self.log_request_attempt(
+                    "retry_without_stream_options_or_tools",
+                    false,
+                    stream,
+                    &serialized_messages,
+                    &request.tools,
+                    &retry_without_tools_payload,
+                );
+                let retry_without_tools_resp = self
+                    .http_client
+                    .post(&url)
+                    .header("Authorization", format!("Bearer {}", self.api_key))
+                    .json(&retry_without_tools_payload)
+                    .send()
+                    .await?;
+
+                if retry_without_tools_resp.status().is_success() {
+                    return Ok(retry_without_tools_resp);
                 }
-                payload
-            };
+
+                let retry_without_tools_status = retry_without_tools_resp.status();
+                let retry_without_tools_err_text = retry_without_tools_resp.text().await?;
+                self.log_request_failure(
+                    "retry_without_stream_options_or_tools",
+                    false,
+                    stream,
+                    &serialized_messages,
+                    &request.tools,
+                    &retry_without_tools_payload,
+                    retry_without_tools_status,
+                    &retry_without_tools_err_text,
+                );
+                return Err(anyhow!(
+                    "OpenAI API error after retry_without_stream_options_or_tools: initial={}, retry_without_stream_options={}, retry_without_stream_options_or_tools={}",
+                    err_text,
+                    retry_err_text,
+                    retry_without_tools_err_text
+                ));
+            }
+
+            return Err(anyhow!(
+                "OpenAI API error after retry_without_stream_options: initial={}, retry_without_stream_options={}",
+                err_text,
+                retry_err_text
+            ));
+        }
+        if self.supports_tool_retry_without_tools(
+            &request.messages,
+            &err_text,
+            initial_include_tools,
+        ) {
+            let retry_payload = build_payload(false, true);
             self.log_request_attempt(
                 "retry_without_tools",
                 false,
                 stream,
-                &retry_serialized_messages,
-                &tools,
+                &serialized_messages,
+                &request.tools,
                 &retry_payload,
             );
             let retry_resp = self
@@ -338,8 +452,8 @@ impl OpenAiCompatibleProvider {
                 "retry_without_tools",
                 false,
                 stream,
-                &retry_serialized_messages,
-                &tools,
+                &serialized_messages,
+                &request.tools,
                 &retry_payload,
                 retry_status,
                 &retry_err_text,
@@ -363,12 +477,11 @@ impl LlmProvider for OpenAiCompatibleProvider {
 
     async fn chat_completion(
         &self,
-        messages: Vec<ChatMessage>,
-        tools: Vec<crate::llm::provider::Tool>,
+        request: ChatRequest,
     ) -> Result<ChatResponse> {
         use crate::llm::provider::ToolCall;
 
-        let resp = self.send_chat_request(messages, tools, false).await?;
+        let resp = self.send_chat_request(request, false).await?;
 
         let result: serde_json::Value = resp.json().await?;
         let message = &result["choices"][0]["message"];
@@ -395,15 +508,12 @@ impl LlmProvider for OpenAiCompatibleProvider {
         Ok(ChatResponse {
             content,
             tool_calls,
+            usage: extract_usage(&result),
         })
     }
 
-    async fn stream_chat_completion(
-        &self,
-        messages: Vec<ChatMessage>,
-        tools: Vec<crate::llm::provider::Tool>,
-    ) -> Result<ChatStream> {
-        let resp = self.send_chat_request(messages, tools, true).await?;
+    async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
+        let resp = self.send_chat_request(request, true).await?;
 
         let byte_stream = resp.bytes_stream();
         let line_stream = byte_stream.map(|item| item.map_err(|e| anyhow!("Stream error: {}", e)));
@@ -432,6 +542,19 @@ impl LlmProvider for OpenAiCompatibleProvider {
                             {
                                 items.push(Ok(ChatStreamEvent::TextDelta(content.to_string())));
                             }
+                            if let Some(reasoning) = value
+                                .pointer("/choices/0/delta/reasoning")
+                                .and_then(|v| v.as_str())
+                                .or_else(|| {
+                                    value
+                                        .pointer("/choices/0/delta/reasoning_content")
+                                        .and_then(|v| v.as_str())
+                                })
+                            {
+                                items.push(Ok(ChatStreamEvent::ReasoningDelta(
+                                    reasoning.to_string(),
+                                )));
+                            }
                             if let Some(tool_calls) = value
                                 .pointer("/choices/0/delta/tool_calls")
                                 .and_then(|v| v.as_array())
@@ -457,6 +580,9 @@ impl LlmProvider for OpenAiCompatibleProvider {
                                     }
                                 }
                             }
+                            if let Some(usage) = extract_usage(&value) {
+                                items.push(Ok(ChatStreamEvent::Usage(usage)));
+                            }
                         }
                     }
                 }
@@ -470,23 +596,58 @@ impl LlmProvider for OpenAiCompatibleProvider {
 
     async fn completion(&self, prompt: &str) -> Result<String> {
         self.chat_completion(
-            vec![ChatMessage {
-                role: "user".to_string(),
-                content: prompt.to_string(),
-                tool_calls: None,
-                tool_call_id: None,
-            }],
-            vec![],
+            ChatRequest {
+                messages: vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: prompt.to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                tools: vec![],
+                thinking: None,
+            },
         )
         .await
         .map(|r| r.content)
     }
 }
 
+fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
+    let usage = value.get("usage")?;
+    let input_tokens = usage
+        .get("prompt_tokens")
+        .or_else(|| usage.get("input_tokens"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let output_tokens = usage
+        .get("completion_tokens")
+        .or_else(|| usage.get("output_tokens"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let reasoning_tokens = usage
+        .get("reasoning_tokens")
+        .or_else(|| usage.get("thinking_tokens"))
+        .or_else(|| usage.pointer("/completion_tokens_details/reasoning_tokens"))
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let total_tokens = usage
+        .get("total_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(input_tokens + output_tokens);
+
+    Some(ChatUsage {
+        input_tokens,
+        output_tokens,
+        reasoning_tokens,
+        total_tokens,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use axum::{extract::State, routing::post, Json, Router};
+    use crate::gateway::rpc::manifests::ThinkingConfig;
     use std::{
         net::SocketAddr,
         sync::{
@@ -763,10 +924,155 @@ mod tests {
             input_schema: serde_json::json!({"type": "object"}),
         }];
 
-        let response = provider.send_chat_request(messages, tools, false).await.unwrap();
+        let response = provider
+            .send_chat_request(
+                ChatRequest {
+                    messages,
+                    tools,
+                    thinking: None,
+                },
+                false,
+            )
+            .await
+            .unwrap();
         let payload: serde_json::Value = response.json().await.unwrap();
         assert_eq!(payload["choices"][0]["message"]["content"], "retried-ok");
         assert_eq!(hits.load(Ordering::SeqCst), 2);
+
+        server.abort();
+    }
+
+    #[test]
+    fn extract_usage_does_not_double_count_reasoning_tokens() {
+        let usage = extract_usage(&serde_json::json!({
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 20,
+                "reasoning_tokens": 6
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(usage.input_tokens, 10);
+        assert_eq!(usage.output_tokens, 20);
+        assert_eq!(usage.reasoning_tokens, 6);
+        assert_eq!(usage.total_tokens, 30);
+    }
+
+    #[test]
+    fn extract_usage_accepts_thinking_tokens_fallback() {
+        let usage = extract_usage(&serde_json::json!({
+            "usage": {
+                "prompt_tokens": 10,
+                "completion_tokens": 20,
+                "thinking_tokens": 6
+            }
+        }))
+        .unwrap();
+
+        assert_eq!(usage.input_tokens, 10);
+        assert_eq!(usage.output_tokens, 20);
+        assert_eq!(usage.reasoning_tokens, 6);
+        assert_eq!(usage.total_tokens, 30);
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_uses_reasoning_effort_field() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|Json(payload): Json<serde_json::Value>| async move {
+                assert_eq!(payload["reasoning_effort"], "high");
+                assert_eq!(payload["max_completion_tokens"], 6144);
+                assert!(payload.get("reasoning").is_none());
+                Json(serde_json::json!({
+                    "choices": [{
+                        "message": {
+                            "content": "ok"
+                        }
+                    }]
+                }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+
+        provider
+            .chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                tools: vec![],
+                thinking: Some(ThinkingConfig {
+                    enabled: true,
+                    budget_tokens: Some(2048),
+                    effort: "high".to_string(),
+                }),
+            })
+            .await
+            .unwrap();
+
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_defaults_completion_budget_for_thinking() {
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|Json(payload): Json<serde_json::Value>| async move {
+                assert_eq!(payload["reasoning_effort"], "medium");
+                assert_eq!(payload["max_completion_tokens"], 5120);
+                Json(serde_json::json!({
+                    "choices": [{
+                        "message": {
+                            "content": "ok"
+                        }
+                    }]
+                }))
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+
+        provider
+            .chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
+                    role: "user".to_string(),
+                    content: "hi".to_string(),
+                    tool_calls: None,
+                    tool_call_id: None,
+                }],
+                tools: vec![],
+                thinking: Some(ThinkingConfig {
+                    enabled: true,
+                    budget_tokens: None,
+                    effort: "medium".to_string(),
+                }),
+            })
+            .await
+            .unwrap();
 
         server.abort();
     }
@@ -805,15 +1111,16 @@ mod tests {
             "model".to_string(),
         );
         let result = provider
-            .chat_completion(
-                vec![ChatMessage {
+            .chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],
-                vec![],
-            )
+                tools: vec![],
+                thinking: None,
+            })
             .await
             .unwrap();
 
@@ -852,13 +1159,16 @@ mod tests {
         );
         let err = provider
             .send_chat_request(
-                vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: "hi".to_string(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
-                vec![],
+                ChatRequest {
+                    messages: vec![ChatMessage {
+                        role: "user".to_string(),
+                        content: "hi".to_string(),
+                        tool_calls: None,
+                        tool_call_id: None,
+                    }],
+                    tools: vec![],
+                    thinking: None,
+                },
                 false,
             )
             .await
@@ -866,6 +1176,81 @@ mod tests {
 
         assert!(err.to_string().contains("OpenAI API error"));
         assert!(err.to_string().contains("bad request"));
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn send_chat_request_retries_without_stream_options_when_rejected() {
+        let hits = Arc::new(AtomicUsize::new(0));
+        let app = Router::new().route(
+            "/chat/completions",
+            post({
+                let hits = hits.clone();
+                move |Json(payload): Json<serde_json::Value>| {
+                    let hits = hits.clone();
+                    async move {
+                        let hit = hits.fetch_add(1, Ordering::SeqCst);
+                        if hit == 0 {
+                            assert_eq!(
+                                payload["stream_options"],
+                                serde_json::json!({ "include_usage": true })
+                            );
+                            (
+                                axum::http::StatusCode::BAD_REQUEST,
+                                Json(serde_json::json!({
+                                    "message": "unknown field stream_options"
+                                })),
+                            )
+                        } else {
+                            assert!(payload.get("stream_options").is_none());
+                            (
+                                axum::http::StatusCode::OK,
+                                Json(serde_json::json!({
+                                    "choices": [{
+                                        "message": {
+                                            "content": "retried-ok"
+                                        }
+                                    }]
+                                })),
+                            )
+                        }
+                    }
+                }
+            }),
+        );
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        let provider = OpenAiCompatibleProvider::new(
+            "key".to_string(),
+            format!("http://{addr}"),
+            "model".to_string(),
+        );
+
+        let response = provider
+            .send_chat_request(
+                ChatRequest {
+                    messages: vec![ChatMessage {
+                        role: "user".to_string(),
+                        content: "hi".to_string(),
+                        tool_calls: None,
+                        tool_call_id: None,
+                    }],
+                    tools: vec![],
+                    thinking: None,
+                },
+                true,
+            )
+            .await
+            .unwrap();
+
+        let payload: serde_json::Value = response.json().await.unwrap();
+        assert_eq!(payload["choices"][0]["message"]["content"], "retried-ok");
+        assert_eq!(hits.load(Ordering::SeqCst), 2);
         server.abort();
     }
 
@@ -914,29 +1299,32 @@ mod tests {
         );
         let err = provider
             .send_chat_request(
-                vec![
-                    ChatMessage {
-                        role: "assistant".to_string(),
-                        content: "".to_string(),
-                        tool_calls: Some(vec![crate::llm::provider::ToolCall {
-                            id: "call_1".to_string(),
-                            name: "search".to_string(),
-                            arguments: "{\"q\":\"x\"}".to_string(),
-                        }]),
-                        tool_call_id: None,
-                    },
-                    ChatMessage {
-                        role: "tool".to_string(),
-                        content: "{\"ok\":true}".to_string(),
-                        tool_calls: None,
-                        tool_call_id: Some("call_1".to_string()),
-                    },
-                ],
-                vec![crate::llm::provider::Tool {
-                    name: "search".to_string(),
-                    description: "find things".to_string(),
-                    input_schema: serde_json::json!({"type": "object"}),
-                }],
+                ChatRequest {
+                    messages: vec![
+                        ChatMessage {
+                            role: "assistant".to_string(),
+                            content: "".to_string(),
+                            tool_calls: Some(vec![crate::llm::provider::ToolCall {
+                                id: "call_1".to_string(),
+                                name: "search".to_string(),
+                                arguments: "{\"q\":\"x\"}".to_string(),
+                            }]),
+                            tool_call_id: None,
+                        },
+                        ChatMessage {
+                            role: "tool".to_string(),
+                            content: "{\"ok\":true}".to_string(),
+                            tool_calls: None,
+                            tool_call_id: Some("call_1".to_string()),
+                        },
+                    ],
+                    tools: vec![crate::llm::provider::Tool {
+                        name: "search".to_string(),
+                        description: "find things".to_string(),
+                        input_schema: serde_json::json!({"type": "object"}),
+                    }],
+                    thinking: None,
+                },
                 false,
             )
             .await
@@ -952,9 +1340,15 @@ mod tests {
 
     #[tokio::test]
     async fn stream_chat_completion_emits_text_and_tool_call_deltas() {
+        let payloads = Arc::new(std::sync::Mutex::new(Vec::new()));
         let app = Router::new().route(
             "/chat/completions",
-            post(|| async {
+            post({
+                let payloads = payloads.clone();
+                move |Json(payload): Json<serde_json::Value>| {
+                    let payloads = payloads.clone();
+                    async move {
+                        payloads.lock().unwrap().push(payload);
                 axum::response::Response::builder()
                     .status(axum::http::StatusCode::OK)
                     .header("content-type", "text/event-stream")
@@ -966,6 +1360,8 @@ mod tests {
                         ),
                     ))
                     .unwrap()
+                    }
+                }
             }),
         );
 
@@ -981,15 +1377,16 @@ mod tests {
             "model".to_string(),
         );
         let mut stream = provider
-            .stream_chat_completion(
-                vec![ChatMessage {
+            .stream_chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],
-                vec![],
-            )
+                tools: vec![],
+                thinking: None,
+            })
             .await
             .unwrap();
 
@@ -1011,6 +1408,11 @@ mod tests {
         }
 
         assert!(stream.next().await.is_none());
+        let recorded_payloads = payloads.lock().unwrap();
+        assert_eq!(
+            recorded_payloads[0]["stream_options"],
+            serde_json::json!({ "include_usage": true })
+        );
         server.abort();
     }
 
@@ -1039,15 +1441,16 @@ mod tests {
             "model".to_string(),
         );
         let mut stream = provider
-            .stream_chat_completion(
-                vec![ChatMessage {
+            .stream_chat_completion(ChatRequest {
+                messages: vec![ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],
-                vec![],
-            )
+                tools: vec![],
+                thinking: None,
+            })
             .await
             .unwrap();
 

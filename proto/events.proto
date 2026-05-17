@@ -50,6 +50,8 @@ enum StepType {
     STEP_TYPE_OBSERVATION = 3;
     STEP_TYPE_DONE = 4;
     STEP_TYPE_ERROR = 5;
+    STEP_TYPE_REASONING = 6;
+    STEP_TYPE_USAGE = 7;
 }
 
 message SessionStepEvent {
