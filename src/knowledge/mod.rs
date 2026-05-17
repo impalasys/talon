@@ -24,6 +24,7 @@ pub struct KnowledgeResult {
 }
 
 /// A single listed artifact from the KnowledgeBook.
+#[derive(serde::Serialize)]
 pub struct KnowledgeListEntry {
     pub namespace: String,
     pub path: String,
