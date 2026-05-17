@@ -28,6 +28,7 @@ pub struct KnowledgeListEntry {
     pub namespace: String,
     pub path: String,
     pub updated_at: i64,
+    pub inherited: bool,
 }
 
 pub const KNOWLEDGE_WRITE_TOOL: &str = "knowledge_write";
@@ -54,6 +55,7 @@ pub trait KnowledgeBook: Send + Sync {
         &self,
         ns: &str,
         path_prefix: &str,
+        local_only: bool,
         recursive: bool,
         limit: usize,
     ) -> Result<Vec<KnowledgeListEntry>>;
@@ -104,6 +106,7 @@ pub fn register_tools(registry: &mut crate::skills::registry::ToolRegistry) {
             "type": "object",
             "properties": {
                 "path": { "type": "string", "description": "Optional path prefix to list under, e.g. 'seo/' or 'playbooks'." },
+                "local": { "type": "boolean", "description": "Whether to restrict results to the current namespace only. Defaults to true. Set to false to include inherited knowledge from ancestor namespaces." },
                 "recursive": { "type": "boolean", "description": "Whether to include nested descendants. Defaults to true." },
                 "limit": { "type": "integer", "description": "Maximum number of artifacts to return. Defaults to 50." }
             }
@@ -158,6 +161,10 @@ pub async fn execute_tool(
         }
         KNOWLEDGE_LIST_TOOL => {
             let path_prefix = args["path"].as_str().unwrap_or("");
+            let local_only = args
+                .get("local")
+                .and_then(Value::as_bool)
+                .unwrap_or(true);
             let recursive = args
                 .get("recursive")
                 .and_then(Value::as_bool)
@@ -167,7 +174,9 @@ pub async fn execute_tool(
                 .and_then(Value::as_u64)
                 .map(|value| value.clamp(1, 200) as usize)
                 .unwrap_or(50);
-            let entries = book.list(namespace, path_prefix, recursive, limit).await?;
+            let entries = book
+                .list(namespace, path_prefix, local_only, recursive, limit)
+                .await?;
             if entries.is_empty() {
                 Ok(Some(format!(
                     "KnowledgeBook: no artifacts found under '{}'.",
@@ -176,11 +185,13 @@ pub async fn execute_tool(
             } else {
                 Ok(Some(serde_json::to_string_pretty(&json!({
                     "path": path_prefix,
+                    "local": local_only,
                     "recursive": recursive,
                     "entries": entries.into_iter().map(|entry| json!({
                         "namespace": entry.namespace,
                         "path": entry.path,
                         "updated_at": entry.updated_at,
+                        "scope": if entry.inherited { "inherited" } else { "local" },
                     })).collect::<Vec<_>>(),
                 }))?))
             }
@@ -376,6 +387,7 @@ impl KnowledgeBook for KvKnowledgeBook {
         &self,
         ns: &str,
         path_prefix: &str,
+        local_only: bool,
         recursive: bool,
         limit: usize,
     ) -> Result<Vec<KnowledgeListEntry>> {
@@ -384,7 +396,13 @@ impl KnowledgeBook for KvKnowledgeBook {
         let mut entries = Vec::new();
         let mut seen_paths = std::collections::HashSet::new();
 
-        for candidate_ns in crate::control::ns::ancestry(ns) {
+        let namespaces = if local_only {
+            vec![ns.to_string()]
+        } else {
+            crate::control::ns::ancestry(ns)
+        };
+
+        for candidate_ns in namespaces {
             let mut keys = self.kv.list_keys(&candidate_ns, prefix).await?;
             keys.sort();
 
@@ -406,6 +424,7 @@ impl KnowledgeBook for KvKnowledgeBook {
                     namespace,
                     path,
                     updated_at: entry.updated_at,
+                    inherited: candidate_ns != ns,
                 });
                 if entries.len() >= limit {
                     return Ok(entries);
@@ -467,15 +486,17 @@ mod tests {
         }
 
         let non_recursive = book
-            .list("conic:wks:13", "playbooks", false, 10)
+            .list("conic:wks:13", "playbooks", false, false, 10)
             .await
             .unwrap();
         assert_eq!(non_recursive.len(), 2);
         assert_eq!(non_recursive[0].path, "playbooks/local.md");
         assert_eq!(non_recursive[1].path, "playbooks/root.md");
+        assert!(!non_recursive[0].inherited);
+        assert!(non_recursive[1].inherited);
 
         let recursive = book
-            .list("conic:wks:13", "playbooks", true, 10)
+            .list("conic:wks:13", "playbooks", false, true, 10)
             .await
             .unwrap();
         assert_eq!(recursive.len(), 3);
@@ -488,6 +509,14 @@ mod tests {
                 "playbooks/root.md".to_string(),
             ]
         );
+
+        let local_only = book
+            .list("conic:wks:13", "playbooks", true, true, 10)
+            .await
+            .unwrap();
+        assert_eq!(local_only.len(), 1);
+        assert_eq!(local_only[0].path, "playbooks/local.md");
+        assert!(!local_only[0].inherited);
     }
 
     impl MockKvStore {
@@ -752,6 +781,21 @@ mod tests {
             .unwrap();
         let list_payload: serde_json::Value = serde_json::from_str(&list).unwrap();
         assert_eq!(list_payload["entries"][0]["path"], "goals.md");
+        assert_eq!(list_payload["entries"][0]["scope"], "local");
+        assert_eq!(list_payload["local"], true);
+
+        let inherited_list = execute_tool(
+            &book,
+            "conic:wks:13",
+            KNOWLEDGE_LIST_TOOL,
+            &json!({"local":false}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let inherited_payload: serde_json::Value = serde_json::from_str(&inherited_list).unwrap();
+        assert_eq!(inherited_payload["local"], false);
+        assert_eq!(inherited_payload["entries"][0]["scope"], "inherited");
 
         let empty_list = execute_tool(
             &book,

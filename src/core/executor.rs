@@ -581,6 +581,7 @@ mod tests {
             &self,
             _ns: &str,
             _path_prefix: &str,
+            _local_only: bool,
             _recursive: bool,
             _limit: usize,
         ) -> Result<Vec<KnowledgeListEntry>> {
@@ -636,6 +637,7 @@ mod tests {
             &self,
             ns: &str,
             path_prefix: &str,
+            _local_only: bool,
             _recursive: bool,
             _limit: usize,
         ) -> Result<Vec<KnowledgeListEntry>> {
@@ -643,6 +645,7 @@ mod tests {
                 namespace: ns.to_string(),
                 path: format!("{}/plan.md", path_prefix.trim_matches('/')),
                 updated_at: 42,
+                inherited: false,
             }])
         }
     }
