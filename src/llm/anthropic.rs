@@ -61,6 +61,19 @@ impl AnthropicProvider {
             })),
         )
     }
+
+    fn extract_text_content(value: &serde_json::Value) -> String {
+        value["content"]
+            .as_array()
+            .map(|parts| {
+                parts
+                    .iter()
+                    .filter_map(|part| part["text"].as_str())
+                    .collect::<Vec<_>>()
+                    .join("")
+            })
+            .unwrap_or_default()
+    }
 }
 
 #[async_trait]
@@ -109,10 +122,7 @@ impl LlmProvider for AnthropicProvider {
         }
 
         let result: serde_json::Value = resp.json().await?;
-        let content = result["content"][0]["text"]
-            .as_str()
-            .ok_or_else(|| anyhow!("Invalid Anthropic response format"))?
-            .to_string();
+        let content = Self::extract_text_content(&result);
 
         Ok(ChatResponse {
             content,
@@ -320,6 +330,19 @@ mod tests {
                 "budget_tokens": 5000,
             }))
         );
+    }
+
+    #[test]
+    fn extract_text_content_ignores_thinking_blocks() {
+        let response = json!({
+            "content": [
+                { "type": "thinking", "thinking": "hidden" },
+                { "type": "text", "text": "hello" },
+                { "type": "text", "text": " world" }
+            ]
+        });
+
+        assert_eq!(AnthropicProvider::extract_text_content(&response), "hello world");
     }
 
     fn test_provider(base_url: String) -> AnthropicProvider {

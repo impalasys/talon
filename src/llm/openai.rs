@@ -425,17 +425,12 @@ impl OpenAiCompatibleProvider {
             &err_text,
             initial_include_tools,
         ) {
-            let retry_serialized_messages = serialized_messages.clone();
-            let retry_payload = {
-                let mut payload = build_payload(false, true);
-                payload["messages"] = serde_json::json!(retry_serialized_messages);
-                payload
-            };
+            let retry_payload = build_payload(false, true);
             self.log_request_attempt(
                 "retry_without_tools",
                 false,
                 stream,
-                &retry_serialized_messages,
+                &serialized_messages,
                 &request.tools,
                 &retry_payload,
             );
@@ -457,7 +452,7 @@ impl OpenAiCompatibleProvider {
                 "retry_without_tools",
                 false,
                 stream,
-                &retry_serialized_messages,
+                &serialized_messages,
                 &request.tools,
                 &retry_payload,
                 retry_status,
