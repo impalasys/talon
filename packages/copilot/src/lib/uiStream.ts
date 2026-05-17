@@ -47,8 +47,9 @@ export async function streamSessionResume(options: {
   response: Response;
   setMessages: React.Dispatch<React.SetStateAction<CopilotMessage[]>>;
   setError: React.Dispatch<React.SetStateAction<Error | null>>;
+  signal?: AbortSignal;
 }) {
-  const { response, setMessages, setError } = options;
+  const { response, setMessages, setError, signal } = options;
   if (!response.body) return;
 
   const reader = response.body.getReader();
@@ -56,6 +57,10 @@ export async function streamSessionResume(options: {
   let buffer = "";
 
   while (true) {
+    if (signal?.aborted) {
+      await reader.cancel().catch(() => undefined);
+      break;
+    }
     const { value, done } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
@@ -73,6 +78,11 @@ export async function streamSessionResume(options: {
         part = JSON.parse(line);
       } catch {
         continue;
+      }
+
+      if (signal?.aborted) {
+        await reader.cancel().catch(() => undefined);
+        return;
       }
 
       if (part.type === "text") {
@@ -107,7 +117,9 @@ export async function streamSessionResume(options: {
           return lastAssistant?.id ? applyUsageToMessages(prev, lastAssistant.id, part.value) : prev;
         });
       } else if (part.type === "error") {
-        setError(new Error(String(part.value)));
+        if (!signal?.aborted) {
+          setError(new Error(String(part.value)));
+        }
       }
     }
   }

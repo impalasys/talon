@@ -322,6 +322,7 @@ export function TalonCopilot({
   const transcriptContentRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const resumeAbortControllerRef = useRef<AbortController | null>(null);
   const currentSessionRef = useRef<{ ns: string; agent: string; sessionId: string } | null>(null);
   const messagesRef = useRef<CopilotMessage[]>(bootMessage);
 
@@ -368,6 +369,7 @@ export function TalonCopilot({
   useEffect(() => {
     return () => {
       abortControllerRef.current?.abort();
+      resumeAbortControllerRef.current?.abort();
     };
   }, []);
 
@@ -396,6 +398,144 @@ export function TalonCopilot({
     }
     return Math.min(rowCount, 8);
   }, [input]);
+
+  const toggleThinkingMessage = useCallback((messageId: string) => {
+    setExpandedThinkingMessages((prev) => ({
+      ...prev,
+      [messageId]: !prev[messageId],
+    }));
+  }, []);
+
+  const renderedMessages = useMemo(() => {
+    return messages.map((message) => {
+      const content = getMessageContent(message);
+      const timeline = getMessageAssistantTimeline(message);
+      const reasoningContent = getMessageReasoningContent(message);
+      const usage = getMessageUsage(message);
+      const usageSummary = formatUsageSummary(usage);
+      return (
+        <div key={message.id} style={{ display: "flex", gap: "1rem" }}>
+          <div style={{ flexShrink: 0, marginTop: 2 }}>
+            {message.role === "user" ? (
+              <div style={{ width: 24, height: 24, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(148,163,184,0.16)", border: border("rgba(148,163,184,0.24)") }}>
+                <User size="14" strokeWidth={1.75} />
+              </div>
+            ) : (
+              <div style={{ width: 24, height: 24, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "currentColor", color: "var(--copilot-inverse-color, #fff)" }}>
+                {talonIcon}
+              </div>
+            )}
+          </div>
+
+          <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>{message.role === "user" ? "Operator" : "Talon"}</span>
+              <span style={{ fontSize: 11, opacity: 0.64, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
+                {resolvedTimestampFormatter(message)}
+              </span>
+            </div>
+
+            {reasoningContent ? (
+              <div style={{ paddingBottom: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => toggleThinkingMessage(message.id)}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    borderRadius: 12,
+                    border: border("rgba(245,158,11,0.28)"),
+                    background: "rgba(251,191,36,0.1)",
+                    padding: "0.625rem 0.75rem",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(180,83,9,1)" }}>
+                    Thinking{usageSummary ? ` • ${usageSummary}` : ""}
+                  </span>
+                  <ChevronRight
+                    size="16"
+                    style={{
+                      transform: expandedThinkingMessages[message.id] ? "rotate(90deg)" : "rotate(0deg)",
+                      transition: "transform 160ms ease",
+                      color: "rgba(180,83,9,0.8)",
+                    }}
+                  />
+                </button>
+
+                {expandedThinkingMessages[message.id] ? (
+                  <div style={{ marginTop: 12, borderRadius: 12, border: border("rgba(245,158,11,0.24)"), background: "rgba(251,191,36,0.06)", padding: 12 }}>
+                    <div style={{ marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(180,83,9,0.8)" }}>
+                      Raw Reasoning
+                    </div>
+                    <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontFamily: "ui-monospace, SFMono-Regular, monospace", fontSize: 12, lineHeight: 1.6 }}>
+                      {reasoningContent}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div
+              className={cn(message.role === "system" && "copilot-system-message")}
+              style={{
+                minWidth: 0,
+                overflow: "hidden",
+                overflowWrap: "anywhere",
+                whiteSpace: message.role === "assistant" ? "normal" : "pre-wrap",
+                fontSize: message.role === "system" ? 12 : 14,
+                lineHeight: 1.65,
+                opacity: message.role === "system" ? 0.72 : 0.94,
+                fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
+              }}
+            >
+              {message.role === "assistant" && timeline.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {timeline.map((item: AssistantTimelineItem, index: number) =>
+                    item.type === "text" ? (
+                      <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
+                        <MarkdownMessage>{item.text}</MarkdownMessage>
+                      </div>
+                    ) : (
+                      <div key={`${message.id}-${item.toolCallId}-${index}`} style={{ borderRadius: 16, border: border("rgba(148,163,184,0.24)"), background: "rgba(148,163,184,0.08)", padding: 12 }}>
+                        <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600 }}>
+                          <span style={{ borderRadius: 999, background: "rgba(255,255,255,0.74)", padding: "2px 8px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
+                            Tool
+                          </span>
+                          <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
+                        </div>
+                        <div style={{ marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
+                          Arguments
+                        </div>
+                        <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 10, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: 12, fontSize: 12 }}>
+                          <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
+                        </pre>
+                        {item.result !== undefined ? (
+                          <>
+                            <div style={{ marginTop: 12, marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
+                              Result
+                            </div>
+                            <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 10, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: 12, fontSize: 12 }}>
+                              <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
+                            </pre>
+                          </>
+                        ) : null}
+                      </div>
+                    ),
+                  )}
+                </div>
+              ) : (
+                message.role === "assistant" ? <MarkdownMessage>{content}</MarkdownMessage> : content
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    });
+  }, [messages, expandedThinkingMessages, resolvedTimestampFormatter, talonIcon, toggleThinkingMessage]);
 
   const getSessionState = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
@@ -459,14 +599,17 @@ export function TalonCopilot({
   );
 
   const resumeStream = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }) => {
+    async (target: { ns: string; agent: string; sessionId: string }, signal?: AbortSignal) => {
       try {
         const response = await fetch(buildGatewayChatUiUrl(gatewayUrl, target.ns, target.agent, target.sessionId), {
           headers: buildGatewayHeaders(authToken),
+          signal,
         });
-        await streamSessionResume({ response, setMessages, setError });
+        await streamSessionResume({ response, setMessages, setError, signal });
       } catch (err) {
-        setError(err instanceof Error ? err : new Error(String(err)));
+        if (!signal?.aborted) {
+          setError(err instanceof Error ? err : new Error(String(err)));
+        }
       }
     },
     [authToken, gatewayUrl],
@@ -490,10 +633,13 @@ export function TalonCopilot({
     }
 
     let cancelled = false;
+    const controller = new AbortController();
+    resumeAbortControllerRef.current?.abort();
+    resumeAbortControllerRef.current = controller;
     loadSessionState(nextSession)
       .then((res) => {
         if (!cancelled && res.state === "PROCESSING") {
-          void resumeStream(nextSession);
+          void resumeStream(nextSession, controller.signal);
         }
       })
       .catch((err) => {
@@ -504,6 +650,7 @@ export function TalonCopilot({
       });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [agent, loadSessionState, namespace, resumeStream, sessionId]);
 
@@ -522,13 +669,6 @@ export function TalonCopilot({
     }
     return "Thinking...";
   }, [streamEvents]);
-
-  const toggleThinkingMessage = useCallback((messageId: string) => {
-    setExpandedThinkingMessages((prev) => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
-  }, []);
 
   const waitForCanonicalAssistantUpdate = useCallback(
     async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string) => {
@@ -656,134 +796,7 @@ export function TalonCopilot({
     >
       <div ref={scrollContainerRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minHeight: 0 }}>
         <div style={{ maxWidth: 896, margin: "0 auto", padding: "1rem 1rem 2rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
-          {messages.map((message) => {
-            const content = getMessageContent(message);
-            const timeline = getMessageAssistantTimeline(message);
-            const reasoningContent = getMessageReasoningContent(message);
-            const usage = getMessageUsage(message);
-            const usageSummary = formatUsageSummary(usage);
-            return (
-              <div key={message.id} style={{ display: "flex", gap: "1rem" }}>
-                <div style={{ flexShrink: 0, marginTop: 2 }}>
-                  {message.role === "user" ? (
-                    <div style={{ width: 24, height: 24, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(148,163,184,0.16)", border: border("rgba(148,163,184,0.24)") }}>
-                      <User size="14" strokeWidth={1.75} />
-                    </div>
-                  ) : (
-                    <div style={{ width: 24, height: 24, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: "currentColor", color: "var(--copilot-inverse-color, #fff)" }}>
-                      {talonIcon}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>{message.role === "user" ? "Operator" : "Talon"}</span>
-                    <span style={{ fontSize: 11, opacity: 0.64, fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>
-                      {resolvedTimestampFormatter(message)}
-                    </span>
-                  </div>
-
-                  {reasoningContent ? (
-                    <div style={{ paddingBottom: 8 }}>
-                      <button
-                        type="button"
-                        onClick={() => toggleThinkingMessage(message.id)}
-                        style={{
-                          width: "100%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          borderRadius: 12,
-                          border: border("rgba(245,158,11,0.28)"),
-                          background: "rgba(251,191,36,0.1)",
-                          padding: "0.625rem 0.75rem",
-                          cursor: "pointer",
-                          textAlign: "left",
-                        }}
-                      >
-                        <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(180,83,9,1)" }}>
-                          Thinking{usageSummary ? ` • ${usageSummary}` : ""}
-                        </span>
-                        <ChevronRight
-                          size="16"
-                          style={{
-                            transform: expandedThinkingMessages[message.id] ? "rotate(90deg)" : "rotate(0deg)",
-                            transition: "transform 160ms ease",
-                            color: "rgba(180,83,9,0.8)",
-                          }}
-                        />
-                      </button>
-
-                      {expandedThinkingMessages[message.id] ? (
-                        <div style={{ marginTop: 12, borderRadius: 12, border: border("rgba(245,158,11,0.24)"), background: "rgba(251,191,36,0.06)", padding: 12 }}>
-                          <div style={{ marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(180,83,9,0.8)" }}>
-                            Raw Reasoning
-                          </div>
-                          <div style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontFamily: "ui-monospace, SFMono-Regular, monospace", fontSize: 12, lineHeight: 1.6 }}>
-                            {reasoningContent}
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-
-                  <div
-                    className={cn(message.role === "system" && "copilot-system-message")}
-                    style={{
-                      minWidth: 0,
-                      overflow: "hidden",
-                      overflowWrap: "anywhere",
-                      whiteSpace: message.role === "assistant" ? "normal" : "pre-wrap",
-                      fontSize: message.role === "system" ? 12 : 14,
-                      lineHeight: 1.65,
-                      opacity: message.role === "system" ? 0.72 : 0.94,
-                      fontFamily: message.role === "system" ? "ui-monospace, SFMono-Regular, monospace" : undefined,
-                    }}
-                  >
-                    {message.role === "assistant" && timeline.length > 0 ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                        {timeline.map((item: AssistantTimelineItem, index: number) =>
-                          item.type === "text" ? (
-                            <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
-                              <MarkdownMessage>{item.text}</MarkdownMessage>
-                            </div>
-                          ) : (
-                            <div key={`${message.id}-${item.toolCallId}-${index}`} style={{ borderRadius: 16, border: border("rgba(148,163,184,0.24)"), background: "rgba(148,163,184,0.08)", padding: 12 }}>
-                              <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600 }}>
-                                <span style={{ borderRadius: 999, background: "rgba(255,255,255,0.74)", padding: "2px 8px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
-                                  Tool
-                                </span>
-                                <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
-                              </div>
-                              <div style={{ marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
-                                Arguments
-                              </div>
-                              <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 10, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: 12, fontSize: 12 }}>
-                                <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
-                              </pre>
-                              {item.result !== undefined ? (
-                                <>
-                                  <div style={{ marginTop: 12, marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
-                                    Result
-                                  </div>
-                                  <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 10, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: 12, fontSize: 12 }}>
-                                    <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
-                                  </pre>
-                                </>
-                              ) : null}
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    ) : (
-                      message.role === "assistant" ? <MarkdownMessage>{content}</MarkdownMessage> : content
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {renderedMessages}
 
           {isLoading && (messages[messages.length - 1]?.role === "user" || (messages[messages.length - 1]?.role === "assistant" && !messages[messages.length - 1]?.content)) ? (
             <div style={{ display: "flex", gap: "1rem" }}>
@@ -852,7 +865,7 @@ export function TalonCopilot({
               gap: 8,
               borderRadius: 22,
               border: border("rgba(148,163,184,0.28)"),
-              background: "rgba(255,255,255,0.96)",
+              background: "var(--copilot-input-bg, rgba(255,255,255,0.96))",
               boxShadow: "0 4px 14px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.06)",
               padding: "0.5rem 0.5rem 0.5rem 0.75rem",
               backdropFilter: "blur(12px)",

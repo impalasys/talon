@@ -843,7 +843,7 @@ function DebuggerPageContent() {
         {/* Main Content */}
         <main className="flex min-w-0 flex-1 overflow-x-hidden overflow-y-hidden bg-transparent">
           {/* Center Pane */}
-          <div className="relative flex min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-scroll bg-transparent">
+          <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden bg-transparent">
           {!isConnected ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/44 backdrop-blur-md z-20">
               <motion.div 
