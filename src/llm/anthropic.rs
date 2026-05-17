@@ -62,7 +62,7 @@ impl AnthropicProvider {
         )
     }
 
-    fn extract_text_content(value: &serde_json::Value) -> String {
+    fn extract_text_content(value: &serde_json::Value) -> Option<String> {
         value["content"]
             .as_array()
             .map(|parts| {
@@ -72,7 +72,7 @@ impl AnthropicProvider {
                     .collect::<Vec<_>>()
                     .join("")
             })
-            .unwrap_or_default()
+            .filter(|content| !content.is_empty())
     }
 }
 
@@ -122,7 +122,8 @@ impl LlmProvider for AnthropicProvider {
         }
 
         let result: serde_json::Value = resp.json().await?;
-        let content = Self::extract_text_content(&result);
+        let content = Self::extract_text_content(&result)
+            .ok_or_else(|| anyhow!("Invalid Anthropic response format"))?;
 
         Ok(ChatResponse {
             content,
@@ -342,7 +343,10 @@ mod tests {
             ]
         });
 
-        assert_eq!(AnthropicProvider::extract_text_content(&response), "hello world");
+        assert_eq!(
+            AnthropicProvider::extract_text_content(&response),
+            Some("hello world".to_string())
+        );
     }
 
     fn test_provider(base_url: String) -> AnthropicProvider {
