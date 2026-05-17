@@ -247,5 +247,8 @@ mod tests {
         assert!(registry
             .get_tool(crate::knowledge::KNOWLEDGE_GET_TOOL)
             .is_some());
+        assert!(registry
+            .get_tool(crate::knowledge::KNOWLEDGE_LIST_TOOL)
+            .is_some());
     }
 }

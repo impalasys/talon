@@ -29,6 +29,24 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
 import { updateGatewayClient, getGatewayClient, buildGatewayHeaders, normalizeGatewayUrl } from '../lib/grpc';
+import {
+  appendAssistantReasoning,
+  appendAssistantText,
+  applyToolInvocationToMessages,
+  applyUsageToMessages,
+  ensureAssistantMessage,
+  formatUsageSummary,
+  getMessageAssistantTimeline,
+  getMessageContent,
+  getMessageReasoningContent,
+  getMessageUsage,
+  hydrateMessagesWithSteps,
+  isPlaceholderBootMessage,
+  normalizeMessageRole,
+  reconcileAssistantMessageId,
+  type AssistantTimelineItem,
+  type UsageSummary,
+} from '../lib/chatTimeline';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -197,13 +215,6 @@ type StreamEventItem = {
   content: string;
   name?: string;
   payload?: unknown;
-};
-
-type UsageSummary = {
-  inputTokens?: number;
-  outputTokens?: number;
-  reasoningTokens?: number;
-  totalTokens?: number;
 };
 
 type ScheduleDocument = {
@@ -444,372 +455,6 @@ function ScheduleInspector({
   );
 }
 
-type ToolInvocationItem = {
-  toolCallId: string;
-  toolName: string;
-  args: unknown;
-  result?: unknown;
-};
-
-function getMessageContent(message: any): string {
-  if (typeof message?.content === 'string') return message.content;
-  if (!Array.isArray(message?.parts)) return '';
-  return message.parts
-    .filter((part: any) => part?.type === 'text' && typeof part.text === 'string')
-    .map((part: any) => part.text)
-    .join('');
-}
-
-function getMessageToolInvocations(message: any): ToolInvocationItem[] {
-  if (Array.isArray(message?.toolInvocations)) {
-    return message.toolInvocations;
-  }
-
-  if (!Array.isArray(message?.parts)) return [];
-
-  const toolInvocations = new Map<string, ToolInvocationItem>();
-  for (const part of message.parts) {
-    if (!part || typeof part !== 'object' || typeof part.toolCallId !== 'string') continue;
-
-    const toolName =
-      typeof part.toolName === 'string'
-        ? part.toolName
-        : typeof part.type === 'string' && part.type.startsWith('tool-')
-          ? part.type.slice(5)
-          : 'tool';
-
-    const previous = toolInvocations.get(part.toolCallId);
-    toolInvocations.set(part.toolCallId, {
-      toolCallId: part.toolCallId,
-      toolName,
-      args: 'input' in part ? part.input : previous?.args ?? {},
-      result:
-        part.state === 'output-available'
-          ? part.output
-          : part.state === 'output-error'
-            ? part.errorText
-            : previous?.result,
-    });
-  }
-
-  return Array.from(toolInvocations.values());
-}
-
-function getMessageReasoningContent(message: any): string {
-  if (typeof message?.reasoningContent === 'string') {
-    return message.reasoningContent;
-  }
-
-  if (!Array.isArray(message?.parts)) return '';
-  return message.parts
-    .filter((part: any) => part?.type === 'reasoning' && typeof part.text === 'string')
-    .map((part: any) => part.text)
-    .join('');
-}
-
-function getMessageUsage(message: any): UsageSummary | null {
-  if (message?.usage && typeof message.usage === 'object') {
-    return message.usage as UsageSummary;
-  }
-  return null;
-}
-
-function normalizeMessageRole(role: unknown): 'user' | 'assistant' | 'system' {
-  if (role === 1 || role === 'ROLE_USER') return 'user';
-  if (role === 2 || role === 'ROLE_ASSISTANT') return 'assistant';
-  if (role === 3 || role === 'ROLE_SYSTEM') return 'system';
-  return 'assistant';
-}
-
-function isPlaceholderBootMessage(messages: any[]) {
-  return (
-    messages.length === 1 &&
-    messages[0]?.role === 'system' &&
-    getMessageContent(messages[0]) === 'Talon runtime initialized.'
-  );
-}
-
-function isActionStep(stepType: unknown): boolean {
-  return stepType === 2 || stepType === 'STEP_TYPE_ACTION';
-}
-
-function isObservationStep(stepType: unknown): boolean {
-  return stepType === 3 || stepType === 'STEP_TYPE_OBSERVATION';
-}
-
-function isReasoningStep(stepType: unknown): boolean {
-  return stepType === 6 || stepType === 'STEP_TYPE_REASONING';
-}
-
-function isUsageStep(stepType: unknown): boolean {
-  return stepType === 7 || stepType === 'STEP_TYPE_USAGE';
-}
-
-function parseObjectPayload(payload: unknown): Record<string, unknown> {
-  return payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {};
-}
-
-function parseJsonObject(payloadJson: unknown): Record<string, unknown> {
-  if (typeof payloadJson !== 'string' || payloadJson.length === 0) return {};
-  try {
-    return parseObjectPayload(JSON.parse(payloadJson));
-  } catch {
-    return {};
-  }
-}
-
-function buildToolInvocationsFromSteps(steps: any[] | undefined): Map<string, ToolInvocationItem[]> {
-  const byMessage = new Map<string, ToolInvocationItem[]>();
-  if (!Array.isArray(steps)) return byMessage;
-
-  for (const step of steps) {
-    const messageId = step?.messageId;
-    if (!messageId || (!isActionStep(step?.stepType) && !isObservationStep(step?.stepType))) continue;
-
-    const payload = parseJsonObject(step.payloadJson);
-    const toolCallId = typeof payload.tool_call_id === 'string' ? payload.tool_call_id : '';
-    if (!toolCallId) continue;
-
-    const existing = byMessage.get(messageId) || [];
-    const index = existing.findIndex(item => item.toolCallId === toolCallId);
-
-    if (isActionStep(step.stepType)) {
-      const nextItem: ToolInvocationItem = {
-        toolCallId,
-        toolName: step.name || 'tool',
-        args: payload.input ?? {},
-      };
-      if (index >= 0) {
-        existing[index] = { ...existing[index], ...nextItem };
-      } else {
-        existing.push(nextItem);
-      }
-    } else if (isObservationStep(step.stepType)) {
-      const result = payload.output ?? step.content;
-      if (index >= 0) {
-        existing[index] = { ...existing[index], result };
-      } else {
-        existing.push({
-          toolCallId,
-          toolName: step.name || 'tool',
-          args: {},
-          result,
-        });
-      }
-    }
-
-    byMessage.set(messageId, existing);
-  }
-
-  return byMessage;
-}
-
-function buildReasoningFromSteps(steps: any[] | undefined): Map<string, string> {
-  const byMessage = new Map<string, string>();
-  if (!Array.isArray(steps)) return byMessage;
-
-  for (const step of steps) {
-    const messageId = step?.messageId;
-    if (!messageId || !isReasoningStep(step?.stepType) || typeof step?.content !== 'string') continue;
-    byMessage.set(messageId, `${byMessage.get(messageId) ?? ''}${step.content}`);
-  }
-
-  return byMessage;
-}
-
-function buildUsageFromSteps(steps: any[] | undefined): Map<string, UsageSummary> {
-  const byMessage = new Map<string, UsageSummary>();
-  if (!Array.isArray(steps)) return byMessage;
-
-  for (const step of steps) {
-    const messageId = step?.messageId;
-    if (!messageId || !isUsageStep(step?.stepType)) continue;
-
-    const payload = parseJsonObject(step.payloadJson);
-    byMessage.set(messageId, {
-      inputTokens: typeof payload.input_tokens === 'number' ? payload.input_tokens : undefined,
-      outputTokens: typeof payload.output_tokens === 'number' ? payload.output_tokens : undefined,
-      reasoningTokens: typeof payload.reasoning_tokens === 'number' ? payload.reasoning_tokens : undefined,
-      totalTokens: typeof payload.total_tokens === 'number' ? payload.total_tokens : undefined,
-    });
-  }
-
-  return byMessage;
-}
-
-function hydrateMessagesWithSteps(messages: any[], steps: any[] | undefined) {
-  const toolInvocationsByMessage = buildToolInvocationsFromSteps(steps);
-  const reasoningByMessage = buildReasoningFromSteps(steps);
-  const usageByMessage = buildUsageFromSteps(steps);
-
-  return messages.map((message) => {
-    if (message.role !== 'assistant') return message;
-    const toolInvocations = toolInvocationsByMessage.get(message.id);
-    const reasoningContent = reasoningByMessage.get(message.id);
-    const usage = usageByMessage.get(message.id);
-    if ((!toolInvocations || toolInvocations.length === 0) && !reasoningContent && !usage) {
-      return message;
-    }
-    return {
-      ...message,
-      ...(toolInvocations && toolInvocations.length > 0 ? { toolInvocations } : {}),
-      ...(reasoningContent ? { reasoningContent } : {}),
-      ...(usage ? { usage } : {}),
-    };
-  });
-}
-
-function toolSummaryLabel(toolInvocations: ToolInvocationItem[]): string {
-  const count = toolInvocations.length;
-  return `Ran ${count} tool${count === 1 ? '' : 's'}`;
-}
-
-function applyToolInvocationToMessages(
-  messages: any[],
-  toolCallId: string,
-  toolName: string,
-  args: unknown,
-  result?: unknown,
-  assistantMessageId?: string,
-) {
-  const lastAssistantIndex = assistantMessageId
-    ? messages.findIndex(message => message.id === assistantMessageId)
-    : [...messages]
-        .map((message, index) => ({ message, index }))
-        .reverse()
-        .find(({ message }) => message.role === 'assistant')?.index;
-
-  if (lastAssistantIndex == null) return messages;
-
-  const current = messages[lastAssistantIndex];
-  const liveInvocations = new Map<string, ToolInvocationItem>();
-  for (const existing of Array.isArray(current.toolInvocations) ? current.toolInvocations : []) {
-    if (existing?.toolCallId) {
-      liveInvocations.set(existing.toolCallId, existing);
-    }
-  }
-
-  const previous = liveInvocations.get(toolCallId);
-  liveInvocations.set(toolCallId, {
-    toolCallId,
-    toolName: toolName || previous?.toolName || 'tool',
-    args: args ?? previous?.args ?? {},
-    result: result ?? previous?.result,
-  });
-
-  const nextMessages = [...messages];
-  nextMessages[lastAssistantIndex] = {
-    ...current,
-    toolInvocations: Array.from(liveInvocations.values()),
-  };
-  return nextMessages;
-}
-
-function ensureAssistantMessage(messages: any[], messageId: string) {
-  if (messages.some(message => message.id === messageId)) {
-    return messages;
-  }
-  return [
-    ...messages,
-    {
-      id: messageId,
-      role: 'assistant',
-      content: '',
-      parts: [{ type: 'text', text: '' }],
-      reasoningContent: '',
-    },
-  ];
-}
-
-function reconcileAssistantMessageId(messages: any[], fromMessageId: string, toMessageId: string) {
-  if (!fromMessageId || !toMessageId || fromMessageId === toMessageId) {
-    return messages;
-  }
-
-  const fromIndex = messages.findIndex(message => message.id === fromMessageId);
-  if (fromIndex < 0) {
-    return ensureAssistantMessage(messages, toMessageId);
-  }
-
-  const toIndex = messages.findIndex(message => message.id === toMessageId);
-  const nextMessages = [...messages];
-
-  if (toIndex >= 0) {
-    const fromMessage = nextMessages[fromIndex];
-    const toMessage = nextMessages[toIndex];
-    const mergedText = `${getMessageContent(toMessage)}${getMessageContent(fromMessage)}`;
-    const mergedReasoning = `${getMessageReasoningContent(toMessage)}${getMessageReasoningContent(fromMessage)}`;
-    const mergedToolInvocations = [
-      ...(Array.isArray(toMessage.toolInvocations) ? toMessage.toolInvocations : []),
-      ...(Array.isArray(fromMessage.toolInvocations) ? fromMessage.toolInvocations : []),
-    ];
-    nextMessages[toIndex] = {
-      ...toMessage,
-      content: mergedText,
-      parts: [{ type: 'text', text: mergedText }],
-      reasoningContent: mergedReasoning,
-      toolInvocations: mergedToolInvocations,
-      usage: toMessage.usage ?? fromMessage.usage,
-    };
-    nextMessages.splice(fromIndex, 1);
-    return nextMessages;
-  }
-
-  nextMessages[fromIndex] = {
-    ...nextMessages[fromIndex],
-    id: toMessageId,
-  };
-  return nextMessages;
-}
-
-function appendAssistantText(messages: any[], messageId: string, chunk: string) {
-  const existingIndex = messages.findIndex(message => message.id === messageId);
-  const nextMessages = existingIndex >= 0 ? [...messages] : ensureAssistantMessage(messages, messageId);
-  const assistantIndex = existingIndex >= 0 ? existingIndex : nextMessages.findIndex(message => message.id === messageId);
-  const current = nextMessages[assistantIndex];
-  const nextContent = `${getMessageContent(current)}${chunk}`;
-  nextMessages[assistantIndex] = {
-    ...current,
-    content: nextContent,
-    parts: [{ type: 'text', text: nextContent }],
-  };
-  return nextMessages;
-}
-
-function appendAssistantReasoning(messages: any[], messageId: string, chunk: string) {
-  const existingIndex = messages.findIndex(message => message.id === messageId);
-  const nextMessages = existingIndex >= 0 ? [...messages] : ensureAssistantMessage(messages, messageId);
-  const assistantIndex = existingIndex >= 0 ? existingIndex : nextMessages.findIndex(message => message.id === messageId);
-  const current = nextMessages[assistantIndex];
-  nextMessages[assistantIndex] = {
-    ...current,
-    reasoningContent: `${getMessageReasoningContent(current)}${chunk}`,
-  };
-  return nextMessages;
-}
-
-function applyUsageToMessages(messages: any[], messageId: string, usage: UsageSummary) {
-  const existingIndex = messages.findIndex(message => message.id === messageId);
-  const nextMessages = existingIndex >= 0 ? [...messages] : ensureAssistantMessage(messages, messageId);
-  const assistantIndex = existingIndex >= 0 ? existingIndex : nextMessages.findIndex(message => message.id === messageId);
-  const current = nextMessages[assistantIndex];
-  nextMessages[assistantIndex] = {
-    ...current,
-    usage,
-  };
-  return nextMessages;
-}
-
-function formatUsageSummary(usage: UsageSummary | null) {
-  if (!usage) return '';
-  const parts = [
-    typeof usage.reasoningTokens === 'number' ? `${usage.reasoningTokens} reasoning` : '',
-    typeof usage.outputTokens === 'number' ? `${usage.outputTokens} output` : '',
-    typeof usage.inputTokens === 'number' ? `${usage.inputTokens} input` : '',
-  ].filter(Boolean);
-  const total = typeof usage.totalTokens === 'number' ? `${usage.totalTokens} total` : '';
-  return [parts.join(' • '), total].filter(Boolean).join(' • ');
-}
 
 function sessionResponseHasAssistantText(response: any): boolean {
   return Array.isArray(response?.messages) && response.messages.some((message: any) => {
@@ -968,7 +613,6 @@ function DebuggerPageContent() {
   const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
   const [isRightSidebarHovered, setIsRightSidebarHovered] = useState(false);
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
-  const [expandedToolMessages, setExpandedToolMessages] = useState<Record<string, boolean>>({});
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [resourceYaml, setResourceYaml] = useState<string>('');
   const [resourceDocument, setResourceDocument] = useState<any | null>(null);
@@ -1246,28 +890,22 @@ function DebuggerPageContent() {
             continue;
           }
           if (part.type === 'text') {
-            setMessages(prev => {
-              const newMsgs = [...prev];
-              const last = newMsgs[newMsgs.length - 1];
-              if (last && last.role === 'assistant') {
-                newMsgs[newMsgs.length - 1] = {
-                  ...last,
-                  content: `${getMessageContent(last)}${part.value}`,
-                };
-              }
-              return newMsgs;
+            setMessages((prev) => {
+              const lastAssistant = [...prev]
+                .reverse()
+                .find((message) => message.role === 'assistant');
+              return lastAssistant?.id
+                ? appendAssistantText(prev, lastAssistant.id, String(part.value ?? ''))
+                : prev;
             });
           } else if (part.type === 'reasoning') {
-            setMessages(prev => {
-              const newMsgs = [...prev];
-              const last = newMsgs[newMsgs.length - 1];
-              if (last && last.role === 'assistant') {
-                newMsgs[newMsgs.length - 1] = {
-                  ...last,
-                  reasoningContent: `${getMessageReasoningContent(last)}${String(part.value ?? '')}`,
-                };
-              }
-              return newMsgs;
+            setMessages((prev) => {
+              const lastAssistant = [...prev]
+                .reverse()
+                .find((message) => message.role === 'assistant');
+              return lastAssistant?.id
+                ? appendAssistantReasoning(prev, lastAssistant.id, String(part.value ?? ''))
+                : prev;
             });
           } else if (part.type === 'tool_call') {
             setMessages(prev => applyToolInvocationToMessages(
@@ -1285,16 +923,13 @@ function DebuggerPageContent() {
               part.value?.result,
             ));
           } else if (part.type === 'usage') {
-            setMessages(prev => {
-              const newMsgs = [...prev];
-              const last = newMsgs[newMsgs.length - 1];
-              if (last && last.role === 'assistant') {
-                newMsgs[newMsgs.length - 1] = {
-                  ...last,
-                  usage: part.value,
-                };
-              }
-              return newMsgs;
+            setMessages((prev) => {
+              const lastAssistant = [...prev]
+                .reverse()
+                .find((message) => message.role === 'assistant');
+              return lastAssistant?.id
+                ? applyUsageToMessages(prev, lastAssistant.id, part.value)
+                : prev;
             });
           } else if (part.type === 'error') {
             setError(new Error(String(part.value)));
@@ -1325,13 +960,6 @@ function DebuggerPageContent() {
     }
     return 'Thinking...';
   };
-
-  const toggleToolMessage = useCallback((messageId: string) => {
-    setExpandedToolMessages(prev => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
-  }, []);
 
   const toggleThinkingMessage = useCallback((messageId: string) => {
     setExpandedThinkingMessages(prev => ({
@@ -1750,8 +1378,8 @@ function DebuggerPageContent() {
                   <AnimatePresence initial={false}>
                     {messages.map((m: any) => (
                       (() => {
-                        const toolInvocations = getMessageToolInvocations(m);
                         const content = getMessageContent(m);
+                        const timeline = getMessageAssistantTimeline(m);
                         const reasoningContent = getMessageReasoningContent(m);
                         const usage = getMessageUsage(m);
                         const usageSummary = formatUsageSummary(usage);
@@ -1783,54 +1411,6 @@ function DebuggerPageContent() {
                               {formatMessageTimestamp(m)}
                             </span>
                           </div>
-                          {toolInvocations.length > 0 && (
-                            <div className="pb-2">
-                              <button
-                                type="button"
-                                onClick={() => toggleToolMessage(m.id)}
-                                className="group/tool inline-flex w-full items-center justify-between rounded-lg border border-border/60 bg-muted/35 px-3 py-2 text-left transition-colors hover:border-border hover:bg-muted/55"
-                              >
-                                <span className="text-[12px] font-medium text-muted-foreground">
-                                  {toolSummaryLabel(toolInvocations)}
-                                </span>
-                                <ChevronRight
-                                  className={cn(
-                                    "h-4 w-4 text-muted-foreground transition-all duration-200 opacity-0 group-hover/tool:opacity-100",
-                                    expandedToolMessages[m.id] && "rotate-90 opacity-100"
-                                  )}
-                                />
-                              </button>
-
-                              {expandedToolMessages[m.id] && (
-                                <div className="mt-3 space-y-3">
-                                  {toolInvocations.map((tool: any) => (
-                                    <div key={tool.toolCallId} className="rounded-lg border border-border/60 bg-muted/20 p-3">
-                                      <div className="mb-1 text-[12px] font-medium text-foreground/90">
-                                        Tool: <span className="font-mono">{tool.toolName}</span>
-                                      </div>
-                                      <div className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-                                        Arguments
-                                      </div>
-                                      <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md border border-border/60 bg-background/80 p-3 text-[12px] text-foreground/85">
-                                        <code>{JSON.stringify(tool.args ?? {}, null, 2)}</code>
-                                      </pre>
-                                      {'result' in tool && (
-                                        <>
-                                          <div className="mt-3 mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-                                            Result
-                                          </div>
-                                          <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md border border-border/60 bg-background/80 p-3 text-[12px] text-foreground/85">
-                                            <code>{typeof tool.result === 'string' ? tool.result : JSON.stringify(tool.result, null, 2)}</code>
-                                          </pre>
-                                        </>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-
                           {reasoningContent && (
                             <div className="pb-2">
                               <button
@@ -1866,7 +1446,50 @@ function DebuggerPageContent() {
                             "min-w-0 overflow-hidden break-words text-[14px] leading-relaxed text-foreground/90 [overflow-wrap:anywhere] [&_code]:break-words [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:break-words",
                             m.role === 'system' && "font-mono text-[12px] text-muted-foreground"
                           )}>
-                            <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{content}</div>
+                            {m.role === 'assistant' && timeline.length > 0 ? (
+                              <div className="space-y-3">
+                                {timeline.map((item: AssistantTimelineItem, index: number) => (
+                                  item.type === 'text' ? (
+                                    <div
+                                      key={`${m.id}-timeline-${index}`}
+                                      className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
+                                    >
+                                      {item.text}
+                                    </div>
+                                  ) : (
+                                    <div
+                                      key={`${m.id}-${item.toolCallId}-${index}`}
+                                      className="rounded-xl border border-border/60 bg-muted/25 p-3"
+                                    >
+                                      <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-foreground/90">
+                                        <span className="rounded-full bg-background/80 px-2 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                          Tool
+                                        </span>
+                                        <span className="font-mono">{item.toolName}</span>
+                                      </div>
+                                      <div className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                        Arguments
+                                      </div>
+                                      <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md border border-border/60 bg-background/80 p-3 text-[12px] text-foreground/85">
+                                        <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
+                                      </pre>
+                                      {item.result !== undefined && (
+                                        <>
+                                          <div className="mt-3 mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                            Result
+                                          </div>
+                                          <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md border border-border/60 bg-background/80 p-3 text-[12px] text-foreground/85">
+                                            <code>{typeof item.result === 'string' ? item.result : JSON.stringify(item.result, null, 2)}</code>
+                                          </pre>
+                                        </>
+                                      )}
+                                    </div>
+                                  )
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{content}</div>
+                            )}
                           </div>
                         </div>
                       </motion.div>

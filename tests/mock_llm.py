@@ -10,6 +10,7 @@ app = FastAPI()
 TOOL_TRIGGER = "lookup docs.example.com"
 TOOL_CALL_ID = "call_knowledge_search_1"
 TOOL_NAME = "knowledge_search"
+TOOL_PREFACE = "Let me check that. "
 DEFAULT_REASONING = [
     "Inspecting the request.",
     "Planning a concise answer.",
@@ -46,7 +47,7 @@ def build_tool_call_response(model):
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "",
+                    "content": TOOL_PREFACE,
                     "tool_calls": [
                         {
                             "id": TOOL_CALL_ID,
@@ -70,6 +71,22 @@ def build_tool_call_response(model):
 
 
 async def stream_tool_call_response(model):
+    preface_chunk = {
+        "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
+        "object": "chat.completion.chunk",
+        "created": int(time.time()),
+        "model": model,
+        "choices": [
+            {
+                "index": 0,
+                "delta": {"content": TOOL_PREFACE},
+                "finish_reason": None,
+            }
+        ],
+    }
+    yield f"data: {json.dumps(preface_chunk)}\n\n"
+    await asyncio.sleep(0.05)
+
     tool_call_chunks = [
         {
             "index": 0,

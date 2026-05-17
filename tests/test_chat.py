@@ -374,6 +374,7 @@ def test_mock_llm_helper_functions_cover_message_and_tool_detection():
     response = mock_llm.build_tool_call_response("mock-model")
     tool_call = response["choices"][0]["message"]["tool_calls"][0]
     assert response["model"] == "mock-model"
+    assert response["choices"][0]["message"]["content"] == mock_llm.TOOL_PREFACE
     assert tool_call["function"]["name"] == mock_llm.TOOL_NAME
     assert json.loads(tool_call["function"]["arguments"]) == {"query": "docs.example.com"}
 
@@ -383,6 +384,7 @@ async def test_mock_llm_stream_helpers_cover_text_and_tool_chunks():
     tool_chunks = [chunk async for chunk in mock_llm.stream_tool_call_response("mock-model")]
     assert tool_chunks[-1] == "data: [DONE]\n\n"
     assert any(mock_llm.TOOL_NAME in chunk for chunk in tool_chunks)
+    assert any(mock_llm.TOOL_PREFACE in chunk for chunk in tool_chunks)
 
     text_chunks = [chunk async for chunk in mock_llm.stream_text_response("mock-model", "hello world")]
     assert text_chunks[-1] == "data: [DONE]\n\n"
