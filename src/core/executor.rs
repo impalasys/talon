@@ -485,7 +485,7 @@ mod tests {
         manifests,
         protobuf_value::{value::Kind as ProtoValueKind, ListValue, Value as ProtoValue},
     };
-    use crate::knowledge::{KnowledgeBook, KnowledgeEntry, KnowledgeResult};
+    use crate::knowledge::{KnowledgeBook, KnowledgeEntry, KnowledgeListEntry, KnowledgeResult};
     use crate::llm::provider::{
         ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, LlmProvider,
     };
@@ -576,6 +576,16 @@ mod tests {
         ) -> Result<Vec<KnowledgeResult>> {
             Ok(Vec::new())
         }
+
+        async fn list(
+            &self,
+            _ns: &str,
+            _path_prefix: &str,
+            _recursive: bool,
+            _limit: usize,
+        ) -> Result<Vec<KnowledgeListEntry>> {
+            Ok(Vec::new())
+        }
     }
 
     #[derive(Default)]
@@ -620,6 +630,20 @@ mod tests {
             } else {
                 Ok(Vec::new())
             }
+        }
+
+        async fn list(
+            &self,
+            ns: &str,
+            path_prefix: &str,
+            _recursive: bool,
+            _limit: usize,
+        ) -> Result<Vec<KnowledgeListEntry>> {
+            Ok(vec![KnowledgeListEntry {
+                namespace: ns.to_string(),
+                path: format!("{}/plan.md", path_prefix.trim_matches('/')),
+                updated_at: 42,
+            }])
         }
     }
 
@@ -1050,6 +1074,12 @@ mod tests {
             .await
             .expect("knowledge search");
         assert!(search.contains("remember the plan"));
+
+        let list = executor
+            .execute_tool(crate::knowledge::KNOWLEDGE_LIST_TOOL, r#"{"path":"notes"}"#)
+            .await
+            .expect("knowledge list");
+        assert!(list.contains("\"path\": \"notes/plan.md\""));
 
         let unknown = executor
             .execute_tool("missing_tool", "not-json")

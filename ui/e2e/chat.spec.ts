@@ -135,7 +135,7 @@ test.describe('Chat Streaming', () => {
     await expect(page.getByText('Inspecting the request.', { exact: false })).toBeVisible({ timeout: 10000 });
   });
 
-  test('should render tool calls live without reloading the page', async ({ page }) => {
+  test('should render tool calls interleaved with the answer live', async ({ page }) => {
     const { chatInput, sendButton } = await provisionSession(page);
 
     await chatInput.click();
@@ -144,12 +144,16 @@ test.describe('Chat Streaming', () => {
     await sendButton.click();
 
     await expect(page.getByText('lookup docs.example.com', { exact: true })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByRole('button', { name: 'Ran 1 tool' })).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('⏳ Calling knowledge_search')).toBeVisible({ timeout: 10000 });
-
-    await page.getByRole('button', { name: 'Ran 1 tool' }).click();
-    await expect(page.getByText('Tool:')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('Let me check that.', { exact: false })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('Tool', { exact: true })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('knowledge_search', { exact: true })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('I checked knowledge_search for docs.example.com.', { exact: true })).toBeVisible({ timeout: 30000 });
+
+    const transcript = (await page.locator('body').textContent()) || '';
+    expect(transcript.indexOf('Let me check that.')).toBeGreaterThan(-1);
+    expect(transcript.indexOf('knowledge_search')).toBeGreaterThan(transcript.indexOf('Let me check that.'));
+    expect(transcript.indexOf('I checked knowledge_search for docs.example.com.')).toBeGreaterThan(
+      transcript.indexOf('knowledge_search'),
+    );
   });
 });

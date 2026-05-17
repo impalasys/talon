@@ -19,9 +19,10 @@ import shutil
 SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ENVOY_PORT = 18789
-GATEWAY_GRPC_PORT = 50051
-GATEWAY_UI_PORT = 50052
+ENVOY_PORT = int(os.environ.get("API_PORT", "18789"))
+GATEWAY_GRPC_PORT = int(os.environ.get("GRPC_PORT", "50051"))
+GATEWAY_UI_PORT = int(os.environ.get("GATEWAY_UI_PORT", "50052"))
+MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
 
 def binary_candidates(name):
     yield name
@@ -204,7 +205,7 @@ def main():
     server_thread = threading.Thread(
         target=uvicorn.run,
         args=(app,),
-        kwargs={"host": "0.0.0.0", "port": 8000, "log_level": "info"},
+        kwargs={"host": "0.0.0.0", "port": MOCK_LLM_PORT, "log_level": "info"},
         daemon=True
     )
     server_thread.start()
@@ -254,19 +255,19 @@ def main():
 
     config_path = temp_dir / "talon.e2e.yaml"
     with open(config_path, "w") as f:
-        f.write("""
+        f.write(f"""
 providers:
   mock:
     type: openai_compatible
     name: mock
-    base_url: "http://127.0.0.1:8000"
+    base_url: "http://127.0.0.1:{MOCK_LLM_PORT}"
     model: minimax/minimax-m2.7
     api_key:
       source: env
       key: NOVITA_API_KEY
 server:
   host: "0.0.0.0"
-  port: 18789
+  port: {ENVOY_PORT}
 control_plane:
   database:
     driver: postgres

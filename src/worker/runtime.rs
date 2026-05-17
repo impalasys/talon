@@ -302,6 +302,7 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::knowledge::KNOWLEDGE_WRITE_TOOL,
         crate::knowledge::KNOWLEDGE_SEARCH_TOOL,
         crate::knowledge::KNOWLEDGE_GET_TOOL,
+        crate::knowledge::KNOWLEDGE_LIST_TOOL,
         crate::native_tools::CREATE_SCHEDULE_TOOL,
         crate::native_tools::GET_SCHEDULE_TOOL,
         crate::native_tools::LIST_SCHEDULES_TOOL,
@@ -706,6 +707,7 @@ mod tests {
     fn builtin_tool_names_contains_expected_schedule_and_knowledge_tools() {
         let names = builtin_tool_names();
         assert!(names.contains(&crate::knowledge::KNOWLEDGE_GET_TOOL));
+        assert!(names.contains(&crate::knowledge::KNOWLEDGE_LIST_TOOL));
         assert!(names.contains(&crate::native_tools::CREATE_SCHEDULE_TOOL));
         assert!(names.contains(&crate::native_tools::DELETE_SCHEDULE_TOOL));
     }

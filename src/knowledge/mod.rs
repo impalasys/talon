@@ -23,9 +23,17 @@ pub struct KnowledgeResult {
     pub updated_at: i64,
 }
 
+/// A single listed artifact from the KnowledgeBook.
+pub struct KnowledgeListEntry {
+    pub namespace: String,
+    pub path: String,
+    pub updated_at: i64,
+}
+
 pub const KNOWLEDGE_WRITE_TOOL: &str = "knowledge_write";
 pub const KNOWLEDGE_SEARCH_TOOL: &str = "knowledge_search";
 pub const KNOWLEDGE_GET_TOOL: &str = "knowledge_get";
+pub const KNOWLEDGE_LIST_TOOL: &str = "knowledge_list";
 
 /// KnowledgeBook manages namespace-scoped knowledge artifacts for Talon agents.
 /// Artifacts are stored as Markdown in the platform KV store under the key prefix
@@ -40,6 +48,15 @@ pub trait KnowledgeBook: Send + Sync {
 
     /// Keyword-scan the namespace for artifacts matching the query.
     async fn search(&self, ns: &str, query: &str, limit: usize) -> Result<Vec<KnowledgeResult>>;
+
+    /// List artifacts under an optional path prefix within the namespace ancestry.
+    async fn list(
+        &self,
+        ns: &str,
+        path_prefix: &str,
+        recursive: bool,
+        limit: usize,
+    ) -> Result<Vec<KnowledgeListEntry>>;
 }
 
 pub fn register_tools(registry: &mut crate::skills::registry::ToolRegistry) {
@@ -77,6 +94,19 @@ pub fn register_tools(registry: &mut crate::skills::registry::ToolRegistry) {
                 "path": { "type": "string", "description": "Artifact path, e.g. 'seo/2025-best-practices.md' or 'goals.md'" }
             },
             "required": ["path"]
+        }),
+    );
+
+    registry.register_builtin(
+        KNOWLEDGE_LIST_TOOL,
+        "List artifacts from the agent's KnowledgeBook under an optional folder-like path prefix. Use this before reading when you only know the area of knowledge you need.",
+        json!({
+            "type": "object",
+            "properties": {
+                "path": { "type": "string", "description": "Optional path prefix to list under, e.g. 'seo/' or 'playbooks'." },
+                "recursive": { "type": "boolean", "description": "Whether to include nested descendants. Defaults to true." },
+                "limit": { "type": "integer", "description": "Maximum number of artifacts to return. Defaults to 50." }
+            }
         }),
     );
 }
@@ -124,6 +154,35 @@ pub async fn execute_tool(
                         .collect::<Vec<_>>()
                         .join("\n---\n"),
                 ))
+            }
+        }
+        KNOWLEDGE_LIST_TOOL => {
+            let path_prefix = args["path"].as_str().unwrap_or("");
+            let recursive = args
+                .get("recursive")
+                .and_then(Value::as_bool)
+                .unwrap_or(true);
+            let limit = args
+                .get("limit")
+                .and_then(Value::as_u64)
+                .map(|value| value.clamp(1, 200) as usize)
+                .unwrap_or(50);
+            let entries = book.list(namespace, path_prefix, recursive, limit).await?;
+            if entries.is_empty() {
+                Ok(Some(format!(
+                    "KnowledgeBook: no artifacts found under '{}'.",
+                    if path_prefix.is_empty() { "/" } else { path_prefix }
+                )))
+            } else {
+                Ok(Some(serde_json::to_string_pretty(&json!({
+                    "path": path_prefix,
+                    "recursive": recursive,
+                    "entries": entries.into_iter().map(|entry| json!({
+                        "namespace": entry.namespace,
+                        "path": entry.path,
+                        "updated_at": entry.updated_at,
+                    })).collect::<Vec<_>>(),
+                }))?))
             }
         }
         _ => Ok(None),
@@ -180,6 +239,30 @@ impl KvKnowledgeBook {
         };
         let artifact_path = matches[0].strip_prefix(prefix).unwrap_or(&matches[0]);
         Ok(Some(Self::normalize_entry(ns, artifact_path, &bytes)))
+    }
+
+    fn normalize_list_prefix(path_prefix: &str) -> String {
+        path_prefix.trim_matches('/').to_lowercase()
+    }
+
+    fn entry_matches_prefix(path: &str, normalized_prefix: &str, recursive: bool) -> bool {
+        if normalized_prefix.is_empty() {
+            return true;
+        }
+
+        let lower_path = path.to_lowercase();
+        if lower_path == normalized_prefix {
+            return true;
+        }
+
+        let Some(remainder) = lower_path
+            .strip_prefix(normalized_prefix)
+            .and_then(|suffix| suffix.strip_prefix('/'))
+        else {
+            return false;
+        };
+
+        recursive || !remainder.contains('/')
     }
 }
 
@@ -288,6 +371,50 @@ impl KnowledgeBook for KvKnowledgeBook {
             .map(|(_, _, result)| result)
             .collect())
     }
+
+    async fn list(
+        &self,
+        ns: &str,
+        path_prefix: &str,
+        recursive: bool,
+        limit: usize,
+    ) -> Result<Vec<KnowledgeListEntry>> {
+        let prefix = crate::control::keys::knowledge_prefix();
+        let normalized_prefix = Self::normalize_list_prefix(path_prefix);
+        let mut entries = Vec::new();
+        let mut seen_paths = std::collections::HashSet::new();
+
+        for candidate_ns in crate::control::ns::ancestry(ns) {
+            let mut keys = self.kv.list_keys(&candidate_ns, prefix).await?;
+            keys.sort();
+
+            for key in keys {
+                let artifact_path = key.strip_prefix(prefix).unwrap_or(&key);
+                if !Self::entry_matches_prefix(artifact_path, &normalized_prefix, recursive) {
+                    continue;
+                }
+                if !seen_paths.insert(artifact_path.to_string()) {
+                    continue;
+                }
+                let Some(bytes) = self.kv.get(&candidate_ns, &key).await? else {
+                    continue;
+                };
+                let entry = Self::normalize_entry(&candidate_ns, artifact_path, &bytes);
+                let namespace = entry.namespace.clone();
+                let path = entry.path();
+                entries.push(KnowledgeListEntry {
+                    namespace,
+                    path,
+                    updated_at: entry.updated_at,
+                });
+                if entries.len() >= limit {
+                    return Ok(entries);
+                }
+            }
+        }
+
+        Ok(entries)
+    }
 }
 
 impl KnowledgeEntry {
@@ -303,8 +430,8 @@ impl KnowledgeEntry {
 #[cfg(test)]
 mod tests {
     use super::{
-        execute_tool, KnowledgeBook, KnowledgeEntry, KvKnowledgeBook, KNOWLEDGE_GET_TOOL,
-        KNOWLEDGE_SEARCH_TOOL, KNOWLEDGE_WRITE_TOOL,
+        execute_tool, KnowledgeBook, KnowledgeEntry, KvKnowledgeBook,
+        KNOWLEDGE_GET_TOOL, KNOWLEDGE_LIST_TOOL, KNOWLEDGE_SEARCH_TOOL, KNOWLEDGE_WRITE_TOOL,
     };
     use crate::control::KeyValueStore;
     use async_trait::async_trait;
@@ -315,6 +442,52 @@ mod tests {
 
     struct MockKvStore {
         store: Mutex<HashMap<String, Vec<u8>>>,
+    }
+
+    #[tokio::test]
+    async fn list_inherits_namespace_and_respects_prefix_modes() {
+        let kv = Arc::new(MockKvStore::new());
+        let book = KvKnowledgeBook::new(kv.clone());
+
+        for (ns, path, content) in [
+            ("conic", "playbooks/root.md", "shared root"),
+            ("conic", "playbooks/nested/child.md", "shared child"),
+            ("conic:wks:13", "playbooks/local.md", "local root"),
+        ] {
+            let entry = KnowledgeEntry {
+                namespace: ns.to_string(),
+                name: path.to_string(),
+                path: path.to_string(),
+                content: content.to_string(),
+                updated_at: 7,
+            };
+            kv.set(ns, &format!("Knowledge/{}", path), &serde_json::to_vec(&entry).unwrap())
+                .await
+                .unwrap();
+        }
+
+        let non_recursive = book
+            .list("conic:wks:13", "playbooks", false, 10)
+            .await
+            .unwrap();
+        assert_eq!(non_recursive.len(), 2);
+        assert_eq!(non_recursive[0].path, "playbooks/local.md");
+        assert_eq!(non_recursive[1].path, "playbooks/root.md");
+
+        let recursive = book
+            .list("conic:wks:13", "playbooks", true, 10)
+            .await
+            .unwrap();
+        assert_eq!(recursive.len(), 3);
+        let recursive_paths = recursive.into_iter().map(|entry| entry.path).collect::<Vec<_>>();
+        assert_eq!(
+            recursive_paths,
+            vec![
+                "playbooks/local.md".to_string(),
+                "playbooks/nested/child.md".to_string(),
+                "playbooks/root.md".to_string(),
+            ]
+        );
     }
 
     impl MockKvStore {
@@ -572,6 +745,24 @@ mod tests {
         .unwrap()
         .unwrap();
         assert!(empty_search.contains("no matching artifacts found"));
+
+        let list = execute_tool(&book, "conic", KNOWLEDGE_LIST_TOOL, &json!({}))
+            .await
+            .unwrap()
+            .unwrap();
+        let list_payload: serde_json::Value = serde_json::from_str(&list).unwrap();
+        assert_eq!(list_payload["entries"][0]["path"], "goals.md");
+
+        let empty_list = execute_tool(
+            &book,
+            "conic",
+            KNOWLEDGE_LIST_TOOL,
+            &json!({"path":"missing/"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert!(empty_list.contains("no artifacts found"));
 
         let unknown = execute_tool(&book, "conic", "unknown_tool", &json!({}))
             .await
