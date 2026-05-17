@@ -186,10 +186,25 @@ fn data_stream_line(code: &str, value: Value) -> Vec<u8> {
     format!("{code}:{}\n", value).into_bytes()
 }
 
+fn stable_payload_hash(payload: &str) -> u64 {
+    const FNV_OFFSET: u64 = 0xcbf29ce484222325;
+    const FNV_PRIME: u64 = 0x100000001b3;
+
+    payload.as_bytes().iter().fold(FNV_OFFSET, |hash, byte| {
+        hash.wrapping_mul(FNV_PRIME) ^ u64::from(*byte)
+    })
+}
+
 fn step_dedup_key(step: &events::SessionStepEvent) -> String {
+    let payload_hash = stable_payload_hash(&step.payload_json);
     format!(
         "{}:{}:{}:{}:{}:{}",
-        step.message_id, step.timestamp, step.step_type, step.name, step.content, step.payload_json
+        step.message_id,
+        step.timestamp,
+        step.step_type,
+        step.name,
+        step.content,
+        payload_hash
     )
 }
 
@@ -935,7 +950,10 @@ mod tests {
             String::from_utf8(data_stream_line("0", json!("hello"))).unwrap(),
             "0:\"hello\"\n"
         );
-        assert_eq!(step_dedup_key(&step), "msg-1:7:1:name:hello");
+        let key = step_dedup_key(&step);
+        assert!(key.starts_with("msg-1:7:1:name:hello:"));
+        assert!(!key.ends_with(':'));
+        assert_eq!(key, step_dedup_key(&step));
     }
 
     #[tokio::test]
