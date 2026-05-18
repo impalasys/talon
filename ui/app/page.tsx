@@ -897,7 +897,7 @@ function DebuggerPageContent() {
             </div>
           ) : null}
           {selectedNamespace?.type === 'session' ? (
-            <div className={cn("flex-1 transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
+            <div className={cn("min-h-0 min-w-0 flex-1 overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
               <TalonCopilot
                 className="h-full"
                 namespace={selectedNamespace.ns}
