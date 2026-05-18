@@ -17,6 +17,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.17.1",
   "dependencies": {
+    "@talonai/copilot": "workspace:*",
     "@ai-sdk/openai": "3.0.51",
     "@ai-sdk/react": "1.2.12",
     "@connectrpc/connect": "^2.1.1",

@@ -1,8 +1,10 @@
 .env
+node_modules/
 talon_gateway_proto-descriptor-set.proto.bin
 target/
 tests/__pycache__/
 ui/.next/
+ui/coverage/
 ui/node_modules/
 ui/playwright-report/
 ui/test-results/

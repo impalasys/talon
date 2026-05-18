@@ -8,8 +8,10 @@ RUN corepack enable
 
 WORKDIR /repo/ui
 
+COPY pnpm-workspace.yaml /repo/pnpm-workspace.yaml
+COPY pnpm-lock.yaml /repo/pnpm-lock.yaml
 COPY ui/package.json ./
-COPY ui/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY packages/copilot/package.json /repo/packages/copilot/package.json
 RUN --mount=type=cache,target=/pnpm/store \
     pnpm install --frozen-lockfile --config.node-linker=hoisted
 
@@ -23,6 +25,7 @@ COPY ui/components ./components
 COPY ui/lib ./lib
 COPY ui/proto ./proto
 COPY ui/utils ./utils
+COPY packages/copilot /repo/packages/copilot
 COPY ui/global.d.ts ./global.d.ts
 COPY ui/next-env.d.ts ./next-env.d.ts
 COPY ui/next.config.mjs ./next.config.mjs
@@ -35,18 +38,18 @@ RUN pnpm run build
 FROM node:22-slim AS runner
 
 ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+ENV PATH="/app/node_modules/.bin:/app/ui/node_modules/.bin:$PNPM_HOME:$PATH"
 ENV NODE_ENV=production
 ENV NEXT_PUBLIC_GATEWAY_URL=""
 
 RUN corepack enable
 
-WORKDIR /app/ui
+WORKDIR /app
 
-COPY --from=builder /repo/ui/package.json ./package.json
-COPY --from=builder /repo/ui/.next ./.next
-COPY --from=builder /repo/ui/node_modules ./node_modules
-COPY --from=builder /repo/ui/next.config.mjs ./next.config.mjs
+COPY --from=builder /repo/node_modules ./node_modules
+COPY --from=builder /repo/ui ./ui
+
+WORKDIR /app/ui
 
 EXPOSE 3000
 

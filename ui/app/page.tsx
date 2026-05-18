@@ -27,26 +27,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { TalonCopilot } from '@talonai/copilot';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
 import { updateGatewayClient, getGatewayClient, buildGatewayHeaders, normalizeGatewayUrl } from '../lib/grpc';
-import {
-  appendAssistantReasoning,
-  appendAssistantText,
-  applyToolInvocationToMessages,
-  applyUsageToMessages,
-  ensureAssistantMessage,
-  formatUsageSummary,
-  getMessageAssistantTimeline,
-  getMessageContent,
-  getMessageReasoningContent,
-  getMessageUsage,
-  hydrateMessagesWithSteps,
-  isPlaceholderBootMessage,
-  normalizeMessageRole,
-  reconcileAssistantMessageId,
-  type AssistantTimelineItem,
-  type UsageSummary,
-} from '../lib/chatTimeline';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -454,16 +437,6 @@ function ScheduleInspector({
     </div>
   );
 }
-
-
-function sessionResponseHasAssistantText(response: any): boolean {
-  return Array.isArray(response?.messages) && response.messages.some((message: any) => {
-    return normalizeMessageRole(message?.role) === 'assistant'
-      && typeof message?.content === 'string'
-      && message.content.trim().length > 0;
-  });
-}
-
 function extractStreamEvents(data: unknown): StreamEventItem[] {
   if (!Array.isArray(data)) return [];
 
@@ -605,78 +578,16 @@ function DebuggerPageContent() {
   const [isConnected, setIsConnected] = useState(false);
   const [isHoveringConnection, setIsHoveringConnection] = useState(false);
   const [selectedNamespace, setSelectedNamespace] = useState<Selection | null>(null);
-  
-  const [error, setError] = useState<Error | null>(null);
-  const [isSessionLoading, setIsSessionLoading] = useState(false);
   const [isSidebarPinned, setIsSidebarPinned] = useState(true);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const [isRightSidebarPinned, setIsRightSidebarPinned] = useState(true);
   const [isRightSidebarHovered, setIsRightSidebarHovered] = useState(false);
-  const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
-  const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [resourceYaml, setResourceYaml] = useState<string>('');
   const [resourceDocument, setResourceDocument] = useState<any | null>(null);
   const [resourceLoading, setResourceLoading] = useState(false);
   const [resourceError, setResourceError] = useState<string | null>(null);
-  const [messages, setMessages] = useState<any[]>([
-    { id: '1', role: 'system', content: 'Talon runtime initialized.' },
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const handleInputChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
-      setInput(event.target.value);
-    },
-    [],
-  );
-  const stop = useCallback(() => {
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = null;
-    setIsLoading(false);
-  }, []);
-  // Track the active session so the explorer can refresh
-  const [activeSession, setActiveSession] = useState<{ ns: string; agent: string; sessionId: string } | null>(null);
-  const activeSessionRef = useRef<{ ns: string; agent: string; sessionId: string } | null>(null);
-  const gatewayUrlRef = useRef('');
-  const authTokenRef = useRef('');
-
-  const bottomRef = useRef<HTMLDivElement>(null);
   const [storageHydrated, setStorageHydrated] = useState(false);
   const lastSyncedQueryRef = useRef<string | null>(null);
-
-  const loadSessionState = useCallback(async (
-    session: { ns: string; agent: string; sessionId: string },
-    options?: { preserveExistingMessages?: boolean },
-  ) => {
-    const response = await fetch(`${gatewayUrlRef.current}/v1/ns/${session.ns}/agents/${session.agent}/sessions/${session.sessionId}`, {
-      headers: authTokenRef.current ? {
-        'Authorization': `Basic ${btoa(`:${authTokenRef.current}`)}`
-      } : undefined
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to load session: ${response.status}`);
-    }
-
-    const res = await response.json();
-    const hydratedMessages = hydrateMessagesWithSteps((res.messages || []).map((m: any) => ({
-      id: m.id || Math.random().toString(),
-      role: normalizeMessageRole(m.role),
-      content: m.content,
-      createdAt: m.createdAt ?? m.created_at,
-    })), res.steps);
-
-    setMessages(prev => {
-      if (options?.preserveExistingMessages && !isPlaceholderBootMessage(prev)) {
-        return prev;
-      }
-      return hydratedMessages;
-    });
-    setStreamEvents([]);
-    setActiveSession(session);
-    return res;
-  }, []);
 
   const handleSelectionChange = useCallback(
     (selection: Selection | null, historyMode: 'push' | 'replace' = 'push') => {
@@ -699,18 +610,6 @@ function DebuggerPageContent() {
     }
     setStorageHydrated(true);
   }, []);
-
-  useEffect(() => {
-    activeSessionRef.current = activeSession;
-  }, [activeSession]);
-
-  useEffect(() => {
-    gatewayUrlRef.current = gatewayUrl.trim();
-  }, [gatewayUrl]);
-
-  useEffect(() => {
-    authTokenRef.current = authToken.trim();
-  }, [authToken]);
 
   useEffect(() => {
     if (!storageHydrated) return;
@@ -749,30 +648,6 @@ function DebuggerPageContent() {
       router.replace(nextUrl, { scroll: false });
     }
   }, [storageHydrated, isConnected, selectedNamespace, pathname, router]);
-
-  // Load session history when a session node is selected
-  useEffect(() => {
-    if (isConnected && selectedNamespace?.type === 'session') {
-      setIsSessionLoading(true);
-      loadSessionState({ ns: selectedNamespace.ns, agent: selectedNamespace.agent!, sessionId: selectedNamespace.sessionId! }, {
-        preserveExistingMessages: true,
-      })
-        .then(res => {
-          setIsSessionLoading(false);
-          if (res.state === 'PROCESSING') {
-            resumeStream(selectedNamespace.ns, selectedNamespace.agent!, selectedNamespace.sessionId!);
-          }
-        })
-        .catch(err => {
-          setMessages([{ id: '1', role: 'system', content: `[Error loading session history: ${err.message}]` }]);
-          setIsSessionLoading(false);
-        });
-    } else if (!selectedNamespace || selectedNamespace.type !== 'session') {
-      setActiveSession(null);
-      setStreamEvents([]);
-      setMessages([{ id: '1', role: 'system', content: 'Talon runtime initialized.' }]);
-    }
-  }, [isConnected, loadSessionState, selectedNamespace]);
 
   useEffect(() => {
     if (!isConnected || !selectedNamespace || selectedNamespace.type === 'session') {
@@ -857,117 +732,6 @@ function DebuggerPageContent() {
     };
   }, [authToken, gatewayUrl, isConnected, selectedNamespace]);
 
-  const resumeStream = async (ns: string, agent: string, sessionId: string) => {
-    try {
-      const response = await fetch(buildGatewayChatUiUrl(gatewayUrl, ns, agent, sessionId), {
-        headers: authToken ? {
-          'Authorization': `Basic ${btoa(`:${authToken}`)}`
-        } : undefined
-      });
-      if (!response.body) return;
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        while (true) {
-          const newlineIndex = buffer.indexOf('\n');
-          if (newlineIndex < 0) break;
-
-          const line = buffer.slice(0, newlineIndex);
-          buffer = buffer.slice(newlineIndex + 1);
-          if (!line) continue;
-
-          let part: any;
-          try {
-            part = JSON.parse(line);
-          } catch {
-            continue;
-          }
-          if (part.type === 'text') {
-            setMessages((prev) => {
-              const lastAssistant = [...prev]
-                .reverse()
-                .find((message) => message.role === 'assistant');
-              return lastAssistant?.id
-                ? appendAssistantText(prev, lastAssistant.id, String(part.value ?? ''))
-                : prev;
-            });
-          } else if (part.type === 'reasoning') {
-            setMessages((prev) => {
-              const lastAssistant = [...prev]
-                .reverse()
-                .find((message) => message.role === 'assistant');
-              return lastAssistant?.id
-                ? appendAssistantReasoning(prev, lastAssistant.id, String(part.value ?? ''))
-                : prev;
-            });
-          } else if (part.type === 'tool_call') {
-            setMessages(prev => applyToolInvocationToMessages(
-              prev,
-              part.value?.toolCallId,
-              part.value?.toolName,
-              part.value?.args,
-            ));
-          } else if (part.type === 'tool_result') {
-            setMessages(prev => applyToolInvocationToMessages(
-              prev,
-              part.value?.toolCallId,
-              '',
-              undefined,
-              part.value?.result,
-            ));
-          } else if (part.type === 'usage') {
-            setMessages((prev) => {
-              const lastAssistant = [...prev]
-                .reverse()
-                .find((message) => message.role === 'assistant');
-              return lastAssistant?.id
-                ? applyUsageToMessages(prev, lastAssistant.id, part.value)
-                : prev;
-            });
-          } else if (part.type === 'error') {
-            setError(new Error(String(part.value)));
-          }
-        }
-      }
-    } catch (err) {
-      console.error("Error resuming stream", err);
-    }
-  };
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading, error]);
-
-  const getLatestStatus = () => {
-    const reasoningItems = streamEvents.filter(item => item.type === 'reasoning');
-    if (reasoningItems.length > 0) {
-      return 'Thinking';
-    }
-    const statusItems = streamEvents.filter(item => item.type === 'status');
-    if (statusItems.length > 0) {
-      return statusItems[statusItems.length - 1].content;
-    }
-    const latestToolCall = streamEvents.filter(item => item.type === 'tool_call').at(-1);
-    if (latestToolCall?.name) {
-      return `Calling ${latestToolCall.name}`;
-    }
-    return 'Thinking...';
-  };
-
-  const toggleThinkingMessage = useCallback((messageId: string) => {
-    setExpandedThinkingMessages(prev => ({
-      ...prev,
-      [messageId]: !prev[messageId],
-    }));
-  }, []);
-
   const handleConnect = (e: React.FormEvent) => {
     e.preventDefault();
     if (gatewayUrl.trim()) {
@@ -981,245 +745,6 @@ function DebuggerPageContent() {
       setIsConnected(true);
     }
   };
-
-  const submitMessage = useCallback(async (submittedText: string) => {
-    const text = submittedText.trim();
-    if (!text || isLoading) return;
-
-    setInput('');
-    setError(null);
-    setStreamEvents([]);
-
-    try {
-      let session = activeSession;
-
-      if (!session && selectedNamespace?.type === 'session') {
-        session = {
-          ns: selectedNamespace.ns,
-          agent: selectedNamespace.agent!,
-          sessionId: selectedNamespace.sessionId!,
-        };
-        setActiveSession(session);
-      } else if (!session && selectedNamespace?.type === 'agent') {
-        const ns = selectedNamespace.ns;
-        const agent = selectedNamespace.agent!;
-        const sessionRes = await getGatewayClient().createSession({ ns, agent });
-        session = { ns, agent, sessionId: sessionRes.sessionId };
-        setActiveSession(session);
-      }
-
-      if (!session) {
-        throw new Error('Select an agent or session before sending a message.');
-      }
-
-      activeSessionRef.current = session;
-
-      const userMessage = {
-        id: crypto.randomUUID(),
-        role: 'user',
-        content: text,
-        parts: [{ type: 'text', text }],
-        createdAt: String(Date.now() * 1000),
-      };
-      setMessages(prev => [...prev, userMessage]);
-      setIsLoading(true);
-
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      if (authTokenRef.current) {
-        headers['Authorization'] = `Basic ${btoa(`:${authTokenRef.current}`)}`;
-      }
-
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
-
-      const response = await globalThis.fetch(
-        buildGatewayChatUiUrl(gatewayUrlRef.current, session.ns, session.agent, session.sessionId),
-        {
-          method: 'POST',
-          headers,
-          signal: controller.signal,
-          body: JSON.stringify({
-            messages: [...messages, userMessage].map((message: any) => ({
-              role: message.role,
-              content: getMessageContent(message),
-              parts: Array.isArray(message.parts)
-                ? message.parts
-                : [{ type: 'text', text: getMessageContent(message) }],
-            })),
-          }),
-        },
-      );
-      if (!response.ok) {
-        throw new Error(`Failed to send message: ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('Gateway response body was empty.');
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-      let assistantText = '';
-      let assistantMessageId: string | null = null;
-
-      const ensureLiveAssistant = (messageId?: string) => {
-        const nextMessageId = messageId || assistantMessageId || crypto.randomUUID();
-        const previousMessageId = assistantMessageId;
-        assistantMessageId = nextMessageId;
-        setMessages(prev => {
-          const reconciled = previousMessageId && previousMessageId !== nextMessageId
-            ? reconcileAssistantMessageId(prev, previousMessageId, nextMessageId)
-            : prev;
-          return ensureAssistantMessage(reconciled, nextMessageId);
-        });
-        return nextMessageId;
-      };
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        while (true) {
-          const newlineIndex = buffer.indexOf('\n');
-          if (newlineIndex < 0) break;
-
-          const line = buffer.slice(0, newlineIndex);
-          buffer = buffer.slice(newlineIndex + 1);
-          if (!line) continue;
-
-          const separatorIndex = line.indexOf(':');
-          if (separatorIndex < 0) continue;
-
-          const code = line.slice(0, separatorIndex);
-          let part: any;
-          try {
-            part = JSON.parse(line.slice(separatorIndex + 1));
-          } catch {
-            continue;
-          }
-
-          if (code === 'f' && typeof part?.messageId === 'string' && part.messageId) {
-            ensureLiveAssistant(part.messageId);
-          } else if (code === '0' && typeof part === 'string') {
-            const messageId = ensureLiveAssistant();
-            assistantText += part;
-            setMessages(prev => appendAssistantText(prev, messageId, part));
-          } else if (code === 'g' && typeof part === 'string') {
-            const messageId = ensureLiveAssistant();
-            setStreamEvents(prev => [
-              ...prev,
-              {
-                type: 'reasoning',
-                content: part,
-              },
-            ]);
-            setMessages(prev => appendAssistantReasoning(prev, messageId, part));
-          } else if (code === '9') {
-            const messageId = ensureLiveAssistant();
-            setStreamEvents(prev => [
-              ...prev,
-              {
-                type: 'tool_call',
-                content: typeof part?.toolName === 'string' ? part.toolName : 'tool',
-                name: part?.toolName,
-                payload: part,
-              },
-            ]);
-            setMessages(prev => applyToolInvocationToMessages(
-              prev,
-              typeof part?.toolCallId === 'string' ? part.toolCallId : `tool-${crypto.randomUUID()}`,
-              typeof part?.toolName === 'string' ? part.toolName : 'tool',
-              part?.args,
-              undefined,
-              messageId,
-            ));
-          } else if (code === 'a') {
-            const messageId = ensureLiveAssistant();
-            setStreamEvents(prev => [
-              ...prev,
-              {
-                type: 'tool_result',
-                content: typeof part?.toolCallId === 'string' ? part.toolCallId : 'tool_result',
-                payload: part,
-              },
-            ]);
-            setMessages(prev => applyToolInvocationToMessages(
-              prev,
-              typeof part?.toolCallId === 'string' ? part.toolCallId : `tool-${crypto.randomUUID()}`,
-              '',
-              undefined,
-              part?.result,
-              messageId,
-            ));
-          } else if (code === 'h' && part && typeof part === 'object') {
-            const messageId = ensureLiveAssistant();
-            setStreamEvents(prev => [
-              ...prev,
-              {
-                type: 'usage',
-                content: formatUsageSummary(part as UsageSummary),
-                payload: part,
-              },
-            ]);
-            setMessages(prev => applyUsageToMessages(prev, messageId, part as UsageSummary));
-          } else if (code === '3') {
-            throw new Error(typeof part === 'string' ? part : 'Stream error');
-          }
-        }
-      }
-
-      if (!assistantText) {
-        for (let attempt = 0; attempt < 40; attempt++) {
-          const sessionState = await loadSessionState(session);
-          if (sessionResponseHasAssistantText(sessionState)) {
-            break;
-          }
-          await new Promise(resolve => setTimeout(resolve, 250));
-        }
-      } else {
-        await loadSessionState(session);
-      }
-    } catch (err: any) {
-      console.error("Submit Error:", err);
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      abortControllerRef.current = null;
-      setIsLoading(false);
-    }
-  }, [isLoading, activeSession, loadSessionState, selectedNamespace, messages]);
-
-  const handleSubmitForm = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    await submitMessage(input || '');
-  }, [input, submitMessage]);
-
-  const stopGeneration = useCallback(async () => {
-    if (!activeSession || !isLoading) return;
-
-    stop();
-    const headers: HeadersInit = { 'Content-Type': 'application/json' };
-    if (authToken) {
-      headers['Authorization'] = `Basic ${btoa(`:${authToken}`)}`;
-    }
-
-    const response = await fetch(buildGatewayChatUiUrl(gatewayUrl, activeSession.ns, activeSession.agent, activeSession.sessionId), {
-      method: 'DELETE',
-      headers,
-      body: JSON.stringify({
-        ns: activeSession.ns,
-        agent: activeSession.agent,
-        sessionId: activeSession.sessionId,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to stop generation: ${response.status}`);
-    }
-  }, [activeSession, authToken, gatewayUrl, isLoading, stop]);
 
   return (
     <div className="flex h-screen min-w-0 flex-row overflow-x-hidden overflow-y-hidden bg-background text-foreground">
@@ -1279,12 +804,12 @@ function DebuggerPageContent() {
             <Terminal className="w-5 h-5 text-foreground stroke-[1.5]" />
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-semibold tracking-tight">Talon Sightline</h1>
-              {(activeSession?.agent || (selectedNamespace?.type === 'agent' && selectedNamespace.agent)) && (
+              {selectedNamespace?.agent && (
                 <>
                   <div className="h-3 w-px bg-border/60 mx-1" />
                   <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
                     <Cpu className="w-3 h-3" />
-                    {activeSession?.agent || selectedNamespace?.agent}
+                    {selectedNamespace.agent}
                   </span>
                 </>
               )}
@@ -1372,232 +897,27 @@ function DebuggerPageContent() {
             </div>
           ) : null}
           {selectedNamespace?.type === 'session' ? (
-            <>
-              <div className={cn("flex-1 overflow-y-auto overflow-x-hidden transition-opacity duration-300 elegant-scrollbar", !isConnected && "opacity-20 pointer-events-none")}>
-                <div className="max-w-3xl mx-auto p-4 md:py-10 space-y-8 pb-8">
-                  <AnimatePresence initial={false}>
-                    {messages.map((m: any) => (
-                      (() => {
-                        const content = getMessageContent(m);
-                        const timeline = getMessageAssistantTimeline(m);
-                        const reasoningContent = getMessageReasoningContent(m);
-                        const usage = getMessageUsage(m);
-                        const usageSummary = formatUsageSummary(usage);
-                        return (
-                      <motion.div 
-                        key={m.id}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex gap-4 group"
-                      >
-                        <div className="flex-shrink-0 mt-0.5">
-                          {m.role === 'user' ? (
-                            <div className="w-6 h-6 bg-muted rounded-md flex items-center justify-center border border-border">
-                              <User className="w-3.5 h-3.5 text-muted-foreground stroke-[1.5]" />
-                            </div>
-                          ) : (
-                            <div className="w-6 h-6 bg-foreground rounded-md flex items-center justify-center">
-                              <Cpu className="w-3.5 h-3.5 text-background stroke-[1.5]" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 space-y-2 overflow-hidden">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-semibold text-foreground">
-                              {m.role === 'user' ? 'Operator' : 'Talon'}
-                            </span>
-                            <span className="text-[11px] text-muted-foreground font-mono">
-                              {formatMessageTimestamp(m)}
-                            </span>
-                          </div>
-                          {reasoningContent && (
-                            <div className="pb-2">
-                              <button
-                                type="button"
-                                onClick={() => toggleThinkingMessage(m.id)}
-                                className="group/thinking inline-flex w-full items-center justify-between rounded-lg border border-amber-200/50 bg-amber-50/40 px-3 py-2 text-left transition-colors hover:bg-amber-50/60 dark:border-amber-500/20 dark:bg-amber-500/10"
-                              >
-                                <span className="text-[12px] font-medium text-amber-900/80 dark:text-amber-100/80">
-                                  Thinking{usageSummary ? ` • ${usageSummary}` : ''}
-                                </span>
-                                <ChevronRight
-                                  className={cn(
-                                    "h-4 w-4 text-amber-900/60 transition-all duration-200 opacity-0 group-hover/thinking:opacity-100 dark:text-amber-100/60",
-                                    expandedThinkingMessages[m.id] && "rotate-90 opacity-100"
-                                  )}
-                                />
-                              </button>
-
-                              {expandedThinkingMessages[m.id] && (
-                                <div className="mt-3 rounded-lg border border-amber-200/50 bg-amber-50/30 p-3 dark:border-amber-500/20 dark:bg-amber-500/5">
-                                  <div className="mb-2 text-[11px] uppercase tracking-wide text-amber-900/60 dark:text-amber-100/60">
-                                    Raw Reasoning
-                                  </div>
-                                  <div className="whitespace-pre-wrap break-words font-mono text-[12px] leading-relaxed text-amber-950/85 [overflow-wrap:anywhere] dark:text-amber-50/85">
-                                    {reasoningContent}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          <div className={cn(
-                            "min-w-0 overflow-hidden break-words text-[14px] leading-relaxed text-foreground/90 [overflow-wrap:anywhere] [&_code]:break-words [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:break-words",
-                            m.role === 'system' && "font-mono text-[12px] text-muted-foreground"
-                          )}>
-                            {m.role === 'assistant' && timeline.length > 0 ? (
-                              <div className="space-y-3">
-                                {timeline.map((item: AssistantTimelineItem, index: number) => (
-                                  item.type === 'text' ? (
-                                    <div
-                                      key={`${m.id}-timeline-${index}`}
-                                      className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
-                                    >
-                                      {item.text}
-                                    </div>
-                                  ) : (
-                                    <div
-                                      key={`${m.id}-${item.toolCallId}-${index}`}
-                                      className="rounded-xl border border-border/60 bg-muted/25 p-3"
-                                    >
-                                      <div className="mb-2 flex items-center gap-2 text-[12px] font-medium text-foreground/90">
-                                        <span className="rounded-full bg-background/80 px-2 py-0.5 text-[11px] uppercase tracking-wide text-muted-foreground">
-                                          Tool
-                                        </span>
-                                        <span className="font-mono">{item.toolName}</span>
-                                      </div>
-                                      <div className="mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-                                        Arguments
-                                      </div>
-                                      <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md border border-border/60 bg-background/80 p-3 text-[12px] text-foreground/85">
-                                        <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
-                                      </pre>
-                                      {item.result !== undefined && (
-                                        <>
-                                          <div className="mt-3 mb-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-                                            Result
-                                          </div>
-                                          <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words rounded-md border border-border/60 bg-background/80 p-3 text-[12px] text-foreground/85">
-                                            <code>{typeof item.result === 'string' ? item.result : JSON.stringify(item.result, null, 2)}</code>
-                                          </pre>
-                                        </>
-                                      )}
-                                    </div>
-                                  )
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{content}</div>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                        );
-                      })()
-                    ))}
-                    
-                    {isLoading && (messages[messages.length - 1]?.role === 'user' || (messages[messages.length - 1]?.role === 'assistant' && !messages[messages.length - 1]?.content)) && (
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex gap-4"
-                      >
-                        <div className="flex-shrink-0 mt-0.5">
-                          <div className="w-6 h-6 bg-foreground rounded-md flex items-center justify-center">
-                            <Cpu className="w-3.5 h-3.5 text-background stroke-[1.5]" />
-                          </div>
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <span className="text-[13px] font-semibold text-foreground">Talon</span>
-                          <div className="text-[12px] font-mono text-muted-foreground mb-1">
-                            ⏳ {getLatestStatus()}
-                          </div>
-                          <div className="flex items-center gap-1.5 h-6">
-                            <div className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                            <div className="w-1.5 h-1.5 bg-foreground/40 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                            <div className="w-1.5 h-1.5 bg-foreground/50 rounded-full animate-bounce" />
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {error && (
-                      <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex gap-4"
-                      >
-                        <div className="flex-shrink-0 mt-0.5">
-                          <div className="w-6 h-6 bg-red-100 dark:bg-red-900/30 rounded-md flex items-center justify-center border border-red-200 dark:border-red-900/50">
-                            <Activity className="w-3.5 h-3.5 text-red-600 dark:text-red-500 stroke-[1.5]" />
-                          </div>
-                        </div>
-                        <div className="flex-1 space-y-2">
-                          <span className="text-[13px] font-semibold text-red-600 dark:text-red-500">System Incident</span>
-                          <div className="text-[13px] p-3 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200/50 dark:border-red-900/30 text-red-600 dark:text-red-400 font-mono">
-                            {error.message || 'An error occurred while connecting to the agent.'}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <div ref={bottomRef} />
-                </div>
-              </div>
-
-              <div className="flex-shrink-0 flex justify-center w-full p-4 bg-background/40 backdrop-blur-sm md:border-t md:border-border/60">
-                <div className="w-full max-w-3xl pb-2">
-                  <form 
-                    onSubmit={handleSubmitForm} 
-                    className="relative bg-background/74 border border-border/70 focus-within:border-border/95 rounded-[1.35rem] shadow-[0_10px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-all flex items-end p-2 pl-3"
-                  >
-                    <textarea
-                      value={input}
-                      onChange={handleInputChange}
-                      placeholder="Ask Talon to perform a task..."
-                      className="flex-1 resize-none bg-transparent px-2 py-2 max-h-[40vh] min-h-[24px] text-[15px] leading-relaxed focus:outline-none placeholder:text-muted-foreground/60 overflow-y-auto"
-                      rows={Math.min((input || '').split('\n').length, 8) || 1}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          const val = e.currentTarget.value;
-                          if ((val || '').trim() && isConnected && !isLoading) {
-                            submitMessage(val);
-                          }
-                        }
-                      }}
-                      autoFocus
-                    />
-                    <div className="flex-shrink-0 flex items-end mb-0.5 ml-2">
-                      <button
-                        type={isLoading ? "button" : "submit"}
-                        onClick={isLoading ? () => {
-                          void stopGeneration().catch((err: any) => setError(err instanceof Error ? err : new Error('Failed to stop generation')));
-                        } : undefined}
-                        className={cn(
-                          "p-2 rounded-xl flex items-center justify-center transition-all duration-200",
-                          isLoading || ((input || '').trim() && isConnected && !isLoading)
-                            ? "bg-foreground text-background shadow-sm hover:scale-105 active:scale-95" 
-                            : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
-                        )}
-                        disabled={isLoading ? !activeSession : !(input || '').trim() || !isConnected}
-                      >
-                        {isLoading ? (
-                          <Square className="w-4 h-4 fill-current stroke-[2]" />
-                        ) : (
-                          <Send className="w-4 h-4 stroke-[2]" />
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                  <div className="text-center mt-3">
-                     <span className="text-[11px] font-medium text-muted-foreground/60">Press Return to send, Shift + Return for new line</span>
-                  </div>
-                </div>
-              </div>
-            </>
+            <div className={cn("min-h-0 min-w-0 flex-1 overflow-hidden transition-opacity duration-300", !isConnected && "opacity-20 pointer-events-none")}>
+              <TalonCopilot
+                className="h-full"
+                namespace={selectedNamespace.ns}
+                agent={selectedNamespace.agent || 'default'}
+                sessionId={selectedNamespace.type === 'session' ? selectedNamespace.sessionId : undefined}
+                gatewayUrl={gatewayUrl}
+                authToken={authToken || undefined}
+                gatewayClient={getGatewayClient()}
+                disabled={!isConnected}
+                onSessionChange={(nextSessionId) => {
+                  handleSelectionChange({
+                    type: 'session',
+                    ns: selectedNamespace.ns,
+                    agent: selectedNamespace.agent || 'default',
+                    sessionId: nextSessionId,
+                    fullPath: `${selectedNamespace.ns}/${selectedNamespace.agent || 'default'}/${nextSessionId}`,
+                  });
+                }}
+              />
+            </div>
           ) : (
             <div className={cn("flex-1 overflow-y-auto overflow-x-hidden transition-opacity duration-300 elegant-scrollbar", !isConnected && "opacity-20 pointer-events-none")}>
               <div className="mx-auto flex h-full w-full max-w-5xl flex-col p-4 md:p-8">
