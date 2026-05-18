@@ -144,14 +144,18 @@ export async function streamUiSubmission(options: {
   const ensureLiveAssistant = (messageId?: string) => {
     const nextMessageId = messageId || assistantMessageId || createLocalMessageId();
     const previousMessageId = assistantMessageId;
+    const idChanged = Boolean(previousMessageId && previousMessageId !== nextMessageId);
+    const isNew = !previousMessageId;
     assistantMessageId = nextMessageId;
-    setMessages((prev) => {
-      const reconciled =
-        previousMessageId && previousMessageId !== nextMessageId
-          ? reconcileAssistantMessageId(prev, previousMessageId, nextMessageId)
-          : prev;
-      return ensureAssistantMessage(reconciled, nextMessageId);
-    });
+    if (idChanged || isNew) {
+      setMessages((prev) => {
+        const reconciled =
+          previousMessageId && previousMessageId !== nextMessageId
+            ? reconcileAssistantMessageId(prev, previousMessageId, nextMessageId)
+            : prev;
+        return ensureAssistantMessage(reconciled, nextMessageId);
+      });
+    }
     return nextMessageId;
   };
 
