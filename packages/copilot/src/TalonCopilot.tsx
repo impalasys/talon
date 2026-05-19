@@ -317,6 +317,7 @@ export function TalonCopilot({
   const [error, setError] = useState<Error | null>(null);
   const [streamEvents, setStreamEvents] = useState<StreamEventItem[]>([]);
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
+  const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
   const [currentSession, setCurrentSession] = useState<{ ns: string; agent: string; sessionId: string } | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const transcriptContentRef = useRef<HTMLDivElement>(null);
@@ -403,6 +404,13 @@ export function TalonCopilot({
     setExpandedThinkingMessages((prev) => ({
       ...prev,
       [messageId]: !prev[messageId],
+    }));
+  }, []);
+
+  const toggleToolItem = useCallback((toolKey: string) => {
+    setExpandedToolItems((prev) => ({
+      ...prev,
+      [toolKey]: !prev[toolKey],
     }));
   }, []);
 
@@ -499,32 +507,66 @@ export function TalonCopilot({
                       <div key={`${message.id}-timeline-${index}`} style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
                         <MarkdownMessage>{item.text}</MarkdownMessage>
                       </div>
-                    ) : (
-                      <div key={`${message.id}-${item.toolCallId}-${index}`} style={{ borderRadius: 16, border: border("rgba(148,163,184,0.24)"), background: "rgba(148,163,184,0.08)", padding: 12 }}>
-                        <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600 }}>
-                          <span style={{ borderRadius: 999, background: "rgba(255,255,255,0.74)", padding: "2px 8px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
-                            Tool
-                          </span>
-                          <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{item.toolName}</span>
-                        </div>
-                        <div style={{ marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
-                          Arguments
-                        </div>
-                        <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 10, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: 12, fontSize: 12 }}>
-                          <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
-                        </pre>
-                        {item.result !== undefined ? (
-                          <>
-                            <div style={{ marginTop: 12, marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
-                              Result
+                    ) : (() => {
+                      const toolKey = `${message.id}-${item.toolCallId ?? index}`;
+                      const isExpanded = expandedToolItems[toolKey] ?? false;
+                      return (
+                        <div key={toolKey} style={{ borderRadius: 16, border: border("rgba(148,163,184,0.24)"), background: "rgba(148,163,184,0.08)", padding: 12 }}>
+                          <button
+                            type="button"
+                            onClick={() => toggleToolItem(toolKey)}
+                            style={{
+                              width: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: 12,
+                              background: "transparent",
+                              border: "none",
+                              padding: 0,
+                              cursor: "pointer",
+                              textAlign: "left",
+                            }}
+                          >
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, fontWeight: 600, minWidth: 0 }}>
+                              <span style={{ borderRadius: 999, background: "rgba(255,255,255,0.74)", padding: "2px 8px", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
+                                Tool
+                              </span>
+                              <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace", overflow: "hidden", textOverflow: "ellipsis" }}>{item.toolName}</span>
                             </div>
-                            <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 10, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: 12, fontSize: 12 }}>
-                              <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
-                            </pre>
-                          </>
-                        ) : null}
-                      </div>
-                    ),
+                            <ChevronRight
+                              size="16"
+                              style={{
+                                flexShrink: 0,
+                                transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+                                transition: "transform 160ms ease",
+                                color: "rgba(100,116,139,0.8)",
+                              }}
+                            />
+                          </button>
+                          {isExpanded ? (
+                            <>
+                              <div style={{ marginTop: 12, marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
+                                Arguments
+                              </div>
+                              <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 10, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: 12, fontSize: 12 }}>
+                                <code>{JSON.stringify(item.args ?? {}, null, 2)}</code>
+                              </pre>
+                              {item.result !== undefined ? (
+                                <>
+                                  <div style={{ marginTop: 12, marginBottom: 8, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(100,116,139,1)" }}>
+                                    Result
+                                  </div>
+                                  <pre style={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere", borderRadius: 10, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: 12, fontSize: 12 }}>
+                                    <code>{typeof item.result === "string" ? item.result : JSON.stringify(item.result, null, 2)}</code>
+                                  </pre>
+                                </>
+                              ) : null}
+                            </>
+                          ) : null}
+                        </div>
+                      );
+                    })(),
                   )}
                 </div>
               ) : (
@@ -535,7 +577,7 @@ export function TalonCopilot({
         </div>
       );
     });
-  }, [messages, expandedThinkingMessages, resolvedTimestampFormatter, talonIcon, toggleThinkingMessage]);
+  }, [messages, expandedThinkingMessages, expandedToolItems, resolvedTimestampFormatter, talonIcon, toggleThinkingMessage, toggleToolItem]);
 
   const getSessionState = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
