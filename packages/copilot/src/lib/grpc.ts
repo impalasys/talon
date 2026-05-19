@@ -2,6 +2,10 @@ export function normalizeGatewayUrl(url: string) {
   return url.trim().replace(/\/+$/, "");
 }
 
+function hasAuthorizationScheme(value: string) {
+  return /^(Basic|Bearer)\s+/i.test(value);
+}
+
 function base64Encode(value: string) {
   if (typeof TextEncoder !== "undefined" && typeof btoa === "function") {
     const bytes = new TextEncoder().encode(value);
@@ -22,8 +26,12 @@ function base64Encode(value: string) {
 
 export function buildGatewayHeaders(authToken?: string | null) {
   if (!authToken) return undefined;
+  const normalizedToken = authToken.trim();
+  if (!normalizedToken) return undefined;
   return {
-    Authorization: `Basic ${base64Encode(`:${authToken}`)}`,
+    Authorization: hasAuthorizationScheme(normalizedToken)
+      ? normalizedToken
+      : `Basic ${base64Encode(`:${normalizedToken}`)}`,
   };
 }
 
