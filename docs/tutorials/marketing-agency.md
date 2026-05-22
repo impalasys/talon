@@ -5,6 +5,8 @@ sidebar_position: 4
 
 This tutorial shows how to model a multi-role workspace around shared knowledge and distinct agents.
 
+Before you begin, create `.env` from `.env.example` and set `OPENAI_API_KEY` so the example agents use a real model provider.
+
 ## What you are building
 
 You will create a `marketing-agency` namespace with:
@@ -19,10 +21,10 @@ This tutorial stays inside real surfaces that exist in the repo. It does not pre
 ## 1. Apply the workspace resources
 
 ```bash
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/marketing-agency/namespace.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/marketing-agency/strategist-template.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/marketing-agency/campaign-writer.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/marketing-agency/campaign-reviewer.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/marketing-agency/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/marketing-agency/strategist-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/marketing-agency/campaign-writer.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/marketing-agency/campaign-reviewer.yaml
 ```
 
 That creates:
@@ -35,7 +37,7 @@ That creates:
 ## 2. Sync the shared knowledge
 
 ```bash
-cargo run --bin talon-cli -- --rest knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge sync \
   --namespace marketing-agency \
   --dir manifests/examples/marketing-agency/knowledge
 ```

@@ -11,6 +11,6 @@ definition:
       profiles:
         - name: default
           model:
-            provider: mock
-            name: minimax
+            provider: openai
+            name: gpt-4.1-mini
             temperature: 0.0

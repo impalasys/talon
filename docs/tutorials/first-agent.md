@@ -11,29 +11,51 @@ By the end you will have:
 
 - the local Talon stack running
 - a tutorial namespace
-- a mock-model agent that works without external provider credentials
+- a real-provider agent using credentials from `.env`
 - a session you can inspect in Sightline
 
 ## Before you start
 
+Create a local `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+Then set a real provider key. This tutorial uses OpenAI:
+
+```bash
+OPENAI_API_KEY=your-real-api-key
+```
+
 From the repository root:
 
 ```bash
-./run.sh
+docker compose up --build -d
 ```
 
 Wait for the stack to come up, then open `http://localhost:3000` and connect Sightline to `http://localhost:18789`.
 
 ## 1. Create a tutorial namespace
 
-Create a file named `first-agent.yaml`:
+Create `first-agent-namespace.yaml`:
 
 ```yaml
 apiVersion: talon.impalasys.com/v1
 kind: Namespace
 metadata:
   name: first-agent
----
+```
+
+Apply it:
+
+```bash
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f first-agent-namespace.yaml
+```
+
+Create `first-agent-agent.yaml`:
+
+```yaml
 apiVersion: talon.impalasys.com/v1
 kind: Agent
 metadata:
@@ -48,21 +70,21 @@ definition:
       profiles:
         - name: default
           model:
-            provider: mock
-            name: minimax
+            provider: openai
+            name: gpt-4.1-mini
             temperature: 0.0
 ```
 
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --rest apply -f first-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f first-agent-agent.yaml
 ```
 
 Verify the agent exists:
 
 ```bash
-cargo run --bin talon-cli -- --rest get agent hello-agent --namespace first-agent
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get agent hello-agent --namespace first-agent
 ```
 
 ## 2. Create a session

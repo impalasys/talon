@@ -5,6 +5,8 @@ sidebar_position: 6
 
 This tutorial shows a narrower, safer Talon pattern: an internal agent with bounded operational tools.
 
+Before you begin, create `.env` from `.env.example` and set `OPENAI_API_KEY` so the example agent uses a real model provider.
+
 ## What you are building
 
 You will create:
@@ -17,10 +19,10 @@ You will create:
 ## 1. Apply the example manifests
 
 ```bash
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/namespace.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/ops-copilot-template.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/ops-copilot.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/ops-tools.binding.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/internal-ops-copilot/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/internal-ops-copilot/ops-copilot-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/internal-ops-copilot/ops-copilot.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/internal-ops-copilot/ops-tools.binding.yaml
 ```
 
 This creates:
@@ -33,7 +35,7 @@ This creates:
 ## 2. Load the runbook
 
 ```bash
-cargo run --bin talon-cli -- --rest knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge sync \
   --namespace internal-ops \
   --dir manifests/examples/internal-ops-copilot/knowledge
 ```
@@ -41,7 +43,7 @@ cargo run --bin talon-cli -- --rest knowledge sync \
 ## 3. Verify the MCP binding
 
 ```bash
-cargo run --bin talon-cli -- --rest get mcpserverbinding ops-tools --namespace internal-ops
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get mcpserverbinding ops-tools --namespace internal-ops
 ```
 
 The binding should point at `talon-ops` and allow only:

@@ -41,7 +41,7 @@ The local compose stack sets most runtime wiring automatically, including:
 - local scheduler driver
 - worker pull mode
 
-Provider credentials usually come from `.env`, environment variables, or local keychain lookup in `run.sh`.
+Provider credentials usually come from `.env`, environment variables, or another supported secret source.
 
 ## Read next
 

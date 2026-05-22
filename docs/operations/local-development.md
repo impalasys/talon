@@ -5,10 +5,10 @@ sidebar_position: 1
 
 ## Core loop
 
-From `talon/`:
+From the repository root:
 
 ```bash
-./run.sh
+docker compose up --build -d
 ```
 
 This starts the local compose stack and brings up:

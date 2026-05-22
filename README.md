@@ -28,7 +28,19 @@ For the system model, start with [docs/intro.md](docs/intro.md), [docs/concepts/
 From the repository root:
 
 ```bash
-./run.sh
+cp .env.example .env
+```
+
+Set a real provider key in `.env`:
+
+```bash
+OPENAI_API_KEY=your-real-api-key
+```
+
+Then start the stack directly with Docker Compose:
+
+```bash
+docker compose up --build -d
 ```
 
 This starts the local Talon stack, including:

@@ -5,6 +5,8 @@ sidebar_position: 5
 
 This tutorial makes Talon’s scheduler concrete by pairing a real agent with a real schedule created through the gateway API.
 
+Before you begin, create `.env` from `.env.example` and set `OPENAI_API_KEY` so the example agent uses a real model provider.
+
 ## What you are building
 
 You will create:
@@ -17,15 +19,15 @@ You will create:
 ## 1. Apply the agent resources
 
 ```bash
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/customer-retention-system/namespace.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/customer-retention-system/retention-review-template.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/customer-retention-system/retention-reviewer.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/customer-retention-system/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/customer-retention-system/retention-review-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/customer-retention-system/retention-reviewer.yaml
 ```
 
 ## 2. Sync the retention knowledge
 
 ```bash
-cargo run --bin talon-cli -- --rest knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge sync \
   --namespace customer-retention \
   --dir manifests/examples/customer-retention-system/knowledge
 ```

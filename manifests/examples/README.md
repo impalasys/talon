@@ -20,3 +20,4 @@ Current conventions:
 - each YAML manifest file is a separate `talon-cli apply` input
 - markdown under `knowledge/` is loaded with `talon-cli knowledge sync`
 - schedules are created through the gateway API, because `talon-cli apply` does not currently support `Schedule` manifests
+- tutorial agent templates should point at real providers configured through `.env`, with the public examples defaulting to `openai`

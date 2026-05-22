@@ -10,7 +10,7 @@ This tutorial uses the repository’s example assets plus the browser session AP
 You will create:
 
 - a dedicated `chatgpt-app` namespace
-- a `support-docs-agent` agent backed by the mock model provider
+- a `support-docs-agent` agent backed by a real provider from `.env`
 - namespace knowledge loaded from markdown files
 - a browser client that talks to Talon’s UI session API
 
@@ -18,10 +18,22 @@ The point is to use Talon as the chat backend, not just as a prompt store.
 
 ## 1. Start the stack
 
+Create `.env` first:
+
+```bash
+cp .env.example .env
+```
+
+Then set a real provider key:
+
+```bash
+OPENAI_API_KEY=your-real-api-key
+```
+
 From the repository root:
 
 ```bash
-./run.sh
+docker compose up --build -d
 ```
 
 Open Sightline at `http://localhost:3000` and connect it to `http://localhost:18789`.
@@ -31,9 +43,9 @@ Open Sightline at `http://localhost:3000` and connect it to `http://localhost:18
 Apply the example manifests one by one:
 
 ```bash
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/chatgpt-app/namespace.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
 ```
 
 ## 3. Load the product docs as knowledge
@@ -41,7 +53,7 @@ cargo run --bin talon-cli -- --rest apply -f manifests/examples/chatgpt-app/supp
 Sync the tutorial knowledge into the namespace:
 
 ```bash
-cargo run --bin talon-cli -- --rest knowledge sync \
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge sync \
   --namespace chatgpt-app \
   --dir manifests/examples/chatgpt-app/knowledge
 ```
@@ -49,7 +61,7 @@ cargo run --bin talon-cli -- --rest knowledge sync \
 Verify one document loaded:
 
 ```bash
-cargo run --bin talon-cli -- --rest knowledge get \
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge get \
   --namespace chatgpt-app \
   --path product-docs.md
 ```
@@ -114,7 +126,7 @@ This is the fastest way to debug whether the browser app and the control plane a
 - the manifest files are valid `talon-cli apply` inputs
 - the knowledge sync command is real
 - the browser chat route is the real gateway UI surface
-- the mock model means the flow works even without external provider credentials
+- the manifests point at a real OpenAI provider already wired through `talon.compose.yaml`
 
 ## What is intentionally not included
 
