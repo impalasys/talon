@@ -13,12 +13,15 @@ services:
       - TALON_SCHEDULER_AUTH_TOKEN=${TALON_SCHEDULER_AUTH_TOKEN:-local-scheduler-token}
       - TALON_LOCAL_SCHEDULER_TARGET_URL=http://worker:8081/schedules/fire
       - TALON_LOCAL_SCHEDULER_RUNNER=0
-      - CEREBRAS_API_KEY
+      - OPENAI_API_KEY
       - NOVITA_API_KEY
       - ANTHROPIC_API_KEY
       - GATEWAY_UI_ADDR=0.0.0.0:50052
+      - TALON_CONFIG_PATH=/data/talon/talon.compose.yaml
     env_file:
       - .env
+    volumes:
+      - ./talon.compose.yaml:/data/talon/talon.compose.yaml:ro
     ports:
       - "50051:50051"
       - "50052:50052"
@@ -45,12 +48,15 @@ services:
       - TALON_SCHEDULER_AUTH_TOKEN=${TALON_SCHEDULER_AUTH_TOKEN:-local-scheduler-token}
       - TALON_LOCAL_SCHEDULER_TARGET_URL=http://worker:8081/schedules/fire
       - TALON_LOCAL_SCHEDULER_RUNNER=1
-      - CEREBRAS_API_KEY
+      - OPENAI_API_KEY
       - NOVITA_API_KEY
       - ANTHROPIC_API_KEY
       - PULL_MODE=1
+      - TALON_CONFIG_PATH=/data/talon/talon.compose.yaml
     env_file:
       - .env
+    volumes:
+      - ./talon.compose.yaml:/data/talon/talon.compose.yaml:ro
     depends_on:
       - postgres
       - pubsub

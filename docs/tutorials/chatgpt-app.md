@@ -3,156 +3,141 @@ title: Build a ChatGPT-Style App
 sidebar_position: 3
 ---
 
-This tutorial shows how to build a browser chat product on top of Talon’s existing session and streaming surfaces.
+This tutorial uses the repository’s example assets plus the browser session API to build a real product-docs chat app.
 
 ## What you are building
 
-You will build a single-agent app with:
+You will create:
 
-- a dedicated namespace for app resources
-- one conversational agent or template
-- optional knowledge-backed grounding
+- a dedicated `chatgpt-app` namespace
+- a `support-docs-agent` agent backed by a real provider from `.env`
+- namespace knowledge loaded from markdown files
 - a browser client that talks to Talon’s UI session API
-- live inspection through Sightline
 
-The closest fit is a “ChatGPT for my product docs” app.
+The point is to use Talon as the chat backend, not just as a prompt store.
 
-## Talon concepts used
+## 1. Start the stack
 
-- namespace
-- agent template and agent
-- session
-- streamed step events
-- knowledge
-- browser-oriented UI session API
-- Sightline
-
-## Runtime surfaces used
-
-- `talon-cli apply` for declarative setup
-- the gateway for control-plane resources
-- the `/v1/ui/...` session surface for browser chat
-- Sightline on `http://localhost:3000` for inspection
-
-Read these first if the surface split is unfamiliar:
-
-- [Runtime Surfaces](../reference/runtime-surfaces.md)
-- [Sessions and execution](../concepts/sessions-and-streaming.md)
-
-## Architecture
-
-```text
-Browser chat UI
-  -> Envoy edge :18789
-    -> Gateway UI session surface
-      -> Session state in Postgres-backed control plane
-      -> Worker for model/tool execution
-      -> Optional knowledge/tool lookups
-```
-
-The browser should use Talon’s UI session surface directly. Do not invent a separate proxy backend just to stream chat unless you need app-specific policy or auth.
-
-## Prerequisites
-
-Start the local stack:
+Create `.env` first:
 
 ```bash
-cd talon
-./run.sh
+cp .env.example .env
+```
+
+Then set a real provider key:
+
+```bash
+OPENAI_API_KEY=your-real-api-key
+```
+
+From the repository root:
+
+```bash
+docker compose up --build -d
 ```
 
 Open Sightline at `http://localhost:3000` and connect it to `http://localhost:18789`.
 
-## Apply the example assets
+## 2. Apply the app resources
 
-This tutorial ships with example assets in:
-
-- `talon/manifests/examples/chatgpt-app/app.yaml`
-- `talon/manifests/examples/chatgpt-app/knowledge/product-docs.md`
-
-Use them as a starting point:
+Apply the example manifests one by one:
 
 ```bash
-cd talon
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/chatgpt-app/app.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
 ```
 
-The bundle defines:
+## 3. Load the product docs as knowledge
 
-- a namespace for the app
-- a support-docs agent template
-- an app-facing agent
-- optional placeholder MCP bindings you can swap for real search or retrieval tools
+Sync the tutorial knowledge into the namespace:
 
-## Build the frontend
+```bash
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge sync \
+  --namespace chatgpt-app \
+  --dir manifests/examples/chatgpt-app/knowledge
+```
 
-The fastest frontend shape is:
+Verify one document loaded:
 
-1. create or look up a session for your agent
-2. `POST` user messages to the UI session route
-3. stream step events into the transcript
-4. render tool activity inline when present
+```bash
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest knowledge get \
+  --namespace chatgpt-app \
+  --path product-docs.md
+```
 
-Model your client after Talon’s own UI behavior:
+## 4. Create a session
 
-- the local UI already uses the browser-native session flow
-- the existing chat e2e tests demonstrate streamed tool activity and assistant responses
+```bash
+curl -sS http://localhost:18789/v1/ns/chatgpt-app/agents/support-docs-agent/sessions \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"ns":"chatgpt-app","agent":"support-docs-agent"}'
+```
 
-If you need a deeper surface comparison, read [Build a Client Against the Gateway](./build-a-client.md).
+Copy the returned `sessionId`.
 
-## Walk an end-to-end flow
+## 5. Send a browser-style chat request
 
-Use the example app resources and send prompts like:
+Replace `<session-id>`:
 
-- “Summarize Talon in three bullets”
-- “What ports does the local stack expose?”
-- “What is the difference between the gateway and Sightline?”
+```bash
+curl -sS http://localhost:18789/v1/ui/ns/chatgpt-app/agents/support-docs-agent/sessions/<session-id> \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"content":"Summarize the product docs in three bullets."}]}'
+```
 
-Watch for:
+This is the same route a frontend would call.
 
-- the created session
-- streamed assistant output
-- optional tool-start and tool-result events
-- persisted session history in Sightline
+## 6. Wire a React client
 
-## Inspect and debug in Sightline
+The fastest frontend path is the shared copilot component:
+
+```tsx
+import { TalonCopilot } from "@talonai/copilot";
+
+export function SupportApp() {
+  return (
+    <TalonCopilot
+      namespace="chatgpt-app"
+      agent="support-docs-agent"
+      gatewayUrl="http://localhost:18789"
+    />
+  );
+}
+```
+
+See `packages/copilot/README.md` for the minimal integration shape.
+
+## 7. Inspect the app in Sightline
 
 In Sightline, inspect:
 
-- the tutorial namespace
-- the agent/template definitions
-- the live session
-- streamed steps for the run
+- the `chatgpt-app` namespace
+- the `support-docs-agent` agent
+- the `product-docs.md` knowledge artifact
+- the live session transcript
 
-When something looks wrong:
+This is the fastest way to debug whether the browser app and the control plane agree.
 
-- verify you connected Sightline to `http://localhost:18789`
-- verify the namespace and agent exist
-- verify your frontend is using the UI session path rather than a control-plane CRUD route
+## What is real in this example
 
-## Extend the system
+- the manifest files are valid `talon-cli apply` inputs
+- the knowledge sync command is real
+- the browser chat route is the real gateway UI surface
+- the manifests point at a real OpenAI provider already wired through `talon.compose.yaml`
 
-Good next steps:
+## What is intentionally not included
 
-- attach real product docs as knowledge
-- add one MCP-backed retrieval or search tool
-- add auth in front of the browser app
-- split the agent into support, sales, and onboarding variants
+- tenant auth
+- production retrieval infrastructure
+- custom MCP tools
 
-## Production notes
-
-For a deployed product, add:
-
-- a real auth story in front of the browser app
-- explicit namespace strategy for tenants or workspaces
-- bounded MCP bindings instead of broad tool access
-
-## What you learned
-
-You used Talon as a browser chat backend with durable sessions and observable execution, not just a raw model wrapper.
+Add those after the basic chat loop works.
 
 ## Read next
 
 - [Build a Marketing Agency](./marketing-agency.md)
-- [Using Sightline](../concepts/using-sightline.md)
+- [Build a Client Against the Gateway](./build-a-client.md)
 - [Authentication and Access](../operations/authentication-and-access.md)

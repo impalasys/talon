@@ -1,0 +1,10 @@
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: support-docs-agent
+  namespace: chatgpt-app
+  labels:
+    tutorial: chatgpt-app
+definition:
+  templated:
+    templateName: support-docs-template

@@ -1,0 +1,10 @@
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: ops-copilot
+  namespace: internal-ops
+  labels:
+    tutorial: internal-ops
+definition:
+  templated:
+    templateName: ops-copilot-template

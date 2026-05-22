@@ -5,10 +5,10 @@ sidebar_position: 1
 
 ## Core loop
 
-From `talon/`:
+From the repository root:
 
 ```bash
-./run.sh
+docker compose up --build -d
 ```
 
 This starts the local compose stack and brings up:
@@ -39,13 +39,9 @@ This starts the local compose stack and brings up:
 - `50051`: native gRPC gateway
 - `50052`: gateway UI HTTP surface
 
-## Docs preview
+## Docs workflow
 
-To preview the landing site and docs together:
-
-```bash
-cd talon/site
-pnpm build
-```
-
-The published `/docs` routes are rendered by the Astro site from `talon/docs`.
+- Hand-written docs live in `docs/`.
+- Generated reference pages live in `docs/reference/generated/`.
+- If you change the gateway or schema protos, regenerate the reference pages with `pnpm --filter @impalasys/talon-docs generate:reference`.
+- Use the docs markdown itself as the source of truth for this open-source repository.

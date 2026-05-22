@@ -9,14 +9,28 @@ This is the fastest path to a working Talon stack in the monorepo while still un
 
 - Docker / Docker Compose
 - Rust toolchain for local binaries and CLI work
-- any provider credentials you want the worker to use, typically via `.env` or local keychain
+- provider credentials via `.env` or local keychain
 
-## 1. Start Talon locally
+## 1. Create `.env`
 
-From `talon/`:
+From the repository root:
 
 ```bash
-./run.sh
+cp .env.example .env
+```
+
+Then edit `.env` and set at least one real provider key. The tutorial examples in this repo use OpenAI by default:
+
+```bash
+OPENAI_API_KEY=your-real-api-key
+```
+
+## 2. Start Talon locally
+
+From the repository root:
+
+```bash
+docker compose up --build -d
 ```
 
 This starts the local compose stack and exposes:
@@ -33,7 +47,7 @@ It also starts:
 - a Pub/Sub emulator
 - an init step that applies the default agent template manifest
 
-## 2. Open Sightline
+## 3. Open Sightline
 
 Open `http://localhost:3000` and connect to `http://localhost:18789`.
 
@@ -49,7 +63,7 @@ Use Sightline to inspect:
 
 This is the fastest way to see Talon’s runtime model in action rather than only reading the APIs.
 
-## 3. Create or inspect an agent
+## 4. Create or inspect an agent
 
 Talon models runtime resources around namespaces and agents. The default operator flow is:
 
@@ -59,7 +73,7 @@ Talon models runtime resources around namespaces and agents. The default operato
 4. send a message
 5. stream the response and tool activity
 
-## 4. Try the CLI
+## 5. Try the CLI
 
 The admin CLI targets the native gRPC gateway by default:
 
@@ -70,10 +84,10 @@ cargo run --bin talon-cli -- --gateway http://localhost:50051 get agenttemplate 
 If you want the HTTP-transcoded surface instead:
 
 ```bash
-cargo run --bin talon-cli -- --rest get agenttemplate <name>
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get agenttemplate <name>
 ```
 
-## 5. Read the contracts
+## 6. Read the contracts
 
 - [How Talon Works](../concepts/how-talon-works.md)
 - [Runtime Topology](../concepts/runtime-topology.md)

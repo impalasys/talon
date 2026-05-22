@@ -1,0 +1,12 @@
+apiVersion: talon.impalasys.com/v1
+kind: McpServerBinding
+metadata:
+  name: ops-tools
+  namespace: internal-ops
+spec:
+  serverRef: talon-ops
+  allowedToolNames:
+    - list_schedules
+    - get_schedule
+    - list_mcp_bindings
+    - get_mcp_binding

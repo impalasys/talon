@@ -1,0 +1,14 @@
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: campaign-writer
+  namespace: marketing-agency
+  labels:
+    role: writer
+definition:
+  templated:
+    templateName: strategist-template
+    delta:
+      systemPrompt:
+        append: |
+          Convert approved plans into polished campaign copy with specific CTAs.

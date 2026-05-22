@@ -31,11 +31,11 @@ The local stack in this repo uses Docker Compose to start:
 - UI
 - manifest bootstrap
 
-## Website and docs deployment
+## Documentation source
 
-The website and published `/docs` routes are rendered by the Astro site in `talon/site`.
+Documentation source in this repository lives under `talon/docs`.
 
-A Docusaurus scaffold still exists in `talon/docs-site`, but the public docs flow should treat the Astro site as the production path unless that architecture changes again.
+Generated reference pages are produced from the proto definitions and checked into `talon/docs/reference/generated` so API and schema changes remain reviewable in version control.
 
 ## Edge and API surfaces
 

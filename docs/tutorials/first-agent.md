@@ -3,61 +3,144 @@ title: Build Your First Agent
 sidebar_position: 1
 ---
 
-This tutorial uses the local Talon stack and the built-in runtime surfaces already present in this repo.
+This tutorial gets you to a working Talon agent with real commands and a real local inspection loop.
 
-## Goal
+## What you will build
 
-By the end you should be able to:
+By the end you will have:
 
-- run Talon locally
-- choose a namespace
-- create or inspect an agent
-- start a session
-- stream a response in Sightline
+- the local Talon stack running
+- a tutorial namespace
+- a real-provider agent using credentials from `.env`
+- a session you can inspect in Sightline
 
-## Step 1: start the stack
+## Before you start
+
+Create a local `.env` file:
 
 ```bash
-cd talon
-./run.sh
+cp .env.example .env
 ```
 
-This brings up the gateway, worker, UI, edge proxy, persistence, and the default agent template bootstrap.
+Then set a real provider key. This tutorial uses OpenAI:
 
-## Step 2: connect Sightline
+```bash
+OPENAI_API_KEY=your-real-api-key
+```
 
-Open `http://localhost:3000` and connect it to `http://localhost:18789`.
+From the repository root:
 
-## Step 3: inspect the control plane
+```bash
+docker compose up --build -d
+```
 
-In Sightline, inspect:
+Wait for the stack to come up, then open `http://localhost:3000` and connect Sightline to `http://localhost:18789`.
 
-- namespaces
-- agent templates
-- agents
-- schedules
-- knowledge
-- MCP servers
+## 1. Create a tutorial namespace
 
-At this point, focus on understanding the resource model:
+Create `first-agent-namespace.yaml`:
 
-- templates define reusable behavior
-- agents are the runtime resources you interact with
-- sessions are the durable execution units
+```yaml
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: first-agent
+```
 
-## Step 4: create a session
+Apply it:
 
-Use an existing agent in a namespace and create a new session. Send a prompt and watch:
+```bash
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f first-agent-namespace.yaml
+```
 
-- the assistant response stream
-- tool activity if the agent invokes MCP-backed tools
+Create `first-agent-agent.yaml`:
 
-## Step 5: inspect the contract
+```yaml
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: hello-agent
+  namespace: first-agent
+definition:
+  customSpec:
+    systemPrompt: |
+      You are a concise tutorial assistant for Talon.
+      Explain what you are doing and keep answers short.
+    modelPolicy:
+      profiles:
+        - name: default
+          model:
+            provider: openai
+            name: gpt-4.1-mini
+            temperature: 0.0
+```
 
-For the equivalent control-plane calls, read:
+Apply it:
 
-- [Gateway API reference](../reference/generated/gateway-service.md)
-- [Sessions and streaming](../concepts/sessions-and-streaming.md)
+```bash
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f first-agent-agent.yaml
+```
+
+Verify the agent exists:
+
+```bash
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get agent hello-agent --namespace first-agent
+```
+
+## 2. Create a session
+
+Create a session through the gateway REST surface:
+
+```bash
+curl -sS http://localhost:18789/v1/ns/first-agent/agents/hello-agent/sessions \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"ns":"first-agent","agent":"hello-agent","labels":{"source":"tutorial"}}'
+```
+
+The response includes a `sessionId`. Save it for the next step.
+
+## 3. Send a message
+
+Replace `<session-id>` with the value from the previous step:
+
+```bash
+curl -sS http://localhost:18789/v1/ui/ns/first-agent/agents/hello-agent/sessions/<session-id> \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"content":"Explain what Talon is in two bullets."}]}'
+```
+
+The UI surface returns a streamed response format used by Sightline and `@talonai/copilot`.
+
+## 4. Inspect the result in Sightline
+
+In Sightline:
+
+1. open the `first-agent` namespace
+2. select `hello-agent`
+3. open the session you just created
+
+Look for:
+
+- the persisted user message
+- the assistant reply
+- any streamed reasoning or tool steps
+
+## 5. Understand the control-plane surfaces
+
+You just used two different Talon APIs:
+
+- `POST /v1/ns/.../sessions` to create the durable session resource
+- `POST /v1/ui/ns/.../sessions/<id>` to drive the browser-style chat flow
+
+That split is intentional. CRUD happens on the control-plane API. Browser chat happens on the UI session API.
+
+## Troubleshooting
+
+- If `apply` fails, check that your manifest uses `metadata.namespace` for `Agent` resources.
+- If the UI request fails, confirm you are calling the `v1/ui` route, not the CRUD `message` route.
+- If Sightline connects but shows nothing, refresh after creating the namespace and session.
 
 ## Read next
 

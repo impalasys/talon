@@ -7,7 +7,7 @@ This page explains the local stack Talon starts and how the pieces fit together.
 
 ## Local stack
 
-Running `./run.sh` inside `talon/` starts:
+Running `docker compose up --build -d` from the repository root starts:
 
 - `ui` on `http://localhost:3000`
 - `envoy` on `http://localhost:18789`

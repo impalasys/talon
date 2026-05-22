@@ -1,0 +1,10 @@
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: retention-reviewer
+  namespace: customer-retention
+  labels:
+    tutorial: customer-retention
+definition:
+  templated:
+    templateName: retention-review-template

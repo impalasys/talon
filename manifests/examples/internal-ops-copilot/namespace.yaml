@@ -1,0 +1,6 @@
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: internal-ops
+  labels:
+    tutorial: internal-ops
