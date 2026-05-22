@@ -63,31 +63,96 @@ Use Sightline to inspect:
 
 This is the fastest way to see Talon’s runtime model in action rather than only reading the APIs.
 
-## 4. Create or inspect an agent
+## 4. Create a namespace
 
-Talon models runtime resources around namespaces and agents. The default operator flow is:
+Create `quickstart-namespace.yaml`:
 
-1. choose a namespace
-2. select or create an agent
-3. create a session
-4. send a message
-5. stream the response and tool activity
-
-## 5. Try the CLI
-
-The admin CLI targets the native gRPC gateway by default:
-
-```bash
-cargo run --bin talon-cli -- --gateway http://localhost:50051 get agenttemplate <name>
+```yaml
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: quickstart
 ```
 
-If you want the HTTP-transcoded surface instead:
+Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get agenttemplate <name>
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f quickstart-namespace.yaml
 ```
 
-## 6. Read the contracts
+## 5. Create an agent directly
+
+The quickstart does not require an agent template first. Create `quickstart-agent.yaml`:
+
+```yaml
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: hello-agent
+  namespace: quickstart
+definition:
+  customSpec:
+    systemPrompt: |
+      You are a concise quickstart assistant for Talon.
+      Answer directly and keep the response short.
+    modelPolicy:
+      profiles:
+        - name: default
+          model:
+            provider: openai
+            name: gpt-4.1-mini
+            temperature: 0.0
+```
+
+Apply it:
+
+```bash
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f quickstart-agent.yaml
+```
+
+Verify it exists:
+
+```bash
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest get agent hello-agent --namespace quickstart
+```
+
+## 6. Create a session
+
+Create a session through the gateway REST surface:
+
+```bash
+curl -sS http://localhost:18789/v1/ns/quickstart/agents/hello-agent/sessions \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"ns":"quickstart","agent":"hello-agent"}'
+```
+
+The response includes a `sessionId`.
+
+## 7. Chat with the agent over `curl`
+
+Replace `<session-id>` with the value from the previous step:
+
+```bash
+curl -sS http://localhost:18789/v1/ui/ns/quickstart/agents/hello-agent/sessions/<session-id> \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"content":"Explain what Talon is in two bullets."}]}'
+```
+
+This uses the same browser-oriented UI session surface that Sightline and `@talonai/copilot` use.
+
+## 8. Inspect the run in Sightline
+
+In Sightline:
+
+1. open the `quickstart` namespace
+2. select `hello-agent`
+3. open the session you just created
+
+Look for the persisted messages and streamed execution steps.
+
+## 9. Read the contracts
 
 - [How Talon Works](../concepts/how-talon-works.md)
 - [Runtime Topology](../concepts/runtime-topology.md)
@@ -102,5 +167,7 @@ After the quickstart, you should know:
 
 - which processes Talon starts locally
 - which ports correspond to UI, edge, gRPC, and UI-session traffic
+- how to create an agent directly without introducing an agent template first
+- how to create a session and send a browser-style chat request with `curl`
 - where to inspect runtime resources
 - where to go next for deeper runtime or API detail
