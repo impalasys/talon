@@ -8,11 +8,10 @@ definition:
       You are a product assistant for a browser chat app built on Talon.
       Answer clearly, cite relevant product context when available, and
       explain when an answer depends on available knowledge or tools.
----
-apiVersion: talon.impalasys.com/v1
-kind: Agent
-metadata:
-  name: support-docs-agent
-spec:
-  templateRef: support-docs-template
-
+    modelPolicy:
+      profiles:
+        - name: default
+          model:
+            provider: mock
+            name: minimax
+            temperature: 0.0

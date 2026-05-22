@@ -3,137 +3,89 @@ title: Build an Internal Ops Copilot
 sidebar_position: 6
 ---
 
-This tutorial shows how to build an internal assistant with tighter governance, bounded tools, and clearer operational controls.
+This tutorial shows a narrower, safer Talon pattern: an internal agent with bounded operational tools.
 
 ## What you are building
 
-You will build an internal copilot that helps operators inspect Talon resources and answer operational questions without exposing the full control plane broadly.
+You will create:
 
-The system will include:
+- an `internal-ops` namespace
+- an `ops-copilot` agent
+- a namespace binding to the built-in `talon-ops` MCP server
+- a small read-oriented tool allowlist
 
-- a dedicated namespace
-- an ops-oriented agent
-- bounded MCP bindings
-- explicit auth and access considerations
-- inspection and debugging through Sightline
-
-## Talon concepts used
-
-- namespace
-- agent template and agent
-- knowledge
-- MCP servers and bindings
-- capability boundaries
-- auth and scoping
-- sessions and streamed steps
-
-## Runtime surfaces used
-
-- gateway CRUD for setup
-- UI session surface for chat-like operator use
-- MCP-backed ops tools
-- Sightline for visibility
-
-## Architecture
-
-```text
-Operator
-  -> Browser UI or Sightline
-    -> Talon gateway auth boundary
-      -> Ops namespace
-      -> Bounded MCP bindings
-      -> Agent execution through worker
-```
-
-This system is intentionally narrower than the earlier tutorials. The point is to teach restraint: fewer tools, better scoping, cleaner auth, and more legible runtime behavior.
-
-## Prerequisites
-
-- the local Talon stack is running
-- you have read [Authentication and Access](../operations/authentication-and-access.md)
-- you understand [Namespaces, Knowledge, and MCP](../concepts/namespaces-knowledge-and-mcp.md)
-
-## Apply the example assets
-
-This tutorial ships with:
-
-- `talon/manifests/examples/internal-ops-copilot/ops.yaml`
-- `talon/manifests/examples/internal-ops-copilot/knowledge/runbook.md`
-
-Apply the bundle:
+## 1. Apply the example manifests
 
 ```bash
-cd talon
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/ops.yaml
+cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/namespace.yaml
+cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/ops-copilot-template.yaml
+cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/ops-copilot.yaml
+cargo run --bin talon-cli -- --rest apply -f manifests/examples/internal-ops-copilot/ops-tools.binding.yaml
 ```
 
-The bundle models:
+This creates:
 
-- an operations namespace
-- one internal copilot agent
-- a binding to the existing `talon-ops` MCP server
-- a narrow allowlist of tools for inspection-oriented workflows
+- the `internal-ops` namespace
+- the `ops-copilot-template` template
+- the `ops-copilot` agent
+- the `ops-tools` MCP binding
 
-## Walk an end-to-end flow
+## 2. Load the runbook
 
-Use prompts like:
+```bash
+cargo run --bin talon-cli -- --rest knowledge sync \
+  --namespace internal-ops \
+  --dir manifests/examples/internal-ops-copilot/knowledge
+```
 
-- “List the schedules in this namespace and summarize anything risky”
-- “Explain the last failed session in plain English”
-- “What MCP bindings are available to this copilot?”
+## 3. Verify the MCP binding
 
-This is a good place to compare product surfaces:
+```bash
+cargo run --bin talon-cli -- --rest get mcpserverbinding ops-tools --namespace internal-ops
+```
 
-- use the UI session API for an operator chat UI
-- use gRPC or REST for explicit backend automation or admin tasks
+The binding should point at `talon-ops` and allow only:
 
-## Inspect and debug in Sightline
+- `list_schedules`
+- `get_schedule`
+- `list_mcp_bindings`
+- `get_mcp_binding`
 
-Inspect:
+## 4. Start an operator session
 
-- the namespace resources
-- the active MCP bindings
-- the session step stream
-- whether the agent used only the tools you intended
+Create a session:
 
-If the agent feels too powerful:
+```bash
+curl -sS http://localhost:18789/v1/ns/internal-ops/agents/ops-copilot/sessions \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"ns":"internal-ops","agent":"ops-copilot"}'
+```
 
-- move more logic into a narrower template
-- restrict `allowed_tool_names`
-- split exploratory and mutating tooling into separate bindings or agents
+Then ask an ops question:
 
-## Why this structure works
+```bash
+curl -sS http://localhost:18789/v1/ui/ns/internal-ops/agents/ops-copilot/sessions/<session-id> \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"content":"List the schedules in this namespace and summarize anything unusual."}]}'
+```
 
-Internal copilots fail when every tool is attached everywhere. Talon gives you better structure:
+## 5. Inspect tool use in Sightline
 
-- namespace boundary for isolation
-- explicit bindings for tool exposure
-- auth modes and JWT scopes for access control
-- Sightline for runtime observability
+In Sightline, open the session and confirm:
 
-## Extend the system
+- the agent stayed inside the intended namespace
+- only the allowed `talon-ops` tools were exposed
+- the session transcript makes the tool usage legible
 
-Good next steps:
+That is the core ops-copilot pattern in Talon: narrow bindings, explicit visibility, and no broad ambient tool access.
 
-- add JWT-scoped access for a single namespace
-- split read-only and write-capable tools
-- add schedule-based audit summaries
-- connect a custom operator frontend
+## Why this tutorial matters
 
-## Production notes
-
-Before deploying broadly:
-
-- choose a real auth mode instead of open local access
-- audit every MCP binding and allowlist
-- keep mutating tools out of the widest user path
-
-## What you learned
-
-You used Talon as a governed internal assistant platform with explicit boundaries and observability.
+Internal assistants get risky when every tool is globally available. Talon’s namespace bindings let you keep the exposure legible and reviewable.
 
 ## Read next
 
 - [Runtime Surfaces](../reference/runtime-surfaces.md)
 - [Authentication and Access](../operations/authentication-and-access.md)
-- [Gateway API](../reference/generated/gateway-service.md)

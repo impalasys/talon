@@ -3,140 +3,104 @@ title: Build a Customer Retention System
 sidebar_position: 5
 ---
 
-This tutorial uses Talon for recurring health checks, follow-up recommendations, and operator review.
+This tutorial makes Talon’s scheduler concrete by pairing a real agent with a real schedule created through the gateway API.
 
 ## What you are building
 
-You will build a retention workflow that:
+You will create:
 
-- stores retention playbooks and policies as knowledge
-- runs a retention agent on a recurring schedule
-- uses MCP-backed tools to inspect customer or support context
-- creates durable sessions for every review run
-- lets operators inspect the resulting work in Sightline
+- a `customer-retention` namespace
+- a `retention-reviewer` agent
+- shared retention knowledge
+- a recurring schedule that dispatches review work into the worker
 
-## Talon concepts used
-
-- namespace
-- agent
-- knowledge
-- MCP bindings
-- schedules
-- worker execution
-- session history
-- Sightline
-
-## Runtime surfaces used
-
-- manifest application through `talon-cli`
-- schedule CRUD through the gateway
-- worker execution triggered by the scheduler
-- Sightline for run inspection
-
-## Architecture
-
-```text
-Scheduler
-  -> Gateway schedule callback
-    -> Worker claims due work
-      -> Retention agent session
-        -> Optional MCP calls to CRM, support, messaging systems
-        -> Persisted messages and step history
-          -> Operator review in Sightline
-```
-
-This is the tutorial that makes the scheduler and worker feel concrete. The important idea is that Talon stores recurring work in the same control plane as sessions and agents.
-
-## Prerequisites
-
-- the local Talon stack is running
-- you have read [Scheduling and Background Work](../operations/scheduling-and-background-work.md)
-- you know where to inspect sessions in Sightline
-
-## Apply the example assets
-
-This tutorial ships with:
-
-- `talon/manifests/examples/customer-retention-system/retention.yaml`
-- `talon/manifests/examples/customer-retention-system/knowledge/retention-playbook.md`
-- `talon/manifests/examples/customer-retention-system/knowledge/health-model.md`
-
-Apply the bundle:
+## 1. Apply the agent resources
 
 ```bash
-cd talon
-cargo run --bin talon-cli -- --rest apply -f manifests/examples/customer-retention-system/retention.yaml
+cargo run --bin talon-cli -- --rest apply -f manifests/examples/customer-retention-system/namespace.yaml
+cargo run --bin talon-cli -- --rest apply -f manifests/examples/customer-retention-system/retention-review-template.yaml
+cargo run --bin talon-cli -- --rest apply -f manifests/examples/customer-retention-system/retention-reviewer.yaml
 ```
 
-The bundle defines:
+## 2. Sync the retention knowledge
 
-- a retention namespace
-- one health-review agent
-- a recurring schedule
-- placeholder MCP bindings for CRM and support lookups
+```bash
+cargo run --bin talon-cli -- --rest knowledge sync \
+  --namespace customer-retention \
+  --dir manifests/examples/customer-retention-system/knowledge
+```
 
-## Walk an end-to-end flow
+This loads:
 
-Use this narrative:
+- `retention-playbook.md`
+- `health-model.md`
 
-1. the schedule fires a recurring customer-health review
-2. the worker creates or resumes the review session
-3. the agent inspects available context and suggests follow-up actions
-4. an operator reviews the result in Sightline
+## 3. Create a schedule through the gateway API
 
-Good prompts for manual runs:
+`talon-cli apply` does not currently support `Schedule` manifests, so create the schedule directly:
 
-- “Review this account for churn risk and recommend next steps”
-- “Summarize the retention risk indicators from the last 30 days”
-- “Draft an outreach plan for a customer with falling activity”
+```bash
+curl -sS http://localhost:18789/v1/ns/customer-retention/schedules \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{
+    "ns": "customer-retention",
+    "schedule": {
+      "name": "weekly-retention-review",
+      "ns": "customer-retention",
+      "labels": {
+        "tutorial": "customer-retention"
+      },
+      "spec": {
+        "kind": "cron",
+        "cron": "0 * * * *",
+        "timezone": "UTC",
+        "target": {
+          "agent": "retention-reviewer",
+          "sessionMode": "new"
+        },
+        "inputMessage": "Review customer health signals and propose next actions.",
+        "enabled": true
+      }
+    }
+  }'
+```
 
-## Inspect and debug in Sightline
+That example runs hourly so you can observe it locally without waiting long.
 
-Inspect:
+## 4. Verify the schedule exists
 
-- the schedule resource and its status
-- the resulting review sessions
-- tool activity during the run
-- whether the schedule is enabled and armed
+```bash
+curl -sS http://localhost:18789/v1/ns/customer-retention/schedules/weekly-retention-review
+```
 
-If runs do not happen:
+Look for:
 
-- verify the local scheduler backend is running with the stack
-- verify the schedule exists in the expected namespace
-- verify the target agent still resolves
+- `spec.enabled`
+- `status.backendArmed`
+- `status.nextRunAt`
 
-## Why this structure works
+## 5. Inspect the results in Sightline
 
-Retention systems are usually part chat, part workflow automation. Talon supports both:
+In Sightline:
 
-- interactive sessions for operators
-- recurring scheduled work for background reviews
+- open the `customer-retention` namespace
+- inspect the `weekly-retention-review` schedule
+- watch for sessions created by the scheduled run
 
-That makes it a good fit for operational AI systems, not just chat interfaces.
+This is the important Talon behavior: scheduled work lands in the same durable session model as interactive work.
 
-## Extend the system
+## Troubleshooting
 
-Good next steps:
+- If the schedule exists but never runs, verify the local stack is still running and the worker is healthy.
+- If the schedule targets the wrong agent, re-`PUT` the schedule through `/v1/ns/customer-retention/schedules/weekly-retention-review`.
+- If you need an immediate test, also create a manual session against `retention-reviewer` and compare the resulting transcript to the scheduled runs.
 
-- add separate schedules for onboarding, risk review, and renewal prep
-- split recommendations by segment or plan type
-- add approval loops before outbound communication
-- connect real CRM or messaging tools through MCP
+## Why this tutorial matters
 
-## Production notes
-
-In production, be explicit about:
-
-- scheduler auth and callback configuration
-- idempotency for recurring actions
-- tool scoping for anything that can send or modify external data
-
-## What you learned
-
-You used Talon as a durable automation system with scheduled background execution, not only an interactive assistant.
+This is where Talon stops looking like “chat with memory” and starts looking like a real automation control plane.
 
 ## Read next
 
 - [Build an Internal Ops Copilot](./internal-ops-copilot.md)
-- [Authentication and Access](../operations/authentication-and-access.md)
 - [Scheduling and Background Work](../operations/scheduling-and-background-work.md)

@@ -3,27 +3,135 @@ title: Build a Client Against the Gateway
 sidebar_position: 2
 ---
 
-Talon’s canonical contract is gRPC, but the gateway also exposes REST mappings and a browser-oriented UI session path.
+This tutorial maps Talon’s three client surfaces to concrete code paths in this repository.
 
-## Pick your client strategy
+## Choose the right surface
 
 Use:
 
-- **gRPC** when you want strong typed service integration
-- **REST** when you want simpler HTTP access to control-plane operations
-- **browser-native UI session endpoints** when you want a frontend client similar to Sightline or an AI SDK-based chat surface
+- gRPC when you want a typed backend or integration service
+- REST when you want straightforward CRUD with `curl` or ordinary HTTP clients
+- the UI session surface when you want a browser chat client like Sightline
 
-## Recommended frontend path
+## Option 1: typed client with Connect
 
-For browser clients, treat the gateway as the source of truth and let the browser connect directly to the browser-oriented UI session surface exposed through the gateway/Envoy edge.
+The UI end-to-end tests already create namespaces, agents, and sessions through the gateway. The working example lives in `ui/e2e/chat.spec.ts`.
 
-That keeps your app closer to Talon’s actual runtime model and avoids inventing a separate “proxy backend” just for chat streaming.
+The core flow is:
 
-## What to read next
+```ts
+import { createClient } from "@connectrpc/connect";
+import { createGrpcWebTransport } from "@connectrpc/connect-web";
+import { GatewayService } from "../proto/proto/gateway_pb";
+
+const client = createClient(
+  GatewayService,
+  createGrpcWebTransport({ baseUrl: "http://127.0.0.1:18789" }),
+);
+
+await client.createNamespace({ name: "client-demo", recursive: true });
+
+await client.createAgent({
+  ns: "client-demo",
+  name: "docs-agent",
+  definition: {
+    source: {
+      case: "customSpec",
+      value: {
+        systemPrompt: "Answer from the tutorial client.",
+        modelPolicy: {
+          profiles: [
+            {
+              name: "default",
+              model: { provider: "mock", name: "minimax", temperature: 0.0 },
+            },
+          ],
+        },
+      },
+    },
+  },
+});
+
+const session = await client.createSession({ ns: "client-demo", agent: "docs-agent" });
+```
+
+Use this path when Talon is one service inside a larger typed system.
+
+## Option 2: CRUD with REST
+
+The gateway exposes REST-transcoded endpoints through Envoy on `http://localhost:18789`.
+
+Create a session:
+
+```bash
+curl -sS http://localhost:18789/v1/ns/client-demo/agents/docs-agent/sessions \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"ns":"client-demo","agent":"docs-agent"}'
+```
+
+Fetch the session later:
+
+```bash
+curl -sS http://localhost:18789/v1/ns/client-demo/agents/docs-agent/sessions/<session-id>
+```
+
+Use this path for scripts, ops tooling, and quick integration tests.
+
+## Option 3: browser chat with the UI session surface
+
+For browser-native chat, create the session through CRUD first, then post messages to:
+
+```text
+POST /v1/ui/ns/<namespace>/agents/<agent>/sessions/<session-id>
+```
+
+Example request:
+
+```bash
+curl -sS http://localhost:18789/v1/ui/ns/client-demo/agents/docs-agent/sessions/<session-id> \
+  -X POST \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"content":"Summarize the namespace model."}]}'
+```
+
+The body shape is the same one used by Sightline and the copilot package.
+
+## Fastest React path
+
+If you want a working chat panel instead of building the stream parser yourself, use `@talonai/copilot`.
+
+```tsx
+import { TalonCopilot } from "@talonai/copilot";
+
+export function App() {
+  return (
+    <TalonCopilot
+      namespace="client-demo"
+      agent="docs-agent"
+      gatewayUrl="http://localhost:18789"
+    />
+  );
+}
+```
+
+That component handles:
+
+- session creation
+- the UI session POST
+- transcript hydration from the canonical session state
+- streamed tool and reasoning events
+
+The minimal package usage is documented in `packages/copilot/README.md`.
+
+## What to avoid
+
+- Do not invent a separate backend just to proxy browser chat unless you need app-specific auth or policy.
+- Do not send browser chat traffic to the CRUD `message` route if you want the same behavior Sightline uses.
+- Do not document schedule creation as a manifest-apply flow; Talon currently creates schedules through the gateway API.
+
+## Read next
 
 - [Build a ChatGPT-Style App](./chatgpt-app.md)
-- [Build a Marketing Agency](./marketing-agency.md)
 - [Runtime Surfaces](../reference/runtime-surfaces.md)
-- [Gateway API](../reference/generated/gateway-service.md)
 - [Sessions and execution](../concepts/sessions-and-streaming.md)
-- [Config schema](../reference/generated/config-schema.md)

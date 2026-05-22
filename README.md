@@ -1,23 +1,46 @@
 # Talon
 
-Talon is a Rust-based agent runtime and control plane with a gateway API, worker runtime, namespace-scoped resources, and an optional Next.js UI.
+Talon is a Rust-based agent runtime and control plane. It provides a gateway API, a worker runtime, durable session state, namespace-scoped resources, manifests, and a browser UI for inspection and operations.
 
-This repository is the open-source home for Talon runtime and UI code. It intentionally excludes Impala's private marketing site and internal deployment plumbing.
+This repository is the open-source home for Talon runtime, CLI, manifests, and UI code.
 
-## Included
+## What is in this repo
 
-- Rust runtime, worker, and CLI
-- Proto definitions
-- Resource manifests
-- UI under `ui/`
-- Dockerfiles for open-source validation
+- Rust gateway, worker, and CLI binaries in `src/`
+- Protocol buffer contracts in `proto/`
+- Example manifests in `manifests/`
+- Operator UI in `ui/`
+- Builder and operator docs in `docs/`
+- Reference-generation helpers in `docs-site/`
 
-## Not included
+## Architecture at a glance
 
-- Internal production deploy configuration
-- `site/` marketing/docs site from the private monorepo
+- `gateway`: the canonical API surface over gRPC plus HTTP-transcoded routes
+- `worker`: executes agent turns and background work
+- `envoy`: browser-facing edge surface for local and deployed environments
+- `ui`: the Next.js operator UI for inspecting agents, sessions, schedules, knowledge, and MCP bindings
+- `postgres` and `pubsub`: control-plane backing services used by the local stack
 
-## Local development
+For the system model, start with [docs/intro.md](docs/intro.md), [docs/concepts/how-talon-works.md](docs/concepts/how-talon-works.md), and [docs/concepts/runtime-topology.md](docs/concepts/runtime-topology.md).
+
+## Quickstart
+
+From the repository root:
+
+```bash
+./run.sh
+```
+
+This starts the local Talon stack, including:
+
+- Sightline UI on `http://localhost:3000`
+- Envoy edge on `http://localhost:18789`
+- Native gRPC gateway on `http://localhost:50051`
+- Gateway UI HTTP surface on `http://localhost:50052`
+
+The fastest next step is [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md).
+
+## Development
 
 ### Rust
 
@@ -31,8 +54,16 @@ cargo test --locked
 
 ```bash
 cd ui
-pnpm install --no-frozen-lockfile
+pnpm install --frozen-lockfile
 pnpm build
+```
+
+### Generated reference docs
+
+If you change `proto/gateway.proto`, `proto/config.proto`, or `proto/manifests.proto`, regenerate the checked-in reference pages:
+
+```bash
+pnpm --filter @impalasys/talon-docs generate:reference
 ```
 
 ### Docker validation
@@ -54,6 +85,15 @@ protoc -I. -Iproto -Ithird_party/googleapis \
 
 docker build -f dockerfiles/envoy-cloudrun.Dockerfile .
 ```
+
+## Documentation map
+
+- [docs/intro.md](docs/intro.md): starting point
+- [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md): local bring-up
+- [docs/tutorials/first-agent.md](docs/tutorials/first-agent.md): first end-to-end agent flow
+- [docs/reference/index.md](docs/reference/index.md): API and schema reference
+- [docs/operations/local-development.md](docs/operations/local-development.md): operator-focused local workflow
+- [docs/contributing/docs-system.md](docs/contributing/docs-system.md): how docs are maintained
 
 ## License
 

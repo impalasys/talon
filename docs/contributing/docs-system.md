@@ -11,11 +11,11 @@ Talon’s docs are canonical in the monorepo.
 - Draft or wiki-style notes live under `talon/docs/wiki`
 - Generated reference is emitted into `talon/docs/reference/generated`
 
-## Build model
+## Repository model
 
-- Astro builds both the landing page and the published `/docs` routes
-- the canonical docs source still lives in `talon/docs`
-- a Docusaurus scaffold still lives in `talon/docs-site`, but production publishing currently reads the markdown source directly from Astro
+- The Markdown in `talon/docs` is the canonical documentation source in this repository.
+- `talon/docs-site` currently exists to hold docs tooling, including the reference-generation script.
+- Generated pages are checked into the repo so contract changes are reviewable in pull requests.
 
 ## Generated reference
 
@@ -32,4 +32,10 @@ Review generated diffs in PRs rather than treating them as opaque build output.
 1. Edit or add markdown under `talon/docs`
 2. If needed, update source proto definitions
 3. Regenerate the reference pages via `pnpm --filter @impalasys/talon-docs generate:reference`
-4. Build the site locally and verify `/docs`
+4. Review links, commands, and terminology against the actual repository layout
+5. Include generated diffs in the same PR when proto changes affect the reference pages
+
+## What to avoid
+
+- Do not point readers at private directories or unpublished build pipelines that are not present in this repository.
+- Do not hand-edit files under `docs/reference/generated/` unless you are also updating the generator.

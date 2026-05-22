@@ -1,0 +1,18 @@
+apiVersion: talon.impalasys.com/v1
+kind: AgentTemplate
+metadata:
+  name: ops-copilot-template
+definition:
+  customSpec:
+    systemPrompt: |
+      You are an internal Talon operations copilot. Prefer inspection and
+      explanation, stay within available tools, and be explicit about uncertainty.
+    modelPolicy:
+      profiles:
+        - name: default
+          model:
+            provider: mock
+            name: minimax
+            temperature: 0.0
+    mcpServerRefs:
+      - talon-ops

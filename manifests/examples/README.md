@@ -9,8 +9,14 @@ The files are organized by tutorial:
 
 Each example directory can include:
 
-- one manifest bundle
+- one or more manifest files for namespaces, templates, agents, and bindings
 - sample knowledge documents
-- notes about which bindings or runtime surfaces are placeholders
+- notes about which runtime surfaces need additional setup
 
 These assets are intended to be instructional starting points for the local Talon stack.
+
+Current conventions:
+
+- each YAML manifest file is a separate `talon-cli apply` input
+- markdown under `knowledge/` is loaded with `talon-cli knowledge sync`
+- schedules are created through the gateway API, because `talon-cli apply` does not currently support `Schedule` manifests

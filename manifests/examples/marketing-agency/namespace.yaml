@@ -1,0 +1,6 @@
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: marketing-agency
+  labels:
+    tutorial: marketing-agency

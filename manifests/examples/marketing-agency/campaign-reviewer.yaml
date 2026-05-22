@@ -1,0 +1,14 @@
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: campaign-reviewer
+  namespace: marketing-agency
+  labels:
+    role: reviewer
+definition:
+  templated:
+    templateName: strategist-template
+    delta:
+      systemPrompt:
+        append: |
+          Review drafts for tone, positioning, and CTA clarity before publishing.
