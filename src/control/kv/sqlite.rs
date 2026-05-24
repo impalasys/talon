@@ -113,7 +113,7 @@ async fn sqlite_pool(url: &str) -> Result<SqlitePool> {
         .busy_timeout(Duration::from_secs(5))
         .foreign_keys(true);
     Ok(SqlitePoolOptions::new()
-        .max_connections(1)
+        .max_connections(5)
         .connect_with(options)
         .await?)
 }

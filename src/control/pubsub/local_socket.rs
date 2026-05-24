@@ -13,8 +13,9 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{mpsc, Mutex, OnceCell};
 
-type SubscriberSender = mpsc::UnboundedSender<Vec<u8>>;
+type SubscriberSender = mpsc::Sender<Vec<u8>>;
 const MAX_FRAME_SIZE: usize = 32 * 1024 * 1024;
+const SUBSCRIBER_BUFFER_SIZE: usize = 1024;
 
 #[derive(Default)]
 struct SubscriptionState {
@@ -264,7 +265,7 @@ async fn handle_connection(stream: UnixStream, state: Arc<Mutex<BrokerState>>) -
                 topic,
                 subscription,
             } => {
-                let (tx, mut rx) = mpsc::unbounded_channel::<Vec<u8>>();
+                let (tx, mut rx) = mpsc::channel::<Vec<u8>>(SUBSCRIBER_BUFFER_SIZE);
                 register_subscriber(&state, &topic, &subscription, tx).await;
                 write_frame(&mut writer, &ServerFrame::Ack { request_id }).await?;
                 while let Some(payload) = rx.recv().await {
@@ -341,7 +342,7 @@ async fn distribute_message(state: &Arc<Mutex<BrokerState>>, topic: &str, payloa
                 .expect("payload should be present before final subscriber")
                 .clone()
         };
-        let _ = sender.send(message);
+        let _ = sender.try_send(message);
     }
 }
 

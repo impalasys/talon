@@ -24,11 +24,10 @@ const MAX_CONCURRENT_DELIVERIES: usize = 10;
 const MAX_DELIVERY_ATTEMPTS: i32 = 20;
 const INITIAL_RETRY_DELAY_SECONDS: i64 = 5;
 const MAX_RETRY_DELAY_SECONDS: i64 = 300;
+const MAX_POOL_CONNECTIONS: u32 = 5;
 
-#[derive(Clone)]
 pub struct LocalSqliteSchedulerBackend {
-    pool: SqlitePool,
-    table: String,
+    store: LocalSqliteSchedulerStore,
     runner_shutdown: CancellationToken,
 }
 
@@ -41,6 +40,12 @@ struct DueWakeup {
     fire_at_micros: i64,
     payload: Vec<u8>,
     attempts: i32,
+}
+
+#[derive(Clone)]
+struct LocalSqliteSchedulerStore {
+    pool: SqlitePool,
+    table: String,
 }
 
 impl LocalSqliteSchedulerBackend {
@@ -58,12 +63,13 @@ impl LocalSqliteSchedulerBackend {
             .busy_timeout(Duration::from_secs(5))
             .foreign_keys(true);
         let pool = SqlitePoolOptions::new()
-            .max_connections(1)
+            .max_connections(MAX_POOL_CONNECTIONS)
             .connect_with(options)
             .await?;
         let table = table.unwrap_or_else(|| DEFAULT_TABLE.to_string());
         let runner_shutdown = CancellationToken::new();
         validate_identifier(&table)?;
+        let store = LocalSqliteSchedulerStore { pool, table };
         let create_stmt = format!(
             "CREATE TABLE IF NOT EXISTS {table} (
                 handle TEXT PRIMARY KEY,
@@ -80,33 +86,28 @@ impl LocalSqliteSchedulerBackend {
                 last_error TEXT NULL,
                 created_at_micros INTEGER NOT NULL
             )",
-            table = table
+            table = store.table
         );
-        sqlx::query(&create_stmt).execute(&pool).await?;
+        sqlx::query(&create_stmt).execute(&store.pool).await?;
         let index_stmt = format!(
             "CREATE INDEX IF NOT EXISTS {table}_due_idx ON {table} (fire_at_micros) WHERE canceled_at_micros IS NULL AND delivered_at_micros IS NULL",
-            table = table
+            table = store.table
         );
-        sqlx::query(&index_stmt).execute(&pool).await?;
+        sqlx::query(&index_stmt).execute(&store.pool).await?;
 
         if runner_enabled {
             let Some(target_url) = runner_target_url.filter(|value| !value.trim().is_empty())
             else {
                 warn!("local_sqlite scheduler runner enabled without target URL; wakeups will not fire");
                 return Ok(Self {
-                    pool,
-                    table,
+                    store,
                     runner_shutdown,
                 });
             };
-            let runner = Self {
-                pool: pool.clone(),
-                table: table.clone(),
-                runner_shutdown: runner_shutdown.clone(),
-            };
+            let runner_store = store.clone();
             let shutdown = runner_shutdown.child_token();
             tokio::spawn(async move {
-                runner
+                runner_store
                     .run_loop(
                         target_url,
                         auth_token.filter(|value| !value.trim().is_empty()),
@@ -117,12 +118,48 @@ impl LocalSqliteSchedulerBackend {
         }
 
         Ok(Self {
-            pool,
-            table,
+            store,
             runner_shutdown,
         })
     }
 
+    #[cfg(test)]
+    async fn claim_due_wakeups(&self, limit: usize) -> Result<Vec<DueWakeup>> {
+        self.store.claim_due_wakeups(limit).await
+    }
+
+    #[cfg(test)]
+    async fn deliver_wakeup(
+        &self,
+        client: &Client,
+        target_url: &str,
+        auth_token: Option<&str>,
+        wakeup: &DueWakeup,
+    ) -> Result<()> {
+        self.store
+            .deliver_wakeup(client, target_url, auth_token, wakeup)
+            .await
+    }
+
+    #[cfg(test)]
+    async fn mark_delivered(&self, handle: &str) -> Result<()> {
+        self.store.mark_delivered(handle).await
+    }
+
+    #[cfg(test)]
+    async fn mark_delivery_failed(
+        &self,
+        handle: &str,
+        attempts: i32,
+        error_message: &str,
+    ) -> Result<()> {
+        self.store
+            .mark_delivery_failed(handle, attempts, error_message)
+            .await
+    }
+}
+
+impl LocalSqliteSchedulerStore {
     async fn run_loop(
         self,
         target_url: String,
@@ -150,7 +187,7 @@ impl LocalSqliteSchedulerBackend {
                     has_more = wakeups.len() == MAX_CONCURRENT_DELIVERIES;
                     let mut deliveries = FuturesUnordered::new();
                     for wakeup in wakeups {
-                        let backend = self.clone();
+                        let store = self.clone();
                         let client = client.clone();
                         let target_url = target_url.clone();
                         let auth_token = auth_token.clone();
@@ -163,7 +200,7 @@ impl LocalSqliteSchedulerBackend {
                             let attempts = wakeup.attempts;
                             let result = tokio::time::timeout(
                                 Duration::from_secs(DELIVERY_TIMEOUT_SECONDS + 5),
-                                backend.deliver_wakeup(
+                                store.deliver_wakeup(
                                     &client,
                                     &target_url,
                                     auth_token.as_deref(),
@@ -183,7 +220,7 @@ impl LocalSqliteSchedulerBackend {
                                 fire_at_micros,
                                 attempts,
                                 result,
-                                backend,
+                                store,
                             )
                         });
                     }
@@ -195,7 +232,7 @@ impl LocalSqliteSchedulerBackend {
                         fire_at_micros,
                         attempts,
                         result,
-                        backend,
+                        store,
                     )) = deliveries.next().await
                     {
                         if let Err(err) = result {
@@ -209,7 +246,7 @@ impl LocalSqliteSchedulerBackend {
                                 error = %err,
                                 "failed to deliver local scheduler wakeup"
                             );
-                            if let Err(mark_err) = backend
+                            if let Err(mark_err) = store
                                 .mark_delivery_failed(&handle, attempts, &err.to_string())
                                 .await
                             {
@@ -372,15 +409,7 @@ impl LocalSqliteSchedulerBackend {
             .await?;
         Ok(())
     }
-}
 
-fn compute_retry_delay_seconds(attempts: i32) -> i64 {
-    let exponent = attempts.saturating_sub(1).clamp(0, 10) as u32;
-    (INITIAL_RETRY_DELAY_SECONDS * (1_i64 << exponent)).min(MAX_RETRY_DELAY_SECONDS)
-}
-
-#[async_trait::async_trait]
-impl SchedulerBackend for LocalSqliteSchedulerBackend {
     async fn schedule(&self, req: ScheduleWakeupRequest) -> Result<ScheduledWakeup> {
         let handle = uuid::Uuid::now_v7().to_string();
         let query = format!(
@@ -415,6 +444,22 @@ impl SchedulerBackend for LocalSqliteSchedulerBackend {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+}
+
+fn compute_retry_delay_seconds(attempts: i32) -> i64 {
+    let exponent = attempts.saturating_sub(1).clamp(0, 10) as u32;
+    (INITIAL_RETRY_DELAY_SECONDS * (1_i64 << exponent)).min(MAX_RETRY_DELAY_SECONDS)
+}
+
+#[async_trait::async_trait]
+impl SchedulerBackend for LocalSqliteSchedulerBackend {
+    async fn schedule(&self, req: ScheduleWakeupRequest) -> Result<ScheduledWakeup> {
+        self.store.schedule(req).await
+    }
+
+    async fn cancel(&self, handle: &str) -> Result<()> {
+        self.store.cancel(handle).await
     }
 }
 
@@ -513,10 +558,10 @@ mod tests {
             .unwrap();
         let failure_row = sqlx::query(&format!(
             "SELECT last_error, claim_until_micros FROM {} WHERE handle = ?1",
-            backend.table
+            backend.store.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool)
+        .fetch_one(&backend.store.pool)
         .await
         .unwrap();
         let last_error: String = failure_row.try_get("last_error").unwrap();
@@ -530,10 +575,10 @@ mod tests {
             .unwrap();
         let canceled_row = sqlx::query(&format!(
             "SELECT canceled_at_micros, claim_until_micros, last_error FROM {} WHERE handle = ?1",
-            backend.table
+            backend.store.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool)
+        .fetch_one(&backend.store.pool)
         .await
         .unwrap();
         let canceled_at: i64 = canceled_row.try_get("canceled_at_micros").unwrap();
@@ -590,10 +635,10 @@ mod tests {
 
         let row = sqlx::query(&format!(
             "SELECT delivered_at_micros, attempts FROM {} WHERE handle = ?1",
-            backend.table
+            backend.store.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool)
+        .fetch_one(&backend.store.pool)
         .await
         .unwrap();
         let delivered_at: Option<i64> = row.try_get("delivered_at_micros").unwrap();
@@ -611,7 +656,7 @@ mod tests {
             false,
         )
         .await;
-        assert_eq!(backend.table, DEFAULT_TABLE);
+        assert_eq!(backend.store.table, DEFAULT_TABLE);
 
         let dir = tempdir().unwrap();
         let db_path = dir.path().join("scheduler.db");
@@ -694,10 +739,10 @@ mod tests {
 
         let row = sqlx::query(&format!(
             "SELECT delivered_at_micros FROM {} WHERE handle = ?1",
-            backend.table
+            backend.store.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool)
+        .fetch_one(&backend.store.pool)
         .await
         .unwrap();
         let delivered_at: i64 = row.try_get("delivered_at_micros").unwrap();
@@ -773,11 +818,11 @@ mod tests {
         backend.mark_delivered(&delivered).await.unwrap();
         sqlx::query(&format!(
             "UPDATE {} SET claim_until_micros = ?2 WHERE handle = ?1",
-            backend.table
+            backend.store.table
         ))
         .bind(&claimed)
         .bind(Utc::now().timestamp_micros() + 60_000_000)
-        .execute(&backend.pool)
+        .execute(&backend.store.pool)
         .await
         .unwrap();
 
@@ -808,11 +853,11 @@ mod tests {
 
         sqlx::query(&format!(
             "UPDATE {} SET attempts = ?2 WHERE handle = ?1",
-            backend.table
+            backend.store.table
         ))
         .bind(&handle)
         .bind(MAX_DELIVERY_ATTEMPTS)
-        .execute(&backend.pool)
+        .execute(&backend.store.pool)
         .await
         .unwrap();
 
@@ -897,10 +942,10 @@ mod tests {
 
         let delivered_row = sqlx::query(&format!(
             "SELECT delivered_at_micros FROM {} WHERE handle = ?1",
-            backend.table
+            backend.store.table
         ))
         .bind(&handle)
-        .fetch_one(&backend.pool)
+        .fetch_one(&backend.store.pool)
         .await
         .unwrap();
         let delivered_at: i64 = delivered_row.try_get("delivered_at_micros").unwrap();
@@ -908,16 +953,16 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn run_loop_exits_when_cancelled() {
+    async fn runner_stops_when_backend_is_dropped() {
         let backend = init_test_backend().await;
-        let shutdown = CancellationToken::new();
-        let task = tokio::spawn(backend.run_loop(
+        let shutdown = backend.runner_shutdown.child_token();
+        let task = tokio::spawn(backend.store.clone().run_loop(
             "http://127.0.0.1:9/".to_string(),
             None,
-            shutdown.child_token(),
+            shutdown,
         ));
 
-        shutdown.cancel();
+        drop(backend);
         tokio::time::timeout(Duration::from_secs(1), task)
             .await
             .unwrap()
