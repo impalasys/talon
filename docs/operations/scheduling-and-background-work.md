@@ -27,7 +27,18 @@ Instead:
 
 ## Local mode
 
-In the local stack, Talon uses the `local_postgres` scheduler backend with a shared secret for wakeup authentication.
+In the default Docker compose stack, Talon uses the `local_postgres` scheduler backend with a shared secret for wakeup authentication.
+
+For a same-host SQLite deployment, Talon also supports `local_sqlite`. In that mode, the scheduler stores wakeups in the same local SQLite database used by the control plane.
+
+Use:
+
+- `TALON_SCHEDULER_DRIVER=local_postgres` for the current local Postgres stack
+- `TALON_SCHEDULER_DRIVER=local_sqlite` for a same-host SQLite deployment
+
+Both local backends expect the gateway and worker to access the database from the same machine.
+
+In the smallest same-host setup, Talon can pair `local_sqlite` scheduling with the `local_socket` message broker so wakeups and worker dispatch both stay local to the machine.
 
 ## Cloud mode
 

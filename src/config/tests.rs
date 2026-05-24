@@ -38,6 +38,10 @@ server:
 
         let config = Config::from_file(&path).unwrap();
         assert_eq!(config.providers.len(), 1);
+        assert_eq!(
+            config.database.as_ref().unwrap().data_dir,
+            path.parent().unwrap().join("test-data").display().to_string()
+        );
 
         let novita = config.providers.get("my-novita").unwrap();
         if let Some(proto::llm_provider_config::Config::OpenaiCompatible(c)) = &novita.config {
@@ -238,6 +242,43 @@ api_key = "secret"
         std::fs::write(&txt_path, "invalid").unwrap();
         let err = Config::from_file(&txt_path).unwrap_err();
         assert!(err.to_string().contains("Unsupported config format"));
+    }
+
+    #[test]
+    fn test_control_plane_relative_data_dir_resolves_from_config_file_directory() {
+        let dir = tempdir().unwrap();
+        let config_path = dir.path().join("nested").join("talon.yaml");
+        std::fs::create_dir_all(config_path.parent().unwrap()).unwrap();
+        std::fs::write(
+            &config_path,
+            r#"
+control_plane:
+  database:
+    driver: sqlite
+    data_dir: ./data
+  message_broker:
+    driver: local_socket
+"#,
+        )
+        .unwrap();
+
+        let config = Config::from_file(&config_path).unwrap();
+        assert_eq!(
+            config
+                .control_plane
+                .as_ref()
+                .unwrap()
+                .database
+                .as_ref()
+                .unwrap()
+                .data_dir,
+            config_path
+                .parent()
+                .unwrap()
+                .join("data")
+                .display()
+                .to_string()
+        );
     }
 
     #[test]

@@ -4,6 +4,8 @@ Talon is a Rust-based agent runtime and control plane with a gateway API, worker
 
 This repository is the open-source home for Talon runtime and UI code. It intentionally excludes Impala's private marketing site and internal deployment plumbing.
 
+For single-host deployments, Talon can run its control plane on SQLite and use a local Unix-socket message broker. The default Docker compose stack in this repository still uses Postgres and GCP Pub/Sub-compatible wiring.
+
 ## Included
 
 - Rust runtime, worker, and CLI
