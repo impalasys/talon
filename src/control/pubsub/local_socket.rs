@@ -328,8 +328,20 @@ async fn distribute_message(state: &Arc<Mutex<BrokerState>>, topic: &str, payloa
         targets
     };
 
-    for sender in targets {
-        let _ = sender.send(payload.clone());
+    let target_count = targets.len();
+    let mut payload = Some(payload);
+    for (index, sender) in targets.into_iter().enumerate() {
+        let message = if index + 1 == target_count {
+            payload
+                .take()
+                .expect("payload should be present for final subscriber")
+        } else {
+            payload
+                .as_ref()
+                .expect("payload should be present before final subscriber")
+                .clone()
+        };
+        let _ = sender.send(message);
     }
 }
 
@@ -365,9 +377,12 @@ async fn read_frame<R: AsyncReadExt + Unpin, T: for<'de> Deserialize<'de>>(
 
 #[cfg(test)]
 mod tests {
-    use super::{read_frame, write_frame, ClientFrame, LocalSocketMessagePublisher, LocalSocketSubscriber, MAX_FRAME_SIZE};
-    use base64::{engine::general_purpose, Engine as _};
+    use super::{
+        read_frame, write_frame, ClientFrame, LocalSocketMessagePublisher, LocalSocketSubscriber,
+        MAX_FRAME_SIZE,
+    };
     use crate::control::MessagePublisher;
+    use base64::{engine::general_purpose, Engine as _};
     use futures::StreamExt;
     use tempfile::tempdir;
     use tokio::io::{duplex, AsyncWriteExt};
@@ -446,7 +461,9 @@ mod tests {
         .await
         .unwrap();
         assert!(matches!(
-            read_frame::<_, super::ServerFrame>(&mut stream).await.unwrap(),
+            read_frame::<_, super::ServerFrame>(&mut stream)
+                .await
+                .unwrap(),
             Some(super::ServerFrame::Ack { request_id: 1 })
         ));
 
@@ -461,7 +478,9 @@ mod tests {
         .await
         .unwrap();
         assert!(matches!(
-            read_frame::<_, super::ServerFrame>(&mut stream).await.unwrap(),
+            read_frame::<_, super::ServerFrame>(&mut stream)
+                .await
+                .unwrap(),
             Some(super::ServerFrame::Ack { request_id: 2 })
         ));
 

@@ -209,11 +209,20 @@ fn normalize_path(path: PathBuf) -> PathBuf {
     let mut normalized = PathBuf::new();
     for component in path.components() {
         match component {
-            Component::CurDir => {}
-            Component::ParentDir => {
-                normalized.pop();
+            Component::RootDir | Component::Prefix(_) => {
+                normalized.push(component.as_os_str());
             }
-            other => normalized.push(other.as_os_str()),
+            Component::CurDir => {}
+            Component::ParentDir => match normalized.components().next_back() {
+                Some(Component::Normal(_)) => {
+                    normalized.pop();
+                }
+                Some(Component::ParentDir) | None if !path.is_absolute() => {
+                    normalized.push("..");
+                }
+                _ => {}
+            },
+            Component::Normal(part) => normalized.push(part),
         }
     }
     normalized

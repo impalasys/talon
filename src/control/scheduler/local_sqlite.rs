@@ -10,6 +10,7 @@ use sqlx::{
     Row, SqlitePool,
 };
 use std::{str::FromStr, time::Duration};
+use tokio_util::sync::CancellationToken;
 use tracing::{error, warn};
 
 use super::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend, SCHEDULER_AUTH_HEADER};
@@ -28,6 +29,7 @@ const MAX_RETRY_DELAY_SECONDS: i64 = 300;
 pub struct LocalSqliteSchedulerBackend {
     pool: SqlitePool,
     table: String,
+    runner_shutdown: CancellationToken,
 }
 
 #[derive(Clone)]
@@ -60,6 +62,7 @@ impl LocalSqliteSchedulerBackend {
             .connect_with(options)
             .await?;
         let table = table.unwrap_or_else(|| DEFAULT_TABLE.to_string());
+        let runner_shutdown = CancellationToken::new();
         validate_identifier(&table)?;
         let create_stmt = format!(
             "CREATE TABLE IF NOT EXISTS {table} (
@@ -90,31 +93,50 @@ impl LocalSqliteSchedulerBackend {
             let Some(target_url) = runner_target_url.filter(|value| !value.trim().is_empty())
             else {
                 warn!("local_sqlite scheduler runner enabled without target URL; wakeups will not fire");
-                return Ok(Self { pool, table });
+                return Ok(Self {
+                    pool,
+                    table,
+                    runner_shutdown,
+                });
             };
             let runner = Self {
                 pool: pool.clone(),
                 table: table.clone(),
+                runner_shutdown: runner_shutdown.clone(),
             };
+            let shutdown = runner_shutdown.child_token();
             tokio::spawn(async move {
                 runner
                     .run_loop(
                         target_url,
                         auth_token.filter(|value| !value.trim().is_empty()),
+                        shutdown,
                     )
                     .await;
             });
         }
 
-        Ok(Self { pool, table })
+        Ok(Self {
+            pool,
+            table,
+            runner_shutdown,
+        })
     }
 
-    async fn run_loop(self, target_url: String, auth_token: Option<String>) {
+    async fn run_loop(
+        self,
+        target_url: String,
+        auth_token: Option<String>,
+        shutdown: CancellationToken,
+    ) {
         let client = Client::builder()
             .timeout(Duration::from_secs(DELIVERY_TIMEOUT_SECONDS))
             .build()
             .expect("failed to build local scheduler client");
         loop {
+            if shutdown.is_cancelled() {
+                return;
+            }
             let mut has_more = false;
             match self.claim_due_wakeups(MAX_CONCURRENT_DELIVERIES).await {
                 Ok(wakeups) => {
@@ -210,73 +232,61 @@ impl LocalSqliteSchedulerBackend {
                 }
             }
             if !has_more {
-                tokio::time::sleep(Duration::from_millis(POLL_INTERVAL_MILLIS)).await;
+                tokio::select! {
+                    _ = shutdown.cancelled() => return,
+                    _ = tokio::time::sleep(Duration::from_millis(POLL_INTERVAL_MILLIS)) => {}
+                }
             }
         }
     }
 
     async fn claim_due_wakeups(&self, limit: usize) -> Result<Vec<DueWakeup>> {
         let now_micros = Utc::now().timestamp_micros();
-        let select_query = format!(
-            "SELECT handle, namespace, schedule_id, revision, fire_at_micros, payload, attempts
-             FROM {table}
-             WHERE canceled_at_micros IS NULL
-               AND delivered_at_micros IS NULL
-               AND attempts < ?2
-               AND fire_at_micros <= ?1
-               AND (claim_until_micros IS NULL OR claim_until_micros < ?1)
-             ORDER BY fire_at_micros
-             LIMIT ?3",
-            table = self.table
-        );
-        let update_query = format!(
-            "UPDATE {table}
-             SET claimed_at_micros = ?2,
-                 claim_until_micros = ?3,
-                 attempts = attempts + 1
-             WHERE handle = ?1
-               AND canceled_at_micros IS NULL
-               AND delivered_at_micros IS NULL
-               AND attempts < ?4
-               AND fire_at_micros <= ?2
-               AND (claim_until_micros IS NULL OR claim_until_micros < ?2)",
+        let query = format!(
+            "WITH due AS (
+                SELECT handle
+                FROM {table}
+                WHERE canceled_at_micros IS NULL
+                  AND delivered_at_micros IS NULL
+                  AND attempts < ?2
+                  AND fire_at_micros <= ?1
+                  AND (claim_until_micros IS NULL OR claim_until_micros < ?1)
+                ORDER BY fire_at_micros
+                LIMIT ?3
+            )
+            UPDATE {table}
+            SET claimed_at_micros = ?1,
+                claim_until_micros = ?4,
+                attempts = attempts + 1
+            WHERE handle IN (SELECT handle FROM due)
+              AND canceled_at_micros IS NULL
+              AND delivered_at_micros IS NULL
+              AND attempts < ?2
+              AND fire_at_micros <= ?1
+              AND (claim_until_micros IS NULL OR claim_until_micros < ?1)
+            RETURNING handle, namespace, schedule_id, revision, fire_at_micros, payload, attempts",
             table = self.table
         );
         let claim_until_micros = now_micros + CLAIM_TIMEOUT_SECONDS * 1_000_000;
-
-        let mut tx = self.pool.begin().await?;
-        let rows = sqlx::query(&select_query)
+        let rows = sqlx::query(&query)
             .bind(now_micros)
             .bind(MAX_DELIVERY_ATTEMPTS)
             .bind(limit as i64)
-            .fetch_all(&mut *tx)
+            .bind(claim_until_micros)
+            .fetch_all(&self.pool)
             .await?;
-
         let mut wakeups = Vec::with_capacity(rows.len());
         for row in rows {
-            let handle: String = row.try_get("handle")?;
-            let updated = sqlx::query(&update_query)
-                .bind(&handle)
-                .bind(now_micros)
-                .bind(claim_until_micros)
-                .bind(MAX_DELIVERY_ATTEMPTS)
-                .execute(&mut *tx)
-                .await?
-                .rows_affected();
-            if updated == 1 {
-                let attempts: i32 = row.try_get("attempts")?;
-                wakeups.push(DueWakeup {
-                    handle,
-                    namespace: row.try_get("namespace")?,
-                    schedule_id: row.try_get("schedule_id")?,
-                    revision: row.try_get("revision")?,
-                    fire_at_micros: row.try_get("fire_at_micros")?,
-                    payload: row.try_get("payload")?,
-                    attempts: attempts + 1,
-                });
-            }
+            wakeups.push(DueWakeup {
+                handle: row.try_get("handle")?,
+                namespace: row.try_get("namespace")?,
+                schedule_id: row.try_get("schedule_id")?,
+                revision: row.try_get("revision")?,
+                fire_at_micros: row.try_get("fire_at_micros")?,
+                payload: row.try_get("payload")?,
+                attempts: row.try_get("attempts")?,
+            });
         }
-        tx.commit().await?;
         Ok(wakeups)
     }
 
@@ -405,6 +415,12 @@ impl SchedulerBackend for LocalSqliteSchedulerBackend {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+}
+
+impl Drop for LocalSqliteSchedulerBackend {
+    fn drop(&mut self) {
+        self.runner_shutdown.cancel();
     }
 }
 
@@ -889,5 +905,22 @@ mod tests {
         .unwrap();
         let delivered_at: i64 = delivered_row.try_get("delivered_at_micros").unwrap();
         assert!(delivered_at > 0);
+    }
+
+    #[tokio::test]
+    async fn run_loop_exits_when_cancelled() {
+        let backend = init_test_backend().await;
+        let shutdown = CancellationToken::new();
+        let task = tokio::spawn(backend.run_loop(
+            "http://127.0.0.1:9/".to_string(),
+            None,
+            shutdown.child_token(),
+        ));
+
+        shutdown.cancel();
+        tokio::time::timeout(Duration::from_secs(1), task)
+            .await
+            .unwrap()
+            .unwrap();
     }
 }

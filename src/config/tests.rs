@@ -3,7 +3,7 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{proto, Config, ConfigExt, Secret, SecretExt};
+    use crate::config::{normalize_path, proto, Config, ConfigExt, Secret, SecretExt};
     use prost::Message;
     use std::env;
     use std::io::Write;
@@ -40,7 +40,11 @@ server:
         assert_eq!(config.providers.len(), 1);
         assert_eq!(
             config.database.as_ref().unwrap().data_dir,
-            path.parent().unwrap().join("test-data").display().to_string()
+            path.parent()
+                .unwrap()
+                .join("test-data")
+                .display()
+                .to_string()
         );
 
         let novita = config.providers.get("my-novita").unwrap();
@@ -303,6 +307,52 @@ workspace_dir: ./workspace
                 .join("workspace")
                 .display()
                 .to_string()
+        );
+    }
+
+    #[test]
+    fn test_relative_paths_preserve_parent_dir_components() {
+        assert_eq!(
+            normalize_path(std::path::PathBuf::from("../workspace")),
+            std::path::PathBuf::from("../workspace")
+        );
+        assert_eq!(
+            normalize_path(std::path::PathBuf::from("../../data")),
+            std::path::PathBuf::from("../../data")
+        );
+
+        let dir = tempdir().unwrap();
+        let config_path = dir.path().join("configs").join("nested").join("talon.yaml");
+        std::fs::create_dir_all(config_path.parent().unwrap()).unwrap();
+        std::fs::write(
+            &config_path,
+            r#"
+workspace_dir: ../../workspace
+control_plane:
+  database:
+    driver: sqlite
+    data_dir: ../../data
+  message_broker:
+    driver: local_socket
+"#,
+        )
+        .unwrap();
+
+        let config = Config::from_file(&config_path).unwrap();
+        assert_eq!(
+            config.workspace_dir,
+            dir.path().join("workspace").display().to_string()
+        );
+        assert_eq!(
+            config
+                .control_plane
+                .as_ref()
+                .unwrap()
+                .database
+                .as_ref()
+                .unwrap()
+                .data_dir,
+            dir.path().join("data").display().to_string()
         );
     }
 
