@@ -7,3 +7,7 @@ Promotion flow:
 1. draft or iterate here
 2. curate and tighten the content
 3. move the final version into `talon/docs/`
+
+Current drafts:
+
+- `local-single-host-development.md`: single-host gateway + worker startup with SQLite and local Unix sockets, without Compose, using host-native Envoy as the Sightline edge

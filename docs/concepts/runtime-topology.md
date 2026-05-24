@@ -18,6 +18,8 @@ Running `docker compose up --build -d` from the repository root starts:
 - `pubsub` emulator
 - `init-manifests` bootstrap for the default template
 
+This default topology is Postgres-backed. A smaller same-host deployment can also run Talon with a local SQLite control-plane database instead of Postgres.
+
 ## Traffic paths
 
 ### Browser / operator path

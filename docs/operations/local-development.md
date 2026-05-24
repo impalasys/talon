@@ -21,6 +21,19 @@ This starts the local compose stack and brings up:
 - the Pub/Sub emulator
 - the default template bootstrap
 
+## SQLite development
+
+The default local stack still uses Postgres.
+
+If you want to run Talon directly on a single machine without Postgres, configure:
+
+- `control_plane.database.driver: sqlite`
+- `control_plane.database.data_dir: <local directory>`
+- `control_plane.message_broker.driver: local_socket`
+- `TALON_SCHEDULER_DRIVER=local_sqlite`
+
+Keep the SQLite database on a local filesystem and run the gateway and worker on the same host.
+
 ## Useful endpoints
 
 - Gateway edge: `http://localhost:18789`

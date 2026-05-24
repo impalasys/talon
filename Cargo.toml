@@ -47,7 +47,7 @@ aws-sdk-secretsmanager = "1.103"
 azure_identity = "0.33"
 azure_security_keyvault_secrets = "0.12"
 uuid = { version = "1.23.0", features = ["v7"] }
-sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio"] }
+sqlx = { version = "0.8.6", features = ["postgres", "sqlite", "runtime-tokio"] }
 google-cloud-pubsub = "0.25.0"
 google-cloud-googleapis = { version = "0.13.0", features = ["pubsub"] }
 clap = { version = "4.6.0", features = ["derive"] }

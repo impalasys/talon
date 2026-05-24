@@ -11,6 +11,7 @@ pub mod scheduler;
 pub mod topics;
 
 use serde::{de::DeserializeOwned, Serialize};
+use std::path::PathBuf;
 
 #[async_trait::async_trait]
 pub trait KeyValueStore: Send + Sync {
@@ -125,7 +126,7 @@ fn message_broker_config(
         .message_broker
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("control_plane.message_broker configuration is missing"))?;
-    if mb_config.driver != "gcp_pubsub" {
+    if mb_config.driver != "gcp_pubsub" && mb_config.driver != "local_socket" {
         return Err(anyhow::anyhow!(
             "Unsupported message broker driver: {}",
             mb_config.driver
@@ -146,45 +147,108 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
         .database
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("control_plane.database configuration is missing"))?;
-    if db_config.driver != "postgres" {
-        return Err(anyhow::anyhow!(
-            "Unsupported database driver: {}",
-            db_config.driver
-        ));
+    let kv: std::sync::Arc<dyn KeyValueStore + Send + Sync>;
+    let scheduler_database_url: Option<String>;
+    match db_config.driver.as_str() {
+        "postgres" => {
+            let url_secret = db_config
+                .url
+                .as_ref()
+                .ok_or_else(|| anyhow::anyhow!("Database URL secret is missing"))?;
+            let pg_url: String = url_secret.resolve().await?;
+            println!("Connecting to PostgresKvStore at {}...", pg_url);
+            kv = std::sync::Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
+            scheduler_database_url = Some(pg_url);
+        }
+        "sqlite" => {
+            let sqlite_url = sqlite_database_url(db_config).await?;
+            println!("Connecting to SqliteKvStore at {}...", sqlite_url);
+            kv = std::sync::Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
+            scheduler_database_url = Some(sqlite_url);
+        }
+        other => {
+            return Err(anyhow::anyhow!("Unsupported database driver: {}", other));
+        }
     }
-    let url_secret = db_config
-        .url
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("Database URL secret is missing"))?;
-    let pg_url: String = url_secret.resolve().await?;
-    println!("Connecting to PostgresKvStore at {}...", pg_url);
-    let kv = std::sync::Arc::new(kv::PostgresKvStore::new(&pg_url, "talon_kv_store").await?);
 
-    let _mb_config = message_broker_config(cp)?;
-    println!("Initializing GcpPubSubPublisher...");
-    let pubsub = std::sync::Arc::new(pubsub::GcpPubSubPublisher::new().await?);
+    let mb_config = message_broker_config(cp)?;
+    let pubsub: std::sync::Arc<dyn MessagePublisher + Send + Sync> = match mb_config.driver.as_str()
+    {
+        "gcp_pubsub" => {
+            println!("Initializing GcpPubSubPublisher...");
+            std::sync::Arc::new(pubsub::GcpPubSubPublisher::new().await?)
+        }
+        "local_socket" => {
+            let default_root =
+                if db_config.driver == "sqlite" && !db_config.data_dir.trim().is_empty() {
+                    Some(PathBuf::from(db_config.data_dir.trim()))
+                } else {
+                    None
+                };
+            let socket_path = pubsub::configured_local_socket_path(default_root.as_deref());
+            println!(
+                "Initializing LocalSocketMessagePublisher at {}...",
+                socket_path.display()
+            );
+            std::sync::Arc::new(pubsub::LocalSocketMessagePublisher::new(socket_path).await?)
+        }
+        other => {
+            return Err(anyhow::anyhow!(
+                "Unsupported message broker driver: {}",
+                other
+            ));
+        }
+    };
 
     let scheduler: std::sync::Arc<dyn scheduler::SchedulerBackend + Send + Sync> =
-        if matches!(scheduler_driver().as_deref(), Some("local_postgres")) {
-            match scheduler::LocalPostgresSchedulerBackend::new(
-                &pg_url,
-                std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
-                std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
-                std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
-                std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
-                    .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
-                    .unwrap_or(false),
-            )
-            .await
-            {
-                Ok(backend) => std::sync::Arc::new(backend),
-                Err(err) => {
-                    tracing::warn!(error = %err, "Failed to initialize local_postgres scheduler; using noop");
+        match scheduler_driver().as_deref() {
+            Some("local_postgres") => {
+                if let Some(database_url) = scheduler_database_url.as_deref() {
+                    match scheduler::LocalPostgresSchedulerBackend::new(
+                        database_url,
+                        std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
+                        std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
+                        std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
+                        std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
+                            .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+                            .unwrap_or(false),
+                    )
+                    .await
+                    {
+                        Ok(backend) => std::sync::Arc::new(backend),
+                        Err(err) => {
+                            tracing::warn!(error = %err, "Failed to initialize local_postgres scheduler; using noop");
+                            std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
+                        }
+                    }
+                } else {
                     std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
                 }
             }
-        } else {
-            match configured_scheduler(cp.scheduler.as_ref()) {
+            Some("local_sqlite") => {
+                if let Some(database_url) = scheduler_database_url.as_deref() {
+                    match scheduler::LocalSqliteSchedulerBackend::new(
+                        database_url,
+                        std::env::var("TALON_LOCAL_SCHEDULER_TABLE").ok(),
+                        std::env::var("TALON_LOCAL_SCHEDULER_TARGET_URL").ok(),
+                        std::env::var("TALON_SCHEDULER_AUTH_TOKEN").ok(),
+                        std::env::var("TALON_LOCAL_SCHEDULER_RUNNER")
+                            .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+                            .unwrap_or(false),
+                    )
+                    .await
+                    {
+                        Ok(backend) => std::sync::Arc::new(backend),
+                        Err(err) => {
+                            tracing::warn!(error = %err, "Failed to initialize local_sqlite scheduler; using noop");
+                            std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
+                        }
+                    }
+                } else {
+                    std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
+                }
+            }
+            _ => match configured_scheduler(cp.scheduler.as_ref()) {
                 Some(crate::config::proto::SchedulerConfig {
                     backend: Some(crate::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
                 }) => match scheduler::CloudTasksSchedulerBackend::new(&cfg).await {
@@ -198,7 +262,7 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
                     std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
                 }
                 None => std::sync::Arc::new(scheduler::NoopSchedulerBackend::default()),
-            }
+            },
         };
 
     Ok(ControlPlane {
@@ -244,6 +308,27 @@ fn scheduler_driver() -> Option<String> {
     std::env::var("TALON_SCHEDULER_DRIVER").ok()
 }
 
+async fn sqlite_database_url(
+    db_config: &crate::config::proto::DatabaseConfig,
+) -> anyhow::Result<String> {
+    use crate::config::SecretExt;
+
+    if let Some(url_secret) = db_config.url.as_ref() {
+        return Ok(url_secret.resolve().await?);
+    }
+    let data_dir = db_config.data_dir.trim();
+    if data_dir.is_empty() {
+        return Err(anyhow::anyhow!(
+            "SQLite database requires either control_plane.database.url or control_plane.database.data_dir"
+        ));
+    }
+    let db_path = PathBuf::from(data_dir).join("talon-control-plane.db");
+    if let Some(parent) = db_path.parent() {
+        tokio::fs::create_dir_all(parent).await?;
+    }
+    Ok(kv::sqlite_url_for_path(&db_path))
+}
+
 fn configured_scheduler_callback_auth_from_env(
 ) -> Option<crate::config::proto::SchedulerCallbackAuthConfig> {
     if let Some(token) = std::env::var("TALON_SCHEDULER_AUTH_TOKEN")
@@ -285,13 +370,14 @@ fn configured_scheduler_callback_auth_from_env(
 mod tests {
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
-        message_broker_config, KeyValueStore, ProtoKeyValueStoreExt,
+        message_broker_config, sqlite_database_url, KeyValueStore, ProtoKeyValueStoreExt,
     };
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
     use crate::gateway::rpc::models;
-    use std::collections::HashMap;
     use crate::test_support::MockKvStore;
+    use std::collections::HashMap;
+    use tempfile::tempdir;
     struct EnvGuard {
         key: &'static str,
         value: Option<String>,
@@ -448,15 +534,9 @@ mod tests {
         std::env::set_var("TALON_TEST_RESTORE", "before");
         {
             let _guard = EnvGuard::set("TALON_TEST_RESTORE", "after");
-            assert_eq!(
-                std::env::var("TALON_TEST_RESTORE").as_deref(),
-                Ok("after")
-            );
+            assert_eq!(std::env::var("TALON_TEST_RESTORE").as_deref(), Ok("after"));
         }
-        assert_eq!(
-            std::env::var("TALON_TEST_RESTORE").as_deref(),
-            Ok("before")
-        );
+        assert_eq!(std::env::var("TALON_TEST_RESTORE").as_deref(), Ok("before"));
         std::env::remove_var("TALON_TEST_RESTORE");
     }
 
@@ -476,7 +556,10 @@ mod tests {
         kv.delete_prefix("ns", "prefix/").await.unwrap();
         assert!(kv.get("ns", "prefix/a").await.unwrap().is_none());
         assert!(kv.get("ns", "prefix/b").await.unwrap().is_none());
-        assert_eq!(kv.get("ns", "other/c").await.unwrap(), Some(b"three".to_vec()));
+        assert_eq!(
+            kv.get("ns", "other/c").await.unwrap(),
+            Some(b"three".to_vec())
+        );
 
         let session = models::Session {
             id: "session-1".to_string(),
@@ -558,7 +641,7 @@ mod tests {
             control_plane: Some(proto::ControlPlaneConfig {
                 database: Some(proto::DatabaseConfig {
                     data_dir: String::new(),
-                    driver: "sqlite".to_string(),
+                    driver: "badger".to_string(),
                     url: None,
                 }),
                 message_broker: Some(proto::MessageBrokerConfig {
@@ -575,7 +658,7 @@ mod tests {
         };
         assert!(err
             .to_string()
-            .contains("Unsupported database driver: sqlite"));
+            .contains("Unsupported database driver: badger"));
 
         let missing_url = proto::TalonConfig {
             control_plane: Some(proto::ControlPlaneConfig {
@@ -613,6 +696,54 @@ mod tests {
         assert!(err
             .to_string()
             .contains("Unsupported message broker driver: kafka"));
+
+        let local_socket_message_broker = proto::ControlPlaneConfig {
+            database: None,
+            message_broker: Some(proto::MessageBrokerConfig {
+                driver: "local_socket".to_string(),
+            }),
+            scheduler: None,
+        };
+        assert!(message_broker_config(&local_socket_message_broker).is_ok());
+    }
+
+    #[tokio::test]
+    async fn sqlite_database_url_uses_data_dir_or_explicit_url() {
+        let dir = tempdir().unwrap();
+        let cfg = proto::DatabaseConfig {
+            data_dir: dir.path().display().to_string(),
+            driver: "sqlite".to_string(),
+            url: None,
+        };
+        let url = sqlite_database_url(&cfg).await.unwrap();
+        assert!(url.ends_with("/talon-control-plane.db"));
+
+        let explicit = proto::DatabaseConfig {
+            data_dir: String::new(),
+            driver: "sqlite".to_string(),
+            url: Some(crate::config::Secret {
+                source: Some(secret::Source::Plain(
+                    "sqlite:///tmp/explicit.db".to_string(),
+                )),
+            }),
+        };
+        assert_eq!(
+            sqlite_database_url(&explicit).await.unwrap(),
+            "sqlite:///tmp/explicit.db"
+        );
+    }
+
+    #[tokio::test]
+    async fn sqlite_database_url_requires_path_or_url() {
+        let cfg = proto::DatabaseConfig {
+            data_dir: "   ".to_string(),
+            driver: "sqlite".to_string(),
+            url: None,
+        };
+        let err = sqlite_database_url(&cfg).await.unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("SQLite database requires either control_plane.database.url or control_plane.database.data_dir"));
     }
 
     #[test]

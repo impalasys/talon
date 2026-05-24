@@ -3,10 +3,12 @@
 
 mod cloud_tasks;
 mod local_postgres;
+mod local_sqlite;
 mod noop;
 
 pub use cloud_tasks::CloudTasksSchedulerBackend;
 pub use local_postgres::LocalPostgresSchedulerBackend;
+pub use local_sqlite::LocalSqliteSchedulerBackend;
 pub use noop::NoopSchedulerBackend;
 
 use anyhow::Result;

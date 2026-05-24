@@ -25,7 +25,9 @@ COPY ui/components ./components
 COPY ui/lib ./lib
 COPY ui/proto ./proto
 COPY ui/utils ./utils
-COPY packages/copilot /repo/packages/copilot
+COPY packages/copilot/src /repo/packages/copilot/src
+COPY packages/copilot/README.md /repo/packages/copilot/README.md
+COPY packages/copilot/tsup.config.ts /repo/packages/copilot/tsup.config.ts
 COPY ui/global.d.ts ./global.d.ts
 COPY ui/next-env.d.ts ./next-env.d.ts
 COPY ui/next.config.mjs ./next.config.mjs

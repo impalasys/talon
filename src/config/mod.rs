@@ -6,7 +6,7 @@ use prost::Message;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::env;
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 
 pub mod secrets;
 
@@ -205,6 +205,85 @@ impl From<SerdeConfig> for Config {
     }
 }
 
+fn normalize_path(path: PathBuf) -> PathBuf {
+    let mut normalized = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::RootDir | Component::Prefix(_) => {
+                normalized.push(component.as_os_str());
+            }
+            Component::CurDir => {}
+            Component::ParentDir => match normalized.components().next_back() {
+                Some(Component::Normal(_)) => {
+                    normalized.pop();
+                }
+                Some(Component::ParentDir) | None if !path.is_absolute() => {
+                    normalized.push("..");
+                }
+                _ => {}
+            },
+            Component::Normal(part) => normalized.push(part),
+        }
+    }
+    normalized
+}
+
+fn resolve_config_relative_data_dir(path: &Path, data_dir: &mut Option<String>) {
+    let Some(raw) = data_dir.as_ref() else {
+        return;
+    };
+
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return;
+    }
+
+    let dir = Path::new(trimmed);
+    if dir.is_absolute() {
+        return;
+    }
+
+    let base_dir = path
+        .parent()
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| PathBuf::from("."));
+    *data_dir = Some(normalize_path(base_dir.join(dir)).display().to_string());
+}
+
+fn resolve_config_relative_string_path(path: &Path, value: &mut Option<String>) {
+    let Some(raw) = value.as_ref() else {
+        return;
+    };
+
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return;
+    }
+
+    let resolved = if Path::new(trimmed).is_absolute() {
+        PathBuf::from(trimmed)
+    } else {
+        let base_dir = path
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| PathBuf::from("."));
+        normalize_path(base_dir.join(trimmed))
+    };
+    *value = Some(resolved.display().to_string());
+}
+
+fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
+    if let Some(database) = config.database.as_mut() {
+        resolve_config_relative_data_dir(path, &mut database.data_dir);
+    }
+
+    if let Some(control_plane) = config.control_plane.as_mut() {
+        resolve_config_relative_data_dir(path, &mut control_plane.database.data_dir);
+    }
+
+    resolve_config_relative_string_path(path, &mut config.workspace_dir);
+}
+
 impl From<SchedulerConfigWrapper> for proto::SchedulerConfig {
     fn from(s: SchedulerConfigWrapper) -> Self {
         match s {
@@ -290,12 +369,13 @@ impl ConfigExt for Config {
         let content = std::fs::read_to_string(path)?;
         let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("toml");
 
-        let serde_config: SerdeConfig = match extension {
+        let mut serde_config: SerdeConfig = match extension {
             "toml" => toml::from_str(&content)?,
             "yaml" | "yml" => serde_yaml::from_str(&content)?,
             "json" => serde_json::from_str(&content)?,
             _ => return Err(anyhow!("Unsupported config format: {}", extension)),
         };
+        resolve_config_relative_paths(path, &mut serde_config);
         Ok(serde_config.into())
     }
 

@@ -2,6 +2,14 @@
 
 `@talonai/copilot` provides a React chat panel for Talon agent sessions.
 
+## Install
+
+```bash
+pnpm add @talonai/copilot
+```
+
+`react` and `react-dom` are required peer dependencies.
+
 ## Usage
 
 ```tsx

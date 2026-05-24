@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod local_socket;
+
 use crate::control::MessagePublisher;
 use anyhow::Result;
 use google_cloud_googleapis::pubsub::v1::ExpirationPolicy;
@@ -9,9 +11,12 @@ use google_cloud_pubsub::client::{Client, ClientConfig};
 use google_cloud_pubsub::publisher::Publisher;
 use google_cloud_pubsub::subscriber::ReceivedMessage;
 use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+
+pub use local_socket::{LocalSocketMessagePublisher, LocalSocketSubscriber};
 
 pub struct GcpPubSubPublisher {
     backend: Arc<dyn PubSubBackend>,
@@ -37,6 +42,19 @@ struct GcpPubSubBackend {
 
 fn configured_project_id() -> String {
     std::env::var("GCP_PROJECT_ID").unwrap_or_else(|_| "talon-local".to_string())
+}
+
+pub fn configured_local_socket_path(default_root: Option<&std::path::Path>) -> PathBuf {
+    if let Ok(path) = std::env::var("TALON_LOCAL_SOCKET_PATH") {
+        let trimmed = path.trim();
+        if !trimmed.is_empty() {
+            return PathBuf::from(trimmed);
+        }
+    }
+    if let Some(root) = default_root {
+        return root.join("talon-broker.sock");
+    }
+    PathBuf::from("/tmp/talon-broker.sock")
 }
 
 pub fn fully_qualified_topic_name(project: &str, topic_name: &str) -> String {

@@ -7,10 +7,14 @@ use axum::{
     Router,
 };
 use serde::Deserialize;
+use std::path::PathBuf;
 use std::sync::Arc;
 use talon::config::{Config, ConfigExt};
 use talon::control::build_control_plane;
-use talon::control::pubsub::{fully_qualified_subscription_name, fully_qualified_topic_name};
+use talon::control::pubsub::{
+    configured_local_socket_path, fully_qualified_subscription_name, fully_qualified_topic_name,
+    LocalSocketMessagePublisher,
+};
 use talon::control::topics;
 use talon::control::ControlPlane;
 use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler};
@@ -49,7 +53,17 @@ trait PullSubscriptionBackend: Send + Sync {
     ) -> Result<()>;
 }
 
-async fn handle_pull_message<FDispatch, FutDispatch, FAck, FutAck, FNack, FutNack, EDispatch, EAck, ENack>(
+async fn handle_pull_message<
+    FDispatch,
+    FutDispatch,
+    FAck,
+    FutAck,
+    FNack,
+    FutNack,
+    EDispatch,
+    EAck,
+    ENack,
+>(
     event_type: &str,
     cancellation_token: &CancellationToken,
     receive_cancellation_token: &CancellationToken,
@@ -173,6 +187,25 @@ fn resolved_pull_subscription_specs(project_id: &str) -> Vec<ResolvedPullSubscri
         .collect()
 }
 
+fn local_socket_subscription_specs() -> Vec<ResolvedPullSubscriptionSpec> {
+    pull_subscription_specs()
+        .into_iter()
+        .map(|spec| ResolvedPullSubscriptionSpec {
+            topic_name: spec.topic_name.to_string(),
+            subscription_name: spec.subscription_name.to_string(),
+            event_type: spec.event_type.to_string(),
+        })
+        .collect()
+}
+
+fn message_broker_driver(config: &Config) -> Option<&str> {
+    config
+        .control_plane
+        .as_ref()
+        .and_then(|cp| cp.message_broker.as_ref())
+        .map(|mb| mb.driver.as_str())
+}
+
 fn build_worker_handler(
     cp: Arc<ControlPlane>,
     config: Arc<Config>,
@@ -204,6 +237,12 @@ struct GcpPullSubscriptionBackend {
     subscription_name: String,
 }
 
+struct LocalSocketPullSubscriptionBackend {
+    subscriber: talon::control::pubsub::LocalSocketSubscriber,
+    topic_name: String,
+    subscription_name: String,
+}
+
 impl GcpPullSubscriptionBackend {
     async fn new(
         project_id: String,
@@ -217,6 +256,21 @@ impl GcpPullSubscriptionBackend {
         let client = Client::new(pubsub_config).await?;
         Ok(Self {
             client,
+            topic_name,
+            subscription_name,
+        })
+    }
+}
+
+impl LocalSocketPullSubscriptionBackend {
+    async fn new(
+        socket_path: PathBuf,
+        topic_name: String,
+        subscription_name: String,
+    ) -> Result<Self> {
+        let publisher = LocalSocketMessagePublisher::new(socket_path).await?;
+        Ok(Self {
+            subscriber: publisher.subscriber(),
             topic_name,
             subscription_name,
         })
@@ -288,6 +342,40 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
                 None,
             )
             .await?;
+        Ok(())
+    }
+}
+
+#[async_trait::async_trait]
+impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
+    async fn ensure_topic(&self) -> Result<()> {
+        Ok(())
+    }
+
+    async fn ensure_subscription(&self) -> Result<()> {
+        Ok(())
+    }
+
+    async fn receive(
+        &self,
+        handler: WorkerEventHandler,
+        event_type: String,
+        cancellation_token: CancellationToken,
+    ) -> Result<()> {
+        use futures::StreamExt;
+
+        let mut stream = self
+            .subscriber
+            .subscribe_named(&self.topic_name, &self.subscription_name)
+            .await?;
+        while let Some(payload) = stream.next().await {
+            if cancellation_token.is_cancelled() {
+                break;
+            }
+            if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
+                tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
+            }
+        }
         Ok(())
     }
 }
@@ -423,16 +511,44 @@ fn spawn_pull_subscription_task(
             subscription_name: subscription_name.clone(),
             event_type,
         };
+        let use_local_socket = matches!(
+            message_broker_driver(pull_handler.config.as_ref()),
+            Some("local_socket")
+        );
+        let config = pull_handler.config.clone();
         run_pull_subscription_loop(
             || {
                 let project_id = project_id.clone();
                 let topic_name = topic_name.clone();
                 let subscription_name = subscription_name.clone();
+                let config = config.clone();
                 async move {
-                    Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
-                        GcpPullSubscriptionBackend::new(project_id, topic_name, subscription_name)
+                    if use_local_socket {
+                        let default_root = config
+                            .control_plane
+                            .as_ref()
+                            .and_then(|cp| cp.database.as_ref())
+                            .filter(|db| db.driver == "sqlite" && !db.data_dir.trim().is_empty())
+                            .map(|db| PathBuf::from(db.data_dir.trim()));
+                        let socket_path = configured_local_socket_path(default_root.as_deref());
+                        Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
+                            LocalSocketPullSubscriptionBackend::new(
+                                socket_path,
+                                topic_name,
+                                subscription_name,
+                            )
                             .await?,
-                    ))
+                        ))
+                    } else {
+                        Ok::<Box<dyn PullSubscriptionBackend>, anyhow::Error>(Box::new(
+                            GcpPullSubscriptionBackend::new(
+                                project_id,
+                                topic_name,
+                                subscription_name,
+                            )
+                            .await?,
+                        ))
+                    }
                 }
             },
             pull_handler,
@@ -462,9 +578,25 @@ where
         return Vec::new();
     }
 
-    tracing::info!("Starting in PULL mode (background thread)...");
+    let use_local_socket = matches!(
+        message_broker_driver(handler.config.as_ref()),
+        Some("local_socket")
+    );
+    tracing::info!(
+        transport = if use_local_socket {
+            "local_socket"
+        } else {
+            "gcp_pubsub"
+        },
+        "Starting worker background subscriptions"
+    );
     let mut tasks = Vec::new();
-    for spec in resolved_pull_subscription_specs(&project_id) {
+    let specs = if use_local_socket {
+        local_socket_subscription_specs()
+    } else {
+        resolved_pull_subscription_specs(&project_id)
+    };
+    for spec in specs {
         tasks.push(spawn(
             handler.clone(),
             project_id.clone(),
@@ -698,7 +830,8 @@ mod tests {
         next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled, pull_subscription_specs,
         push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
         run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
-        serve_worker_http, worker_bind_addr, worker_port, worker_router, PullSubscriptionBackend,
+        serve_worker_http, worker_bind_addr, worker_port, worker_router,
+        LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend, PullSubscriptionBackend,
         ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
@@ -715,8 +848,10 @@ mod tests {
     use std::sync::Arc;
     use talon::config::Config;
     use talon::control::{
-        events::LifecycleEvent, keys, scheduler::NoopSchedulerBackend, ControlPlane,
-        KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        events::{LifecycleEvent, SessionControlEvent},
+        keys,
+        scheduler::NoopSchedulerBackend,
+        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use talon::gateway::rpc::models;
     use talon::test_support::{EmptyPubSub, MockKvStore};
@@ -724,6 +859,7 @@ mod tests {
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
     };
+    use tempfile::tempdir;
     use tokio::sync::Mutex;
     use tokio_util::sync::CancellationToken;
     use tower::ServiceExt;
@@ -1027,6 +1163,111 @@ mod tests {
             .all(|(project_id, _, _)| project_id == "demo"));
         assert!(spawned[0].1.starts_with("projects/demo/topics/"));
         assert!(spawned[0].2.starts_with("projects/demo/subscriptions/"));
+    }
+
+    #[tokio::test]
+    async fn maybe_spawn_pull_subscriptions_uses_local_socket_specs_when_configured() {
+        let mut config = Config::default();
+        config.control_plane = Some(talon::config::proto::ControlPlaneConfig {
+            database: Some(talon::config::proto::DatabaseConfig {
+                data_dir: String::new(),
+                driver: "sqlite".to_string(),
+                url: None,
+            }),
+            message_broker: Some(talon::config::proto::MessageBrokerConfig {
+                driver: "local_socket".to_string(),
+            }),
+            scheduler: None,
+        });
+        let handler = WorkerEventHandler {
+            cp: Arc::new(ControlPlane {
+                kv: Arc::new(MockKvStore::default()),
+                pubsub: Arc::new(EmptyPubSub),
+                scheduler: Arc::new(NoopSchedulerBackend),
+            }),
+            config: Arc::new(config),
+            mcp_registry: Arc::new(McpRegistry::new()),
+            scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            session_cancellations: Arc::new(Mutex::new(HashMap::new())),
+        };
+        let spawned = std::sync::Mutex::new(Vec::<(String, String, String)>::new());
+
+        maybe_spawn_pull_subscriptions(
+            handler,
+            true,
+            "demo".to_string(),
+            CancellationToken::new(),
+            |_h, project_id, spec, _shutdown_token| {
+                spawned.lock().expect("spawned lock poisoned").push((
+                    project_id,
+                    spec.topic_name,
+                    spec.subscription_name,
+                ));
+                tokio::spawn(async {})
+            },
+        );
+        let spawned = spawned.lock().expect("spawned lock poisoned");
+        assert_eq!(spawned.len(), 3);
+        assert_eq!(spawned[0].0, "demo");
+        assert_eq!(spawned[0].1, talon::control::topics::SESSION_DISPATCH_TOPIC);
+        assert_eq!(spawned[0].2, "talon-session-dispatch-sub");
+    }
+
+    #[tokio::test]
+    async fn local_socket_pull_backend_delivers_session_control_end_to_end() {
+        let dir = tempdir().unwrap();
+        let socket_path = dir.path().join("talon-broker.sock");
+        let publisher = LocalSocketMessagePublisher::new(socket_path.clone())
+            .await
+            .unwrap();
+        let backend = LocalSocketPullSubscriptionBackend::new(
+            socket_path,
+            talon::control::topics::SESSION_CONTROL_TOPIC.to_string(),
+            "talon-session-control-sub".to_string(),
+        )
+        .await
+        .unwrap();
+
+        let cancellation = CancellationToken::new();
+        let handler = handler_with_auth(SchedulerRequestAuthenticator::deny_all());
+        handler
+            .session_cancellations
+            .lock()
+            .await
+            .insert("session-1".to_string(), cancellation.clone());
+
+        let shutdown = CancellationToken::new();
+        let receive_task = tokio::spawn({
+            let handler = handler.clone();
+            let shutdown = shutdown.clone();
+            async move {
+                backend
+                    .receive(handler, "session_control".to_string(), shutdown)
+                    .await
+            }
+        });
+
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        publisher
+            .publish(
+                talon::control::topics::SESSION_CONTROL_TOPIC,
+                &SessionControlEvent {
+                    session_id: "session-1".to_string(),
+                    agent: "assistant".to_string(),
+                    ns: "default".to_string(),
+                    action: "stop_generation".to_string(),
+                    timestamp: 0,
+                }
+                .encode_to_vec(),
+            )
+            .await
+            .unwrap();
+
+        tokio::time::timeout(std::time::Duration::from_secs(1), cancellation.cancelled())
+            .await
+            .unwrap();
+        shutdown.cancel();
+        receive_task.abort();
     }
 
     #[tokio::test]
