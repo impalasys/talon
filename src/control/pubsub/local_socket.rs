@@ -428,8 +428,18 @@ async fn read_frame<R: AsyncReadExt + Unpin, T: for<'de> Deserialize<'de>>(
     if len > MAX_FRAME_SIZE {
         return Err(anyhow!("frame too large: {}", len));
     }
-    let mut payload = vec![0_u8; len];
-    reader.read_exact(&mut payload).await?;
+    let mut payload = Vec::new();
+    payload
+        .try_reserve_exact(len)
+        .map_err(|err| anyhow!("failed to reserve frame buffer: {}", err))?;
+    let bytes_read = reader.take(len as u64).read_to_end(&mut payload).await?;
+    if bytes_read != len {
+        return Err(anyhow!(
+            "unexpected frame length: expected {} bytes, read {}",
+            len,
+            bytes_read
+        ));
+    }
     Ok(Some(serde_json::from_slice(&payload)?))
 }
 
