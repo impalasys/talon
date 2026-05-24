@@ -22,12 +22,13 @@ jobs:
           version: 10.17.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
+          package-manager-cache: false
 
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
@@ -50,6 +51,4 @@ jobs:
 
       - name: Publish to npm
         working-directory: packages/copilot
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
