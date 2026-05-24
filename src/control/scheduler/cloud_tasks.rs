@@ -6,8 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use base64::Engine as _;
 use chrono::{DateTime, Utc};
 use google_cloud_auth::credentials::{
-    AccessToken, AccessTokenCredentials, Builder as CredentialsBuilder, CacheableResource,
-    CredentialsProvider, EntityTag,
+    AccessTokenCredentials, Builder as CredentialsBuilder,
 };
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -272,7 +271,10 @@ mod tests {
     use axum::routing::{delete, post};
     use axum::{Json, Router};
     use chrono::TimeZone;
-    use google_cloud_auth::credentials::AccessTokenCredentialsProvider;
+    use google_cloud_auth::credentials::{
+        AccessToken, AccessTokenCredentialsProvider, CacheableResource, CredentialsProvider,
+        EntityTag,
+    };
     use std::sync::Arc;
     use tokio::net::TcpListener;
     use tokio::sync::Mutex;

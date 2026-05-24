@@ -128,7 +128,7 @@ impl GcpPubSubPublisher {
             }
         }
 
-        let mut lock = self.initialized_topics.write().await;
+        let lock = self.initialized_topics.write().await;
         if lock.contains(&fq_topic) {
             return Ok(fq_topic);
         }
@@ -164,7 +164,7 @@ impl Drop for SubscriptionGuard {
 #[async_trait::async_trait]
 impl PubSubBackend for GcpPubSubBackend {
     async fn ensure_topic(&self, fq_topic: &str) -> Result<()> {
-        let mut topic = self.client.topic(fq_topic);
+        let topic = self.client.topic(fq_topic);
         if !topic.exists(None).await? {
             if let Err(err) = topic.create(None, None).await {
                 if !topic.exists(None).await? {
@@ -211,7 +211,7 @@ impl PubSubBackend for GcpPubSubBackend {
             }),
             ..Default::default()
         };
-        let mut subscription = self.client.subscription(fq_sub);
+        let subscription = self.client.subscription(fq_sub);
         if !subscription.exists(None).await? {
             if let Err(err) = subscription.create(fq_topic, sub_config, None).await {
                 if !subscription.exists(None).await? {
@@ -245,7 +245,7 @@ impl PubSubBackend for GcpPubSubBackend {
     }
 
     async fn delete_subscription(&self, fq_sub: &str) -> Result<()> {
-        let mut sub = self.client.subscription(fq_sub);
+        let sub = self.client.subscription(fq_sub);
         sub.delete(None).await?;
         Ok(())
     }

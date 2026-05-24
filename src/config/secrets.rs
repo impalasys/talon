@@ -4,7 +4,6 @@
 use crate::config::proto;
 use anyhow::{anyhow, Result};
 use std::process::Command;
-use std::sync::Arc;
 
 pub use proto::Secret;
 

@@ -9,7 +9,7 @@ use futures::{stream::BoxStream, StreamExt};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use reqwest::header::ACCEPT;
 use rmcp::{
-    model::{CallToolRequestParam, Content, ResourceContents},
+    model::{CallToolRequestParams, Content, ResourceContents},
     model::{ClientJsonRpcMessage, ServerJsonRpcMessage},
     service::{RoleClient, RunningService, ServiceExt},
     transport::{
@@ -150,7 +150,7 @@ impl McpClient {
                 let result = service
                     .peer()
                     .call_tool(
-                        CallToolRequestParam::new(name.to_string()).with_arguments(
+                        CallToolRequestParams::new(name.to_string()).with_arguments(
                             arguments.unwrap_or_default(),
                         ),
                     )

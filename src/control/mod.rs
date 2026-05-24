@@ -10,7 +10,6 @@ pub mod pubsub;
 pub mod scheduler;
 pub mod topics;
 
-use serde::{de::DeserializeOwned, Serialize};
 use std::path::PathBuf;
 
 #[async_trait::async_trait]

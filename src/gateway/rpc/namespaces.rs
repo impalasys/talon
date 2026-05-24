@@ -346,7 +346,7 @@ mod tests {
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
     use std::collections::HashMap;
     use std::sync::Arc;
-    use tokio::sync::{Mutex, RwLock};
+    use tokio::sync::Mutex;
 
     struct MockKvStore {
         store: Mutex<HashMap<String, Vec<u8>>>,

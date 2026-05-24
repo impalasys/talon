@@ -119,7 +119,7 @@ impl GrpcGatewayHandler {
 mod tests {
     use super::{decode_entry, list_namespace_knowledge};
     use crate::control::KeyValueStore;
-    use crate::gateway::rpc::{models, proto, GrpcGatewayHandler};
+    use crate::gateway::rpc::{proto, GrpcGatewayHandler};
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
     use async_trait::async_trait;
     use futures::stream;
