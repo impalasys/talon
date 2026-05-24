@@ -481,7 +481,7 @@ mod tests {
     async fn init_test_backend() -> LocalSqliteSchedulerBackend {
         let dir = tempdir().unwrap();
         let db_path = dir.path().join("scheduler.db");
-        LocalSqliteSchedulerBackend::new(
+        let backend = LocalSqliteSchedulerBackend::new(
             &sqlite_url_for_path(&db_path),
             Some("talon_scheduler_test".to_string()),
             None,
@@ -489,7 +489,9 @@ mod tests {
             false,
         )
         .await
-        .unwrap()
+        .unwrap();
+        std::mem::forget(dir);
+        backend
     }
 
     async fn init_backend_with_options(
@@ -500,7 +502,7 @@ mod tests {
     ) -> LocalSqliteSchedulerBackend {
         let dir = tempdir().unwrap();
         let db_path = dir.path().join("scheduler.db");
-        LocalSqliteSchedulerBackend::new(
+        let backend = LocalSqliteSchedulerBackend::new(
             &sqlite_url_for_path(&db_path),
             table,
             runner_target_url,
@@ -508,7 +510,9 @@ mod tests {
             runner_enabled,
         )
         .await
-        .unwrap()
+        .unwrap();
+        std::mem::forget(dir);
+        backend
     }
 
     #[derive(Clone, Default)]
