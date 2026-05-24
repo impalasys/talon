@@ -6,5 +6,6 @@ mod shared;
 mod sqlite;
 
 pub use postgres::PostgresKvStore;
+pub(crate) use shared::validate_identifier;
 pub use shared::sqlite_url_for_path;
 pub use sqlite::SqliteKvStore;

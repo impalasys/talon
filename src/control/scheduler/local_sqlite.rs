@@ -13,6 +13,7 @@ use std::{str::FromStr, time::Duration};
 use tracing::{error, warn};
 
 use super::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend, SCHEDULER_AUTH_HEADER};
+use crate::control::kv::validate_identifier;
 
 const DEFAULT_TABLE: &str = "talon_local_scheduler_jobs";
 const CLAIM_TIMEOUT_SECONDS: i64 = 60;
@@ -363,13 +364,6 @@ impl LocalSqliteSchedulerBackend {
     }
 }
 
-fn validate_identifier(value: &str) -> Result<()> {
-    if value.is_empty() || !value.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
-        anyhow::bail!("invalid identifier: {}", value);
-    }
-    Ok(())
-}
-
 fn compute_retry_delay_seconds(attempts: i32) -> i64 {
     let exponent = attempts.saturating_sub(1).clamp(0, 10) as u32;
     (INITIAL_RETRY_DELAY_SECONDS * (1_i64 << exponent)).min(MAX_RETRY_DELAY_SECONDS)
@@ -615,7 +609,7 @@ mod tests {
         .await
         .err()
         .unwrap();
-        assert!(err.to_string().contains("invalid identifier"));
+        assert!(err.to_string().contains("Invalid table name"));
     }
 
     #[tokio::test]

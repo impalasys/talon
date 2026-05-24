@@ -241,6 +241,28 @@ fn resolve_config_relative_data_dir(path: &Path, data_dir: &mut Option<String>) 
     *data_dir = Some(normalize_path(base_dir.join(dir)).display().to_string());
 }
 
+fn resolve_config_relative_string_path(path: &Path, value: &mut Option<String>) {
+    let Some(raw) = value.as_ref() else {
+        return;
+    };
+
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return;
+    }
+
+    let resolved = if Path::new(trimmed).is_absolute() {
+        PathBuf::from(trimmed)
+    } else {
+        let base_dir = path
+            .parent()
+            .map(Path::to_path_buf)
+            .unwrap_or_else(|| PathBuf::from("."));
+        normalize_path(base_dir.join(trimmed))
+    };
+    *value = Some(resolved.display().to_string());
+}
+
 fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
     if let Some(database) = config.database.as_mut() {
         resolve_config_relative_data_dir(path, &mut database.data_dir);
@@ -249,6 +271,8 @@ fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
     if let Some(control_plane) = config.control_plane.as_mut() {
         resolve_config_relative_data_dir(path, &mut control_plane.database.data_dir);
     }
+
+    resolve_config_relative_string_path(path, &mut config.workspace_dir);
 }
 
 impl From<SchedulerConfigWrapper> for proto::SchedulerConfig {

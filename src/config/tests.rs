@@ -282,6 +282,31 @@ control_plane:
     }
 
     #[test]
+    fn test_relative_workspace_dir_resolves_from_config_file_directory() {
+        let dir = tempdir().unwrap();
+        let config_path = dir.path().join("nested").join("talon.yaml");
+        std::fs::create_dir_all(config_path.parent().unwrap()).unwrap();
+        std::fs::write(
+            &config_path,
+            r#"
+workspace_dir: ./workspace
+"#,
+        )
+        .unwrap();
+
+        let config = Config::from_file(&config_path).unwrap();
+        assert_eq!(
+            config.workspace_dir,
+            config_path
+                .parent()
+                .unwrap()
+                .join("workspace")
+                .display()
+                .to_string()
+        );
+    }
+
+    #[test]
     fn test_load_default_uses_env_override_and_fallback_search() {
         let _guard = crate::test_support::env_lock();
         let dir = tempdir().unwrap();

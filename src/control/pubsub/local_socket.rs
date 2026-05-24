@@ -14,6 +14,7 @@ use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{mpsc, Mutex, OnceCell};
 
 type SubscriberSender = mpsc::UnboundedSender<Vec<u8>>;
+const MAX_FRAME_SIZE: usize = 32 * 1024 * 1024;
 
 #[derive(Default)]
 struct SubscriptionState {
@@ -237,7 +238,7 @@ async fn run_server(listener: UnixListener, state: Arc<Mutex<BrokerState>>) {
             }
             Err(err) => {
                 tracing::error!(error = %err, "local socket broker accept failed");
-                break;
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
             }
         }
     }
@@ -245,38 +246,38 @@ async fn run_server(listener: UnixListener, state: Arc<Mutex<BrokerState>>) {
 
 async fn handle_connection(stream: UnixStream, state: Arc<Mutex<BrokerState>>) -> Result<()> {
     let (mut reader, mut writer) = stream.into_split();
-    let Some(frame) = read_frame::<_, ClientFrame>(&mut reader).await? else {
-        return Ok(());
-    };
-    match frame {
-        ClientFrame::Publish {
-            request_id,
-            topic,
-            payload_b64,
-        } => {
-            let payload = general_purpose::STANDARD
-                .decode(payload_b64)
-                .map_err(|err| anyhow!("invalid publish payload encoding: {}", err))?;
-            distribute_message(&state, &topic, payload).await;
-            write_frame(&mut writer, &ServerFrame::Ack { request_id }).await?;
-        }
-        ClientFrame::Subscribe {
-            request_id,
-            topic,
-            subscription,
-        } => {
-            let (tx, mut rx) = mpsc::unbounded_channel::<Vec<u8>>();
-            register_subscriber(&state, &topic, &subscription, tx).await;
-            write_frame(&mut writer, &ServerFrame::Ack { request_id }).await?;
-            while let Some(payload) = rx.recv().await {
-                write_frame(
-                    &mut writer,
-                    &ServerFrame::Delivery {
-                        topic: topic.clone(),
-                        payload_b64: general_purpose::STANDARD.encode(payload),
-                    },
-                )
-                .await?;
+    while let Some(frame) = read_frame::<_, ClientFrame>(&mut reader).await? {
+        match frame {
+            ClientFrame::Publish {
+                request_id,
+                topic,
+                payload_b64,
+            } => {
+                let payload = general_purpose::STANDARD
+                    .decode(payload_b64)
+                    .map_err(|err| anyhow!("invalid publish payload encoding: {}", err))?;
+                distribute_message(&state, &topic, payload).await;
+                write_frame(&mut writer, &ServerFrame::Ack { request_id }).await?;
+            }
+            ClientFrame::Subscribe {
+                request_id,
+                topic,
+                subscription,
+            } => {
+                let (tx, mut rx) = mpsc::unbounded_channel::<Vec<u8>>();
+                register_subscriber(&state, &topic, &subscription, tx).await;
+                write_frame(&mut writer, &ServerFrame::Ack { request_id }).await?;
+                while let Some(payload) = rx.recv().await {
+                    write_frame(
+                        &mut writer,
+                        &ServerFrame::Delivery {
+                            topic: topic.clone(),
+                            payload_b64: general_purpose::STANDARD.encode(payload),
+                        },
+                    )
+                    .await?;
+                }
+                return Ok(());
             }
         }
     }
@@ -354,6 +355,9 @@ async fn read_frame<R: AsyncReadExt + Unpin, T: for<'de> Deserialize<'de>>(
         Err(err) => return Err(err.into()),
     }
     let len = u32::from_be_bytes(len_buf) as usize;
+    if len > MAX_FRAME_SIZE {
+        return Err(anyhow!("frame too large: {}", len));
+    }
     let mut payload = vec![0_u8; len];
     reader.read_exact(&mut payload).await?;
     Ok(Some(serde_json::from_slice(&payload)?))
@@ -361,10 +365,12 @@ async fn read_frame<R: AsyncReadExt + Unpin, T: for<'de> Deserialize<'de>>(
 
 #[cfg(test)]
 mod tests {
-    use super::{LocalSocketMessagePublisher, LocalSocketSubscriber};
+    use super::{read_frame, write_frame, ClientFrame, LocalSocketMessagePublisher, LocalSocketSubscriber, MAX_FRAME_SIZE};
+    use base64::{engine::general_purpose, Engine as _};
     use crate::control::MessagePublisher;
     use futures::StreamExt;
     use tempfile::tempdir;
+    use tokio::io::{duplex, AsyncWriteExt};
 
     async fn broker() -> (LocalSocketMessagePublisher, LocalSocketSubscriber) {
         let dir = tempdir().unwrap();
@@ -421,5 +427,60 @@ mod tests {
         publisher.publish("events", b"hello").await.unwrap();
         assert_eq!(first.next().await.unwrap(), b"hello".to_vec());
         assert_eq!(second.next().await.unwrap(), b"hello".to_vec());
+    }
+
+    #[tokio::test]
+    async fn publish_connection_can_send_multiple_frames() {
+        let (publisher, subscriber) = broker().await;
+        let mut first = subscriber.subscribe_named("events", "sub-a").await.unwrap();
+        let mut stream = super::connect_stream(&publisher.socket_path).await.unwrap();
+
+        write_frame(
+            &mut stream,
+            &ClientFrame::Publish {
+                request_id: 1,
+                topic: "events".to_string(),
+                payload_b64: general_purpose::STANDARD.encode(b"one"),
+            },
+        )
+        .await
+        .unwrap();
+        assert!(matches!(
+            read_frame::<_, super::ServerFrame>(&mut stream).await.unwrap(),
+            Some(super::ServerFrame::Ack { request_id: 1 })
+        ));
+
+        write_frame(
+            &mut stream,
+            &ClientFrame::Publish {
+                request_id: 2,
+                topic: "events".to_string(),
+                payload_b64: general_purpose::STANDARD.encode(b"two"),
+            },
+        )
+        .await
+        .unwrap();
+        assert!(matches!(
+            read_frame::<_, super::ServerFrame>(&mut stream).await.unwrap(),
+            Some(super::ServerFrame::Ack { request_id: 2 })
+        ));
+
+        assert_eq!(first.next().await.unwrap(), b"one".to_vec());
+        assert_eq!(first.next().await.unwrap(), b"two".to_vec());
+    }
+
+    #[tokio::test]
+    async fn read_frame_rejects_oversized_payloads() {
+        let (mut writer, mut reader) = duplex(64);
+        let writer_task = tokio::spawn(async move {
+            writer
+                .write_all(&((MAX_FRAME_SIZE + 1) as u32).to_be_bytes())
+                .await
+                .unwrap();
+        });
+
+        let err = read_frame::<_, ClientFrame>(&mut reader).await.unwrap_err();
+        assert!(err.to_string().contains("frame too large"));
+        writer_task.await.unwrap();
     }
 }
