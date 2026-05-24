@@ -280,7 +280,7 @@ impl LocalSocketPullSubscriptionBackend {
 #[async_trait::async_trait]
 impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
     async fn ensure_topic(&self) -> Result<()> {
-        let mut topic = self.client.topic(&self.topic_name);
+        let topic = self.client.topic(&self.topic_name);
         if !topic.exists(None).await? {
             if let Err(err) = topic.create(None, None).await {
                 if !topic.exists(None).await? {
@@ -294,7 +294,7 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
     async fn ensure_subscription(&self) -> Result<()> {
         use google_cloud_pubsub::subscription::SubscriptionConfig;
 
-        let mut subscription = self.client.subscription(&self.subscription_name);
+        let subscription = self.client.subscription(&self.subscription_name);
         if !subscription.exists(None).await? {
             let sub_config = SubscriptionConfig {
                 ack_deadline_seconds: 300,
@@ -318,7 +318,7 @@ impl PullSubscriptionBackend for GcpPullSubscriptionBackend {
         event_type: String,
         cancellation_token: CancellationToken,
     ) -> Result<()> {
-        let mut subscription = self.client.subscription(&self.subscription_name);
+        let subscription = self.client.subscription(&self.subscription_name);
         let receive_loop_cancellation = cancellation_token.clone();
         subscription
             .receive(
