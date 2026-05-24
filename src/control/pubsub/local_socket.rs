@@ -33,6 +33,7 @@ struct BrokerState {
 pub struct LocalSocketMessagePublisher {
     socket_path: Arc<PathBuf>,
     server_started: Arc<OnceCell<()>>,
+    connection: Arc<Mutex<Option<UnixStream>>>,
 }
 
 #[derive(Clone)]
@@ -68,6 +69,7 @@ impl LocalSocketMessagePublisher {
         let publisher = Self {
             socket_path: Arc::new(socket_path),
             server_started: Arc::new(OnceCell::new()),
+            connection: Arc::new(Mutex::new(None)),
         };
         publisher.ensure_server().await?;
         Ok(publisher)
@@ -155,28 +157,33 @@ impl LocalSocketSubscriber {
 impl MessagePublisher for LocalSocketMessagePublisher {
     async fn publish(&self, topic: &str, message: &[u8]) -> Result<()> {
         self.ensure_server().await?;
-        let mut stream = connect_stream(&self.socket_path).await?;
-        let request_id = 1;
-        write_frame(
-            &mut stream,
-            &ClientFrame::Publish {
-                request_id,
-                topic: topic.to_string(),
-                payload_b64: general_purpose::STANDARD.encode(message),
-            },
-        )
-        .await?;
-        match read_frame::<_, ServerFrame>(&mut stream).await? {
-            Some(ServerFrame::Ack { request_id: ack_id }) if ack_id == request_id => Ok(()),
-            Some(ServerFrame::Error { message, .. }) => {
-                Err(anyhow!("local socket publish failed: {}", message))
-            }
-            Some(other) => Err(anyhow!(
-                "unexpected local socket publish response: {:?}",
-                other
-            )),
-            None => Err(anyhow!("local socket broker closed before publish ack")),
+        let mut connection = self.connection.lock().await;
+        if connection.is_none() {
+            *connection = Some(connect_stream(&self.socket_path).await?);
         }
+
+        let payload_b64 = general_purpose::STANDARD.encode(message);
+        if let Err(err) = publish_with_stream(
+            connection
+                .as_mut()
+                .expect("connection should be initialized"),
+            topic,
+            &payload_b64,
+        )
+        .await
+        {
+            tracing::warn!(error = %err, topic = %topic, "local socket publish failed; reconnecting");
+            *connection = Some(connect_stream(&self.socket_path).await?);
+            let stream = connection
+                .as_mut()
+                .expect("connection should be reinitialized");
+            if let Err(retry_err) = publish_with_stream(stream, topic, &payload_b64).await {
+                *connection = None;
+                return Err(retry_err);
+            }
+        }
+
+        Ok(())
     }
 
     async fn subscribe(
@@ -223,6 +230,34 @@ async fn connect_stream(path: &Path) -> Result<UnixStream> {
             path.display()
         )
     })
+}
+
+async fn publish_with_stream(
+    stream: &mut UnixStream,
+    topic: &str,
+    payload_b64: &str,
+) -> Result<()> {
+    let request_id = 1;
+    write_frame(
+        stream,
+        &ClientFrame::Publish {
+            request_id,
+            topic: topic.to_string(),
+            payload_b64: payload_b64.to_string(),
+        },
+    )
+    .await?;
+    match read_frame::<_, ServerFrame>(stream).await? {
+        Some(ServerFrame::Ack { request_id: ack_id }) if ack_id == request_id => Ok(()),
+        Some(ServerFrame::Error { message, .. }) => {
+            Err(anyhow!("local socket publish failed: {}", message))
+        }
+        Some(other) => Err(anyhow!(
+            "unexpected local socket publish response: {:?}",
+            other
+        )),
+        None => Err(anyhow!("local socket broker closed before publish ack")),
+    }
 }
 
 async fn remove_stale_socket(path: &Path) -> Result<()> {
@@ -370,6 +405,9 @@ async fn write_frame<W: AsyncWriteExt + Unpin, T: Serialize>(
     frame: &T,
 ) -> Result<()> {
     let bytes = serde_json::to_vec(frame)?;
+    if bytes.len() > MAX_FRAME_SIZE {
+        return Err(anyhow!("frame too large: {}", bytes.len()));
+    }
     let len = u32::try_from(bytes.len()).context("frame too large")?;
     writer.write_all(&len.to_be_bytes()).await?;
     writer.write_all(&bytes).await?;
@@ -533,5 +571,22 @@ mod tests {
         assert!(err
             .to_string()
             .contains("refusing to remove non-socket path"));
+    }
+
+    #[tokio::test]
+    async fn write_frame_rejects_oversized_payloads() {
+        let (mut writer, _) = duplex(64);
+        let err = write_frame(
+            &mut writer,
+            &ClientFrame::Publish {
+                request_id: 1,
+                topic: "events".to_string(),
+                payload_b64: "a".repeat(MAX_FRAME_SIZE),
+            },
+        )
+        .await
+        .unwrap_err();
+
+        assert!(err.to_string().contains("frame too large"));
     }
 }

@@ -324,7 +324,7 @@ async fn sqlite_database_url(
     }
     let db_path = PathBuf::from(data_dir).join("talon-control-plane.db");
     if let Some(parent) = db_path.parent() {
-        std::fs::create_dir_all(parent)?;
+        tokio::fs::create_dir_all(parent).await?;
     }
     Ok(kv::sqlite_url_for_path(&db_path))
 }
