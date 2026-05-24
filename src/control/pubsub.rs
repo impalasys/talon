@@ -128,7 +128,7 @@ impl GcpPubSubPublisher {
             }
         }
 
-        let lock = self.initialized_topics.write().await;
+        let lock = self.initialized_topics.read().await;
         if lock.contains(&fq_topic) {
             return Ok(fq_topic);
         }
