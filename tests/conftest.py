@@ -6,6 +6,7 @@ import requests
 import sys
 import os
 from pathlib import Path
+import tempfile
 
 # Important: Add generated protos to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
@@ -44,6 +45,46 @@ def get_binary_path(name):
             return resolved
 
     raise FileNotFoundError(f"Could not find binary {name}")
+
+
+def wait_for_gateway(host, port, attempts=20, delay_seconds=1):
+    import socket
+
+    for _ in range(attempts):
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return
+        except Exception:
+            time.sleep(delay_seconds)
+    raise RuntimeError(f"Talon server failed to start on port {port}")
+
+
+def start_talon_server_and_worker(env, grpc_port, worker_pull_mode=False):
+    server_bin = get_binary_path("talon_server")
+    worker_bin = get_binary_path("talon_worker")
+
+    server_proc = subprocess.Popen(
+        [server_bin],
+        env=env,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+    )
+
+    wait_for_gateway("127.0.0.1", grpc_port)
+    time.sleep(3)
+
+    worker_env = env.copy()
+    if worker_pull_mode:
+        worker_env["PULL_MODE"] = "1"
+
+    worker_proc = subprocess.Popen(
+        [worker_bin],
+        env=worker_env,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+    )
+
+    return server_proc, worker_proc
 
 @pytest.fixture(scope="session")
 def talon_infrastructure():
@@ -108,49 +149,11 @@ def talon_infrastructure():
             shutil.copy(config_src, config_dst)
             print("Copied talon.yaml to test execution root.")
 
-    server_bin = get_binary_path("talon_server")
-    worker_bin = get_binary_path("talon_worker")
-    
     print("\nStarting Talon server and worker...")
-    
-    server_proc = subprocess.Popen(
-        [server_bin],
-        env=env,
-        stdout=sys.stdout,
-        stderr=sys.stderr
-    )
-    
-    # Wait for gateway to be properly listening before starting worker 
-    # to avoid Postgres CREATE TABLE concurrent race condition.
-    # We use a raw socket to avoid initializing gRPC before python forks the worker_proc, 
-    # which causes gRPC C-Core to panic.
-    import socket
-    gateway_ready = False
-    for _ in range(20):
-        try:
-            with socket.create_connection(("127.0.0.1", test_grpc_port), timeout=1):
-                gateway_ready = True
-                break
-        except Exception:
-            time.sleep(1)
-            
-    if not gateway_ready:
-        server_proc.terminate()
-        postgres.stop()
-        pubsub.stop()
-        raise RuntimeError(f"Talon server failed to start on port {test_grpc_port}")
-        
-    time.sleep(3) # Hard wait for Postgres table creations to fully finalize
-    
-    print("\nStarting Talon worker now that server initialized DB...")
-    env_worker = env.copy()
-    env_worker["PULL_MODE"] = "1"
-    
-    worker_proc = subprocess.Popen(
-        [worker_bin],
-        env=env_worker, # PULL_MODE enabled
-        stdout=sys.stdout,
-        stderr=sys.stderr
+    server_proc, worker_proc = start_talon_server_and_worker(
+        env,
+        test_grpc_port,
+        worker_pull_mode=True,
     )
             
     yield
@@ -199,5 +202,82 @@ def test_grpc_port():
 def gateway_channel(talon_infrastructure, test_grpc_port):
     """Returns a connected gRPC channel to the Talon gateway."""
     channel = grpc.insecure_channel(f"127.0.0.1:{test_grpc_port}")
+    yield channel
+    channel.close()
+
+
+@pytest.fixture(scope="session")
+def talon_infrastructure_sqlite():
+    print("\nStarting SQLite + local_socket Talon stack...")
+    test_grpc_port = 50054
+    test_ui_port = 50055
+    worker_port = 18082
+
+    env = os.environ.copy()
+    env["RUST_LOG"] = "info"
+    env["NOVITA_API_KEY"] = "test-dummy-key"
+    env["GRPC_ADDR"] = f"127.0.0.1:{test_grpc_port}"
+    env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
+    env["PORT"] = str(worker_port)
+
+    temp_dir = Path(tempfile.mkdtemp(prefix="talon-sqlite-e2e-"))
+    data_dir = temp_dir / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    config_path = temp_dir / "talon.e2e.sqlite.yaml"
+    config_path.write_text(
+        f"""
+providers:
+  mock:
+    type: openai_compatible
+    name: mock
+    base_url: "http://127.0.0.1:8000"
+    model: minimax/minimax-m2.7
+    api_key:
+      source: env
+      key: NOVITA_API_KEY
+server:
+  host: "127.0.0.1"
+  port: {test_ui_port}
+control_plane:
+  database:
+    driver: sqlite
+    data_dir: ./data
+  message_broker:
+    driver: local_socket
+""".strip()
+        + "\n"
+    )
+    env["TALON_CONFIG_PATH"] = str(config_path)
+
+    server_proc, worker_proc = start_talon_server_and_worker(
+        env,
+        test_grpc_port,
+        worker_pull_mode=True,
+    )
+
+    yield {
+        "grpc_port": test_grpc_port,
+        "ui_port": test_ui_port,
+        "worker_port": worker_port,
+        "config_path": str(config_path),
+        "data_dir": str(data_dir),
+    }
+
+    print("\nShutting down SQLite + local_socket Talon stack...")
+    server_proc.terminate()
+    worker_proc.terminate()
+    server_proc.wait()
+    worker_proc.wait()
+    shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+@pytest.fixture
+def sqlite_test_grpc_port():
+    return 50054
+
+
+@pytest.fixture
+def gateway_channel_sqlite(talon_infrastructure_sqlite, sqlite_test_grpc_port):
+    channel = grpc.insecure_channel(f"127.0.0.1:{sqlite_test_grpc_port}")
     yield channel
     channel.close()
