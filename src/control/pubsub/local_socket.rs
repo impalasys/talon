@@ -6,6 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::os::unix::fs::FileTypeExt;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::Arc;
@@ -197,9 +198,7 @@ async fn start_or_connect_server(path: &Path) -> Result<()> {
     if let Some(parent) = path.parent() {
         tokio::fs::create_dir_all(parent).await?;
     }
-    if path.exists() {
-        let _ = tokio::fs::remove_file(path).await;
-    }
+    remove_stale_socket(path).await?;
     match UnixListener::bind(path) {
         Ok(listener) => {
             let state = Arc::new(Mutex::new(BrokerState::default()));
@@ -221,6 +220,24 @@ async fn connect_stream(path: &Path) -> Result<UnixStream> {
     UnixStream::connect(path).await.with_context(|| {
         format!(
             "failed to connect to local socket broker at {}",
+            path.display()
+        )
+    })
+}
+
+async fn remove_stale_socket(path: &Path) -> Result<()> {
+    let Ok(metadata) = tokio::fs::metadata(path).await else {
+        return Ok(());
+    };
+    if !metadata.file_type().is_socket() {
+        return Err(anyhow!(
+            "refusing to remove non-socket path at {}",
+            path.display()
+        ));
+    }
+    tokio::fs::remove_file(path).await.with_context(|| {
+        format!(
+            "failed to remove stale local socket broker at {}",
             path.display()
         )
     })
@@ -342,7 +359,9 @@ async fn distribute_message(state: &Arc<Mutex<BrokerState>>, topic: &str, payloa
                 .expect("payload should be present before final subscriber")
                 .clone()
         };
-        let _ = sender.try_send(message);
+        if let Err(err) = sender.try_send(message) {
+            tracing::warn!(error = %err, topic = %topic, "local socket broker dropped message");
+        }
     }
 }
 
@@ -379,8 +398,8 @@ async fn read_frame<R: AsyncReadExt + Unpin, T: for<'de> Deserialize<'de>>(
 #[cfg(test)]
 mod tests {
     use super::{
-        read_frame, write_frame, ClientFrame, LocalSocketMessagePublisher, LocalSocketSubscriber,
-        MAX_FRAME_SIZE,
+        read_frame, remove_stale_socket, write_frame, ClientFrame, LocalSocketMessagePublisher,
+        LocalSocketSubscriber, MAX_FRAME_SIZE,
     };
     use crate::control::MessagePublisher;
     use base64::{engine::general_purpose, Engine as _};
@@ -502,5 +521,17 @@ mod tests {
         let err = read_frame::<_, ClientFrame>(&mut reader).await.unwrap_err();
         assert!(err.to_string().contains("frame too large"));
         writer_task.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn remove_stale_socket_rejects_non_socket_files() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("not-a-socket");
+        tokio::fs::write(&path, b"hello").await.unwrap();
+
+        let err = remove_stale_socket(&path).await.unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("refusing to remove non-socket path"));
     }
 }

@@ -166,10 +166,20 @@ impl LocalSqliteSchedulerStore {
         auth_token: Option<String>,
         shutdown: CancellationToken,
     ) {
-        let client = Client::builder()
+        let client = match Client::builder()
             .timeout(Duration::from_secs(DELIVERY_TIMEOUT_SECONDS))
             .build()
-            .expect("failed to build local scheduler client");
+        {
+            Ok(client) => client,
+            Err(err) => {
+                error!(
+                    error = %err,
+                    target_url = %target_url,
+                    "failed to build local scheduler client; exiting runner loop"
+                );
+                return;
+            }
+        };
         loop {
             if shutdown.is_cancelled() {
                 return;
