@@ -2,16 +2,42 @@
   "name": "@talonai/copilot",
   "version": "0.1.0",
   "description": "React copilot chat panel for Talon agent sessions",
+  "type": "module",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/impalasys/talon.git",
+    "directory": "packages/copilot"
+  },
+  "homepage": "https://github.com/impalasys/talon/tree/main/packages/copilot",
+  "bugs": {
+    "url": "https://github.com/impalasys/talon/issues"
+  },
+  "packageManager": "pnpm@10.17.1",
   "sideEffects": false,
-  "main": "./src/index.ts",
-  "module": "./src/index.ts",
+  "files": [
+    "dist",
+    "src/index.d.ts",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
   "types": "./src/index.d.ts",
   "exports": {
     ".": {
       "types": "./src/index.d.ts",
-      "default": "./src/index.ts"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
     }
+  },
+  "scripts": {
+    "build": "tsup --config tsup.config.ts",
+    "clean": "rm -rf dist",
+    "prepack": "pnpm run build"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -20,5 +46,11 @@
   "dependencies": {
     "lucide-react": "^0.400.0",
     "streamdown": "^2.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3"
   }
 }

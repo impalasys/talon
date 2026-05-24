@@ -127,3 +127,31 @@ jobs:
           load: false
           build-args: |
             NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789
+
+  copilot_package:
+    name: Copilot Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install workspace dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build copilot package
+        run: pnpm --filter @talonai/copilot build
+
+      - name: Validate npm package contents
+        working-directory: packages/copilot
+        run: npm pack --dry-run
