@@ -43,7 +43,7 @@ await client.createAgent({
           profiles: [
             {
               name: "default",
-              model: { provider: "openai", name: "gpt-4.1-mini", temperature: 0.0 },
+              model: { provider: "novita", name: "google/gemma-4-31b-it", temperature: 0.0 },
             },
           ],
         },
@@ -57,7 +57,7 @@ const session = await client.createSession({ ns: "client-demo", agent: "docs-age
 
 Use this path when Talon is one service inside a larger typed system.
 
-Before you run a real client, create `.env` from `.env.example` and set `OPENAI_API_KEY`.
+Before you run a real client, create `.env` from `.env.example` and set `NOVITA_API_KEY`.
 
 ## Option 2: CRUD with REST
 

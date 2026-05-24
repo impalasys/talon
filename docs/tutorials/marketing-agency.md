@@ -5,7 +5,7 @@ sidebar_position: 4
 
 This tutorial shows how to model a multi-role workspace around shared knowledge and distinct agents.
 
-Before you begin, create `.env` from `.env.example` and set `OPENAI_API_KEY` so the example agents use a real model provider.
+Before you begin, create `.env` from `.env.example` and set `NOVITA_API_KEY` so the example agents use a real model provider.
 
 ## What you are building
 

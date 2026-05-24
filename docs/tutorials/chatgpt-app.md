@@ -27,7 +27,7 @@ cp .env.example .env
 Then set a real provider key:
 
 ```bash
-OPENAI_API_KEY=your-real-api-key
+NOVITA_API_KEY=your-real-api-key
 ```
 
 From the repository root:
@@ -126,7 +126,7 @@ This is the fastest way to debug whether the browser app and the control plane a
 - the manifest files are valid `talon-cli apply` inputs
 - the knowledge sync command is real
 - the browser chat route is the real gateway UI surface
-- the manifests point at a real OpenAI provider already wired through `talon.compose.yaml`
+- the manifests point at a real Novita provider already wired through `talon.compose.yaml`
 
 ## What is intentionally not included
 

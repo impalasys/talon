@@ -22,10 +22,10 @@ Create a local `.env` file:
 cp .env.example .env
 ```
 
-Then set a real provider key. This tutorial uses OpenAI:
+Then set a real provider key. This tutorial uses the `novita` provider already defined in `talon.compose.yaml`:
 
 ```bash
-OPENAI_API_KEY=your-real-api-key
+NOVITA_API_KEY=your-real-api-key
 ```
 
 From the repository root:
@@ -70,8 +70,8 @@ definition:
       profiles:
         - name: default
           model:
-            provider: openai
-            name: gpt-4.1-mini
+            provider: novita
+            name: google/gemma-4-31b-it
             temperature: 0.0
 ```
 

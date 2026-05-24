@@ -5,7 +5,7 @@ sidebar_position: 6
 
 This tutorial shows a narrower, safer Talon pattern: an internal agent with bounded operational tools.
 
-Before you begin, create `.env` from `.env.example` and set `OPENAI_API_KEY` so the example agent uses a real model provider.
+Before you begin, create `.env` from `.env.example` and set `NOVITA_API_KEY` so the example agent uses a real model provider.
 
 ## What you are building
 

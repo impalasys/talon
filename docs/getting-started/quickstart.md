@@ -19,10 +19,10 @@ From the repository root:
 cp .env.example .env
 ```
 
-Then edit `.env` and set at least one real provider key. The tutorial examples in this repo use OpenAI by default:
+Then edit `.env` and set at least one real provider key. The checked-in local stack is wired to the `novita` provider in `talon.compose.yaml`, so the quickstart examples below use that configuration:
 
 ```bash
-OPENAI_API_KEY=your-real-api-key
+NOVITA_API_KEY=your-real-api-key
 ```
 
 ## 2. Start Talon locally
@@ -99,8 +99,8 @@ definition:
       profiles:
         - name: default
           model:
-            provider: openai
-            name: gpt-4.1-mini
+            provider: novita
+            name: google/gemma-4-31b-it
             temperature: 0.0
 ```
 

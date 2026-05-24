@@ -5,7 +5,7 @@ sidebar_position: 5
 
 This tutorial makes Talon’s scheduler concrete by pairing a real agent with a real schedule created through the gateway API.
 
-Before you begin, create `.env` from `.env.example` and set `OPENAI_API_KEY` so the example agent uses a real model provider.
+Before you begin, create `.env` from `.env.example` and set `NOVITA_API_KEY` so the example agent uses a real model provider.
 
 ## What you are building
 
