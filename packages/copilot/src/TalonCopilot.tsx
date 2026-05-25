@@ -17,6 +17,8 @@ import {
 import { buildGatewayHeaders, normalizeGatewayUrl } from "./lib/grpc";
 import { streamSessionResume, streamUiSubmission, type StreamEventItem } from "./lib/uiStream";
 
+const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export type GatewayClientLike = {
   createSession(request: { ns: string; agent: string }): Promise<{ sessionId: string }>;
   listSessionMessages?(request: {
@@ -518,7 +520,7 @@ export function TalonCopilot({
     bottomRef.current?.scrollIntoView({ behavior });
   }, []);
 
-  useLayoutEffect(() => {
+  useSafeLayoutEffect(() => {
     const restore = prependScrollRestoreRef.current;
     const container = scrollContainerRef.current;
     if (!restore || !container) return;

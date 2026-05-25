@@ -276,8 +276,6 @@ pub async fn post_chat(
         let mut started_step = false;
         let mut started_message_id: Option<String> = None;
         let mut emitted_any_text = false;
-        let mut latest_action_payload: Option<ToolStepPayload> = None;
-        let mut latest_observation_payload: Option<ToolStepPayload> = None;
         let mut steps = step_stream;
         let timeout = tokio::time::sleep(STREAM_IDLE_TIMEOUT);
         tokio::pin!(timeout);
@@ -325,13 +323,7 @@ pub async fn post_chat(
                             yield Ok::<_, Infallible>(data_stream_line("g", json!(step.content)));
                         }
                     } else if step.step_type == StepType::Action as i32 {
-                        let payload = match extract_tool_step_payload(&step) {
-                            Some(payload) => {
-                                latest_action_payload = Some(payload.clone());
-                                Some(payload)
-                            }
-                            None => latest_action_payload.clone(),
-                        };
+                        let payload = extract_tool_step_payload(&step);
                         let tool_call_id = payload
                             .as_ref()
                             .map(|payload| payload.tool_call_id.clone())
@@ -350,13 +342,7 @@ pub async fn post_chat(
                             "args": args
                         })));
                     } else if step.step_type == StepType::Observation as i32 {
-                        let payload = match extract_tool_step_payload(&step) {
-                            Some(payload) => {
-                                latest_observation_payload = Some(payload.clone());
-                                Some(payload)
-                            }
-                            None => latest_observation_payload.clone(),
-                        };
+                        let payload = extract_tool_step_payload(&step);
                         if let Some(payload) = payload {
                             yield Ok::<_, Infallible>(data_stream_line("a", json!({
                                 "toolCallId": payload.tool_call_id,
@@ -456,8 +442,6 @@ pub async fn get_chat(
 
     let stream = async_stream::stream! {
         let mut steps = response.into_inner();
-        let mut latest_action_payload: Option<ToolStepPayload> = None;
-        let mut latest_observation_payload: Option<ToolStepPayload> = None;
         while let Some(step_result) = steps.next().await {
             let step = match step_result {
                 Ok(step) => step,
@@ -476,13 +460,7 @@ pub async fn get_chat(
                     yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "reasoning", "value": step.content })));
                 }
             } else if step.step_type == StepType::Action as i32 {
-                let payload = match extract_tool_step_payload(&step) {
-                    Some(payload) => {
-                        latest_action_payload = Some(payload.clone());
-                        Some(payload)
-                    }
-                    None => latest_action_payload.clone(),
-                };
+                let payload = extract_tool_step_payload(&step);
                 let tool_call_id = payload
                     .as_ref()
                     .map(|payload| payload.tool_call_id.clone())
@@ -504,13 +482,7 @@ pub async fn get_chat(
                     }
                 })));
             } else if step.step_type == StepType::Observation as i32 {
-                let payload = match extract_tool_step_payload(&step) {
-                    Some(payload) => {
-                        latest_observation_payload = Some(payload.clone());
-                        Some(payload)
-                    }
-                    None => latest_observation_payload.clone(),
-                };
+                let payload = extract_tool_step_payload(&step);
                 if let Some(payload) = payload {
                     yield Ok::<_, Infallible>(ndjson_line(json!({
                         "type": "tool_result",
