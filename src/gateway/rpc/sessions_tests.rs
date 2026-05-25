@@ -781,7 +781,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_session_messages_rejects_unknown_cursor() {
+    async fn test_list_session_messages_allows_unknown_cursor() {
         let kv = Arc::new(MockKvStore::default());
         let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
@@ -802,7 +802,7 @@ mod tests {
         .await
         .unwrap();
 
-        let err = handler
+        let response = handler
             .handle_list_session_messages(tonic::Request::new(proto::ListSessionMessagesRequest {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
@@ -811,8 +811,10 @@ mod tests {
                 before_message_id: Some("missing".to_string()),
             }))
             .await
-            .expect_err("unknown cursor should fail");
-        assert_eq!(err.code(), tonic::Code::InvalidArgument);
+            .unwrap()
+            .into_inner();
+        assert!(response.items.is_empty());
+        assert!(!response.has_more);
     }
 
     #[tokio::test]

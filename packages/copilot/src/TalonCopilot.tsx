@@ -57,6 +57,7 @@ const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
+let localMessageSequence = 0;
 
 function DefaultTalonIcon() {
   return (
@@ -116,10 +117,16 @@ function isSameSession(
 }
 
 function createLocalMessageId() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return `local-${crypto.randomUUID()}`;
+  const timestamp = String(Date.now()).padStart(13, "0");
+  localMessageSequence = (localMessageSequence + 1) % 1_000_000;
+  const sequence = String(localMessageSequence).padStart(6, "0");
+  let suffix = "000000";
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(3);
+    crypto.getRandomValues(bytes);
+    suffix = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
   }
-  return `local-${Math.random().toString(36).slice(2, 11)}`;
+  return `local-${timestamp}-${sequence}-${suffix}`;
 }
 
 function defaultFormatMessageTimestamp(message: CopilotMessage, timestampLocale?: Intl.LocalesArgument) {
@@ -406,11 +413,13 @@ function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPage
   const newestPageId = newestPageMessages[newestPageMessages.length - 1]?.id;
   const preservedOlderMessages = existingMessages.filter((message) => {
     if (message.id === "1") return false;
+    if (message.id.startsWith("local-")) return false;
     if (newestIds.has(message.id)) return false;
     return oldestPageId ? message.id < oldestPageId : false;
   });
   const preservedNewerMessages = existingMessages.filter((message) => {
     if (message.id === "1") return false;
+    if (message.id.startsWith("local-")) return false;
     if (newestIds.has(message.id)) return false;
     return newestPageId ? message.id > newestPageId : false;
   });
@@ -464,6 +473,7 @@ export function TalonCopilot({
   const messagesRef = useRef<CopilotMessage[]>(bootMessage);
   const skipNextAutoScrollRef = useRef(false);
   const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
+  const isLoadingOlderHistoryRef = useRef(false);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -816,7 +826,7 @@ export function TalonCopilot({
 
   const loadOlderHistoryPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
-      if (!nextBeforeMessageId || isLoadingOlderHistory) return;
+      if (!nextBeforeMessageId || isLoadingOlderHistoryRef.current) return;
 
       const container = scrollContainerRef.current;
       if (container) {
@@ -826,6 +836,7 @@ export function TalonCopilot({
         };
       }
       skipNextAutoScrollRef.current = true;
+      isLoadingOlderHistoryRef.current = true;
       setIsLoadingOlderHistory(true);
       try {
         const res = normalizeHistoryPage(await getSessionMessagesPage(target, nextBeforeMessageId));
@@ -841,10 +852,11 @@ export function TalonCopilot({
         skipNextAutoScrollRef.current = false;
         setError(err instanceof Error ? err : new Error(String(err)));
       } finally {
+        isLoadingOlderHistoryRef.current = false;
         setIsLoadingOlderHistory(false);
       }
     },
-    [getSessionMessagesPage, isLoadingOlderHistory, nextBeforeMessageId],
+    [getSessionMessagesPage, nextBeforeMessageId],
   );
 
   const refreshNewestSessionPage = useCallback(

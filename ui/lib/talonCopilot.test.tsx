@@ -510,7 +510,7 @@ describe('TalonCopilot', () => {
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
     expect(await screen.findByText('Recovered after stream timeout.')).toBeInTheDocument();
-    expect(screen.getByText('recover this')).toBeInTheDocument();
+    expect(screen.queryByText('recover this')).not.toBeInTheDocument();
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
   });
 });

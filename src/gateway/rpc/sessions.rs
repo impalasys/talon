@@ -6,12 +6,13 @@ use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys};
 use crate::scheduling;
-use futures::future::try_join_all;
+use futures::{stream, StreamExt, TryStreamExt};
 use prost::Message;
 use std::collections::HashMap;
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
+const SESSION_STEP_FETCH_CONCURRENCY: usize = 16;
 
 fn positive_limit(limit: i32) -> Option<usize> {
     (limit > 0).then_some(limit as usize)
@@ -460,26 +461,9 @@ impl GrpcGatewayHandler {
             })?
             .ok_or_else(|| tonic::Status::not_found("Session not found"))?;
 
-        let before_key = if let Some(before_message_id) = req.before_message_id.as_deref() {
-            let message_key = keys::session_message(&req.agent, &req.session_id, before_message_id);
-            let exists = self
-                .gateway
-                .kv
-                .get(&req.ns, &message_key)
-                .await
-                .map_err(|e| {
-                    tonic::Status::internal(format!("Failed to load session message cursor: {}", e))
-                })?
-                .is_some();
-            if !exists {
-                return Err(tonic::Status::invalid_argument(
-                    "before_message_id does not exist in this session",
-                ));
-            }
-            Some(message_key)
-        } else {
-            None
-        };
+        let before_key = req.before_message_id.as_deref().map(|before_message_id| {
+            keys::session_message(&req.agent, &req.session_id, before_message_id)
+        });
 
         let mut entries = self
             .gateway
@@ -533,15 +517,18 @@ impl GrpcGatewayHandler {
             .map(|message| message.id.clone())
             .collect::<Vec<_>>();
 
-        let steps_by_message = try_join_all(assistant_message_ids.iter().map(|message_id| async {
-            let steps = self
-                .load_session_message_steps(&req.ns, &req.agent, &req.session_id, message_id)
-                .await?;
-            Ok::<_, tonic::Status>((message_id.clone(), steps))
-        }))
-        .await?
-        .into_iter()
-        .collect::<HashMap<_, _>>();
+        let steps_by_message =
+            stream::iter(assistant_message_ids.into_iter().map(|message_id| async {
+                let steps = self
+                    .load_session_message_steps(&req.ns, &req.agent, &req.session_id, &message_id)
+                    .await?;
+                Ok::<_, tonic::Status>((message_id, steps))
+            }))
+            .buffer_unordered(SESSION_STEP_FETCH_CONCURRENCY)
+            .try_collect::<Vec<_>>()
+            .await?
+            .into_iter()
+            .collect::<HashMap<_, _>>();
 
         let mut items = Vec::with_capacity(messages.len());
         for message in messages {
