@@ -39,6 +39,10 @@ STEP_TYPE_TOKEN = 1
 STEP_TYPE_REASONING = 6
 STEP_TYPE_USAGE = 7
 
+@pytest.fixture
+def anyio_backend():
+    return "asyncio"
+
 def test_single_turn_chat(gateway_channel, mock_llm_server):
     stub = GatewayServiceStub(gateway_channel)
     
@@ -354,6 +358,7 @@ def test_conftest_binary_helpers_cover_candidate_and_path_resolution(monkeypatch
     ]
 
     monkeypatch.delenv("BUILD_WORKSPACE_DIRECTORY", raising=False)
+    monkeypatch.setattr(conftest, "get_runfile_binary_path", lambda name: None)
     monkeypatch.setattr(conftest.shutil, "which", lambda name: f"/usr/bin/{name}")
     assert conftest.get_binary_path("talon_server") == "/usr/bin/talon_server"
 
@@ -379,7 +384,7 @@ def test_mock_llm_helper_functions_cover_message_and_tool_detection():
     assert json.loads(tool_call["function"]["arguments"]) == {"query": "docs.example.com"}
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_mock_llm_stream_helpers_cover_text_and_tool_chunks():
     tool_chunks = [chunk async for chunk in mock_llm.stream_tool_call_response("mock-model")]
     assert tool_chunks[-1] == "data: [DONE]\n\n"
@@ -391,7 +396,7 @@ async def test_mock_llm_stream_helpers_cover_text_and_tool_chunks():
     assert any("hello " in chunk or "world" in chunk for chunk in text_chunks)
 
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_mock_llm_chat_completions_endpoint_covers_json_and_streaming_paths():
     transport = httpx.ASGITransport(app=mock_llm.app)
     async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:

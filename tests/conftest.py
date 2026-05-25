@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 import tempfile
 
+from python.runfiles import runfiles
+
 # Important: Add generated protos to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -27,6 +29,26 @@ def binary_candidates(name):
     if "-" in name:
         yield name.replace("-", "_")
 
+def get_runfile_binary_path(name):
+    runfiles_manifest = runfiles.Create()
+    if runfiles_manifest is None:
+        return None
+
+    repo = runfiles_manifest.CurrentRepository()
+    for candidate in binary_candidates(name):
+        for runfile in (
+            f"{repo}/talon/{candidate}" if repo else None,
+            f"_main/talon/{candidate}",
+            f"talon/{candidate}",
+        ):
+            if runfile is None:
+                continue
+            path = runfiles_manifest.Rlocation(runfile)
+            if path and Path(path).exists():
+                return str(path)
+
+    return None
+
 def get_binary_path(name):
     workspace = os.environ.get("BUILD_WORKSPACE_DIRECTORY")
     for candidate in binary_candidates(name):
@@ -34,6 +56,10 @@ def get_binary_path(name):
             path = Path(workspace) / "bazel-bin" / "talon" / candidate
             if path.exists():
                 return str(path)
+
+        runfile_path = get_runfile_binary_path(candidate)
+        if runfile_path:
+            return runfile_path
 
         for base in (REPO_ROOT / "target" / "debug", REPO_ROOT / "target" / "release"):
             path = base / candidate
@@ -141,13 +167,37 @@ def talon_infrastructure():
     env["GATEWAY_UI_ADDR"] = f"127.0.0.1:{test_ui_port}"
     env["NOVITA_API_KEY"] = "test-dummy-key"
     
-    # Copy talon.yaml so load_default() can find it in the test execution root
-    config_src = REPO_ROOT / "talon.yaml"
-    if config_src.exists():
-        config_dst = Path("talon.yaml").resolve()
-        if config_src.resolve() != config_dst:
-            shutil.copy(config_src, config_dst)
-            print("Copied talon.yaml to test execution root.")
+    temp_dir = Path(tempfile.mkdtemp(prefix="talon-postgres-e2e-"))
+    config_path = temp_dir / "talon.e2e.postgres.yaml"
+    config_path.write_text(
+        f"""
+providers:
+  mock:
+    type: openai_compatible
+    name: mock
+    base_url: "http://127.0.0.1:8000"
+    model: minimax/minimax-m2.7
+    api_key:
+      source: env
+      key: NOVITA_API_KEY
+server:
+  host: "127.0.0.1"
+  port: {test_ui_port}
+control_plane:
+  database:
+    driver: postgres
+    url:
+      source: env
+      key: POSTGRES_URL
+  message_broker:
+    driver: gcp_pubsub
+    project_id:
+      source: env
+      key: GCP_PROJECT_ID
+""".strip()
+        + "\n"
+    )
+    env["TALON_CONFIG_PATH"] = str(config_path)
 
     print("\nStarting Talon server and worker...")
     server_proc, worker_proc = start_talon_server_and_worker(
@@ -165,6 +215,7 @@ def talon_infrastructure():
     worker_proc.wait()
     pubsub.stop()
     postgres.stop()
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_llm_server():
