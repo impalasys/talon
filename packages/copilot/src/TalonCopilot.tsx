@@ -129,35 +129,36 @@ function createLocalMessageId() {
   return `local-${timestamp}-${sequence}-${suffix}`;
 }
 
-function defaultFormatMessageTimestamp(message: CopilotMessage, timestampLocale?: Intl.LocalesArgument) {
-  function normalizeEpochToMilliseconds(value: unknown) {
-    let normalized: number | null = null;
-    if (typeof value === "bigint") {
-      const bigintValue = value < BigInt(0) ? -value : value;
-      if (bigintValue > BigInt(Number.MAX_SAFE_INTEGER)) {
-        return null;
-      }
-      normalized = Number(value);
-    } else if (typeof value === "string") {
-      normalized = Number(value);
-    } else if (typeof value === "number") {
-      normalized = value;
-    }
-    if (typeof normalized !== "number" || !Number.isFinite(normalized) || normalized <= 0) {
+function normalizeEpochToMilliseconds(value: unknown) {
+  let normalized: number | null = null;
+  if (typeof value === "bigint") {
+    const bigintValue = value < BigInt(0) ? -value : value;
+    if (bigintValue > BigInt(Number.MAX_SAFE_INTEGER)) {
       return null;
     }
-    if (normalized >= 1e15) {
-      return Math.trunc(normalized / 1000);
-    }
-    if (normalized >= 1e12) {
-      return Math.trunc(normalized);
-    }
-    if (normalized >= 1e9) {
-      return Math.trunc(normalized * 1000);
-    }
+    normalized = Number(value);
+  } else if (typeof value === "string") {
+    const numericValue = Number(value);
+    normalized = Number.isFinite(numericValue) ? numericValue : Date.parse(value);
+  } else if (typeof value === "number") {
+    normalized = value;
+  }
+  if (typeof normalized !== "number" || !Number.isFinite(normalized) || normalized <= 0) {
     return null;
   }
+  if (normalized >= 1e15) {
+    return Math.trunc(normalized / 1000);
+  }
+  if (normalized >= 1e12) {
+    return Math.trunc(normalized);
+  }
+  if (normalized >= 1e9) {
+    return Math.trunc(normalized * 1000);
+  }
+  return null;
+}
 
+function defaultFormatMessageTimestamp(message: CopilotMessage, timestampLocale?: Intl.LocalesArgument) {
   function formatTimestampValue(value: unknown) {
     const timestampMs = normalizeEpochToMilliseconds(value);
     if (timestampMs === null) {
@@ -359,21 +360,7 @@ function stableHistoryMessageId(message: any, index: number) {
 }
 
 function historyMessageTimestamp(message: Pick<CopilotMessage, "createdAt">) {
-  const value = message.createdAt;
-  let numericValue: number | null = null;
-  if (typeof value === "bigint") {
-    const absValue = value < BigInt(0) ? -value : value;
-    if (absValue > BigInt(Number.MAX_SAFE_INTEGER)) {
-      return null;
-    }
-    numericValue = Number(value);
-  } else if (typeof value === "number") {
-    numericValue = value;
-  } else if (typeof value === "string") {
-    const numericStringValue = Number(value);
-    numericValue = Number.isFinite(numericStringValue) ? numericStringValue : Date.parse(value);
-  }
-  return numericValue !== null && Number.isFinite(numericValue) ? numericValue : null;
+  return normalizeEpochToMilliseconds(message.createdAt);
 }
 
 function canCompareCanonicalMessageIds(left: string, right: string) {
