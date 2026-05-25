@@ -115,6 +115,20 @@ pub mod test_support {
             keys.sort();
             Ok(keys)
         }
+
+        async fn list_keys_page(
+            &self,
+            namespace: &str,
+            prefix: &str,
+            before_key: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<String>> {
+            Ok(crate::control::page_keys_desc(
+                self.list_keys(namespace, prefix).await?,
+                before_key,
+                limit,
+            ))
+        }
     }
 
     #[derive(Default)]

@@ -6,16 +6,15 @@ use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys};
 use crate::scheduling;
-use futures::{stream, StreamExt, TryStreamExt};
 use prost::Message;
 use std::collections::HashMap;
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
-const SESSION_STEP_FETCH_CONCURRENCY: usize = 16;
+const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 
-fn positive_limit(limit: i32) -> Option<usize> {
-    (limit > 0).then_some(limit as usize)
+fn requested_limit(limit: i32) -> Option<usize> {
+    (limit >= 0).then_some(limit as usize)
 }
 
 fn validated_page_size(page_size: i32) -> std::result::Result<usize, tonic::Status> {
@@ -27,77 +26,21 @@ fn validated_page_size(page_size: i32) -> std::result::Result<usize, tonic::Stat
     Ok((page_size as usize).min(MAX_SESSION_MESSAGES_PAGE_SIZE))
 }
 
-impl GrpcGatewayHandler {
-    async fn load_session_message_steps(
-        &self,
-        ns: &str,
-        agent: &str,
-        session_id: &str,
-        message_id: &str,
-    ) -> std::result::Result<Vec<events::SessionStepEvent>, tonic::Status> {
-        let step_prefix = keys::session_message_step_prefix(agent, session_id, message_id);
-        let mut entries = self
-            .gateway
-            .kv
-            .list_entries(ns, &step_prefix)
-            .await
-            .map_err(|e| {
-                tracing::error!(
-                    ns = %ns,
-                    agent = %agent,
-                    session_id = %session_id,
-                    message_id = %message_id,
-                    prefix = %step_prefix,
-                    error = %e,
-                    "failed to list session steps"
-                );
-                tonic::Status::internal(format!("Failed to list session steps: {}", e))
-            })?;
-        entries.sort_by(|left, right| left.0.cmp(&right.0));
-        tracing::info!(
-            ns = %ns,
-            agent = %agent,
-            session_id = %session_id,
-            message_id = %message_id,
-            step_key_count = entries.len(),
-            "loaded session step entries"
-        );
+fn direct_message_id<'a>(prefix: &str, key: &'a str) -> Option<&'a str> {
+    let suffix = key.strip_prefix(prefix)?;
+    (!suffix.is_empty() && !suffix.contains('/')).then_some(suffix)
+}
 
-        let mut steps = Vec::new();
-        for (key, bytes) in entries {
-            let payload_bytes = bytes.len();
-            if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
-                tracing::warn!(
-                    ns = %ns,
-                    agent = %agent,
-                    session_id = %session_id,
-                    message_id = %message_id,
-                    key = %key,
-                    payload_bytes,
-                    "session step payload is unusually large"
-                );
-            }
-
-            match events::SessionStepEvent::decode(bytes.as_slice()) {
-                Ok(step) => steps.push(step),
-                Err(e) => {
-                    tracing::error!(
-                        ns = %ns,
-                        agent = %agent,
-                        session_id = %session_id,
-                        message_id = %message_id,
-                        key = %key,
-                        payload_bytes,
-                        error = %e,
-                        "failed to decode session step"
-                    );
-                }
-            }
-        }
-
-        Ok(steps)
+fn step_message_id<'a>(prefix: &str, key: &'a str) -> Option<&'a str> {
+    let suffix = key.strip_prefix(prefix)?;
+    let (message_id, step_id) = suffix.split_once("/Steps/")?;
+    if message_id.is_empty() || step_id.is_empty() {
+        return None;
     }
+    Some(message_id)
+}
 
+impl GrpcGatewayHandler {
     pub async fn handle_create_session(
         &self,
         req: tonic::Request<proto::CreateSessionRequest>,
@@ -178,8 +121,8 @@ impl GrpcGatewayHandler {
             &req.get_ref().session_id
         );
         let req = req.into_inner();
-        let message_limit = positive_limit(req.message_limit);
-        let step_limit = positive_limit(req.step_limit);
+        let message_limit = requested_limit(req.message_limit);
+        let step_limit = requested_limit(req.step_limit);
 
         let session_db_key = keys::session(&req.agent, &req.session_id);
         let msg_prefix = keys::session_message_prefix(&req.agent, &req.session_id);
@@ -211,101 +154,103 @@ impl GrpcGatewayHandler {
                 tonic::Status::not_found("Session not found")
             })?;
 
-        // Fetch Session Messages sequentially via keys
-        let mut msg_keys = self
-            .gateway
-            .kv
-            .list_keys(&req.ns, &msg_prefix)
-            .await
-            .map_err(|e| {
-                tracing::error!(
-                    ns = %req.ns,
-                    agent = %req.agent,
-                    session_id = %req.session_id,
-                    prefix = %msg_prefix,
-                    error = %e,
-                    "failed to list session messages"
-                );
-                tonic::Status::internal(format!("Failed to list session messages: {}", e))
-            })?;
-        msg_keys.sort();
-        tracing::info!(
-            ns = %req.ns,
-            agent = %req.agent,
-            session_id = %req.session_id,
-            message_key_count = msg_keys.len(),
-            "loaded session message keys"
-        );
-
-        msg_keys.retain(|key| {
-            let nested = key.strip_prefix(&msg_prefix).unwrap_or(key).contains('/');
-            if nested {
-                tracing::debug!(
-                    ns = %req.ns,
-                    agent = %req.agent,
-                    session_id = %req.session_id,
-                    key = %key,
-                    "skipping nested message key while loading session"
-                );
-            }
-            !nested
-        });
-        if let Some(limit) = message_limit {
-            if msg_keys.len() > limit {
-                let keep_from = msg_keys.len() - limit;
-                msg_keys = msg_keys.split_off(keep_from);
-            }
-        }
-
         let mut messages = Vec::new();
-        for key in &msg_keys {
-            match self.gateway.kv.get(&req.ns, key).await {
-                Ok(Some(bytes)) => {
-                    let payload_bytes = bytes.len();
-                    if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
-                        tracing::warn!(
-                            ns = %req.ns,
-                            agent = %req.agent,
-                            session_id = %req.session_id,
-                            key = %key,
-                            payload_bytes,
-                            "session message payload is unusually large"
-                        );
-                    }
+        if message_limit != Some(0) {
+            // Fetch Session Messages sequentially via keys
+            let mut msg_keys = self
+                .gateway
+                .kv
+                .list_keys(&req.ns, &msg_prefix)
+                .await
+                .map_err(|e| {
+                    tracing::error!(
+                        ns = %req.ns,
+                        agent = %req.agent,
+                        session_id = %req.session_id,
+                        prefix = %msg_prefix,
+                        error = %e,
+                        "failed to list session messages"
+                    );
+                    tonic::Status::internal(format!("Failed to list session messages: {}", e))
+                })?;
+            msg_keys.sort();
+            tracing::info!(
+                ns = %req.ns,
+                agent = %req.agent,
+                session_id = %req.session_id,
+                message_key_count = msg_keys.len(),
+                "loaded session message keys"
+            );
 
-                    match models::SessionMessage::decode(bytes.as_slice()) {
-                        Ok(msg) => messages.push(msg),
-                        Err(e) => {
-                            tracing::error!(
+            msg_keys.retain(|key| {
+                let nested = key.strip_prefix(&msg_prefix).unwrap_or(key).contains('/');
+                if nested {
+                    tracing::debug!(
+                        ns = %req.ns,
+                        agent = %req.agent,
+                        session_id = %req.session_id,
+                        key = %key,
+                        "skipping nested message key while loading session"
+                    );
+                }
+                !nested
+            });
+            if let Some(limit) = message_limit {
+                if msg_keys.len() > limit {
+                    let keep_from = msg_keys.len() - limit;
+                    msg_keys = msg_keys.split_off(keep_from);
+                }
+            }
+
+            for key in &msg_keys {
+                match self.gateway.kv.get(&req.ns, key).await {
+                    Ok(Some(bytes)) => {
+                        let payload_bytes = bytes.len();
+                        if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
+                            tracing::warn!(
                                 ns = %req.ns,
                                 agent = %req.agent,
                                 session_id = %req.session_id,
                                 key = %key,
                                 payload_bytes,
-                                error = %e,
-                                "failed to decode session message"
+                                "session message payload is unusually large"
                             );
                         }
+
+                        match models::SessionMessage::decode(bytes.as_slice()) {
+                            Ok(msg) => messages.push(msg),
+                            Err(e) => {
+                                tracing::error!(
+                                    ns = %req.ns,
+                                    agent = %req.agent,
+                                    session_id = %req.session_id,
+                                    key = %key,
+                                    payload_bytes,
+                                    error = %e,
+                                    "failed to decode session message"
+                                );
+                            }
+                        }
                     }
-                }
-                Ok(None) => {
-                    tracing::warn!(
-                        ns = %req.ns,
-                        agent = %req.agent,
-                        session_id = %req.session_id,
-                        key = %key,
-                        "session message key exists but value is missing"
-                    );
-                }
-                Err(e) => {
-                    tracing::error!(
-                        ns = %req.ns,
-                        agent = %req.agent,
-                        session_id = %req.session_id,
-                        key = %key,
-                        error = %e,
-                        "failed to decode session message"
-                    );
+                    Ok(None) => {
+                        tracing::warn!(
+                            ns = %req.ns,
+                            agent = %req.agent,
+                            session_id = %req.session_id,
+                            key = %key,
+                            "session message key exists but value is missing"
+                        );
+                    }
+                    Err(e) => {
+                        tracing::error!(
+                            ns = %req.ns,
+                            agent = %req.agent,
+                            session_id = %req.session_id,
+                            key = %key,
+                            error = %e,
+                            "failed to decode session message"
+                        );
+                    }
                 }
             }
         }
@@ -465,80 +410,144 @@ impl GrpcGatewayHandler {
             keys::session_message(&req.agent, &req.session_id, before_message_id)
         });
 
-        let mut entries = self
-            .gateway
-            .kv
-            .list_direct_entries_page(&req.ns, &msg_prefix, before_key.as_deref(), page_size + 1)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to list session messages: {}", e))
-            })?;
-        let has_more = entries.len() > page_size;
-        if has_more {
-            entries.truncate(page_size);
-        }
+        // Fetch one extra message so the response can expose has_more and an
+        // exclusive before_message_id cursor without requiring a separate count.
+        let target_message_count = page_size + 1;
+        let mut scan_before_key = before_key;
+        let mut items = Vec::with_capacity(target_message_count);
+        let mut steps_by_message: HashMap<String, Vec<(String, events::SessionStepEvent)>> =
+            HashMap::new();
 
-        let mut messages = Vec::with_capacity(entries.len());
-        for (key, bytes) in entries {
-            let payload_bytes = bytes.len();
-            if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
-                tracing::warn!(
-                    ns = %req.ns,
-                    agent = %req.agent,
-                    session_id = %req.session_id,
-                    key = %key,
-                    payload_bytes,
-                    "session message payload is unusually large"
-                );
+        while items.len() < target_message_count {
+            // Message and step records share the Messages/ prefix. In reverse
+            // key order, Steps/{step_id} keys appear before their parent
+            // message key, so a single key-page scan can buffer steps and then
+            // attach them when the message record is encountered.
+            let keys = self
+                .gateway
+                .kv
+                .list_keys_page(
+                    &req.ns,
+                    &msg_prefix,
+                    scan_before_key.as_deref(),
+                    SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE,
+                )
+                .await
+                .map_err(|e| {
+                    tonic::Status::internal(format!("Failed to list session messages: {}", e))
+                })?;
+
+            if keys.is_empty() {
+                break;
             }
 
-            let message = match models::SessionMessage::decode(bytes.as_slice()) {
-                Ok(message) => message,
-                Err(e) => {
-                    tracing::error!(
+            // Continue from the last key returned, regardless of whether it was
+            // a message key, a step key, or another nested descendant.
+            scan_before_key = keys.last().cloned();
+
+            for key in keys {
+                // Handle step keys first; the rest of this loop is for direct
+                // message records.
+                if let Some(message_id) = step_message_id(&msg_prefix, &key).map(str::to_owned) {
+                    let maybe_bytes = self.gateway.kv.get(&req.ns, &key).await.map_err(|e| {
+                        tonic::Status::internal(format!("Failed to fetch session step: {}", e))
+                    })?;
+                    let Some(bytes) = maybe_bytes else {
+                        continue;
+                    };
+
+                    let payload_bytes = bytes.len();
+                    if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
+                        tracing::warn!(
+                            ns = %req.ns,
+                            agent = %req.agent,
+                            session_id = %req.session_id,
+                            key = %key,
+                            payload_bytes,
+                            "session step payload is unusually large"
+                        );
+                    }
+
+                    match events::SessionStepEvent::decode(bytes.as_slice()) {
+                        Ok(step) => {
+                            steps_by_message
+                                .entry(message_id)
+                                .or_default()
+                                .push((key, step));
+                        }
+                        Err(e) => {
+                            tracing::error!(
+                                ns = %req.ns,
+                                agent = %req.agent,
+                                session_id = %req.session_id,
+                                key = %key,
+                                payload_bytes,
+                                error = %e,
+                                "failed to decode session step"
+                            );
+                        }
+                    }
+                    continue;
+                }
+
+                if direct_message_id(&msg_prefix, &key).is_none() {
+                    continue;
+                }
+
+                let maybe_bytes = self.gateway.kv.get(&req.ns, &key).await.map_err(|e| {
+                    tonic::Status::internal(format!("Failed to fetch session message: {}", e))
+                })?;
+                let Some(bytes) = maybe_bytes else {
+                    continue;
+                };
+
+                let payload_bytes = bytes.len();
+                if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
+                    tracing::warn!(
                         ns = %req.ns,
                         agent = %req.agent,
                         session_id = %req.session_id,
                         key = %key,
                         payload_bytes,
-                        error = %e,
-                        "failed to decode session message"
+                        "session message payload is unusually large"
                     );
-                    continue;
                 }
-            };
 
-            messages.push(message);
+                let message = match models::SessionMessage::decode(bytes.as_slice()) {
+                    Ok(message) => message,
+                    Err(e) => {
+                        tracing::error!(
+                            ns = %req.ns,
+                            agent = %req.agent,
+                            session_id = %req.session_id,
+                            key = %key,
+                            payload_bytes,
+                            error = %e,
+                            "failed to decode session message"
+                        );
+                        continue;
+                    }
+                };
+
+                let mut steps = steps_by_message.remove(&message.id).unwrap_or_default();
+                // The outer scan runs newest-first, but steps should remain in
+                // their natural per-message order.
+                steps.sort_by(|left, right| left.0.cmp(&right.0));
+
+                items.push(proto::ListSessionMessagesResponseItem {
+                    steps: steps.into_iter().map(|(_, step)| step).collect(),
+                    message: Some(message),
+                });
+
+                if items.len() >= target_message_count {
+                    break;
+                }
+            }
         }
 
-        let assistant_message_ids = messages
-            .iter()
-            .filter(|message| message.role == models::MessageRole::RoleAssistant as i32)
-            .map(|message| message.id.clone())
-            .collect::<Vec<_>>();
-
-        let steps_by_message =
-            stream::iter(assistant_message_ids.into_iter().map(|message_id| async {
-                let steps = self
-                    .load_session_message_steps(&req.ns, &req.agent, &req.session_id, &message_id)
-                    .await?;
-                Ok::<_, tonic::Status>((message_id, steps))
-            }))
-            .buffer_unordered(SESSION_STEP_FETCH_CONCURRENCY)
-            .try_collect::<Vec<_>>()
-            .await?
-            .into_iter()
-            .collect::<HashMap<_, _>>();
-
-        let mut items = Vec::with_capacity(messages.len());
-        for message in messages {
-            items.push(proto::ListSessionMessagesResponseItem {
-                steps: steps_by_message
-                    .get(&message.id)
-                    .cloned()
-                    .unwrap_or_default(),
-                message: Some(message),
-            });
+        let has_more = items.len() > page_size;
+        if has_more {
+            items.truncate(page_size);
         }
 
         items.reverse();

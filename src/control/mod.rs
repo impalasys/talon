@@ -12,6 +12,21 @@ pub mod topics;
 
 use std::path::PathBuf;
 
+pub fn page_keys_desc(
+    mut keys: Vec<String>,
+    before_key: Option<&str>,
+    limit: usize,
+) -> Vec<String> {
+    if limit == 0 {
+        return Vec::new();
+    }
+
+    keys.retain(|key| before_key.map_or(true, |cursor| key.as_str() < cursor));
+    keys.sort_by(|left, right| right.cmp(left));
+    keys.truncate(limit);
+    keys
+}
+
 #[async_trait::async_trait]
 pub trait KeyValueStore: Send + Sync {
     /// Retrieve a raw byte sequence from the store
@@ -35,6 +50,22 @@ pub trait KeyValueStore: Send + Sync {
     /// List all keys in a namespace with a given prefix
     async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>>;
 
+    /// List keys in a namespace with a given prefix, ordered by key descending.
+    ///
+    /// `before_key` is an exclusive full-key cursor. Production backends should
+    /// override this with a storage-level page read. The default implementation
+    /// fails rather than silently materializing an unbounded prefix.
+    async fn list_keys_page(
+        &self,
+        namespace: &str,
+        prefix: &str,
+        before_key: Option<&str>,
+        limit: usize,
+    ) -> anyhow::Result<Vec<String>> {
+        let _ = (namespace, prefix, before_key, limit);
+        anyhow::bail!("list_keys_page is not implemented for this KeyValueStore")
+    }
+
     /// List all key/value pairs in a namespace with a given prefix.
     async fn list_entries(
         &self,
@@ -48,31 +79,6 @@ pub trait KeyValueStore: Send + Sync {
                 entries.push((key, value));
             }
         }
-        Ok(entries)
-    }
-
-    /// List direct child key/value pairs in reverse key order with an exclusive cursor.
-    ///
-    /// The default implementation materializes all prefixed entries before filtering and
-    /// truncating, so production backends should override this with a storage-level page read.
-    async fn list_direct_entries_page(
-        &self,
-        namespace: &str,
-        prefix: &str,
-        before_key: Option<&str>,
-        limit: usize,
-    ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
-        if limit == 0 {
-            return Ok(Vec::new());
-        }
-
-        let mut entries = self.list_entries(namespace, prefix).await?;
-        entries.retain(|(key, _)| {
-            !key.strip_prefix(prefix).unwrap_or(key).contains('/')
-                && before_key.map_or(true, |cursor| key.as_str() < cursor)
-        });
-        entries.sort_by(|left, right| right.0.cmp(&left.0));
-        entries.truncate(limit);
         Ok(entries)
     }
 

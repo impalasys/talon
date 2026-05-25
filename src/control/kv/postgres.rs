@@ -74,15 +74,14 @@ fn list_entries_query(table: &str) -> String {
     )
 }
 
-fn list_direct_entries_page_query(table: &str) -> String {
+fn list_keys_page_query(table: &str) -> String {
     format!(
-        "SELECT key, value FROM {}
+        "SELECT key FROM {}
          WHERE namespace = $1
            AND key LIKE $2 ESCAPE '\\'
-           AND substring(key from char_length($3) + 1) NOT LIKE '%/%'
-           AND ($4 IS NULL OR key < $4)
+           AND ($3 IS NULL OR key < $3)
          ORDER BY key DESC
-         LIMIT $5",
+         LIMIT $4",
         quoted_identifier(table)
     )
 }
@@ -202,33 +201,32 @@ impl KeyValueStore for PostgresKvStore {
         Ok(entries)
     }
 
-    async fn list_direct_entries_page(
+    async fn list_keys_page(
         &self,
         namespace: &str,
         prefix: &str,
         before_key: Option<&str>,
         limit: usize,
-    ) -> Result<Vec<(String, Vec<u8>)>> {
+    ) -> Result<Vec<String>> {
         if limit == 0 {
             return Ok(Vec::new());
         }
 
-        let query = list_direct_entries_page_query(&self.table);
+        let query = list_keys_page_query(&self.table);
         let prefix_pattern = like_prefix_pattern(prefix);
         let rows = sqlx::query(&query)
             .bind(namespace)
             .bind(prefix_pattern)
-            .bind(prefix)
             .bind(before_key)
             .bind(limit as i64)
             .fetch_all(&self.pool)
             .await?;
 
-        let mut entries = Vec::with_capacity(rows.len());
+        let mut keys = Vec::with_capacity(rows.len());
         for row in rows {
-            entries.push((row.try_get("key")?, row.try_get("value")?));
+            keys.push(row.try_get("key")?);
         }
-        Ok(entries)
+        Ok(keys)
     }
 
     async fn delete_prefix(&self, namespace: &str, prefix: &str) -> Result<()> {
@@ -247,7 +245,8 @@ impl KeyValueStore for PostgresKvStore {
 mod tests {
     use super::{
         compare_and_swap_query, create_table_statement, delete_prefix_query, delete_query,
-        get_query, list_entries_query, list_keys_query, set_query, PostgresKvStore,
+        get_query, list_entries_query, list_keys_page_query, list_keys_query, set_query,
+        PostgresKvStore,
     };
     use crate::control::KeyValueStore;
     use crate::test_support::{docker_test_guard, PostgresContainer};
@@ -271,6 +270,7 @@ mod tests {
             "DELETE FROM \"talon_kv\" WHERE namespace = $1 AND key = $2"
         );
         assert!(list_keys_query("talon_kv").contains("LIKE $2 ESCAPE '\\'"));
+        assert!(list_keys_page_query("talon_kv").contains("ORDER BY key DESC"));
         assert!(list_entries_query("talon_kv").contains("SELECT key, value"));
         assert!(delete_prefix_query("talon_kv").contains("DELETE FROM \"talon_kv\""));
     }
@@ -311,6 +311,21 @@ mod tests {
         let mut keys = store.list_keys("ns", "prefix/").await.unwrap();
         keys.sort();
         assert_eq!(keys, vec!["prefix/a".to_string(), "prefix/b".to_string()]);
+
+        assert_eq!(
+            store
+                .list_keys_page("ns", "prefix/", None, 10)
+                .await
+                .unwrap(),
+            vec!["prefix/b".to_string(), "prefix/a".to_string()]
+        );
+        assert_eq!(
+            store
+                .list_keys_page("ns", "prefix/", Some("prefix/b"), 10)
+                .await
+                .unwrap(),
+            vec!["prefix/a".to_string()]
+        );
 
         let mut entries = store.list_entries("ns", "prefix/").await.unwrap();
         entries.sort_by(|a, b| a.0.cmp(&b.0));

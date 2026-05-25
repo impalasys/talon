@@ -138,6 +138,20 @@ mod tests {
             keys.sort();
             Ok(keys)
         }
+
+        async fn list_keys_page(
+            &self,
+            ns: &str,
+            prefix: &str,
+            before_key: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<String>> {
+            Ok(crate::control::page_keys_desc(
+                self.list_keys(ns, prefix).await?,
+                before_key,
+                limit,
+            ))
+        }
     }
 
     fn setup_mock_gateway_handler(
@@ -412,8 +426,8 @@ mod tests {
                 session_id: session_id.to_string(),
                 agent: agent.to_string(),
                 ns: ns.to_string(),
-                message_limit: 0,
-                step_limit: 0,
+                message_limit: -1,
+                step_limit: -1,
             }))
             .await
             .unwrap()
@@ -426,6 +440,52 @@ mod tests {
         assert_eq!(response.messages[0].content, "assistant reply");
         assert_eq!(response.steps.len(), 1);
         assert_eq!(response.steps[0].content, "hello");
+    }
+
+    #[tokio::test]
+    async fn test_get_session_zero_limits_returns_metadata_without_listing_history() {
+        let kv = Arc::new(FailingKvStore {
+            data: Mutex::new(HashMap::from([(
+                (
+                    "default".to_string(),
+                    keys::session("test-agent", "session-1"),
+                ),
+                models::Session {
+                    id: "session-1".to_string(),
+                    agent: "test-agent".to_string(),
+                    ns: "default".to_string(),
+                    status: "IDLE".to_string(),
+                    created_at: 1,
+                    last_active: 2,
+                    metadata: HashMap::new(),
+                    labels: HashMap::from([("env".to_string(), "test".to_string())]),
+                }
+                .encode_to_vec(),
+            )])),
+            fail_list_prefix: Some(keys::session_message_prefix("test-agent", "session-1")),
+            fail_get_key: None,
+            fail_set_prefix: None,
+            fail_delete_key: None,
+            extra_list_keys: Vec::new(),
+        });
+        let handler = setup_gateway_handler_with(kv, Arc::new(RecordingPubSub::default()));
+
+        let response = handler
+            .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
+                session_id: "session-1".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+                message_limit: 0,
+                step_limit: 0,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert_eq!(response.session_id, "session-1");
+        assert_eq!(response.labels.get("env").map(String::as_str), Some("test"));
+        assert!(response.messages.is_empty());
+        assert!(response.steps.is_empty());
     }
 
     #[tokio::test]
@@ -477,7 +537,7 @@ mod tests {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
-                message_limit: 0,
+                message_limit: -1,
                 step_limit: 0,
             }))
             .await
@@ -539,8 +599,8 @@ mod tests {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
-                message_limit: 0,
-                step_limit: 0,
+                message_limit: -1,
+                step_limit: -1,
             }))
             .await
             .expect_err("step list failure should surface");
@@ -732,7 +792,14 @@ mod tests {
                 .map(|message| message.content.as_str()),
             Some("message-2")
         );
-        assert!(newest_page.items[0].steps.is_empty());
+        assert_eq!(
+            newest_page.items[0]
+                .steps
+                .iter()
+                .map(|step| step.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["step-2"]
+        );
         assert_eq!(
             newest_page.items[1]
                 .message
@@ -778,6 +845,102 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec!["step-1"]
         );
+    }
+
+    #[tokio::test]
+    async fn test_list_session_messages_does_not_underfill_when_steps_precede_message_key() {
+        let ns = "default";
+        let agent = "test-agent";
+        let session_id = "session-step-heavy";
+        let kv = Arc::new(MockKvStore::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+
+        kv.set_msg(
+            ns,
+            &keys::session(agent, session_id),
+            &models::Session {
+                id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        for index in 1..=3 {
+            let message_id = format!("019f0000-0000-7000-8000-00000000000{index}");
+            kv.set_msg(
+                ns,
+                &keys::session_message(agent, session_id, &message_id),
+                &models::SessionMessage {
+                    id: message_id,
+                    role: models::MessageRole::RoleAssistant as i32,
+                    content: format!("message-{index}"),
+                    created_at: index as i64,
+                    labels: HashMap::new(),
+                },
+            )
+            .await
+            .unwrap();
+        }
+
+        let newest_message_id = "019f0000-0000-7000-8000-000000000003";
+        for index in 0..700 {
+            kv.set(
+                ns,
+                &keys::session_message_step(
+                    agent,
+                    session_id,
+                    newest_message_id,
+                    &format!("{index:06}"),
+                ),
+                &SessionStepEvent {
+                    session_id: session_id.to_string(),
+                    step_type: StepType::Token as i32,
+                    content: format!("step-{index}"),
+                    timestamp: index as i64,
+                    agent: agent.to_string(),
+                    ns: ns.to_string(),
+                    message_id: newest_message_id.to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                }
+                .encode_to_vec(),
+            )
+            .await
+            .unwrap();
+        }
+
+        let response = handler
+            .handle_list_session_messages(tonic::Request::new(proto::ListSessionMessagesRequest {
+                session_id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                page_size: 2,
+                before_message_id: None,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert!(response.has_more);
+        assert_eq!(response.items.len(), 2);
+        assert_eq!(
+            response
+                .items
+                .iter()
+                .filter_map(|item| item.message.as_ref())
+                .map(|message| message.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["message-2", "message-3"]
+        );
+        assert_eq!(response.items[0].steps.len(), 0);
+        assert_eq!(response.items[1].steps.len(), 700);
     }
 
     #[tokio::test]
