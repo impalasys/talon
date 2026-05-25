@@ -17,6 +17,8 @@ use std::time::Duration;
 use tonic::metadata::MetadataValue;
 use uuid::Uuid;
 
+const STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
+
 #[derive(Deserialize)]
 pub struct SessionPath {
     ns: String,
@@ -275,7 +277,7 @@ pub async fn post_chat(
         let mut latest_action_payload: Option<ToolStepPayload> = None;
         let mut latest_observation_payload: Option<ToolStepPayload> = None;
         let mut steps = step_stream;
-        let timeout = tokio::time::sleep(Duration::from_secs(30));
+        let timeout = tokio::time::sleep(STREAM_IDLE_TIMEOUT);
         tokio::pin!(timeout);
 
         loop {
@@ -285,6 +287,7 @@ pub async fn post_chat(
                     return;
                 }
                 step_result = steps.next() => {
+                    timeout.as_mut().reset(tokio::time::Instant::now() + STREAM_IDLE_TIMEOUT);
                     let Some(step_result) = step_result else {
                         break;
                     };

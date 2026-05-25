@@ -358,6 +358,29 @@ function stableHistoryMessageId(message: any, index: number) {
   return `history-${role}-${createdAt}-${index}-${stableStringHash(content)}`;
 }
 
+function historyMessageTimestamp(message: Pick<CopilotMessage, "createdAt">) {
+  const value = message.createdAt;
+  let numericValue: number | null = null;
+  if (typeof value === "bigint") {
+    const absValue = value < BigInt(0) ? -value : value;
+    if (absValue > BigInt(Number.MAX_SAFE_INTEGER)) {
+      return null;
+    }
+    numericValue = Number(value);
+  } else if (typeof value === "number") {
+    numericValue = value;
+  } else if (typeof value === "string") {
+    const numericStringValue = Number(value);
+    numericValue = Number.isFinite(numericStringValue) ? numericStringValue : Date.parse(value);
+  }
+  return numericValue !== null && Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function canCompareCanonicalMessageIds(left: string, right: string) {
+  const isFallbackId = (id: string) => id.startsWith("history-") || id.startsWith("local-") || id.startsWith("msg-");
+  return !isFallbackId(left) && !isFallbackId(right);
+}
+
 function historyItemsFromResponse(response: any) {
   if (Array.isArray(response?.items)) {
     return response.items as Array<{ message?: any; steps?: any[] }>;
@@ -411,17 +434,28 @@ function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPage
   const newestIds = new Set(newestPageMessages.map((message) => message.id));
   const oldestPageId = newestPageMessages[0]?.id;
   const newestPageId = newestPageMessages[newestPageMessages.length - 1]?.id;
+  const oldestPageTimestamp = historyMessageTimestamp(newestPageMessages[0]);
+  const newestPageTimestamp = historyMessageTimestamp(newestPageMessages[newestPageMessages.length - 1]);
   const preservedOlderMessages = existingMessages.filter((message) => {
     if (message.id === "1") return false;
     if (message.id.startsWith("local-")) return false;
     if (newestIds.has(message.id)) return false;
-    return oldestPageId ? message.id < oldestPageId : false;
+    const messageTimestamp = historyMessageTimestamp(message);
+    if (messageTimestamp !== null && oldestPageTimestamp !== null) {
+      return messageTimestamp < oldestPageTimestamp;
+    }
+    // Only canonical backend IDs are sortable. Fallback IDs include content/index data and must not order pages.
+    return oldestPageId && canCompareCanonicalMessageIds(message.id, oldestPageId) ? message.id < oldestPageId : false;
   });
   const preservedNewerMessages = existingMessages.filter((message) => {
     if (message.id === "1") return false;
     if (message.id.startsWith("local-")) return false;
     if (newestIds.has(message.id)) return false;
-    return newestPageId ? message.id > newestPageId : false;
+    const messageTimestamp = historyMessageTimestamp(message);
+    if (messageTimestamp !== null && newestPageTimestamp !== null) {
+      return messageTimestamp > newestPageTimestamp;
+    }
+    return newestPageId && canCompareCanonicalMessageIds(message.id, newestPageId) ? message.id > newestPageId : false;
   });
   const mergedMessages = [...preservedOlderMessages, ...newestPageMessages, ...preservedNewerMessages];
   const dedupedMessages = new Map<string, CopilotMessage>();
