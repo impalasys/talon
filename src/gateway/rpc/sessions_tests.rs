@@ -845,6 +845,21 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec!["step-1"]
         );
+
+        let default_sized_page = handler
+            .handle_list_session_messages(tonic::Request::new(proto::ListSessionMessagesRequest {
+                session_id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                page_size: 0,
+                before_message_id: None,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert!(!default_sized_page.has_more);
+        assert_eq!(default_sized_page.items.len(), 3);
     }
 
     #[tokio::test]

@@ -11,6 +11,7 @@ use prost::Message;
 use std::collections::HashMap;
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
+const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const SESSION_MESSAGE_ENTRY_FETCH_CONCURRENCY: usize = 16;
@@ -24,12 +25,17 @@ fn requested_limit(limit: i32) -> Option<usize> {
 }
 
 fn validated_page_size(page_size: i32) -> std::result::Result<usize, tonic::Status> {
-    if page_size <= 0 {
+    if page_size < 0 {
         return Err(tonic::Status::invalid_argument(
-            "page_size must be greater than zero",
+            "page_size must be non-negative",
         ));
     }
-    Ok((page_size as usize).min(MAX_SESSION_MESSAGES_PAGE_SIZE))
+    let page_size = if page_size == 0 {
+        DEFAULT_SESSION_MESSAGES_PAGE_SIZE
+    } else {
+        page_size as usize
+    };
+    Ok(page_size.min(MAX_SESSION_MESSAGES_PAGE_SIZE))
 }
 
 fn direct_message_id<'a>(prefix: &str, key: &'a str) -> Option<&'a str> {

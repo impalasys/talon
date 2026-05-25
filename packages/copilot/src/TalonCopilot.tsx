@@ -424,7 +424,7 @@ function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPage
   const oldestPageTimestamp = historyMessageTimestamp(newestPageMessages[0]);
   const newestPageTimestamp = historyMessageTimestamp(newestPageMessages[newestPageMessages.length - 1]);
   const preservedOlderMessages = existingMessages.filter((message) => {
-    if (message.id === "1") return false;
+    if (message.id === "1") return true;
     if (message.id.startsWith("local-")) return false;
     if (newestIds.has(message.id)) return false;
     const messageTimestamp = historyMessageTimestamp(message);
@@ -861,16 +861,21 @@ export function TalonCopilot({
       setIsLoadingOlderHistory(true);
       try {
         const res = normalizeHistoryPage(await getSessionMessagesPage(target, nextBeforeMessageId));
-        setMessages((prev) => {
-          const existingIds = new Set(prev.map((message) => message.id));
-          const olderMessages = res.messages.filter((message) => !existingIds.has(message.id));
-          if (olderMessages.length === 0) {
-            prependScrollRestoreRef.current = null;
-            skipNextAutoScrollRef.current = false;
-            return prev;
-          }
-          return [...olderMessages, ...prev];
-        });
+        const existingIds = new Set(messagesRef.current.map((message) => message.id));
+        const olderMessages = res.messages.filter((message) => !existingIds.has(message.id));
+        if (olderMessages.length === 0) {
+          prependScrollRestoreRef.current = null;
+          skipNextAutoScrollRef.current = false;
+        } else {
+          setMessages((prev) => {
+            const currentIds = new Set(prev.map((message) => message.id));
+            const filteredOlderMessages = olderMessages.filter((message) => !currentIds.has(message.id));
+            if (filteredOlderMessages.length === 0) {
+              return prev;
+            }
+            return [...filteredOlderMessages, ...prev];
+          });
+        }
         setHasMoreHistory(res.hasMore);
         setNextBeforeMessageId(res.nextBeforeMessageId);
       } catch (err) {
