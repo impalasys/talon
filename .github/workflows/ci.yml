@@ -127,3 +127,73 @@ jobs:
           load: false
           build-args: |
             NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789
+
+  binary_artifacts:
+    name: Binary Artifacts
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - cargo
+      - runtime_image
+      - envoy_image
+      - ui
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: linux-x86_64
+          - os: macos-14
+            artifact_name: darwin-arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
+
+      - name: Install macOS build dependencies
+        if: runner.os == 'macOS'
+        run: brew install protobuf
+
+      - name: Build release binaries
+        run: cargo build --locked --release --bins
+
+      - name: Package binaries
+        run: |
+          ARTIFACT_DIR="dist/talon-${{ matrix.artifact_name }}"
+          mkdir -p "$ARTIFACT_DIR"
+          cp target/release/talon-server "$ARTIFACT_DIR"/
+          cp target/release/talon-worker "$ARTIFACT_DIR"/
+          cp target/release/talon-cli "$ARTIFACT_DIR"/
+          cp talon.yaml "$ARTIFACT_DIR"/
+          if [ "${RUNNER_OS}" = "macOS" ]; then
+            (
+              cd "$ARTIFACT_DIR"
+              shasum -a 256 talon-server talon-worker talon-cli talon.yaml > SHA256SUMS
+            )
+          else
+            (
+              cd "$ARTIFACT_DIR"
+              sha256sum talon-server talon-worker talon-cli talon.yaml > SHA256SUMS
+            )
+          fi
+          tar -C dist -czf "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz" "talon-${{ matrix.artifact_name }}"
+
+      - name: Upload binary artifact bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: talon-${{ matrix.artifact_name }}-${{ github.sha }}
+          path: |
+            dist/talon-${{ matrix.artifact_name }}-${{ github.sha }}.tar.gz
+            dist/talon-${{ matrix.artifact_name }}/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 14
