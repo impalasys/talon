@@ -166,24 +166,79 @@ impl GrpcGatewayHandler {
 
         let mut messages = Vec::new();
         if message_limit != Some(0) {
-            // Fetch Session Messages sequentially via keys
-            let mut msg_keys = self
-                .gateway
-                .kv
-                .list_keys(&req.ns, &msg_prefix)
-                .await
-                .map_err(|e| {
-                    tracing::error!(
-                        ns = %req.ns,
-                        agent = %req.agent,
-                        session_id = %req.session_id,
-                        prefix = %msg_prefix,
-                        error = %e,
-                        "failed to list session messages"
-                    );
-                    tonic::Status::internal(format!("Failed to list session messages: {}", e))
-                })?;
-            msg_keys.sort();
+            let msg_keys = if let Some(limit) = message_limit {
+                let mut page_before_key: Option<String> = None;
+                let mut keys = Vec::with_capacity(limit);
+                while keys.len() < limit {
+                    let page = self
+                        .gateway
+                        .kv
+                        .list_keys_page(
+                            &req.ns,
+                            &msg_prefix,
+                            page_before_key.as_deref(),
+                            SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE,
+                        )
+                        .await
+                        .map_err(|e| {
+                            tracing::error!(
+                                ns = %req.ns,
+                                agent = %req.agent,
+                                session_id = %req.session_id,
+                                prefix = %msg_prefix,
+                                error = %e,
+                                "failed to page session message keys"
+                            );
+                            tonic::Status::internal(format!("Failed to list session messages: {}", e))
+                        })?;
+                    if page.is_empty() {
+                        break;
+                    }
+                    page_before_key = page.last().cloned();
+                    for key in page {
+                        if direct_message_id(&msg_prefix, &key).is_some() {
+                            keys.push(key);
+                            if keys.len() >= limit {
+                                break;
+                            }
+                        }
+                    }
+                }
+                keys.sort();
+                keys
+            } else {
+                let mut keys = self
+                    .gateway
+                    .kv
+                    .list_keys(&req.ns, &msg_prefix)
+                    .await
+                    .map_err(|e| {
+                        tracing::error!(
+                            ns = %req.ns,
+                            agent = %req.agent,
+                            session_id = %req.session_id,
+                            prefix = %msg_prefix,
+                            error = %e,
+                            "failed to list session messages"
+                        );
+                        tonic::Status::internal(format!("Failed to list session messages: {}", e))
+                    })?;
+                keys.sort();
+                keys.retain(|key| {
+                    let nested = key.strip_prefix(&msg_prefix).unwrap_or(key).contains('/');
+                    if nested {
+                        tracing::debug!(
+                            ns = %req.ns,
+                            agent = %req.agent,
+                            session_id = %req.session_id,
+                            key = %key,
+                            "skipping nested message key while loading session"
+                        );
+                    }
+                    !nested
+                });
+                keys
+            };
             tracing::info!(
                 ns = %req.ns,
                 agent = %req.agent,
@@ -191,26 +246,6 @@ impl GrpcGatewayHandler {
                 message_key_count = msg_keys.len(),
                 "loaded session message keys"
             );
-
-            msg_keys.retain(|key| {
-                let nested = key.strip_prefix(&msg_prefix).unwrap_or(key).contains('/');
-                if nested {
-                    tracing::debug!(
-                        ns = %req.ns,
-                        agent = %req.agent,
-                        session_id = %req.session_id,
-                        key = %key,
-                        "skipping nested message key while loading session"
-                    );
-                }
-                !nested
-            });
-            if let Some(limit) = message_limit {
-                if msg_keys.len() > limit {
-                    let keep_from = msg_keys.len() - limit;
-                    msg_keys = msg_keys.split_off(keep_from);
-                }
-            }
 
             for key in &msg_keys {
                 match self.gateway.kv.get(&req.ns, key).await {

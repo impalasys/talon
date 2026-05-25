@@ -892,12 +892,28 @@ export function TalonCopilot({
   const refreshNewestSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
       const res = normalizeHistoryPage(await getSessionMessagesPage(target));
+      const newestPageIds = new Set(res.messages.map((message) => message.id));
+      const oldestPageMessage = res.messages[0];
+      const oldestPageId = oldestPageMessage?.id;
+      const oldestPageTimestamp = oldestPageMessage ? historyMessageTimestamp(oldestPageMessage) : null;
+      const hasLoadedOlderHistory = messagesRef.current.some((message) => {
+        if (message.id === "1") return false;
+        if (isLocalMessageId(message.id)) return false;
+        if (newestPageIds.has(message.id)) return false;
+        const messageTimestamp = historyMessageTimestamp(message);
+        if (messageTimestamp !== null && oldestPageTimestamp !== null) {
+          return messageTimestamp < oldestPageTimestamp;
+        }
+        return oldestPageId && canCompareCanonicalMessageIds(message.id, oldestPageId) ? message.id < oldestPageId : false;
+      });
       setMessages((prev) => {
         const merged = mergeNewestCanonicalPage(prev, res.messages);
         return merged.length > 0 ? merged : bootMessage;
       });
-      setHasMoreHistory(res.hasMore);
-      setNextBeforeMessageId(res.nextBeforeMessageId);
+      if (!hasLoadedOlderHistory) {
+        setHasMoreHistory(res.hasMore);
+        setNextBeforeMessageId(res.nextBeforeMessageId);
+      }
       setStreamEvents([]);
       setCurrentSession(target);
       return res;

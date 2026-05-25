@@ -148,11 +148,13 @@ where
         .and_then(extract_tool_step_payload)
 }
 
-async fn fetch_session(
+async fn fetch_session_metadata(
     gateway: &Arc<Gateway>,
     headers: &HeaderMap,
     path: &SessionPath,
 ) -> Result<proto::SessionResponse, Response> {
+    // UI route guards only need session metadata here; messages and steps are
+    // loaded through the paginated message endpoint.
     fetch_session_with_limits(gateway, headers, path, Some(-1), Some(-1)).await
 }
 
@@ -579,10 +581,10 @@ pub async fn delete_chat(
 #[cfg(test)]
 mod tests {
     use super::{
-        data_stream_line, delete_chat, extract_tool_step_payload, fetch_session, get_chat,
-        last_message_text, latest_assistant_message_text, latest_tool_step_payload, map_status,
-        ndjson_line, post_chat, step_dedup_key, tonic_request, ChatRequestBody, SessionPath,
-        UiMessage, UiPart,
+        data_stream_line, delete_chat, extract_tool_step_payload, fetch_session_metadata,
+        get_chat, last_message_text, latest_assistant_message_text, latest_tool_step_payload,
+        map_status, ndjson_line, post_chat, step_dedup_key, tonic_request, ChatRequestBody,
+        SessionPath, UiMessage, UiPart,
     };
     use crate::control::events::{SessionControlEvent, SessionStepEvent, StepType};
     use crate::control::{
@@ -1056,7 +1058,7 @@ mod tests {
             Arc::new(Mutex::new(Vec::new())),
         );
 
-        let response = fetch_session(
+        let response = fetch_session_metadata(
             &gateway,
             &HeaderMap::new(),
             &SessionPath {
