@@ -1,10 +1,11 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use anyhow::Result;
+use anyhow::{anyhow, Context, Result};
 use std::sync::Arc;
 
 use crate::config::Config;
+use crate::config::secrets::SecretExt;
 use crate::gateway::rpc::manifests::{self, AgentSpec};
 use crate::llm::LlmProvider;
 
@@ -26,7 +27,8 @@ pub fn resolve_model_profile(
 /// system configuration. Preference order:
 ///   1. Provider + model from AgentSpec.model_policy profile "default"
 ///   2. Config's default_provider
-///   3. Falls back to MockLlmProvider (never returns an error for missing keys)
+/// Returns an error when the selected provider is missing, unsupported, or
+/// cannot resolve its credentials.
 pub async fn resolve_llm(
     spec: &AgentSpec,
     config: &Config,
@@ -51,19 +53,54 @@ pub async fn resolve_llm(
     let provider_cfg = config
         .providers
         .get(provider_name)
-        .ok_or_else(|| anyhow::anyhow!("LLM provider '{}' not found in config", provider_name))?;
+        .ok_or_else(|| anyhow!("LLM provider '{}' not found in config", provider_name))?;
 
     match &provider_cfg.config {
+        Some(crate::config::proto::llm_provider_config::Config::Openai(openai)) => {
+            let api_key = openai
+                .api_key
+                .as_ref()
+                .context("OpenAI provider config is missing api_key")?
+                .resolve()
+                .await
+                .with_context(|| format!("Failed to resolve API key for '{}'", provider_name))?;
+
+            let base_url = std::env::var("OPENAI_BASE_URL")
+                .unwrap_or_else(|_| "https://api.openai.com/v1".to_string());
+            let model = spec_model
+                .filter(|s| !s.is_empty())
+                .unwrap_or(&openai.model)
+                .to_string();
+
+            Ok(Arc::new(crate::llm::openai::OpenAiCompatibleProvider::new(
+                api_key, base_url, model,
+            )))
+        }
+        Some(crate::config::proto::llm_provider_config::Config::Anthropic(anthropic)) => {
+            let api_key = anthropic
+                .api_key
+                .as_ref()
+                .context("Anthropic provider config is missing api_key")?
+                .resolve()
+                .await
+                .with_context(|| format!("Failed to resolve API key for '{}'", provider_name))?;
+            let model = spec_model
+                .filter(|s| !s.is_empty())
+                .unwrap_or(&anthropic.model)
+                .to_string();
+
+            Ok(Arc::new(crate::llm::anthropic::AnthropicProvider::new(
+                api_key, model,
+            )))
+        }
         Some(crate::config::proto::llm_provider_config::Config::OpenaiCompatible(generic)) => {
-            use crate::config::secrets::SecretExt;
-            let api_key = if let Some(secret) = &generic.api_key {
-                secret.resolve().await.unwrap_or_else(|e| {
-                    tracing::warn!("Failed to resolve API key for '{}': {}", provider_name, e);
-                    "sk_dummy".to_string()
-                })
-            } else {
-                std::env::var("NOVITA_API_KEY").unwrap_or_else(|_| "sk_dummy".to_string())
-            };
+            let api_key = generic
+                .api_key
+                .as_ref()
+                .context("OpenAI-compatible provider config is missing api_key")?
+                .resolve()
+                .await
+                .with_context(|| format!("Failed to resolve API key for '{}'", provider_name))?;
 
             // Allow env-var override of base URL (useful in local dev / CI)
             let base_url = if let Ok(env_url) = std::env::var("NOVITA_BASE_URL") {
@@ -82,13 +119,16 @@ pub async fn resolve_llm(
                 api_key, base_url, model,
             )))
         }
-        _ => {
-            tracing::warn!(
-                "No recognized LLM config for provider '{}'; using MockLlmProvider",
+        Some(crate::config::proto::llm_provider_config::Config::Google(_)) => {
+            Err(anyhow!(
+                "LLM provider '{}' uses Google config, which is not supported by this runtime yet",
                 provider_name
-            );
-            Ok(Arc::new(crate::llm::mock::MockLlmProvider))
+            ))
         }
+        None => Err(anyhow!(
+            "LLM provider '{}' has no config; refusing to fall back to a mock provider",
+            provider_name
+        )),
     }
 }
 
@@ -168,7 +208,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn resolve_llm_uses_mock_when_provider_config_is_unrecognized() {
+    async fn resolve_llm_errors_when_provider_config_is_unrecognized() {
         let config = Config {
             providers: HashMap::from([("primary".to_string(), ProviderConfig { config: None })]),
             default_provider: "primary".to_string(),
@@ -176,9 +216,14 @@ mod tests {
         };
         let spec = manifests::AgentSpec::default();
 
-        let llm = resolve_llm(&spec, &config).await.unwrap();
-        let response = llm.completion("hello").await.unwrap();
-        assert_eq!(response, "Mock response for: hello");
+        let err = match resolve_llm(&spec, &config).await {
+            Ok(_) => panic!("expected provider config error"),
+            Err(err) => err,
+        };
+        assert!(
+            err.to_string()
+                .contains("refusing to fall back to a mock provider")
+        );
     }
 
     #[tokio::test]
@@ -237,7 +282,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn resolve_llm_uses_env_fallbacks_for_api_key_and_base_url() {
+    async fn resolve_llm_uses_env_override_for_base_url() {
         let _guard = crate::test_support::async_env_mutex().lock().await;
         let app = Router::new().route(
             "/chat/completions",
@@ -257,12 +302,16 @@ mod tests {
         let server = tokio::spawn(async move { axum::serve(listener, app).await.unwrap() });
 
         unsafe {
-            std::env::set_var("NOVITA_API_KEY", "env-key");
             std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
         }
         let config = config_with_provider(
             "primary",
-            openai_compatible_provider("https://unused.example.com".to_string(), None),
+            openai_compatible_provider(
+                "https://unused.example.com".to_string(),
+                Some(Secret {
+                    source: Some(proto::secret::Source::Plain("config-key".to_string())),
+                }),
+            ),
         );
         let llm = resolve_llm(&manifests::AgentSpec::default(), &config)
             .await
@@ -271,7 +320,6 @@ mod tests {
         assert_eq!(response, "resolved via env override");
 
         unsafe {
-            std::env::remove_var("NOVITA_API_KEY");
             std::env::remove_var("NOVITA_BASE_URL");
         }
         server.abort();

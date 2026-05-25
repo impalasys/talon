@@ -11,8 +11,8 @@ definition:
       profiles:
         - name: default
           model:
-            provider: openai
-            name: gpt-4.1-mini
+            provider: novita
+            name: google/gemma-4-31b-it
             temperature: 0.0
     mcpServerRefs:
       - talon-ops

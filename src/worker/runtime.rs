@@ -368,7 +368,7 @@ mod tests {
         visible_tools_for_agent, AgentRuntime,
     };
     use crate::connectors::mcp::McpConnectionConfig;
-    use crate::config::{Config, ProviderConfig};
+    use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{SessionStepEvent, StepType},
         scheduler::NoopSchedulerBackend,
@@ -482,10 +482,23 @@ mod tests {
     fn runtime_config() -> Config {
         Config {
             providers: HashMap::from([(
-                "mock".to_string(),
-                ProviderConfig { config: None },
+                "novita".to_string(),
+                ProviderConfig {
+                    config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
+                        proto::GenericConfig {
+                            name: "novita".to_string(),
+                            base_url: "http://127.0.0.1:1".to_string(),
+                            model: "test-model".to_string(),
+                            api_key: Some(Secret {
+                                source: Some(proto::secret::Source::Plain(
+                                    "test-key".to_string(),
+                                )),
+                            }),
+                        },
+                    )),
+                },
             )]),
-            default_provider: "mock".to_string(),
+            default_provider: "novita".to_string(),
             ..Config::default()
         }
     }
