@@ -1137,7 +1137,12 @@ export function TalonCopilot({
         ...style,
       }}
     >
-      <div ref={scrollContainerRef} onScroll={handleTranscriptScroll} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minHeight: 0 }}>
+      <div
+        data-testid="copilot-transcript"
+        ref={scrollContainerRef}
+        onScroll={handleTranscriptScroll}
+        style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minHeight: 0 }}
+      >
         <div style={{ maxWidth: 896, margin: "0 auto", padding: "1rem 1rem 2rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
           {renderedMessages}
 

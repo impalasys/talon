@@ -1,14 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createClient } from "@connectrpc/connect";
 import { createGrpcWebTransport } from "@connectrpc/connect-web";
 import { GatewayService } from "../proto/proto/gateway_pb";
 
-async function provisionSession(page: any) {
-  page.on('console', msg => console.log(`BROWSER CONSOLE: ${msg.text()}`));
-  page.on('pageerror', error => console.log(`BROWSER ERROR: ${error.message}`));
-
+async function createTestSession() {
   const API_PORT = process.env.API_PORT || '18789';
   const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
   const runId = Date.now().toString();
@@ -48,6 +45,15 @@ async function provisionSession(page: any) {
     agent: testAgent
   });
 
+  return { sessionId: sessionRes.sessionId, gatewayUrl, client, testNs, testAgent };
+}
+
+async function provisionSession(page: Page) {
+  page.on('console', msg => console.log(`BROWSER CONSOLE: ${msg.text()}`));
+  page.on('pageerror', error => console.log(`BROWSER ERROR: ${error.message}`));
+
+  const { sessionId, gatewayUrl, client, testNs, testAgent } = await createTestSession();
+
   await page.goto('/');
   const connectButton = page.locator('button', { hasText: 'Initialize Connection' });
   const gatewayInput = page.locator('input[type="url"]');
@@ -72,7 +78,24 @@ async function provisionSession(page: any) {
   const sendButton = page.locator('form').filter({ has: chatInput }).getByRole('button');
   await expect(chatInput).toBeVisible({ timeout: 5000 });
 
-  return { chatInput, sendButton, sessionId: sessionRes.sessionId, gatewayUrl, client, testNs, testAgent };
+  return { chatInput, sendButton, sessionId, gatewayUrl, client, testNs, testAgent };
+}
+
+async function waitForSessionText(
+  client: any,
+  target: { ns: string; agent: string; sessionId: string },
+  expectedText: string,
+) {
+  await expect(async () => {
+    const history = await client.listSessionMessages({
+      ...target,
+      pageSize: 50,
+    });
+    const contents = (history.items ?? [])
+      .map((item: any) => item.message?.content)
+      .filter(Boolean);
+    expect(contents).toContain(expectedText);
+  }).toPass({ timeout: 60000 });
 }
 
 test.describe('Chat Streaming', () => {
@@ -155,5 +178,65 @@ test.describe('Chat Streaming', () => {
     expect(transcript.indexOf('I checked knowledge_search for docs.example.com.')).toBeGreaterThan(
       transcript.indexOf('knowledge_search'),
     );
+  });
+});
+
+test.describe('Copilot history pagination', () => {
+  test('loads older session message pages on transcript scroll without fetching full history', async ({ page }) => {
+    const { client, sessionId, gatewayUrl, testNs, testAgent } = await createTestSession();
+    const target = { ns: testNs, agent: testAgent, sessionId };
+
+    for (let index = 1; index <= 5; index += 1) {
+      const prompt = `pagination seed ${index}`;
+      await client.sendMessage({
+        ...target,
+        message: prompt,
+        labels: {},
+      });
+      await waitForSessionText(client, target, `I received your message: ${prompt}`);
+    }
+
+    const listSessionMessagesRequests: string[] = [];
+    const getSessionRequests: string[] = [];
+    page.on('request', request => {
+      const url = request.url();
+      if (url.includes('/talon.gateway.GatewayService/ListSessionMessages')) {
+        listSessionMessagesRequests.push(url);
+      }
+      if (url.includes('/talon.gateway.GatewayService/GetSession')) {
+        getSessionRequests.push(url);
+      }
+    });
+
+    await page.addInitScript((url) => {
+      localStorage.setItem('talon_gateway_url', url);
+    }, gatewayUrl);
+
+    await page.goto(`/?connected=true&historyPageSize=4&ns=${encodeURIComponent(testNs)}&agent=${encodeURIComponent(testAgent)}&session=${encodeURIComponent(sessionId)}`);
+    await expect(page.locator('text=Connected')).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText('pagination seed 5', { exact: true })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('I received your message: pagination seed 5', { exact: true })).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText('pagination seed 1', { exact: true })).toHaveCount(0);
+    await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(1);
+    expect(getSessionRequests).toHaveLength(0);
+
+    const transcript = page.getByTestId('copilot-transcript');
+    await expect(transcript).toBeVisible();
+
+    await transcript.evaluate((element) => {
+      element.scrollTop = 0;
+      element.dispatchEvent(new Event('scroll', { bubbles: true }));
+    });
+    await expect(page.getByText('pagination seed 3', { exact: true })).toBeVisible({ timeout: 30000 });
+    await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(2);
+    expect(getSessionRequests).toHaveLength(0);
+
+    await transcript.evaluate((element) => {
+      element.scrollTop = 0;
+      element.dispatchEvent(new Event('scroll', { bubbles: true }));
+    });
+    await expect(page.getByText('pagination seed 1', { exact: true })).toBeVisible({ timeout: 30000 });
+    await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(3);
+    expect(getSessionRequests).toHaveLength(0);
   });
 });
