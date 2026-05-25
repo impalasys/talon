@@ -74,6 +74,19 @@ fn list_entries_query(table: &str) -> String {
     )
 }
 
+fn list_direct_entries_page_query(table: &str) -> String {
+    format!(
+        "SELECT key, value FROM {}
+         WHERE namespace = $1
+           AND key LIKE $2 ESCAPE '\\'
+           AND substring(key from char_length($3) + 1) NOT LIKE '%/%'
+           AND ($4 IS NULL OR key < $4)
+         ORDER BY key DESC
+         LIMIT $5",
+        quoted_identifier(table)
+    )
+}
+
 fn delete_prefix_query(table: &str) -> String {
     format!(
         "DELETE FROM {} WHERE namespace = $1 AND key LIKE $2 ESCAPE '\\'",
@@ -179,6 +192,35 @@ impl KeyValueStore for PostgresKvStore {
         let rows = sqlx::query(&query)
             .bind(namespace)
             .bind(prefix_pattern)
+            .fetch_all(&self.pool)
+            .await?;
+
+        let mut entries = Vec::with_capacity(rows.len());
+        for row in rows {
+            entries.push((row.try_get("key")?, row.try_get("value")?));
+        }
+        Ok(entries)
+    }
+
+    async fn list_direct_entries_page(
+        &self,
+        namespace: &str,
+        prefix: &str,
+        before_key: Option<&str>,
+        limit: usize,
+    ) -> Result<Vec<(String, Vec<u8>)>> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+
+        let query = list_direct_entries_page_query(&self.table);
+        let prefix_pattern = like_prefix_pattern(prefix);
+        let rows = sqlx::query(&query)
+            .bind(namespace)
+            .bind(prefix_pattern)
+            .bind(prefix)
+            .bind(before_key)
+            .bind(limit as i64)
             .fetch_all(&self.pool)
             .await?;
 

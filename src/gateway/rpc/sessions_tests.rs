@@ -3,7 +3,6 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::test_support::{MockKvStore, RecordingPubSub};
     use crate::control::{
         events::{SessionStepEvent, StepType},
         keys,
@@ -13,6 +12,7 @@ mod tests {
     use crate::gateway::rpc::{manifests, models};
     use crate::gateway::rpc::{proto, GrpcGatewayHandler};
     use crate::gateway::server::Gateway;
+    use crate::test_support::{MockKvStore, RecordingPubSub};
     use futures::{stream, StreamExt};
     use prost::Message;
     use std::collections::HashMap;
@@ -326,8 +326,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_session_skips_nested_missing_and_invalid_payloads() {
         let kv = Arc::new(MockKvStore::default());
-        let handler =
-            setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         let ns = "default";
         let agent = "test-agent";
@@ -413,6 +412,8 @@ mod tests {
                 session_id: session_id.to_string(),
                 agent: agent.to_string(),
                 ns: ns.to_string(),
+                message_limit: 0,
+                step_limit: 0,
             }))
             .await
             .unwrap()
@@ -438,6 +439,8 @@ mod tests {
                 session_id: "missing".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
+                message_limit: 0,
+                step_limit: 0,
             }))
             .await
             .expect_err("missing session should fail");
@@ -467,16 +470,15 @@ mod tests {
             fail_delete_key: None,
             extra_list_keys: Vec::new(),
         });
-        let handler = setup_gateway_handler_with(
-            kv,
-            Arc::new(RecordingPubSub::default()),
-        );
+        let handler = setup_gateway_handler_with(kv, Arc::new(RecordingPubSub::default()));
 
         let err = handler
             .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
+                message_limit: 0,
+                step_limit: 0,
             }))
             .await
             .expect_err("list failure should surface");
@@ -530,16 +532,15 @@ mod tests {
             fail_delete_key: None,
             extra_list_keys: Vec::new(),
         });
-        let handler = setup_gateway_handler_with(
-            kv,
-            Arc::new(RecordingPubSub::default()),
-        );
+        let handler = setup_gateway_handler_with(kv, Arc::new(RecordingPubSub::default()));
 
         let err = handler
             .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
+                message_limit: 0,
+                step_limit: 0,
             }))
             .await
             .expect_err("step list failure should surface");
@@ -548,10 +549,276 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_get_session_applies_message_and_step_limits() {
+        let ns = "default";
+        let agent = "test-agent";
+        let session_id = "session-limited";
+        let kv = Arc::new(MockKvStore::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+
+        kv.set_msg(
+            ns,
+            &keys::session(agent, session_id),
+            &models::Session {
+                id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        for index in 1..=3 {
+            let message_id = format!("msg-{index}");
+            kv.set_msg(
+                ns,
+                &keys::session_message(agent, session_id, &message_id),
+                &models::SessionMessage {
+                    id: message_id.clone(),
+                    role: 2,
+                    content: format!("assistant-{index}"),
+                    created_at: index as i64,
+                    labels: HashMap::new(),
+                },
+            )
+            .await
+            .unwrap();
+
+            for step_index in 1..=2 {
+                kv.set(
+                    ns,
+                    &keys::session_message_step(
+                        agent,
+                        session_id,
+                        &message_id,
+                        &format!("step-{step_index}"),
+                    ),
+                    &SessionStepEvent {
+                        session_id: session_id.to_string(),
+                        step_type: StepType::Token as i32,
+                        content: format!("step-{index}-{step_index}"),
+                        timestamp: (index * 10 + step_index) as i64,
+                        agent: agent.to_string(),
+                        ns: ns.to_string(),
+                        message_id: message_id.clone(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                    }
+                    .encode_to_vec(),
+                )
+                .await
+                .unwrap();
+            }
+        }
+
+        let response = handler
+            .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
+                session_id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                message_limit: 2,
+                step_limit: 2,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert_eq!(
+            response
+                .messages
+                .iter()
+                .map(|message| message.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["assistant-2", "assistant-3"]
+        );
+        assert_eq!(
+            response
+                .steps
+                .iter()
+                .map(|step| step.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["step-3-1", "step-3-2"]
+        );
+    }
+
+    #[tokio::test]
+    async fn test_list_session_messages_paginates_and_nests_steps() {
+        let ns = "default";
+        let agent = "test-agent";
+        let session_id = "session-paged";
+        let kv = Arc::new(MockKvStore::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+
+        kv.set_msg(
+            ns,
+            &keys::session(agent, session_id),
+            &models::Session {
+                id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        for index in 1..=3 {
+            let message_id = format!("019f0000-0000-7000-8000-00000000000{index}");
+            kv.set_msg(
+                ns,
+                &keys::session_message(agent, session_id, &message_id),
+                &models::SessionMessage {
+                    id: message_id.clone(),
+                    role: if index == 2 { 1 } else { 2 },
+                    content: format!("message-{index}"),
+                    created_at: index as i64,
+                    labels: HashMap::new(),
+                },
+            )
+            .await
+            .unwrap();
+
+            kv.set(
+                ns,
+                &keys::session_message_step(agent, session_id, &message_id, "000001"),
+                &SessionStepEvent {
+                    session_id: session_id.to_string(),
+                    step_type: StepType::Token as i32,
+                    content: format!("step-{index}"),
+                    timestamp: index as i64,
+                    agent: agent.to_string(),
+                    ns: ns.to_string(),
+                    message_id: message_id.clone(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                }
+                .encode_to_vec(),
+            )
+            .await
+            .unwrap();
+        }
+
+        let newest_page = handler
+            .handle_list_session_messages(tonic::Request::new(proto::ListSessionMessagesRequest {
+                session_id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                page_size: 2,
+                before_message_id: None,
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert!(newest_page.has_more);
+        assert_eq!(
+            newest_page.next_before_message_id.as_deref(),
+            Some("019f0000-0000-7000-8000-000000000002")
+        );
+        assert_eq!(newest_page.items.len(), 2);
+        assert_eq!(
+            newest_page.items[0]
+                .message
+                .as_ref()
+                .map(|message| message.content.as_str()),
+            Some("message-2")
+        );
+        assert!(newest_page.items[0].steps.is_empty());
+        assert_eq!(
+            newest_page.items[1]
+                .message
+                .as_ref()
+                .map(|message| message.content.as_str()),
+            Some("message-3")
+        );
+        assert_eq!(
+            newest_page.items[1]
+                .steps
+                .iter()
+                .map(|step| step.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["step-3"]
+        );
+
+        let older_page = handler
+            .handle_list_session_messages(tonic::Request::new(proto::ListSessionMessagesRequest {
+                session_id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+                page_size: 2,
+                before_message_id: Some("019f0000-0000-7000-8000-000000000002".to_string()),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert!(!older_page.has_more);
+        assert_eq!(older_page.items.len(), 1);
+        assert_eq!(
+            older_page.items[0]
+                .message
+                .as_ref()
+                .map(|message| message.content.as_str()),
+            Some("message-1")
+        );
+        assert_eq!(
+            older_page.items[0]
+                .steps
+                .iter()
+                .map(|step| step.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["step-1"]
+        );
+    }
+
+    #[tokio::test]
+    async fn test_list_session_messages_rejects_unknown_cursor() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+
+        kv.set_msg(
+            "default",
+            &keys::session("test-agent", "session-1"),
+            &models::Session {
+                id: "session-1".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let err = handler
+            .handle_list_session_messages(tonic::Request::new(proto::ListSessionMessagesRequest {
+                session_id: "session-1".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+                page_size: 10,
+                before_message_id: Some("missing".to_string()),
+            }))
+            .await
+            .expect_err("unknown cursor should fail");
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
+    }
+
+    #[tokio::test]
     async fn test_send_message_maps_common_errors() {
         let kv = Arc::new(MockKvStore::default());
-        let handler =
-            setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         let empty = handler
             .handle_send_message(tonic::Request::new(proto::SendMessageRequest {
@@ -686,10 +953,7 @@ mod tests {
             );
         }
 
-        let handler = setup_mock_gateway_handler(
-            Arc::new(MockKvStore::default()),
-            pubsub,
-        );
+        let handler = setup_mock_gateway_handler(Arc::new(MockKvStore::default()), pubsub);
         let req = tonic::Request::new(proto::StreamSessionStepsRequest {
             session_id: session_id.to_string(),
             agent: "test-agent".to_string(),
@@ -714,8 +978,7 @@ mod tests {
     #[tokio::test]
     async fn test_list_sessions_returns_updated_at_sorted_desc() {
         let kv = Arc::new(MockKvStore::default());
-        let handler =
-            setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         let ns = "default";
         let agent = "test-agent";

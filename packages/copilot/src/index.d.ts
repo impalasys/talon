@@ -2,7 +2,14 @@ import type React from "react";
 
 export type GatewayClientLike = {
   createSession(request: { ns: string; agent: string }): Promise<{ sessionId: string }>;
-  getSession(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+  listSessionMessages?(request: {
+    ns: string;
+    agent: string;
+    sessionId: string;
+    pageSize: number;
+    beforeMessageId?: string;
+  }): Promise<any>;
+  getSession(request: { ns: string; agent: string; sessionId: string; messageLimit?: number; stepLimit?: number }): Promise<any>;
 };
 
 export type ToolInvocationItem = {
@@ -57,6 +64,9 @@ export type TalonCopilotProps = {
   talonIcon?: React.ReactNode;
   timestampLocale?: Intl.LocalesArgument;
   formatTimestamp?: (message: CopilotMessage) => string;
+  historyPageSize?: number;
+  historyMessageLimit?: number;
+  historyStepLimit?: number;
 };
 
 export function TalonCopilot(props: TalonCopilotProps): React.JSX.Element;

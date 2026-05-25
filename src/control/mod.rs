@@ -51,6 +51,28 @@ pub trait KeyValueStore: Send + Sync {
         Ok(entries)
     }
 
+    /// List direct child key/value pairs in reverse key order with an exclusive cursor.
+    async fn list_direct_entries_page(
+        &self,
+        namespace: &str,
+        prefix: &str,
+        before_key: Option<&str>,
+        limit: usize,
+    ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+
+        let mut entries = self.list_entries(namespace, prefix).await?;
+        entries.retain(|(key, _)| {
+            !key.strip_prefix(prefix).unwrap_or(key).contains('/')
+                && before_key.is_none_or(|cursor| key.as_str() < cursor)
+        });
+        entries.sort_by(|left, right| right.0.cmp(&left.0));
+        entries.truncate(limit);
+        Ok(entries)
+    }
+
     /// Delete all keys in a namespace with a given prefix.
     async fn delete_prefix(&self, namespace: &str, prefix: &str) -> anyhow::Result<()> {
         let keys = self.list_keys(namespace, prefix).await?;
