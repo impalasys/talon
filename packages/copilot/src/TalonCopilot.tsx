@@ -361,8 +361,12 @@ function historyMessageTimestamp(message: Pick<CopilotMessage, "createdAt">) {
   return normalizeEpochToMilliseconds(message.createdAt);
 }
 
+function isLocalMessageId(id: string) {
+  return id.startsWith("local-") || id.startsWith("msg-");
+}
+
 function canCompareCanonicalMessageIds(left: string, right: string) {
-  const isFallbackId = (id: string) => id.startsWith("history-") || id.startsWith("local-") || id.startsWith("msg-");
+  const isFallbackId = (id: string) => id.startsWith("history-") || isLocalMessageId(id);
   return !isFallbackId(left) && !isFallbackId(right);
 }
 
@@ -423,7 +427,7 @@ function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPage
   const newestPageTimestamp = historyMessageTimestamp(newestPageMessages[newestPageMessages.length - 1]);
   const preservedOlderMessages = existingMessages.filter((message) => {
     if (message.id === "1") return true;
-    if (message.id.startsWith("local-")) return false;
+    if (isLocalMessageId(message.id)) return false;
     if (newestIds.has(message.id)) return false;
     const messageTimestamp = historyMessageTimestamp(message);
     if (messageTimestamp !== null && oldestPageTimestamp !== null) {
@@ -434,7 +438,7 @@ function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPage
   });
   const preservedNewerMessages = existingMessages.filter((message) => {
     if (message.id === "1") return false;
-    if (message.id.startsWith("local-")) return false;
+    if (isLocalMessageId(message.id)) return false;
     if (newestIds.has(message.id)) return false;
     const messageTimestamp = historyMessageTimestamp(message);
     if (messageTimestamp !== null && newestPageTimestamp !== null) {
@@ -876,7 +880,7 @@ export function TalonCopilot({
       } catch (err) {
         prependScrollRestoreRef.current = null;
         skipNextAutoScrollRef.current = false;
-        setError(err instanceof Error ? err : new Error(String(err)));
+        console.warn("Could not load older session history", err);
       } finally {
         isLoadingOlderHistoryRef.current = false;
         setIsLoadingOlderHistory(false);

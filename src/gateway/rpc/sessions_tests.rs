@@ -152,6 +152,20 @@ mod tests {
                 limit,
             ))
         }
+
+        async fn list_entries_page(
+            &self,
+            ns: &str,
+            prefix: &str,
+            before_key: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
+            Ok(crate::control::page_entries_desc(
+                self.list_entries(ns, prefix).await?,
+                before_key,
+                limit,
+            ))
+        }
     }
 
     fn setup_mock_gateway_handler(

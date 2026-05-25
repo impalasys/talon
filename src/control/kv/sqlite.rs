@@ -90,6 +90,18 @@ fn list_keys_page_query(table: &str) -> String {
     )
 }
 
+fn list_entries_page_query(table: &str) -> String {
+    format!(
+        "SELECT key, value FROM {}
+         WHERE namespace = ?1
+           AND key LIKE ?2 ESCAPE '\\'
+           AND (?3 IS NULL OR key < ?3)
+         ORDER BY key DESC
+         LIMIT ?4",
+        quoted_identifier(table)
+    )
+}
+
 fn delete_prefix_query(table: &str) -> String {
     format!(
         "DELETE FROM {} WHERE namespace = ?1 AND key LIKE ?2 ESCAPE '\\'",
@@ -245,6 +257,34 @@ impl KeyValueStore for SqliteKvStore {
         Ok(keys)
     }
 
+    async fn list_entries_page(
+        &self,
+        namespace: &str,
+        prefix: &str,
+        before_key: Option<&str>,
+        limit: usize,
+    ) -> Result<Vec<(String, Vec<u8>)>> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
+
+        let query = list_entries_page_query(&self.table);
+        let prefix_pattern = like_prefix_pattern(prefix);
+        let rows = sqlx::query(&query)
+            .bind(namespace)
+            .bind(prefix_pattern)
+            .bind(before_key)
+            .bind(limit as i64)
+            .fetch_all(&self.pool)
+            .await?;
+
+        let mut entries = Vec::with_capacity(rows.len());
+        for row in rows {
+            entries.push((row.try_get("key")?, row.try_get("value")?));
+        }
+        Ok(entries)
+    }
+
     async fn delete_prefix(&self, namespace: &str, prefix: &str) -> Result<()> {
         let query = delete_prefix_query(&self.table);
         let prefix_pattern = like_prefix_pattern(prefix);
@@ -261,8 +301,8 @@ impl KeyValueStore for SqliteKvStore {
 mod tests {
     use super::{
         compare_and_swap_query, create_table_statement, delete_prefix_query, delete_query,
-        get_query, list_entries_query, list_keys_page_query, list_keys_query, set_query,
-        SqliteKvStore,
+        get_query, list_entries_page_query, list_entries_query, list_keys_page_query,
+        list_keys_query, set_query, SqliteKvStore,
     };
     use crate::control::kv::sqlite_url_for_path;
     use crate::control::KeyValueStore;
@@ -287,6 +327,8 @@ mod tests {
         );
         assert!(list_keys_query("talon_kv").contains("LIKE ?2 ESCAPE '\\'"));
         assert!(list_keys_page_query("talon_kv").contains("ORDER BY key DESC"));
+        assert!(list_entries_page_query("talon_kv").contains("SELECT key, value"));
+        assert!(list_entries_page_query("talon_kv").contains("ORDER BY key DESC"));
         assert!(list_entries_query("talon_kv").contains("SELECT key, value"));
         assert!(delete_prefix_query("talon_kv").contains("DELETE FROM \"talon_kv\""));
     }
@@ -326,6 +368,16 @@ mod tests {
                 .await
                 .unwrap(),
             vec!["prefix/a".to_string()]
+        );
+        assert_eq!(
+            store
+                .list_entries_page("ns", "prefix/", None, 10)
+                .await
+                .unwrap(),
+            vec![
+                ("prefix/b".to_string(), b"two".to_vec()),
+                ("prefix/a".to_string(), b"one".to_vec())
+            ]
         );
 
         let mut entries = store.list_entries("ns", "prefix/").await.unwrap();

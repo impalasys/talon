@@ -6,7 +6,6 @@ use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys};
 use crate::scheduling;
-use futures::StreamExt;
 use prost::Message;
 use std::collections::HashMap;
 
@@ -14,7 +13,6 @@ const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
-const SESSION_MESSAGE_ENTRY_FETCH_CONCURRENCY: usize = 16;
 
 fn requested_limit(limit: i32) -> Option<usize> {
     match limit {
@@ -439,10 +437,10 @@ impl GrpcGatewayHandler {
             // key order, Steps/{step_id} keys appear before their parent
             // message key, so a single key-page scan can buffer steps and then
             // attach them when the message record is encountered.
-            let keys = self
+            let entries = self
                 .gateway
                 .kv
-                .list_keys_page(
+                .list_entries_page(
                     &req.ns,
                     &msg_prefix,
                     scan_before_key.as_deref(),
@@ -453,41 +451,15 @@ impl GrpcGatewayHandler {
                     tonic::Status::internal(format!("Failed to list session messages: {}", e))
                 })?;
 
-            if keys.is_empty() {
+            if entries.is_empty() {
                 break;
             }
 
             // Continue from the last key returned, regardless of whether it was
             // a message key, a step key, or another nested descendant.
-            scan_before_key = keys.last().cloned();
+            scan_before_key = entries.last().map(|(key, _)| key.clone());
 
-            let relevant_keys = keys
-                .into_iter()
-                .filter(|key| {
-                    step_message_id(&msg_prefix, key).is_some()
-                        || direct_message_id(&msg_prefix, key).is_some()
-                })
-                .collect::<Vec<_>>();
-            let mut fetches = futures::stream::iter(relevant_keys.into_iter().map(|key| {
-                let kv = self.gateway.kv.clone();
-                let ns = req.ns.clone();
-                async move {
-                    let result = kv.get(&ns, &key).await;
-                    (key, result)
-                }
-            }))
-            // Keep enough parallelism to avoid one get per roundtrip, but do
-            // not let a single history page consume the whole DB pool.
-            .buffered(SESSION_MESSAGE_ENTRY_FETCH_CONCURRENCY);
-
-            while let Some((key, maybe_bytes_result)) = fetches.next().await {
-                let maybe_bytes = maybe_bytes_result.map_err(|e| {
-                    tonic::Status::internal(format!("Failed to fetch session entry: {}", e))
-                })?;
-                let Some(bytes) = maybe_bytes else {
-                    continue;
-                };
-
+            for (key, bytes) in entries {
                 let payload_bytes = bytes.len();
                 // Handle step keys first; the rest of this loop is for direct
                 // message records.
@@ -522,6 +494,10 @@ impl GrpcGatewayHandler {
                             );
                         }
                     }
+                    continue;
+                }
+
+                if direct_message_id(&msg_prefix, &key).is_none() {
                     continue;
                 }
 

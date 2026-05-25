@@ -129,6 +129,20 @@ pub mod test_support {
                 limit,
             ))
         }
+
+        async fn list_entries_page(
+            &self,
+            namespace: &str,
+            prefix: &str,
+            before_key: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
+            Ok(crate::control::page_entries_desc(
+                self.list_entries(namespace, prefix).await?,
+                before_key,
+                limit,
+            ))
+        }
     }
 
     #[derive(Default)]
