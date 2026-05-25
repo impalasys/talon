@@ -206,7 +206,7 @@ impl WorkerEventHandler {
 #[cfg(test)]
 mod tests {
     use super::{execute_with_panic_boundary, SessionCompletionStatus};
-    use crate::config::Config;
+    use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
         scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
@@ -218,13 +218,16 @@ mod tests {
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
     };
+    use axum::{routing::post, Json, Router};
     use async_trait::async_trait;
     use futures::stream;
+    use serde_json::json;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
     use serde_json::Value;
     use std::sync::Mutex;
+    use tokio::net::TcpListener;
     use tokio::sync::Mutex as AsyncMutex;
     use tokio_util::sync::CancellationToken;
 
@@ -348,10 +351,23 @@ mod tests {
             }),
             config: Arc::new(Config {
                 providers: HashMap::from([(
-                    "mock".to_string(),
-                    crate::config::ProviderConfig { config: None },
+                    "novita".to_string(),
+                    ProviderConfig {
+                        config: Some(proto::llm_provider_config::Config::OpenaiCompatible(
+                            proto::GenericConfig {
+                                name: "novita".to_string(),
+                                base_url: "https://unused.example.com".to_string(),
+                                model: "test-model".to_string(),
+                                api_key: Some(Secret {
+                                    source: Some(proto::secret::Source::Plain(
+                                        "test-key".to_string(),
+                                    )),
+                                }),
+                            },
+                        )),
+                    },
                 )]),
-                default_provider: "mock".to_string(),
+                default_provider: "novita".to_string(),
                 ..Config::default()
             }),
             mcp_registry: Arc::new(McpRegistry::new()),
@@ -516,6 +532,28 @@ mod tests {
 
     #[tokio::test]
     async fn handle_session_message_runs_end_to_end_and_releases_lock() {
+        let _guard = crate::test_support::async_env_mutex().lock().await;
+        let app = Router::new().route(
+            "/chat/completions",
+            post(|| async {
+                Json(json!({
+                    "choices": [{
+                        "message": {
+                            "content": "assistant reply"
+                        }
+                    }]
+                }))
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        unsafe {
+            std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
+        }
+
         let kv = Arc::new(MockKvStore::default());
         let handler = handler_with_kv(kv.clone());
         let spec = manifests::AgentSpec {
@@ -610,5 +648,10 @@ mod tests {
         }
         let reply = reply.expect("assistant reply should be stored");
         assert_eq!(reply.role, 2);
+
+        unsafe {
+            std::env::remove_var("NOVITA_BASE_URL");
+        }
+        server.abort();
     }
 }
