@@ -98,6 +98,35 @@ async function waitForSessionText(
   }).toPass({ timeout: 60000 });
 }
 
+async function annotatePaginationProof(page: Page, label: string) {
+  if (process.env.CAPTURE_PAGINATION_VIDEO !== 'true') return;
+  await page.evaluate((text) => {
+    const id = 'pagination-proof-overlay';
+    let overlay = document.getElementById(id);
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = id;
+      Object.assign(overlay.style, {
+        position: 'fixed',
+        left: '16px',
+        bottom: '16px',
+        zIndex: '2147483647',
+        maxWidth: '760px',
+        padding: '12px 14px',
+        borderRadius: '12px',
+        background: 'rgba(15, 23, 42, 0.94)',
+        color: 'white',
+        font: '600 16px/1.35 ui-sans-serif, system-ui, sans-serif',
+        boxShadow: '0 18px 45px rgba(15, 23, 42, 0.28)',
+        whiteSpace: 'pre-line',
+      });
+      document.body.appendChild(overlay);
+    }
+    overlay.textContent = text;
+  }, label);
+  await page.waitForTimeout(2200);
+}
+
 test.describe('Chat Streaming', () => {
   test('should send chat messages through the gateway UI transport', async ({ page }) => {
     const { chatInput, sendButton } = await provisionSession(page);
@@ -182,7 +211,7 @@ test.describe('Chat Streaming', () => {
 });
 
 test.describe('Copilot history pagination', () => {
-  test('loads older session message pages on transcript scroll without fetching full history', async ({ page }) => {
+  test('loads older session message pages on transcript scroll without fetching full history', async ({ browser }, testInfo) => {
     const { client, sessionId, gatewayUrl, testNs, testAgent } = await createTestSession();
     const target = { ns: testNs, agent: testAgent, sessionId };
 
@@ -196,6 +225,15 @@ test.describe('Copilot history pagination', () => {
       await waitForSessionText(client, target, `I received your message: ${prompt}`);
     }
 
+    const webPort = process.env.WEB_PORT || '3000';
+    const context = await browser.newContext({
+      baseURL: `http://localhost:${webPort}`,
+      viewport: { width: 1280, height: 720 },
+      recordVideo: process.env.CAPTURE_E2E_VIDEO === 'true'
+        ? { dir: testInfo.outputDir, size: { width: 1280, height: 720 } }
+        : undefined,
+    });
+    const page = await context.newPage();
     const listSessionMessagesRequests: string[] = [];
     const getSessionRequests: string[] = [];
     page.on('request', request => {
@@ -208,35 +246,51 @@ test.describe('Copilot history pagination', () => {
       }
     });
 
-    await page.addInitScript((url) => {
-      localStorage.setItem('talon_gateway_url', url);
-    }, gatewayUrl);
+    try {
+      await page.addInitScript((url) => {
+        localStorage.setItem('talon_gateway_url', url);
+      }, gatewayUrl);
 
-    await page.goto(`/?connected=true&historyPageSize=4&ns=${encodeURIComponent(testNs)}&agent=${encodeURIComponent(testAgent)}&session=${encodeURIComponent(sessionId)}`);
-    await expect(page.locator('text=Connected')).toBeVisible({ timeout: 45000 });
-    await expect(page.getByText('pagination seed 5', { exact: true })).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('I received your message: pagination seed 5', { exact: true })).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('pagination seed 1', { exact: true })).toHaveCount(0);
-    await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(1);
-    expect(getSessionRequests).toHaveLength(0);
+      await page.goto(`/?connected=true&historyPageSize=4&ns=${encodeURIComponent(testNs)}&agent=${encodeURIComponent(testAgent)}&session=${encodeURIComponent(sessionId)}`);
+      await expect(page.locator('text=Connected')).toBeVisible({ timeout: 45000 });
+      await expect(page.getByText('pagination seed 5', { exact: true })).toBeVisible({ timeout: 30000 });
+      await expect(page.getByText('I received your message: pagination seed 5', { exact: true })).toBeVisible({ timeout: 30000 });
+      await expect(page.getByText('pagination seed 1', { exact: true })).toHaveCount(0);
+      await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(1);
+      expect(getSessionRequests).toHaveLength(0);
+      await annotatePaginationProof(
+        page,
+        `Initial page loaded\nVisible: seed 5 newest page\nAbsent: seed 1 older page\nListSessionMessages calls: ${listSessionMessagesRequests.length}\nGetSession calls: ${getSessionRequests.length}`,
+      );
 
-    const transcript = page.getByTestId('copilot-transcript');
-    await expect(transcript).toBeVisible();
+      const transcript = page.getByTestId('copilot-transcript');
+      await expect(transcript).toBeVisible();
 
-    await transcript.evaluate((element) => {
-      element.scrollTop = 0;
-      element.dispatchEvent(new Event('scroll', { bubbles: true }));
-    });
-    await expect(page.getByText('pagination seed 3', { exact: true })).toBeVisible({ timeout: 30000 });
-    await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(2);
-    expect(getSessionRequests).toHaveLength(0);
+      await transcript.evaluate((element) => {
+        element.scrollTop = 0;
+        element.dispatchEvent(new Event('scroll', { bubbles: true }));
+      });
+      await expect(page.getByText('pagination seed 3', { exact: true })).toBeVisible({ timeout: 30000 });
+      await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(2);
+      expect(getSessionRequests).toHaveLength(0);
+      await annotatePaginationProof(
+        page,
+        `After first scroll-to-top\nVisible: seed 3 from older page\nListSessionMessages calls: ${listSessionMessagesRequests.length}\nGetSession calls: ${getSessionRequests.length}`,
+      );
 
-    await transcript.evaluate((element) => {
-      element.scrollTop = 0;
-      element.dispatchEvent(new Event('scroll', { bubbles: true }));
-    });
-    await expect(page.getByText('pagination seed 1', { exact: true })).toBeVisible({ timeout: 30000 });
-    await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(3);
-    expect(getSessionRequests).toHaveLength(0);
+      await transcript.evaluate((element) => {
+        element.scrollTop = 0;
+        element.dispatchEvent(new Event('scroll', { bubbles: true }));
+      });
+      await expect(page.getByText('pagination seed 1', { exact: true })).toBeVisible({ timeout: 30000 });
+      await expect.poll(() => listSessionMessagesRequests.length).toBeGreaterThanOrEqual(3);
+      expect(getSessionRequests).toHaveLength(0);
+      await annotatePaginationProof(
+        page,
+        `After second scroll-to-top\nVisible: seed 1 oldest page\nListSessionMessages calls: ${listSessionMessagesRequests.length}\nGetSession calls: ${getSessionRequests.length}`,
+      );
+    } finally {
+      await context.close();
+    }
   });
 });
