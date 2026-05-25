@@ -1115,13 +1115,13 @@ export function TalonCopilot({
   const handleTranscriptScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     const session = currentSessionRef.current;
-    if (!container || !session || isLoadingOlderHistory || !hasMoreHistory || !nextBeforeMessageId) {
+    if (!container || !session || isLoadingOlderHistoryRef.current || !hasMoreHistory || !nextBeforeMessageId) {
       return;
     }
     if (container.scrollTop <= HISTORY_SCROLL_LOAD_THRESHOLD_PX) {
       void loadOlderHistoryPage(session);
     }
-  }, [hasMoreHistory, isLoadingOlderHistory, loadOlderHistoryPage, nextBeforeMessageId]);
+  }, [hasMoreHistory, loadOlderHistoryPage, nextBeforeMessageId]);
 
   return (
     <div
