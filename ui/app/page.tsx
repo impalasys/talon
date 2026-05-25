@@ -602,7 +602,7 @@ function DebuggerPageContent() {
     if (savedUrl) {
       setGatewayUrl(savedUrl);
     } else {
-      setGatewayUrl(process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://envoy.talon.orb.local');
+      setGatewayUrl(process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://envoy.talon.orb.local');
     }
     const savedToken = localStorage.getItem('talon_auth_token');
     if (savedToken) {
