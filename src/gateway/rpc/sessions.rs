@@ -33,10 +33,10 @@ impl GrpcGatewayHandler {
         message_id: &str,
     ) -> std::result::Result<Vec<events::SessionStepEvent>, tonic::Status> {
         let step_prefix = keys::session_message_step_prefix(agent, session_id, message_id);
-        let mut step_keys = self
+        let mut entries = self
             .gateway
             .kv
-            .list_keys(ns, &step_prefix)
+            .list_entries(ns, &step_prefix)
             .await
             .map_err(|e| {
                 tracing::error!(
@@ -50,59 +50,33 @@ impl GrpcGatewayHandler {
                 );
                 tonic::Status::internal(format!("Failed to list session steps: {}", e))
             })?;
-        step_keys.sort();
+        entries.sort_by(|left, right| left.0.cmp(&right.0));
         tracing::info!(
             ns = %ns,
             agent = %agent,
             session_id = %session_id,
             message_id = %message_id,
-            step_key_count = step_keys.len(),
-            "loaded session step keys"
+            step_key_count = entries.len(),
+            "loaded session step entries"
         );
 
         let mut steps = Vec::new();
-        for key in step_keys {
-            match self.gateway.kv.get(ns, &key).await {
-                Ok(Some(bytes)) => {
-                    let payload_bytes = bytes.len();
-                    if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
-                        tracing::warn!(
-                            ns = %ns,
-                            agent = %agent,
-                            session_id = %session_id,
-                            message_id = %message_id,
-                            key = %key,
-                            payload_bytes,
-                            "session step payload is unusually large"
-                        );
-                    }
+        for (key, bytes) in entries {
+            let payload_bytes = bytes.len();
+            if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
+                tracing::warn!(
+                    ns = %ns,
+                    agent = %agent,
+                    session_id = %session_id,
+                    message_id = %message_id,
+                    key = %key,
+                    payload_bytes,
+                    "session step payload is unusually large"
+                );
+            }
 
-                    match events::SessionStepEvent::decode(bytes.as_slice()) {
-                        Ok(step) => steps.push(step),
-                        Err(e) => {
-                            tracing::error!(
-                                ns = %ns,
-                                agent = %agent,
-                                session_id = %session_id,
-                                message_id = %message_id,
-                                key = %key,
-                                payload_bytes,
-                                error = %e,
-                                "failed to decode session step"
-                            );
-                        }
-                    }
-                }
-                Ok(None) => {
-                    tracing::warn!(
-                        ns = %ns,
-                        agent = %agent,
-                        session_id = %session_id,
-                        message_id = %message_id,
-                        key = %key,
-                        "session step key exists but value is missing"
-                    );
-                }
+            match events::SessionStepEvent::decode(bytes.as_slice()) {
+                Ok(step) => steps.push(step),
                 Err(e) => {
                     tracing::error!(
                         ns = %ns,
@@ -110,6 +84,7 @@ impl GrpcGatewayHandler {
                         session_id = %session_id,
                         message_id = %message_id,
                         key = %key,
+                        payload_bytes,
                         error = %e,
                         "failed to decode session step"
                     );

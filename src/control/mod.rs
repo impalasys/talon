@@ -52,6 +52,9 @@ pub trait KeyValueStore: Send + Sync {
     }
 
     /// List direct child key/value pairs in reverse key order with an exclusive cursor.
+    ///
+    /// The default implementation materializes all prefixed entries before filtering and
+    /// truncating, so production backends should override this with a storage-level page read.
     async fn list_direct_entries_page(
         &self,
         namespace: &str,
@@ -66,7 +69,7 @@ pub trait KeyValueStore: Send + Sync {
         let mut entries = self.list_entries(namespace, prefix).await?;
         entries.retain(|(key, _)| {
             !key.strip_prefix(prefix).unwrap_or(key).contains('/')
-                && before_key.is_none_or(|cursor| key.as_str() < cursor)
+                && before_key.map_or(true, |cursor| key.as_str() < cursor)
         });
         entries.sort_by(|left, right| right.0.cmp(&left.0));
         entries.truncate(limit);

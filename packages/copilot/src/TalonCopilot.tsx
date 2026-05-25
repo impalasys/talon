@@ -384,14 +384,25 @@ function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPage
   }
   const newestIds = new Set(newestPageMessages.map((message) => message.id));
   const oldestPageId = newestPageMessages[0]?.id;
+  const newestPageId = newestPageMessages[newestPageMessages.length - 1]?.id;
   const preservedOlderMessages = existingMessages.filter((message) => {
     if (message.id === "1") return false;
     if (newestIds.has(message.id)) return false;
     return oldestPageId ? message.id < oldestPageId : false;
   });
-  return preservedOlderMessages.length > 0
-    ? [...preservedOlderMessages, ...newestPageMessages]
-    : newestPageMessages;
+  const preservedNewerMessages = existingMessages.filter((message) => {
+    if (message.id === "1") return false;
+    if (newestIds.has(message.id)) return false;
+    return newestPageId ? message.id > newestPageId : false;
+  });
+  const mergedMessages = [...preservedOlderMessages, ...newestPageMessages, ...preservedNewerMessages];
+  const dedupedMessages = new Map<string, CopilotMessage>();
+  for (const message of mergedMessages) {
+    if (!dedupedMessages.has(message.id)) {
+      dedupedMessages.set(message.id, message);
+    }
+  }
+  return Array.from(dedupedMessages.values());
 }
 
 export function TalonCopilot({
