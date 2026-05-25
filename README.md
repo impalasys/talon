@@ -1,8 +1,8 @@
 # Talon
 
-Talon is an agent control plane and worker runtime. It gives you durable sessions, agent and template management, schedules, knowledge resources, MCP bindings, a gRPC/HTTP gateway, a worker process, and a browser UI for inspection.
+Talon is the control plane for cloud native agents. It lets teams operate autonomous agent fleets with durable execution, declarative configuration, namespace isolation, and a browser-native fleet view.
 
-This repository contains the Talon runtime, operator UI, manifests, protocol definitions, and docs.
+Talon gives you the infrastructure long-lived agents were missing: a gateway API, worker runtime, persisted sessions, schedule wakeups, knowledge, MCP bindings, and Sightline for inspecting what is running.
 
 ## What ships in this repo
 
@@ -21,7 +21,9 @@ Talon is split into a few explicit roles:
 - Gateway: accepts API calls, persists session state, and publishes work
 - Worker: consumes work, resolves models and tools, executes turns, and emits step events
 - Control plane: persistence, broker, and scheduler backing services
-- Edge/UI: Envoy plus the Next.js UI for browser access
+- Edge/UI: Envoy plus Sightline, the browser-native fleet view for operators
+
+The important product behavior is durability. Threads survive crashes, deploys, and cold starts; schedules wake named agent workflows back up; and specs stay declarative as you iterate on prompts, tools, and policies.
 
 In the checked-in local stack, the control plane uses Postgres and a Pub/Sub emulator. For same-host development, Talon can also run directly against SQLite plus a local socket broker.
 
@@ -91,7 +93,7 @@ This starts:
 - Postgres
 - Pub/Sub emulator
 - Envoy
-- UI
+- Sightline UI
 - a manifest bootstrap step that applies `manifests/default_agent.yaml`
 
 Useful local endpoints:
@@ -110,6 +112,14 @@ cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f ma
 cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-template.yaml
 cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f manifests/examples/chatgpt-app/support-docs-agent.yaml
 ```
+
+This is the core Talon loop in practice:
+
+- define declarative agent specs
+- bind tools and MCPs explicitly
+- run durable named sessions
+- wake work on schedule
+- reuse knowledge across agents
 
 ### Send a browser-style session request
 
