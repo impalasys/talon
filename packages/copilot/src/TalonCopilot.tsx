@@ -864,7 +864,12 @@ export function TalonCopilot({
         setMessages((prev) => {
           const existingIds = new Set(prev.map((message) => message.id));
           const olderMessages = res.messages.filter((message) => !existingIds.has(message.id));
-          return olderMessages.length > 0 ? [...olderMessages, ...prev] : prev;
+          if (olderMessages.length === 0) {
+            prependScrollRestoreRef.current = null;
+            skipNextAutoScrollRef.current = false;
+            return prev;
+          }
+          return [...olderMessages, ...prev];
         });
         setHasMoreHistory(res.hasMore);
         setNextBeforeMessageId(res.nextBeforeMessageId);

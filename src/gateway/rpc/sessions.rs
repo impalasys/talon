@@ -6,12 +6,14 @@ use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys};
 use crate::scheduling;
+use futures::StreamExt;
 use prost::Message;
 use std::collections::HashMap;
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
+const SESSION_MESSAGE_ENTRY_FETCH_CONCURRENCY: usize = 16;
 
 fn requested_limit(limit: i32) -> Option<usize> {
     match limit {
@@ -456,16 +458,19 @@ impl GrpcGatewayHandler {
                         || direct_message_id(&msg_prefix, key).is_some()
                 })
                 .collect::<Vec<_>>();
-            let fetches = relevant_keys.into_iter().map(|key| {
+            let mut fetches = futures::stream::iter(relevant_keys.into_iter().map(|key| {
                 let kv = self.gateway.kv.clone();
                 let ns = req.ns.clone();
                 async move {
                     let result = kv.get(&ns, &key).await;
                     (key, result)
                 }
-            });
+            }))
+            // Keep enough parallelism to avoid one get per roundtrip, but do
+            // not let a single history page consume the whole DB pool.
+            .buffered(SESSION_MESSAGE_ENTRY_FETCH_CONCURRENCY);
 
-            for (key, maybe_bytes_result) in futures::future::join_all(fetches).await {
+            while let Some((key, maybe_bytes_result)) = fetches.next().await {
                 let maybe_bytes = maybe_bytes_result.map_err(|e| {
                     tonic::Status::internal(format!("Failed to fetch session entry: {}", e))
                 })?;
