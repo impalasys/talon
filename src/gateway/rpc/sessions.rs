@@ -6,7 +6,9 @@ use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys};
 use crate::scheduling;
+use futures::future::try_join_all;
 use prost::Message;
+use std::collections::HashMap;
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
@@ -492,7 +494,7 @@ impl GrpcGatewayHandler {
             entries.truncate(page_size);
         }
 
-        let mut items = Vec::with_capacity(entries.len());
+        let mut messages = Vec::with_capacity(entries.len());
         for (key, bytes) in entries {
             let payload_bytes = bytes.len();
             if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
@@ -522,16 +524,33 @@ impl GrpcGatewayHandler {
                 }
             };
 
-            let steps = if message.role == models::MessageRole::RoleAssistant as i32 {
-                self.load_session_message_steps(&req.ns, &req.agent, &req.session_id, &message.id)
-                    .await?
-            } else {
-                Vec::new()
-            };
+            messages.push(message);
+        }
 
+        let assistant_message_ids = messages
+            .iter()
+            .filter(|message| message.role == models::MessageRole::RoleAssistant as i32)
+            .map(|message| message.id.clone())
+            .collect::<Vec<_>>();
+
+        let steps_by_message = try_join_all(assistant_message_ids.iter().map(|message_id| async {
+            let steps = self
+                .load_session_message_steps(&req.ns, &req.agent, &req.session_id, message_id)
+                .await?;
+            Ok::<_, tonic::Status>((message_id.clone(), steps))
+        }))
+        .await?
+        .into_iter()
+        .collect::<HashMap<_, _>>();
+
+        let mut items = Vec::with_capacity(messages.len());
+        for message in messages {
             items.push(proto::ListSessionMessagesResponseItem {
+                steps: steps_by_message
+                    .get(&message.id)
+                    .cloned()
+                    .unwrap_or_default(),
                 message: Some(message),
-                steps,
             });
         }
 

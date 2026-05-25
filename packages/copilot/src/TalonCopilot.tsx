@@ -56,6 +56,7 @@ const bootMessage: CopilotMessage[] = [
 const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
+const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
 
 function DefaultTalonIcon() {
   return (
@@ -332,6 +333,24 @@ type SessionHistoryPage = {
   nextBeforeMessageId: string | null;
 };
 
+function stableStringHash(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash.toString(36);
+}
+
+function stableHistoryMessageId(message: any, index: number) {
+  if (typeof message?.id === "string" && message.id.length > 0) {
+    return message.id;
+  }
+  const role = normalizeMessageRole(message?.role);
+  const createdAt = message?.createdAt ?? message?.created_at ?? "unknown";
+  const content = typeof message?.content === "string" ? message.content : "";
+  return `history-${role}-${createdAt}-${index}-${stableStringHash(content)}`;
+}
+
 function historyItemsFromResponse(response: any) {
   if (Array.isArray(response?.items)) {
     return response.items as Array<{ message?: any; steps?: any[] }>;
@@ -358,8 +377,8 @@ function normalizeHistoryPage(response: any): SessionHistoryPage {
   const rawMessages = items
     .map((item) => item?.message)
     .filter(Boolean)
-    .map((message: any) => ({
-      id: message.id || Math.random().toString(),
+    .map((message: any, index: number) => ({
+      id: stableHistoryMessageId(message, index),
       role: normalizeMessageRole(message.role),
       content: message.content,
       createdAt: message.createdAt ?? message.created_at,
@@ -1039,7 +1058,7 @@ export function TalonCopilot({
     if (!container || !session || isLoadingOlderHistory || !hasMoreHistory || !nextBeforeMessageId) {
       return;
     }
-    if (container.scrollTop <= 120) {
+    if (container.scrollTop <= HISTORY_SCROLL_LOAD_THRESHOLD_PX) {
       void loadOlderHistoryPage(session);
     }
   }, [hasMoreHistory, isLoadingOlderHistory, loadOlderHistoryPage, nextBeforeMessageId]);
