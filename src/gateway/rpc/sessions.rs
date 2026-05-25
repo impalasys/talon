@@ -14,7 +14,11 @@ const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 
 fn requested_limit(limit: i32) -> Option<usize> {
-    (limit >= 0).then_some(limit as usize)
+    match limit {
+        value if value < 0 => Some(0),
+        0 => None,
+        value => Some(value as usize),
+    }
 }
 
 fn validated_page_size(page_size: i32) -> std::result::Result<usize, tonic::Status> {

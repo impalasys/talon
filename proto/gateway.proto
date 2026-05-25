@@ -438,9 +438,9 @@ message GetSessionRequest {
   string session_id = 1;
   string agent = 2;
   string ns = 3;
-  // 0 returns no messages. Use -1 to request all messages.
+  // 0 preserves legacy behavior and returns all messages. Use a negative value to return no messages.
   int32 message_limit = 4;
-  // 0 returns no steps. Use -1 to request all steps for returned messages.
+  // 0 preserves legacy behavior and returns all steps for returned messages. Use a negative value to return no steps.
   int32 step_limit = 5;
 }
 

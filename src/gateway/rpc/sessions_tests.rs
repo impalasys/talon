@@ -426,8 +426,8 @@ mod tests {
                 session_id: session_id.to_string(),
                 agent: agent.to_string(),
                 ns: ns.to_string(),
-                message_limit: -1,
-                step_limit: -1,
+                message_limit: 0,
+                step_limit: 0,
             }))
             .await
             .unwrap()
@@ -443,7 +443,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_session_zero_limits_returns_metadata_without_listing_history() {
+    async fn test_get_session_negative_limits_return_metadata_without_listing_history() {
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([(
                 (
@@ -475,8 +475,8 @@ mod tests {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
-                message_limit: 0,
-                step_limit: 0,
+                message_limit: -1,
+                step_limit: -1,
             }))
             .await
             .unwrap()
@@ -537,7 +537,7 @@ mod tests {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
-                message_limit: -1,
+                message_limit: 0,
                 step_limit: 0,
             }))
             .await
@@ -599,8 +599,8 @@ mod tests {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
-                message_limit: -1,
-                step_limit: -1,
+                message_limit: 0,
+                step_limit: 0,
             }))
             .await
             .expect_err("step list failure should surface");

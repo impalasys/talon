@@ -151,7 +151,7 @@ async fn fetch_session(
     headers: &HeaderMap,
     path: &SessionPath,
 ) -> Result<proto::SessionResponse, Response> {
-    fetch_session_with_limits(gateway, headers, path, None, None).await
+    fetch_session_with_limits(gateway, headers, path, Some(-1), Some(-1)).await
 }
 
 async fn fetch_session_with_limits(
@@ -388,7 +388,7 @@ pub async fn post_chat(
                 &headers_for_stream,
                 &path_for_stream,
                 Some(1),
-                Some(0),
+                Some(-1),
             )
             .await
             {
