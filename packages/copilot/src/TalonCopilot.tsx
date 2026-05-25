@@ -57,7 +57,6 @@ const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
-let localMessageSequence = 0;
 
 function DefaultTalonIcon() {
   return (
@@ -118,8 +117,7 @@ function isSameSession(
 
 function createLocalMessageId() {
   const timestamp = String(Date.now()).padStart(13, "0");
-  localMessageSequence = (localMessageSequence + 1) % 1_000_000;
-  const sequence = String(localMessageSequence).padStart(6, "0");
+  const sequence = String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0");
   let suffix = "000000";
   if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
     const bytes = new Uint8Array(3);

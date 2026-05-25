@@ -418,9 +418,13 @@ impl GrpcGatewayHandler {
             })?
             .ok_or_else(|| tonic::Status::not_found("Session not found"))?;
 
-        let before_key = req.before_message_id.as_deref().map(|before_message_id| {
-            keys::session_message(&req.agent, &req.session_id, before_message_id)
-        });
+        let before_key = req
+            .before_message_id
+            .as_deref()
+            .filter(|before_message_id| !before_message_id.is_empty())
+            .map(|before_message_id| {
+                keys::session_message(&req.agent, &req.session_id, before_message_id)
+            });
 
         // Fetch one extra message so the response can expose has_more and an
         // exclusive before_message_id cursor without requiring a separate count.
