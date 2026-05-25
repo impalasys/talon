@@ -157,6 +157,8 @@ async fn fetch_session(
             ns: path.ns.clone(),
             agent: path.agent.clone(),
             session_id: path.session_id.clone(),
+            message_limit: 0,
+            step_limit: 0,
         },
     )?;
     let response = gateway_handler(gateway)
