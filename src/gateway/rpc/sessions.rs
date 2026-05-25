@@ -449,18 +449,34 @@ impl GrpcGatewayHandler {
             // a message key, a step key, or another nested descendant.
             scan_before_key = keys.last().cloned();
 
-            for key in keys {
+            let relevant_keys = keys
+                .into_iter()
+                .filter(|key| {
+                    step_message_id(&msg_prefix, key).is_some()
+                        || direct_message_id(&msg_prefix, key).is_some()
+                })
+                .collect::<Vec<_>>();
+            let fetches = relevant_keys.into_iter().map(|key| {
+                let kv = self.gateway.kv.clone();
+                let ns = req.ns.clone();
+                async move {
+                    let result = kv.get(&ns, &key).await;
+                    (key, result)
+                }
+            });
+
+            for (key, maybe_bytes_result) in futures::future::join_all(fetches).await {
+                let maybe_bytes = maybe_bytes_result.map_err(|e| {
+                    tonic::Status::internal(format!("Failed to fetch session entry: {}", e))
+                })?;
+                let Some(bytes) = maybe_bytes else {
+                    continue;
+                };
+
+                let payload_bytes = bytes.len();
                 // Handle step keys first; the rest of this loop is for direct
                 // message records.
                 if let Some(message_id) = step_message_id(&msg_prefix, &key).map(str::to_owned) {
-                    let maybe_bytes = self.gateway.kv.get(&req.ns, &key).await.map_err(|e| {
-                        tonic::Status::internal(format!("Failed to fetch session step: {}", e))
-                    })?;
-                    let Some(bytes) = maybe_bytes else {
-                        continue;
-                    };
-
-                    let payload_bytes = bytes.len();
                     if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
                         tracing::warn!(
                             ns = %req.ns,
@@ -494,18 +510,6 @@ impl GrpcGatewayHandler {
                     continue;
                 }
 
-                if direct_message_id(&msg_prefix, &key).is_none() {
-                    continue;
-                }
-
-                let maybe_bytes = self.gateway.kv.get(&req.ns, &key).await.map_err(|e| {
-                    tonic::Status::internal(format!("Failed to fetch session message: {}", e))
-                })?;
-                let Some(bytes) = maybe_bytes else {
-                    continue;
-                };
-
-                let payload_bytes = bytes.len();
                 if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
                     tracing::warn!(
                         ns = %req.ns,
