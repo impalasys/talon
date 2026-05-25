@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Activity, ChevronRight, Send, Square, User } from "lucide-react";
 import { Streamdown } from "streamdown";
 import {
@@ -514,17 +514,14 @@ export function TalonCopilot({
     bottomRef.current?.scrollIntoView({ behavior });
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const restore = prependScrollRestoreRef.current;
     const container = scrollContainerRef.current;
     if (!restore || !container) return;
 
-    const rafId = window.requestAnimationFrame(() => {
-      const delta = container.scrollHeight - restore.previousScrollHeight;
-      container.scrollTop = restore.previousScrollTop + delta;
-      prependScrollRestoreRef.current = null;
-    });
-    return () => window.cancelAnimationFrame(rafId);
+    const delta = container.scrollHeight - restore.previousScrollHeight;
+    container.scrollTop = restore.previousScrollTop + delta;
+    prependScrollRestoreRef.current = null;
   }, [messages]);
 
   useEffect(() => {
