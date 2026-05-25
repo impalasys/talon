@@ -11,7 +11,6 @@ use axum::Json;
 use futures::StreamExt;
 use serde::Deserialize;
 use serde_json::{json, Value};
-use std::collections::HashSet;
 use std::convert::Infallible;
 use std::sync::Arc;
 use std::time::Duration;
@@ -140,7 +139,8 @@ where
     I: IntoIterator<Item = &'a events::SessionStepEvent>,
     I::IntoIter: DoubleEndedIterator,
 {
-    steps.into_iter()
+    steps
+        .into_iter()
         .rev()
         .find(|step| step.step_type == step_type)
         .and_then(extract_tool_step_payload)
@@ -210,12 +210,7 @@ fn step_dedup_key(step: &events::SessionStepEvent) -> String {
     let payload_hash = stable_payload_hash(&step.payload_json);
     format!(
         "{}:{}:{}:{}:{}:{}",
-        step.message_id,
-        step.timestamp,
-        step.step_type,
-        step.name,
-        step.content,
-        payload_hash
+        step.message_id, step.timestamp, step.step_type, step.name, step.content, payload_hash
     )
 }
 
@@ -375,6 +370,9 @@ pub async fn post_chat(
                         } else {
                             step.content.clone()
                         };
+                        if !emitted_any_text {
+                            yield Ok::<_, Infallible>(data_stream_line("0", json!(error_text)));
+                        }
                         yield Ok::<_, Infallible>(data_stream_line("3", json!(error_text)));
                         return;
                     }
@@ -585,9 +583,8 @@ mod tests {
     };
     use crate::control::events::{SessionControlEvent, SessionStepEvent, StepType};
     use crate::control::{
-        keys,
-        scheduler::NoopSchedulerBackend,
-        topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        keys, scheduler::NoopSchedulerBackend, topics, KeyValueStore, MessagePublisher,
+        ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{models, proto};
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
@@ -668,6 +665,20 @@ mod tests {
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
+        }
+
+        async fn list_keys_page(
+            &self,
+            ns: &str,
+            prefix: &str,
+            before_key: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<String>> {
+            Ok(crate::control::page_keys_desc(
+                self.list_keys(ns, prefix).await?,
+                before_key,
+                limit,
+            ))
         }
     }
 
@@ -1122,6 +1133,71 @@ mod tests {
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         assert!(String::from_utf8_lossy(&body).contains("Session not found"));
+    }
+
+    #[tokio::test]
+    async fn post_chat_streams_error_as_visible_text() {
+        let session_id = "session-error";
+        let kv = Arc::new(MockKvStore::default());
+        kv.set_msg(
+            "default",
+            &keys::session("agent", session_id),
+            &models::Session {
+                id: session_id.to_string(),
+                agent: "agent".to_string(),
+                ns: "default".to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let topic_name =
+            topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+        let streams = Arc::new(Mutex::new(HashMap::from([(
+            topic_name,
+            vec![SessionStepEvent {
+                session_id: session_id.to_string(),
+                step_type: StepType::Error as i32,
+                content: "Error: provider overloaded".to_string(),
+                timestamp: 1,
+                agent: "agent".to_string(),
+                ns: "default".to_string(),
+                message_id: "assistant-1".to_string(),
+                name: String::new(),
+                payload_json: String::new(),
+            }
+            .encode_to_vec()],
+        )])));
+        let gateway = setup_gateway(kv, streams, Arc::new(Mutex::new(Vec::new())));
+
+        let response = post_chat(
+            State(gateway),
+            Path(SessionPath {
+                ns: "default".to_string(),
+                agent: "agent".to_string(),
+                session_id: session_id.to_string(),
+            }),
+            HeaderMap::new(),
+            Json(ChatRequestBody {
+                messages: vec![UiMessage {
+                    content: Some("hello".to_string()),
+                    parts: vec![],
+                }],
+            }),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let text = String::from_utf8(body.to_vec()).unwrap();
+        assert!(text.contains(r#"f:{"messageId":"assistant-1"}"#));
+        assert!(text.contains(r#"0:"Error: provider overloaded""#));
+        assert!(text.contains(r#"3:"Error: provider overloaded""#));
     }
 
     #[tokio::test]

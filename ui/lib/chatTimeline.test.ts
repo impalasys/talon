@@ -72,6 +72,24 @@ describe("hydrateMessagesWithSteps", () => {
       { type: "text", text: "I found the answer." },
     ]);
   });
+
+  it("hydrates error steps into the assistant timeline", () => {
+    const hydrated = hydrateMessagesWithSteps(
+      [{ id: "assistant-1", role: "assistant", content: "" }],
+      [
+        {
+          messageId: "assistant-1",
+          stepType: "STEP_TYPE_ERROR",
+          content: "Error: provider overloaded",
+          payloadJson: "",
+        },
+      ],
+    );
+
+    expect(getMessageAssistantTimeline(hydrated[0])).toEqual([
+      { type: "text", text: "Error: provider overloaded" },
+    ]);
+  });
 });
 
 describe("live timeline helpers", () => {
