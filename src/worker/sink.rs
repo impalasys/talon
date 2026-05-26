@@ -462,6 +462,30 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_token_event_buffer().await;
         self.flush_persisted_reasoning().await;
         self.flush_reasoning_event_buffer().await;
+
+        let visible_content = {
+            let accumulated = self.accumulated.lock().unwrap();
+            if accumulated.trim().is_empty() {
+                err.to_string()
+            } else {
+                format!("{}\n\n{}", accumulated.as_str(), err)
+            }
+        };
+        let msg = models::SessionMessage {
+            id: self.reply_msg_id.clone(),
+            role: 2,
+            content: visible_content,
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: std::collections::HashMap::new(),
+        };
+        let _ = crate::control::ProtoKeyValueStoreExt::set_msg(
+            self.kv.as_ref(),
+            &self.ns,
+            &self.reply_msg_key,
+            &msg,
+        )
+        .await;
+
         self.persist_step(
             StepType::Error,
             String::new(),
@@ -525,6 +549,15 @@ mod tests {
             Ok(())
         }
         async fn list_keys(&self, _ns: &str, _p: &str) -> anyhow::Result<Vec<String>> {
+            Ok(vec![])
+        }
+        async fn list_keys_page(
+            &self,
+            _ns: &str,
+            _prefix: &str,
+            _before_key: Option<&str>,
+            _limit: usize,
+        ) -> anyhow::Result<Vec<String>> {
             Ok(vec![])
         }
     }
@@ -711,18 +744,23 @@ mod tests {
         tokio::time::sleep(Duration::from_millis(25)).await;
 
         let events = events.lock().await.clone();
-        assert!(events
-            .iter()
-            .any(|event| event.step_type == StepType::Error as i32 && event.content == "tool failed"));
-        assert!(events
-            .iter()
-            .any(|event| event.step_type == StepType::Done as i32 && event.content == "final reply"));
+        assert!(events.iter().any(
+            |event| event.step_type == StepType::Error as i32 && event.content == "tool failed"
+        ));
+        assert!(events.iter().any(
+            |event| event.step_type == StepType::Done as i32 && event.content == "final reply"
+        ));
 
         let entries = kv.entries.lock().await.clone();
         let persisted_messages = entries
             .iter()
-            .filter_map(|(_, _, value)| crate::gateway::rpc::models::SessionMessage::decode(value.as_slice()).ok())
+            .filter_map(|(_, _, value)| {
+                crate::gateway::rpc::models::SessionMessage::decode(value.as_slice()).ok()
+            })
             .collect::<Vec<_>>();
+        assert!(persisted_messages
+            .iter()
+            .any(|msg| msg.id == "reply-1" && msg.content == "partial \n\ntool failed"));
         assert!(persisted_messages
             .iter()
             .any(|msg| msg.id == "reply-1" && msg.content == "final reply"));
@@ -734,9 +772,9 @@ mod tests {
         assert!(persisted_steps
             .iter()
             .any(|event| event.step_type == StepType::Token as i32 && event.content == "partial "));
-        assert!(persisted_steps
-            .iter()
-            .any(|event| event.step_type == StepType::Error as i32 && event.content == "tool failed"));
+        assert!(persisted_steps.iter().any(
+            |event| event.step_type == StepType::Error as i32 && event.content == "tool failed"
+        ));
     }
 
     #[tokio::test]
@@ -759,7 +797,8 @@ mod tests {
         sink.on_token("hi").await;
         tokio::time::sleep(Duration::from_millis(2)).await;
         sink.on_token(" there").await;
-        sink.on_tool_call("tool-1", "search", &json!({"q": "talon"})).await;
+        sink.on_tool_call("tool-1", "search", &json!({"q": "talon"}))
+            .await;
         sink.on_tool_result("tool-1", "search", "result body").await;
         sink.on_done("hi there").await;
 

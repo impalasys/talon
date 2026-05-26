@@ -38,19 +38,23 @@ describe('TalonCopilot', () => {
   it('renders an injected session history via gatewayClient', async () => {
     const gatewayClient = {
       createSession: jest.fn(),
-      getSession: jest.fn().mockResolvedValue({
+      listSessionMessages: jest.fn().mockResolvedValue({
         sessionId: 'sess-1',
         state: 'IDLE',
-        messages: [
+        items: [
           {
-            id: 'assistant-1',
-            role: 'ROLE_ASSISTANT',
-            content: 'Hello from history',
-            createdAt: String(Date.now() * 1000),
+            message: {
+              id: 'assistant-1',
+              role: 'ROLE_ASSISTANT',
+              content: 'Hello from history',
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
           },
         ],
-        steps: [],
+        hasMore: false,
       }),
+      getSession: jest.fn(),
     };
 
     render(
@@ -64,10 +68,12 @@ describe('TalonCopilot', () => {
     );
 
     await waitFor(() => {
-      expect(gatewayClient.getSession).toHaveBeenCalledWith({
+      expect(gatewayClient.listSessionMessages).toHaveBeenCalledWith({
         ns: 'ops',
         agent: 'copilot',
         sessionId: 'sess-1',
+        pageSize: 50,
+        beforeMessageId: undefined,
       });
     });
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
@@ -305,6 +311,20 @@ describe('TalonCopilot', () => {
         }),
       }),
     );
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({
+      messages: [
+        {
+          role: 'user',
+          content: 'square root of 144',
+          parts: [{ type: 'text', text: 'square root of 144' }],
+        },
+      ],
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      3,
+      'http://localhost:18789/v1/ns/ops/agents/copilot/sessions/sess-2/messages?page_size=50',
+      expect.anything(),
+    );
   });
 
   it('scrolls the transcript container as streamed output arrives', async () => {
@@ -359,6 +379,76 @@ describe('TalonCopilot', () => {
     Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
       configurable: true,
       value: originalScrollTo,
+    });
+  });
+
+  it('loads older history pages when scrolled near the top', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest
+        .fn()
+        .mockResolvedValueOnce({
+          sessionId: 'sess-pages',
+          state: 'IDLE',
+          items: [
+            {
+              message: {
+                id: '019f0000-0000-7000-8000-000000000002',
+                role: 'ROLE_ASSISTANT',
+                content: 'Newest page',
+                createdAt: String(Date.now() * 1000),
+              },
+              steps: [],
+            },
+          ],
+          hasMore: true,
+          nextBeforeMessageId: '019f0000-0000-7000-8000-000000000002',
+        })
+        .mockResolvedValueOnce({
+          sessionId: 'sess-pages',
+          state: 'IDLE',
+          items: [
+            {
+              message: {
+                id: '019f0000-0000-7000-8000-000000000001',
+                role: 'ROLE_ASSISTANT',
+                content: 'Older page',
+                createdAt: String(Date.now() * 1000),
+              },
+              steps: [],
+            },
+          ],
+          hasMore: false,
+        }),
+      getSession: jest.fn(),
+    };
+
+    const { container } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-pages"
+      />,
+    );
+
+    await screen.findByText('Newest page');
+
+    const scrollContainer = container.querySelector('div[style*="overflow-y: auto"]') as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, value: 0, writable: true });
+    Object.defineProperty(scrollContainer, 'scrollHeight', { configurable: true, value: 1000 });
+    fireEvent.scroll(scrollContainer);
+
+    expect(await screen.findByText('Older page')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(gatewayClient.listSessionMessages).toHaveBeenNthCalledWith(2, {
+        ns: 'ops',
+        agent: 'copilot',
+        sessionId: 'sess-pages',
+        pageSize: 50,
+        beforeMessageId: '019f0000-0000-7000-8000-000000000002',
+      });
     });
   });
 
@@ -420,6 +510,7 @@ describe('TalonCopilot', () => {
     fireEvent.click(screen.getByRole('button', { name: /send message/i }));
 
     expect(await screen.findByText('Recovered after stream timeout.')).toBeInTheDocument();
+    expect(screen.queryByText('recover this')).not.toBeInTheDocument();
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
   });
 });

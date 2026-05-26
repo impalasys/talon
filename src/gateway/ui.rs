@@ -11,12 +11,13 @@ use axum::Json;
 use futures::StreamExt;
 use serde::Deserialize;
 use serde_json::{json, Value};
-use std::collections::HashSet;
 use std::convert::Infallible;
 use std::sync::Arc;
 use std::time::Duration;
 use tonic::metadata::MetadataValue;
 use uuid::Uuid;
+
+const STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[derive(Deserialize)]
 pub struct SessionPath {
@@ -140,16 +141,29 @@ where
     I: IntoIterator<Item = &'a events::SessionStepEvent>,
     I::IntoIter: DoubleEndedIterator,
 {
-    steps.into_iter()
+    steps
+        .into_iter()
         .rev()
         .find(|step| step.step_type == step_type)
         .and_then(extract_tool_step_payload)
 }
 
-async fn fetch_session(
+async fn fetch_session_metadata(
     gateway: &Arc<Gateway>,
     headers: &HeaderMap,
     path: &SessionPath,
+) -> Result<proto::SessionResponse, Response> {
+    // UI route guards only need session metadata here; messages and steps are
+    // loaded through the paginated message endpoint.
+    fetch_session_with_limits(gateway, headers, path, Some(-1), Some(-1)).await
+}
+
+async fn fetch_session_with_limits(
+    gateway: &Arc<Gateway>,
+    headers: &HeaderMap,
+    path: &SessionPath,
+    message_limit: Option<i32>,
+    step_limit: Option<i32>,
 ) -> Result<proto::SessionResponse, Response> {
     let request = tonic_request(
         headers,
@@ -157,6 +171,8 @@ async fn fetch_session(
             ns: path.ns.clone(),
             agent: path.agent.clone(),
             session_id: path.session_id.clone(),
+            message_limit: message_limit.unwrap_or_default(),
+            step_limit: step_limit.unwrap_or_default(),
         },
     )?;
     let response = gateway_handler(gateway)
@@ -198,12 +214,7 @@ fn step_dedup_key(step: &events::SessionStepEvent) -> String {
     let payload_hash = stable_payload_hash(&step.payload_json);
     format!(
         "{}:{}:{}:{}:{}:{}",
-        step.message_id,
-        step.timestamp,
-        step.step_type,
-        step.name,
-        step.content,
-        payload_hash
+        step.message_id, step.timestamp, step.step_type, step.name, step.content, payload_hash
     )
 }
 
@@ -231,16 +242,25 @@ pub async fn post_chat(
         Err(response) => return response,
     };
 
-    let baseline_seen_steps = fetch_session(&gateway, &headers, &path)
+    let stream_request = match tonic_request(
+        &headers,
+        proto::StreamSessionStepsRequest {
+            ns: path.ns.clone(),
+            agent: path.agent.clone(),
+            session_id: path.session_id.clone(),
+        },
+    ) {
+        Ok(request) => request,
+        Err(response) => return response,
+    };
+
+    let step_stream = match gateway_handler(&gateway)
+        .handle_stream_session_steps(stream_request)
         .await
-        .map(|response| {
-            response
-                .steps
-                .iter()
-                .map(step_dedup_key)
-                .collect::<HashSet<_>>()
-        })
-        .unwrap_or_default();
+    {
+        Ok(response) => response.into_inner(),
+        Err(status) => return map_status(status),
+    };
 
     if let Err(status) = gateway_handler(&gateway)
         .handle_send_message(send_request)
@@ -256,133 +276,133 @@ pub async fn post_chat(
         let mut started_step = false;
         let mut started_message_id: Option<String> = None;
         let mut emitted_any_text = false;
-        let mut seen_steps = baseline_seen_steps;
+        let mut steps = step_stream;
+        let timeout = tokio::time::sleep(STREAM_IDLE_TIMEOUT);
+        tokio::pin!(timeout);
 
-        for _ in 0..300 {
-            let response = match fetch_session(&gateway_for_stream, &headers_for_stream, &path_for_stream).await {
-                Ok(response) => response,
-                Err(_) => {
-                    tokio::time::sleep(Duration::from_millis(100)).await;
-                    continue;
-                }
-            };
-
-            for (step_idx, step) in response.steps.iter().enumerate() {
-                let dedup_key = step_dedup_key(step);
-                if !seen_steps.insert(dedup_key) {
-                    continue;
-                }
-
-                if !started_step {
-                    let message_id = if step.message_id.is_empty() {
-                        Uuid::now_v7().to_string()
-                    } else {
-                        step.message_id.clone()
-                    };
-                    started_message_id = Some(message_id.clone());
-                    started_step = true;
-                    yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));
-                } else if started_message_id.as_deref() != Some(step.message_id.as_str()) && !step.message_id.is_empty() {
-                    started_message_id = Some(step.message_id.clone());
-                    yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": step.message_id })));
-                }
-
-                if step.step_type == StepType::Token as i32 {
-                    if !step.content.is_empty() {
-                        emitted_any_text = true;
-                        yield Ok::<_, Infallible>(data_stream_line("0", json!(step.content)));
-                    }
-                } else if step.step_type == StepType::Reasoning as i32 {
-                    if !step.content.is_empty() {
-                        yield Ok::<_, Infallible>(data_stream_line("g", json!(step.content)));
-                    }
-                } else if step.step_type == StepType::Action as i32 {
-                    let payload = match extract_tool_step_payload(step) {
-                        Some(payload) => Some(payload),
-                        None => latest_tool_step_payload(
-                            response.steps[..=step_idx].iter(),
-                            StepType::Action as i32,
-                        ),
-                    };
-                    let tool_call_id = payload
-                        .as_ref()
-                        .map(|payload| payload.tool_call_id.clone())
-                        .unwrap_or_else(|| format!("tool-{}", Uuid::now_v7()));
-                    let tool_name = payload
-                        .as_ref()
-                        .map(|payload| payload.tool_name.clone())
-                        .unwrap_or_else(|| if step.name.is_empty() { "tool".to_string() } else { step.name.clone() });
-                    let args = payload
-                        .as_ref()
-                        .map(|payload| payload.args.clone())
-                        .unwrap_or_else(|| json!({}));
-                    yield Ok::<_, Infallible>(data_stream_line("9", json!({
-                        "toolCallId": tool_call_id,
-                        "toolName": tool_name,
-                        "args": args
-                    })));
-                } else if step.step_type == StepType::Observation as i32 {
-                    let payload = match extract_tool_step_payload(step) {
-                        Some(payload) => Some(payload),
-                        None => latest_tool_step_payload(
-                            response.steps[..=step_idx].iter(),
-                            StepType::Observation as i32,
-                        ),
-                    };
-                    if let Some(payload) = payload {
-                        yield Ok::<_, Infallible>(data_stream_line("a", json!({
-                            "toolCallId": payload.tool_call_id,
-                            "result": payload.result
-                        })));
-                    }
-                } else if step.step_type == StepType::Usage as i32 {
-                    let usage = serde_json::from_str::<Value>(&step.payload_json)
-                        .unwrap_or_else(|_| json!({}));
-                    yield Ok::<_, Infallible>(data_stream_line("h", usage));
-                } else if step.step_type == StepType::Error as i32 {
-                    let error_text = if step.content.is_empty() {
-                        "Stream error".to_string()
-                    } else {
-                        step.content.clone()
-                    };
-                    yield Ok::<_, Infallible>(data_stream_line("3", json!(error_text)));
+        loop {
+            tokio::select! {
+                _ = &mut timeout => {
+                    yield Ok::<_, Infallible>(data_stream_line("3", json!("Timed out waiting for assistant response")));
                     return;
                 }
-            }
-
-            if response.state != "PROCESSING" {
-                if !emitted_any_text {
-                    if let Some(text) = latest_assistant_message_text(&response) {
-                        if !started_step {
-                            let message_id = response
-                                .messages
-                                .iter()
-                                .rev()
-                                .find(|message| message.role == 2)
-                                .map(|message| message.id.clone())
-                                .unwrap_or_else(|| Uuid::now_v7().to_string());
-                            yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));
+                step_result = steps.next() => {
+                    timeout.as_mut().reset(tokio::time::Instant::now() + STREAM_IDLE_TIMEOUT);
+                    let Some(step_result) = step_result else {
+                        break;
+                    };
+                    let step = match step_result {
+                        Ok(step) => step,
+                        Err(status) => {
+                            yield Ok::<_, Infallible>(data_stream_line("3", json!(status.message())));
+                            return;
                         }
-                        yield Ok::<_, Infallible>(data_stream_line("0", json!(text)));
-                    } else {
-                        tokio::time::sleep(Duration::from_millis(100)).await;
-                        continue;
+                    };
+
+                    if !started_step && step.step_type != StepType::Done as i32 {
+                        let message_id = if step.message_id.is_empty() {
+                            Uuid::now_v7().to_string()
+                        } else {
+                            step.message_id.clone()
+                        };
+                        started_message_id = Some(message_id.clone());
+                        started_step = true;
+                        yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));
+                    } else if started_message_id.as_deref() != Some(step.message_id.as_str()) && !step.message_id.is_empty() {
+                        started_message_id = Some(step.message_id.clone());
+                        yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": step.message_id })));
+                    }
+
+                    if step.step_type == StepType::Token as i32 {
+                        if !step.content.is_empty() {
+                            emitted_any_text = true;
+                            yield Ok::<_, Infallible>(data_stream_line("0", json!(step.content)));
+                        }
+                    } else if step.step_type == StepType::Reasoning as i32 {
+                        if !step.content.is_empty() {
+                            yield Ok::<_, Infallible>(data_stream_line("g", json!(step.content)));
+                        }
+                    } else if step.step_type == StepType::Action as i32 {
+                        let payload = extract_tool_step_payload(&step);
+                        let tool_call_id = payload
+                            .as_ref()
+                            .map(|payload| payload.tool_call_id.clone())
+                            .unwrap_or_else(|| format!("tool-{}", Uuid::now_v7()));
+                        let tool_name = payload
+                            .as_ref()
+                            .map(|payload| payload.tool_name.clone())
+                            .unwrap_or_else(|| if step.name.is_empty() { "tool".to_string() } else { step.name.clone() });
+                        let args = payload
+                            .as_ref()
+                            .map(|payload| payload.args.clone())
+                            .unwrap_or_else(|| json!({}));
+                        yield Ok::<_, Infallible>(data_stream_line("9", json!({
+                            "toolCallId": tool_call_id,
+                            "toolName": tool_name,
+                            "args": args
+                        })));
+                    } else if step.step_type == StepType::Observation as i32 {
+                        let payload = extract_tool_step_payload(&step);
+                        if let Some(payload) = payload {
+                            yield Ok::<_, Infallible>(data_stream_line("a", json!({
+                                "toolCallId": payload.tool_call_id,
+                                "result": payload.result
+                            })));
+                        }
+                    } else if step.step_type == StepType::Usage as i32 {
+                        let usage = serde_json::from_str::<Value>(&step.payload_json)
+                            .unwrap_or_else(|_| json!({}));
+                        yield Ok::<_, Infallible>(data_stream_line("h", usage));
+                    } else if step.step_type == StepType::Done as i32 {
+                        break;
+                    } else if step.step_type == StepType::Error as i32 {
+                        let error_text = if step.content.is_empty() {
+                            "Stream error".to_string()
+                        } else {
+                            step.content.clone()
+                        };
+                        if !emitted_any_text {
+                            yield Ok::<_, Infallible>(data_stream_line("0", json!(error_text)));
+                        }
+                        yield Ok::<_, Infallible>(data_stream_line("3", json!(error_text)));
+                        return;
                     }
                 }
-                yield Ok::<_, Infallible>(data_stream_line("e", json!({
-                    "finishReason": "stop",
-                    "isContinued": false
-                })));
-                yield Ok::<_, Infallible>(data_stream_line("d", json!({
-                    "finishReason": "stop"
-                })));
-                return;
             }
-
-            tokio::time::sleep(Duration::from_millis(100)).await;
         }
 
-        yield Ok::<_, Infallible>(data_stream_line("3", json!("Timed out waiting for assistant response")));
+        if !emitted_any_text {
+            if let Ok(response) = fetch_session_with_limits(
+                &gateway_for_stream,
+                &headers_for_stream,
+                &path_for_stream,
+                Some(1),
+                Some(-1),
+            )
+            .await
+            {
+                if let Some(text) = latest_assistant_message_text(&response) {
+                    if !started_step {
+                        let message_id = response
+                            .messages
+                            .iter()
+                            .rev()
+                            .find(|message| message.role == 2)
+                            .map(|message| message.id.clone())
+                            .unwrap_or_else(|| Uuid::now_v7().to_string());
+                        yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));
+                    }
+                    yield Ok::<_, Infallible>(data_stream_line("0", json!(text)));
+                }
+            }
+        }
+        yield Ok::<_, Infallible>(data_stream_line("e", json!({
+            "finishReason": "stop",
+            "isContinued": false
+        })));
+        yield Ok::<_, Infallible>(data_stream_line("d", json!({
+            "finishReason": "stop"
+        })));
     };
 
     (
@@ -422,8 +442,6 @@ pub async fn get_chat(
 
     let stream = async_stream::stream! {
         let mut steps = response.into_inner();
-        let mut latest_action_payload: Option<ToolStepPayload> = None;
-        let mut latest_observation_payload: Option<ToolStepPayload> = None;
         while let Some(step_result) = steps.next().await {
             let step = match step_result {
                 Ok(step) => step,
@@ -442,13 +460,7 @@ pub async fn get_chat(
                     yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "reasoning", "value": step.content })));
                 }
             } else if step.step_type == StepType::Action as i32 {
-                let payload = match extract_tool_step_payload(&step) {
-                    Some(payload) => {
-                        latest_action_payload = Some(payload.clone());
-                        Some(payload)
-                    }
-                    None => latest_action_payload.clone(),
-                };
+                let payload = extract_tool_step_payload(&step);
                 let tool_call_id = payload
                     .as_ref()
                     .map(|payload| payload.tool_call_id.clone())
@@ -470,13 +482,7 @@ pub async fn get_chat(
                     }
                 })));
             } else if step.step_type == StepType::Observation as i32 {
-                let payload = match extract_tool_step_payload(&step) {
-                    Some(payload) => {
-                        latest_observation_payload = Some(payload.clone());
-                        Some(payload)
-                    }
-                    None => latest_observation_payload.clone(),
-                };
+                let payload = extract_tool_step_payload(&step);
                 if let Some(payload) = payload {
                     yield Ok::<_, Infallible>(ndjson_line(json!({
                         "type": "tool_result",
@@ -547,16 +553,15 @@ pub async fn delete_chat(
 #[cfg(test)]
 mod tests {
     use super::{
-        data_stream_line, delete_chat, extract_tool_step_payload, fetch_session, get_chat,
-        last_message_text, latest_assistant_message_text, latest_tool_step_payload, map_status,
-        ndjson_line, post_chat, step_dedup_key, tonic_request, ChatRequestBody, SessionPath,
-        UiMessage, UiPart,
+        data_stream_line, delete_chat, extract_tool_step_payload, fetch_session_metadata,
+        get_chat, last_message_text, latest_assistant_message_text, latest_tool_step_payload,
+        map_status, ndjson_line, post_chat, step_dedup_key, tonic_request, ChatRequestBody,
+        SessionPath, UiMessage, UiPart,
     };
     use crate::control::events::{SessionControlEvent, SessionStepEvent, StepType};
     use crate::control::{
-        keys,
-        scheduler::NoopSchedulerBackend,
-        topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
+        keys, scheduler::NoopSchedulerBackend, topics, KeyValueStore, MessagePublisher,
+        ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{models, proto};
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
@@ -637,6 +642,20 @@ mod tests {
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
+        }
+
+        async fn list_keys_page(
+            &self,
+            ns: &str,
+            prefix: &str,
+            before_key: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<String>> {
+            Ok(crate::control::page_keys_desc(
+                self.list_keys(ns, prefix).await?,
+                before_key,
+                limit,
+            ))
         }
     }
 
@@ -975,13 +994,43 @@ mod tests {
         )
         .await
         .unwrap();
+        kv.set_msg(
+            "default",
+            &keys::session_message("agent", "session-1", "msg-1"),
+            &models::SessionMessage {
+                id: "msg-1".to_string(),
+                role: models::MessageRole::RoleAssistant as i32,
+                content: "history should not load".to_string(),
+                created_at: 3,
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            "default",
+            &keys::session_message_step("agent", "session-1", "msg-1", "step-1"),
+            &SessionStepEvent {
+                session_id: "session-1".to_string(),
+                step_type: StepType::Token as i32,
+                content: "step should not load".to_string(),
+                timestamp: 4,
+                agent: "agent".to_string(),
+                ns: "default".to_string(),
+                message_id: "msg-1".to_string(),
+                name: String::new(),
+                payload_json: String::new(),
+            },
+        )
+        .await
+        .unwrap();
         let gateway = setup_gateway(
             kv,
             Arc::new(Mutex::new(HashMap::new())),
             Arc::new(Mutex::new(Vec::new())),
         );
 
-        let response = fetch_session(
+        let response = fetch_session_metadata(
             &gateway,
             &HeaderMap::new(),
             &SessionPath {
@@ -996,6 +1045,8 @@ mod tests {
         assert_eq!(response.session_id, "session-1");
         assert_eq!(response.state, "IDLE");
         assert_eq!(response.labels.get("env").map(String::as_str), Some("test"));
+        assert!(response.messages.is_empty());
+        assert!(response.steps.is_empty());
     }
 
     #[tokio::test]
@@ -1059,6 +1110,71 @@ mod tests {
         assert_eq!(response.status(), StatusCode::NOT_FOUND);
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         assert!(String::from_utf8_lossy(&body).contains("Session not found"));
+    }
+
+    #[tokio::test]
+    async fn post_chat_streams_error_as_visible_text() {
+        let session_id = "session-error";
+        let kv = Arc::new(MockKvStore::default());
+        kv.set_msg(
+            "default",
+            &keys::session("agent", session_id),
+            &models::Session {
+                id: session_id.to_string(),
+                agent: "agent".to_string(),
+                ns: "default".to_string(),
+                status: "IDLE".to_string(),
+                created_at: 1,
+                last_active: 2,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let topic_name =
+            topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+        let streams = Arc::new(Mutex::new(HashMap::from([(
+            topic_name,
+            vec![SessionStepEvent {
+                session_id: session_id.to_string(),
+                step_type: StepType::Error as i32,
+                content: "Error: provider overloaded".to_string(),
+                timestamp: 1,
+                agent: "agent".to_string(),
+                ns: "default".to_string(),
+                message_id: "assistant-1".to_string(),
+                name: String::new(),
+                payload_json: String::new(),
+            }
+            .encode_to_vec()],
+        )])));
+        let gateway = setup_gateway(kv, streams, Arc::new(Mutex::new(Vec::new())));
+
+        let response = post_chat(
+            State(gateway),
+            Path(SessionPath {
+                ns: "default".to_string(),
+                agent: "agent".to_string(),
+                session_id: session_id.to_string(),
+            }),
+            HeaderMap::new(),
+            Json(ChatRequestBody {
+                messages: vec![UiMessage {
+                    content: Some("hello".to_string()),
+                    parts: vec![],
+                }],
+            }),
+        )
+        .await;
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let text = String::from_utf8(body.to_vec()).unwrap();
+        assert!(text.contains(r#"f:{"messageId":"assistant-1"}"#));
+        assert!(text.contains(r#"0:"Error: provider overloaded""#));
+        assert!(text.contains(r#"3:"Error: provider overloaded""#));
     }
 
     #[tokio::test]

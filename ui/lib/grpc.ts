@@ -37,7 +37,7 @@ const createTransport = (url: string) => createGrpcWebTransport({
 
 let currentClient = createClient(
   GatewayService, 
-  createTransport(process.env.NEXT_PUBLIC_GATEWAY_URL || "http://envoy.talon.orb.local")
+  createTransport(process.env.NEXT_PUBLIC_GATEWAY_URL || "https://envoy.talon.orb.local")
 );
 
 export const getGatewayClient = () => currentClient;

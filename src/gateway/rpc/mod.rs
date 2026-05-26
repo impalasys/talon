@@ -17,11 +17,11 @@ pub mod sessions;
 pub mod templates;
 
 #[cfg(test)]
-mod sessions_tests;
-#[cfg(test)]
 mod crud_tests;
 #[cfg(test)]
 mod service_tests;
+#[cfg(test)]
+mod sessions_tests;
 
 #[cfg(not(feature = "bazel"))]
 pub mod proto {
@@ -227,6 +227,13 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
         req: tonic::Request<proto::GetSessionRequest>,
     ) -> std::result::Result<tonic::Response<proto::SessionResponse>, tonic::Status> {
         self.handle_get_session(req).await
+    }
+    async fn list_session_messages(
+        &self,
+        req: tonic::Request<proto::ListSessionMessagesRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListSessionMessagesResponse>, tonic::Status>
+    {
+        self.handle_list_session_messages(req).await
     }
     async fn list_sessions(
         &self,

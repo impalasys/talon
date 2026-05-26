@@ -12,6 +12,36 @@ pub mod topics;
 
 use std::path::PathBuf;
 
+pub fn page_keys_desc(
+    mut keys: Vec<String>,
+    before_key: Option<&str>,
+    limit: usize,
+) -> Vec<String> {
+    if limit == 0 {
+        return Vec::new();
+    }
+
+    keys.retain(|key| before_key.map_or(true, |cursor| key.as_str() < cursor));
+    keys.sort_by(|left, right| right.cmp(left));
+    keys.truncate(limit);
+    keys
+}
+
+pub fn page_entries_desc(
+    mut entries: Vec<(String, Vec<u8>)>,
+    before_key: Option<&str>,
+    limit: usize,
+) -> Vec<(String, Vec<u8>)> {
+    if limit == 0 {
+        return Vec::new();
+    }
+
+    entries.retain(|(key, _)| before_key.map_or(true, |cursor| key.as_str() < cursor));
+    entries.sort_by(|left, right| right.0.cmp(&left.0));
+    entries.truncate(limit);
+    entries
+}
+
 #[async_trait::async_trait]
 pub trait KeyValueStore: Send + Sync {
     /// Retrieve a raw byte sequence from the store
@@ -34,6 +64,38 @@ pub trait KeyValueStore: Send + Sync {
 
     /// List all keys in a namespace with a given prefix
     async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>>;
+
+    /// List keys in a namespace with a given prefix, ordered by key descending.
+    ///
+    /// `before_key` is an exclusive full-key cursor. Production backends should
+    /// override this with a storage-level page read. The default implementation
+    /// fails rather than silently materializing an unbounded prefix.
+    async fn list_keys_page(
+        &self,
+        namespace: &str,
+        prefix: &str,
+        before_key: Option<&str>,
+        limit: usize,
+    ) -> anyhow::Result<Vec<String>> {
+        let _ = (namespace, prefix, before_key, limit);
+        anyhow::bail!("list_keys_page is not implemented for this KeyValueStore")
+    }
+
+    /// List key/value pairs in a namespace with a given prefix, ordered by key descending.
+    ///
+    /// `before_key` is an exclusive full-key cursor. Production backends should
+    /// override this with a storage-level page read. The default implementation
+    /// fails rather than silently materializing an unbounded prefix.
+    async fn list_entries_page(
+        &self,
+        namespace: &str,
+        prefix: &str,
+        before_key: Option<&str>,
+        limit: usize,
+    ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
+        let _ = (namespace, prefix, before_key, limit);
+        anyhow::bail!("list_entries_page is not implemented for this KeyValueStore")
+    }
 
     /// List all key/value pairs in a namespace with a given prefix.
     async fn list_entries(

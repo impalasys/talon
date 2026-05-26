@@ -3,7 +3,6 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::test_support::{MockKvStore, RecordingPubSub};
     use crate::control::{
         events::{LifecycleEvent, SessionControlEvent, SessionStepEvent, StepType},
         scheduler::SchedulerBackend,
@@ -12,6 +11,7 @@ mod tests {
     use crate::gateway::rpc::proto::gateway_service_server::GatewayService;
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
     use crate::gateway::server::Gateway;
+    use crate::test_support::{MockKvStore, RecordingPubSub};
     use futures::StreamExt;
     use prost::Message;
     use std::collections::HashMap;
@@ -582,6 +582,8 @@ mod tests {
                     session_id: session_id.clone(),
                     agent: "agent-1".to_string(),
                     ns: "acme".to_string(),
+                    message_limit: 0,
+                    step_limit: 0,
                 }))
                 .await
                 .unwrap()

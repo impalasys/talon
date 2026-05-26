@@ -42,6 +42,10 @@ function isUsageStep(stepType: unknown): boolean {
   return stepType === 7 || stepType === 'STEP_TYPE_USAGE';
 }
 
+function isErrorStep(stepType: unknown): boolean {
+  return stepType === 5 || stepType === 'STEP_TYPE_ERROR';
+}
+
 function parseObjectPayload(payload: unknown): Record<string, unknown> {
   return payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : {};
 }
@@ -265,6 +269,14 @@ function buildAssistantTimelineFromSteps(steps: any[] | undefined): Map<string, 
 
     if (typeof step?.content === 'string' && step.content && isTokenStep(step.stepType)) {
       byMessage.set(messageId, appendTextToTimeline(timeline, step.content));
+      continue;
+    }
+
+    if (isErrorStep(step?.stepType)) {
+      byMessage.set(
+        messageId,
+        appendTextToTimeline(timeline, typeof step?.content === 'string' && step.content ? step.content : 'Stream error'),
+      );
       continue;
     }
 

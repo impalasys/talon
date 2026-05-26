@@ -131,11 +131,16 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
   };
 }
 
-function buildSearchParams(isConnected: boolean, selection: Selection | null) {
+function buildSearchParams(isConnected: boolean, selection: Selection | null, currentSearchParams?: URLSearchParams) {
   const params = new URLSearchParams();
+  const historyPageSize = currentSearchParams?.get('historyPageSize');
 
   if (isConnected) {
     params.set('connected', 'true');
+  }
+
+  if (historyPageSize && /^\d+$/.test(historyPageSize) && Number(historyPageSize) > 0) {
+    params.set('historyPageSize', historyPageSize);
   }
 
   if (selection?.ns) {
@@ -179,6 +184,13 @@ function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
   if (selection.type === 'template') return 'talon-system / AgentTemplate';
   return 'talon-system / MCPServer';
+}
+
+function positiveIntParam(searchParams: URLSearchParams, name: string) {
+  const value = searchParams.get(name);
+  if (!value || !/^\d+$/.test(value)) return undefined;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
 function selectionIcon(selection: Selection | null) {
@@ -602,7 +614,7 @@ function DebuggerPageContent() {
     if (savedUrl) {
       setGatewayUrl(savedUrl);
     } else {
-      setGatewayUrl(process.env.NEXT_PUBLIC_GATEWAY_URL || 'http://envoy.talon.orb.local');
+      setGatewayUrl(process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://envoy.talon.orb.local');
     }
     const savedToken = localStorage.getItem('talon_auth_token');
     if (savedToken) {
@@ -635,7 +647,7 @@ function DebuggerPageContent() {
   useEffect(() => {
     if (!storageHydrated) return;
 
-    const nextQuery = buildSearchParams(isConnected, selectedNamespace).toString();
+    const nextQuery = buildSearchParams(isConnected, selectedNamespace, searchParams).toString();
     if (nextQuery === lastSyncedQueryRef.current) return;
 
     lastSyncedQueryRef.current = nextQuery;
@@ -647,7 +659,7 @@ function DebuggerPageContent() {
     } else {
       router.replace(nextUrl, { scroll: false });
     }
-  }, [storageHydrated, isConnected, selectedNamespace, pathname, router]);
+  }, [storageHydrated, isConnected, selectedNamespace, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!isConnected || !selectedNamespace || selectedNamespace.type === 'session') {
@@ -906,6 +918,7 @@ function DebuggerPageContent() {
                 gatewayUrl={gatewayUrl}
                 authToken={authToken || undefined}
                 gatewayClient={getGatewayClient()}
+                historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
                 disabled={!isConnected}
                 onSessionChange={(nextSessionId) => {
                   handleSelectionChange({

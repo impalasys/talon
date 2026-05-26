@@ -32,6 +32,7 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     trace: 'on-first-retry',
+    video: process.env.CAPTURE_E2E_VIDEO === 'true' ? 'on' : 'off',
     actionTimeout: process.env.CI ? 30000 : 0,
   },
   projects: [

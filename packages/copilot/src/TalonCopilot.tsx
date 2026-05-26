@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Activity, ChevronRight, Send, Square, User } from "lucide-react";
 import { Streamdown } from "streamdown";
 import {
@@ -17,9 +17,18 @@ import {
 import { buildGatewayHeaders, normalizeGatewayUrl } from "./lib/grpc";
 import { streamSessionResume, streamUiSubmission, type StreamEventItem } from "./lib/uiStream";
 
+const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export type GatewayClientLike = {
   createSession(request: { ns: string; agent: string }): Promise<{ sessionId: string }>;
-  getSession(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
+  listSessionMessages?(request: {
+    ns: string;
+    agent: string;
+    sessionId: string;
+    pageSize: number;
+    beforeMessageId?: string;
+  }): Promise<any>;
+  getSession(request: { ns: string; agent: string; sessionId: string; messageLimit?: number; stepLimit?: number }): Promise<any>;
 };
 
 export type TalonCopilotProps = {
@@ -38,11 +47,18 @@ export type TalonCopilotProps = {
   talonIcon?: React.ReactNode;
   timestampLocale?: Intl.LocalesArgument;
   formatTimestamp?: (message: CopilotMessage) => string;
+  historyPageSize?: number;
+  historyMessageLimit?: number;
+  historyStepLimit?: number;
 };
 
 const bootMessage: CopilotMessage[] = [
   { id: "1", role: "system", content: "Talon runtime initialized." },
 ];
+const DEFAULT_HISTORY_PAGE_SIZE = 50;
+const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
+const DEFAULT_HISTORY_STEP_LIMIT = 1000;
+const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
 
 function DefaultTalonIcon() {
   return (
@@ -62,6 +78,24 @@ function DefaultTalonIcon() {
 
 function buildGatewayChatUiUrl(gatewayUrl: string, ns: string, agent: string, sessionId: string) {
   return `${normalizeGatewayUrl(gatewayUrl)}/v1/ui/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}`;
+}
+
+function buildGatewaySessionMessagesUrl(
+  gatewayUrl: string,
+  ns: string,
+  agent: string,
+  sessionId: string,
+  pageSize: number,
+  beforeMessageId?: string,
+) {
+  const url = new URL(
+    `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}/messages`,
+  );
+  url.searchParams.set("page_size", String(Math.trunc(pageSize)));
+  if (beforeMessageId) {
+    url.searchParams.set("before_message_id", beforeMessageId);
+  }
+  return url.toString();
 }
 
 function border(color: string) {
@@ -84,41 +118,47 @@ function isSameSession(
 }
 
 function createLocalMessageId() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
+  const timestamp = String(Date.now()).padStart(13, "0");
+  const sequence = String(Math.floor(Math.random() * 1_000_000)).padStart(6, "0");
+  let suffix = "000000";
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const bytes = new Uint8Array(3);
+    crypto.getRandomValues(bytes);
+    suffix = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
   }
-  return `msg-${Math.random().toString(36).slice(2, 11)}`;
+  return `local-${timestamp}-${sequence}-${suffix}`;
+}
+
+function normalizeEpochToMilliseconds(value: unknown) {
+  let normalized: number | null = null;
+  if (typeof value === "bigint") {
+    const bigintValue = value < BigInt(0) ? -value : value;
+    if (bigintValue > BigInt(Number.MAX_SAFE_INTEGER)) {
+      return null;
+    }
+    normalized = Number(value);
+  } else if (typeof value === "string") {
+    const numericValue = Number(value);
+    normalized = Number.isFinite(numericValue) ? numericValue : Date.parse(value);
+  } else if (typeof value === "number") {
+    normalized = value;
+  }
+  if (typeof normalized !== "number" || !Number.isFinite(normalized) || normalized <= 0) {
+    return null;
+  }
+  if (normalized >= 1e15) {
+    return Math.trunc(normalized / 1000);
+  }
+  if (normalized >= 1e12) {
+    return Math.trunc(normalized);
+  }
+  if (normalized >= 1e9) {
+    return Math.trunc(normalized * 1000);
+  }
+  return null;
 }
 
 function defaultFormatMessageTimestamp(message: CopilotMessage, timestampLocale?: Intl.LocalesArgument) {
-  function normalizeEpochToMilliseconds(value: unknown) {
-    let normalized: number | null = null;
-    if (typeof value === "bigint") {
-      const bigintValue = value < BigInt(0) ? -value : value;
-      if (bigintValue > BigInt(Number.MAX_SAFE_INTEGER)) {
-        return null;
-      }
-      normalized = Number(value);
-    } else if (typeof value === "string") {
-      normalized = Number(value);
-    } else if (typeof value === "number") {
-      normalized = value;
-    }
-    if (typeof normalized !== "number" || !Number.isFinite(normalized) || normalized <= 0) {
-      return null;
-    }
-    if (normalized >= 1e15) {
-      return Math.trunc(normalized / 1000);
-    }
-    if (normalized >= 1e12) {
-      return Math.trunc(normalized);
-    }
-    if (normalized >= 1e9) {
-      return Math.trunc(normalized * 1000);
-    }
-    return null;
-  }
-
   function formatTimestampValue(value: unknown) {
     const timestampMs = normalizeEpochToMilliseconds(value);
     if (timestampMs === null) {
@@ -294,6 +334,130 @@ function getAssistantSignature(messages: Array<{ role?: unknown; id?: unknown; c
     .join("|");
 }
 
+type SessionHistoryPage = {
+  messages: CopilotMessage[];
+  state: string;
+  hasMore: boolean;
+  nextBeforeMessageId: string | null;
+};
+
+function stableStringHash(value: string) {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash.toString(36);
+}
+
+function stableHistoryMessageId(message: any, index: number) {
+  if (typeof message?.id === "string" && message.id.length > 0) {
+    return message.id;
+  }
+  const role = normalizeMessageRole(message?.role);
+  const createdAt = message?.createdAt ?? message?.created_at ?? "unknown";
+  const content = typeof message?.content === "string" ? message.content : "";
+  return `history-${role}-${createdAt}-${index}-${stableStringHash(content)}`;
+}
+
+function historyMessageTimestamp(message: Pick<CopilotMessage, "createdAt">) {
+  return normalizeEpochToMilliseconds(message.createdAt);
+}
+
+function isLocalMessageId(id: string) {
+  return id.startsWith("local-") || id.startsWith("msg-");
+}
+
+function canCompareCanonicalMessageIds(left: string, right: string) {
+  const isFallbackId = (id: string) => id.startsWith("history-") || isLocalMessageId(id);
+  return !isFallbackId(left) && !isFallbackId(right);
+}
+
+function historyItemsFromResponse(response: any) {
+  if (Array.isArray(response?.items)) {
+    return response.items as Array<{ message?: any; steps?: any[] }>;
+  }
+  if (Array.isArray(response?.messages)) {
+    const stepsByMessage = new Map<string, any[]>();
+    for (const step of response.steps || []) {
+      const messageId = step?.messageId ?? step?.message_id;
+      if (!messageId) continue;
+      const existing = stepsByMessage.get(messageId) ?? [];
+      existing.push(step);
+      stepsByMessage.set(messageId, existing);
+    }
+    return response.messages.map((message: any) => ({
+      message,
+      steps: stepsByMessage.get(message?.id) ?? [],
+    }));
+  }
+  return [];
+}
+
+function normalizeHistoryPage(response: any): SessionHistoryPage {
+  const items = historyItemsFromResponse(response);
+  const rawMessages = items
+    .map((item) => item?.message)
+    .filter(Boolean)
+    .map((message: any, index: number) => ({
+      id: stableHistoryMessageId(message, index),
+      role: normalizeMessageRole(message.role),
+      content: message.content,
+      createdAt: message.createdAt ?? message.created_at,
+    }));
+  const steps = items.flatMap((item) => item?.steps || []);
+  return {
+    messages: hydrateMessagesWithSteps(rawMessages, steps),
+    state: typeof response?.state === "string" ? response.state : "IDLE",
+    hasMore: Boolean(response?.hasMore ?? response?.has_more),
+    nextBeforeMessageId:
+      typeof response?.nextBeforeMessageId === "string"
+        ? response.nextBeforeMessageId
+        : typeof response?.next_before_message_id === "string"
+          ? response.next_before_message_id
+          : null,
+  };
+}
+
+function mergeNewestCanonicalPage(existingMessages: CopilotMessage[], newestPageMessages: CopilotMessage[]) {
+  if (newestPageMessages.length === 0) {
+    return existingMessages;
+  }
+  const newestIds = new Set(newestPageMessages.map((message) => message.id));
+  const oldestPageId = newestPageMessages[0]?.id;
+  const newestPageId = newestPageMessages[newestPageMessages.length - 1]?.id;
+  const oldestPageTimestamp = historyMessageTimestamp(newestPageMessages[0]);
+  const newestPageTimestamp = historyMessageTimestamp(newestPageMessages[newestPageMessages.length - 1]);
+  const preservedOlderMessages = existingMessages.filter((message) => {
+    if (message.id === "1") return true;
+    if (isLocalMessageId(message.id)) return false;
+    if (newestIds.has(message.id)) return false;
+    const messageTimestamp = historyMessageTimestamp(message);
+    if (messageTimestamp !== null && oldestPageTimestamp !== null) {
+      return messageTimestamp < oldestPageTimestamp;
+    }
+    // Only canonical backend IDs are sortable. Fallback IDs include content/index data and must not order pages.
+    return oldestPageId && canCompareCanonicalMessageIds(message.id, oldestPageId) ? message.id < oldestPageId : false;
+  });
+  const preservedNewerMessages = existingMessages.filter((message) => {
+    if (message.id === "1") return false;
+    if (isLocalMessageId(message.id)) return false;
+    if (newestIds.has(message.id)) return false;
+    const messageTimestamp = historyMessageTimestamp(message);
+    if (messageTimestamp !== null && newestPageTimestamp !== null) {
+      return messageTimestamp > newestPageTimestamp;
+    }
+    return newestPageId && canCompareCanonicalMessageIds(message.id, newestPageId) ? message.id > newestPageId : false;
+  });
+  const mergedMessages = [...preservedOlderMessages, ...newestPageMessages, ...preservedNewerMessages];
+  const dedupedMessages = new Map<string, CopilotMessage>();
+  for (const message of mergedMessages) {
+    if (!dedupedMessages.has(message.id)) {
+      dedupedMessages.set(message.id, message);
+    }
+  }
+  return Array.from(dedupedMessages.values());
+}
+
 export function TalonCopilot({
   namespace,
   agent,
@@ -310,6 +474,9 @@ export function TalonCopilot({
   talonIcon = <DefaultTalonIcon />,
   timestampLocale,
   formatTimestamp,
+  historyPageSize = DEFAULT_HISTORY_PAGE_SIZE,
+  historyMessageLimit = DEFAULT_HISTORY_MESSAGE_LIMIT,
+  historyStepLimit = DEFAULT_HISTORY_STEP_LIMIT,
 }: TalonCopilotProps) {
   const [messages, setMessages] = useState<CopilotMessage[]>(bootMessage);
   const [input, setInput] = useState("");
@@ -319,6 +486,9 @@ export function TalonCopilot({
   const [expandedThinkingMessages, setExpandedThinkingMessages] = useState<Record<string, boolean>>({});
   const [expandedToolItems, setExpandedToolItems] = useState<Record<string, boolean>>({});
   const [currentSession, setCurrentSession] = useState<{ ns: string; agent: string; sessionId: string } | null>(null);
+  const [hasMoreHistory, setHasMoreHistory] = useState(false);
+  const [nextBeforeMessageId, setNextBeforeMessageId] = useState<string | null>(null);
+  const [isLoadingOlderHistory, setIsLoadingOlderHistory] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const transcriptContentRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -326,6 +496,9 @@ export function TalonCopilot({
   const resumeAbortControllerRef = useRef<AbortController | null>(null);
   const currentSessionRef = useRef<{ ns: string; agent: string; sessionId: string } | null>(null);
   const messagesRef = useRef<CopilotMessage[]>(bootMessage);
+  const skipNextAutoScrollRef = useRef(false);
+  const prependScrollRestoreRef = useRef<{ previousScrollTop: number; previousScrollHeight: number } | null>(null);
+  const isLoadingOlderHistoryRef = useRef(false);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -347,7 +520,21 @@ export function TalonCopilot({
     bottomRef.current?.scrollIntoView({ behavior });
   }, []);
 
+  useSafeLayoutEffect(() => {
+    const restore = prependScrollRestoreRef.current;
+    const container = scrollContainerRef.current;
+    if (!restore || !container) return;
+
+    const delta = container.scrollHeight - restore.previousScrollHeight;
+    container.scrollTop = restore.previousScrollTop + delta;
+    prependScrollRestoreRef.current = null;
+  }, [messages]);
+
   useEffect(() => {
+    if (skipNextAutoScrollRef.current) {
+      skipNextAutoScrollRef.current = false;
+      return;
+    }
     const rafId = window.requestAnimationFrame(() => {
       scrollTranscriptToBottom("auto");
     });
@@ -361,6 +548,9 @@ export function TalonCopilot({
     }
 
     const observer = new ResizeObserver(() => {
+      if (skipNextAutoScrollRef.current || prependScrollRestoreRef.current) {
+        return;
+      }
       scrollTranscriptToBottom("auto");
     });
     observer.observe(content);
@@ -579,22 +769,46 @@ export function TalonCopilot({
     });
   }, [messages, expandedThinkingMessages, expandedToolItems, resolvedTimestampFormatter, talonIcon, toggleThinkingMessage, toggleToolItem]);
 
-  const getSessionState = useCallback(
-    async (target: { ns: string; agent: string; sessionId: string }) => {
+  const resolvedHistoryPageSize = Math.max(
+    1,
+    Math.trunc(historyPageSize || historyMessageLimit || DEFAULT_HISTORY_PAGE_SIZE),
+  );
+
+  const getSessionMessagesPage = useCallback(
+    async (target: { ns: string; agent: string; sessionId: string }, beforeMessageId?: string | null) => {
+      if (gatewayClient?.listSessionMessages) {
+        return gatewayClient.listSessionMessages({
+          ...target,
+          pageSize: resolvedHistoryPageSize,
+          beforeMessageId: beforeMessageId || undefined,
+        });
+      }
+
       if (gatewayClient) {
-        return gatewayClient.getSession(target);
+        return gatewayClient.getSession({
+          ...target,
+          messageLimit: resolvedHistoryPageSize,
+          stepLimit: historyStepLimit > 0 ? historyStepLimit : undefined,
+        });
       }
 
       const response = await fetch(
-        `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(target.ns)}/agents/${encodeURIComponent(target.agent)}/sessions/${encodeURIComponent(target.sessionId)}`,
+        buildGatewaySessionMessagesUrl(
+          gatewayUrl,
+          target.ns,
+          target.agent,
+          target.sessionId,
+          resolvedHistoryPageSize,
+          beforeMessageId || undefined,
+        ),
         { headers: buildGatewayHeaders(authToken) },
       );
       if (!response.ok) {
-        throw new Error(`Failed to load session: ${response.status}`);
+        throw new Error(`Failed to load session messages: ${response.status}`);
       }
       return response.json();
     },
-    [authToken, gatewayClient, gatewayUrl],
+    [authToken, gatewayClient, gatewayUrl, historyStepLimit, resolvedHistoryPageSize],
   );
 
   const createSession = useCallback(
@@ -619,25 +833,94 @@ export function TalonCopilot({
     [gatewayClient, gatewayUrl, jsonHeaders],
   );
 
-  const loadSessionState = useCallback(
+  const loadInitialSessionPage = useCallback(
     async (target: { ns: string; agent: string; sessionId: string }) => {
-      const res = await getSessionState(target);
-      const hydratedMessages = hydrateMessagesWithSteps(
-        (res.messages || []).map((message: any) => ({
-          id: message.id || Math.random().toString(),
-          role: normalizeMessageRole(message.role),
-          content: message.content,
-          createdAt: message.createdAt ?? message.created_at,
-        })),
-        res.steps,
-      );
-
-      setMessages(hydratedMessages.length > 0 ? hydratedMessages : bootMessage);
+      const res = normalizeHistoryPage(await getSessionMessagesPage(target));
+      setMessages(res.messages.length > 0 ? res.messages : bootMessage);
+      setHasMoreHistory(res.hasMore);
+      setNextBeforeMessageId(res.nextBeforeMessageId);
       setStreamEvents([]);
       setCurrentSession(target);
       return res;
     },
-    [getSessionState],
+    [getSessionMessagesPage],
+  );
+
+  const loadOlderHistoryPage = useCallback(
+    async (target: { ns: string; agent: string; sessionId: string }) => {
+      if (!nextBeforeMessageId || isLoadingOlderHistoryRef.current) return;
+
+      const container = scrollContainerRef.current;
+      if (container) {
+        prependScrollRestoreRef.current = {
+          previousScrollTop: container.scrollTop,
+          previousScrollHeight: container.scrollHeight,
+        };
+      }
+      skipNextAutoScrollRef.current = true;
+      isLoadingOlderHistoryRef.current = true;
+      setIsLoadingOlderHistory(true);
+      try {
+        const res = normalizeHistoryPage(await getSessionMessagesPage(target, nextBeforeMessageId));
+        const existingIds = new Set(messagesRef.current.map((message) => message.id));
+        const olderMessages = res.messages.filter((message) => !existingIds.has(message.id));
+        if (olderMessages.length === 0) {
+          prependScrollRestoreRef.current = null;
+          skipNextAutoScrollRef.current = false;
+        } else {
+          setMessages((prev) => {
+            const currentIds = new Set(prev.map((message) => message.id));
+            const filteredOlderMessages = olderMessages.filter((message) => !currentIds.has(message.id));
+            if (filteredOlderMessages.length === 0) {
+              return prev;
+            }
+            return [...filteredOlderMessages, ...prev];
+          });
+        }
+        setHasMoreHistory(res.hasMore);
+        setNextBeforeMessageId(res.nextBeforeMessageId);
+      } catch (err) {
+        prependScrollRestoreRef.current = null;
+        skipNextAutoScrollRef.current = false;
+        console.warn("Could not load older session history", err);
+      } finally {
+        isLoadingOlderHistoryRef.current = false;
+        setIsLoadingOlderHistory(false);
+      }
+    },
+    [getSessionMessagesPage, nextBeforeMessageId],
+  );
+
+  const refreshNewestSessionPage = useCallback(
+    async (target: { ns: string; agent: string; sessionId: string }) => {
+      const res = normalizeHistoryPage(await getSessionMessagesPage(target));
+      const newestPageIds = new Set(res.messages.map((message) => message.id));
+      const oldestPageMessage = res.messages[0];
+      const oldestPageId = oldestPageMessage?.id;
+      const oldestPageTimestamp = oldestPageMessage ? historyMessageTimestamp(oldestPageMessage) : null;
+      const hasLoadedOlderHistory = messagesRef.current.some((message) => {
+        if (message.id === "1") return false;
+        if (isLocalMessageId(message.id)) return false;
+        if (newestPageIds.has(message.id)) return false;
+        const messageTimestamp = historyMessageTimestamp(message);
+        if (messageTimestamp !== null && oldestPageTimestamp !== null) {
+          return messageTimestamp < oldestPageTimestamp;
+        }
+        return oldestPageId && canCompareCanonicalMessageIds(message.id, oldestPageId) ? message.id < oldestPageId : false;
+      });
+      setMessages((prev) => {
+        const merged = mergeNewestCanonicalPage(prev, res.messages);
+        return merged.length > 0 ? merged : bootMessage;
+      });
+      if (!hasLoadedOlderHistory) {
+        setHasMoreHistory(res.hasMore);
+        setNextBeforeMessageId(res.nextBeforeMessageId);
+      }
+      setStreamEvents([]);
+      setCurrentSession(target);
+      return res;
+    },
+    [getSessionMessagesPage],
   );
 
   const resumeStream = useCallback(
@@ -665,6 +948,9 @@ export function TalonCopilot({
       }
       setCurrentSession(null);
       setMessages(bootMessage);
+      setHasMoreHistory(false);
+      setNextBeforeMessageId(null);
+      setIsLoadingOlderHistory(false);
       setStreamEvents([]);
       setError(null);
       return;
@@ -678,7 +964,7 @@ export function TalonCopilot({
     const controller = new AbortController();
     resumeAbortControllerRef.current?.abort();
     resumeAbortControllerRef.current = controller;
-    loadSessionState(nextSession)
+    loadInitialSessionPage(nextSession)
       .then((res) => {
         if (!cancelled && res.state === "PROCESSING") {
           void resumeStream(nextSession, controller.signal);
@@ -694,7 +980,7 @@ export function TalonCopilot({
       cancelled = true;
       controller.abort();
     };
-  }, [agent, loadSessionState, namespace, resumeStream, sessionId]);
+  }, [agent, loadInitialSessionPage, namespace, resumeStream, sessionId]);
 
   const getLatestStatus = useCallback(() => {
     const reasoningItems = streamEvents.filter((item) => item.type === "reasoning");
@@ -715,17 +1001,17 @@ export function TalonCopilot({
   const waitForCanonicalAssistantUpdate = useCallback(
     async (session: { ns: string; agent: string; sessionId: string }, baselineSignature: string) => {
       for (let attempt = 0; attempt < 40; attempt += 1) {
-        const sessionState = await getSessionState(session);
-        const nextSignature = getAssistantSignature(sessionState?.messages);
+        const sessionState = normalizeHistoryPage(await getSessionMessagesPage(session));
+        const nextSignature = getAssistantSignature(sessionState.messages);
         if (nextSignature && nextSignature !== baselineSignature) {
-          await loadSessionState(session);
+          await refreshNewestSessionPage(session);
           return true;
         }
         await new Promise((resolve) => setTimeout(resolve, 250));
       }
       return false;
     },
-    [getSessionState, loadSessionState],
+    [getSessionMessagesPage, refreshNewestSessionPage],
   );
 
   const submitMessage = useCallback(async (submittedText: string) => {
@@ -738,7 +1024,9 @@ export function TalonCopilot({
 
     try {
       let session = currentSessionRef.current;
-      const baselineAssistantSignature = getAssistantSignature(messagesRef.current);
+      const baselineAssistantSignature = getAssistantSignature(
+        messagesRef.current.slice(-resolvedHistoryPageSize),
+      );
 
       if (!session) {
         const sessionRes = await createSession({ ns: namespace, agent });
@@ -767,11 +1055,11 @@ export function TalonCopilot({
         headers: jsonHeaders,
         signal: controller.signal,
         body: JSON.stringify({
-          messages: [...messagesRef.current, userMessage].map((message) => ({
-            role: message.role,
-            content: getMessageContent(message),
-            parts: Array.isArray(message.parts) ? message.parts : [{ type: "text", text: getMessageContent(message) }],
-          })),
+          messages: [{
+            role: userMessage.role,
+            content: getMessageContent(userMessage),
+            parts: Array.isArray(userMessage.parts) ? userMessage.parts : [{ type: "text", text: getMessageContent(userMessage) }],
+          }],
         }),
       });
       if (!response.ok) {
@@ -783,13 +1071,15 @@ export function TalonCopilot({
       if (!assistantText) {
         await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature);
       } else {
-        await loadSessionState(session);
+        await refreshNewestSessionPage(session);
       }
     } catch (err: any) {
       const nextError = err instanceof Error ? err : new Error(String(err));
       const session = currentSessionRef.current;
       if (session) {
-        const baselineAssistantSignature = getAssistantSignature(messagesRef.current);
+        const baselineAssistantSignature = getAssistantSignature(
+          messagesRef.current.slice(-resolvedHistoryPageSize),
+        );
         const recovered = await waitForCanonicalAssistantUpdate(session, baselineAssistantSignature).catch(() => false);
         if (recovered) {
           setError(null);
@@ -801,7 +1091,7 @@ export function TalonCopilot({
       abortControllerRef.current = null;
       setIsLoading(false);
     }
-  }, [agent, createSession, disabled, gatewayUrl, isLoading, jsonHeaders, loadSessionState, namespace, onSessionChange, waitForCanonicalAssistantUpdate]);
+  }, [agent, createSession, disabled, gatewayUrl, isLoading, jsonHeaders, namespace, onSessionChange, refreshNewestSessionPage, resolvedHistoryPageSize, waitForCanonicalAssistantUpdate]);
 
   const stopGeneration = useCallback(async () => {
     if (!currentSessionRef.current || !isLoading) return;
@@ -822,6 +1112,17 @@ export function TalonCopilot({
     }
   }, [gatewayUrl, isLoading, jsonHeaders]);
 
+  const handleTranscriptScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    const session = currentSessionRef.current;
+    if (!container || !session || isLoadingOlderHistoryRef.current || !hasMoreHistory || !nextBeforeMessageId) {
+      return;
+    }
+    if (container.scrollTop <= HISTORY_SCROLL_LOAD_THRESHOLD_PX) {
+      void loadOlderHistoryPage(session);
+    }
+  }, [hasMoreHistory, loadOlderHistoryPage, nextBeforeMessageId]);
+
   return (
     <div
       className={className}
@@ -836,7 +1137,12 @@ export function TalonCopilot({
         ...style,
       }}
     >
-      <div ref={scrollContainerRef} style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minHeight: 0 }}>
+      <div
+        data-testid="copilot-transcript"
+        ref={scrollContainerRef}
+        onScroll={handleTranscriptScroll}
+        style={{ flex: 1, overflowY: "auto", overflowX: "hidden", minHeight: 0 }}
+      >
         <div style={{ maxWidth: 896, margin: "0 auto", padding: "1rem 1rem 2rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
           {renderedMessages}
 

@@ -81,6 +81,11 @@ service GatewayService {
       get: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}"
     };
   }
+  rpc ListSessionMessages(ListSessionMessagesRequest) returns (ListSessionMessagesResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages"
+    };
+  }
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse) {
     option (google.api.http) = {
       get: "/v1/ns/{ns}/agents/{agent}/sessions"
@@ -433,6 +438,32 @@ message GetSessionRequest {
   string session_id = 1;
   string agent = 2;
   string ns = 3;
+  // 0 preserves legacy behavior and returns all messages. Use a negative value to return no messages.
+  int32 message_limit = 4;
+  // 0 preserves legacy behavior and returns all steps for returned messages. Use a negative value to return no steps.
+  int32 step_limit = 5;
+}
+
+message ListSessionMessagesRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  int32 page_size = 4;
+  optional string before_message_id = 5;
+}
+
+message ListSessionMessagesResponseItem {
+  talon.models.SessionMessage message = 1;
+  repeated talon.events.SessionStepEvent steps = 2;
+}
+
+message ListSessionMessagesResponse {
+  string session_id = 1;
+  string agent = 2;
+  string state = 3;
+  repeated ListSessionMessagesResponseItem items = 4;
+  bool has_more = 5;
+  optional string next_before_message_id = 6;
 }
 
 message ListSessionsRequest {

@@ -28,9 +28,9 @@ const UI_STREAM_ERROR_CODE = "3";
 
 function createLocalMessageId() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
+    return `local-${crypto.randomUUID()}`;
   }
-  return `msg-${Math.random().toString(36).slice(2, 11)}`;
+  return `local-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 export function sessionResponseHasAssistantText(response: any): boolean {
