@@ -154,19 +154,15 @@ In Sightline:
 
 ![Hello world session in Sightline](../pr/hello-world-sightline.png)
 
-Look for the persisted messages and streamed execution steps.
+In Sightline, you can inspect:
 
-You can also inspect:
-
-- namespaces
-- agents
-- sessions
-- schedules
-- templates
-- knowledge resources
-- MCP servers and bindings
-
-This is the fastest way to see Talon’s runtime model in action rather than only reading the APIs.
+- namespaces, which group the resources for a workspace or tenant
+- agents, which hold runnable behavior such as prompts, model policy, knowledge, and tool bindings
+- sessions, which store durable conversation state and execution history
+- schedules, which wake agents for recurring or one-shot background work
+- templates, which define reusable agent behavior that multiple agents can share
+- knowledge resources, which provide durable context files available to agents in a namespace
+- MCP servers and bindings, which expose approved external tools to selected agents
 
 ## 9. Read the contracts
 
