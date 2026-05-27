@@ -57,9 +57,11 @@ It also starts:
 - a Pub/Sub emulator
 - an init step that applies the default agent template manifest
 
-## 4. Create a namespace
+## 4. Create a workspace namespace
 
-Create the namespace manifest:
+Talon resources are usually managed as manifests so the same agent, namespace, knowledge, and tool definitions can be reviewed, versioned, and applied again in another environment. This quickstart writes temporary manifests under `/tmp` so you can use the same workflow without adding files to the repository.
+
+Namespaces group agents, sessions, knowledge, and tool bindings. Create one for the quickstart:
 
 ```bash
 cat > /tmp/quickstart-namespace.yaml <<'EOF'
@@ -78,7 +80,7 @@ cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f /t
 
 ## 5. Create an agent directly
 
-The quickstart does not require an agent template first. Create the agent manifest:
+Define a simple agent with its full behavior inline:
 
 ```bash
 cat > /tmp/quickstart-agent.yaml <<'EOF'
@@ -174,14 +176,3 @@ This is the fastest way to see Talon’s runtime model in action rather than onl
 - [Gateway API reference](../reference/generated/gateway-service.md)
 - [Manifest schema](../reference/generated/manifests-schema.md)
 - [Config schema](../reference/generated/config-schema.md)
-
-## What you learned
-
-After the quickstart, you should know:
-
-- which processes Talon starts locally
-- which ports correspond to UI, edge, gRPC, and UI-session traffic
-- how to create an agent directly without introducing an agent template first
-- how to create a session and send a browser-style chat request with `curl`
-- where to inspect runtime resources
-- where to go next for deeper runtime or API detail
