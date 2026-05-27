@@ -16,16 +16,23 @@ By the end you will have:
 
 ## Before you start
 
+Clone the repository:
+
+```bash
+git clone https://github.com/impalasys/talon.git
+cd talon
+```
+
 Create a local `.env` file:
 
 ```bash
 cp .env.example .env
 ```
 
-Then set a real provider key. This tutorial uses the `novita` provider already defined in `talon.compose.yaml`:
+Then set a real provider key. This tutorial uses the `openai` provider already defined in `talon.compose.yaml`:
 
 ```bash
-NOVITA_API_KEY=your-real-api-key
+OPENAI_API_KEY=your-real-api-key
 ```
 
 From the repository root:
@@ -70,8 +77,8 @@ definition:
       profiles:
         - name: default
           model:
-            provider: novita
-            name: google/gemma-4-31b-it
+            provider: openai
+            name: gpt-5.4-nano
             temperature: 0.0
 ```
 

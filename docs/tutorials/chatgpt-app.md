@@ -16,7 +16,14 @@ You will create:
 
 The point is to use Talon as the chat backend, not just as a prompt store.
 
-## 1. Start the stack
+## 1. Clone the repository and start the stack
+
+Clone the repository:
+
+```bash
+git clone https://github.com/impalasys/talon.git
+cd talon
+```
 
 Create `.env` first:
 
@@ -27,7 +34,7 @@ cp .env.example .env
 Then set a real provider key:
 
 ```bash
-NOVITA_API_KEY=your-real-api-key
+OPENAI_API_KEY=your-real-api-key
 ```
 
 From the repository root:
@@ -126,7 +133,7 @@ This is the fastest way to debug whether the browser app and the control plane a
 - the manifest files are valid `talon-cli apply` inputs
 - the knowledge sync command is real
 - the browser chat route is the real gateway UI surface
-- the manifests point at a real Novita provider already wired through `talon.compose.yaml`
+- the manifests point at a real OpenAI provider already wired through `talon.compose.yaml`
 
 ## What is intentionally not included
 

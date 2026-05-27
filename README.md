@@ -64,9 +64,17 @@ cargo build --locked --release --bins
 ### Prerequisites
 
 - Docker / Docker Compose
+- Git
 - Rust toolchain
 - `protobuf-compiler`
 - at least one real provider API key in `.env`
+
+Clone the repository:
+
+```bash
+git clone https://github.com/impalasys/talon.git
+cd talon
+```
 
 Create a local env file:
 
@@ -74,10 +82,10 @@ Create a local env file:
 cp .env.example .env
 ```
 
-Set at least one provider key. The checked-in local stack is wired to the `novita` provider in `talon.compose.yaml`, so the shortest path is:
+Set the OpenAI provider key. The checked-in local stack includes the `openai` provider in `talon.compose.yaml`, so the shortest path is:
 
 ```bash
-NOVITA_API_KEY=your-real-api-key
+OPENAI_API_KEY=your-real-api-key
 ```
 
 ### Start the full local stack

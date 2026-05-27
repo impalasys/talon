@@ -5,6 +5,20 @@ sidebar_position: 2
 
 This tutorial maps Talon’s three client surfaces to concrete code paths in this repository.
 
+Before you run the examples, clone the repository and create `.env`:
+
+```bash
+git clone https://github.com/impalasys/talon.git
+cd talon
+cp .env.example .env
+```
+
+Set `OPENAI_API_KEY` in `.env`, then start the local stack:
+
+```bash
+docker compose up --build -d
+```
+
 ## Choose the right surface
 
 Use:
@@ -43,7 +57,7 @@ await client.createAgent({
           profiles: [
             {
               name: "default",
-              model: { provider: "novita", name: "google/gemma-4-31b-it", temperature: 0.0 },
+              model: { provider: "openai", name: "gpt-5.4-nano", temperature: 0.0 },
             },
           ],
         },
@@ -56,8 +70,6 @@ const session = await client.createSession({ ns: "client-demo", agent: "docs-age
 ```
 
 Use this path when Talon is one service inside a larger typed system.
-
-Before you run a real client, create `.env` from `.env.example` and set `NOVITA_API_KEY`.
 
 ## Option 2: CRUD with REST
 

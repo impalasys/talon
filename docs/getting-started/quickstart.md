@@ -3,15 +3,25 @@ title: Quickstart
 sidebar_position: 1
 ---
 
-This is the fastest path to a working Talon stack in the monorepo while still understanding what just started.
+Use Talon when you want agents to run as cloud services, not just as local assistants in a terminal. Talon is for deploying agents that keep durable state, expose APIs, run in workers, share knowledge, use approved tools, wake up on schedules, and can be inspected after they execute.
+
+This quickstart creates a real namespace, agent, session, and chat run on the local cloud-style stack so you can see the core control-plane loop end to end: API request in, durable state persisted, worker execution dispatched, and the result visible in Sightline.
 
 ## Prerequisites
 
 - Docker / Docker Compose
+- Git
 - Rust toolchain for local binaries and CLI work
 - provider credentials via `.env` or local keychain
 
-## 1. Create `.env`
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/impalasys/talon.git
+cd talon
+```
+
+## 2. Create `.env`
 
 From the repository root:
 
@@ -19,13 +29,13 @@ From the repository root:
 cp .env.example .env
 ```
 
-Then edit `.env` and set at least one real provider key. The checked-in local stack is wired to the `novita` provider in `talon.compose.yaml`, so the quickstart examples below use that configuration:
+Then edit `.env` and set your OpenAI provider key. The checked-in local stack includes the `openai` provider in `talon.compose.yaml`, so the quickstart examples below use that configuration:
 
 ```bash
-NOVITA_API_KEY=your-real-api-key
+OPENAI_API_KEY=your-real-api-key
 ```
 
-## 2. Start Talon locally
+## 3. Start Talon locally
 
 From the repository root:
 
@@ -47,44 +57,31 @@ It also starts:
 - a Pub/Sub emulator
 - an init step that applies the default agent template manifest
 
-## 3. Open Sightline
-
-Open `http://localhost:3000` and connect to `http://localhost:18789`.
-
-Use Sightline to inspect:
-
-- namespaces
-- agents
-- sessions
-- schedules
-- templates
-- knowledge resources
-- MCP servers and bindings
-
-This is the fastest way to see Talon’s runtime model in action rather than only reading the APIs.
-
 ## 4. Create a namespace
 
-Create `quickstart-namespace.yaml`:
+Create the namespace manifest:
 
-```yaml
+```bash
+cat > /tmp/quickstart-namespace.yaml <<'EOF'
 apiVersion: talon.impalasys.com/v1
 kind: Namespace
 metadata:
   name: quickstart
+EOF
 ```
 
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f quickstart-namespace.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f /tmp/quickstart-namespace.yaml
 ```
 
 ## 5. Create an agent directly
 
-The quickstart does not require an agent template first. Create `quickstart-agent.yaml`:
+The quickstart does not require an agent template first. Create the agent manifest:
 
-```yaml
+```bash
+cat > /tmp/quickstart-agent.yaml <<'EOF'
 apiVersion: talon.impalasys.com/v1
 kind: Agent
 metadata:
@@ -99,15 +96,16 @@ definition:
       profiles:
         - name: default
           model:
-            provider: novita
-            name: google/gemma-4-31b-it
+            provider: openai
+            name: gpt-5.4-nano
             temperature: 0.0
+EOF
 ```
 
 Apply it:
 
 ```bash
-cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f quickstart-agent.yaml
+cargo run --bin talon-cli -- --gateway http://localhost:18789 --rest apply -f /tmp/quickstart-agent.yaml
 ```
 
 Verify it exists:
@@ -142,7 +140,9 @@ curl -sS http://localhost:18789/v1/ui/ns/quickstart/agents/hello-agent/sessions/
 
 This uses the same browser-oriented UI session surface that Sightline and `@talonai/copilot` use.
 
-## 8. Inspect the run in Sightline
+## 8. Open Sightline and inspect the run
+
+Open `http://localhost:3000` and connect to `http://localhost:18789`.
 
 In Sightline:
 
@@ -150,7 +150,21 @@ In Sightline:
 2. select `hello-agent`
 3. open the session you just created
 
+![Hello world session in Sightline](../pr/hello-world-sightline.png)
+
 Look for the persisted messages and streamed execution steps.
+
+You can also inspect:
+
+- namespaces
+- agents
+- sessions
+- schedules
+- templates
+- knowledge resources
+- MCP servers and bindings
+
+This is the fastest way to see Talon’s runtime model in action rather than only reading the APIs.
 
 ## 9. Read the contracts
 

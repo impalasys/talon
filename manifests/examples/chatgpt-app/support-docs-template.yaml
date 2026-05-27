@@ -12,6 +12,6 @@ definition:
       profiles:
         - name: default
           model:
-            provider: novita
-            name: google/gemma-4-31b-it
+            provider: openai
+            name: gpt-5.4-nano
             temperature: 0.0

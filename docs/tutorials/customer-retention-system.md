@@ -5,7 +5,19 @@ sidebar_position: 5
 
 This tutorial makes Talon’s scheduler concrete by pairing a real agent with a real schedule created through the gateway API.
 
-Before you begin, create `.env` from `.env.example` and set `NOVITA_API_KEY` so the example agent uses a real model provider.
+Before you begin, clone the repository, create `.env` from `.env.example`, and set `OPENAI_API_KEY` so the example agent uses a real model provider:
+
+```bash
+git clone https://github.com/impalasys/talon.git
+cd talon
+cp .env.example .env
+```
+
+Start the local stack if it is not already running:
+
+```bash
+docker compose up --build -d
+```
 
 ## What you are building
 

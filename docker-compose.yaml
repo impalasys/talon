@@ -26,8 +26,10 @@ services:
       - "50051:50051"
       - "50052:50052"
     depends_on:
-      - postgres
-      - pubsub
+      postgres:
+        condition: service_healthy
+      pubsub:
+        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "status=$$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'content-type: application/json' -d '{}' http://localhost:50052/v1/ui/ns/health/agents/health/sessions/health); [ \"$$status\" = \"400\" ] || [ \"$$status\" = \"422\" ]"]
       interval: 5s
@@ -58,8 +60,10 @@ services:
     volumes:
       - ./talon.compose.yaml:/data/talon/talon.compose.yaml:ro
     depends_on:
-      - postgres
-      - pubsub
+      postgres:
+        condition: service_healthy
+      pubsub:
+        condition: service_started
 
   postgres:
     image: postgres:15-alpine
@@ -103,7 +107,8 @@ services:
       context: .
       dockerfile: dockerfiles/envoy.Dockerfile
     depends_on:
-      - gateway
+      gateway:
+        condition: service_healthy
     ports:
       - "18789:8081"
 
@@ -117,7 +122,8 @@ services:
       - pgadmin-data:/var/lib/pgadmin
       - ./dockerfiles/pgadmin-servers.json:/pgadmin4/servers.json:ro
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   ui:
     build:
@@ -129,8 +135,10 @@ services:
       - NODE_ENV=production
       - NEXT_PUBLIC_GATEWAY_URL=http://localhost:18789
     depends_on:
-      - gateway
-      - envoy
+      gateway:
+        condition: service_healthy
+      envoy:
+        condition: service_started
     ports:
       - "3000:3000"
 
