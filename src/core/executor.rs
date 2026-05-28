@@ -9,16 +9,16 @@ use serde_json::Value;
 use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 use std::sync::Arc;
-use tracing::info_span;
 use tokio_util::sync::CancellationToken;
+use tracing::info_span;
 
 use crate::config::Config;
 use crate::connectors::mcp::{call_tool_for_config, McpConnectionConfig};
-use crate::core::context_budget::{compact_history_for_llm, tool_result_preview};
 use crate::control::ControlPlane;
+use crate::core::context_budget::{compact_history_for_llm, tool_result_preview};
 use crate::knowledge::KnowledgeBook;
-use crate::llm::{ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall};
 use crate::llm::resolver::resolve_model_profile;
+use crate::llm::{ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall};
 use crate::skills::registry::ToolRegistry;
 
 const DEFAULT_EXECUTION_TURN_LIMIT: usize = 25;
@@ -478,6 +478,7 @@ mod tests {
         LoopMessage,
     };
     use crate::config::Config;
+    use crate::control::keys::{ResourceKey, ResourceList};
     use crate::control::scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
     use crate::control::{ControlPlane, KeyValueStore, MessagePublisher};
     use crate::core::ContextBudget;
@@ -508,25 +509,24 @@ mod tests {
 
     #[async_trait]
     impl KeyValueStore for NoopKv {
-        async fn get(&self, _namespace: &str, _key: &str) -> Result<Option<Vec<u8>>> {
+        async fn get(&self, _key: &ResourceKey) -> Result<Option<Vec<u8>>> {
             Ok(None)
         }
-        async fn set(&self, _namespace: &str, _key: &str, _value: &[u8]) -> Result<()> {
+        async fn set(&self, _key: &ResourceKey, _value: &[u8]) -> Result<()> {
             Ok(())
         }
         async fn compare_and_swap(
             &self,
-            _namespace: &str,
-            _key: &str,
+            _key: &ResourceKey,
             _expected: Option<&[u8]>,
             _value: &[u8],
         ) -> Result<bool> {
             Ok(true)
         }
-        async fn delete(&self, _namespace: &str, _key: &str) -> Result<()> {
+        async fn delete(&self, _key: &ResourceKey) -> Result<()> {
             Ok(())
         }
-        async fn list_keys(&self, _namespace: &str, _prefix: &str) -> Result<Vec<String>> {
+        async fn list_keys(&self, _list: &ResourceList) -> Result<Vec<ResourceKey>> {
             Ok(Vec::new())
         }
     }
@@ -661,10 +661,7 @@ mod tests {
             Ok(vec![0.0; 8])
         }
 
-        async fn chat_completion(
-            &self,
-            request: ChatRequest,
-        ) -> Result<ChatResponse> {
+        async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse> {
             self.seen_messages
                 .lock()
                 .unwrap()
@@ -708,10 +705,7 @@ mod tests {
             Ok(vec![0.0; 8])
         }
 
-        async fn chat_completion(
-            &self,
-            _request: ChatRequest,
-        ) -> Result<ChatResponse> {
+        async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
             unreachable!("stream_chat_completion is used in this test");
         }
 
@@ -830,7 +824,10 @@ mod tests {
                 && message.content
                     == "I'm talking about the blogs link in the footer and the blogs pages"
         }));
-        let tool_message = messages.iter().find(|message| message.role == "tool").unwrap();
+        let tool_message = messages
+            .iter()
+            .find(|message| message.role == "tool")
+            .unwrap();
         assert!(tool_message.content.len() <= ContextBudget::default().max_tool_result_chars);
         assert!(
             tool_message.content.contains("chars omitted")
@@ -923,23 +920,23 @@ mod tests {
             Ok(vec![0.0; 8])
         }
 
-        async fn chat_completion(
-            &self,
-            _request: ChatRequest,
-        ) -> Result<ChatResponse> {
+        async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
             unreachable!("stream_chat_completion is used in this test");
         }
 
         async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
-            Ok(Box::pin(futures::stream::unfold(0usize, |state| async move {
-                tokio::time::sleep(std::time::Duration::from_millis(20)).await;
-                let token = match state {
-                    0 => "Hello",
-                    1 => " world",
-                    _ => " trailing",
-                };
-                Some((Ok(ChatStreamEvent::TextDelta(token.to_string())), state + 1))
-            })))
+            Ok(Box::pin(futures::stream::unfold(
+                0usize,
+                |state| async move {
+                    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+                    let token = match state {
+                        0 => "Hello",
+                        1 => " world",
+                        _ => " trailing",
+                    };
+                    Some((Ok(ChatStreamEvent::TextDelta(token.to_string())), state + 1))
+                },
+            )))
         }
 
         async fn completion(&self, prompt: &str) -> Result<String> {
@@ -999,7 +996,10 @@ mod tests {
             .await
             .expect("write user");
 
-        let assembled = ContextAssembler::new(dir.path()).assemble().await.expect("assemble");
+        let assembled = ContextAssembler::new(dir.path())
+            .assemble()
+            .await
+            .expect("assemble");
         assert!(assembled.contains("soul body"));
         assert!(assembled.contains("user body"));
         assert!(assembled.contains("(No AGENTS.md provided)"));
@@ -1073,7 +1073,10 @@ mod tests {
         assert!(get.contains("[conic:wks:13:notes/plan.md]"));
 
         let search = executor
-            .execute_tool(crate::knowledge::KNOWLEDGE_SEARCH_TOOL, r#"{"query":"plan"}"#)
+            .execute_tool(
+                crate::knowledge::KNOWLEDGE_SEARCH_TOOL,
+                r#"{"query":"plan"}"#,
+            )
             .await
             .expect("knowledge search");
         assert!(search.contains("remember the plan"));

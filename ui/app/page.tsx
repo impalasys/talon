@@ -61,7 +61,7 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
   if (type === 'template' && resourceName) {
     return {
       type: 'template',
-      ns: 'talon-system',
+      ns: 'Sys',
       resourceName,
       fullPath: `template/${resourceName}`,
     };
@@ -70,7 +70,7 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
   if (type === 'mcp-server' && resourceName) {
     return {
       type: 'mcp-server',
-      ns: 'talon-system',
+      ns: 'Sys',
       resourceName,
       fullPath: `mcp/${resourceName}`,
     };
@@ -182,8 +182,8 @@ function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'schedule') return `${selection.ns} / Schedule`;
   if (selection.type === 'mcp-binding') return `${selection.ns} / MCP Binding`;
   if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
-  if (selection.type === 'template') return 'talon-system / AgentTemplate';
-  return 'talon-system / MCPServer';
+  if (selection.type === 'template') return 'Sys / AgentTemplate';
+  return 'Sys / MCPServer';
 }
 
 function positiveIntParam(searchParams: URLSearchParams, name: string) {

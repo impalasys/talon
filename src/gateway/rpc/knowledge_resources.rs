@@ -13,9 +13,9 @@ async fn hydrate_knowledge_manifest(
     let Some(spec) = knowledge.spec.as_mut() else {
         return Ok(knowledge);
     };
-    let path_key = keys::knowledge(&spec.path);
+    let path_key = keys::knowledge(namespace, &spec.path);
     if let Some(bytes) = kv
-        .get(namespace, &path_key)
+        .get(&path_key)
         .await
         .map_err(|e| tonic::Status::internal(format!("Failed to read knowledge artifact: {}", e)))?
     {
@@ -69,10 +69,10 @@ impl GrpcGatewayHandler {
                 "Knowledge spec.path is required",
             ));
         }
-        let path_key = keys::knowledge(&spec.path);
+        let path_key = keys::knowledge(&req.ns, &spec.path);
 
         if let Some(existing_bytes) =
-            self.gateway.kv.get(&req.ns, &path_key).await.map_err(|e| {
+            self.gateway.kv.get(&path_key).await.map_err(|e| {
                 tonic::Status::internal(format!("Failed to read knowledge path: {}", e))
             })?
         {
@@ -89,11 +89,11 @@ impl GrpcGatewayHandler {
             }
         }
 
-        let resource_key = keys::knowledge_resource(&meta.name);
+        let resource_key = keys::knowledge_resource(&req.ns, &meta.name);
         if let Some(existing) = self
             .gateway
             .kv
-            .get_msg::<manifests::Knowledge>(&req.ns, &resource_key)
+            .get_msg::<manifests::Knowledge>(&resource_key)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to read knowledge resource: {}", e))
@@ -101,17 +101,13 @@ impl GrpcGatewayHandler {
         {
             if let Some(existing_spec) = existing.spec {
                 if existing_spec.path != spec.path && !existing_spec.path.is_empty() {
-                    let old_key = keys::knowledge(&existing_spec.path);
-                    self.gateway
-                        .kv
-                        .delete(&req.ns, &old_key)
-                        .await
-                        .map_err(|e| {
-                            tonic::Status::internal(format!(
-                                "Failed to delete previous knowledge artifact: {}",
-                                e
-                            ))
-                        })?;
+                    let old_key = keys::knowledge(&req.ns, &existing_spec.path);
+                    self.gateway.kv.delete(&old_key).await.map_err(|e| {
+                        tonic::Status::internal(format!(
+                            "Failed to delete previous knowledge artifact: {}",
+                            e
+                        ))
+                    })?;
                 }
             }
         }
@@ -131,12 +127,12 @@ impl GrpcGatewayHandler {
         })?;
         self.gateway
             .kv
-            .set(&req.ns, &path_key, &bytes)
+            .set(&path_key, &bytes)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to write knowledge: {}", e)))?;
         self.gateway
             .kv
-            .set_msg(&req.ns, &resource_key, &knowledge)
+            .set_msg(&resource_key, &knowledge)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to write knowledge resource: {}", e))
@@ -154,11 +150,11 @@ impl GrpcGatewayHandler {
     {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let key = keys::knowledge_resource(&req.name);
+        let key = keys::knowledge_resource(&req.ns, &req.name);
         let knowledge = self
             .gateway
             .kv
-            .get_msg::<manifests::Knowledge>(&req.ns, &key)
+            .get_msg::<manifests::Knowledge>(&key)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to read knowledge resource: {}", e))
@@ -184,7 +180,7 @@ impl GrpcGatewayHandler {
         for key in self
             .gateway
             .kv
-            .list_keys(&req.ns, keys::knowledge_resource_prefix())
+            .list_keys(&keys::knowledge_resource_prefix(&req.ns))
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to list knowledge resources: {}", e))
@@ -193,7 +189,7 @@ impl GrpcGatewayHandler {
             if let Some(entry) = self
                 .gateway
                 .kv
-                .get_msg::<manifests::Knowledge>(&req.ns, &key)
+                .get_msg::<manifests::Knowledge>(&key)
                 .await
                 .map_err(|e| {
                     tonic::Status::internal(format!("Failed to fetch knowledge resource: {}", e))
@@ -215,11 +211,11 @@ impl GrpcGatewayHandler {
     {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let resource_key = keys::knowledge_resource(&req.name);
+        let resource_key = keys::knowledge_resource(&req.ns, &req.name);
         let Some(knowledge) = self
             .gateway
             .kv
-            .get_msg::<manifests::Knowledge>(&req.ns, &resource_key)
+            .get_msg::<manifests::Knowledge>(&resource_key)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to read knowledge resource: {}", e))
@@ -231,19 +227,15 @@ impl GrpcGatewayHandler {
         if let Some(spec) = knowledge.spec {
             self.gateway
                 .kv
-                .delete(&req.ns, &keys::knowledge(&spec.path))
+                .delete(&keys::knowledge(&req.ns, &spec.path))
                 .await
                 .map_err(|e| {
                     tonic::Status::internal(format!("Failed to delete knowledge: {}", e))
                 })?;
         }
-        self.gateway
-            .kv
-            .delete(&req.ns, &resource_key)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to delete knowledge resource: {}", e))
-            })?;
+        self.gateway.kv.delete(&resource_key).await.map_err(|e| {
+            tonic::Status::internal(format!("Failed to delete knowledge resource: {}", e))
+        })?;
 
         Ok(tonic::Response::new(
             proto::DeleteNamespaceKnowledgeResponse { success: true },
@@ -254,6 +246,7 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::hydrate_knowledge_manifest;
+    use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::{KeyValueStore, ProtoKeyValueStoreExt};
     use crate::gateway::rpc::{manifests, proto, GrpcGatewayHandler};
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
@@ -266,63 +259,51 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
+        async fn get(&self, k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(k).cloned())
         }
 
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
+        async fn set(&self, k: &ResourceKey, v: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(k.clone(), v.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            ns: &str,
-            k: &str,
+            k: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
+            let current = data.get(k).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(key, value.to_vec());
+                data.insert(k.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), k.to_string()));
+        async fn delete(&self, k: &ResourceKey) -> anyhow::Result<()> {
+            self.data.lock().await.remove(k);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
-                })
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -391,8 +372,7 @@ mod tests {
             updated_at: 1,
         };
         kv.set(
-            "acme",
-            "Knowledge/guide.md",
+            &keys::knowledge("acme", "guide.md"),
             &serde_json::to_vec(&entry).unwrap(),
         )
         .await
@@ -415,8 +395,7 @@ mod tests {
     async fn create_namespace_knowledge_rejects_path_claim_conflicts() {
         let kv = Arc::new(MockKvStore::default());
         kv.set(
-            "acme",
-            "Knowledge/guide.md",
+            &keys::knowledge("acme", "guide.md"),
             &serde_json::to_vec(&crate::knowledge::KnowledgeEntry {
                 namespace: "acme".to_string(),
                 name: "other".to_string(),
@@ -446,15 +425,13 @@ mod tests {
     async fn create_namespace_knowledge_replaces_old_path_for_same_resource() {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
-            "acme",
-            "KnowledgeResource/guide",
+            &keys::knowledge_resource("acme", "guide"),
             &manifest("guide", "acme", "old.md", "old content"),
         )
         .await
         .unwrap();
         kv.set(
-            "acme",
-            "Knowledge/old.md",
+            &keys::knowledge("acme", "old.md"),
             &serde_json::to_vec(&crate::knowledge::KnowledgeEntry {
                 namespace: "acme".to_string(),
                 name: "guide".to_string(),
@@ -487,8 +464,16 @@ mod tests {
                 .map(|spec| spec.path.as_str()),
             Some("new.md")
         );
-        assert!(kv.get("acme", "Knowledge/old.md").await.unwrap().is_none());
-        assert!(kv.get("acme", "Knowledge/new.md").await.unwrap().is_some());
+        assert!(kv
+            .get(&keys::knowledge("acme", "old.md"))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(kv
+            .get(&keys::knowledge("acme", "new.md"))
+            .await
+            .unwrap()
+            .is_some());
     }
 
     #[tokio::test]

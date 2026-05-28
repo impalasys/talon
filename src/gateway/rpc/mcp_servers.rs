@@ -34,7 +34,7 @@ impl GrpcGatewayHandler {
         }
         if !meta.namespace.is_empty() {
             return Err(tonic::Status::invalid_argument(
-                "MCPServer metadata.namespace is not supported; MCP servers are stored in talon-system",
+                "MCPServer metadata.namespace is not supported; MCP servers are stored in Sys",
             ));
         }
 
@@ -58,7 +58,7 @@ impl GrpcGatewayHandler {
         let action = if self
             .gateway
             .kv
-            .get_msg::<manifests::McpServer>(ns::TALON_SYSTEM, &key)
+            .get_msg::<manifests::McpServer>(&key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
             .is_some()
@@ -69,7 +69,7 @@ impl GrpcGatewayHandler {
         };
         self.gateway
             .kv
-            .set_msg(ns::TALON_SYSTEM, &key, &server)
+            .set_msg(&key, &server)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
@@ -102,7 +102,7 @@ impl GrpcGatewayHandler {
         let server = self
             .gateway
             .kv
-            .get_msg::<manifests::McpServer>(ns::TALON_SYSTEM, &key)
+            .get_msg::<manifests::McpServer>(&key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("MCPServer not found"))?;
@@ -121,7 +121,7 @@ impl GrpcGatewayHandler {
         let keys = self
             .gateway
             .kv
-            .list_keys(ns::TALON_SYSTEM, keys::mcp_server_prefix())
+            .list_keys(&keys::mcp_server_prefix())
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
@@ -130,7 +130,7 @@ impl GrpcGatewayHandler {
             if let Some(server) = self
                 .gateway
                 .kv
-                .get_msg::<manifests::McpServer>(ns::TALON_SYSTEM, &key)
+                .get_msg::<manifests::McpServer>(&key)
                 .await
                 .map_err(|e| tonic::Status::internal(e.to_string()))?
             {
@@ -154,7 +154,7 @@ impl GrpcGatewayHandler {
         if self
             .gateway
             .kv
-            .get_msg::<manifests::McpServer>(ns::TALON_SYSTEM, &key)
+            .get_msg::<manifests::McpServer>(&key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
             .is_none()
@@ -164,7 +164,7 @@ impl GrpcGatewayHandler {
 
         self.gateway
             .kv
-            .delete(ns::TALON_SYSTEM, &key)
+            .delete(&key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 

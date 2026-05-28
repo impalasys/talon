@@ -63,10 +63,10 @@ impl McpRegistry {
             return Ok(existing);
         }
 
-        let binding_key = keys::mcp_server_binding(name);
+        let binding_key = keys::mcp_server_binding(namespace, name);
         let binding = cp
             .kv
-            .get_msg::<manifests::McpServerBinding>(namespace, &binding_key)
+            .get_msg::<manifests::McpServerBinding>(&binding_key)
             .await?;
         let (server_ref, extra_args, extra_headers, disabled, auth_broker, allowed_tool_names) =
             match binding {
@@ -105,7 +105,7 @@ impl McpRegistry {
         let key = keys::mcp_server(&server_ref);
         let server = cp
             .kv
-            .get_msg::<manifests::McpServer>(ns::TALON_SYSTEM, &key)
+            .get_msg::<manifests::McpServer>(&key)
             .await?
             .ok_or_else(|| {
                 anyhow!(
@@ -162,8 +162,9 @@ mod tests {
     use super::{filter_allowed_tools, McpRegistry};
     use crate::connectors::mcp::McpTool;
     use crate::control::{
-        scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
-        ProtoKeyValueStoreExt,
+        keys::{ResourceKey, ResourceList},
+        scheduler::NoopSchedulerBackend,
+        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
     use serde_json::json;
@@ -174,52 +175,41 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), key.to_string()))
-                .cloned())
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(key).cloned())
         }
 
-        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), key.to_string()), value.to_vec());
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            _ns: &str,
-            _key: &str,
+            _key: &ResourceKey,
             _expected: Option<&[u8]>,
             _value: &[u8],
         ) -> anyhow::Result<bool> {
             Ok(false)
         }
 
-        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
+            self.data.lock().await.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
-                })
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -350,8 +340,16 @@ mod tests {
     #[tokio::test]
     async fn invalidate_all_clears_every_namespace() {
         let registry = McpRegistry::new();
-        registry.cache.write().await.insert("one".to_string(), HashMap::new());
-        registry.cache.write().await.insert("two".to_string(), HashMap::new());
+        registry
+            .cache
+            .write()
+            .await
+            .insert("one".to_string(), HashMap::new());
+        registry
+            .cache
+            .write()
+            .await
+            .insert("two".to_string(), HashMap::new());
 
         registry.invalidate_all().await;
 
@@ -365,8 +363,7 @@ mod tests {
         let registry = McpRegistry::new();
 
         kv.set_msg(
-            "conic",
-            &crate::control::keys::mcp_server_binding("github"),
+            &crate::control::keys::mcp_server_binding("conic", "github"),
             &manifests::McpServerBinding {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "McpServerBinding".to_string(),
@@ -388,7 +385,7 @@ mod tests {
             .unwrap_err();
         assert!(missing_spec.to_string().contains("missing spec"));
 
-        kv.delete("conic", &crate::control::keys::mcp_server_binding("github"))
+        kv.delete(&crate::control::keys::mcp_server_binding("conic", "github"))
             .await
             .unwrap();
         let missing_server = registry
@@ -405,7 +402,6 @@ mod tests {
         let registry = McpRegistry::new();
 
         kv.set_msg(
-            crate::control::ns::TALON_SYSTEM,
             &crate::control::keys::mcp_server("docs-server"),
             &manifests::McpServer {
                 api_version: "talon.impalasys.com/v1".to_string(),
@@ -420,7 +416,10 @@ mod tests {
                     transport: "http".to_string(),
                     target: "https://example.com/mcp".to_string(),
                     args: vec!["--server".to_string()],
-                    headers: HashMap::from([("Authorization".to_string(), "Bearer token".to_string())]),
+                    headers: HashMap::from([(
+                        "Authorization".to_string(),
+                        "Bearer token".to_string(),
+                    )]),
                     disabled: false,
                 }),
             },
@@ -428,8 +427,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            "conic",
-            &crate::control::keys::mcp_server_binding("docs"),
+            &crate::control::keys::mcp_server_binding("conic", "docs"),
             &manifests::McpServerBinding {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "McpServerBinding".to_string(),
@@ -442,7 +440,10 @@ mod tests {
                 spec: Some(manifests::McpServerBindingSpec {
                     server_ref: "docs-server".to_string(),
                     args: vec!["--binding".to_string()],
-                    headers: HashMap::from([("Authorization".to_string(), "Bearer override".to_string())]),
+                    headers: HashMap::from([(
+                        "Authorization".to_string(),
+                        "Bearer override".to_string(),
+                    )]),
                     disabled: true,
                     auth_broker: Some(manifests::McpAuthBrokerSpec {
                         kind: "oauth".to_string(),
@@ -457,7 +458,10 @@ mod tests {
         .await
         .unwrap();
 
-        let err = registry.resolve_server(&cp, "docs", "conic").await.unwrap_err();
+        let err = registry
+            .resolve_server(&cp, "docs", "conic")
+            .await
+            .unwrap_err();
         assert!(err.to_string().contains("disabled"));
         assert!(registry.cache.read().await.is_empty());
     }

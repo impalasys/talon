@@ -90,15 +90,14 @@ impl OpenAiCompatibleProvider {
     }
 
     fn supports_stream_options_retry(&self, stream: bool, err_text: &str) -> bool {
-        stream
-            && {
-                let lower = err_text.to_ascii_lowercase();
-                lower.contains("stream_options")
-                    || lower.contains("include_usage")
-                    || lower.contains("unknown field")
-                    || lower.contains("unknown parameter")
-                    || lower.contains("unexpected field")
-            }
+        stream && {
+            let lower = err_text.to_ascii_lowercase();
+            lower.contains("stream_options")
+                || lower.contains("include_usage")
+                || lower.contains("unknown field")
+                || lower.contains("unknown parameter")
+                || lower.contains("unexpected field")
+        }
     }
 
     fn debug_requests_enabled() -> bool {
@@ -284,7 +283,11 @@ impl OpenAiCompatibleProvider {
                 payload["tool_choice"] = serde_json::json!("auto");
             }
 
-            if let Some(thinking) = request.thinking.as_ref().filter(|thinking| thinking.enabled) {
+            if let Some(thinking) = request
+                .thinking
+                .as_ref()
+                .filter(|thinking| thinking.enabled)
+            {
                 if !thinking.effort.trim().is_empty() {
                     payload["reasoning_effort"] = serde_json::json!(thinking.effort);
                 }
@@ -475,10 +478,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
         Ok(vec![0.0; 768])
     }
 
-    async fn chat_completion(
-        &self,
-        request: ChatRequest,
-    ) -> Result<ChatResponse> {
+    async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse> {
         use crate::llm::provider::ToolCall;
 
         let resp = self.send_chat_request(request, false).await?;
@@ -595,18 +595,16 @@ impl LlmProvider for OpenAiCompatibleProvider {
     }
 
     async fn completion(&self, prompt: &str) -> Result<String> {
-        self.chat_completion(
-            ChatRequest {
-                messages: vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: prompt.to_string(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
-                tools: vec![],
-                thinking: None,
-            },
-        )
+        self.chat_completion(ChatRequest {
+            messages: vec![ChatMessage {
+                role: "user".to_string(),
+                content: prompt.to_string(),
+                tool_calls: None,
+                tool_call_id: None,
+            }],
+            tools: vec![],
+            thinking: None,
+        })
         .await
         .map(|r| r.content)
     }
@@ -646,8 +644,8 @@ fn extract_usage(value: &serde_json::Value) -> Option<ChatUsage> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{extract::State, routing::post, Json, Router};
     use crate::gateway::rpc::manifests::ThinkingConfig;
+    use axum::{extract::State, routing::post, Json, Router};
     use std::{
         net::SocketAddr,
         sync::{

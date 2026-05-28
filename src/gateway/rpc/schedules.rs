@@ -24,7 +24,7 @@ impl GrpcGatewayHandler {
         if self
             .gateway
             .kv
-            .get_msg::<models::Schedule>(&req.ns, &keys::schedule(&schedule.name))
+            .get_msg::<models::Schedule>(&keys::schedule(&req.ns, &schedule.name))
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("failed to check schedule existence: {}", e))
@@ -62,7 +62,7 @@ impl GrpcGatewayHandler {
         let schedule = self
             .gateway
             .kv
-            .get_msg::<models::Schedule>(&req.ns, &keys::schedule(&req.name))
+            .get_msg::<models::Schedule>(&keys::schedule(&req.ns, &req.name))
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load schedule: {}", e)))?
             .ok_or_else(|| tonic::Status::not_found("schedule not found"))?;
@@ -82,7 +82,7 @@ impl GrpcGatewayHandler {
         let existing = self
             .gateway
             .kv
-            .get_msg::<models::Schedule>(&req.ns, &keys::schedule(&req.name))
+            .get_msg::<models::Schedule>(&keys::schedule(&req.ns, &req.name))
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load schedule: {}", e)))?
             .ok_or_else(|| tonic::Status::not_found("schedule not found"))?;
@@ -126,24 +126,16 @@ impl GrpcGatewayHandler {
         let mut keys = self
             .gateway
             .kv
-            .list_keys(&req.ns, keys::schedule_prefix())
+            .list_keys(&keys::schedule_prefix(&req.ns))
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to list schedules: {}", e)))?;
         keys.sort();
 
-        let schedule_keys = keys
-            .into_iter()
-            .filter(|key| {
-                let stripped = key.strip_prefix(keys::schedule_prefix()).unwrap_or(key);
-                !stripped.contains('/')
-            })
-            .collect::<Vec<_>>();
+        let schedule_keys = keys;
         let kv = self.gateway.kv.clone();
-        let namespace = req.ns.clone();
         let fetched = stream::iter(schedule_keys.into_iter().map(move |key| {
             let kv = kv.clone();
-            let namespace = namespace.clone();
-            async move { kv.get_msg::<models::Schedule>(&namespace, &key).await }
+            async move { kv.get_msg::<models::Schedule>(&key).await }
         }))
         .buffer_unordered(32)
         .collect::<Vec<_>>()
@@ -169,11 +161,11 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::DeleteScheduleResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let key = keys::schedule(&req.name);
+        let key = keys::schedule(&req.ns, &req.name);
         if let Some(schedule) = self
             .gateway
             .kv
-            .get_msg::<models::Schedule>(&req.ns, &key)
+            .get_msg::<models::Schedule>(&key)
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load schedule: {}", e)))?
         {
@@ -186,7 +178,7 @@ impl GrpcGatewayHandler {
 
         self.gateway
             .kv
-            .delete(&req.ns, &key)
+            .delete(&key)
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to delete schedule: {}", e)))?;
 

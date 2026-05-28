@@ -1,13 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::ns;
 use crate::control::ProtoKeyValueStoreExt;
+use crate::control::{keys, ns};
 use crate::gateway::rpc::{models, proto, GrpcGatewayHandler};
 use std::time::{SystemTime, UNIX_EPOCH};
-
-const META_NS: &str = "talon-system:ns";
-const ROOT_EDGE_NS: &str = "talon-system:ns:internal";
 
 impl GrpcGatewayHandler {
     pub async fn handle_create_namespace(
@@ -38,18 +35,18 @@ impl GrpcGatewayHandler {
 
         // Namespace creation is idempotent for active namespaces so bootstrap and
         // reconcile flows can safely backfill labels without failing on re-create.
-        let meta_key = format!("Namespace/{}", name);
+        let meta_key = keys::namespace_metadata(&name);
         if let Ok(Some(mut existing_ns)) = self
             .gateway
             .kv
-            .get_msg::<models::Namespace>(META_NS, &meta_key)
+            .get_msg::<models::Namespace>(&meta_key)
             .await
         {
             if !existing_ns.is_deleted {
                 existing_ns.labels.extend(req.labels.clone());
                 self.gateway
                     .kv
-                    .set_msg(META_NS, &meta_key, &existing_ns)
+                    .set_msg(&meta_key, &existing_ns)
                     .await
                     .map_err(|e| {
                         tonic::Status::internal(format!(
@@ -92,11 +89,11 @@ impl GrpcGatewayHandler {
                     current_parent = format!("{}:{}", current_parent, part);
                 }
 
-                let check_key = format!("Namespace/{}", current_parent);
+                let check_key = keys::namespace_metadata(&current_parent);
                 if self
                     .gateway
                     .kv
-                    .get_msg::<models::Namespace>(META_NS, &check_key)
+                    .get_msg::<models::Namespace>(&check_key)
                     .await
                     .unwrap_or(None)
                     .is_none()
@@ -119,45 +116,37 @@ impl GrpcGatewayHandler {
                         labels: std::collections::HashMap::new(),
                     };
 
-                    if let Some(ref gp) = grandparent {
-                        let edge_ns = format!("{}:ns:internal", gp);
-                        let edge_key = format!("NamespaceRef/{}", current_parent);
-                        let _ = self
-                            .gateway
-                            .kv
-                            .set(&edge_ns, &edge_key, current_parent.as_bytes())
-                            .await;
-                    } else {
-                        let edge_key = format!("NamespaceRef/{}", current_parent);
-                        let _ = self
-                            .gateway
-                            .kv
-                            .set(ROOT_EDGE_NS, &edge_key, current_parent.as_bytes())
-                            .await;
-                    }
+                    let child_segment =
+                        current_parent.rsplit(':').next().unwrap_or(&current_parent);
+                    let edge_key = keys::namespace_ref(grandparent.as_deref(), child_segment);
+                    let _ = self
+                        .gateway
+                        .kv
+                        .set(&edge_key, current_parent.as_bytes())
+                        .await;
 
-                    let _ = self.gateway.kv.set_msg(META_NS, &check_key, &p_ns).await;
+                    let _ = self.gateway.kv.set_msg(&check_key, &p_ns).await;
                 }
             }
         }
 
         // If it has a parent, insert an edge reference under the parent
         if let Some(ref p) = parent {
-            let edge_ns = format!("{}:ns:internal", p);
-            let edge_key = format!("NamespaceRef/{}", name);
+            let child_segment = name.rsplit(':').next().unwrap_or(&name);
+            let edge_key = keys::namespace_ref(Some(p), child_segment);
             self.gateway
                 .kv
-                .set(&edge_ns, &edge_key, name.as_bytes())
+                .set(&edge_key, name.as_bytes())
                 .await
                 .map_err(|e| {
                     tonic::Status::internal(format!("Failed to write edge reference: {}", e))
                 })?;
         } else {
             // Root namespace edge reference
-            let edge_key = format!("NamespaceRef/{}", name);
+            let edge_key = keys::namespace_ref(None, &name);
             self.gateway
                 .kv
-                .set(ROOT_EDGE_NS, &edge_key, name.as_bytes())
+                .set(&edge_key, name.as_bytes())
                 .await
                 .map_err(|e| {
                     tonic::Status::internal(format!("Failed to write root edge reference: {}", e))
@@ -165,14 +154,10 @@ impl GrpcGatewayHandler {
         }
 
         // Save the metadata node
-        let meta_key = format!("Namespace/{}", name);
-        self.gateway
-            .kv
-            .set_msg(META_NS, &meta_key, &ns)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to write namespace metadata: {}", e))
-            })?;
+        let meta_key = keys::namespace_metadata(&name);
+        self.gateway.kv.set_msg(&meta_key, &ns).await.map_err(|e| {
+            tonic::Status::internal(format!("Failed to write namespace metadata: {}", e))
+        })?;
 
         Ok(tonic::Response::new(proto::NamespaceResponse {
             name: ns.name,
@@ -196,12 +181,12 @@ impl GrpcGatewayHandler {
 
         let name = req.name;
 
-        let meta_key = format!("Namespace/{}", name);
+        let meta_key = keys::namespace_metadata(&name);
 
         let ns = self
             .gateway
             .kv
-            .get_msg::<models::Namespace>(META_NS, &meta_key)
+            .get_msg::<models::Namespace>(&meta_key)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to read namespace metadata: {}", e))
@@ -230,12 +215,12 @@ impl GrpcGatewayHandler {
 
         let name = req.name;
 
-        let meta_key = format!("Namespace/{}", name);
+        let meta_key = keys::namespace_metadata(&name);
 
         let mut ns = self
             .gateway
             .kv
-            .get_msg::<models::Namespace>(META_NS, &meta_key)
+            .get_msg::<models::Namespace>(&meta_key)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to read namespace metadata: {}", e))
@@ -254,13 +239,9 @@ impl GrpcGatewayHandler {
             .unwrap()
             .as_secs() as i64;
 
-        self.gateway
-            .kv
-            .set_msg(META_NS, &meta_key, &ns)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to write namespace metadata: {}", e))
-            })?;
+        self.gateway.kv.set_msg(&meta_key, &ns).await.map_err(|e| {
+            tonic::Status::internal(format!("Failed to write namespace metadata: {}", e))
+        })?;
 
         Ok(tonic::Response::new(proto::NamespaceResponse {
             name: ns.name,
@@ -285,24 +266,18 @@ impl GrpcGatewayHandler {
         let mut namespace_names = Vec::new();
 
         let parent = req.parent.unwrap_or_default();
-        let edge_ns = if parent.is_empty() {
-            ROOT_EDGE_NS.to_string()
-        } else {
-            format!("{}:ns:internal", parent)
-        };
+        let edge_prefix =
+            keys::namespace_ref_prefix((!parent.is_empty()).then_some(parent.as_str()));
 
-        let keys = self
-            .gateway
-            .kv
-            .list_keys(&edge_ns, "NamespaceRef/")
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to list namespace references: {}", e))
-            })?;
+        let keys = self.gateway.kv.list_keys(&edge_prefix).await.map_err(|e| {
+            tonic::Status::internal(format!("Failed to list namespace references: {}", e))
+        })?;
 
         for k in keys {
-            if let Some(stripped) = k.strip_prefix("NamespaceRef/") {
-                namespace_names.push(stripped.to_string());
+            if let Ok(Some(bytes)) = self.gateway.kv.get(&k).await {
+                if let Ok(name) = String::from_utf8(bytes) {
+                    namespace_names.push(name);
+                }
             }
         }
 
@@ -310,11 +285,11 @@ impl GrpcGatewayHandler {
         let mut namespaces = Vec::new();
 
         for name in namespace_names {
-            let meta_key = format!("Namespace/{}", name);
+            let meta_key = keys::namespace_metadata(&name);
             if let Ok(Some(ns)) = self
                 .gateway
                 .kv
-                .get_msg::<models::Namespace>(META_NS, &meta_key)
+                .get_msg::<models::Namespace>(&meta_key)
                 .await
             {
                 if !ns.is_deleted {
@@ -342,14 +317,18 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::{scheduler::NoopSchedulerBackend, KeyValueStore, MessagePublisher};
+    use crate::control::{
+        keys::{ResourceKey, ResourceList},
+        scheduler::NoopSchedulerBackend,
+        KeyValueStore, MessagePublisher,
+    };
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
     use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::Mutex;
 
     struct MockKvStore {
-        store: Mutex<HashMap<String, Vec<u8>>>,
+        store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     impl MockKvStore {
@@ -358,35 +337,29 @@ mod tests {
                 store: Mutex::new(HashMap::new()),
             }
         }
-
-        fn make_key(ns: &str, k: &str) -> String {
-            format!("{}/{}", ns, k)
-        }
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, namespace: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             let map = self.store.lock().await;
-            Ok(map.get(&Self::make_key(namespace, key)).cloned())
+            Ok(map.get(key).cloned())
         }
 
-        async fn set(&self, namespace: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
-            map.insert(Self::make_key(namespace, key), value.to_vec());
+            map.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            namespace: &str,
-            key: &str,
+            key: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut map = self.store.lock().await;
-            let full_key = Self::make_key(namespace, key);
-            let current = map.get(&full_key).cloned();
+            let current = map.get(key).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
@@ -395,26 +368,22 @@ mod tests {
             if !matches {
                 return Ok(false);
             }
-            map.insert(full_key, value.to_vec());
+            map.insert(key.clone(), value.to_vec());
             Ok(true)
         }
 
-        async fn delete(&self, namespace: &str, key: &str) -> anyhow::Result<()> {
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
-            map.remove(&Self::make_key(namespace, key));
+            map.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let map = self.store.lock().await;
-            let ns_prefix = format!("{}/{}", namespace, prefix);
-            let ns_root = format!("{}/", namespace);
-
             let mut results = Vec::new();
             for k in map.keys() {
-                if k.starts_with(&ns_prefix) {
-                    let stripped = k.strip_prefix(&ns_root).unwrap();
-                    results.push(stripped.to_string());
+                if list.matches(k) {
+                    results.push(k.clone());
                 }
             }
             Ok(results)
@@ -562,7 +531,10 @@ mod tests {
             .unwrap()
             .into_inner();
         assert_eq!(recreated.labels.get("env").map(String::as_str), Some("dev"));
-        assert_eq!(recreated.labels.get("owner").map(String::as_str), Some("ops"));
+        assert_eq!(
+            recreated.labels.get("owner").map(String::as_str),
+            Some("ops")
+        );
 
         let fetched = handler
             .handle_get_namespace(tonic::Request::new(proto::GetNamespaceRequest {

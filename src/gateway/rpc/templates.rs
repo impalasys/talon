@@ -7,6 +7,16 @@ use super::GrpcGatewayHandler;
 use crate::control::{keys, ns};
 use anyhow::Result;
 
+const LEGACY_SYSTEM_NAMESPACE: &str = "talon-system";
+
+fn normalize_agent_template_namespace(template: &mut manifests::AgentTemplate) {
+    if let Some(meta) = template.metadata.as_mut() {
+        if meta.namespace.is_empty() || meta.namespace == LEGACY_SYSTEM_NAMESPACE {
+            meta.namespace = ns::TALON_SYSTEM.to_string();
+        }
+    }
+}
+
 impl GrpcGatewayHandler {
     pub async fn handle_create_agent_template(
         &self,
@@ -41,11 +51,12 @@ impl GrpcGatewayHandler {
             template.kind = "AgentTemplate".to_string();
         }
         if let Some(meta) = template.metadata.as_mut() {
-            if meta.namespace.is_empty() {
+            if meta.namespace.is_empty() || meta.namespace == LEGACY_SYSTEM_NAMESPACE {
                 meta.namespace = ns::TALON_SYSTEM.to_string();
             } else if meta.namespace != ns::TALON_SYSTEM {
                 return Err(tonic::Status::invalid_argument(format!(
-                    "AgentTemplate metadata.namespace must be empty or '{}'",
+                    "AgentTemplate metadata.namespace must be empty, '{}', or '{}'",
+                    LEGACY_SYSTEM_NAMESPACE,
                     ns::TALON_SYSTEM
                 )));
             }
@@ -58,7 +69,7 @@ impl GrpcGatewayHandler {
         use crate::control::ProtoKeyValueStoreExt;
         self.gateway
             .kv
-            .set_msg(ns::TALON_SYSTEM, &key, &template)
+            .set_msg(&key, &template)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
@@ -76,12 +87,13 @@ impl GrpcGatewayHandler {
         let key = keys::agent_template(&msg.name);
 
         use crate::control::ProtoKeyValueStoreExt;
-        if let Ok(Some(template)) = self
+        if let Ok(Some(mut template)) = self
             .gateway
             .kv
-            .get_msg::<manifests::AgentTemplate>(ns::TALON_SYSTEM, &key)
+            .get_msg::<manifests::AgentTemplate>(&key)
             .await
         {
+            normalize_agent_template_namespace(&mut template);
             Ok(tonic::Response::new(proto::AgentTemplateResponse {
                 template: Some(template),
             }))
@@ -96,23 +108,24 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::ListAgentTemplatesResponse>, tonic::Status> {
         crate::require_auth!(self, _req, ns::TALON_SYSTEM);
 
-        let prefix = "AgentTemplate/";
+        let prefix = keys::agent_template_prefix();
         let keys = self
             .gateway
             .kv
-            .list_keys(ns::TALON_SYSTEM, prefix)
+            .list_keys(&prefix)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
         use crate::control::ProtoKeyValueStoreExt;
         let mut templates = Vec::new();
         for key in keys {
-            if let Ok(Some(template)) = self
+            if let Ok(Some(mut template)) = self
                 .gateway
                 .kv
-                .get_msg::<manifests::AgentTemplate>(ns::TALON_SYSTEM, &key)
+                .get_msg::<manifests::AgentTemplate>(&key)
                 .await
             {
+                normalize_agent_template_namespace(&mut template);
                 templates.push(template);
             }
         }
@@ -134,12 +147,12 @@ impl GrpcGatewayHandler {
         if let Ok(Some(_)) = self
             .gateway
             .kv
-            .get_msg::<manifests::AgentTemplate>(ns::TALON_SYSTEM, &key)
+            .get_msg::<manifests::AgentTemplate>(&key)
             .await
         {
             self.gateway
                 .kv
-                .delete(ns::TALON_SYSTEM, &key)
+                .delete(&key)
                 .await
                 .map_err(|e| tonic::Status::internal(e.to_string()))?;
             Ok(tonic::Response::new(proto::DeleteAgentTemplateResponse {

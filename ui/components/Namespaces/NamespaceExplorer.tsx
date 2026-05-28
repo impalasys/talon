@@ -959,7 +959,7 @@ export function NamespaceExplorer({
             : 'No template summary',
       selection: {
         type: 'template' as const,
-        ns: 'talon-system',
+        ns: 'Sys',
         resourceName: template.metadata?.name || '',
         fullPath: `template/${template.metadata?.name || 'unknown-template'}`,
       },
@@ -974,7 +974,7 @@ export function NamespaceExplorer({
       tone: server.spec?.disabled ? 'warning' as const : 'success' as const,
       selection: {
         type: 'mcp-server' as const,
-        ns: 'talon-system',
+        ns: 'Sys',
         resourceName: server.metadata?.name || '',
         fullPath: `mcp/${server.metadata?.name || 'unknown-server'}`,
       },
@@ -1075,7 +1075,7 @@ export function NamespaceExplorer({
       >
         <ResourceList
           items={mcpCards}
-          emptyState="No MCP servers found in talon-system."
+          emptyState="No MCP servers found in Sys."
           selectedId={selectedNode?.fullPath || null}
           onSelect={onSelect}
         />

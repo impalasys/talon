@@ -14,10 +14,10 @@ use crate::core::executor::{
     AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
 };
 use crate::gateway::rpc::models;
+use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 use crate::knowledge::KvKnowledgeBook;
 use crate::llm::ToolCall;
 use crate::skills::registry::ToolRegistry;
-use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 
 /// Fully-assembled, ready-to-run environment for one agent session.
 /// Build it from identity coordinates; it resolves everything else
@@ -38,10 +38,10 @@ impl AgentRuntime {
         mcp_registry: &McpRegistry,
     ) -> Result<Self> {
         // 1. Fetch AgentSpec from KV
-        let agent_key = crate::control::keys::agent(agent_id);
+        let agent_key = crate::control::keys::agent(ns, agent_id);
         let agent = cp
             .kv
-            .get_msg::<models::Agent>(ns, &agent_key)
+            .get_msg::<models::Agent>(&agent_key)
             .await?
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' not found in ns '{}'", agent_id, ns))?;
         let spec = agent
@@ -49,18 +49,15 @@ impl AgentRuntime {
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' has no effective spec", agent_id))?;
 
         // 2. Load session history from KV
-        let msg_prefix = crate::control::keys::session_message_prefix(agent_id, session_id);
-        let mut msg_keys = cp.kv.list_keys(ns, &msg_prefix).await?;
+        let msg_prefix = crate::control::keys::session_message_prefix(ns, agent_id, session_id);
+        let mut msg_keys = cp.kv.list_keys(&msg_prefix).await?;
         msg_keys.sort();
 
         let mut history = Vec::new();
         for key in msg_keys {
-            if key.strip_prefix(&msg_prefix).unwrap_or(&key).contains('/') {
-                continue;
-            }
             if let Some(msg) = cp
                 .kv
-                .get_msg::<models::SessionMessage>(ns, &key)
+                .get_msg::<models::SessionMessage>(&key)
                 .await
                 .unwrap_or(None)
             {
@@ -76,16 +73,16 @@ impl AgentRuntime {
 
                 if msg.role == 2 {
                     let step_prefix = crate::control::keys::session_message_step_prefix(
-                        agent_id, session_id, &msg.id,
+                        ns, agent_id, session_id, &msg.id,
                     );
-                    let mut step_keys = cp.kv.list_keys(ns, &step_prefix).await?;
+                    let mut step_keys = cp.kv.list_keys(&step_prefix).await?;
                     step_keys.sort();
 
                     let mut collected_tool_calls = Vec::new();
                     for step_key in step_keys {
                         if let Some(step) = cp
                             .kv
-                            .get_msg::<SessionStepEvent>(ns, &step_key)
+                            .get_msg::<SessionStepEvent>(&step_key)
                             .await
                             .unwrap_or(None)
                         {
@@ -242,7 +239,8 @@ fn visible_tools_for_agent(
         return tools.to_vec();
     }
 
-    tools.iter()
+    tools
+        .iter()
         .filter(|tool| {
             if is_schedule_tool_name(&tool.name) {
                 return match tool.name.as_str() {
@@ -274,7 +272,10 @@ fn visible_tools_for_agent(
 fn is_schedule_tool_name(name: &str) -> bool {
     matches!(
         name,
-        "list_schedules" | "get_schedule" | "create_schedule" | "update_schedule"
+        "list_schedules"
+            | "get_schedule"
+            | "create_schedule"
+            | "update_schedule"
             | "delete_schedule"
     )
 }
@@ -364,13 +365,14 @@ fn tool_result_message_from_step(step: &SessionStepEvent) -> Option<LoopMessage>
 #[cfg(test)]
 mod tests {
     use super::{
-        builtin_tool_names, has_capability_action, qualify_mcp_tool_name, tool_result_message_from_step,
-        visible_tools_for_agent, AgentRuntime,
+        builtin_tool_names, has_capability_action, qualify_mcp_tool_name,
+        tool_result_message_from_step, visible_tools_for_agent, AgentRuntime,
     };
-    use crate::connectors::mcp::McpConnectionConfig;
     use crate::config::{proto, Config, ProviderConfig, Secret};
+    use crate::connectors::mcp::McpConnectionConfig;
     use crate::control::{
         events::{SessionStepEvent, StepType},
+        keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
@@ -383,63 +385,51 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), key.to_string()))
-                .cloned())
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(key).cloned())
         }
 
-        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), key.to_string()), value.to_vec());
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            ns: &str,
-            key: &str,
+            key: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let full_key = (ns.to_string(), key.to_string());
-            let current = data.get(&full_key).cloned();
+            let current = data.get(key).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(full_key, value.to_vec());
+                data.insert(key.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
+            self.data.lock().await.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
-                })
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -490,9 +480,7 @@ mod tests {
                             base_url: "http://127.0.0.1:1".to_string(),
                             model: "test-model".to_string(),
                             api_key: Some(Secret {
-                                source: Some(proto::secret::Source::Plain(
-                                    "test-key".to_string(),
-                                )),
+                                source: Some(proto::secret::Source::Plain("test-key".to_string())),
                             }),
                         },
                     )),
@@ -607,11 +595,9 @@ mod tests {
                             values: actions
                                 .iter()
                                 .map(|action| protobuf_value::Value {
-                                    kind: Some(
-                                        protobuf_value::value::Kind::StringValue(
-                                            (*action).to_string(),
-                                        ),
-                                    ),
+                                    kind: Some(protobuf_value::value::Kind::StringValue(
+                                        (*action).to_string(),
+                                    )),
                                 })
                                 .collect(),
                         },
@@ -657,7 +643,10 @@ mod tests {
 
         let visible =
             visible_tools_for_agent(&config("talon-ops", Some("talon-ops")), &tools, &spec);
-        let names = visible.into_iter().map(|tool| tool.name).collect::<Vec<_>>();
+        let names = visible
+            .into_iter()
+            .map(|tool| tool.name)
+            .collect::<Vec<_>>();
 
         assert!(names.contains(&"list_schedules".to_string()));
         assert!(names.contains(&"create_schedule".to_string()));
@@ -732,15 +721,17 @@ mod tests {
         let config = runtime_config();
         let registry = crate::worker::mcp_registry::McpRegistry::new();
 
-        let missing = match AgentRuntime::build("conic", "missing", "session-1", &cp, &config, &registry).await {
-            Ok(_) => panic!("expected missing agent error"),
-            Err(err) => err,
-        };
+        let missing =
+            match AgentRuntime::build("conic", "missing", "session-1", &cp, &config, &registry)
+                .await
+            {
+                Ok(_) => panic!("expected missing agent error"),
+                Err(err) => err,
+            };
         assert!(missing.to_string().contains("Agent 'missing' not found"));
 
         kv.set_msg(
-            "conic",
-            &crate::control::keys::agent("writer"),
+            &crate::control::keys::agent("conic", "writer"),
             &models::Agent {
                 name: "writer".to_string(),
                 ns: "conic".to_string(),
@@ -753,7 +744,16 @@ mod tests {
         .await
         .unwrap();
 
-        let no_spec = match AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry).await {
+        let no_spec = match AgentRuntime::build(
+            "conic",
+            "writer",
+            "session-1",
+            &cp,
+            &config,
+            &registry,
+        )
+        .await
+        {
             Ok(_) => panic!("expected missing effective spec error"),
             Err(err) => err,
         };
@@ -775,8 +775,7 @@ mod tests {
         };
 
         kv.set_msg(
-            "conic",
-            &crate::control::keys::agent("writer"),
+            &crate::control::keys::agent("conic", "writer"),
             &models::Agent {
                 name: "writer".to_string(),
                 ns: "conic".to_string(),
@@ -789,8 +788,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            "conic",
-            &crate::control::keys::session_message("writer", "session-1", "msg-1"),
+            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
             &models::SessionMessage {
                 id: "msg-1".to_string(),
                 role: 1,
@@ -802,8 +800,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            "conic",
-            &crate::control::keys::session_message("writer", "session-1", "msg-2"),
+            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-2"),
             &models::SessionMessage {
                 id: "msg-2".to_string(),
                 role: 2,
@@ -815,15 +812,19 @@ mod tests {
         .await
         .unwrap();
         kv.set(
-            "conic",
-            &crate::control::keys::session_message("writer", "session-1", "msg-2/sub"),
+            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-2/sub"),
             b"nested",
         )
         .await
         .unwrap();
         kv.set_msg(
-            "conic",
-            &crate::control::keys::session_message_step("writer", "session-1", "msg-2", "step-1"),
+            &crate::control::keys::session_message_step(
+                "conic",
+                "writer",
+                "session-1",
+                "msg-2",
+                "step-1",
+            ),
             &SessionStepEvent {
                 session_id: "session-1".to_string(),
                 step_type: StepType::Action as i32,
@@ -843,8 +844,13 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            "conic",
-            &crate::control::keys::session_message_step("writer", "session-1", "msg-2", "step-2"),
+            &crate::control::keys::session_message_step(
+                "conic",
+                "writer",
+                "session-1",
+                "msg-2",
+                "step-2",
+            ),
             &SessionStepEvent {
                 session_id: "session-1".to_string(),
                 step_type: StepType::Observation as i32,
@@ -864,10 +870,9 @@ mod tests {
         .await
         .unwrap();
 
-        let runtime =
-            AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
-                .await
-                .unwrap();
+        let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+            .await
+            .unwrap();
 
         assert_eq!(runtime.context.agent_id, "writer");
         assert_eq!(runtime.context.history.len(), 3);

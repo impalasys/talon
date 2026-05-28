@@ -119,8 +119,12 @@ impl Gateway {
 #[cfg(test)]
 mod tests {
     use super::Gateway;
+    use crate::control::{
+        keys::{ResourceKey, ResourceList},
+        scheduler::NoopSchedulerBackend,
+        KeyValueStore, MessagePublisher,
+    };
     use crate::gateway::auth::AuthConfig;
-    use crate::control::{scheduler::NoopSchedulerBackend, KeyValueStore, MessagePublisher};
     use axum::body::Body;
     use axum::http::{Method, Request, StatusCode};
     use futures::stream;
@@ -134,66 +138,51 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
+        async fn get(&self, k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(k).cloned())
         }
 
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
+        async fn set(&self, k: &ResourceKey, v: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(k.clone(), v.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            ns: &str,
-            k: &str,
+            k: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
+            let current = data.get(k).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(key, value.to_vec());
+                data.insert(k.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(ns.to_string(), k.to_string()));
+        async fn delete(&self, k: &ResourceKey) -> anyhow::Result<()> {
+            self.data.lock().await.remove(k);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
-                })
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)

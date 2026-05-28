@@ -218,9 +218,11 @@ fn segment_history(history: &[LoopMessage], budget: ContextBudget) -> Vec<Histor
         let message = &history[index];
 
         if message.role == "tool" {
-            segments.push(HistorySegment::Message(
-                tool_segment_summary(None, std::slice::from_ref(message), budget),
-            ));
+            segments.push(HistorySegment::Message(tool_segment_summary(
+                None,
+                std::slice::from_ref(message),
+                budget,
+            )));
             index += 1;
             continue;
         }
@@ -303,7 +305,10 @@ fn tool_segment_summary(
     let mut parts = Vec::new();
     if let Some(assistant) = assistant {
         if !assistant.content.trim().is_empty() {
-            parts.push(truncate_middle(&assistant.content, budget.max_message_chars / 2));
+            parts.push(truncate_middle(
+                &assistant.content,
+                budget.max_message_chars / 2,
+            ));
         }
         if let Some(tool_calls) = &assistant.tool_calls {
             let names = tool_calls
@@ -319,8 +324,7 @@ fn tool_segment_summary(
         }
     } else {
         parts.push(
-            "[Prior orphaned tool result omitted to preserve a valid tool transcript.]"
-                .to_string(),
+            "[Prior orphaned tool result omitted to preserve a valid tool transcript.]".to_string(),
         );
     }
 
@@ -699,9 +703,10 @@ mod tests {
 
         assert!(tool_history_is_consistent(&compacted));
         assert!(!compacted.iter().any(|message| message.role == "tool"));
-        assert!(!compacted
-            .iter()
-            .any(|message| message.tool_calls.as_ref().is_some_and(|calls| !calls.is_empty())));
+        assert!(!compacted.iter().any(|message| message
+            .tool_calls
+            .as_ref()
+            .is_some_and(|calls| !calls.is_empty())));
         assert!(compacted.iter().any(|message| {
             message.content.contains("valid tool transcript")
                 || message.content.contains("earlier messages omitted")
@@ -766,7 +771,9 @@ mod tests {
             "non-tool message exceeded max_message_chars"
         );
         assert!(
-            compacted.iter().any(|message| message.content.contains("omitted")),
+            compacted
+                .iter()
+                .any(|message| message.content.contains("omitted")),
             "expected older replay history to be omitted for this downloaded session"
         );
         assert!(

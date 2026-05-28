@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use crate::control::events::{SessionStepEvent, StepType};
-use crate::control::{topics, KeyValueStore, MessagePublisher};
+use crate::control::{keys::ResourceKey, topics, KeyValueStore, MessagePublisher};
 use crate::core::context_budget::tool_result_preview;
 use crate::core::executor::{AgentEvent, ExecutionSink};
 use crate::gateway::rpc::models;
@@ -37,7 +37,7 @@ pub struct PubSubSessionSink {
     pub session_id: String,
     pub agent_id: String,
     pub reply_msg_id: String,
-    pub reply_msg_key: String,
+    pub reply_msg_key: ResourceKey,
     pub status_topic: String,
     token_publish_interval: Duration,
     started_at: Instant,
@@ -69,7 +69,7 @@ impl PubSubSessionSink {
         session_id: impl Into<String>,
         agent_id: impl Into<String>,
         reply_msg_id: impl Into<String>,
-        reply_msg_key: impl Into<String>,
+        reply_msg_key: ResourceKey,
     ) -> Self {
         Self::new_with_token_publish_interval(
             kv,
@@ -90,7 +90,7 @@ impl PubSubSessionSink {
         session_id: impl Into<String>,
         agent_id: impl Into<String>,
         reply_msg_id: impl Into<String>,
-        reply_msg_key: impl Into<String>,
+        reply_msg_key: ResourceKey,
         token_publish_interval: Duration,
     ) -> Self {
         let session_id = session_id.into();
@@ -102,7 +102,7 @@ impl PubSubSessionSink {
             session_id,
             agent_id: agent_id.into(),
             reply_msg_id: reply_msg_id.into(),
-            reply_msg_key: reply_msg_key.into(),
+            reply_msg_key,
             status_topic,
             token_publish_interval,
             started_at: Instant::now(),
@@ -141,6 +141,7 @@ impl PubSubSessionSink {
         payload_json: String,
     ) {
         let key = crate::control::keys::session_message_step(
+            &self.ns,
             &self.agent_id,
             &self.session_id,
             &self.reply_msg_id,
@@ -157,13 +158,8 @@ impl PubSubSessionSink {
             name,
             payload_json,
         };
-        let _ = crate::control::ProtoKeyValueStoreExt::set_msg(
-            self.kv.as_ref(),
-            &self.ns,
-            &key,
-            &event,
-        )
-        .await;
+        let _ =
+            crate::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &event).await;
     }
 
     async fn flush_persisted_text(&self) {
@@ -281,7 +277,6 @@ impl PubSubSessionSink {
         if should_flush {
             *self.last_flush.lock().unwrap() = Instant::now();
             let kv = self.kv.clone();
-            let ns = self.ns.clone();
             let key = self.reply_msg_key.clone();
             let msg_id = self.reply_msg_id.clone();
             tokio::spawn(async move {
@@ -293,7 +288,7 @@ impl PubSubSessionSink {
                     labels: std::collections::HashMap::new(),
                 };
                 if let Err(e) =
-                    crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &ns, &key, &partial)
+                    crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &key, &partial)
                         .await
                 {
                     tracing::error!("Failed to persist partial message: {}", e);
@@ -437,7 +432,6 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_reasoning_event_buffer().await;
         // Final KV write (complete message)
         let kv = self.kv.clone();
-        let ns = self.ns.clone();
         let key = self.reply_msg_key.clone();
         let msg_id = self.reply_msg_id.clone();
         let reply = reply.to_string();
@@ -450,8 +444,7 @@ impl ExecutionSink for PubSubSessionSink {
                 created_at: chrono::Utc::now().timestamp_micros(),
                 labels: std::collections::HashMap::new(),
             };
-            let _ =
-                crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &ns, &key, &msg).await;
+            let _ = crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &key, &msg).await;
         });
 
         self.publish_event(AgentEvent::Done(reply_for_event)).await;
@@ -480,7 +473,6 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let _ = crate::control::ProtoKeyValueStoreExt::set_msg(
             self.kv.as_ref(),
-            &self.ns,
             &self.reply_msg_key,
             &msg,
         )
@@ -510,6 +502,7 @@ fn token_publish_interval() -> Duration {
 mod tests {
     use super::{token_publish_interval, PubSubSessionSink};
     use crate::control::events::{SessionStepEvent, StepType};
+    use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::core::executor::ExecutionSink;
     use async_trait::async_trait;
@@ -521,43 +514,45 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        entries: Arc<Mutex<Vec<(String, String, Vec<u8>)>>>,
+        entries: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
+    }
+
+    fn reply_key() -> ResourceKey {
+        keys::session_message("conic", "infra", "session-1", "reply-1")
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, _ns: &str, _k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, _k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             Ok(None)
         }
-        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
             self.entries
                 .lock()
                 .await
-                .push((ns.to_string(), key.to_string(), value.to_vec()));
+                .push((key.to_string(), value.to_vec()));
             Ok(())
         }
         async fn compare_and_swap(
             &self,
-            _ns: &str,
-            _k: &str,
+            _k: &ResourceKey,
             _expected: Option<&[u8]>,
             _value: &[u8],
         ) -> anyhow::Result<bool> {
             Ok(true)
         }
-        async fn delete(&self, _ns: &str, _k: &str) -> anyhow::Result<()> {
+        async fn delete(&self, _k: &ResourceKey) -> anyhow::Result<()> {
             Ok(())
         }
-        async fn list_keys(&self, _ns: &str, _p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, _list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
         async fn list_keys_page(
             &self,
-            _ns: &str,
-            _prefix: &str,
+            _list: &ResourceList,
             _before_key: Option<&str>,
             _limit: usize,
-        ) -> anyhow::Result<Vec<String>> {
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
     }
@@ -596,7 +591,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_millis(5),
         );
 
@@ -628,7 +623,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_secs(10),
         );
 
@@ -657,7 +652,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_millis(5),
         );
 
@@ -677,7 +672,7 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let persisted_reasoning = entries
             .iter()
-            .filter_map(|(_, _, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
             .filter(|event| event.step_type == StepType::Reasoning as i32)
             .map(|event| event.content)
             .collect::<Vec<_>>();
@@ -697,7 +692,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_secs(10),
         );
         let raw_output = format!(
@@ -711,7 +706,7 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let persisted = entries
             .iter()
-            .find_map(|(_, _, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .find_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
             .filter(|event| event.step_type == StepType::Observation as i32)
             .unwrap();
         let payload: serde_json::Value = serde_json::from_str(&persisted.payload_json).unwrap();
@@ -734,7 +729,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_secs(10),
         );
 
@@ -754,7 +749,7 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let persisted_messages = entries
             .iter()
-            .filter_map(|(_, _, value)| {
+            .filter_map(|(_, value)| {
                 crate::gateway::rpc::models::SessionMessage::decode(value.as_slice()).ok()
             })
             .collect::<Vec<_>>();
@@ -767,7 +762,7 @@ mod tests {
 
         let persisted_steps = entries
             .iter()
-            .filter_map(|(_, _, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
             .collect::<Vec<_>>();
         assert!(persisted_steps
             .iter()
@@ -790,7 +785,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_millis(1),
         );
 

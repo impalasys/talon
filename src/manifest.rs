@@ -732,7 +732,8 @@ impl CapabilitiesPolicyDeltaManifest {
 
     fn from_proto(delta: &manifests::CapabilitiesPolicyDelta) -> Self {
         Self {
-            replace: (!delta.replace.is_empty()).then(|| capabilities_policy_from_proto(&delta.replace)),
+            replace: (!delta.replace.is_empty())
+                .then(|| capabilities_policy_from_proto(&delta.replace)),
         }
     }
 }
@@ -1034,7 +1035,9 @@ definition:
         )
         .expect("template manifest should parse");
 
-        let definition = template.definition.expect("template definition should exist");
+        let definition = template
+            .definition
+            .expect("template definition should exist");
         match definition.source.expect("template source should exist") {
             manifests::agent_definition::Source::Templated(templated) => {
                 assert_eq!(templated.template_name, "base");
@@ -1194,11 +1197,9 @@ spec:
                         delta: Some(manifests::AgentSpecDelta {
                             model_policy: None,
                             system_prompt: Some(manifests::PromptDelta {
-                                operation: Some(
-                                    manifests::prompt_delta::Operation::Append(
-                                        " extra".to_string(),
-                                    ),
-                                ),
+                                operation: Some(manifests::prompt_delta::Operation::Append(
+                                    " extra".to_string(),
+                                )),
                             }),
                             features: None,
                             mcp_server_refs: None,
@@ -1330,7 +1331,9 @@ spec:
 "#,
         )
         .expect_err("wrong kind should fail");
-        assert!(wrong_server.to_string().contains("Expected kind 'McpServer'"));
+        assert!(wrong_server
+            .to_string()
+            .contains("Expected kind 'McpServer'"));
 
         let wrong_binding = parse_mcp_server_binding(
             r#"
@@ -1360,7 +1363,9 @@ spec:
 "#,
         )
         .expect_err("wrong kind should fail");
-        assert!(wrong_knowledge.to_string().contains("Expected kind 'Knowledge'"));
+        assert!(wrong_knowledge
+            .to_string()
+            .contains("Expected kind 'Knowledge'"));
 
         let missing_definition = parse_agent_template(
             r#"
@@ -1549,8 +1554,9 @@ definition: {}
         assert!(templated.delta.mcp_server_refs.is_none());
         assert!(templated.delta.capabilities.is_none());
 
-        let yaml_err = AgentDefinitionYaml::from_proto(&manifests::AgentDefinition { source: None })
-            .unwrap_err();
+        let yaml_err =
+            AgentDefinitionYaml::from_proto(&manifests::AgentDefinition { source: None })
+                .unwrap_err();
         assert!(yaml_err.to_string().contains("missing source"));
 
         let profile = ModelProfileManifest::from_proto(&manifests::ModelProfile {
@@ -1586,14 +1592,16 @@ definition: {}
         assert!(prepend.append.is_none());
 
         let append = PromptDeltaManifest::from_proto(&manifests::PromptDelta {
-            operation: Some(manifests::prompt_delta::Operation::Append("after".to_string())),
+            operation: Some(manifests::prompt_delta::Operation::Append(
+                "after".to_string(),
+            )),
         });
         assert_eq!(append.append.as_deref(), Some("after"));
         assert!(append.replace.is_none());
         assert!(append.prepend.is_none());
 
-        let replace = CapabilitiesPolicyDeltaManifest::from_proto(
-            &manifests::CapabilitiesPolicyDelta {
+        let replace =
+            CapabilitiesPolicyDeltaManifest::from_proto(&manifests::CapabilitiesPolicyDelta {
                 replace: HashMap::from([(
                     "tools".to_string(),
                     ListValue {
@@ -1607,8 +1615,7 @@ definition: {}
                         ],
                     },
                 )]),
-            },
-        );
+            });
         assert_eq!(
             replace.replace,
             Some(HashMap::from([(
@@ -1617,11 +1624,10 @@ definition: {}
             )]))
         );
 
-        let empty = CapabilitiesPolicyDeltaManifest::from_proto(
-            &manifests::CapabilitiesPolicyDelta {
+        let empty =
+            CapabilitiesPolicyDeltaManifest::from_proto(&manifests::CapabilitiesPolicyDelta {
                 replace: HashMap::new(),
-            },
-        );
+            });
         assert!(empty.replace.is_none());
     }
 }

@@ -43,7 +43,9 @@ impl GrpcGatewayHandler {
         };
 
         if !validate_k8s_name(&agent) {
-            return Err(tonic::Status::invalid_argument("Agent name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character."));
+            return Err(tonic::Status::invalid_argument(
+                "Agent name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character.",
+            ));
         }
         if req.ns.is_empty() {
             return Err(tonic::Status::invalid_argument(
@@ -51,11 +53,11 @@ impl GrpcGatewayHandler {
             ));
         }
 
-        let meta_key = format!("Namespace/{}", req.ns);
+        let meta_key = keys::namespace_metadata(&req.ns);
         let ns_check = self
             .gateway
             .kv
-            .get_msg::<models::Namespace>("talon-system:ns", &meta_key)
+            .get_msg::<models::Namespace>(&meta_key)
             .await;
         match ns_check {
             Ok(Some(ns_record)) if !ns_record.is_deleted => {
@@ -65,19 +67,19 @@ impl GrpcGatewayHandler {
                 return Err(tonic::Status::failed_precondition(format!(
                     "Namespace '{}' is deleted.",
                     req.ns
-                )))
+                )));
             }
             Ok(None) => {
                 return Err(tonic::Status::failed_precondition(format!(
                     "Namespace '{}' does not exist.",
                     req.ns
-                )))
+                )));
             }
             Err(e) => {
                 return Err(tonic::Status::internal(format!(
                     "Database error checking namespace '{}': {}",
                     req.ns, e
-                )))
+                )));
             }
         }
 
@@ -99,11 +101,11 @@ impl GrpcGatewayHandler {
             labels: req.labels.clone(),
         };
 
-        let agent_db_key = keys::agent(&agent);
+        let agent_db_key = keys::agent(&req.ns, &agent);
 
         self.gateway
             .kv
-            .set_msg(&req.ns, &agent_db_key, &agent_model)
+            .set_msg(&agent_db_key, &agent_model)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to save agent state: {}", e)))?;
 
@@ -133,12 +135,12 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().name);
         let req = req.into_inner();
 
-        let agent_db_key = keys::agent(&req.name);
+        let agent_db_key = keys::agent(&req.ns, &req.name);
 
         let agent = self
             .gateway
             .kv
-            .get_msg::<models::Agent>(&req.ns, &agent_db_key)
+            .get_msg::<models::Agent>(&agent_db_key)
             .await
             .map_err(|e| tonic::Status::internal(format!("Database error: {}", e)))?
             .ok_or_else(|| {
@@ -160,11 +162,11 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
 
-        let agent_db_key = keys::agent(&req.agent);
+        let agent_db_key = keys::agent(&req.ns, &req.agent);
         let mut agent = self
             .gateway
             .kv
-            .get_msg::<models::Agent>(&req.ns, &agent_db_key)
+            .get_msg::<models::Agent>(&agent_db_key)
             .await
             .map_err(|e| tonic::Status::internal(format!("Database error: {}", e)))?
             .ok_or_else(|| {
@@ -190,7 +192,7 @@ impl GrpcGatewayHandler {
 
         self.gateway
             .kv
-            .set_msg(&req.ns, &agent_db_key, &agent)
+            .set_msg(&agent_db_key, &agent)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to update agent state: {}", e)))?;
 
@@ -221,25 +223,18 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
 
-        let prefix = "Agent/";
+        let prefix = keys::agent_prefix(&req.ns);
 
         let keys = self
             .gateway
             .kv
-            .list_keys(&req.ns, prefix)
+            .list_keys(&prefix)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to list agents: {}", e)))?;
 
         let agents: Vec<String> = keys
             .into_iter()
-            .filter_map(|k| {
-                let stripped = k.strip_prefix(prefix).unwrap_or(&k);
-                if stripped.contains('/') {
-                    None // Skip nested resources like Agent/test/Session/default
-                } else {
-                    Some(stripped.to_string())
-                }
-            })
+            .filter_map(|k| keys::direct_child_name(&prefix, &k))
             .collect();
 
         Ok(tonic::Response::new(proto::ListAgentsResponse { agents }))

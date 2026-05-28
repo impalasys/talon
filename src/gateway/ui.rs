@@ -553,15 +553,16 @@ pub async fn delete_chat(
 #[cfg(test)]
 mod tests {
     use super::{
-        data_stream_line, delete_chat, extract_tool_step_payload, fetch_session_metadata,
-        get_chat, last_message_text, latest_assistant_message_text, latest_tool_step_payload,
-        map_status, ndjson_line, post_chat, step_dedup_key, tonic_request, ChatRequestBody,
-        SessionPath, UiMessage, UiPart,
+        data_stream_line, delete_chat, extract_tool_step_payload, fetch_session_metadata, get_chat,
+        last_message_text, latest_assistant_message_text, latest_tool_step_payload, map_status,
+        ndjson_line, post_chat, step_dedup_key, tonic_request, ChatRequestBody, SessionPath,
+        UiMessage, UiPart,
     };
     use crate::control::events::{SessionControlEvent, SessionStepEvent, StepType};
     use crate::control::{
-        keys, scheduler::NoopSchedulerBackend, topics, KeyValueStore, MessagePublisher,
-        ProtoKeyValueStoreExt,
+        keys::{self, ResourceKey, ResourceList},
+        scheduler::NoopSchedulerBackend,
+        topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{models, proto};
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
@@ -579,66 +580,51 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
+        async fn get(&self, k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(k).cloned())
         }
 
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
+        async fn set(&self, k: &ResourceKey, v: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(k.clone(), v.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            ns: &str,
-            k: &str,
+            k: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
+            let current = data.get(k).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(key, value.to_vec());
+                data.insert(k.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(ns.to_string(), k.to_string()));
+        async fn delete(&self, k: &ResourceKey) -> anyhow::Result<()> {
+            self.data.lock().await.remove(k);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
-                })
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -646,13 +632,12 @@ mod tests {
 
         async fn list_keys_page(
             &self,
-            ns: &str,
-            prefix: &str,
+            list: &ResourceList,
             before_key: Option<&str>,
             limit: usize,
-        ) -> anyhow::Result<Vec<String>> {
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(crate::control::page_keys_desc(
-                self.list_keys(ns, prefix).await?,
+                self.list_keys(list).await?,
                 before_key,
                 limit,
             ))
@@ -979,8 +964,7 @@ mod tests {
     async fn fetch_session_reads_seeded_session_state() {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
-            "default",
-            &keys::session("agent", "session-1"),
+            &keys::session("default", "agent", "session-1"),
             &models::Session {
                 id: "session-1".to_string(),
                 agent: "agent".to_string(),
@@ -995,8 +979,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            "default",
-            &keys::session_message("agent", "session-1", "msg-1"),
+            &keys::session_message("default", "agent", "session-1", "msg-1"),
             &models::SessionMessage {
                 id: "msg-1".to_string(),
                 role: models::MessageRole::RoleAssistant as i32,
@@ -1008,8 +991,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            "default",
-            &keys::session_message_step("agent", "session-1", "msg-1", "step-1"),
+            &keys::session_message_step("default", "agent", "session-1", "msg-1", "step-1"),
             &SessionStepEvent {
                 session_id: "session-1".to_string(),
                 step_type: StepType::Token as i32,
@@ -1117,8 +1099,7 @@ mod tests {
         let session_id = "session-error";
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
-            "default",
-            &keys::session("agent", session_id),
+            &keys::session("default", "agent", session_id),
             &models::Session {
                 id: session_id.to_string(),
                 agent: "agent".to_string(),
@@ -1266,8 +1247,7 @@ mod tests {
     async fn delete_chat_stops_generation_and_returns_no_content() {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
-            "default",
-            &keys::session("agent", "session-1"),
+            &keys::session("default", "agent", "session-1"),
             &models::Session {
                 id: "session-1".to_string(),
                 agent: "agent".to_string(),

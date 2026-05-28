@@ -76,10 +76,7 @@ impl LlmProvider for FailoverProvider {
         .await
     }
 
-    async fn chat_completion(
-        &self,
-        request: ChatRequest,
-    ) -> Result<ChatResponse> {
+    async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse> {
         self.with_failover(|p| {
             let request = request.clone();
             async move { p.chat_completion(request).await }
@@ -118,10 +115,7 @@ mod tests {
         async fn generate_embedding(&self, _text: &str) -> Result<Embedding> {
             Err(anyhow!("Always fails"))
         }
-        async fn chat_completion(
-            &self,
-            _request: ChatRequest,
-        ) -> Result<ChatResponse> {
+        async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
             Err(anyhow!("Always fails"))
         }
         async fn stream_chat_completion(&self, _request: ChatRequest) -> Result<ChatStream> {
@@ -202,10 +196,7 @@ mod tests {
             }
         }
 
-        async fn chat_completion(
-            &self,
-            _request: ChatRequest,
-        ) -> Result<ChatResponse> {
+        async fn chat_completion(&self, _request: ChatRequest) -> Result<ChatResponse> {
             let call = self.chat_calls.fetch_add(1, Ordering::SeqCst);
             if call < self.fail_until {
                 Err(anyhow!("chat fail {}", call + 1))

@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use anyhow::{anyhow, bail, Result};
 use async_trait::async_trait;
 
-use crate::control::{keys, ns, KeyValueStore, ProtoKeyValueStoreExt};
+use crate::control::{keys, KeyValueStore, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::{
     manifests,
     protobuf_value::{value::Kind as ProtoValueKind, ListValue},
@@ -39,7 +39,7 @@ impl<'a> KvTemplateLoader<'a> {
 impl AgentTemplateLoader for KvTemplateLoader<'_> {
     async fn load_template(&self, name: &str) -> Result<Option<manifests::AgentTemplate>> {
         self.kv
-            .get_msg::<manifests::AgentTemplate>(ns::TALON_SYSTEM, &keys::agent_template(name))
+            .get_msg::<manifests::AgentTemplate>(&keys::agent_template(name))
             .await
     }
 }
@@ -292,10 +292,14 @@ fn validate_capabilities_policy(
             bail!("{path} capability names must be trimmed");
         }
         let capability = capability_trimmed;
-        for action in actions.values.iter().map(|value| match value.kind.as_ref() {
-            Some(ProtoValueKind::StringValue(action)) => Ok(action.as_str()),
-            _ => bail!("{path}['{capability}'] actions must be strings"),
-        }) {
+        for action in actions
+            .values
+            .iter()
+            .map(|value| match value.kind.as_ref() {
+                Some(ProtoValueKind::StringValue(action)) => Ok(action.as_str()),
+                _ => bail!("{path}['{capability}'] actions must be strings"),
+            })
+        {
             let action = action?;
             let action_trimmed = action.trim();
             if action_trimmed.is_empty() {
@@ -448,7 +452,7 @@ mod tests {
             kind: "AgentTemplate".to_string(),
             metadata: Some(manifests::ObjectMeta {
                 name: name.to_string(),
-                namespace: ns::TALON_SYSTEM.to_string(),
+                namespace: crate::control::ns::TALON_SYSTEM.to_string(),
                 labels: HashMap::new(),
                 annotations: HashMap::new(),
             }),
@@ -764,7 +768,9 @@ mod tests {
         )
         .await
         .unwrap_err();
-        assert!(missing_name.to_string().contains("template_name is required"));
+        assert!(missing_name
+            .to_string()
+            .contains("template_name is required"));
 
         let missing_definition = resolve_agent_definition_with_loader(
             &loader,
@@ -772,7 +778,9 @@ mod tests {
         )
         .await
         .unwrap_err();
-        assert!(missing_definition.to_string().contains("missing definition"));
+        assert!(missing_definition
+            .to_string()
+            .contains("missing definition"));
     }
 
     #[tokio::test]
@@ -789,7 +797,10 @@ mod tests {
                     capabilities: HashMap::new(),
                 })
             } else {
-                templated_definition(&format!("t{}", idx + 1), manifests::AgentSpecDelta::default())
+                templated_definition(
+                    &format!("t{}", idx + 1),
+                    manifests::AgentSpecDelta::default(),
+                )
             };
             templates.insert(name.clone(), template(&name, definition));
         }
@@ -852,7 +863,10 @@ mod tests {
 
         assert_eq!(spec.system_prompt, "Reset");
         assert_eq!(
-            spec.features.iter().map(|f| (f.name.as_str(), f.r#type.as_str())).collect::<Vec<_>>(),
+            spec.features
+                .iter()
+                .map(|f| (f.name.as_str(), f.r#type.as_str()))
+                .collect::<Vec<_>>(),
             vec![("search", "mcp"), ("plan", "builtin")]
         );
         assert_eq!(spec.mcp_server_refs, vec!["alt".to_string()]);
@@ -918,7 +932,9 @@ mod tests {
             capabilities: HashMap::new(),
         })
         .unwrap_err();
-        assert!(duplicate_mcp_ref.to_string().contains("Duplicate MCP server ref"));
+        assert!(duplicate_mcp_ref
+            .to_string()
+            .contains("Duplicate MCP server ref"));
     }
 
     #[test]
@@ -945,7 +961,9 @@ mod tests {
             "policy",
         )
         .unwrap_err();
-        assert!(duplicate_profile.to_string().contains("Duplicate model profile"));
+        assert!(duplicate_profile
+            .to_string()
+            .contains("Duplicate model profile"));
 
         let invalid_capability = validate_capabilities_policy(
             &HashMap::from([(
@@ -957,7 +975,9 @@ mod tests {
             "caps",
         )
         .unwrap_err();
-        assert!(invalid_capability.to_string().contains("unsupported action"));
+        assert!(invalid_capability
+            .to_string()
+            .contains("unsupported action"));
 
         let invalid_action_type = validate_capabilities_policy(
             &HashMap::from([(
@@ -971,7 +991,9 @@ mod tests {
             "caps",
         )
         .unwrap_err();
-        assert!(invalid_action_type.to_string().contains("actions must be strings"));
+        assert!(invalid_action_type
+            .to_string()
+            .contains("actions must be strings"));
 
         let untrimmed_action = validate_capabilities_policy(
             &HashMap::from([(
@@ -998,7 +1020,9 @@ mod tests {
             "model",
         )
         .unwrap_err();
-        assert!(missing_provider.to_string().contains(".provider is required"));
+        assert!(missing_provider
+            .to_string()
+            .contains(".provider is required"));
 
         let missing_name = validate_model(
             &manifests::Model {
@@ -1069,5 +1093,4 @@ mod tests {
             kind: Some(ProtoValueKind::StringValue(value.to_string())),
         }
     }
-
 }

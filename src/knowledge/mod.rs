@@ -162,10 +162,7 @@ pub async fn execute_tool(
         }
         KNOWLEDGE_LIST_TOOL => {
             let path_prefix = args["path"].as_str().unwrap_or("");
-            let local_only = args
-                .get("local")
-                .and_then(Value::as_bool)
-                .unwrap_or(true);
+            let local_only = args.get("local").and_then(Value::as_bool).unwrap_or(true);
             let recursive = args
                 .get("recursive")
                 .and_then(Value::as_bool)
@@ -181,7 +178,11 @@ pub async fn execute_tool(
             if entries.is_empty() {
                 Ok(Some(format!(
                     "KnowledgeBook: no artifacts found under '{}'.",
-                    if path_prefix.is_empty() { "/" } else { path_prefix }
+                    if path_prefix.is_empty() {
+                        "/"
+                    } else {
+                        path_prefix
+                    }
                 )))
             } else {
                 Ok(Some(serde_json::to_string_pretty(&json!({
@@ -222,20 +223,21 @@ impl KvKnowledgeBook {
     }
 
     async fn find_entry(&self, ns: &str, path: &str) -> Result<Option<KnowledgeEntry>> {
-        let key = crate::control::keys::knowledge(path);
-        if let Some(bytes) = self.kv.get(ns, &key).await? {
+        let key = crate::control::keys::knowledge(ns, path);
+        if let Some(bytes) = self.kv.get(&key).await? {
             return Ok(Some(Self::normalize_entry(ns, path, &bytes)));
         }
 
-        let prefix = crate::control::keys::knowledge_prefix();
+        let prefix = crate::control::keys::knowledge_prefix(ns);
         let path_lower = path.to_lowercase();
         let matches = self
             .kv
-            .list_keys(ns, prefix)
+            .list_keys(&prefix)
             .await?
             .into_iter()
             .filter(|candidate| {
-                let artifact_path = candidate.strip_prefix(prefix).unwrap_or(candidate);
+                let artifact_path =
+                    crate::control::keys::direct_child_name(&prefix, candidate).unwrap_or_default();
                 let artifact_lower = artifact_path.to_lowercase();
                 artifact_lower == path_lower
                     || artifact_lower.ends_with(&format!("/{}", path_lower))
@@ -246,11 +248,12 @@ impl KvKnowledgeBook {
             return Ok(None);
         }
 
-        let Some(bytes) = self.kv.get(ns, &matches[0]).await? else {
+        let Some(bytes) = self.kv.get(&matches[0]).await? else {
             return Ok(None);
         };
-        let artifact_path = matches[0].strip_prefix(prefix).unwrap_or(&matches[0]);
-        Ok(Some(Self::normalize_entry(ns, artifact_path, &bytes)))
+        let artifact_path =
+            crate::control::keys::direct_child_name(&prefix, &matches[0]).unwrap_or_default();
+        Ok(Some(Self::normalize_entry(ns, &artifact_path, &bytes)))
     }
 
     fn normalize_list_prefix(path_prefix: &str) -> String {
@@ -290,7 +293,7 @@ impl KnowledgeBook for KvKnowledgeBook {
     }
 
     async fn write(&self, ns: &str, path: &str, content: &str) -> Result<()> {
-        let key = crate::control::keys::knowledge(path);
+        let key = crate::control::keys::knowledge(ns, path);
         let entry = KnowledgeEntry {
             namespace: ns.to_string(),
             name: path.to_string(),
@@ -302,26 +305,24 @@ impl KnowledgeBook for KvKnowledgeBook {
                 .as_secs() as i64,
         };
         let bytes = serde_json::to_vec(&entry)?;
-        self.kv.set(ns, &key, &bytes).await?;
+        self.kv.set(&key, &bytes).await?;
         Ok(())
     }
 
     async fn search(&self, ns: &str, query: &str, limit: usize) -> Result<Vec<KnowledgeResult>> {
-        let prefix = crate::control::keys::knowledge_prefix();
         let query_lower = query.to_lowercase();
         let mut scored_results: Vec<(i32, usize, KnowledgeResult)> = Vec::new();
         let mut seen_paths = std::collections::HashSet::new();
 
         for (depth, candidate_ns) in crate::control::ns::ancestry(ns).into_iter().enumerate() {
-            let keys = self.kv.list_keys(&candidate_ns, prefix).await?;
+            let prefix = crate::control::keys::knowledge_prefix(&candidate_ns);
+            let keys = self.kv.list_keys(&prefix).await?;
 
             for key in keys {
-                if let Some(bytes) = self.kv.get(&candidate_ns, &key).await.unwrap_or(None) {
-                    let entry = Self::normalize_entry(
-                        &candidate_ns,
-                        key.strip_prefix(prefix).unwrap_or(&key),
-                        &bytes,
-                    );
+                if let Some(bytes) = self.kv.get(&key).await.unwrap_or(None) {
+                    let artifact_path =
+                        crate::control::keys::direct_child_name(&prefix, &key).unwrap_or_default();
+                    let entry = Self::normalize_entry(&candidate_ns, &artifact_path, &bytes);
                     let path = entry.path();
                     if !seen_paths.insert(path.clone()) {
                         continue;
@@ -392,7 +393,6 @@ impl KnowledgeBook for KvKnowledgeBook {
         recursive: bool,
         limit: usize,
     ) -> Result<Vec<KnowledgeListEntry>> {
-        let prefix = crate::control::keys::knowledge_prefix();
         let normalized_prefix = Self::normalize_list_prefix(path_prefix);
         let mut entries = Vec::new();
         let mut seen_paths = std::collections::HashSet::new();
@@ -404,21 +404,23 @@ impl KnowledgeBook for KvKnowledgeBook {
         };
 
         for candidate_ns in namespaces {
-            let mut keys = self.kv.list_keys(&candidate_ns, prefix).await?;
+            let prefix = crate::control::keys::knowledge_prefix(&candidate_ns);
+            let mut keys = self.kv.list_keys(&prefix).await?;
             keys.sort();
 
             for key in keys {
-                let artifact_path = key.strip_prefix(prefix).unwrap_or(&key);
-                if !Self::entry_matches_prefix(artifact_path, &normalized_prefix, recursive) {
+                let artifact_path =
+                    crate::control::keys::direct_child_name(&prefix, &key).unwrap_or_default();
+                if !Self::entry_matches_prefix(&artifact_path, &normalized_prefix, recursive) {
                     continue;
                 }
                 if !seen_paths.insert(artifact_path.to_string()) {
                     continue;
                 }
-                let Some(bytes) = self.kv.get(&candidate_ns, &key).await? else {
+                let Some(bytes) = self.kv.get(&key).await? else {
                     continue;
                 };
-                let entry = Self::normalize_entry(&candidate_ns, artifact_path, &bytes);
+                let entry = Self::normalize_entry(&candidate_ns, &artifact_path, &bytes);
                 let namespace = entry.namespace.clone();
                 let path = entry.path();
                 entries.push(KnowledgeListEntry {
@@ -450,10 +452,13 @@ impl KnowledgeEntry {
 #[cfg(test)]
 mod tests {
     use super::{
-        execute_tool, KnowledgeBook, KnowledgeEntry, KvKnowledgeBook,
-        KNOWLEDGE_GET_TOOL, KNOWLEDGE_LIST_TOOL, KNOWLEDGE_SEARCH_TOOL, KNOWLEDGE_WRITE_TOOL,
+        execute_tool, KnowledgeBook, KnowledgeEntry, KvKnowledgeBook, KNOWLEDGE_GET_TOOL,
+        KNOWLEDGE_LIST_TOOL, KNOWLEDGE_SEARCH_TOOL, KNOWLEDGE_WRITE_TOOL,
     };
-    use crate::control::KeyValueStore;
+    use crate::control::{
+        keys::{ResourceKey, ResourceList},
+        KeyValueStore,
+    };
     use async_trait::async_trait;
     use serde_json::json;
     use std::collections::HashMap;
@@ -461,7 +466,7 @@ mod tests {
     use tokio::sync::Mutex;
 
     struct MockKvStore {
-        store: Mutex<HashMap<String, Vec<u8>>>,
+        store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[tokio::test]
@@ -481,9 +486,12 @@ mod tests {
                 content: content.to_string(),
                 updated_at: 7,
             };
-            kv.set(ns, &format!("Knowledge/{}", path), &serde_json::to_vec(&entry).unwrap())
-                .await
-                .unwrap();
+            kv.set(
+                &crate::control::keys::knowledge(ns, path),
+                &serde_json::to_vec(&entry).unwrap(),
+            )
+            .await
+            .unwrap();
         }
 
         let non_recursive = book
@@ -501,7 +509,10 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(recursive.len(), 3);
-        let recursive_paths = recursive.into_iter().map(|entry| entry.path).collect::<Vec<_>>();
+        let recursive_paths = recursive
+            .into_iter()
+            .map(|entry| entry.path)
+            .collect::<Vec<_>>();
         assert_eq!(
             recursive_paths,
             vec![
@@ -526,35 +537,29 @@ mod tests {
                 store: Mutex::new(HashMap::new()),
             }
         }
-
-        fn make_key(ns: &str, key: &str) -> String {
-            format!("{}/{}", ns, key)
-        }
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, namespace: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             let map = self.store.lock().await;
-            Ok(map.get(&Self::make_key(namespace, key)).cloned())
+            Ok(map.get(key).cloned())
         }
 
-        async fn set(&self, namespace: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
-            map.insert(Self::make_key(namespace, key), value.to_vec());
+            map.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            namespace: &str,
-            key: &str,
+            key: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut map = self.store.lock().await;
-            let full_key = Self::make_key(namespace, key);
-            let current = map.get(&full_key).cloned();
+            let current = map.get(key).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
@@ -563,24 +568,22 @@ mod tests {
             if !matches {
                 return Ok(false);
             }
-            map.insert(full_key, value.to_vec());
+            map.insert(key.clone(), value.to_vec());
             Ok(true)
         }
 
-        async fn delete(&self, namespace: &str, key: &str) -> anyhow::Result<()> {
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
-            map.remove(&Self::make_key(namespace, key));
+            map.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let map = self.store.lock().await;
-            let ns_prefix = format!("{}/{}", namespace, prefix);
-            let ns_root = format!("{}/", namespace);
             let mut results = Vec::new();
             for key in map.keys() {
-                if key.starts_with(&ns_prefix) {
-                    results.push(key.strip_prefix(&ns_root).unwrap().to_string());
+                if list.matches(key) {
+                    results.push(key.clone());
                 }
             }
             Ok(results)
@@ -600,9 +603,12 @@ mod tests {
             updated_at: 0,
         };
         let bytes = serde_json::to_vec(&entry).unwrap();
-        kv.set("conic", "Knowledge/unicode.md", &bytes)
-            .await
-            .unwrap();
+        kv.set(
+            &crate::control::keys::knowledge("conic", "unicode.md"),
+            &bytes,
+        )
+        .await
+        .unwrap();
 
         let results = book.search("conic", "café", 5).await.unwrap();
 
@@ -624,9 +630,12 @@ mod tests {
             updated_at: 0,
         };
         let bytes = serde_json::to_vec(&entry).unwrap();
-        kv.set("conic", "Knowledge/playbooks/aeo.md", &bytes)
-            .await
-            .unwrap();
+        kv.set(
+            &crate::control::keys::knowledge("conic", "playbooks/aeo.md"),
+            &bytes,
+        )
+        .await
+        .unwrap();
 
         let result = book.get("conic:wks:13", "playbooks/aeo.md").await.unwrap();
         let result = result.expect("expected inherited knowledge");
@@ -651,9 +660,12 @@ mod tests {
                 updated_at: 0,
             };
             let bytes = serde_json::to_vec(&entry).unwrap();
-            kv.set(ns, "Knowledge/playbooks/framework.md", &bytes)
-                .await
-                .unwrap();
+            kv.set(
+                &crate::control::keys::knowledge(ns, "playbooks/framework.md"),
+                &bytes,
+            )
+            .await
+            .unwrap();
         }
 
         let results = book.search("conic:wks:13", "framework", 5).await.unwrap();
@@ -666,17 +678,23 @@ mod tests {
         let kv = Arc::new(MockKvStore::new());
         let book = KvKnowledgeBook::new(kv.clone());
 
-        kv.set("conic", "Knowledge/notes/Plan.md", b"plain text body")
-            .await
-            .unwrap();
+        kv.set(
+            &crate::control::keys::knowledge("conic", "notes/Plan.md"),
+            b"plain text body",
+        )
+        .await
+        .unwrap();
         let resolved = book.find_entry("conic", "plan.md").await.unwrap().unwrap();
         assert_eq!(resolved.namespace, "conic");
         assert_eq!(resolved.path(), "notes/Plan.md");
         assert_eq!(resolved.content, "plain text body");
 
-        kv.set("conic", "Knowledge/other/Plan.md", b"another body")
-            .await
-            .unwrap();
+        kv.set(
+            &crate::control::keys::knowledge("conic", "other/Plan.md"),
+            b"another body",
+        )
+        .await
+        .unwrap();
         let ambiguous = book.find_entry("conic", "plan.md").await.unwrap();
         assert!(ambiguous.is_none());
     }
@@ -700,8 +718,7 @@ mod tests {
                 updated_at: 0,
             };
             kv.set(
-                "conic",
-                &format!("Knowledge/{}", path),
+                &crate::control::keys::knowledge("conic", path),
                 &serde_json::to_vec(&entry).unwrap(),
             )
             .await
@@ -729,7 +746,10 @@ mod tests {
         )
         .await
         .unwrap();
-        assert_eq!(wrote.as_deref(), Some("KnowledgeBook: wrote artifact 'goals.md'."));
+        assert_eq!(
+            wrote.as_deref(),
+            Some("KnowledgeBook: wrote artifact 'goals.md'.")
+        );
 
         let got = execute_tool(
             &book,

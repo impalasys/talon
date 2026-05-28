@@ -24,8 +24,9 @@ pub struct WorkerEventHandler {
     pub config: Arc<Config>,
     pub mcp_registry: Arc<mcp_registry::McpRegistry>,
     pub scheduler_authenticator: Arc<scheduler_auth::SchedulerRequestAuthenticator>,
-    pub session_cancellations:
-        Arc<tokio::sync::Mutex<std::collections::HashMap<String, tokio_util::sync::CancellationToken>>>,
+    pub session_cancellations: Arc<
+        tokio::sync::Mutex<std::collections::HashMap<String, tokio_util::sync::CancellationToken>>,
+    >,
 }
 
 impl WorkerEventHandler {
@@ -273,83 +274,66 @@ mod tests {
     use crate::config::Config;
     use crate::control::{
         events::{LifecycleEvent, MessageDirection, SessionControlEvent, SessionMessageEvent},
+        keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{manifests, models};
-    use crate::worker::{
-        mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
-    };
+    use crate::worker::{mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator};
     use async_trait::async_trait;
     use chrono::{Duration, Utc};
     use futures::stream;
     use prost::Message;
-    use std::{
-        collections::HashMap,
-        pin::Pin,
-        sync::Arc,
-    };
+    use std::{collections::HashMap, pin::Pin, sync::Arc};
     use tokio::sync::Mutex;
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), key.to_string()))
-                .cloned())
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(key).cloned())
         }
 
-        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), key.to_string()), value.to_vec());
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            ns: &str,
-            key: &str,
+            key: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let full_key = (ns.to_string(), key.to_string());
-            let current = data.get(&full_key).cloned();
+            let current = data.get(key).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(full_key, value.to_vec());
+                data.insert(key.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
+            self.data.lock().await.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
-                })
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -429,8 +413,7 @@ mod tests {
 
     async fn seed_agent_and_session(kv: &MockKvStore) {
         kv.set_msg(
-            "conic:test",
-            &crate::control::keys::agent("assistant"),
+            &crate::control::keys::agent("conic:test", "assistant"),
             &models::Agent {
                 name: "assistant".to_string(),
                 ns: "conic:test".to_string(),
@@ -443,8 +426,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            "conic:test",
-            &crate::control::keys::session("assistant", "session-1"),
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
             &models::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -483,18 +465,26 @@ mod tests {
             )),
             Some("resource_lifecycle")
         );
-        assert_eq!(WorkerEventHandler::event_type_for_subscription("unknown"), None);
+        assert_eq!(
+            WorkerEventHandler::event_type_for_subscription("unknown"),
+            None
+        );
     }
 
     #[tokio::test]
     async fn dispatch_rejects_unknown_event_types_and_payloads() {
-        let handler = handler(Arc::new(MockKvStore::default()), Arc::new(MockPubSub::default()));
+        let handler = handler(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockPubSub::default()),
+        );
 
         let unknown_type = handler
             .dispatch(Some("wat"), &[])
             .await
             .expect_err("unknown event type should fail");
-        assert!(unknown_type.to_string().contains("Unknown worker event type"));
+        assert!(unknown_type
+            .to_string()
+            .contains("Unknown worker event type"));
 
         let unknown_payload = handler
             .dispatch(None, b"not-protobuf")
@@ -511,11 +501,10 @@ mod tests {
         let pubsub = Arc::new(MockPubSub::default());
         let handler = handler(kv, pubsub);
 
-        handler
-            .session_cancellations
-            .lock()
-            .await
-            .insert("session-1".to_string(), tokio_util::sync::CancellationToken::new());
+        handler.session_cancellations.lock().await.insert(
+            "session-1".to_string(),
+            tokio_util::sync::CancellationToken::new(),
+        );
 
         let lifecycle = LifecycleEvent {
             resource_type: "McpServerBinding".to_string(),
@@ -544,7 +533,10 @@ mod tests {
 
     #[tokio::test]
     async fn handle_schedule_wakeup_returns_ok_when_no_schedule_matches() {
-        let handler = handler(Arc::new(MockKvStore::default()), Arc::new(MockPubSub::default()));
+        let handler = handler(
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockPubSub::default()),
+        );
 
         handler
             .handle_schedule_wakeup(crate::scheduling::ScheduleWakeupPayload {
@@ -564,8 +556,7 @@ mod tests {
         let handler = handler(kv.clone(), pubsub);
         let intended = (Utc::now() + Duration::seconds(30)).timestamp_micros();
         kv.set_msg(
-            "conic:test",
-            &crate::control::keys::schedule("nightly"),
+            &crate::control::keys::schedule("conic:test", "nightly"),
             &schedule(3, intended, "reuse"),
         )
         .await
@@ -582,7 +573,7 @@ mod tests {
             .expect("early wakeup should defer");
 
         let updated = kv
-            .get_msg::<models::Schedule>("conic:test", &crate::control::keys::schedule("nightly"))
+            .get_msg::<models::Schedule>(&crate::control::keys::schedule("conic:test", "nightly"))
             .await
             .unwrap()
             .unwrap();
@@ -603,8 +594,7 @@ mod tests {
         seed_agent_and_session(kv.as_ref()).await;
         let intended = (Utc::now() - Duration::seconds(2)).timestamp_micros();
         kv.set_msg(
-            "conic:test",
-            &crate::control::keys::schedule("nightly"),
+            &crate::control::keys::schedule("conic:test", "nightly"),
             &schedule(7, intended, "reuse"),
         )
         .await
@@ -621,7 +611,7 @@ mod tests {
             .expect("schedule dispatch should succeed");
 
         let updated = kv
-            .get_msg::<models::Schedule>("conic:test", &crate::control::keys::schedule("nightly"))
+            .get_msg::<models::Schedule>(&crate::control::keys::schedule("conic:test", "nightly"))
             .await
             .unwrap()
             .unwrap();
@@ -632,20 +622,22 @@ mod tests {
         assert!(status.next_run_at.is_some());
 
         let session = kv
-            .get_msg::<models::Session>(
+            .get_msg::<models::Session>(&crate::control::keys::session(
                 "conic:test",
-                &crate::control::keys::session("assistant", "session-1"),
-            )
+                "assistant",
+                "session-1",
+            ))
             .await
             .unwrap()
             .unwrap();
         assert_eq!(session.status, "PROCESSING");
 
         let message_keys = kv
-            .list_keys(
+            .list_keys(&crate::control::keys::session_message_prefix(
                 "conic:test",
-                &crate::control::keys::session_message_prefix("assistant", "session-1"),
-            )
+                "assistant",
+                "session-1",
+            ))
             .await
             .unwrap();
         assert_eq!(message_keys.len(), 1);

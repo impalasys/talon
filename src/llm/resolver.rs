@@ -4,21 +4,24 @@
 use anyhow::{anyhow, Context, Result};
 use std::sync::Arc;
 
-use crate::config::Config;
 use crate::config::secrets::SecretExt;
+use crate::config::Config;
 use crate::gateway::rpc::manifests::{self, AgentSpec};
 use crate::llm::LlmProvider;
 
-pub fn resolve_model_profile(
-    policy: Option<&manifests::ModelPolicy>,
-) -> Option<&manifests::Model> {
+pub fn resolve_model_profile(policy: Option<&manifests::ModelPolicy>) -> Option<&manifests::Model> {
     policy
         .and_then(|policy| {
             policy
                 .profiles
                 .iter()
                 .find(|profile| profile.name == "default")
-                .or_else(|| policy.profiles.iter().find(|profile| profile.model.is_some()))
+                .or_else(|| {
+                    policy
+                        .profiles
+                        .iter()
+                        .find(|profile| profile.model.is_some())
+                })
         })
         .and_then(|profile| profile.model.as_ref())
 }
@@ -119,12 +122,10 @@ pub async fn resolve_llm(
                 api_key, base_url, model,
             )))
         }
-        Some(crate::config::proto::llm_provider_config::Config::Google(_)) => {
-            Err(anyhow!(
-                "LLM provider '{}' uses Google config, which is not supported by this runtime yet",
-                provider_name
-            ))
-        }
+        Some(crate::config::proto::llm_provider_config::Config::Google(_)) => Err(anyhow!(
+            "LLM provider '{}' uses Google config, which is not supported by this runtime yet",
+            provider_name
+        )),
         None => Err(anyhow!(
             "LLM provider '{}' has no config; refusing to fall back to a mock provider",
             provider_name
@@ -220,10 +221,9 @@ mod tests {
             Ok(_) => panic!("expected provider config error"),
             Err(err) => err,
         };
-        assert!(
-            err.to_string()
-                .contains("refusing to fall back to a mock provider")
-        );
+        assert!(err
+            .to_string()
+            .contains("refusing to fall back to a mock provider"));
     }
 
     #[tokio::test]

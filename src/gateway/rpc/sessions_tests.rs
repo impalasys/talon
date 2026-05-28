@@ -5,7 +5,7 @@
 mod tests {
     use crate::control::{
         events::{SessionStepEvent, StepType},
-        keys,
+        keys::{self, ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
@@ -47,82 +47,69 @@ mod tests {
 
     #[derive(Default)]
     struct FailingKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
-        fail_list_prefix: Option<String>,
-        fail_get_key: Option<String>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
+        fail_list_prefix: Option<ResourceList>,
+        fail_get_key: Option<ResourceKey>,
         fail_set_prefix: Option<String>,
-        fail_delete_key: Option<String>,
-        extra_list_keys: Vec<String>,
+        fail_delete_key: Option<ResourceKey>,
+        extra_list_keys: Vec<ResourceKey>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for FailingKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            if self.fail_get_key.as_deref() == Some(k) {
+        async fn get(&self, k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            if self.fail_get_key.as_ref() == Some(k) {
                 anyhow::bail!("get failed for {}", k);
             }
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
+            Ok(self.data.lock().await.get(k).cloned())
         }
 
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, k: &ResourceKey, v: &[u8]) -> anyhow::Result<()> {
             if self
                 .fail_set_prefix
                 .as_deref()
-                .is_some_and(|prefix| k.starts_with(prefix))
+                .is_some_and(|prefix| k.canonical().starts_with(prefix))
             {
                 anyhow::bail!("set failed for {}", k);
             }
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
+            self.data.lock().await.insert(k.clone(), v.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            ns: &str,
-            k: &str,
+            k: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
+            let current = data.get(k).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(key, value.to_vec());
+                data.insert(k.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            if self.fail_delete_key.as_deref() == Some(k) {
+        async fn delete(&self, k: &ResourceKey) -> anyhow::Result<()> {
+            if self.fail_delete_key.as_ref() == Some(k) {
                 anyhow::bail!("delete failed for {}", k);
             }
-            self.data
-                .lock()
-                .await
-                .remove(&(ns.to_string(), k.to_string()));
+            self.data.lock().await.remove(k);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             if self
                 .fail_list_prefix
-                .as_deref()
-                .is_some_and(|prefix| p.starts_with(prefix))
+                .as_ref()
+                .is_some_and(|fail_list| fail_list == list)
             {
-                anyhow::bail!("list failed for {}", p);
+                anyhow::bail!("list failed for {}", list);
             }
 
             let mut keys = self
@@ -130,9 +117,7 @@ mod tests {
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
-                })
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.extend(self.extra_list_keys.iter().cloned());
             keys.sort();
@@ -141,13 +126,12 @@ mod tests {
 
         async fn list_keys_page(
             &self,
-            ns: &str,
-            prefix: &str,
+            list: &ResourceList,
             before_key: Option<&str>,
             limit: usize,
-        ) -> anyhow::Result<Vec<String>> {
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(crate::control::page_keys_desc(
-                self.list_keys(ns, prefix).await?,
+                self.list_keys(list).await?,
                 before_key,
                 limit,
             ))
@@ -155,13 +139,12 @@ mod tests {
 
         async fn list_entries_page(
             &self,
-            ns: &str,
-            prefix: &str,
+            list: &ResourceList,
             before_key: Option<&str>,
             limit: usize,
-        ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
+        ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
             Ok(crate::control::page_entries_desc(
-                self.list_entries(ns, prefix).await?,
+                self.list_entries(list).await?,
                 before_key,
                 limit,
             ))
@@ -220,8 +203,7 @@ mod tests {
 
     async fn seed_agent(kv: &Arc<MockKvStore>, ns: &str, name: &str) {
         kv.set_msg(
-            ns,
-            &keys::agent(name),
+            &keys::agent(ns, name),
             &models::Agent {
                 name: name.to_string(),
                 ns: ns.to_string(),
@@ -268,10 +250,11 @@ mod tests {
         assert_eq!(response.labels.get("team").map(String::as_str), Some("ops"));
 
         let stored = kv
-            .get_msg::<models::Session>(
+            .get_msg::<models::Session>(&keys::session(
                 "default",
-                &keys::session("test-agent", &response.session_id),
-            )
+                "test-agent",
+                &response.session_id,
+            ))
             .await
             .unwrap()
             .expect("session should be stored");
@@ -310,10 +293,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_session_surfaces_save_failure() {
-        let session_key_prefix = keys::session("test-agent", "");
+        let session_key_prefix = keys::session_prefix("default", "test-agent").canonical_prefix();
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([(
-                ("default".to_string(), keys::agent("test-agent")),
+                keys::agent("default", "test-agent"),
                 models::Agent {
                     name: "test-agent".to_string(),
                     ns: "default".to_string(),
@@ -362,8 +345,7 @@ mod tests {
         let message_id = "msg-1";
 
         kv.set_msg(
-            ns,
-            &keys::session(agent, session_id),
+            &keys::session(ns, agent, session_id),
             &models::Session {
                 id: session_id.to_string(),
                 agent: agent.to_string(),
@@ -379,8 +361,7 @@ mod tests {
         .unwrap();
 
         kv.set_msg(
-            ns,
-            &keys::session_message(agent, session_id, message_id),
+            &keys::session_message(ns, agent, session_id, message_id),
             &models::SessionMessage {
                 id: message_id.to_string(),
                 role: 2,
@@ -393,25 +374,13 @@ mod tests {
         .unwrap();
 
         kv.set(
-            ns,
-            &format!(
-                "{}/nested",
-                keys::session_message(agent, session_id, message_id)
-            ),
-            b"should-be-ignored",
-        )
-        .await
-        .unwrap();
-        kv.set(
-            ns,
-            &keys::session_message(agent, session_id, "msg-invalid"),
+            &keys::session_message(ns, agent, session_id, "msg-invalid"),
             b"not-protobuf",
         )
         .await
         .unwrap();
         kv.set(
-            ns,
-            &keys::session_message_step(agent, session_id, message_id, "step-valid"),
+            &keys::session_message_step(ns, agent, session_id, message_id, "step-valid"),
             &SessionStepEvent {
                 session_id: session_id.to_string(),
                 step_type: StepType::Token as i32,
@@ -428,8 +397,7 @@ mod tests {
         .await
         .unwrap();
         kv.set(
-            ns,
-            &keys::session_message_step(agent, session_id, message_id, "step-invalid"),
+            &keys::session_message_step(ns, agent, session_id, message_id, "step-invalid"),
             b"not-step",
         )
         .await
@@ -460,10 +428,7 @@ mod tests {
     async fn test_get_session_negative_limits_return_metadata_without_listing_history() {
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([(
-                (
-                    "default".to_string(),
-                    keys::session("test-agent", "session-1"),
-                ),
+                keys::session("default", "test-agent", "session-1"),
                 models::Session {
                     id: "session-1".to_string(),
                     agent: "test-agent".to_string(),
@@ -476,7 +441,11 @@ mod tests {
                 }
                 .encode_to_vec(),
             )])),
-            fail_list_prefix: Some(keys::session_message_prefix("test-agent", "session-1")),
+            fail_list_prefix: Some(keys::session_message_prefix(
+                "default",
+                "test-agent",
+                "session-1",
+            )),
             fail_get_key: None,
             fail_set_prefix: None,
             fail_delete_key: None,
@@ -522,10 +491,7 @@ mod tests {
 
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([(
-                (
-                    "default".to_string(),
-                    keys::session("test-agent", "session-1"),
-                ),
+                keys::session("default", "test-agent", "session-1"),
                 models::Session {
                     id: "session-1".to_string(),
                     agent: "test-agent".to_string(),
@@ -538,7 +504,11 @@ mod tests {
                 }
                 .encode_to_vec(),
             )])),
-            fail_list_prefix: Some(keys::session_message_prefix("test-agent", "session-1")),
+            fail_list_prefix: Some(keys::session_message_prefix(
+                "default",
+                "test-agent",
+                "session-1",
+            )),
             fail_get_key: None,
             fail_set_prefix: None,
             fail_delete_key: None,
@@ -565,10 +535,7 @@ mod tests {
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([
                 (
-                    (
-                        "default".to_string(),
-                        keys::session("test-agent", "session-1"),
-                    ),
+                    keys::session("default", "test-agent", "session-1"),
                     models::Session {
                         id: "session-1".to_string(),
                         agent: "test-agent".to_string(),
@@ -582,10 +549,7 @@ mod tests {
                     .encode_to_vec(),
                 ),
                 (
-                    (
-                        "default".to_string(),
-                        keys::session_message("test-agent", "session-1", "msg-1"),
-                    ),
+                    keys::session_message("default", "test-agent", "session-1", "msg-1"),
                     models::SessionMessage {
                         id: "msg-1".to_string(),
                         role: 1,
@@ -597,6 +561,7 @@ mod tests {
                 ),
             ])),
             fail_list_prefix: Some(keys::session_message_step_prefix(
+                "default",
                 "test-agent",
                 "session-1",
                 "msg-1",
@@ -631,8 +596,7 @@ mod tests {
         let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         kv.set_msg(
-            ns,
-            &keys::session(agent, session_id),
+            &keys::session(ns, agent, session_id),
             &models::Session {
                 id: session_id.to_string(),
                 agent: agent.to_string(),
@@ -650,8 +614,7 @@ mod tests {
         for index in 1..=3 {
             let message_id = format!("msg-{index}");
             kv.set_msg(
-                ns,
-                &keys::session_message(agent, session_id, &message_id),
+                &keys::session_message(ns, agent, session_id, &message_id),
                 &models::SessionMessage {
                     id: message_id.clone(),
                     role: 2,
@@ -665,8 +628,8 @@ mod tests {
 
             for step_index in 1..=2 {
                 kv.set(
-                    ns,
                     &keys::session_message_step(
+                        ns,
                         agent,
                         session_id,
                         &message_id,
@@ -729,8 +692,7 @@ mod tests {
         let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         kv.set_msg(
-            ns,
-            &keys::session(agent, session_id),
+            &keys::session(ns, agent, session_id),
             &models::Session {
                 id: session_id.to_string(),
                 agent: agent.to_string(),
@@ -748,8 +710,7 @@ mod tests {
         for index in 1..=3 {
             let message_id = format!("019f0000-0000-7000-8000-00000000000{index}");
             kv.set_msg(
-                ns,
-                &keys::session_message(agent, session_id, &message_id),
+                &keys::session_message(ns, agent, session_id, &message_id),
                 &models::SessionMessage {
                     id: message_id.clone(),
                     role: if index == 2 { 1 } else { 2 },
@@ -762,8 +723,7 @@ mod tests {
             .unwrap();
 
             kv.set(
-                ns,
-                &keys::session_message_step(agent, session_id, &message_id, "000001"),
+                &keys::session_message_step(ns, agent, session_id, &message_id, "000001"),
                 &SessionStepEvent {
                     session_id: session_id.to_string(),
                     step_type: StepType::Token as i32,
@@ -885,8 +845,7 @@ mod tests {
         let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         kv.set_msg(
-            ns,
-            &keys::session(agent, session_id),
+            &keys::session(ns, agent, session_id),
             &models::Session {
                 id: session_id.to_string(),
                 agent: agent.to_string(),
@@ -904,8 +863,7 @@ mod tests {
         for index in 1..=3 {
             let message_id = format!("019f0000-0000-7000-8000-00000000000{index}");
             kv.set_msg(
-                ns,
-                &keys::session_message(agent, session_id, &message_id),
+                &keys::session_message(ns, agent, session_id, &message_id),
                 &models::SessionMessage {
                     id: message_id,
                     role: models::MessageRole::RoleAssistant as i32,
@@ -921,8 +879,8 @@ mod tests {
         let newest_message_id = "019f0000-0000-7000-8000-000000000003";
         for index in 0..700 {
             kv.set(
-                ns,
                 &keys::session_message_step(
+                    ns,
                     agent,
                     session_id,
                     newest_message_id,
@@ -978,8 +936,7 @@ mod tests {
         let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
         kv.set_msg(
-            "default",
-            &keys::session("test-agent", "session-1"),
+            &keys::session("default", "test-agent", "session-1"),
             &models::Session {
                 id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
@@ -1039,8 +996,7 @@ mod tests {
         assert_eq!(not_found.code(), tonic::Code::NotFound);
 
         kv.set_msg(
-            "default",
-            &keys::session("test-agent", "busy-session"),
+            &keys::session("default", "test-agent", "busy-session"),
             &models::Session {
                 id: "busy-session".to_string(),
                 agent: "test-agent".to_string(),
@@ -1068,8 +1024,7 @@ mod tests {
         assert_eq!(busy.code(), tonic::Code::ResourceExhausted);
 
         kv.set_msg(
-            "default",
-            &keys::session("test-agent", "idle-session"),
+            &keys::session("default", "test-agent", "idle-session"),
             &models::Session {
                 id: "idle-session".to_string(),
                 agent: "test-agent".to_string(),
@@ -1098,10 +1053,11 @@ mod tests {
         assert_eq!(sent.session_id, "idle-session");
 
         let stored_message_keys = kv
-            .list_keys(
+            .list_keys(&keys::session_message_prefix(
                 "default",
-                &keys::session_message_prefix("test-agent", "idle-session"),
-            )
+                "test-agent",
+                "idle-session",
+            ))
             .await
             .unwrap();
         assert_eq!(stored_message_keys.len(), 1);
@@ -1197,15 +1153,14 @@ mod tests {
             labels: HashMap::new(),
         };
 
-        kv.set_msg(ns, &keys::session(agent, &older_session.id), &older_session)
+        kv.set_msg(&keys::session(ns, agent, &older_session.id), &older_session)
             .await
             .unwrap();
-        kv.set_msg(ns, &keys::session(agent, &newer_session.id), &newer_session)
+        kv.set_msg(&keys::session(ns, agent, &newer_session.id), &newer_session)
             .await
             .unwrap();
         kv.set(
-            ns,
-            &keys::session_message(agent, &newer_session.id, "msg-1"),
+            &keys::session_message(ns, agent, &newer_session.id, "msg-1"),
             b"nested-message-should-be-skipped",
         )
         .await
@@ -1235,7 +1190,7 @@ mod tests {
         let handler = setup_gateway_handler_with(
             Arc::new(FailingKvStore {
                 data: Mutex::new(HashMap::new()),
-                fail_list_prefix: Some(keys::session_prefix("test-agent")),
+                fail_list_prefix: Some(keys::session_prefix("default", "test-agent")),
                 fail_get_key: None,
                 fail_set_prefix: None,
                 fail_delete_key: None,
@@ -1256,18 +1211,12 @@ mod tests {
         assert_eq!(err.code(), tonic::Code::Internal);
         assert!(err.message().contains("Failed to list sessions"));
 
-        let session_key = keys::session("test-agent", "session-1");
+        let session_key = keys::session("default", "test-agent", "session-1");
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([
+                (session_key.clone(), b"ignored".to_vec()),
                 (
-                    ("default".to_string(), session_key.clone()),
-                    b"ignored".to_vec(),
-                ),
-                (
-                    (
-                        "default".to_string(),
-                        keys::session("test-agent", "session-2"),
-                    ),
+                    keys::session("default", "test-agent", "session-2"),
                     models::Session {
                         id: "session-2".to_string(),
                         agent: "test-agent".to_string(),
@@ -1310,7 +1259,7 @@ mod tests {
             fail_get_key: None,
             fail_set_prefix: None,
             fail_delete_key: None,
-            extra_list_keys: vec![keys::session("test-agent", "session-ghost")],
+            extra_list_keys: vec![keys::session("default", "test-agent", "session-ghost")],
         });
         let handler = setup_gateway_handler_with(
             kv,
@@ -1373,19 +1322,17 @@ mod tests {
             payload_json: "{}".to_string(),
         };
 
-        kv.set_msg(ns, &keys::session(agent, session_id), &session)
+        kv.set_msg(&keys::session(ns, agent, session_id), &session)
             .await
             .unwrap();
         kv.set_msg(
-            ns,
-            &keys::session_message(agent, session_id, message_id),
+            &keys::session_message(ns, agent, session_id, message_id),
             &message,
         )
         .await
         .unwrap();
         kv.set_msg(
-            ns,
-            &keys::session_message_step(agent, session_id, message_id, step_id),
+            &keys::session_message_step(ns, agent, session_id, message_id, step_id),
             &step,
         )
         .await
@@ -1403,25 +1350,24 @@ mod tests {
 
         assert!(response.success);
         assert!(kv
-            .get(ns, &keys::session(agent, session_id))
+            .get(&keys::session(ns, agent, session_id))
             .await
             .unwrap()
             .is_none());
         assert!(kv
-            .get(ns, &keys::session_message(agent, session_id, message_id))
+            .get(&keys::session_message(ns, agent, session_id, message_id))
             .await
             .unwrap()
             .is_none());
         assert!(kv
-            .get(
-                ns,
-                &keys::session_message_step(agent, session_id, message_id, step_id)
-            )
+            .get(&keys::session_message_step(
+                ns, agent, session_id, message_id, step_id
+            ))
             .await
             .unwrap()
             .is_none());
         assert!(kv
-            .list_keys(ns, &keys::session_message_prefix(agent, session_id))
+            .list_keys(&keys::session_message_prefix(ns, agent, session_id))
             .await
             .unwrap()
             .is_empty());
@@ -1435,7 +1381,9 @@ mod tests {
     async fn test_delete_session_surfaces_delete_and_publish_failures() {
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::new()),
-            fail_list_prefix: Some(keys::session_message_prefix("test-agent", "session-1")),
+            fail_list_prefix: Some(
+                keys::session_parent("default", "test-agent", "session-1").list(None),
+            ),
             fail_get_key: None,
             fail_set_prefix: None,
             fail_delete_key: None,
@@ -1464,8 +1412,7 @@ mod tests {
 
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
-            "default",
-            &keys::session("test-agent", "session-1"),
+            &keys::session("default", "test-agent", "session-1"),
             &models::Session {
                 id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
@@ -1503,7 +1450,7 @@ mod tests {
             fail_list_prefix: None,
             fail_get_key: None,
             fail_set_prefix: None,
-            fail_delete_key: Some(keys::session("test-agent", "session-1")),
+            fail_delete_key: Some(keys::session("default", "test-agent", "session-1")),
             extra_list_keys: Vec::new(),
         });
         let handler = setup_gateway_handler_with(
@@ -1544,7 +1491,7 @@ mod tests {
             metadata: HashMap::new(),
             labels: HashMap::new(),
         };
-        kv.set_msg(ns, &keys::session(agent, session_id), &session)
+        kv.set_msg(&keys::session(ns, agent, session_id), &session)
             .await
             .unwrap();
 
@@ -1598,8 +1545,7 @@ mod tests {
     async fn test_stop_session_generation_surfaces_publish_failure() {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
-            "default",
-            &keys::session("test-agent", "session-1"),
+            &keys::session("default", "test-agent", "session-1"),
             &models::Session {
                 id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
