@@ -93,7 +93,7 @@ message Schedule {
 
 message Namespace {
   string name = 1;
-  string parent = 2; // e.g. "talon-system", "default:subs"
+  string parent = 2; // e.g. "Sys", "default:subs"
   bool is_deleted = 3; // GC Tombstone
   int64 deleted_at = 4;
   map<string, string> labels = 5;

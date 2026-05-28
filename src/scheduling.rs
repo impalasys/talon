@@ -358,13 +358,7 @@ pub async fn arm_schedule(
     let detail = format!("next run at {}", fire_at.to_rfc3339());
     let outcome = if backend_armed { "armed" } else { "pending" }.to_string();
     let _ = status;
-    append_schedule_event(
-        schedule,
-        Utc::now(),
-        "arm",
-        outcome,
-        detail,
-    );
+    append_schedule_event(schedule, Utc::now(), "arm", outcome, detail);
     Ok(())
 }
 
@@ -391,7 +385,7 @@ fn duration_from_env(name: &str, default_seconds: i64) -> i64 {
 }
 
 pub async fn persist_schedule(kv: &dyn KeyValueStore, schedule: &models::Schedule) -> Result<()> {
-    kv.set_msg(&schedule.ns, &keys::schedule(&schedule.name), schedule)
+    kv.set_msg(&keys::schedule(&schedule.ns, &schedule.name), schedule)
         .await
 }
 
@@ -400,7 +394,7 @@ pub async fn load_schedule(
     ns: &str,
     name: &str,
 ) -> Result<Option<models::Schedule>> {
-    kv.get_msg(ns, &keys::schedule(name)).await
+    kv.get_msg(&keys::schedule(ns, name)).await
 }
 
 pub async fn dispatch_schedule(
@@ -426,7 +420,10 @@ pub async fn dispatch_schedule(
 
     let scheduled_prompt = format_scheduled_message(&schedule.name, &spec.input_message);
     let mut labels = HashMap::new();
-    labels.insert("talon.impalasys.com/message-source".to_string(), "schedule".to_string());
+    labels.insert(
+        "talon.impalasys.com/message-source".to_string(),
+        "schedule".to_string(),
+    );
     labels.insert(
         "talon.impalasys.com/schedule-name".to_string(),
         schedule.name.clone(),
@@ -474,7 +471,7 @@ pub fn normalize_session_mode(session_mode: &str) -> Result<String> {
 
 pub async fn create_session(cp: &ControlPlane, ns: &str, agent: &str) -> Result<String> {
     cp.kv
-        .get_msg::<models::Agent>(ns, &keys::agent(agent))
+        .get_msg::<models::Agent>(&keys::agent(ns, agent))
         .await?
         .ok_or_else(|| anyhow!("agent '{}' not found", agent))?;
     let session_id = uuid::Uuid::now_v7().to_string();
@@ -489,7 +486,7 @@ pub async fn create_session(cp: &ControlPlane, ns: &str, agent: &str) -> Result<
         labels: std::collections::HashMap::new(),
     };
     cp.kv
-        .set_msg(ns, &keys::session(agent, &session_id), &session)
+        .set_msg(&keys::session(ns, agent, &session_id), &session)
         .await?;
     tracing::info!(
         namespace = %ns,
@@ -527,13 +524,13 @@ pub async fn send_message(
         return Err(EmptyMessageError.into());
     }
 
-    let key = keys::session(agent, session_id);
+    let key = keys::session(ns, agent, session_id);
     let now_micros = now.timestamp_micros();
     let timeout_micros = session_processing_timeout_micros();
 
     let mut acquired = false;
     for _ in 0..MAX_CAS_RETRIES {
-        let current = kv.get(ns, &key).await?;
+        let current = kv.get(&key).await?;
         let Some(current_bytes) = current.as_ref() else {
             return Err(SessionNotFoundError.into());
         };
@@ -549,7 +546,7 @@ pub async fn send_message(
         session.last_active = now_micros;
         let updated = session.encode_to_vec();
         if kv
-            .compare_and_swap(ns, &key, Some(current_bytes.as_slice()), &updated)
+            .compare_and_swap(&key, Some(current_bytes.as_slice()), &updated)
             .await?
         {
             acquired = true;
@@ -570,14 +567,13 @@ pub async fn send_message(
     };
     if let Err(err) = kv
         .set_msg(
-            ns,
-            &keys::session_message(agent, session_id, &user_msg.id),
+            &keys::session_message(ns, agent, session_id, &user_msg.id),
             &user_msg,
         )
         .await
     {
         log_session_release_failure(
-            try_release_session_lock_after_send_failure(kv, ns, &key, now_micros).await,
+            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
             ns,
             &key,
         );
@@ -602,7 +598,7 @@ pub async fn send_message(
         .await
     {
         log_session_release_failure(
-            try_release_session_lock_after_send_failure(kv, ns, &key, now_micros).await,
+            try_release_session_lock_after_send_failure(kv, &key, now_micros).await,
             ns,
             &key,
         );
@@ -626,12 +622,11 @@ fn log_session_release_failure(result: Result<()>, namespace: &str, key: &str) {
 
 async fn try_release_session_lock_after_send_failure(
     kv: &dyn KeyValueStore,
-    namespace: &str,
     key: &str,
     expected_last_active: i64,
 ) -> Result<()> {
     for _ in 0..MAX_CAS_RETRIES {
-        let Some(current_bytes) = kv.get(namespace, key).await? else {
+        let Some(current_bytes) = kv.get(key).await? else {
             return Ok(());
         };
         let mut session = models::Session::decode(current_bytes.as_slice())?;
@@ -641,7 +636,7 @@ async fn try_release_session_lock_after_send_failure(
         session.status = "IDLE".to_string();
         let updated = session.encode_to_vec();
         if kv
-            .compare_and_swap(namespace, key, Some(current_bytes.as_slice()), &updated)
+            .compare_and_swap(key, Some(current_bytes.as_slice()), &updated)
             .await?
         {
             return Ok(());
@@ -661,13 +656,13 @@ pub async fn claim_schedule_wakeup(
     intended_run_at: i64,
     now: DateTime<Utc>,
 ) -> Result<Option<models::Schedule>> {
-    let key = keys::schedule(schedule_id);
+    let key = keys::schedule(namespace, schedule_id);
     let claim_expires_at = now
         .timestamp_micros()
         .saturating_add(schedule_claim_timeout_micros());
 
     for _ in 0..MAX_CAS_RETRIES {
-        let current = kv.get(namespace, &key).await?;
+        let current = kv.get(&key).await?;
         let Some(current_bytes) = current.as_ref() else {
             tracing::warn!(
                 namespace = %namespace,
@@ -730,7 +725,7 @@ pub async fn claim_schedule_wakeup(
         );
         let updated = schedule.encode_to_vec();
         if kv
-            .compare_and_swap(namespace, &key, Some(current_bytes.as_slice()), &updated)
+            .compare_and_swap(&key, Some(current_bytes.as_slice()), &updated)
             .await?
         {
             return Ok(Some(schedule));
@@ -784,35 +779,27 @@ mod tests {
         store: Mutex<HashMap<String, Vec<u8>>>,
     }
 
-    impl MockKvStore {
-        fn make_key(namespace: &str, key: &str) -> String {
-            format!("{namespace}/{key}")
-        }
-    }
-
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, namespace: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
             let map = self.store.lock().await;
-            Ok(map.get(&Self::make_key(namespace, key)).cloned())
+            Ok(map.get(key).cloned())
         }
 
-        async fn set(&self, namespace: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
-            map.insert(Self::make_key(namespace, key), value.to_vec());
+            map.insert(key.to_string(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            namespace: &str,
             key: &str,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut map = self.store.lock().await;
-            let full_key = Self::make_key(namespace, key);
-            let current = map.get(&full_key).cloned();
+            let current = map.get(key).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
@@ -821,24 +808,22 @@ mod tests {
             if !matches {
                 return Ok(false);
             }
-            map.insert(full_key, value.to_vec());
+            map.insert(key.to_string(), value.to_vec());
             Ok(true)
         }
 
-        async fn delete(&self, namespace: &str, key: &str) -> anyhow::Result<()> {
+        async fn delete(&self, key: &str) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
-            map.remove(&Self::make_key(namespace, key));
+            map.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>> {
             let map = self.store.lock().await;
-            let ns_prefix = format!("{namespace}/{prefix}");
-            let ns_root = format!("{namespace}/");
             Ok(map
                 .keys()
-                .filter(|key| key.starts_with(&ns_prefix))
-                .map(|key| key.strip_prefix(&ns_root).unwrap().to_string())
+                .filter(|key| key.starts_with(prefix))
+                .cloned()
                 .collect())
         }
     }
@@ -1125,8 +1110,7 @@ mod tests {
             labels: HashMap::new(),
         };
         kv.set_msg(
-            "conic:test",
-            &keys::session("assistant", "session-1"),
+            &keys::session("conic:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -1180,8 +1164,7 @@ mod tests {
             labels: HashMap::new(),
         };
         kv.set_msg(
-            "conic:test",
-            &keys::session("assistant", "session-1"),
+            &keys::session("conic:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -1227,7 +1210,10 @@ mod tests {
             .contains("session_mode"));
 
         assert_eq!(normalize_cron_expression("0 9 * * *"), "0 0 9 * * * *");
-        assert_eq!(normalize_cron_expression("0 */15 * * * *"), "0 */15 * * * * *");
+        assert_eq!(
+            normalize_cron_expression("0 */15 * * * *"),
+            "0 */15 * * * * *"
+        );
 
         let dt = parse_run_at("2026-05-03T09:00:00").unwrap();
         let expected = DateTime::parse_from_rfc3339("2026-05-03T09:00:00Z")
@@ -1287,7 +1273,13 @@ mod tests {
             .contains("schedule target is required"));
 
         let mut missing_agent = schedule("every");
-        let target = missing_agent.spec.as_mut().unwrap().target.as_mut().unwrap();
+        let target = missing_agent
+            .spec
+            .as_mut()
+            .unwrap()
+            .target
+            .as_mut()
+            .unwrap();
         target.agent.clear();
         assert!(validate_schedule(&missing_agent)
             .unwrap_err()
@@ -1295,8 +1287,14 @@ mod tests {
             .contains("schedule target agent is required"));
 
         let mut invalid_mode = schedule("every");
-        invalid_mode.spec.as_mut().unwrap().target.as_mut().unwrap().session_mode =
-            "odd".to_string();
+        invalid_mode
+            .spec
+            .as_mut()
+            .unwrap()
+            .target
+            .as_mut()
+            .unwrap()
+            .session_mode = "odd".to_string();
         assert!(validate_schedule(&invalid_mode)
             .unwrap_err()
             .to_string()
@@ -1372,7 +1370,7 @@ mod tests {
             template_deps: Vec::new(),
             labels: HashMap::new(),
         };
-        kv.set_msg("conic:test", &keys::agent("assistant"), &agent)
+        kv.set_msg(&keys::agent("conic:test", "assistant"), &agent)
             .await
             .unwrap();
 
@@ -1383,15 +1381,29 @@ mod tests {
             .await
             .unwrap();
         let session = kv
-            .get_msg::<models::Session>("conic:test", &keys::session("assistant", &session_id))
+            .get_msg::<models::Session>(&keys::session("conic:test", "assistant", &session_id))
             .await
             .unwrap()
             .expect("session should be persisted");
         assert_eq!(session.agent, "assistant");
 
         let mut scheduled = schedule("every");
-        scheduled.spec.as_mut().unwrap().target.as_mut().unwrap().session_mode = "reuse".to_string();
-        scheduled.spec.as_mut().unwrap().target.as_mut().unwrap().session_id = session_id.clone();
+        scheduled
+            .spec
+            .as_mut()
+            .unwrap()
+            .target
+            .as_mut()
+            .unwrap()
+            .session_mode = "reuse".to_string();
+        scheduled
+            .spec
+            .as_mut()
+            .unwrap()
+            .target
+            .as_mut()
+            .unwrap()
+            .session_id = session_id.clone();
         let dispatched_session = dispatch_schedule(&cp, &scheduled, now).await.unwrap();
         assert_eq!(dispatched_session, session_id);
         assert_eq!(pubsub.messages.lock().await.len(), 2);
@@ -1411,8 +1423,7 @@ mod tests {
             labels: HashMap::new(),
         };
         kv.set_msg(
-            "conic:test",
-            &keys::session("assistant", "session-1"),
+            &keys::session("conic:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -1436,7 +1447,7 @@ mod tests {
         assert!(err.to_string().contains("publish failed"));
 
         let updated = kv
-            .get_msg::<models::Session>("conic:test", &keys::session("assistant", "session-1"))
+            .get_msg::<models::Session>(&keys::session("conic:test", "assistant", "session-1"))
             .await
             .unwrap()
             .expect("session should still exist");
@@ -1465,11 +1476,21 @@ mod tests {
         assert_eq!(status.claim_expires_at, None);
 
         for idx in 0..(MAX_RECENT_SCHEDULE_EVENTS + 5) {
-            append_schedule_event(&mut schedule, Utc::now(), "phase", "ok", format!("event-{idx}"));
+            append_schedule_event(
+                &mut schedule,
+                Utc::now(),
+                "phase",
+                "ok",
+                format!("event-{idx}"),
+            );
         }
         let events = &schedule.status.as_ref().unwrap().recent_events;
         assert_eq!(events.len(), MAX_RECENT_SCHEDULE_EVENTS);
         assert!(events.first().unwrap().detail.ends_with("event-5"));
-        assert!(events.last().unwrap().detail.ends_with(&format!("event-{}", MAX_RECENT_SCHEDULE_EVENTS + 4)));
+        assert!(events
+            .last()
+            .unwrap()
+            .detail
+            .ends_with(&format!("event-{}", MAX_RECENT_SCHEDULE_EVENTS + 4)));
     }
 }

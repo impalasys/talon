@@ -3,22 +3,18 @@
 
 #[cfg(test)]
 mod tests {
-    use crate::test_support::{MockKvStore, RecordingPubSub};
     use crate::control::{
-        events, keys, ns, scheduler::NoopSchedulerBackend, topics,
-        KeyValueStore, ProtoKeyValueStoreExt,
+        events, keys, ns, scheduler::NoopSchedulerBackend, topics, KeyValueStore,
+        ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
     use crate::gateway::server::Gateway;
+    use crate::test_support::{MockKvStore, RecordingPubSub};
     use prost::Message;
     use std::collections::HashMap;
     use std::sync::Arc;
 
-    fn setup_handler() -> (
-        GrpcGatewayHandler,
-        Arc<MockKvStore>,
-        Arc<RecordingPubSub>,
-    ) {
+    fn setup_handler() -> (GrpcGatewayHandler, Arc<MockKvStore>, Arc<RecordingPubSub>) {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let gateway = Arc::new(Gateway::new(
@@ -32,8 +28,7 @@ mod tests {
 
     async fn seed_namespace(kv: &Arc<MockKvStore>, namespace: &str) {
         kv.set_msg(
-            "talon-system:ns",
-            &format!("Namespace/{namespace}"),
+            &keys::namespace_metadata(namespace),
             &models::Namespace {
                 name: namespace.to_string(),
                 parent: String::new(),
@@ -137,7 +132,7 @@ mod tests {
         assert_eq!(create.agent, "agent-1");
 
         let stored = kv
-            .get_msg::<models::Agent>("acme", &keys::agent("agent-1"))
+            .get_msg::<models::Agent>(&keys::agent("acme", "agent-1"))
             .await
             .expect("agent lookup should succeed")
             .expect("agent should be persisted");
@@ -228,8 +223,7 @@ mod tests {
         assert_eq!(empty_namespace.code(), tonic::Code::InvalidArgument);
 
         kv.set_msg(
-            "talon-system:ns",
-            "Namespace/deleted",
+            &keys::namespace_metadata("deleted"),
             &models::Namespace {
                 name: "deleted".to_string(),
                 parent: String::new(),
@@ -289,8 +283,7 @@ mod tests {
         assert_eq!(missing_modify.code(), tonic::Code::NotFound);
 
         kv.set_msg(
-            "acme",
-            &keys::agent("agent-1"),
+            &keys::agent("acme", "agent-1"),
             &models::Agent {
                 name: "agent-1".to_string(),
                 ns: "acme".to_string(),
@@ -302,7 +295,7 @@ mod tests {
         )
         .await
         .unwrap();
-        kv.set("acme", "Agent/agent-1/Session/test", b"nested")
+        kv.set(&keys::session("acme", "agent-1", "test"), b"nested")
             .await
             .unwrap();
 
@@ -318,7 +311,7 @@ mod tests {
 
     #[tokio::test]
     async fn template_crud_applies_defaults_and_validates_namespace() {
-        let (handler, _, _) = setup_handler();
+        let (handler, kv, _) = setup_handler();
 
         let created = handler
             .handle_create_agent_template(tonic::Request::new(proto::CreateAgentTemplateRequest {
@@ -344,6 +337,45 @@ mod tests {
             .expect("template list should succeed")
             .into_inner();
         assert_eq!(listed.templates.len(), 1);
+
+        let legacy_created = handler
+            .handle_create_agent_template(tonic::Request::new(proto::CreateAgentTemplateRequest {
+                template: Some(agent_template("legacy-researcher", "talon-system")),
+            }))
+            .await
+            .expect("legacy template namespace should be accepted")
+            .into_inner();
+        assert_eq!(
+            legacy_created
+                .template
+                .as_ref()
+                .and_then(|template| template.metadata.as_ref())
+                .map(|meta| meta.namespace.as_str()),
+            Some(ns::TALON_SYSTEM)
+        );
+
+        kv.set_msg(
+            &keys::agent_template("legacy-stored"),
+            &agent_template("legacy-stored", "talon-system"),
+        )
+        .await
+        .expect("legacy stored template should seed");
+
+        let legacy_fetched = handler
+            .handle_get_agent_template(tonic::Request::new(proto::GetAgentTemplateRequest {
+                name: "legacy-stored".to_string(),
+            }))
+            .await
+            .expect("legacy stored template should fetch")
+            .into_inner();
+        assert_eq!(
+            legacy_fetched
+                .template
+                .as_ref()
+                .and_then(|template| template.metadata.as_ref())
+                .map(|meta| meta.namespace.as_str()),
+            Some(ns::TALON_SYSTEM)
+        );
 
         let fetched = handler
             .handle_get_agent_template(tonic::Request::new(proto::GetAgentTemplateRequest {

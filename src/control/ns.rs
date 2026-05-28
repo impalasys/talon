@@ -5,7 +5,7 @@
 /// Similar to Kubernetes' `kube-system`, this namespace is strictly for
 /// internal platform logic, template artifacts, and manifests that are globally accessible
 /// but shouldn't collide with dynamic tenant/workspace namespaces.
-pub const TALON_SYSTEM: &str = "talon-system";
+pub const TALON_SYSTEM: &str = "Sys";
 
 /// Standard domain prefix.
 /// In Kubernetes, while namespaces are short (e.g. `kube-system`), domains are

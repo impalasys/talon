@@ -70,8 +70,8 @@ impl MemoryStore for KvMemoryStore {
 
     async fn save_memory(&self, ns: &str, agent: &str, path: &str, content: &str) -> Result<()> {
         // Unify with the Gateway's layout structure defined by 'keys::agent_memory'
-        let key = format!("Agent/{}/Memory/{}", agent, path);
-        self.kv.set(ns, &key, content.as_bytes()).await?;
+        let key = crate::control::keys::agent_memory(ns, agent, path);
+        self.kv.set(&key, content.as_bytes()).await?;
         Ok(())
     }
 }

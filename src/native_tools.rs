@@ -127,15 +127,11 @@ pub async fn execute_tool(
             let limit = args.get("limit").and_then(Value::as_u64).unwrap_or(100) as usize;
             let mut entries = cp
                 .kv
-                .list_entries(namespace, keys::schedule_prefix())
+                .list_entries(&keys::schedule_prefix(namespace))
                 .await?;
             entries.sort_by(|a, b| a.0.cmp(&b.0));
             let mut schedules = Vec::new();
-            for (key, value) in entries {
-                let stripped = key.strip_prefix(keys::schedule_prefix()).unwrap_or(&key);
-                if stripped.contains('/') {
-                    continue;
-                }
+            for (_key, value) in entries {
                 let schedule = models::Schedule::decode(value.as_slice())?;
                 let spec_model = schedule.spec.as_ref();
                 let matches_agent = agent
@@ -170,7 +166,7 @@ pub async fn execute_tool(
             let schedule_name = req_str(args, "name")?;
             let schedule = cp
                 .kv
-                .get_msg::<models::Schedule>(namespace, &keys::schedule(schedule_name))
+                .get_msg::<models::Schedule>(&keys::schedule(namespace, schedule_name))
                 .await?
                 .ok_or_else(|| anyhow!("schedule '{}' not found", schedule_name))?;
             Ok(Some(serde_json::to_string_pretty(&json!({
@@ -192,7 +188,7 @@ pub async fn execute_tool(
             let schedule_name = req_str(args, "name")?;
             let existing = cp
                 .kv
-                .get_msg::<models::Schedule>(namespace, &keys::schedule(schedule_name))
+                .get_msg::<models::Schedule>(&keys::schedule(namespace, schedule_name))
                 .await?
                 .ok_or_else(|| anyhow!("schedule '{}' not found", schedule_name))?;
             let schedule =
@@ -206,15 +202,15 @@ pub async fn execute_tool(
             require_capability(spec, "schedules", "delete")?;
             let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);
             let schedule_name = req_str(args, "name")?;
-            let key = keys::schedule(schedule_name);
-            if let Some(schedule) = cp.kv.get_msg::<models::Schedule>(namespace, &key).await? {
+            let key = keys::schedule(namespace, schedule_name);
+            if let Some(schedule) = cp.kv.get_msg::<models::Schedule>(&key).await? {
                 if let Some(handle) = schedule.status.and_then(|status| status.backend_handle) {
                     if let Err(error) = cp.scheduler.cancel(&handle).await {
                         tracing::warn!(handle = %handle, error = %error, "failed to cancel schedule handle");
                     }
                 }
             }
-            cp.kv.delete(namespace, &key).await?;
+            cp.kv.delete(&key).await?;
             Ok(Some(serde_json::to_string_pretty(
                 &json!({ "success": true }),
             )?))
@@ -472,8 +468,7 @@ mod tests {
 
     async fn seed_agent(kv: &MockKvStore, ns: &str, name: &str) {
         kv.set_msg(
-            ns,
-            &keys::agent(name),
+            &keys::agent(ns, name),
             &models::Agent {
                 name: name.to_string(),
                 ns: ns.to_string(),
@@ -611,7 +606,7 @@ mod tests {
         .unwrap();
         assert!(deleted.contains("\"success\": true"));
         assert!(kv
-            .get_msg::<models::Schedule>("conic:test", &keys::schedule("nightly"))
+            .get_msg::<models::Schedule>(&keys::schedule("conic:test", "nightly"))
             .await
             .unwrap()
             .is_none());

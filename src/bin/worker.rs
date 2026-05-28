@@ -1074,41 +1074,41 @@ mod tests {
     #[tokio::test]
     async fn mock_control_plane_helpers_cover_storage_and_pubsub_branches() {
         let kv = MockKvStore::default();
-        assert_eq!(kv.get("root", "missing").await.unwrap(), None);
+        assert_eq!(kv.get("root/missing").await.unwrap(), None);
 
-        kv.set("root", "agents/a", b"one").await.unwrap();
-        kv.set("root", "agents/b", b"two").await.unwrap();
-        kv.set("other", "agents/c", b"three").await.unwrap();
+        kv.set("root/agents/a", b"one").await.unwrap();
+        kv.set("root/agents/b", b"two").await.unwrap();
+        kv.set("other/agents/c", b"three").await.unwrap();
         assert_eq!(
-            kv.get("root", "agents/a").await.unwrap(),
+            kv.get("root/agents/a").await.unwrap(),
             Some(b"one".to_vec())
         );
 
         assert!(kv
-            .compare_and_swap("root", "agents/new", None, b"created")
+            .compare_and_swap("root/agents/new", None, b"created")
             .await
             .unwrap());
         assert!(kv
-            .compare_and_swap("root", "agents/a", Some(b"one"), b"updated")
+            .compare_and_swap("root/agents/a", Some(b"one"), b"updated")
             .await
             .unwrap());
         assert!(!kv
-            .compare_and_swap("root", "agents/a", Some(b"wrong"), b"nope")
+            .compare_and_swap("root/agents/a", Some(b"wrong"), b"nope")
             .await
             .unwrap());
 
-        let keys = kv.list_keys("root", "agents/").await.unwrap();
+        let keys = kv.list_keys("root/agents/").await.unwrap();
         assert_eq!(
             keys,
             vec![
-                "agents/a".to_string(),
-                "agents/b".to_string(),
-                "agents/new".to_string(),
+                "root/agents/a".to_string(),
+                "root/agents/b".to_string(),
+                "root/agents/new".to_string(),
             ]
         );
 
-        kv.delete("root", "agents/b").await.unwrap();
-        assert_eq!(kv.get("root", "agents/b").await.unwrap(), None);
+        kv.delete("root/agents/b").await.unwrap();
+        assert_eq!(kv.get("root/agents/b").await.unwrap(), None);
 
         let pubsub = EmptyPubSub;
         pubsub.publish("topic", b"payload").await.unwrap();
@@ -1437,8 +1437,7 @@ mod tests {
     async fn schedule_fire_surfaces_wakeup_processing_failures() {
         let kv = Arc::new(MockKvStore::default());
         kv.set_msg(
-            "default",
-            &keys::schedule("nightly"),
+            &keys::schedule("default", "nightly"),
             &schedule_with_next_run(4, i64::MAX),
         )
         .await

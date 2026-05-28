@@ -22,21 +22,21 @@ async fn list_namespace_knowledge(
     kv: Arc<dyn crate::control::KeyValueStore>,
     namespace: &str,
 ) -> std::result::Result<Vec<models::Knowledge>, tonic::Status> {
-    let prefix = keys::knowledge_prefix();
     let mut modules = Vec::new();
     let mut seen_paths = HashSet::new();
 
     for candidate_ns in ns::ancestry(namespace) {
-        let keys = kv.list_keys(&candidate_ns, prefix).await.map_err(|e| {
+        let prefix = keys::knowledge_prefix(&candidate_ns);
+        let keys = kv.list_keys(&prefix).await.map_err(|e| {
             tonic::Status::internal(format!("Failed to list knowledge artifacts: {}", e))
         })?;
 
         for key in keys {
-            let path = key.strip_prefix(prefix).unwrap_or(&key).to_string();
+            let path = keys::direct_child_name(&prefix, &key).unwrap_or(key.clone());
             if !seen_paths.insert(path.clone()) {
                 continue;
             }
-            if let Some(bytes) = kv.get(&candidate_ns, &key).await.unwrap_or(None) {
+            if let Some(bytes) = kv.get(&key).await.unwrap_or(None) {
                 let entry = decode_entry(&candidate_ns, &path, &bytes);
                 modules.push(models::Knowledge {
                     namespace: entry.namespace,
@@ -118,6 +118,7 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::{decode_entry, list_namespace_knowledge};
+    use crate::control::keys;
     use crate::control::KeyValueStore;
     use crate::gateway::rpc::{proto, GrpcGatewayHandler};
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
@@ -130,63 +131,51 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<(String, String), Vec<u8>>>,
+        data: Mutex<HashMap<String, Vec<u8>>>,
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), k.to_string()))
-                .cloned())
+        async fn get(&self, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(k).cloned())
         }
 
-        async fn set(&self, ns: &str, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert((ns.to_string(), k.to_string()), v.to_vec());
+        async fn set(&self, k: &str, v: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(k.to_string(), v.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            ns: &str,
             k: &str,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let key = (ns.to_string(), k.to_string());
-            let current = data.get(&key).cloned();
+            let current = data.get(k).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(key, value.to_vec());
+                data.insert(k.to_string(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, ns: &str, k: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), k.to_string()));
+        async fn delete(&self, k: &str) -> anyhow::Result<()> {
+            self.data.lock().await.remove(k);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, p: &str) -> anyhow::Result<Vec<String>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(p)).then(|| key.clone())
-                })
+                .filter_map(|key| key.starts_with(p).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -258,22 +247,19 @@ mod tests {
             updated_at: 3,
         };
         kv.set(
-            "acme",
-            "Knowledge/guide.md",
+            &keys::knowledge("acme", "guide.md"),
             &serde_json::to_vec(&root_entry).unwrap(),
         )
         .await
         .unwrap();
         kv.set(
-            "acme:child",
-            "Knowledge/guide.md",
+            &keys::knowledge("acme:child", "guide.md"),
             &serde_json::to_vec(&child_entry).unwrap(),
         )
         .await
         .unwrap();
         kv.set(
-            "acme",
-            "Knowledge/shared.md",
+            &keys::knowledge("acme", "shared.md"),
             &serde_json::to_vec(&unique_entry).unwrap(),
         )
         .await
@@ -281,8 +267,12 @@ mod tests {
 
         let modules = list_namespace_knowledge(kv, "acme:child").await.unwrap();
         assert_eq!(modules.len(), 2);
-        assert!(modules.iter().any(|m| m.path == "guide.md" && m.content == "child guide"));
-        assert!(modules.iter().any(|m| m.path == "shared.md" && m.content == "shared root"));
+        assert!(modules
+            .iter()
+            .any(|m| m.path == "guide.md" && m.content == "child guide"));
+        assert!(modules
+            .iter()
+            .any(|m| m.path == "shared.md" && m.content == "shared root"));
     }
 
     #[tokio::test]
@@ -309,8 +299,7 @@ mod tests {
             updated_at: 7,
         };
         kv.set(
-            "acme",
-            "Knowledge/guide.md",
+            &keys::knowledge("acme", "guide.md"),
             &serde_json::to_vec(&entry).unwrap(),
         )
         .await

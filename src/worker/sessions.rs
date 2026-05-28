@@ -87,6 +87,7 @@ impl WorkerEventHandler {
             // Pre-allocate the assistant reply slot in KV
             let reply_msg_id = uuid::Uuid::now_v7().to_string();
             let reply_msg_key = crate::control::keys::session_message(
+                ns,
                 &event.agent,
                 &event.session_id,
                 &reply_msg_id,
@@ -95,7 +96,6 @@ impl WorkerEventHandler {
                 .cp
                 .kv
                 .set_msg(
-                    ns,
                     &reply_msg_key,
                     &models::SessionMessage {
                         id: reply_msg_id.clone(),
@@ -118,14 +118,12 @@ impl WorkerEventHandler {
             );
 
             execute_with_panic_boundary(
-                runtime
-                    .executor
-                    .execute(
-                        &mut runtime.context,
-                        &event.message,
-                        &sink,
-                        Some(&cancellation_token),
-                    ),
+                runtime.executor.execute(
+                    &mut runtime.context,
+                    &event.message,
+                    &sink,
+                    Some(&cancellation_token),
+                ),
                 &sink,
                 &event.agent,
                 &event.session_id,
@@ -195,10 +193,10 @@ impl WorkerEventHandler {
     }
 
     async fn release_session_lock(&self, ns: &str, agent_id: &str, session_id: &str) {
-        let key = crate::control::keys::session(agent_id, session_id);
-        if let Ok(Some(mut session)) = self.cp.kv.get_msg::<models::Session>(ns, &key).await {
+        let key = crate::control::keys::session(ns, agent_id, session_id);
+        if let Ok(Some(mut session)) = self.cp.kv.get_msg::<models::Session>(&key).await {
             session.status = "IDLE".to_string();
-            let _ = self.cp.kv.set_msg(ns, &key, &session).await;
+            let _ = self.cp.kv.set_msg(&key, &session).await;
         }
     }
 }
@@ -209,8 +207,8 @@ mod tests {
     use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
-        scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
-        ProtoKeyValueStoreExt,
+        scheduler::NoopSchedulerBackend,
+        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::core::executor::ExecutionSink;
     use crate::gateway::rpc::{manifests, models};
@@ -218,14 +216,14 @@ mod tests {
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
     };
-    use axum::{routing::post, Json, Router};
     use async_trait::async_trait;
+    use axum::{routing::post, Json, Router};
     use futures::stream;
     use serde_json::json;
+    use serde_json::Value;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
-    use serde_json::Value;
     use std::sync::Mutex;
     use tokio::net::TcpListener;
     use tokio::sync::Mutex as AsyncMutex;
@@ -262,37 +260,31 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: AsyncMutex<HashMap<(String, String), Vec<u8>>>,
+        data: AsyncMutex<HashMap<String, Vec<u8>>>,
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, ns: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(ns.to_string(), key.to_string()))
-                .cloned())
+        async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(key).cloned())
         }
 
-        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
             self.data
                 .lock()
                 .await
-                .insert((ns.to_string(), key.to_string()), value.to_vec());
+                .insert(key.to_string(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            ns: &str,
             key: &str,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let full_key = (ns.to_string(), key.to_string());
+            let full_key = key.to_string();
             let current = data.get(&full_key).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
@@ -305,20 +297,18 @@ mod tests {
             Ok(matches)
         }
 
-        async fn delete(&self, ns: &str, key: &str) -> anyhow::Result<()> {
-            self.data.lock().await.remove(&(ns.to_string(), key.to_string()));
+        async fn delete(&self, key: &str) -> anyhow::Result<()> {
+            self.data.lock().await.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, ns: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(stored_ns, key)| {
-                    (stored_ns == ns && key.starts_with(prefix)).then(|| key.clone())
-                })
+                .filter_map(|key| key.starts_with(prefix).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -416,9 +406,10 @@ mod tests {
     #[tokio::test]
     async fn execute_with_panic_boundary_reports_success_and_string_panic() {
         let sink = CaptureErrorSink::new();
-        let ok = execute_with_panic_boundary(async { Ok("done".to_string()) }, &sink, "infra", "s1")
-            .await
-            .unwrap();
+        let ok =
+            execute_with_panic_boundary(async { Ok("done".to_string()) }, &sink, "infra", "s1")
+                .await
+                .unwrap();
         assert_eq!(ok, SessionCompletionStatus::Completed);
         assert!(sink.errors().is_empty());
 
@@ -508,8 +499,7 @@ mod tests {
             labels: HashMap::new(),
         };
         kv.set_msg(
-            "conic:test",
-            &crate::control::keys::session("assistant", "session-1"),
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
             &session,
         )
         .await
@@ -520,10 +510,11 @@ mod tests {
             .await;
 
         let updated = kv
-            .get_msg::<models::Session>(
+            .get_msg::<models::Session>(&crate::control::keys::session(
                 "conic:test",
-                &crate::control::keys::session("assistant", "session-1"),
-            )
+                "assistant",
+                "session-1",
+            ))
             .await
             .expect("session should load")
             .expect("session should exist");
@@ -565,8 +556,7 @@ mod tests {
         };
 
         kv.set_msg(
-            "conic:test",
-            &crate::control::keys::agent("assistant"),
+            &crate::control::keys::agent("conic:test", "assistant"),
             &models::Agent {
                 name: "assistant".to_string(),
                 ns: "conic:test".to_string(),
@@ -579,8 +569,7 @@ mod tests {
         .await
         .unwrap();
         kv.set_msg(
-            "conic:test",
-            &crate::control::keys::session("assistant", "session-1"),
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
             &models::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
@@ -609,10 +598,11 @@ mod tests {
             .unwrap();
 
         let session = kv
-            .get_msg::<models::Session>(
+            .get_msg::<models::Session>(&crate::control::keys::session(
                 "conic:test",
-                &crate::control::keys::session("assistant", "session-1"),
-            )
+                "assistant",
+                "session-1",
+            ))
             .await
             .unwrap()
             .unwrap();
@@ -625,23 +615,21 @@ mod tests {
             .is_none());
 
         let message_keys = kv
-            .list_keys(
+            .list_keys(&crate::control::keys::session_message_prefix(
                 "conic:test",
-                &crate::control::keys::session_message_prefix("assistant", "session-1"),
-            )
+                "assistant",
+                "session-1",
+            ))
             .await
             .unwrap();
-        let prefix = crate::control::keys::session_message_prefix("assistant", "session-1");
+        let prefix =
+            crate::control::keys::session_message_prefix("conic:test", "assistant", "session-1");
         let mut reply = None;
         for key in message_keys {
             if key.strip_prefix(&prefix).unwrap_or(&key).contains('/') {
                 continue;
             }
-            if let Some(message) = kv
-                .get_msg::<models::SessionMessage>("conic:test", &key)
-                .await
-                .unwrap()
-            {
+            if let Some(message) = kv.get_msg::<models::SessionMessage>(&key).await.unwrap() {
                 reply = Some(message);
                 break;
             }

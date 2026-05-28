@@ -45,7 +45,7 @@ pub mod test_support {
 
     #[derive(Default)]
     pub struct MockKvStore {
-        data: AsyncMutex<HashMap<(String, String), Vec<u8>>>,
+        data: AsyncMutex<HashMap<String, Vec<u8>>>,
     }
 
     impl MockKvStore {
@@ -56,61 +56,49 @@ pub mod test_support {
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, namespace: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            Ok(self
-                .data
-                .lock()
-                .await
-                .get(&(namespace.to_string(), key.to_string()))
-                .cloned())
+        async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+            Ok(self.data.lock().await.get(key).cloned())
         }
 
-        async fn set(&self, namespace: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
             self.data
                 .lock()
                 .await
-                .insert((namespace.to_string(), key.to_string()), value.to_vec());
+                .insert(key.to_string(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            namespace: &str,
             key: &str,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let storage_key = (namespace.to_string(), key.to_string());
-            let current = data.get(&storage_key).cloned();
+            let current = data.get(key).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(storage_key, value.to_vec());
+                data.insert(key.to_string(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, namespace: &str, key: &str) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .remove(&(namespace.to_string(), key.to_string()));
+        async fn delete(&self, key: &str) -> anyhow::Result<()> {
+            self.data.lock().await.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|(ns, key)| {
-                    (ns == namespace && key.starts_with(prefix)).then(|| key.clone())
-                })
+                .filter_map(|key| key.starts_with(prefix).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -118,13 +106,12 @@ pub mod test_support {
 
         async fn list_keys_page(
             &self,
-            namespace: &str,
             prefix: &str,
             before_key: Option<&str>,
             limit: usize,
         ) -> anyhow::Result<Vec<String>> {
             Ok(crate::control::page_keys_desc(
-                self.list_keys(namespace, prefix).await?,
+                self.list_keys(prefix).await?,
                 before_key,
                 limit,
             ))
@@ -132,13 +119,12 @@ pub mod test_support {
 
         async fn list_entries_page(
             &self,
-            namespace: &str,
             prefix: &str,
             before_key: Option<&str>,
             limit: usize,
         ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
             Ok(crate::control::page_entries_desc(
-                self.list_entries(namespace, prefix).await?,
+                self.list_entries(prefix).await?,
                 before_key,
                 limit,
             ))

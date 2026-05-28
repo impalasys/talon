@@ -45,25 +45,24 @@ pub fn page_entries_desc(
 #[async_trait::async_trait]
 pub trait KeyValueStore: Send + Sync {
     /// Retrieve a raw byte sequence from the store
-    async fn get(&self, namespace: &str, key: &str) -> anyhow::Result<Option<Vec<u8>>>;
+    async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>>;
 
     /// Store a raw byte sequence into the store
-    async fn set(&self, namespace: &str, key: &str, value: &[u8]) -> anyhow::Result<()>;
+    async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()>;
 
     /// Atomically replace the current value when it matches the expected value.
     async fn compare_and_swap(
         &self,
-        namespace: &str,
         key: &str,
         expected: Option<&[u8]>,
         value: &[u8],
     ) -> anyhow::Result<bool>;
 
-    /// Delete a key from the namespace
-    async fn delete(&self, namespace: &str, key: &str) -> anyhow::Result<()>;
+    /// Delete a key.
+    async fn delete(&self, key: &str) -> anyhow::Result<()>;
 
-    /// List all keys in a namespace with a given prefix
-    async fn list_keys(&self, namespace: &str, prefix: &str) -> anyhow::Result<Vec<String>>;
+    /// List all keys with a given prefix.
+    async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>>;
 
     /// List keys in a namespace with a given prefix, ordered by key descending.
     ///
@@ -72,12 +71,11 @@ pub trait KeyValueStore: Send + Sync {
     /// fails rather than silently materializing an unbounded prefix.
     async fn list_keys_page(
         &self,
-        namespace: &str,
         prefix: &str,
         before_key: Option<&str>,
         limit: usize,
     ) -> anyhow::Result<Vec<String>> {
-        let _ = (namespace, prefix, before_key, limit);
+        let _ = (prefix, before_key, limit);
         anyhow::bail!("list_keys_page is not implemented for this KeyValueStore")
     }
 
@@ -88,36 +86,31 @@ pub trait KeyValueStore: Send + Sync {
     /// fails rather than silently materializing an unbounded prefix.
     async fn list_entries_page(
         &self,
-        namespace: &str,
         prefix: &str,
         before_key: Option<&str>,
         limit: usize,
     ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
-        let _ = (namespace, prefix, before_key, limit);
+        let _ = (prefix, before_key, limit);
         anyhow::bail!("list_entries_page is not implemented for this KeyValueStore")
     }
 
-    /// List all key/value pairs in a namespace with a given prefix.
-    async fn list_entries(
-        &self,
-        namespace: &str,
-        prefix: &str,
-    ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
-        let keys = self.list_keys(namespace, prefix).await?;
+    /// List all key/value pairs with a given prefix.
+    async fn list_entries(&self, prefix: &str) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
+        let keys = self.list_keys(prefix).await?;
         let mut entries = Vec::with_capacity(keys.len());
         for key in keys {
-            if let Some(value) = self.get(namespace, &key).await? {
+            if let Some(value) = self.get(&key).await? {
                 entries.push((key, value));
             }
         }
         Ok(entries)
     }
 
-    /// Delete all keys in a namespace with a given prefix.
-    async fn delete_prefix(&self, namespace: &str, prefix: &str) -> anyhow::Result<()> {
-        let keys = self.list_keys(namespace, prefix).await?;
+    /// Delete all keys with a given prefix.
+    async fn delete_prefix(&self, prefix: &str) -> anyhow::Result<()> {
+        let keys = self.list_keys(prefix).await?;
         for key in keys {
-            self.delete(namespace, &key).await?;
+            self.delete(&key).await?;
         }
         Ok(())
     }
@@ -125,39 +118,21 @@ pub trait KeyValueStore: Send + Sync {
 
 #[async_trait::async_trait]
 pub trait ProtoKeyValueStoreExt {
-    async fn get_msg<M: prost::Message + Default>(
-        &self,
-        namespace: &str,
-        key: &str,
-    ) -> anyhow::Result<Option<M>>;
-    async fn set_msg<M: prost::Message + Sync>(
-        &self,
-        namespace: &str,
-        key: &str,
-        msg: &M,
-    ) -> anyhow::Result<()>;
+    async fn get_msg<M: prost::Message + Default>(&self, key: &str) -> anyhow::Result<Option<M>>;
+    async fn set_msg<M: prost::Message + Sync>(&self, key: &str, msg: &M) -> anyhow::Result<()>;
 }
 
 #[async_trait::async_trait]
 impl<T: KeyValueStore + ?Sized> ProtoKeyValueStoreExt for T {
-    async fn get_msg<M: prost::Message + Default>(
-        &self,
-        namespace: &str,
-        key: &str,
-    ) -> anyhow::Result<Option<M>> {
-        match self.get(namespace, key).await? {
+    async fn get_msg<M: prost::Message + Default>(&self, key: &str) -> anyhow::Result<Option<M>> {
+        match self.get(key).await? {
             Some(bytes) => Ok(Some(M::decode(bytes.as_slice())?)),
             None => Ok(None),
         }
     }
 
-    async fn set_msg<M: prost::Message + Sync>(
-        &self,
-        namespace: &str,
-        key: &str,
-        msg: &M,
-    ) -> anyhow::Result<()> {
-        self.set(namespace, key, &msg.encode_to_vec()).await
+    async fn set_msg<M: prost::Message + Sync>(&self, key: &str, msg: &M) -> anyhow::Result<()> {
+        self.set(key, &msg.encode_to_vec()).await
     }
 }
 
@@ -604,23 +579,20 @@ mod tests {
     #[tokio::test]
     async fn key_value_store_default_helpers_and_proto_round_trip_work() {
         let kv = MockKvStore::default();
-        kv.set("ns", "prefix/a", b"one").await.unwrap();
-        kv.set("ns", "prefix/b", b"two").await.unwrap();
-        kv.set("ns", "other/c", b"three").await.unwrap();
+        kv.set("prefix/a", b"one").await.unwrap();
+        kv.set("prefix/b", b"two").await.unwrap();
+        kv.set("other/c", b"three").await.unwrap();
 
-        let mut entries = kv.list_entries("ns", "prefix/").await.unwrap();
+        let mut entries = kv.list_entries("prefix/").await.unwrap();
         entries.sort_by(|a, b| a.0.cmp(&b.0));
         assert_eq!(entries.len(), 2);
         assert_eq!(entries[0], ("prefix/a".to_string(), b"one".to_vec()));
         assert_eq!(entries[1], ("prefix/b".to_string(), b"two".to_vec()));
 
-        kv.delete_prefix("ns", "prefix/").await.unwrap();
-        assert!(kv.get("ns", "prefix/a").await.unwrap().is_none());
-        assert!(kv.get("ns", "prefix/b").await.unwrap().is_none());
-        assert_eq!(
-            kv.get("ns", "other/c").await.unwrap(),
-            Some(b"three".to_vec())
-        );
+        kv.delete_prefix("prefix/").await.unwrap();
+        assert!(kv.get("prefix/a").await.unwrap().is_none());
+        assert!(kv.get("prefix/b").await.unwrap().is_none());
+        assert_eq!(kv.get("other/c").await.unwrap(), Some(b"three".to_vec()));
 
         let session = models::Session {
             id: "session-1".to_string(),
@@ -632,16 +604,16 @@ mod tests {
             metadata: HashMap::new(),
             labels: HashMap::from([("env".to_string(), "test".to_string())]),
         };
-        kv.set_msg("ns", "session/key", &session).await.unwrap();
+        kv.set_msg("session/key", &session).await.unwrap();
         let loaded = kv
-            .get_msg::<models::Session>("ns", "session/key")
+            .get_msg::<models::Session>("session/key")
             .await
             .unwrap()
             .expect("session should decode");
         assert_eq!(loaded.id, "session-1");
         assert_eq!(loaded.labels.get("env").map(String::as_str), Some("test"));
         assert!(kv
-            .get_msg::<models::Session>("ns", "missing")
+            .get_msg::<models::Session>("missing")
             .await
             .unwrap()
             .is_none());

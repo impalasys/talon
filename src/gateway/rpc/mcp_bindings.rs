@@ -62,7 +62,7 @@ impl GrpcGatewayHandler {
         let server = self
             .gateway
             .kv
-            .get_msg::<manifests::McpServer>(crate::control::ns::TALON_SYSTEM, &server_key)
+            .get_msg::<manifests::McpServer>(&server_key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
             .ok_or_else(|| tonic::Status::failed_precondition("Referenced MCPServer not found"))?;
@@ -132,11 +132,11 @@ impl GrpcGatewayHandler {
             ));
         }
 
-        let key = keys::mcp_server_binding(&binding_name);
+        let key = keys::mcp_server_binding(&msg.ns, &binding_name);
         let action = if self
             .gateway
             .kv
-            .get_msg::<manifests::McpServerBinding>(&msg.ns, &key)
+            .get_msg::<manifests::McpServerBinding>(&key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
             .is_some()
@@ -148,7 +148,7 @@ impl GrpcGatewayHandler {
 
         self.gateway
             .kv
-            .set_msg(&msg.ns, &key, &binding)
+            .set_msg(&key, &binding)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
@@ -182,12 +182,12 @@ impl GrpcGatewayHandler {
         if msg.name.is_empty() {
             return Err(tonic::Status::invalid_argument("name is required"));
         }
-        let key = keys::mcp_server_binding(&msg.name);
+        let key = keys::mcp_server_binding(&msg.ns, &msg.name);
 
         let binding = self
             .gateway
             .kv
-            .get_msg::<manifests::McpServerBinding>(&msg.ns, &key)
+            .get_msg::<manifests::McpServerBinding>(&key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("McpServerBinding not found"))?;
@@ -210,7 +210,7 @@ impl GrpcGatewayHandler {
         let keys = self
             .gateway
             .kv
-            .list_keys(&msg.ns, keys::mcp_server_binding_prefix())
+            .list_keys(&keys::mcp_server_binding_prefix(&msg.ns))
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 
@@ -219,7 +219,7 @@ impl GrpcGatewayHandler {
             if let Some(binding) = self
                 .gateway
                 .kv
-                .get_msg::<manifests::McpServerBinding>(&msg.ns, &key)
+                .get_msg::<manifests::McpServerBinding>(&key)
                 .await
                 .map_err(|e| tonic::Status::internal(e.to_string()))?
             {
@@ -244,12 +244,12 @@ impl GrpcGatewayHandler {
         if msg.name.is_empty() {
             return Err(tonic::Status::invalid_argument("name is required"));
         }
-        let key = keys::mcp_server_binding(&msg.name);
+        let key = keys::mcp_server_binding(&msg.ns, &msg.name);
 
         if self
             .gateway
             .kv
-            .get_msg::<manifests::McpServerBinding>(&msg.ns, &key)
+            .get_msg::<manifests::McpServerBinding>(&key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?
             .is_none()
@@ -259,7 +259,7 @@ impl GrpcGatewayHandler {
 
         self.gateway
             .kv
-            .delete(&msg.ns, &key)
+            .delete(&key)
             .await
             .map_err(|e| tonic::Status::internal(e.to_string()))?;
 

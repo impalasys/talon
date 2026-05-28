@@ -141,6 +141,7 @@ impl PubSubSessionSink {
         payload_json: String,
     ) {
         let key = crate::control::keys::session_message_step(
+            &self.ns,
             &self.agent_id,
             &self.session_id,
             &self.reply_msg_id,
@@ -157,13 +158,8 @@ impl PubSubSessionSink {
             name,
             payload_json,
         };
-        let _ = crate::control::ProtoKeyValueStoreExt::set_msg(
-            self.kv.as_ref(),
-            &self.ns,
-            &key,
-            &event,
-        )
-        .await;
+        let _ =
+            crate::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &event).await;
     }
 
     async fn flush_persisted_text(&self) {
@@ -281,7 +277,6 @@ impl PubSubSessionSink {
         if should_flush {
             *self.last_flush.lock().unwrap() = Instant::now();
             let kv = self.kv.clone();
-            let ns = self.ns.clone();
             let key = self.reply_msg_key.clone();
             let msg_id = self.reply_msg_id.clone();
             tokio::spawn(async move {
@@ -293,7 +288,7 @@ impl PubSubSessionSink {
                     labels: std::collections::HashMap::new(),
                 };
                 if let Err(e) =
-                    crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &ns, &key, &partial)
+                    crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &key, &partial)
                         .await
                 {
                     tracing::error!("Failed to persist partial message: {}", e);
@@ -437,7 +432,6 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_reasoning_event_buffer().await;
         // Final KV write (complete message)
         let kv = self.kv.clone();
-        let ns = self.ns.clone();
         let key = self.reply_msg_key.clone();
         let msg_id = self.reply_msg_id.clone();
         let reply = reply.to_string();
@@ -450,8 +444,7 @@ impl ExecutionSink for PubSubSessionSink {
                 created_at: chrono::Utc::now().timestamp_micros(),
                 labels: std::collections::HashMap::new(),
             };
-            let _ =
-                crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &ns, &key, &msg).await;
+            let _ = crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &key, &msg).await;
         });
 
         self.publish_event(AgentEvent::Done(reply_for_event)).await;
@@ -480,7 +473,6 @@ impl ExecutionSink for PubSubSessionSink {
         };
         let _ = crate::control::ProtoKeyValueStoreExt::set_msg(
             self.kv.as_ref(),
-            &self.ns,
             &self.reply_msg_key,
             &msg,
         )
@@ -521,39 +513,37 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        entries: Arc<Mutex<Vec<(String, String, Vec<u8>)>>>,
+        entries: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, _ns: &str, _k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, _k: &str) -> anyhow::Result<Option<Vec<u8>>> {
             Ok(None)
         }
-        async fn set(&self, ns: &str, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
             self.entries
                 .lock()
                 .await
-                .push((ns.to_string(), key.to_string(), value.to_vec()));
+                .push((key.to_string(), value.to_vec()));
             Ok(())
         }
         async fn compare_and_swap(
             &self,
-            _ns: &str,
             _k: &str,
             _expected: Option<&[u8]>,
             _value: &[u8],
         ) -> anyhow::Result<bool> {
             Ok(true)
         }
-        async fn delete(&self, _ns: &str, _k: &str) -> anyhow::Result<()> {
+        async fn delete(&self, _k: &str) -> anyhow::Result<()> {
             Ok(())
         }
-        async fn list_keys(&self, _ns: &str, _p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, _p: &str) -> anyhow::Result<Vec<String>> {
             Ok(vec![])
         }
         async fn list_keys_page(
             &self,
-            _ns: &str,
             _prefix: &str,
             _before_key: Option<&str>,
             _limit: usize,
@@ -677,7 +667,7 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let persisted_reasoning = entries
             .iter()
-            .filter_map(|(_, _, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
             .filter(|event| event.step_type == StepType::Reasoning as i32)
             .map(|event| event.content)
             .collect::<Vec<_>>();
@@ -711,7 +701,7 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let persisted = entries
             .iter()
-            .find_map(|(_, _, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .find_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
             .filter(|event| event.step_type == StepType::Observation as i32)
             .unwrap();
         let payload: serde_json::Value = serde_json::from_str(&persisted.payload_json).unwrap();
@@ -754,7 +744,7 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let persisted_messages = entries
             .iter()
-            .filter_map(|(_, _, value)| {
+            .filter_map(|(_, value)| {
                 crate::gateway::rpc::models::SessionMessage::decode(value.as_slice()).ok()
             })
             .collect::<Vec<_>>();
@@ -767,7 +757,7 @@ mod tests {
 
         let persisted_steps = entries
             .iter()
-            .filter_map(|(_, _, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
             .collect::<Vec<_>>();
         assert!(persisted_steps
             .iter()

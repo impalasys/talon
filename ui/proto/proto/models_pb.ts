@@ -334,7 +334,7 @@ export type Namespace = Message<"talon.models.Namespace"> & {
   name: string;
 
   /**
-   * e.g. "talon-system", "default:subs"
+   * e.g. "Sys", "default:subs"
    *
    * @generated from field: string parent = 2;
    */
