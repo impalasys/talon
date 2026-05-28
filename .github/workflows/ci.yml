@@ -167,6 +167,16 @@ jobs:
       - name: Build release binaries
         run: cargo build --locked --release --bins
 
+      - name: Generate gateway descriptor
+        if: runner.os == 'Linux'
+        run: |
+          protoc -I. -Iproto -Ithird_party/googleapis \
+            --include_imports \
+            --include_source_info \
+            --experimental_allow_proto3_optional \
+            --descriptor_set_out=talon_gateway_proto-descriptor-set.proto.bin \
+            proto/gateway.proto
+
       - name: Package binaries
         run: |
           ARTIFACT_DIR="dist/talon-${{ matrix.artifact_name }}"
@@ -175,6 +185,9 @@ jobs:
           cp target/release/talon-worker "$ARTIFACT_DIR"/
           cp target/release/talon-cli "$ARTIFACT_DIR"/
           cp talon.yaml "$ARTIFACT_DIR"/
+          if [ "${RUNNER_OS}" = "Linux" ]; then
+            cp talon_gateway_proto-descriptor-set.proto.bin "$ARTIFACT_DIR"/
+          fi
           if [ "${RUNNER_OS}" = "macOS" ]; then
             (
               cd "$ARTIFACT_DIR"
@@ -183,7 +196,12 @@ jobs:
           else
             (
               cd "$ARTIFACT_DIR"
-              sha256sum talon-server talon-worker talon-cli talon.yaml > SHA256SUMS
+              sha256sum \
+                talon-server \
+                talon-worker \
+                talon-cli \
+                talon.yaml \
+                talon_gateway_proto-descriptor-set.proto.bin > SHA256SUMS
             )
           fi
           tar -C dist -czf "dist/talon-${{ matrix.artifact_name }}-${GITHUB_SHA}.tar.gz" "talon-${{ matrix.artifact_name }}"
