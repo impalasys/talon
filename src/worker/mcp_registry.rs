@@ -162,8 +162,9 @@ mod tests {
     use super::{filter_allowed_tools, McpRegistry};
     use crate::connectors::mcp::McpTool;
     use crate::control::{
-        scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
-        ProtoKeyValueStoreExt,
+        keys::{ResourceKey, ResourceList},
+        scheduler::NoopSchedulerBackend,
+        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
     use serde_json::json;
@@ -174,44 +175,41 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<String, Vec<u8>>>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             Ok(self.data.lock().await.get(key).cloned())
         }
 
-        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert(key.to_string(), value.to_vec());
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            _key: &str,
+            _key: &ResourceKey,
             _expected: Option<&[u8]>,
             _value: &[u8],
         ) -> anyhow::Result<bool> {
             Ok(false)
         }
 
-        async fn delete(&self, key: &str) -> anyhow::Result<()> {
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
             self.data.lock().await.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|key| key.starts_with(prefix).then(|| key.clone()))
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)

@@ -5,9 +5,7 @@ use crate::config::{proto::CloudTasksSchedulerConfig, SecretExt};
 use anyhow::{anyhow, Context, Result};
 use base64::Engine as _;
 use chrono::{DateTime, Utc};
-use google_cloud_auth::credentials::{
-    AccessTokenCredentials, Builder as CredentialsBuilder,
-};
+use google_cloud_auth::credentials::{AccessTokenCredentials, Builder as CredentialsBuilder};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 

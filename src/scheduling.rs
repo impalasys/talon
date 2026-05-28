@@ -12,7 +12,7 @@ use std::str::FromStr;
 
 use crate::control::events;
 use crate::control::{
-    keys,
+    keys::{self, ResourceKey},
     scheduler::{ScheduleWakeupRequest, SchedulerBackend},
     ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
 };
@@ -614,7 +614,7 @@ pub async fn send_message(
     Ok(())
 }
 
-fn log_session_release_failure(result: Result<()>, namespace: &str, key: &str) {
+fn log_session_release_failure(result: Result<()>, namespace: &str, key: &ResourceKey) {
     if let Err(err) = result {
         tracing::warn!(namespace = %namespace, key = %key, error = %err, "failed to release session lock after send_message error");
     }
@@ -622,7 +622,7 @@ fn log_session_release_failure(result: Result<()>, namespace: &str, key: &str) {
 
 async fn try_release_session_lock_after_send_failure(
     kv: &dyn KeyValueStore,
-    key: &str,
+    key: &ResourceKey,
     expected_last_active: i64,
 ) -> Result<()> {
     for _ in 0..MAX_CAS_RETRIES {
@@ -767,7 +767,11 @@ pub fn append_schedule_event(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::{scheduler::NoopSchedulerBackend, KeyValueStore, MessagePublisher};
+    use crate::control::{
+        keys::{ResourceKey, ResourceList},
+        scheduler::NoopSchedulerBackend,
+        KeyValueStore, MessagePublisher,
+    };
     use crate::gateway::rpc::manifests;
     use futures::stream;
     use std::pin::Pin;
@@ -776,25 +780,25 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        store: Mutex<HashMap<String, Vec<u8>>>,
+        store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             let map = self.store.lock().await;
             Ok(map.get(key).cloned())
         }
 
-        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
-            map.insert(key.to_string(), value.to_vec());
+            map.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            key: &str,
+            key: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
@@ -808,21 +812,21 @@ mod tests {
             if !matches {
                 return Ok(false);
             }
-            map.insert(key.to_string(), value.to_vec());
+            map.insert(key.clone(), value.to_vec());
             Ok(true)
         }
 
-        async fn delete(&self, key: &str) -> anyhow::Result<()> {
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
             map.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let map = self.store.lock().await;
             Ok(map
                 .keys()
-                .filter(|key| key.starts_with(prefix))
+                .filter(|key| list.matches(key))
                 .cloned()
                 .collect())
         }

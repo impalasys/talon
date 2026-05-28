@@ -14,10 +14,7 @@ impl LlmProvider for MockLlmProvider {
         Ok(vec![0.0; 768])
     }
 
-    async fn chat_completion(
-        &self,
-        request: ChatRequest,
-    ) -> Result<ChatResponse> {
+    async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse> {
         Ok(ChatResponse {
             content: format!("Mock response to {} messages", request.messages.len()),
             tool_calls: vec![],

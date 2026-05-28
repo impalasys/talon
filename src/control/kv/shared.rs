@@ -125,39 +125,14 @@ pub(crate) fn quoted_identifier(table: &str) -> String {
     format!("\"{}\"", table)
 }
 
-pub(crate) fn like_prefix_pattern(prefix: &str) -> String {
-    let mut escaped = String::with_capacity(prefix.len() + 1);
-    for ch in prefix.chars() {
-        match ch {
-            '\\' | '%' | '_' => {
-                escaped.push('\\');
-                escaped.push(ch);
-            }
-            _ => escaped.push(ch),
-        }
-    }
-    escaped.push('%');
-    escaped
-}
-
 pub fn sqlite_url_for_path(path: &Path) -> String {
     format!("sqlite://{}", path.display())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{like_prefix_pattern, sqlite_url_for_path, validate_identifier};
+    use super::{sqlite_url_for_path, validate_identifier};
     use std::path::Path;
-
-    #[test]
-    fn like_prefix_pattern_appends_sql_wildcard() {
-        assert_eq!(like_prefix_pattern("Agent/test"), "Agent/test%");
-    }
-
-    #[test]
-    fn like_prefix_pattern_escapes_like_metacharacters() {
-        assert_eq!(like_prefix_pattern(r"Agent_%\path"), r"Agent\_\%\\path%");
-    }
 
     #[test]
     fn validate_identifier_rejects_invalid_table_names() {

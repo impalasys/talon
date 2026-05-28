@@ -2,10 +2,184 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::ns;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
+use std::fmt;
 
 const NS_PREFIX: &str = "@Namespace";
 const DIRECT_CHILD_SEP: &str = "@";
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub struct ResourceSegment {
+    pub kind: String,
+    pub name: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub struct ResourceParent {
+    pub namespace: String,
+    pub parent_path: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub struct ResourceKey {
+    pub namespace: String,
+    pub parent_path: String,
+    pub kind: String,
+    pub name: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+pub struct ResourceList {
+    pub parent: ResourceParent,
+    pub kind: Option<String>,
+}
+
+impl ResourceSegment {
+    pub fn new(kind: impl Into<String>, name: impl Into<String>) -> Self {
+        Self {
+            kind: kind.into(),
+            name: name.into(),
+        }
+    }
+}
+
+impl ResourceParent {
+    pub fn root(namespace: impl Into<String>) -> Self {
+        Self {
+            namespace: namespace.into(),
+            parent_path: String::new(),
+        }
+    }
+
+    pub fn child(&self, kind: &str, name: &str) -> Self {
+        let segment = pair(kind, name);
+        let parent_path = if self.parent_path.is_empty() {
+            segment
+        } else {
+            format!("{}/{}", self.parent_path, segment)
+        };
+        Self {
+            namespace: self.namespace.clone(),
+            parent_path,
+        }
+    }
+
+    pub fn list(&self, kind: Option<&str>) -> ResourceList {
+        ResourceList {
+            parent: self.clone(),
+            kind: kind.map(str::to_string),
+        }
+    }
+}
+
+impl ResourceKey {
+    pub fn new(namespace: &str, parent: &[(&str, &str)], kind: &str, name: &str) -> Self {
+        Self {
+            namespace: namespace.to_string(),
+            parent_path: path(parent),
+            kind: kind.to_string(),
+            name: name.to_string(),
+        }
+    }
+
+    pub fn as_parent(&self) -> ResourceParent {
+        ResourceParent {
+            namespace: self.namespace.clone(),
+            parent_path: if self.parent_path.is_empty() {
+                pair(&self.kind, &self.name)
+            } else {
+                format!("{}/{}", self.parent_path, pair(&self.kind, &self.name))
+            },
+        }
+    }
+
+    pub fn canonical(&self) -> String {
+        if self.parent_path.is_empty() {
+            format!(
+                "{}/{}/{}/{}",
+                NS_PREFIX,
+                self.namespace,
+                DIRECT_CHILD_SEP,
+                pair(&self.kind, &self.name)
+            )
+        } else {
+            format!(
+                "{}/{}/{}/{}/{}",
+                NS_PREFIX,
+                self.namespace,
+                self.parent_path,
+                DIRECT_CHILD_SEP,
+                pair(&self.kind, &self.name)
+            )
+        }
+    }
+
+    pub fn parse_canonical(key: &str) -> Result<Self> {
+        let rest = key
+            .strip_prefix(&format!("{NS_PREFIX}/"))
+            .ok_or_else(|| anyhow!("key does not start with {NS_PREFIX}: {key}"))?;
+        let (namespace, rest) = rest
+            .split_once('/')
+            .ok_or_else(|| anyhow!("key is missing namespace separator: {key}"))?;
+        let (parent_path, leaf) =
+            if let Some(leaf) = rest.strip_prefix(&format!("{DIRECT_CHILD_SEP}/")) {
+                ("", leaf)
+            } else {
+                let sep = format!("/{DIRECT_CHILD_SEP}/");
+                rest.split_once(&sep)
+                    .ok_or_else(|| anyhow!("key is missing direct-child separator: {key}"))?
+            };
+        let segments = parse_path(leaf)?;
+        if segments.len() != 1 {
+            bail!("key leaf must contain exactly one kind/name segment: {key}");
+        }
+        let leaf = &segments[0];
+        Ok(Self {
+            namespace: namespace.to_string(),
+            parent_path: parent_path.to_string(),
+            kind: leaf.kind.clone(),
+            name: leaf.name.clone(),
+        })
+    }
+}
+
+impl ResourceList {
+    pub fn matches(&self, key: &ResourceKey) -> bool {
+        key.namespace == self.parent.namespace
+            && key.parent_path == self.parent.parent_path
+            && self.kind.as_ref().map_or(true, |kind| key.kind == *kind)
+    }
+
+    pub fn canonical_prefix(&self) -> String {
+        let base = if self.parent.parent_path.is_empty() {
+            format!(
+                "{}/{}/{}/",
+                NS_PREFIX, self.parent.namespace, DIRECT_CHILD_SEP
+            )
+        } else {
+            format!(
+                "{}/{}/{}/{}/",
+                NS_PREFIX, self.parent.namespace, self.parent.parent_path, DIRECT_CHILD_SEP
+            )
+        };
+        match self.kind.as_deref() {
+            Some(kind) => format!("{base}{kind}/"),
+            None => base,
+        }
+    }
+}
+
+impl fmt::Display for ResourceKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.canonical())
+    }
+}
+
+impl fmt::Display for ResourceList {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.canonical_prefix())
+    }
+}
 
 fn enc(value: &str) -> String {
     urlencoding::encode(value).into_owned()
@@ -29,105 +203,91 @@ fn path(pairs: &[(&str, &str)]) -> String {
         .join("/")
 }
 
+fn parse_path(path: &str) -> Result<Vec<ResourceSegment>> {
+    if path.is_empty() {
+        return Ok(Vec::new());
+    }
+    let parts = path.split('/').collect::<Vec<_>>();
+    let chunks = parts.chunks_exact(2);
+    if !chunks.remainder().is_empty() {
+        bail!("resource path must contain kind/name pairs: {path}");
+    }
+    chunks
+        .map(|chunk| Ok(ResourceSegment::new(chunk[0], dec(chunk[1])?)))
+        .collect()
+}
+
 fn resource_key(
     namespace: &str,
     parent: &[(&str, &str)],
     child_kind: &str,
     child_name: &str,
-) -> String {
-    if parent.is_empty() {
-        format!(
-            "{}/{}/{}/{}",
-            NS_PREFIX,
-            namespace,
-            DIRECT_CHILD_SEP,
-            pair(child_kind, child_name)
-        )
-    } else {
-        format!(
-            "{}/{}/{}/{}/{}",
-            NS_PREFIX,
-            namespace,
-            path(parent),
-            DIRECT_CHILD_SEP,
-            pair(child_kind, child_name)
-        )
-    }
+) -> ResourceKey {
+    ResourceKey::new(namespace, parent, child_kind, child_name)
 }
 
 fn direct_child_prefix(
     namespace: &str,
     parent: &[(&str, &str)],
     child_kind: Option<&str>,
-) -> String {
-    let base = if parent.is_empty() {
-        format!("{}/{}/{}/", NS_PREFIX, namespace, DIRECT_CHILD_SEP)
-    } else {
-        format!(
-            "{}/{}/{}/{}/",
-            NS_PREFIX,
-            namespace,
-            path(parent),
-            DIRECT_CHILD_SEP
-        )
-    };
-    match child_kind {
-        Some(kind) => format!("{base}{kind}/"),
-        None => base,
+) -> ResourceList {
+    ResourceList {
+        parent: ResourceParent {
+            namespace: namespace.to_string(),
+            parent_path: path(parent),
+        },
+        kind: child_kind.map(str::to_string),
     }
 }
 
-pub fn recursive_prefix(namespace: &str, parent: &[(&str, &str)]) -> String {
-    if parent.is_empty() {
-        format!("{}/{}/", NS_PREFIX, namespace)
-    } else {
-        format!("{}/{}/{}/", NS_PREFIX, namespace, path(parent))
-    }
+pub fn direct_child_name(prefix: &ResourceList, key: &ResourceKey) -> Option<String> {
+    prefix.matches(key).then(|| key.name.clone())
 }
 
-pub fn direct_child_name(prefix: &str, key: &str) -> Option<String> {
-    let suffix = key.strip_prefix(prefix)?;
-    if suffix.is_empty() || suffix.contains('/') {
-        return None;
-    }
-    dec(suffix).ok()
-}
-
-pub fn namespace_metadata(name: &str) -> String {
+pub fn namespace_metadata(name: &str) -> ResourceKey {
     resource_key(ns::TALON_SYSTEM, &[], "Namespace", name)
 }
 
-pub fn namespace_metadata_prefix() -> String {
+pub fn namespace_metadata_prefix() -> ResourceList {
     direct_child_prefix(ns::TALON_SYSTEM, &[], Some("Namespace"))
 }
 
-pub fn namespace_ref(parent: Option<&str>, child_segment: &str) -> String {
+pub fn namespace_ref(parent: Option<&str>, child_segment: &str) -> ResourceKey {
     let ref_namespace = parent.unwrap_or(ns::TALON_SYSTEM);
     resource_key(ref_namespace, &[], "NamespaceRef", child_segment)
 }
 
-pub fn namespace_ref_prefix(parent: Option<&str>) -> String {
+pub fn namespace_ref_prefix(parent: Option<&str>) -> ResourceList {
     let ref_namespace = parent.unwrap_or(ns::TALON_SYSTEM);
     direct_child_prefix(ref_namespace, &[], Some("NamespaceRef"))
 }
 
-pub fn agent(namespace: &str, id: &str) -> String {
+pub fn agent(namespace: &str, id: &str) -> ResourceKey {
     resource_key(namespace, &[], "Agent", id)
 }
 
-pub fn agent_prefix(namespace: &str) -> String {
+pub fn agent_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("Agent"))
 }
 
-pub fn session(namespace: &str, agent: &str, session_id: &str) -> String {
+pub fn session(namespace: &str, agent: &str, session_id: &str) -> ResourceKey {
     resource_key(namespace, &[("Agent", agent)], "Session", session_id)
 }
 
-pub fn session_prefix(namespace: &str, agent: &str) -> String {
+pub fn session_parent(namespace: &str, agent: &str, session_id: &str) -> ResourceParent {
+    session(namespace, agent, session_id).as_parent()
+}
+
+pub fn session_prefix(namespace: &str, agent: &str) -> ResourceList {
     direct_child_prefix(namespace, &[("Agent", agent)], Some("Session"))
 }
 
-pub fn session_message(namespace: &str, agent: &str, session_id: &str, message_id: &str) -> String {
+pub fn session_message(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    message_id: &str,
+) -> ResourceKey {
     resource_key(
         namespace,
         &[("Agent", agent), ("Session", session_id)],
@@ -136,7 +296,16 @@ pub fn session_message(namespace: &str, agent: &str, session_id: &str, message_i
     )
 }
 
-pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) -> String {
+pub fn session_message_parent(
+    namespace: &str,
+    agent: &str,
+    session_id: &str,
+    message_id: &str,
+) -> ResourceParent {
+    session_message(namespace, agent, session_id, message_id).as_parent()
+}
+
+pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) -> ResourceList {
     direct_child_prefix(
         namespace,
         &[("Agent", agent), ("Session", session_id)],
@@ -150,7 +319,7 @@ pub fn session_message_step(
     session_id: &str,
     message_id: &str,
     step_id: &str,
-) -> String {
+) -> ResourceKey {
     resource_key(
         namespace,
         &[
@@ -168,7 +337,7 @@ pub fn session_message_step_prefix(
     agent: &str,
     session_id: &str,
     message_id: &str,
-) -> String {
+) -> ResourceList {
     direct_child_prefix(
         namespace,
         &[
@@ -180,59 +349,59 @@ pub fn session_message_step_prefix(
     )
 }
 
-pub fn schedule(namespace: &str, name: &str) -> String {
+pub fn schedule(namespace: &str, name: &str) -> ResourceKey {
     resource_key(namespace, &[], "Schedule", name)
 }
 
-pub fn schedule_prefix(namespace: &str) -> String {
+pub fn schedule_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("Schedule"))
 }
 
-pub fn agent_template(name: &str) -> String {
+pub fn agent_template(name: &str) -> ResourceKey {
     resource_key(ns::TALON_SYSTEM, &[], "AgentTemplate", name)
 }
 
-pub fn agent_template_prefix() -> String {
+pub fn agent_template_prefix() -> ResourceList {
     direct_child_prefix(ns::TALON_SYSTEM, &[], Some("AgentTemplate"))
 }
 
-pub fn mcp_server(name: &str) -> String {
+pub fn mcp_server(name: &str) -> ResourceKey {
     resource_key(ns::TALON_SYSTEM, &[], "MCPServer", name)
 }
 
-pub fn mcp_server_prefix() -> String {
+pub fn mcp_server_prefix() -> ResourceList {
     direct_child_prefix(ns::TALON_SYSTEM, &[], Some("MCPServer"))
 }
 
-pub fn mcp_server_binding(namespace: &str, name: &str) -> String {
+pub fn mcp_server_binding(namespace: &str, name: &str) -> ResourceKey {
     resource_key(namespace, &[], "MCPServerBinding", name)
 }
 
-pub fn mcp_server_binding_prefix(namespace: &str) -> String {
+pub fn mcp_server_binding_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("MCPServerBinding"))
 }
 
-pub fn agent_memory(namespace: &str, agent: &str, path: &str) -> String {
+pub fn agent_memory(namespace: &str, agent: &str, path: &str) -> ResourceKey {
     resource_key(namespace, &[("Agent", agent)], "Memory", path)
 }
 
-pub fn agent_memory_prefix(namespace: &str, agent: &str) -> String {
+pub fn agent_memory_prefix(namespace: &str, agent: &str) -> ResourceList {
     direct_child_prefix(namespace, &[("Agent", agent)], Some("Memory"))
 }
 
-pub fn knowledge(namespace: &str, path: &str) -> String {
+pub fn knowledge(namespace: &str, path: &str) -> ResourceKey {
     resource_key(namespace, &[], "Knowledge", path)
 }
 
-pub fn knowledge_prefix(namespace: &str) -> String {
+pub fn knowledge_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("Knowledge"))
 }
 
-pub fn knowledge_resource(namespace: &str, name: &str) -> String {
+pub fn knowledge_resource(namespace: &str, name: &str) -> ResourceKey {
     resource_key(namespace, &[], "KnowledgeResource", name)
 }
 
-pub fn knowledge_resource_prefix(namespace: &str) -> String {
+pub fn knowledge_resource_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("KnowledgeResource"))
 }
 
@@ -243,15 +412,16 @@ mod tests {
     #[test]
     fn resource_keys_place_separator_before_leaf() {
         assert_eq!(
-            agent("Impala:Talon", "hello-agent"),
+            agent("Impala:Talon", "hello-agent").canonical(),
             "@Namespace/Impala:Talon/@/Agent/hello-agent"
         );
         assert_eq!(
-            session("Impala:Talon", "hello-agent", "session-id"),
+            session("Impala:Talon", "hello-agent", "session-id").canonical(),
             "@Namespace/Impala:Talon/Agent/hello-agent/@/Session/session-id"
         );
         assert_eq!(
-            session_message("Impala:Talon", "hello-agent", "session-id", "message-id"),
+            session_message("Impala:Talon", "hello-agent", "session-id", "message-id")
+                .canonical(),
             "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/@/SessionMessage/message-id"
         );
     }
@@ -259,19 +429,21 @@ mod tests {
     #[test]
     fn prefixes_distinguish_direct_and_recursive_listing() {
         assert_eq!(
-            session_prefix("Impala:Talon", "hello-agent"),
+            session_prefix("Impala:Talon", "hello-agent").canonical_prefix(),
             "@Namespace/Impala:Talon/Agent/hello-agent/@/Session/"
         );
         assert_eq!(
-            recursive_prefix("Impala:Talon", &[("Agent", "hello-agent")]),
-            "@Namespace/Impala:Talon/Agent/hello-agent/"
+            session("Impala:Talon", "hello-agent", "session-id")
+                .as_parent()
+                .parent_path,
+            "Agent/hello-agent/Session/session-id"
         );
     }
 
     #[test]
     fn names_are_encoded_per_resource_segment() {
         assert_eq!(
-            knowledge("quickstart", "docs/hello world.md"),
+            knowledge("quickstart", "docs/hello world.md").canonical(),
             "@Namespace/quickstart/@/Knowledge/docs%2Fhello%20world.md"
         );
         assert_eq!(
@@ -280,6 +452,22 @@ mod tests {
                 &knowledge("quickstart", "docs/hello world.md")
             ),
             Some("docs/hello world.md".to_string())
+        );
+    }
+
+    #[test]
+    fn canonical_keys_parse_into_structured_columns() {
+        let key = ResourceKey::parse_canonical(
+            "@Namespace/quickstart/Agent/hello-agent/Session/s/@/SessionMessage/m%2F1",
+        )
+        .unwrap();
+        assert_eq!(key.namespace, "quickstart");
+        assert_eq!(key.parent_path, "Agent/hello-agent/Session/s");
+        assert_eq!(key.kind, "SessionMessage");
+        assert_eq!(key.name, "m/1");
+        assert_eq!(
+            key.canonical(),
+            "@Namespace/quickstart/Agent/hello-agent/Session/s/@/SessionMessage/m%2F1"
         );
     }
 }

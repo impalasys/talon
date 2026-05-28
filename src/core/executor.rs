@@ -478,6 +478,7 @@ mod tests {
         LoopMessage,
     };
     use crate::config::Config;
+    use crate::control::keys::{ResourceKey, ResourceList};
     use crate::control::scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
     use crate::control::{ControlPlane, KeyValueStore, MessagePublisher};
     use crate::core::ContextBudget;
@@ -508,24 +509,24 @@ mod tests {
 
     #[async_trait]
     impl KeyValueStore for NoopKv {
-        async fn get(&self, _key: &str) -> Result<Option<Vec<u8>>> {
+        async fn get(&self, _key: &ResourceKey) -> Result<Option<Vec<u8>>> {
             Ok(None)
         }
-        async fn set(&self, _key: &str, _value: &[u8]) -> Result<()> {
+        async fn set(&self, _key: &ResourceKey, _value: &[u8]) -> Result<()> {
             Ok(())
         }
         async fn compare_and_swap(
             &self,
-            _key: &str,
+            _key: &ResourceKey,
             _expected: Option<&[u8]>,
             _value: &[u8],
         ) -> Result<bool> {
             Ok(true)
         }
-        async fn delete(&self, _key: &str) -> Result<()> {
+        async fn delete(&self, _key: &ResourceKey) -> Result<()> {
             Ok(())
         }
-        async fn list_keys(&self, _prefix: &str) -> Result<Vec<String>> {
+        async fn list_keys(&self, _list: &ResourceList) -> Result<Vec<ResourceKey>> {
             Ok(Vec::new())
         }
     }

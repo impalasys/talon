@@ -97,11 +97,7 @@ impl SessionStreamHub {
         Ok(rx)
     }
 
-    async fn ensure_shard_task(
-        &self,
-        shard: usize,
-        state: Arc<Shard>,
-    ) -> anyhow::Result<()> {
+    async fn ensure_shard_task(&self, shard: usize, state: Arc<Shard>) -> anyhow::Result<()> {
         let topic = topics::session_step_topic_for_shard(shard as u32);
         loop {
             let should_subscribe = {

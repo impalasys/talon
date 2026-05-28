@@ -12,32 +12,34 @@ pub mod topics;
 
 use std::path::PathBuf;
 
+use keys::{ResourceKey, ResourceList};
+
 pub fn page_keys_desc(
-    mut keys: Vec<String>,
-    before_key: Option<&str>,
+    mut keys: Vec<ResourceKey>,
+    before_name: Option<&str>,
     limit: usize,
-) -> Vec<String> {
+) -> Vec<ResourceKey> {
     if limit == 0 {
         return Vec::new();
     }
 
-    keys.retain(|key| before_key.map_or(true, |cursor| key.as_str() < cursor));
-    keys.sort_by(|left, right| right.cmp(left));
+    keys.retain(|key| before_name.map_or(true, |cursor| key.name.as_str() < cursor));
+    keys.sort_by(|left, right| right.name.cmp(&left.name));
     keys.truncate(limit);
     keys
 }
 
 pub fn page_entries_desc(
-    mut entries: Vec<(String, Vec<u8>)>,
-    before_key: Option<&str>,
+    mut entries: Vec<(ResourceKey, Vec<u8>)>,
+    before_name: Option<&str>,
     limit: usize,
-) -> Vec<(String, Vec<u8>)> {
+) -> Vec<(ResourceKey, Vec<u8>)> {
     if limit == 0 {
         return Vec::new();
     }
 
-    entries.retain(|(key, _)| before_key.map_or(true, |cursor| key.as_str() < cursor));
-    entries.sort_by(|left, right| right.0.cmp(&left.0));
+    entries.retain(|(key, _)| before_name.map_or(true, |cursor| key.name.as_str() < cursor));
+    entries.sort_by(|left, right| right.0.name.cmp(&left.0.name));
     entries.truncate(limit);
     entries
 }
@@ -45,58 +47,61 @@ pub fn page_entries_desc(
 #[async_trait::async_trait]
 pub trait KeyValueStore: Send + Sync {
     /// Retrieve a raw byte sequence from the store
-    async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>>;
+    async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>>;
 
     /// Store a raw byte sequence into the store
-    async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()>;
+    async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()>;
 
     /// Atomically replace the current value when it matches the expected value.
     async fn compare_and_swap(
         &self,
-        key: &str,
+        key: &ResourceKey,
         expected: Option<&[u8]>,
         value: &[u8],
     ) -> anyhow::Result<bool>;
 
     /// Delete a key.
-    async fn delete(&self, key: &str) -> anyhow::Result<()>;
+    async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()>;
 
-    /// List all keys with a given prefix.
-    async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>>;
+    /// List direct children matching a resource parent and optional kind.
+    async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>>;
 
-    /// List keys in a namespace with a given prefix, ordered by key descending.
+    /// List direct children, ordered by resource name descending.
     ///
-    /// `before_key` is an exclusive full-key cursor. Production backends should
-    /// override this with a storage-level page read. The default implementation
-    /// fails rather than silently materializing an unbounded prefix.
+    /// `before_name` is an exclusive resource-name cursor. Production backends
+    /// should override this with a storage-level page read. The default
+    /// implementation fails rather than silently materializing an unbounded list.
     async fn list_keys_page(
         &self,
-        prefix: &str,
-        before_key: Option<&str>,
+        list: &ResourceList,
+        before_name: Option<&str>,
         limit: usize,
-    ) -> anyhow::Result<Vec<String>> {
-        let _ = (prefix, before_key, limit);
+    ) -> anyhow::Result<Vec<ResourceKey>> {
+        let _ = (list, before_name, limit);
         anyhow::bail!("list_keys_page is not implemented for this KeyValueStore")
     }
 
-    /// List key/value pairs in a namespace with a given prefix, ordered by key descending.
+    /// List direct child key/value pairs, ordered by resource name descending.
     ///
-    /// `before_key` is an exclusive full-key cursor. Production backends should
-    /// override this with a storage-level page read. The default implementation
-    /// fails rather than silently materializing an unbounded prefix.
+    /// `before_name` is an exclusive resource-name cursor. Production backends
+    /// should override this with a storage-level page read. The default
+    /// implementation fails rather than silently materializing an unbounded list.
     async fn list_entries_page(
         &self,
-        prefix: &str,
-        before_key: Option<&str>,
+        list: &ResourceList,
+        before_name: Option<&str>,
         limit: usize,
-    ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
-        let _ = (prefix, before_key, limit);
+    ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
+        let _ = (list, before_name, limit);
         anyhow::bail!("list_entries_page is not implemented for this KeyValueStore")
     }
 
-    /// List all key/value pairs with a given prefix.
-    async fn list_entries(&self, prefix: &str) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
-        let keys = self.list_keys(prefix).await?;
+    /// List all matching direct child key/value pairs.
+    async fn list_entries(
+        &self,
+        list: &ResourceList,
+    ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
+        let keys = self.list_keys(list).await?;
         let mut entries = Vec::with_capacity(keys.len());
         for key in keys {
             if let Some(value) = self.get(&key).await? {
@@ -105,33 +110,38 @@ pub trait KeyValueStore: Send + Sync {
         }
         Ok(entries)
     }
-
-    /// Delete all keys with a given prefix.
-    async fn delete_prefix(&self, prefix: &str) -> anyhow::Result<()> {
-        let keys = self.list_keys(prefix).await?;
-        for key in keys {
-            self.delete(&key).await?;
-        }
-        Ok(())
-    }
 }
 
 #[async_trait::async_trait]
 pub trait ProtoKeyValueStoreExt {
-    async fn get_msg<M: prost::Message + Default>(&self, key: &str) -> anyhow::Result<Option<M>>;
-    async fn set_msg<M: prost::Message + Sync>(&self, key: &str, msg: &M) -> anyhow::Result<()>;
+    async fn get_msg<M: prost::Message + Default>(
+        &self,
+        key: &ResourceKey,
+    ) -> anyhow::Result<Option<M>>;
+    async fn set_msg<M: prost::Message + Sync>(
+        &self,
+        key: &ResourceKey,
+        msg: &M,
+    ) -> anyhow::Result<()>;
 }
 
 #[async_trait::async_trait]
 impl<T: KeyValueStore + ?Sized> ProtoKeyValueStoreExt for T {
-    async fn get_msg<M: prost::Message + Default>(&self, key: &str) -> anyhow::Result<Option<M>> {
+    async fn get_msg<M: prost::Message + Default>(
+        &self,
+        key: &ResourceKey,
+    ) -> anyhow::Result<Option<M>> {
         match self.get(key).await? {
             Some(bytes) => Ok(Some(M::decode(bytes.as_slice())?)),
             None => Ok(None),
         }
     }
 
-    async fn set_msg<M: prost::Message + Sync>(&self, key: &str, msg: &M) -> anyhow::Result<()> {
+    async fn set_msg<M: prost::Message + Sync>(
+        &self,
+        key: &ResourceKey,
+        msg: &M,
+    ) -> anyhow::Result<()> {
         self.set(key, &msg.encode_to_vec()).await
     }
 }
@@ -410,6 +420,7 @@ mod tests {
     };
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
+    use crate::control::keys;
     use crate::gateway::rpc::models;
     use crate::test_support::MockKvStore;
     use std::collections::HashMap;
@@ -579,20 +590,25 @@ mod tests {
     #[tokio::test]
     async fn key_value_store_default_helpers_and_proto_round_trip_work() {
         let kv = MockKvStore::default();
-        kv.set("prefix/a", b"one").await.unwrap();
-        kv.set("prefix/b", b"two").await.unwrap();
-        kv.set("other/c", b"three").await.unwrap();
+        let a = keys::session("ns", "agent", "a");
+        let b = keys::session("ns", "agent", "b");
+        let other = keys::session("ns", "other", "c");
+        let list = keys::session_prefix("ns", "agent");
+        kv.set(&a, b"one").await.unwrap();
+        kv.set(&b, b"two").await.unwrap();
+        kv.set(&other, b"three").await.unwrap();
 
-        let mut entries = kv.list_entries("prefix/").await.unwrap();
-        entries.sort_by(|a, b| a.0.cmp(&b.0));
+        let mut entries = kv.list_entries(&list).await.unwrap();
+        entries.sort_by(|a, b| a.0.name.cmp(&b.0.name));
         assert_eq!(entries.len(), 2);
-        assert_eq!(entries[0], ("prefix/a".to_string(), b"one".to_vec()));
-        assert_eq!(entries[1], ("prefix/b".to_string(), b"two".to_vec()));
+        assert_eq!(entries[0], (a.clone(), b"one".to_vec()));
+        assert_eq!(entries[1], (b.clone(), b"two".to_vec()));
 
-        kv.delete_prefix("prefix/").await.unwrap();
-        assert!(kv.get("prefix/a").await.unwrap().is_none());
-        assert!(kv.get("prefix/b").await.unwrap().is_none());
-        assert_eq!(kv.get("other/c").await.unwrap(), Some(b"three".to_vec()));
+        kv.delete(&a).await.unwrap();
+        kv.delete(&b).await.unwrap();
+        assert!(kv.get(&a).await.unwrap().is_none());
+        assert!(kv.get(&b).await.unwrap().is_none());
+        assert_eq!(kv.get(&other).await.unwrap(), Some(b"three".to_vec()));
 
         let session = models::Session {
             id: "session-1".to_string(),
@@ -604,16 +620,17 @@ mod tests {
             metadata: HashMap::new(),
             labels: HashMap::from([("env".to_string(), "test".to_string())]),
         };
-        kv.set_msg("session/key", &session).await.unwrap();
+        let session_key = keys::session("ns", "agent", "session-1");
+        kv.set_msg(&session_key, &session).await.unwrap();
         let loaded = kv
-            .get_msg::<models::Session>("session/key")
+            .get_msg::<models::Session>(&session_key)
             .await
             .unwrap()
             .expect("session should decode");
         assert_eq!(loaded.id, "session-1");
         assert_eq!(loaded.labels.get("env").map(String::as_str), Some("test"));
         assert!(kv
-            .get_msg::<models::Session>("missing")
+            .get_msg::<models::Session>(&keys::session("ns", "agent", "missing"))
             .await
             .unwrap()
             .is_none());

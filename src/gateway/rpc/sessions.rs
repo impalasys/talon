@@ -4,7 +4,7 @@
 use super::{models, proto, GrpcGatewayHandler};
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::control::{events, keys};
+use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
 use crate::scheduling;
 use futures::future::try_join_all;
 use prost::Message;
@@ -13,6 +13,19 @@ const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
+
+async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> anyhow::Result<()> {
+    let mut stack = vec![parent];
+    while let Some(parent) = stack.pop() {
+        let list = parent.list(None);
+        let children = kv.list_keys(&list).await?;
+        for child in children {
+            stack.push(child.as_parent());
+            kv.delete(&child).await?;
+        }
+    }
+    Ok(())
+}
 
 fn requested_limit(limit: i32) -> Option<usize> {
     match limit {
@@ -153,7 +166,7 @@ impl GrpcGatewayHandler {
         let mut messages = Vec::new();
         if message_limit != Some(0) {
             let msg_keys = if let Some(limit) = message_limit {
-                let mut page_before_key: Option<String> = None;
+                let mut page_before_name: Option<String> = None;
                 let mut keys = Vec::with_capacity(limit);
                 while keys.len() < limit {
                     let page = self
@@ -161,7 +174,7 @@ impl GrpcGatewayHandler {
                         .kv
                         .list_keys_page(
                             &msg_prefix,
-                            page_before_key.as_deref(),
+                            page_before_name.as_deref(),
                             SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE,
                         )
                         .await
@@ -182,7 +195,7 @@ impl GrpcGatewayHandler {
                     if page.is_empty() {
                         break;
                     }
-                    page_before_key = page.last().cloned();
+                    page_before_name = page.last().map(|key| key.name.clone());
                     for key in page {
                         keys.push(key);
                         if keys.len() >= limit {
@@ -418,18 +431,16 @@ impl GrpcGatewayHandler {
             })?
             .ok_or_else(|| tonic::Status::not_found("Session not found"))?;
 
-        let before_key = req
+        let before_name = req
             .before_message_id
             .as_deref()
             .filter(|before_message_id| !before_message_id.is_empty())
-            .map(|before_message_id| {
-                keys::session_message(&req.ns, &req.agent, &req.session_id, before_message_id)
-            });
+            .map(str::to_string);
 
         // Fetch one extra message so the response can expose has_more and an
         // exclusive before_message_id cursor without requiring a separate count.
         let target_message_count = page_size + 1;
-        let mut scan_before_key = before_key;
+        let mut scan_before_name = before_name;
         let mut items = Vec::with_capacity(target_message_count);
 
         while items.len() < target_message_count {
@@ -438,7 +449,7 @@ impl GrpcGatewayHandler {
                 .kv
                 .list_entries_page(
                     &msg_prefix,
-                    scan_before_key.as_deref(),
+                    scan_before_name.as_deref(),
                     SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE,
                 )
                 .await
@@ -452,7 +463,7 @@ impl GrpcGatewayHandler {
 
             // Continue from the last key returned, regardless of whether it was
             // a message key, a step key, or another nested descendant.
-            scan_before_key = entries.last().map(|(key, _)| key.clone());
+            scan_before_name = entries.last().map(|(key, _)| key.name.clone());
 
             let remaining = target_message_count.saturating_sub(items.len());
             let mut page_messages = Vec::with_capacity(remaining);
@@ -618,18 +629,15 @@ impl GrpcGatewayHandler {
         let req = req.into_inner();
 
         let session_db_key = keys::session(&req.ns, &req.agent, &req.session_id);
-        let message_prefix = keys::recursive_prefix(
-            &req.ns,
-            &[("Agent", &req.agent), ("Session", &req.session_id)],
-        );
 
-        self.gateway
-            .kv
-            .delete_prefix(&message_prefix)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to delete session descendants: {}", e))
-            })?;
+        delete_descendants(
+            self.gateway.kv.as_ref(),
+            keys::session_parent(&req.ns, &req.agent, &req.session_id),
+        )
+        .await
+        .map_err(|e| {
+            tonic::Status::internal(format!("Failed to delete session descendants: {}", e))
+        })?;
 
         self.gateway
             .kv

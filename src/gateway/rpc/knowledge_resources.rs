@@ -246,7 +246,7 @@ impl GrpcGatewayHandler {
 #[cfg(test)]
 mod tests {
     use super::hydrate_knowledge_manifest;
-    use crate::control::keys;
+    use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::{KeyValueStore, ProtoKeyValueStoreExt};
     use crate::gateway::rpc::{manifests, proto, GrpcGatewayHandler};
     use crate::gateway::{server::Gateway, session_streams::SessionStreamHub};
@@ -259,23 +259,23 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: Mutex<HashMap<String, Vec<u8>>>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             Ok(self.data.lock().await.get(k).cloned())
         }
 
-        async fn set(&self, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data.lock().await.insert(k.to_string(), v.to_vec());
+        async fn set(&self, k: &ResourceKey, v: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(k.clone(), v.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            k: &str,
+            k: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
@@ -287,23 +287,23 @@ mod tests {
                 _ => false,
             };
             if matches {
-                data.insert(k.to_string(), value.to_vec());
+                data.insert(k.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, k: &str) -> anyhow::Result<()> {
+        async fn delete(&self, k: &ResourceKey) -> anyhow::Result<()> {
             self.data.lock().await.remove(k);
             Ok(())
         }
 
-        async fn list_keys(&self, p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|key| key.starts_with(p).then(|| key.clone()))
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)

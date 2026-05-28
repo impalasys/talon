@@ -207,6 +207,7 @@ mod tests {
     use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent},
+        keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
@@ -260,55 +261,51 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: AsyncMutex<HashMap<String, Vec<u8>>>,
+        data: AsyncMutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             Ok(self.data.lock().await.get(key).cloned())
         }
 
-        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
-            self.data
-                .lock()
-                .await
-                .insert(key.to_string(), value.to_vec());
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
+            self.data.lock().await.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            key: &str,
+            key: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut data = self.data.lock().await;
-            let full_key = key.to_string();
-            let current = data.get(&full_key).cloned();
+            let current = data.get(key).cloned();
             let matches = match (current.as_deref(), expected) {
                 (None, None) => true,
                 (Some(current), Some(expected)) => current == expected,
                 _ => false,
             };
             if matches {
-                data.insert(full_key, value.to_vec());
+                data.insert(key.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, key: &str) -> anyhow::Result<()> {
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
             self.data.lock().await.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let mut keys = self
                 .data
                 .lock()
                 .await
                 .keys()
-                .filter_map(|key| key.starts_with(prefix).then(|| key.clone()))
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
@@ -626,7 +623,7 @@ mod tests {
             crate::control::keys::session_message_prefix("conic:test", "assistant", "session-1");
         let mut reply = None;
         for key in message_keys {
-            if key.strip_prefix(&prefix).unwrap_or(&key).contains('/') {
+            if !prefix.matches(&key) {
                 continue;
             }
             if let Some(message) = kv.get_msg::<models::SessionMessage>(&key).await.unwrap() {

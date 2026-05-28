@@ -31,7 +31,11 @@ use std::{
 };
 
 use crate::{
-    control::{events, keys, ProtoKeyValueStoreExt},
+    control::{
+        events,
+        keys::{self, ResourceKey},
+        ProtoKeyValueStoreExt,
+    },
     gateway::rpc::{manifests, models},
     scheduling,
 };
@@ -149,7 +153,7 @@ impl TalonOpsServer {
         &self.handler.cp.kv
     }
 
-    async fn load_messages<M>(&self, keys: Vec<String>, concurrency: usize) -> Result<Vec<M>>
+    async fn load_messages<M>(&self, keys: Vec<ResourceKey>, concurrency: usize) -> Result<Vec<M>>
     where
         M: prost::Message + Default + Send + 'static,
     {
@@ -238,14 +242,23 @@ impl TalonOpsServer {
         agent: &str,
         session_id: &str,
     ) -> Result<Vec<events::SessionStepEvent>> {
-        let prefix =
-            keys::recursive_prefix(namespace, &[("Agent", agent), ("Session", session_id)]);
-        let mut keys = self.kv().list_keys(&prefix).await?;
-        keys.sort();
-        let step_keys = keys
-            .into_iter()
-            .filter(|key| key.contains("/@/SessionStep/"))
-            .collect::<Vec<_>>();
+        let message_prefix = keys::session_message_prefix(namespace, agent, session_id);
+        let mut message_keys = self.kv().list_keys(&message_prefix).await?;
+        message_keys.sort();
+        let mut step_keys = Vec::new();
+        for message_key in message_keys {
+            let mut keys = self
+                .kv()
+                .list_keys(&keys::session_message_step_prefix(
+                    namespace,
+                    agent,
+                    session_id,
+                    &message_key.name,
+                ))
+                .await?;
+            step_keys.append(&mut keys);
+        }
+        step_keys.sort();
         self.load_messages::<events::SessionStepEvent>(step_keys, 64)
             .await
     }
@@ -1438,8 +1451,9 @@ mod tests {
     };
     use crate::config::Config;
     use crate::control::{
-        keys, scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
-        ProtoKeyValueStoreExt,
+        keys::{self, ResourceKey, ResourceList},
+        scheduler::NoopSchedulerBackend,
+        ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{manifests, models};
     use crate::worker::{
@@ -1463,51 +1477,51 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        entries: Arc<tokio::sync::RwLock<HashMap<String, Vec<u8>>>>,
+        entries: Arc<tokio::sync::RwLock<HashMap<ResourceKey, Vec<u8>>>>,
     }
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             Ok(self.entries.read().await.get(key).cloned())
         }
 
-        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
             self.entries
                 .write()
                 .await
-                .insert(key.to_string(), value.to_vec());
+                .insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            key: &str,
+            key: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
             let mut entries = self.entries.write().await;
             let current = entries.get(key).cloned();
             if current.as_deref() == expected {
-                entries.insert(key.to_string(), value.to_vec());
+                entries.insert(key.clone(), value.to_vec());
                 Ok(true)
             } else {
                 Ok(false)
             }
         }
 
-        async fn delete(&self, key: &str) -> anyhow::Result<()> {
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
             self.entries.write().await.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(self
                 .entries
                 .read()
                 .await
                 .keys()
-                .filter(|key| key.starts_with(prefix))
+                .filter(|key| list.matches(key))
                 .cloned()
                 .collect())
         }

@@ -1,10 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::gateway::rpc::manifests;
 use crate::llm::provider::{
     ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
 };
-use crate::gateway::rpc::manifests;
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -82,10 +82,7 @@ impl LlmProvider for AnthropicProvider {
         Err(anyhow!("Anthropic does not natively support embeddings. Use an OpenAI-compatible provider for embeddings."))
     }
 
-    async fn chat_completion(
-        &self,
-        request: ChatRequest,
-    ) -> Result<ChatResponse> {
+    async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse> {
         // TODO: Translate OpenAI-format tool definitions to Anthropic's tool schema
         // and include them in the payload when _tools is non-empty.
         let url = self.messages_url();
@@ -238,18 +235,16 @@ impl LlmProvider for AnthropicProvider {
     }
 
     async fn completion(&self, prompt: &str) -> Result<String> {
-        self.chat_completion(
-            ChatRequest {
-                messages: vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: prompt.to_string(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
-                tools: vec![],
-                thinking: None,
-            },
-        )
+        self.chat_completion(ChatRequest {
+            messages: vec![ChatMessage {
+                role: "user".to_string(),
+                content: prompt.to_string(),
+                tool_calls: None,
+                tool_call_id: None,
+            }],
+            tools: vec![],
+            thinking: None,
+        })
         .await
         .map(|r| r.content)
     }
@@ -288,8 +283,8 @@ fn extract_usage(result: &serde_json::Value) -> Option<ChatUsage> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{routing::post, Json, Router};
     use crate::gateway::rpc::manifests::ThinkingConfig;
+    use axum::{routing::post, Json, Router};
     use serde_json::json;
     use tokio::net::TcpListener;
 

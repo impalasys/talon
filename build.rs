@@ -34,9 +34,7 @@ fn main() -> std::io::Result<()> {
         ".talon.models.Session",
         ".talon.models.SessionMessage",
     ];
-    let serde_derive_only_types = [
-        ".talon.manifests.PromptDelta",
-    ];
+    let serde_derive_only_types = [".talon.manifests.PromptDelta"];
 
     let mut builder = tonic_build::configure();
     for t in &serde_default_types {

@@ -5,7 +5,7 @@
 mod tests {
     use crate::control::{
         events::{SessionStepEvent, StepType},
-        keys,
+        keys::{self, ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
@@ -47,38 +47,38 @@ mod tests {
 
     #[derive(Default)]
     struct FailingKvStore {
-        data: Mutex<HashMap<String, Vec<u8>>>,
-        fail_list_prefix: Option<String>,
-        fail_get_key: Option<String>,
+        data: Mutex<HashMap<ResourceKey, Vec<u8>>>,
+        fail_list_prefix: Option<ResourceList>,
+        fail_get_key: Option<ResourceKey>,
         fail_set_prefix: Option<String>,
-        fail_delete_key: Option<String>,
-        extra_list_keys: Vec<String>,
+        fail_delete_key: Option<ResourceKey>,
+        extra_list_keys: Vec<ResourceKey>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for FailingKvStore {
-        async fn get(&self, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
-            if self.fail_get_key.as_deref() == Some(k) {
+        async fn get(&self, k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
+            if self.fail_get_key.as_ref() == Some(k) {
                 anyhow::bail!("get failed for {}", k);
             }
             Ok(self.data.lock().await.get(k).cloned())
         }
 
-        async fn set(&self, k: &str, v: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, k: &ResourceKey, v: &[u8]) -> anyhow::Result<()> {
             if self
                 .fail_set_prefix
                 .as_deref()
-                .is_some_and(|prefix| k.starts_with(prefix))
+                .is_some_and(|prefix| k.canonical().starts_with(prefix))
             {
                 anyhow::bail!("set failed for {}", k);
             }
-            self.data.lock().await.insert(k.to_string(), v.to_vec());
+            self.data.lock().await.insert(k.clone(), v.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            k: &str,
+            k: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
@@ -90,26 +90,26 @@ mod tests {
                 _ => false,
             };
             if matches {
-                data.insert(k.to_string(), value.to_vec());
+                data.insert(k.clone(), value.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, k: &str) -> anyhow::Result<()> {
-            if self.fail_delete_key.as_deref() == Some(k) {
+        async fn delete(&self, k: &ResourceKey) -> anyhow::Result<()> {
+            if self.fail_delete_key.as_ref() == Some(k) {
                 anyhow::bail!("delete failed for {}", k);
             }
             self.data.lock().await.remove(k);
             Ok(())
         }
 
-        async fn list_keys(&self, p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             if self
                 .fail_list_prefix
-                .as_deref()
-                .is_some_and(|prefix| p.starts_with(prefix))
+                .as_ref()
+                .is_some_and(|fail_list| fail_list == list)
             {
-                anyhow::bail!("list failed for {}", p);
+                anyhow::bail!("list failed for {}", list);
             }
 
             let mut keys = self
@@ -117,7 +117,7 @@ mod tests {
                 .lock()
                 .await
                 .keys()
-                .filter_map(|key| key.starts_with(p).then(|| key.clone()))
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.extend(self.extra_list_keys.iter().cloned());
             keys.sort();
@@ -126,12 +126,12 @@ mod tests {
 
         async fn list_keys_page(
             &self,
-            prefix: &str,
+            list: &ResourceList,
             before_key: Option<&str>,
             limit: usize,
-        ) -> anyhow::Result<Vec<String>> {
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(crate::control::page_keys_desc(
-                self.list_keys(prefix).await?,
+                self.list_keys(list).await?,
                 before_key,
                 limit,
             ))
@@ -139,12 +139,12 @@ mod tests {
 
         async fn list_entries_page(
             &self,
-            prefix: &str,
+            list: &ResourceList,
             before_key: Option<&str>,
             limit: usize,
-        ) -> anyhow::Result<Vec<(String, Vec<u8>)>> {
+        ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
             Ok(crate::control::page_entries_desc(
-                self.list_entries(prefix).await?,
+                self.list_entries(list).await?,
                 before_key,
                 limit,
             ))
@@ -293,7 +293,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_create_session_surfaces_save_failure() {
-        let session_key_prefix = keys::session_prefix("default", "test-agent");
+        let session_key_prefix = keys::session_prefix("default", "test-agent").canonical_prefix();
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::from([(
                 keys::agent("default", "test-agent"),
@@ -373,15 +373,6 @@ mod tests {
         .await
         .unwrap();
 
-        kv.set(
-            &format!(
-                "{}/nested",
-                keys::session_message(ns, agent, session_id, message_id)
-            ),
-            b"should-be-ignored",
-        )
-        .await
-        .unwrap();
         kv.set(
             &keys::session_message(ns, agent, session_id, "msg-invalid"),
             b"not-protobuf",
@@ -1390,10 +1381,9 @@ mod tests {
     async fn test_delete_session_surfaces_delete_and_publish_failures() {
         let kv = Arc::new(FailingKvStore {
             data: Mutex::new(HashMap::new()),
-            fail_list_prefix: Some(keys::recursive_prefix(
-                "default",
-                &[("Agent", "test-agent"), ("Session", "session-1")],
-            )),
+            fail_list_prefix: Some(
+                keys::session_parent("default", "test-agent", "session-1").list(None),
+            ),
             fail_get_key: None,
             fail_set_prefix: None,
             fail_delete_key: None,

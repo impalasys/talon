@@ -150,9 +150,8 @@ impl McpClient {
                 let result = service
                     .peer()
                     .call_tool(
-                        CallToolRequestParams::new(name.to_string()).with_arguments(
-                            arguments.unwrap_or_default(),
-                        ),
+                        CallToolRequestParams::new(name.to_string())
+                            .with_arguments(arguments.unwrap_or_default()),
                     )
                     .await?;
 

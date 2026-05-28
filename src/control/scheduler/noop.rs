@@ -38,6 +38,9 @@ mod tests {
             .await
             .expect("schedule should succeed");
         assert_eq!(wakeup, ScheduledWakeup::default());
-        backend.cancel("ignored-handle").await.expect("cancel should succeed");
+        backend
+            .cancel("ignored-handle")
+            .await
+            .expect("cancel should succeed");
     }
 }

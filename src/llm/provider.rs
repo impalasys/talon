@@ -84,10 +84,7 @@ pub trait LlmProvider: Send + Sync {
     /// `tools` should be structured as provider-agnostic `Tool` objects.
     /// The provider implementation is responsible for formatting these into
     /// the provider's specific tool/function schema format.
-    async fn chat_completion(
-        &self,
-        request: ChatRequest,
-    ) -> Result<ChatResponse>;
+    async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse>;
 
     async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream>;
     async fn completion(&self, prompt: &str) -> Result<String>;

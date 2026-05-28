@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use crate::control::events::{SessionStepEvent, StepType};
-use crate::control::{topics, KeyValueStore, MessagePublisher};
+use crate::control::{keys::ResourceKey, topics, KeyValueStore, MessagePublisher};
 use crate::core::context_budget::tool_result_preview;
 use crate::core::executor::{AgentEvent, ExecutionSink};
 use crate::gateway::rpc::models;
@@ -37,7 +37,7 @@ pub struct PubSubSessionSink {
     pub session_id: String,
     pub agent_id: String,
     pub reply_msg_id: String,
-    pub reply_msg_key: String,
+    pub reply_msg_key: ResourceKey,
     pub status_topic: String,
     token_publish_interval: Duration,
     started_at: Instant,
@@ -69,7 +69,7 @@ impl PubSubSessionSink {
         session_id: impl Into<String>,
         agent_id: impl Into<String>,
         reply_msg_id: impl Into<String>,
-        reply_msg_key: impl Into<String>,
+        reply_msg_key: ResourceKey,
     ) -> Self {
         Self::new_with_token_publish_interval(
             kv,
@@ -90,7 +90,7 @@ impl PubSubSessionSink {
         session_id: impl Into<String>,
         agent_id: impl Into<String>,
         reply_msg_id: impl Into<String>,
-        reply_msg_key: impl Into<String>,
+        reply_msg_key: ResourceKey,
         token_publish_interval: Duration,
     ) -> Self {
         let session_id = session_id.into();
@@ -102,7 +102,7 @@ impl PubSubSessionSink {
             session_id,
             agent_id: agent_id.into(),
             reply_msg_id: reply_msg_id.into(),
-            reply_msg_key: reply_msg_key.into(),
+            reply_msg_key,
             status_topic,
             token_publish_interval,
             started_at: Instant::now(),
@@ -502,6 +502,7 @@ fn token_publish_interval() -> Duration {
 mod tests {
     use super::{token_publish_interval, PubSubSessionSink};
     use crate::control::events::{SessionStepEvent, StepType};
+    use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::core::executor::ExecutionSink;
     use async_trait::async_trait;
@@ -516,12 +517,16 @@ mod tests {
         entries: Arc<Mutex<Vec<(String, Vec<u8>)>>>,
     }
 
+    fn reply_key() -> ResourceKey {
+        keys::session_message("conic", "infra", "session-1", "reply-1")
+    }
+
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, _k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, _k: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             Ok(None)
         }
-        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
             self.entries
                 .lock()
                 .await
@@ -530,24 +535,24 @@ mod tests {
         }
         async fn compare_and_swap(
             &self,
-            _k: &str,
+            _k: &ResourceKey,
             _expected: Option<&[u8]>,
             _value: &[u8],
         ) -> anyhow::Result<bool> {
             Ok(true)
         }
-        async fn delete(&self, _k: &str) -> anyhow::Result<()> {
+        async fn delete(&self, _k: &ResourceKey) -> anyhow::Result<()> {
             Ok(())
         }
-        async fn list_keys(&self, _p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, _list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
         async fn list_keys_page(
             &self,
-            _prefix: &str,
+            _list: &ResourceList,
             _before_key: Option<&str>,
             _limit: usize,
-        ) -> anyhow::Result<Vec<String>> {
+        ) -> anyhow::Result<Vec<ResourceKey>> {
             Ok(vec![])
         }
     }
@@ -586,7 +591,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_millis(5),
         );
 
@@ -618,7 +623,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_secs(10),
         );
 
@@ -647,7 +652,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_millis(5),
         );
 
@@ -687,7 +692,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_secs(10),
         );
         let raw_output = format!(
@@ -724,7 +729,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_secs(10),
         );
 
@@ -780,7 +785,7 @@ mod tests {
             "session-1",
             "infra",
             "reply-1",
-            "reply-key",
+            reply_key(),
             Duration::from_millis(1),
         );
 

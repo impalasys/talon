@@ -1832,23 +1832,23 @@ mod tests {
 
     #[derive(Default)]
     struct MockKvStore {
-        data: RwLock<HashMap<String, Vec<u8>>>,
+        data: RwLock<HashMap<keys::ResourceKey, Vec<u8>>>,
     }
 
     #[async_trait::async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, k: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, k: &keys::ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             Ok(self.data.read().await.get(k).cloned())
         }
 
-        async fn set(&self, k: &str, v: &[u8]) -> anyhow::Result<()> {
-            self.data.write().await.insert(k.to_string(), v.to_vec());
+        async fn set(&self, k: &keys::ResourceKey, v: &[u8]) -> anyhow::Result<()> {
+            self.data.write().await.insert(k.clone(), v.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            k: &str,
+            k: &keys::ResourceKey,
             old: Option<&[u8]>,
             new: &[u8],
         ) -> anyhow::Result<bool> {
@@ -1859,23 +1859,26 @@ mod tests {
                 _ => false,
             };
             if matches {
-                data.insert(k.to_string(), new.to_vec());
+                data.insert(k.clone(), new.to_vec());
             }
             Ok(matches)
         }
 
-        async fn delete(&self, k: &str) -> anyhow::Result<()> {
+        async fn delete(&self, k: &keys::ResourceKey) -> anyhow::Result<()> {
             self.data.write().await.remove(k);
             Ok(())
         }
 
-        async fn list_keys(&self, p: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(
+            &self,
+            list: &keys::ResourceList,
+        ) -> anyhow::Result<Vec<keys::ResourceKey>> {
             let mut keys = self
                 .data
                 .read()
                 .await
                 .keys()
-                .filter_map(|key| key.starts_with(p).then(|| key.clone()))
+                .filter_map(|key| list.matches(key).then(|| key.clone()))
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)

@@ -196,7 +196,9 @@ mod tests {
             path: PathBuf::from("/tmp/skills/summarize/SKILL.md"),
         }]);
 
-        let tool = registry.get_tool("summarize").expect("skill tool should exist");
+        let tool = registry
+            .get_tool("summarize")
+            .expect("skill tool should exist");
         assert_eq!(tool.description, "Summarize input");
         assert_eq!(tool.source, ToolSource::Skill("summarize".to_string()));
         assert_eq!(tool.input_schema["type"], "object");
@@ -225,12 +227,15 @@ mod tests {
 
         let provider_tools = registry.to_provider_tools();
         assert_eq!(provider_tools.len(), 3);
-        assert!(provider_tools.iter().any(|tool| tool.name == "builtin"
-            && tool.description == "builtin-desc"));
+        assert!(provider_tools
+            .iter()
+            .any(|tool| tool.name == "builtin" && tool.description == "builtin-desc"));
         assert!(provider_tools.iter().any(|tool| tool.name == "mcp_tool"
             && tool.input_schema["properties"]["q"]["type"] == "string"));
-        assert!(provider_tools.iter().any(|tool| tool.name == "skill_tool"
-            && tool.input_schema["required"] == json!(["input"])));
+        assert!(provider_tools
+            .iter()
+            .any(|tool| tool.name == "skill_tool"
+                && tool.input_schema["required"] == json!(["input"])));
     }
 
     #[test]

@@ -455,7 +455,10 @@ mod tests {
         execute_tool, KnowledgeBook, KnowledgeEntry, KvKnowledgeBook, KNOWLEDGE_GET_TOOL,
         KNOWLEDGE_LIST_TOOL, KNOWLEDGE_SEARCH_TOOL, KNOWLEDGE_WRITE_TOOL,
     };
-    use crate::control::KeyValueStore;
+    use crate::control::{
+        keys::{ResourceKey, ResourceList},
+        KeyValueStore,
+    };
     use async_trait::async_trait;
     use serde_json::json;
     use std::collections::HashMap;
@@ -463,7 +466,7 @@ mod tests {
     use tokio::sync::Mutex;
 
     struct MockKvStore {
-        store: Mutex<HashMap<String, Vec<u8>>>,
+        store: Mutex<HashMap<ResourceKey, Vec<u8>>>,
     }
 
     #[tokio::test]
@@ -538,20 +541,20 @@ mod tests {
 
     #[async_trait]
     impl KeyValueStore for MockKvStore {
-        async fn get(&self, key: &str) -> anyhow::Result<Option<Vec<u8>>> {
+        async fn get(&self, key: &ResourceKey) -> anyhow::Result<Option<Vec<u8>>> {
             let map = self.store.lock().await;
             Ok(map.get(key).cloned())
         }
 
-        async fn set(&self, key: &str, value: &[u8]) -> anyhow::Result<()> {
+        async fn set(&self, key: &ResourceKey, value: &[u8]) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
-            map.insert(key.to_string(), value.to_vec());
+            map.insert(key.clone(), value.to_vec());
             Ok(())
         }
 
         async fn compare_and_swap(
             &self,
-            key: &str,
+            key: &ResourceKey,
             expected: Option<&[u8]>,
             value: &[u8],
         ) -> anyhow::Result<bool> {
@@ -565,22 +568,22 @@ mod tests {
             if !matches {
                 return Ok(false);
             }
-            map.insert(key.to_string(), value.to_vec());
+            map.insert(key.clone(), value.to_vec());
             Ok(true)
         }
 
-        async fn delete(&self, key: &str) -> anyhow::Result<()> {
+        async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()> {
             let mut map = self.store.lock().await;
             map.remove(key);
             Ok(())
         }
 
-        async fn list_keys(&self, prefix: &str) -> anyhow::Result<Vec<String>> {
+        async fn list_keys(&self, list: &ResourceList) -> anyhow::Result<Vec<ResourceKey>> {
             let map = self.store.lock().await;
             let mut results = Vec::new();
             for key in map.keys() {
-                if key.starts_with(prefix) {
-                    results.push(key.to_string());
+                if list.matches(key) {
+                    results.push(key.clone());
                 }
             }
             Ok(results)
