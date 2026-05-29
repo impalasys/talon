@@ -989,7 +989,7 @@ async def sample_container_stats(
     container_name: str,
     samples: list[dict[str, Any]],
     stop_event: asyncio.Event,
-    interval_seconds: float = 1.0,
+    interval_seconds: float,
 ) -> None:
     while not stop_event.is_set():
         try:
@@ -1229,13 +1229,23 @@ async def run_profile(
         await wait_for_channel(grpc_target, timeout_seconds=90)
 
         stats_tasks.append(
-            asyncio.create_task(sample_container_stats(talon_container, stats_samples, stop_stats))
+            asyncio.create_task(
+                sample_container_stats(
+                    talon_container,
+                    stats_samples,
+                    stop_stats,
+                    args.stats_interval_seconds,
+                )
+            )
         )
         if postgres_container:
             stats_tasks.append(
                 asyncio.create_task(
                     sample_container_stats(
-                        postgres_container, postgres_stats_samples, stop_stats
+                        postgres_container,
+                        postgres_stats_samples,
+                        stop_stats,
+                        args.stats_interval_seconds,
                     )
                 )
             )
@@ -1528,6 +1538,7 @@ async def amain() -> None:
     parser.add_argument("--jaeger-trace-limit", type=int, default=200)
     parser.add_argument("--worker-warmup-seconds", type=float, default=3.0)
     parser.add_argument("--progress-interval-seconds", type=float, default=5.0)
+    parser.add_argument("--stats-interval-seconds", type=float, default=2.0)
     parser.add_argument("--image-tag", default="talon-bench-runtime:latest")
     parser.add_argument("--dockerfile", default="bench/runtime.Dockerfile")
     parser.add_argument("--project-name")
@@ -1559,6 +1570,8 @@ async def amain() -> None:
         raise ValueError("--mock-request-backlog must be greater than 0")
     if args.local_socket_buffer_size <= 0:
         raise ValueError("--local-socket-buffer-size must be greater than 0")
+    if args.stats_interval_seconds <= 0:
+        raise ValueError("--stats-interval-seconds must be greater than 0")
     if args.send_concurrency is None:
         args.send_concurrency = args.agents
     if args.send_concurrency <= 0:

@@ -8,10 +8,13 @@ use crate::llm::provider::{
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use futures::{stream, StreamExt};
+use futures::{stream, Stream, StreamExt};
 use serde_json::Value;
-use std::sync::OnceLock;
-use tracing::Instrument;
+use std::{
+    pin::Pin,
+    sync::OnceLock,
+    task::{Context, Poll},
+};
 
 const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
 const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
@@ -630,15 +633,10 @@ impl LlmProvider for OpenAiCompatibleProvider {
             Err(e) => stream::iter(vec![Err(e)]),
         });
 
-        let stream_span = parent_span.clone();
-        let instrumented_stream = async_stream::stream! {
-            let mut sse_stream = Box::pin(sse_stream);
-            while let Some(item) = sse_stream.next().instrument(stream_span.clone()).await {
-                yield item;
-            }
-        };
-
-        Ok(Box::pin(instrumented_stream))
+        Ok(Box::pin(SpanInstrumentedChatStream {
+            inner: Box::pin(sse_stream),
+            span: parent_span,
+        }))
     }
 
     async fn completion(&self, prompt: &str) -> Result<String> {
@@ -654,6 +652,21 @@ impl LlmProvider for OpenAiCompatibleProvider {
         })
         .await
         .map(|r| r.content)
+    }
+}
+
+struct SpanInstrumentedChatStream {
+    inner: ChatStream,
+    span: tracing::Span,
+}
+
+impl Stream for SpanInstrumentedChatStream {
+    type Item = Result<ChatStreamEvent>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+        let _entered = this.span.enter();
+        this.inner.as_mut().poll_next(cx)
     }
 }
 
