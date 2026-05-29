@@ -356,35 +356,40 @@ impl KeyValueStore for PostgresKvStore {
             rows_returned = field::Empty,
             value_bytes = field::Empty,
         );
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::debug_span!(
-            parent: &span,
-            "PostgresKvStore.query",
-            query_elapsed_us = field::Empty,
-            rows_returned = field::Empty,
-            value_bytes = field::Empty,
-        );
-        let query_started_at = Instant::now();
-        let row = sqlx::query(&query)
-            .bind(&key.namespace)
-            .bind(&key.parent_path)
-            .bind(&key.kind)
-            .bind(&key.name)
-            .fetch_optional(&mut *conn)
-            .instrument(query_span.clone())
-            .await?;
-        record_query_elapsed(&query_span, &span, query_started_at);
+        let span_for_body = span.clone();
+        async move {
+            let mut conn = acquire_connection(&self.pool, self.settings, &span_for_body).await?;
+            let query_span = tracing::debug_span!(
+                parent: &span_for_body,
+                "PostgresKvStore.query",
+                query_elapsed_us = field::Empty,
+                rows_returned = field::Empty,
+                value_bytes = field::Empty,
+            );
+            let query_started_at = Instant::now();
+            let row = sqlx::query(&query)
+                .bind(&key.namespace)
+                .bind(&key.parent_path)
+                .bind(&key.kind)
+                .bind(&key.name)
+                .fetch_optional(&mut *conn)
+                .instrument(query_span.clone())
+                .await?;
+            record_query_elapsed(&query_span, &span_for_body, query_started_at);
 
-        if let Some(row) = row {
-            let value: Vec<u8> = row.try_get("value")?;
-            query_span.record("value_bytes", value.len() as u64);
-            span.record("value_bytes", value.len() as u64);
-            record_rows(&query_span, &span, 1);
-            Ok(Some(value))
-        } else {
-            record_rows(&query_span, &span, 0);
-            Ok(None)
+            if let Some(row) = row {
+                let value: Vec<u8> = row.try_get("value")?;
+                query_span.record("value_bytes", value.len() as u64);
+                span_for_body.record("value_bytes", value.len() as u64);
+                record_rows(&query_span, &span_for_body, 1);
+                Ok(Some(value))
+            } else {
+                record_rows(&query_span, &span_for_body, 0);
+                Ok(None)
+            }
         }
+        .instrument(span)
+        .await
     }
 
     async fn set(&self, key: &ResourceKey, value: &[u8]) -> Result<()> {

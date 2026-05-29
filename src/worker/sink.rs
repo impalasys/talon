@@ -386,7 +386,9 @@ impl PubSubSessionSink {
                 }
                 .instrument(span),
             );
-            self.pending_partial_flushes.lock().unwrap().push(handle);
+            let mut pending = self.pending_partial_flushes.lock().unwrap();
+            pending.retain(|handle| !handle.is_finished());
+            pending.push(handle);
         }
     }
 

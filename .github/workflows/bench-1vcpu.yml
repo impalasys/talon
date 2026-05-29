@@ -81,6 +81,7 @@ jobs:
             --latencies 0 \
             --memory "${BENCH_MEMORY}" \
             --timeout-seconds "${BENCH_TIMEOUT_SECONDS}" \
+            --send-concurrency "${BENCH_AGENTS}" \
             --stream-mode batch \
             --mock-cpus 4 \
             --mock-memory 2g \

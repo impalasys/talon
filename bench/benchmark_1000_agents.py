@@ -651,6 +651,7 @@ async def run_workload(
     grpc_target: str,
     agents: int,
     provision_concurrency: int,
+    send_concurrency: int,
     send_timeout_seconds: float,
     worker_warmup_seconds: float,
     progress_interval_seconds: float,
@@ -721,18 +722,19 @@ async def run_workload(
             await asyncio.sleep(1.0)
 
             workload_started = time.perf_counter()
-            await asyncio.gather(
-                *(
-                    send_message(
+            send_sem = asyncio.Semaphore(send_concurrency)
+
+            async def send_with_sem(index: int) -> None:
+                async with send_sem:
+                    await send_message(
                         stub,
                         ns,
                         agent_names[index],
                         session_ids[index],
                         timings[index],
                     )
-                    for index in range(agents)
-                )
-            )
+
+            await asyncio.gather(*(send_with_sem(index) for index in range(agents)))
 
             async def print_progress() -> None:
                 completed = sum(1 for timing in timings if timing.completed is not None)
@@ -1241,6 +1243,7 @@ async def run_profile(
             grpc_target=grpc_target,
             agents=args.agents,
             provision_concurrency=args.provision_concurrency,
+            send_concurrency=args.send_concurrency,
             send_timeout_seconds=args.timeout_seconds,
             worker_warmup_seconds=args.worker_warmup_seconds,
             progress_interval_seconds=args.progress_interval_seconds,
@@ -1348,6 +1351,13 @@ async def run_profile(
             "trace_summary": db_trace_summary if args.database == "sqlite" else None,
         },
         "total_seconds": finished_at - started_at,
+        "workload_config": {
+            "agents": args.agents,
+            "provision_concurrency": args.provision_concurrency,
+            "send_concurrency": args.send_concurrency,
+            "worker_concurrency": args.worker_concurrency,
+            "stream_mode": args.stream_mode,
+        },
         "cpu_profile": {
             "enabled": args.cpu_profile,
             "path": str(cpu_profile_host_path) if cpu_profile_host_path.exists() else None,
@@ -1494,6 +1504,12 @@ async def amain() -> None:
     parser.add_argument("--mock-memory", default=None)
     parser.add_argument("--timeout-seconds", type=float, default=900)
     parser.add_argument("--provision-concurrency", type=int, default=100)
+    parser.add_argument(
+        "--send-concurrency",
+        type=int,
+        default=None,
+        help="Maximum concurrent SendMessage RPCs. Defaults to --agents.",
+    )
     parser.add_argument("--worker-concurrency", type=int, default=1000)
     parser.add_argument("--local-socket-buffer-size", type=int, default=10000)
     parser.add_argument(
@@ -1543,6 +1559,10 @@ async def amain() -> None:
         raise ValueError("--mock-request-backlog must be greater than 0")
     if args.local_socket_buffer_size <= 0:
         raise ValueError("--local-socket-buffer-size must be greater than 0")
+    if args.send_concurrency is None:
+        args.send_concurrency = args.agents
+    if args.send_concurrency <= 0:
+        raise ValueError("--send-concurrency must be greater than 0")
     if args.mock_cpus is not None and args.mock_cpus <= 0:
         raise ValueError("--mock-cpus must be greater than 0")
     if args.postgres_max_connections <= 0:
