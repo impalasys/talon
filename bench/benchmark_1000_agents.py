@@ -1427,8 +1427,18 @@ async def run_profile(
 
 
 def write_summary(output_dir: Path, results: list[dict[str, Any]]) -> None:
+    agent_counts = {
+        ((result.get("workload") or {}).get("agents") or (result.get("workload_config") or {}).get("agents"))
+        for result in results
+    }
+    agent_counts.discard(None)
+    agents_title = (
+        f"{next(iter(agent_counts))}-Agent"
+        if len(agent_counts) == 1
+        else "Multi-Agent"
+    )
     lines = [
-        "# Talon 1000-Agent Benchmark",
+        f"# Talon {agents_title} Benchmark",
         "",
         "| LLM latency | Success | Errors | Timeouts | Workload seconds | Completed/sec | p95 send-to-done | Peak memory | OOM |",
         "| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |",
