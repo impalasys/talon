@@ -416,28 +416,26 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
             "Starting concurrent local socket dispatch"
         );
         let dispatch_event_type = event_type.clone();
-        let dispatch = stream.for_each_concurrent(concurrency, move |payload| {
-            let handler = handler.clone();
-            let event_type = dispatch_event_type.clone();
-            let span = tracing::info_span!(
-                "LocalSocketPullSubscriptionBackend.dispatch",
-                event_type = %event_type,
-                "broker.driver" = "local_socket",
-                "worker.session_concurrency" = concurrency,
-                payload_bytes = payload.len(),
-            );
-            async move {
-                if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
-                    tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
+        stream
+            .take_until(cancellation_token.cancelled())
+            .for_each_concurrent(concurrency, move |payload| {
+                let handler = handler.clone();
+                let event_type = dispatch_event_type.clone();
+                let span = tracing::info_span!(
+                    "LocalSocketPullSubscriptionBackend.dispatch",
+                    event_type = %event_type,
+                    "broker.driver" = "local_socket",
+                    "worker.session_concurrency" = concurrency,
+                    payload_bytes = payload.len(),
+                );
+                async move {
+                    if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
+                        tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
+                    }
                 }
-            }
-            .instrument(span)
-        });
-
-        tokio::select! {
-            _ = cancellation_token.cancelled() => {}
-            _ = dispatch => {}
-        };
+                .instrument(span)
+            })
+            .await;
         Ok(())
     }
 }

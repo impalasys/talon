@@ -165,23 +165,7 @@ impl PubSubSessionSink {
             } else if reply.starts_with(accumulated.as_str()) {
                 self.text_since_last_durable_part(reply)
             } else {
-                let common_len = common_prefix_byte_len(reply, accumulated.as_str());
-                let mut current_text_len = 0usize;
-                for part in parts.iter_mut() {
-                    if part.part_type == models::SessionMessagePartType::Text as i32 {
-                        let part_len = part.content.len();
-                        if current_text_len + part_len > common_len {
-                            let keep_len = common_len.saturating_sub(current_text_len);
-                            part.content.truncate(keep_len);
-                        }
-                        current_text_len += part.content.len();
-                    }
-                }
-                parts.retain(|part| {
-                    part.part_type != models::SessionMessagePartType::Text as i32
-                        || !part.content.is_empty()
-                });
-                reply[common_len..].to_string()
+                reply.to_string()
             }
         };
         if !text.is_empty() {
@@ -221,12 +205,11 @@ impl PubSubSessionSink {
 
     fn record_accumulated_text_part(&self) {
         let pending_text = {
-            let mut accumulated = self.accumulated.lock().unwrap();
+            let accumulated = self.accumulated.lock().unwrap();
             let mut durable_bytes = self.durable_text_bytes.lock().unwrap();
             let start = (*durable_bytes).min(accumulated.len());
             let pending_text = accumulated[start..].to_string();
-            accumulated.clear();
-            *durable_bytes = 0;
+            *durable_bytes = accumulated.len();
             pending_text
         };
         if !pending_text.is_empty() {
@@ -607,18 +590,6 @@ fn token_publish_interval() -> Duration {
         .unwrap_or_else(|| Duration::from_millis(250))
 }
 
-fn common_prefix_byte_len(left: &str, right: &str) -> usize {
-    let mut len = 0;
-    for ((left_index, left_char), (_, right_char)) in left.char_indices().zip(right.char_indices())
-    {
-        if left_char != right_char {
-            break;
-        }
-        len = left_index + left_char.len_utf8();
-    }
-    len
-}
-
 #[cfg(test)]
 mod tests {
     use super::{token_publish_interval, PubSubSessionSink};
@@ -773,7 +744,7 @@ mod tests {
         );
         assert_eq!(event_part(&events[1]).name, "create_prompt");
 
-        sink.on_done("final").await;
+        sink.on_done("drafting requestfinal").await;
         let entries = kv.entries.lock().await.clone();
         let reply = entries
             .iter()
