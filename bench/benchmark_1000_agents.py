@@ -138,10 +138,16 @@ def wait_for_port(host: str, port: int, timeout_seconds: float = 60.0) -> None:
 async def wait_for_file(path: Path, timeout_seconds: float) -> bool:
     deadline = time.perf_counter() + timeout_seconds
     while time.perf_counter() < deadline:
-        if path.exists() and path.stat().st_size > 0:
-            return True
+        try:
+            if path.stat().st_size > 0:
+                return True
+        except OSError:
+            pass
         await asyncio.sleep(0.5)
-    return path.exists() and path.stat().st_size > 0
+    try:
+        return path.stat().st_size > 0
+    except OSError:
+        return False
 
 
 def write_talon_config(path: Path, database: str) -> None:

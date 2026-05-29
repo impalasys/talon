@@ -410,28 +410,32 @@ impl KeyValueStore for PostgresKvStore {
             rows_affected = field::Empty,
             value_bytes = value.len(),
         );
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::debug_span!(
-            parent: &span,
-            "PostgresKvStore.query",
-            query_elapsed_us = field::Empty,
-            rows_affected = field::Empty,
-        );
-        let query_started_at = Instant::now();
-        let result = sqlx::query(&query)
-            .bind(&key.namespace)
-            .bind(&key.parent_path)
-            .bind(&key.kind)
-            .bind(&key.name)
-            .bind(value)
-            .execute(&mut *conn)
-            .instrument(query_span.clone())
-            .instrument(span.clone())
-            .await?;
-        record_query_elapsed(&query_span, &span, query_started_at);
-        query_span.record("rows_affected", result.rows_affected());
-        span.record("rows_affected", result.rows_affected());
-        Ok(())
+        let span_for_body = span.clone();
+        async move {
+            let mut conn = acquire_connection(&self.pool, self.settings, &span_for_body).await?;
+            let query_span = tracing::debug_span!(
+                parent: &span_for_body,
+                "PostgresKvStore.query",
+                query_elapsed_us = field::Empty,
+                rows_affected = field::Empty,
+            );
+            let query_started_at = Instant::now();
+            let result = sqlx::query(&query)
+                .bind(&key.namespace)
+                .bind(&key.parent_path)
+                .bind(&key.kind)
+                .bind(&key.name)
+                .bind(value)
+                .execute(&mut *conn)
+                .instrument(query_span.clone())
+                .await?;
+            record_query_elapsed(&query_span, &span_for_body, query_started_at);
+            query_span.record("rows_affected", result.rows_affected());
+            span_for_body.record("rows_affected", result.rows_affected());
+            Ok(())
+        }
+        .instrument(span)
+        .await
     }
 
     async fn compare_and_swap(

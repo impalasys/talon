@@ -158,7 +158,7 @@ async def handle_connection(
     response_tokens: int,
     counters: Counters,
 ) -> None:
-    latency_seconds = latency_ms / 1000.0
+    latency_seconds = max(0.0, latency_ms / 1000.0)
     token_interval_seconds = 1.0 / tokens_per_second if tokens_per_second > 0 else 0.0
 
     try:
