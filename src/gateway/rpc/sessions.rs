@@ -8,6 +8,7 @@ use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
 use crate::gateway::session_streams::SessionStreamTarget;
 use crate::scheduling;
 use prost::Message;
+use std::sync::OnceLock;
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;
@@ -51,11 +52,15 @@ fn validated_page_size(page_size: i32) -> std::result::Result<usize, tonic::Stat
 }
 
 fn stream_session_batch_max() -> usize {
-    std::env::var("TALON_STREAM_SESSION_PARTS_BATCH_MAX")
-        .ok()
-        .and_then(|value| value.parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(DEFAULT_SESSION_STREAM_BATCH_MAX)
+    static CACHE: OnceLock<usize> = OnceLock::new();
+
+    *CACHE.get_or_init(|| {
+        std::env::var("TALON_STREAM_SESSION_PARTS_BATCH_MAX")
+            .ok()
+            .and_then(|value| value.parse::<usize>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(DEFAULT_SESSION_STREAM_BATCH_MAX)
+    })
 }
 
 fn parse_session_stream_target(
