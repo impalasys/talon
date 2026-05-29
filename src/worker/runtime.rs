@@ -56,10 +56,10 @@ impl AgentRuntime {
         let mut history = Vec::new();
         for (_, value) in msg_entries {
             if let Ok(msg) = models::SessionMessage::decode(value.as_slice()) {
-                let role = match msg.role {
-                    1 => "user",
-                    2 => "assistant",
-                    3 => "system",
+                let role = match models::MessageRole::try_from(msg.role) {
+                    Ok(models::MessageRole::RoleUser) => "user",
+                    Ok(models::MessageRole::RoleAssistant) => "assistant",
+                    Ok(models::MessageRole::RoleSystem) => "system",
                     _ => "user",
                 };
 

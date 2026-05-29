@@ -134,10 +134,13 @@ async def read_http_request(
     try:
         content_length = int(headers.get("content-length", "0") or "0")
     except ValueError:
-        content_length = 0
+        return None
     body = b""
     if content_length > 0:
-        body = await reader.readexactly(content_length)
+        try:
+            body = await reader.readexactly(content_length)
+        except asyncio.IncompleteReadError:
+            return None
 
     return method, target, headers, body
 

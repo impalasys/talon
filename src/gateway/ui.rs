@@ -189,7 +189,7 @@ fn latest_assistant_message_text(response: &proto::SessionResponse) -> Option<St
         .messages
         .iter()
         .rev()
-        .filter(|message| message.role == 2)
+        .filter(|message| message.role == models::MessageRole::RoleAssistant as i32)
         .find_map(|message| {
             let text = message
                 .parts
@@ -412,7 +412,9 @@ pub async fn post_chat(
                             .messages
                             .iter()
                             .rev()
-                            .find(|message| message.role == 2)
+                            .find(|message| {
+                                message.role == models::MessageRole::RoleAssistant as i32
+                            })
                             .map(|message| message.id.clone())
                             .unwrap_or_else(|| Uuid::now_v7().to_string());
                         yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));

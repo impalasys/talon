@@ -1234,7 +1234,11 @@ async def run_profile(
             stats_samples=stats_samples,
             stream_mode=args.stream_mode,
         )
-        mock_metrics = fetch_json(mock_metrics_url)
+        try:
+            mock_metrics = fetch_json(mock_metrics_url)
+        except Exception as exc:
+            print(f"warning: failed to fetch mock LLM metrics: {exc}", flush=True)
+            mock_metrics = {}
         if jaeger_url and args.jaeger_trace_limit > 0:
             try:
                 db_trace_summary = summarize_jaeger_db_spans(

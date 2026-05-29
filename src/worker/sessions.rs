@@ -114,7 +114,7 @@ impl WorkerEventHandler {
                         &reply_msg_key,
                         &models::SessionMessage {
                             id: reply_msg_id.clone(),
-                            role: 2, // ASSISTANT
+                            role: models::MessageRole::RoleAssistant as i32,
                             created_at: chrono::Utc::now().timestamp_micros(),
                             labels: std::collections::HashMap::new(),
                             parts: Vec::new(),

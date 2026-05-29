@@ -291,49 +291,45 @@ impl PubSubSessionSink {
             .await;
     }
 
-    fn maybe_flush_kv(&self, current_text: String) {
+    async fn maybe_flush_kv(&self, current_text: String) {
         let should_flush = {
             let last = self.last_flush.lock().unwrap();
             last.elapsed().as_millis() > 1000
         };
         if should_flush {
             *self.last_flush.lock().unwrap() = Instant::now();
-            let kv = self.kv.clone();
-            let key = self.reply_msg_key.clone();
-            let msg_id = self.reply_msg_id.clone();
-            let ns = self.ns.clone();
-            let agent = self.agent_id.clone();
-            let session = self.session_id.clone();
-            tokio::spawn(
-                async move {
-                    let partial = models::SessionMessage {
-                        id: msg_id,
-                        role: 2, // ASSISTANT
-                        created_at: chrono::Utc::now().timestamp_micros(),
-                        labels: std::collections::HashMap::new(),
-                        parts: vec![models::SessionMessagePart {
-                            id: "000000".to_string(),
-                            part_type: models::SessionMessagePartType::Text as i32,
-                            content: current_text,
-                            name: String::new(),
-                            payload_json: String::new(),
-                            created_at: chrono::Utc::now().timestamp_micros(),
-                        }],
-                    };
-                    if let Err(e) =
-                        crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &key, &partial)
-                            .await
-                    {
-                        tracing::error!("Failed to persist partial message: {}", e);
-                    }
-                }
-                .instrument(tracing::info_span!(
-                    "PubSubSessionSink.persist_partial_message",
-                    namespace = %ns,
-                    agent = %agent,
-                    session = %session,
-                )),
-            );
+            let partial = models::SessionMessage {
+                id: self.reply_msg_id.clone(),
+                role: models::MessageRole::RoleAssistant as i32,
+                created_at: chrono::Utc::now().timestamp_micros(),
+                labels: std::collections::HashMap::new(),
+                parts: vec![models::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: models::SessionMessagePartType::Text as i32,
+                    content: current_text,
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: chrono::Utc::now().timestamp_micros(),
+                }],
+            };
+            if let Err(e) = async {
+                crate::control::ProtoKeyValueStoreExt::set_msg(
+                    self.kv.as_ref(),
+                    &self.reply_msg_key,
+                    &partial,
+                )
+                .await
+            }
+            .instrument(tracing::info_span!(
+                "PubSubSessionSink.persist_partial_message",
+                namespace = %self.ns,
+                agent = %self.agent_id,
+                session = %self.session_id,
+            ))
+            .await
+            {
+                tracing::error!("Failed to persist partial message: {}", e);
+            }
         }
     }
 
@@ -377,7 +373,7 @@ impl ExecutionSink for PubSubSessionSink {
             .lock()
             .unwrap()
             .push_str(token);
-        self.maybe_flush_kv(current_text);
+        self.maybe_flush_kv(current_text).await;
         if self.should_flush_token_event() {
             self.flush_token_event_buffer().await;
         }
@@ -460,7 +456,7 @@ impl ExecutionSink for PubSubSessionSink {
         let reply_for_event = reply.clone();
         let msg = models::SessionMessage {
             id: self.reply_msg_id.clone(),
-            role: 2,
+            role: models::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: std::collections::HashMap::new(),
             parts: self.final_message_parts(&reply),
@@ -504,7 +500,7 @@ impl ExecutionSink for PubSubSessionSink {
         );
         let msg = models::SessionMessage {
             id: self.reply_msg_id.clone(),
-            role: 2,
+            role: models::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: std::collections::HashMap::new(),
             parts: self.final_message_parts(&visible_content),
