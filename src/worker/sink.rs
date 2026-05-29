@@ -306,11 +306,15 @@ impl PubSubSessionSink {
 
     async fn maybe_flush_kv(&self, current_text: String) {
         let should_flush = {
-            let last = self.last_flush.lock().unwrap();
-            last.elapsed().as_millis() > 1000
+            let mut last = self.last_flush.lock().unwrap();
+            if last.elapsed().as_millis() > 1000 {
+                *last = Instant::now();
+                true
+            } else {
+                false
+            }
         };
         if should_flush {
-            *self.last_flush.lock().unwrap() = Instant::now();
             let partial = models::SessionMessage {
                 id: self.reply_msg_id.clone(),
                 role: models::MessageRole::RoleAssistant as i32,

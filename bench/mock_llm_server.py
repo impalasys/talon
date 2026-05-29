@@ -17,6 +17,8 @@ from typing import Any
 from urllib.parse import urlparse
 from uuid import uuid4
 
+MAX_REQUEST_BODY_BYTES = 10 * 1024 * 1024
+
 
 class Counters:
     def __init__(self) -> None:
@@ -133,6 +135,8 @@ async def read_http_request(
 
     try:
         content_length = int(headers.get("content-length", "0") or "0")
+        if content_length > MAX_REQUEST_BODY_BYTES:
+            return None
     except ValueError:
         return None
     body = b""

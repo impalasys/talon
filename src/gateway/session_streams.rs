@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
-use tokio::sync::{mpsc, Mutex, Notify, OnceCell};
+use tokio::sync::{mpsc, Notify, OnceCell};
 
 use crate::control::{events::SessionMessagePartEvent, keys, topics, MessagePublisher};
 
@@ -104,14 +104,9 @@ impl Drop for SessionStreamReceiver {
         let Some(tx) = cleanup.tx.upgrade() else {
             return;
         };
-        let Ok(handle) = tokio::runtime::Handle::try_current() else {
-            return;
-        };
-        handle.spawn(async move {
-            for (state, listener_key) in cleanup.listeners {
-                remove_listener(&state, &listener_key, &tx).await;
-            }
-        });
+        for (state, listener_key) in cleanup.listeners {
+            remove_listener(&state, &listener_key, &tx);
+        }
     }
 }
 
@@ -182,7 +177,7 @@ impl SessionStreamHub {
                 .get(&shard)
                 .expect("state should exist for grouped shard")
                 .clone();
-            let mut guard = state.state.lock().await;
+            let mut guard = state.state.lock().unwrap();
             for listener_key in listener_keys {
                 guard
                     .listeners
@@ -199,7 +194,7 @@ impl SessionStreamHub {
         for (shard, state) in shards_to_ensure {
             if let Err(err) = self.ensure_shard_task(shard, state.clone()).await {
                 for (state, listener_key) in inserted {
-                    remove_listener(&state, &listener_key, &tx).await;
+                    remove_listener(&state, &listener_key, &tx);
                 }
                 return Err(err);
             }
@@ -218,7 +213,7 @@ impl SessionStreamHub {
         let topic = topics::session_part_topic_for_shard(shard as u32);
         loop {
             let should_subscribe = {
-                let mut guard = state.state.lock().await;
+                let mut guard = state.state.lock().unwrap();
                 match guard.lifecycle {
                     ShardLifecycle::Started => return Ok(()),
                     ShardLifecycle::Initializing => false,
@@ -237,7 +232,7 @@ impl SessionStreamHub {
             let mut stream = match self.pubsub.subscribe(&topic).await {
                 Ok(stream) => stream,
                 Err(err) => {
-                    let mut guard = state.state.lock().await;
+                    let mut guard = state.state.lock().unwrap();
                     guard.lifecycle = ShardLifecycle::Idle;
                     state.ready.notify_waiters();
                     return Err(err);
@@ -245,7 +240,7 @@ impl SessionStreamHub {
             };
 
             {
-                let mut guard = state.state.lock().await;
+                let mut guard = state.state.lock().unwrap();
                 guard.lifecycle = ShardLifecycle::Started;
             }
             state.ready.notify_waiters();
@@ -270,7 +265,7 @@ impl SessionStreamHub {
                     let listener_key =
                         keys::session(&event.ns, &event.agent, &event.session_id).canonical();
                     let listeners = {
-                        let mut guard = state.state.lock().await;
+                        let mut guard = state.state.lock().unwrap();
                         let Some(entries) = guard.listeners.get_mut(&listener_key) else {
                             continue;
                         };
@@ -286,7 +281,7 @@ impl SessionStreamHub {
 
                 // Drop all outstanding senders for this shard so subscribers see EOF
                 // if the backing pubsub stream terminates.
-                let mut guard = state.state.lock().await;
+                let mut guard = state.state.lock().unwrap();
                 guard.listeners.clear();
                 guard.lifecycle = ShardLifecycle::Idle;
                 state.ready.notify_waiters();
@@ -297,8 +292,8 @@ impl SessionStreamHub {
     }
 }
 
-async fn remove_listener(state: &Arc<Shard>, listener_key: &str, tx: &SessionStreamSender) {
-    let mut guard = state.state.lock().await;
+fn remove_listener(state: &Arc<Shard>, listener_key: &str, tx: &SessionStreamSender) {
+    let mut guard = state.state.lock().unwrap();
     if let Some(entries) = guard.listeners.get_mut(listener_key) {
         entries.retain(|sender| !sender.same_channel(tx));
         if entries.is_empty() {
@@ -618,7 +613,7 @@ mod tests {
             let shard = topics::session_part_shard(session_id) as usize;
             let state = hub.shards.get(shard).expect("valid shard");
             let listener_key = keys::session("default", "agent", session_id).canonical();
-            let guard = state.state.lock().await;
+            let guard = state.state.lock().unwrap();
             let actual = guard
                 .listeners
                 .get(&listener_key)
@@ -635,7 +630,7 @@ mod tests {
                     let shard = topics::session_part_shard(session_id) as usize;
                     let state = hub.shards.get(shard).expect("valid shard");
                     let listener_key = keys::session("default", "agent", session_id).canonical();
-                    let guard = state.state.lock().await;
+                    let guard = state.state.lock().unwrap();
                     let actual = guard
                         .listeners
                         .get(&listener_key)
