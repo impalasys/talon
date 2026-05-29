@@ -394,7 +394,7 @@ async fn distribute_message(state: &Arc<Mutex<BrokerState>>, topic: &str, payloa
                 .expect("payload should be present before final subscriber")
                 .clone()
         };
-        if let Err(err) = sender.try_send(message) {
+        if let Err(err) = sender.send(message).await {
             tracing::warn!(error = %err, topic = %topic, "local socket broker failed to deliver message");
         }
     }

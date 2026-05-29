@@ -387,7 +387,11 @@ impl PubSubSessionSink {
                 .instrument(span),
             );
             let mut pending = self.pending_partial_flushes.lock().unwrap();
-            pending.retain(|handle| !handle.is_finished());
+            for handle in pending.drain(..) {
+                if !handle.is_finished() {
+                    handle.abort();
+                }
+            }
             pending.push(handle);
         }
     }
