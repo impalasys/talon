@@ -11,6 +11,7 @@ use async_trait::async_trait;
 use futures::{stream, StreamExt};
 use serde_json::Value;
 use std::sync::OnceLock;
+use tracing::Instrument;
 
 const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
 const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
@@ -545,6 +546,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
         let byte_stream = resp.bytes_stream();
         let line_stream = byte_stream.map(|item| item.map_err(|e| anyhow!("Stream error: {}", e)));
         let parent_span = tracing::Span::current();
+        let parse_span = parent_span.clone();
 
         // Simple SSE state machine
         let mut buffer = String::new();
@@ -561,7 +563,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
                         continue;
                     }
                     if line == "data: [DONE]" {
-                        parent_span
+                        parse_span
                             .in_scope(|| tracing::info!("OpenAI-compatible LLM stream completed"));
                         break;
                     }
@@ -569,7 +571,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
                         if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
                             if !saw_first_chunk {
                                 saw_first_chunk = true;
-                                parent_span.in_scope(|| {
+                                parse_span.in_scope(|| {
                                     tracing::info!("OpenAI-compatible LLM stream first chunk")
                                 });
                             }
@@ -628,7 +630,15 @@ impl LlmProvider for OpenAiCompatibleProvider {
             Err(e) => stream::iter(vec![Err(e)]),
         });
 
-        Ok(Box::pin(sse_stream))
+        let stream_span = parent_span.clone();
+        let instrumented_stream = async_stream::stream! {
+            let mut sse_stream = Box::pin(sse_stream);
+            while let Some(item) = sse_stream.next().instrument(stream_span.clone()).await {
+                yield item;
+            }
+        };
+
+        Ok(Box::pin(instrumented_stream))
     }
 
     async fn completion(&self, prompt: &str) -> Result<String> {

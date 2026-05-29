@@ -534,7 +534,7 @@ impl ExecutionSink for PubSubSessionSink {
             labels: std::collections::HashMap::new(),
             parts: self.final_message_parts(&reply),
         };
-        let _ = async {
+        let result = async {
             crate::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
                 &self.reply_msg_key,
@@ -549,6 +549,9 @@ impl ExecutionSink for PubSubSessionSink {
             session = %self.session_id,
         ))
         .await;
+        if let Err(e) = result {
+            tracing::error!("Failed to persist final message: {}", e);
+        }
 
         self.publish_event(AgentEvent::Done(reply_for_event)).await;
     }
@@ -572,12 +575,15 @@ impl ExecutionSink for PubSubSessionSink {
             labels: std::collections::HashMap::new(),
             parts: self.durable_parts.lock().unwrap().clone(),
         };
-        let _ = crate::control::ProtoKeyValueStoreExt::set_msg(
+        if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
             self.kv.as_ref(),
             &self.reply_msg_key,
             &msg,
         )
-        .await;
+        .await
+        {
+            tracing::error!("Failed to persist error message: {}", e);
+        }
 
         self.publish_event(AgentEvent::Error(err.to_string())).await;
     }

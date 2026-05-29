@@ -1225,7 +1225,7 @@ async def run_profile(
             )
         if jaeger_url:
             print(f"jaeger_ui={jaeger_url}", flush=True)
-        wait_for_port(mock_host, mock_port)
+        await asyncio.to_thread(wait_for_port, mock_host, mock_port)
         await wait_for_channel(grpc_target, timeout_seconds=90)
 
         stats_tasks.append(
