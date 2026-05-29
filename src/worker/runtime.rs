@@ -108,7 +108,9 @@ impl AgentRuntime {
                     tool_calls,
                     tool_call_id: None,
                 });
-                history.extend(tool_results);
+                if !tool_results.is_empty() {
+                    history.extend(tool_results);
+                }
             }
         }
 

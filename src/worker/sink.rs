@@ -378,7 +378,9 @@ impl PubSubSessionSink {
             );
             let handle = tokio::spawn(
                 async move {
-                    let _guard = persist_lock.lock().await;
+                    let Ok(_guard) = persist_lock.try_lock() else {
+                        return;
+                    };
                     if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
                         kv.as_ref(),
                         &reply_msg_key,
