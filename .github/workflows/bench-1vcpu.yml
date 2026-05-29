@@ -102,6 +102,7 @@ jobs:
             --memory "${BENCH_MEMORY}" \
             --timeout-seconds "${BENCH_TIMEOUT_SECONDS}" \
             --send-concurrency "${BENCH_AGENTS}" \
+            --worker-concurrency "${BENCH_AGENTS}" \
             --stream-mode batch \
             --mock-request-backlog 8192 \
             --progress-interval-seconds 10 \
