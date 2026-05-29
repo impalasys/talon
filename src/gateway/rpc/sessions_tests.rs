@@ -4,7 +4,7 @@
 #[cfg(test)]
 mod tests {
     use crate::control::{
-        events::{SessionStepEvent, StepType},
+        events::{SessionMessagePartEvent, SessionMessagePartEventKind},
         keys::{self, ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
@@ -18,6 +18,56 @@ mod tests {
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
+
+    fn session_part_event(
+        session_id: &str,
+        agent: &str,
+        ns: &str,
+        message_id: &str,
+        kind: SessionMessagePartEventKind,
+        part_type: models::SessionMessagePartType,
+        content: impl Into<String>,
+        name: impl Into<String>,
+        payload_json: impl Into<String>,
+        timestamp: i64,
+    ) -> SessionMessagePartEvent {
+        SessionMessagePartEvent {
+            session_id: session_id.to_string(),
+            kind: kind as i32,
+            part: Some(models::SessionMessagePart {
+                id: String::new(),
+                part_type: part_type as i32,
+                content: content.into(),
+                name: name.into(),
+                payload_json: payload_json.into(),
+                created_at: timestamp,
+            }),
+            timestamp,
+            agent: agent.to_string(),
+            ns: ns.to_string(),
+            message_id: message_id.to_string(),
+        }
+    }
+
+    fn text_part(content: impl Into<String>) -> models::SessionMessagePart {
+        models::SessionMessagePart {
+            id: String::new(),
+            part_type: models::SessionMessagePartType::Text as i32,
+            content: content.into(),
+            name: String::new(),
+            payload_json: String::new(),
+            created_at: 0,
+        }
+    }
+
+    fn message_text(message: &models::SessionMessage) -> String {
+        message
+            .parts
+            .iter()
+            .filter(|part| part.part_type == models::SessionMessagePartType::Text as i32)
+            .map(|part| part.content.as_str())
+            .collect::<String>()
+    }
     use tokio::sync::Mutex;
 
     struct FailingPubSub {
@@ -365,9 +415,9 @@ mod tests {
             &models::SessionMessage {
                 id: message_id.to_string(),
                 role: 2,
-                content: "assistant reply".to_string(),
                 created_at: 150,
                 labels: HashMap::new(),
+                parts: vec![text_part("assistant reply")],
             },
         )
         .await
@@ -379,37 +429,12 @@ mod tests {
         )
         .await
         .unwrap();
-        kv.set(
-            &keys::session_message_step(ns, agent, session_id, message_id, "step-valid"),
-            &SessionStepEvent {
-                session_id: session_id.to_string(),
-                step_type: StepType::Token as i32,
-                content: "hello".to_string(),
-                timestamp: 200,
-                agent: agent.to_string(),
-                ns: ns.to_string(),
-                message_id: message_id.to_string(),
-                name: String::new(),
-                payload_json: String::new(),
-            }
-            .encode_to_vec(),
-        )
-        .await
-        .unwrap();
-        kv.set(
-            &keys::session_message_step(ns, agent, session_id, message_id, "step-invalid"),
-            b"not-step",
-        )
-        .await
-        .unwrap();
-
         let response = handler
             .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
                 session_id: session_id.to_string(),
                 agent: agent.to_string(),
                 ns: ns.to_string(),
                 message_limit: 0,
-                step_limit: 0,
             }))
             .await
             .unwrap()
@@ -419,9 +444,7 @@ mod tests {
         assert_eq!(response.state, "PROCESSING");
         assert_eq!(response.labels.get("env").map(String::as_str), Some("test"));
         assert_eq!(response.messages.len(), 1);
-        assert_eq!(response.messages[0].content, "assistant reply");
-        assert_eq!(response.steps.len(), 1);
-        assert_eq!(response.steps[0].content, "hello");
+        assert_eq!(message_text(&response.messages[0]), "assistant reply");
     }
 
     #[tokio::test]
@@ -459,7 +482,6 @@ mod tests {
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
                 message_limit: -1,
-                step_limit: -1,
             }))
             .await
             .unwrap()
@@ -468,7 +490,6 @@ mod tests {
         assert_eq!(response.session_id, "session-1");
         assert_eq!(response.labels.get("env").map(String::as_str), Some("test"));
         assert!(response.messages.is_empty());
-        assert!(response.steps.is_empty());
     }
 
     #[tokio::test]
@@ -483,7 +504,6 @@ mod tests {
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
                 message_limit: 0,
-                step_limit: 0,
             }))
             .await
             .expect_err("missing session should fail");
@@ -522,7 +542,6 @@ mod tests {
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),
                 message_limit: 0,
-                step_limit: 0,
             }))
             .await
             .expect_err("list failure should surface");
@@ -531,64 +550,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_session_surfaces_step_list_failure() {
-        let kv = Arc::new(FailingKvStore {
-            data: Mutex::new(HashMap::from([
-                (
-                    keys::session("default", "test-agent", "session-1"),
-                    models::Session {
-                        id: "session-1".to_string(),
-                        agent: "test-agent".to_string(),
-                        ns: "default".to_string(),
-                        status: "IDLE".to_string(),
-                        created_at: 1,
-                        last_active: 2,
-                        metadata: HashMap::new(),
-                        labels: HashMap::new(),
-                    }
-                    .encode_to_vec(),
-                ),
-                (
-                    keys::session_message("default", "test-agent", "session-1", "msg-1"),
-                    models::SessionMessage {
-                        id: "msg-1".to_string(),
-                        role: 1,
-                        content: "hello".to_string(),
-                        created_at: 3,
-                        labels: HashMap::new(),
-                    }
-                    .encode_to_vec(),
-                ),
-            ])),
-            fail_list_prefix: Some(keys::session_message_step_prefix(
-                "default",
-                "test-agent",
-                "session-1",
-                "msg-1",
-            )),
-            fail_get_key: None,
-            fail_set_prefix: None,
-            fail_delete_key: None,
-            extra_list_keys: Vec::new(),
-        });
-        let handler = setup_gateway_handler_with(kv, Arc::new(RecordingPubSub::default()));
-
-        let err = handler
-            .handle_get_session(tonic::Request::new(proto::GetSessionRequest {
-                session_id: "session-1".to_string(),
-                agent: "test-agent".to_string(),
-                ns: "default".to_string(),
-                message_limit: 0,
-                step_limit: 0,
-            }))
-            .await
-            .expect_err("step list failure should surface");
-        assert_eq!(err.code(), tonic::Code::Internal);
-        assert!(err.message().contains("Failed to list session steps"));
-    }
-
-    #[tokio::test]
-    async fn test_get_session_applies_message_and_step_limits() {
+    async fn test_get_session_applies_message_limits() {
         let ns = "default";
         let agent = "test-agent";
         let session_id = "session-limited";
@@ -618,39 +580,13 @@ mod tests {
                 &models::SessionMessage {
                     id: message_id.clone(),
                     role: 2,
-                    content: format!("assistant-{index}"),
                     created_at: index as i64,
                     labels: HashMap::new(),
+                    parts: vec![text_part(format!("assistant-{index}"))],
                 },
             )
             .await
             .unwrap();
-
-            for step_index in 1..=2 {
-                kv.set(
-                    &keys::session_message_step(
-                        ns,
-                        agent,
-                        session_id,
-                        &message_id,
-                        &format!("step-{step_index}"),
-                    ),
-                    &SessionStepEvent {
-                        session_id: session_id.to_string(),
-                        step_type: StepType::Token as i32,
-                        content: format!("step-{index}-{step_index}"),
-                        timestamp: (index * 10 + step_index) as i64,
-                        agent: agent.to_string(),
-                        ns: ns.to_string(),
-                        message_id: message_id.clone(),
-                        name: String::new(),
-                        payload_json: String::new(),
-                    }
-                    .encode_to_vec(),
-                )
-                .await
-                .unwrap();
-            }
         }
 
         let response = handler
@@ -659,7 +595,6 @@ mod tests {
                 agent: agent.to_string(),
                 ns: ns.to_string(),
                 message_limit: 2,
-                step_limit: 2,
             }))
             .await
             .unwrap()
@@ -669,22 +604,14 @@ mod tests {
             response
                 .messages
                 .iter()
-                .map(|message| message.content.as_str())
+                .map(message_text)
                 .collect::<Vec<_>>(),
             vec!["assistant-2", "assistant-3"]
-        );
-        assert_eq!(
-            response
-                .steps
-                .iter()
-                .map(|step| step.content.as_str())
-                .collect::<Vec<_>>(),
-            vec!["step-3-1", "step-3-2"]
         );
     }
 
     #[tokio::test]
-    async fn test_list_session_messages_paginates_and_nests_steps() {
+    async fn test_list_session_messages_paginates_messages() {
         let ns = "default";
         let agent = "test-agent";
         let session_id = "session-paged";
@@ -714,28 +641,10 @@ mod tests {
                 &models::SessionMessage {
                     id: message_id.clone(),
                     role: if index == 2 { 1 } else { 2 },
-                    content: format!("message-{index}"),
                     created_at: index as i64,
                     labels: HashMap::new(),
+                    parts: vec![text_part(format!("message-{index}"))],
                 },
-            )
-            .await
-            .unwrap();
-
-            kv.set(
-                &keys::session_message_step(ns, agent, session_id, &message_id, "000001"),
-                &SessionStepEvent {
-                    session_id: session_id.to_string(),
-                    step_type: StepType::Token as i32,
-                    content: format!("step-{index}"),
-                    timestamp: index as i64,
-                    agent: agent.to_string(),
-                    ns: ns.to_string(),
-                    message_id: message_id.clone(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                }
-                .encode_to_vec(),
             )
             .await
             .unwrap();
@@ -760,34 +669,12 @@ mod tests {
         );
         assert_eq!(newest_page.items.len(), 2);
         assert_eq!(
-            newest_page.items[0]
-                .message
-                .as_ref()
-                .map(|message| message.content.as_str()),
-            Some("message-2")
+            newest_page.items[0].message.as_ref().map(message_text),
+            Some("message-2".to_string())
         );
         assert_eq!(
-            newest_page.items[0]
-                .steps
-                .iter()
-                .map(|step| step.content.as_str())
-                .collect::<Vec<_>>(),
-            vec!["step-2"]
-        );
-        assert_eq!(
-            newest_page.items[1]
-                .message
-                .as_ref()
-                .map(|message| message.content.as_str()),
-            Some("message-3")
-        );
-        assert_eq!(
-            newest_page.items[1]
-                .steps
-                .iter()
-                .map(|step| step.content.as_str())
-                .collect::<Vec<_>>(),
-            vec!["step-3"]
+            newest_page.items[1].message.as_ref().map(message_text),
+            Some("message-3".to_string())
         );
 
         let older_page = handler
@@ -805,19 +692,8 @@ mod tests {
         assert!(!older_page.has_more);
         assert_eq!(older_page.items.len(), 1);
         assert_eq!(
-            older_page.items[0]
-                .message
-                .as_ref()
-                .map(|message| message.content.as_str()),
-            Some("message-1")
-        );
-        assert_eq!(
-            older_page.items[0]
-                .steps
-                .iter()
-                .map(|step| step.content.as_str())
-                .collect::<Vec<_>>(),
-            vec!["step-1"]
+            older_page.items[0].message.as_ref().map(message_text),
+            Some("message-1".to_string())
         );
 
         let default_sized_page = handler
@@ -837,10 +713,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_list_session_messages_does_not_underfill_when_steps_precede_message_key() {
+    async fn test_list_session_messages_paginates_message_entries() {
         let ns = "default";
         let agent = "test-agent";
-        let session_id = "session-step-heavy";
+        let session_id = "session-message-page";
         let kv = Arc::new(MockKvStore::default());
         let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
 
@@ -867,37 +743,10 @@ mod tests {
                 &models::SessionMessage {
                     id: message_id,
                     role: models::MessageRole::RoleAssistant as i32,
-                    content: format!("message-{index}"),
                     created_at: index as i64,
                     labels: HashMap::new(),
+                    parts: vec![text_part(format!("message-{index}"))],
                 },
-            )
-            .await
-            .unwrap();
-        }
-
-        let newest_message_id = "019f0000-0000-7000-8000-000000000003";
-        for index in 0..700 {
-            kv.set(
-                &keys::session_message_step(
-                    ns,
-                    agent,
-                    session_id,
-                    newest_message_id,
-                    &format!("{index:06}"),
-                ),
-                &SessionStepEvent {
-                    session_id: session_id.to_string(),
-                    step_type: StepType::Token as i32,
-                    content: format!("step-{index}"),
-                    timestamp: index as i64,
-                    agent: agent.to_string(),
-                    ns: ns.to_string(),
-                    message_id: newest_message_id.to_string(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                }
-                .encode_to_vec(),
             )
             .await
             .unwrap();
@@ -922,12 +771,10 @@ mod tests {
                 .items
                 .iter()
                 .filter_map(|item| item.message.as_ref())
-                .map(|message| message.content.as_str())
+                .map(message_text)
                 .collect::<Vec<_>>(),
             vec!["message-2", "message-3"]
         );
-        assert_eq!(response.items[0].steps.len(), 0);
-        assert_eq!(response.items[1].steps.len(), 700);
     }
 
     #[tokio::test]
@@ -1064,36 +911,38 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_stream_session_steps() {
+    async fn test_stream_session_parts() {
         let pubsub = Arc::new(RecordingPubSub::default());
 
         let session_id = "test-session-123";
         let topic_name =
-            topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+            topics::session_part_topic_for_shard(topics::session_part_shard(session_id));
 
-        let event1 = SessionStepEvent {
-            session_id: session_id.to_string(),
-            step_type: StepType::Action as i32,
-            content: "Tool call".to_string(),
-            timestamp: 1000,
-            agent: "test-agent".to_string(),
-            ns: "default".to_string(),
-            message_id: "msg-123".to_string(),
-            name: "knowledge_search".to_string(),
-            payload_json: "{\"query\":\"talon\"}".to_string(),
-        };
+        let event1 = session_part_event(
+            session_id,
+            "test-agent",
+            "default",
+            "msg-123",
+            SessionMessagePartEventKind::Delta,
+            models::SessionMessagePartType::ToolCall,
+            "Tool call",
+            "knowledge_search",
+            "{\"query\":\"talon\"}",
+            1000,
+        );
 
-        let event2 = SessionStepEvent {
-            session_id: session_id.to_string(),
-            step_type: StepType::Token as i32,
-            content: "Hello, ".to_string(),
-            timestamp: 2000,
-            agent: "test-agent".to_string(),
-            ns: "default".to_string(),
-            message_id: "msg-123".to_string(),
-            name: "".to_string(),
-            payload_json: "".to_string(),
-        };
+        let event2 = session_part_event(
+            session_id,
+            "test-agent",
+            "default",
+            "msg-123",
+            SessionMessagePartEventKind::Delta,
+            models::SessionMessagePartType::Text,
+            "Hello, ",
+            "",
+            "",
+            2000,
+        );
 
         {
             let mut map = pubsub.streams.lock().await;
@@ -1104,25 +953,90 @@ mod tests {
         }
 
         let handler = setup_mock_gateway_handler(Arc::new(MockKvStore::default()), pubsub);
-        let req = tonic::Request::new(proto::StreamSessionStepsRequest {
+        let req = tonic::Request::new(proto::StreamSessionPartsRequest {
             session_id: session_id.to_string(),
             agent: "test-agent".to_string(),
             ns: "default".to_string(),
         });
 
-        let response = handler.handle_stream_session_steps(req).await.unwrap();
+        let response = handler.handle_stream_session_parts(req).await.unwrap();
         let mut stream = response.into_inner();
 
         let e1 = stream.next().await.unwrap().unwrap();
-        assert_eq!(e1.step_type, StepType::Action as i32);
-        assert_eq!(e1.name, "knowledge_search");
+        let p1 = e1.part.unwrap();
+        assert_eq!(
+            p1.part_type,
+            models::SessionMessagePartType::ToolCall as i32
+        );
+        assert_eq!(p1.name, "knowledge_search");
 
         let e2 = stream.next().await.unwrap().unwrap();
-        assert_eq!(e2.step_type, StepType::Token as i32);
-        assert_eq!(e2.content, "Hello, ");
+        let p2 = e2.part.unwrap();
+        assert_eq!(p2.part_type, models::SessionMessagePartType::Text as i32);
+        assert_eq!(p2.content, "Hello, ");
 
         let e3 = stream.next().await;
         assert!(e3.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_stream_session_parts_batch_accepts_canonical_session_names() {
+        let session_id = "session-batch";
+        let topic_name =
+            topics::session_part_topic_for_shard(topics::session_part_shard(session_id));
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let event = session_part_event(
+            session_id,
+            "test-agent",
+            "default",
+            "msg-123",
+            SessionMessagePartEventKind::Done,
+            models::SessionMessagePartType::Text,
+            "",
+            "",
+            "",
+            1000,
+        );
+
+        {
+            let mut map = pubsub.streams.lock().await;
+            map.insert(topic_name, vec![event.encode_to_vec()]);
+        }
+
+        let handler = setup_mock_gateway_handler(Arc::new(MockKvStore::default()), pubsub);
+        let req = tonic::Request::new(proto::StreamSessionPartsBatchRequest {
+            session_names: vec![keys::session("default", "test-agent", session_id).canonical()],
+        });
+
+        let response = handler
+            .handle_stream_session_parts_batch(req)
+            .await
+            .unwrap();
+        let mut stream = response.into_inner();
+
+        let event = stream.next().await.unwrap().unwrap();
+        assert_eq!(event.kind, SessionMessagePartEventKind::Done as i32);
+        assert_eq!(event.session_id, session_id);
+        assert_eq!(event.agent, "test-agent");
+        assert_eq!(event.ns, "default");
+        assert!(stream.next().await.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_stream_session_parts_batch_rejects_non_session_resource() {
+        let handler = setup_mock_gateway_handler(
+            Arc::new(MockKvStore::default()),
+            Arc::new(RecordingPubSub::default()),
+        );
+        let req = tonic::Request::new(proto::StreamSessionPartsBatchRequest {
+            session_names: vec![keys::agent("default", "test-agent").canonical()],
+        });
+
+        let err = match handler.handle_stream_session_parts_batch(req).await {
+            Ok(_) => panic!("non-session resource should fail"),
+            Err(err) => err,
+        };
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
     }
 
     #[tokio::test]
@@ -1282,7 +1196,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_delete_session_removes_session_messages_and_steps() {
+    async fn test_delete_session_removes_session_messages() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());
         let handler = setup_mock_gateway_handler(kv.clone(), pubsub.clone());
@@ -1291,7 +1205,6 @@ mod tests {
         let agent = "test-agent";
         let session_id = "session-1";
         let message_id = "msg-1";
-        let step_id = "step-1";
 
         let session = models::Session {
             id: session_id.to_string(),
@@ -1306,22 +1219,10 @@ mod tests {
         let message = models::SessionMessage {
             id: message_id.to_string(),
             role: 1,
-            content: "hello".to_string(),
             created_at: 300,
             labels: HashMap::new(),
+            parts: vec![text_part("hello")],
         };
-        let step = crate::control::events::SessionStepEvent {
-            session_id: session_id.to_string(),
-            step_type: StepType::Action as i32,
-            content: "tool".to_string(),
-            timestamp: 400,
-            agent: agent.to_string(),
-            ns: ns.to_string(),
-            message_id: message_id.to_string(),
-            name: "search".to_string(),
-            payload_json: "{}".to_string(),
-        };
-
         kv.set_msg(&keys::session(ns, agent, session_id), &session)
             .await
             .unwrap();
@@ -1331,13 +1232,6 @@ mod tests {
         )
         .await
         .unwrap();
-        kv.set_msg(
-            &keys::session_message_step(ns, agent, session_id, message_id, step_id),
-            &step,
-        )
-        .await
-        .unwrap();
-
         let response = handler
             .handle_delete_session(tonic::Request::new(proto::DeleteSessionRequest {
                 session_id: session_id.to_string(),
@@ -1356,13 +1250,6 @@ mod tests {
             .is_none());
         assert!(kv
             .get(&keys::session_message(ns, agent, session_id, message_id))
-            .await
-            .unwrap()
-            .is_none());
-        assert!(kv
-            .get(&keys::session_message_step(
-                ns, agent, session_id, message_id, step_id
-            ))
             .await
             .unwrap()
             .is_none());
@@ -1583,7 +1470,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_stream_session_steps_surfaces_subscribe_failure() {
+    async fn test_stream_session_parts_surfaces_subscribe_failure() {
         let handler = setup_gateway_handler_with(
             Arc::new(MockKvStore::default()),
             Arc::new(FailingPubSub {
@@ -1593,7 +1480,7 @@ mod tests {
         );
 
         let err = match handler
-            .handle_stream_session_steps(tonic::Request::new(proto::StreamSessionStepsRequest {
+            .handle_stream_session_parts(tonic::Request::new(proto::StreamSessionPartsRequest {
                 session_id: "session-1".to_string(),
                 agent: "test-agent".to_string(),
                 ns: "default".to_string(),

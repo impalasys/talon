@@ -359,21 +359,40 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
         self.handle_list_namespaces(req).await
     }
 
-    type StreamSessionStepsStream = Pin<
+    type StreamSessionPartsStream = Pin<
         Box<
             dyn futures::Stream<
                     Item = std::result::Result<
-                        crate::control::events::SessionStepEvent,
+                        crate::control::events::SessionMessagePartEvent,
                         tonic::Status,
                     >,
                 > + Send,
         >,
     >;
 
-    async fn stream_session_steps(
+    async fn stream_session_parts(
         &self,
-        req: tonic::Request<proto::StreamSessionStepsRequest>,
-    ) -> std::result::Result<tonic::Response<Self::StreamSessionStepsStream>, tonic::Status> {
-        self.handle_stream_session_steps(req).await
+        req: tonic::Request<proto::StreamSessionPartsRequest>,
+    ) -> std::result::Result<tonic::Response<Self::StreamSessionPartsStream>, tonic::Status> {
+        self.handle_stream_session_parts(req).await
+    }
+
+    type StreamSessionPartsBatchStream = Pin<
+        Box<
+            dyn futures::Stream<
+                    Item = std::result::Result<
+                        crate::control::events::SessionMessagePartEvent,
+                        tonic::Status,
+                    >,
+                > + Send,
+        >,
+    >;
+
+    async fn stream_session_parts_batch(
+        &self,
+        req: tonic::Request<proto::StreamSessionPartsBatchRequest>,
+    ) -> std::result::Result<tonic::Response<Self::StreamSessionPartsBatchStream>, tonic::Status>
+    {
+        self.handle_stream_session_parts_batch(req).await
     }
 }

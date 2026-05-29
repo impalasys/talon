@@ -1,8 +1,8 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::events::{self, StepType};
-use crate::gateway::rpc::{proto, GrpcGatewayHandler};
+use crate::control::events::SessionMessagePartEventKind;
+use crate::gateway::rpc::{models, proto, GrpcGatewayHandler};
 use crate::gateway::Gateway;
 use axum::extract::{Path, State};
 use axum::http::{header, HeaderMap, HeaderName, StatusCode};
@@ -114,8 +114,8 @@ fn last_message_text(messages: &[UiMessage]) -> Option<String> {
     })
 }
 
-fn extract_tool_step_payload(step: &events::SessionStepEvent) -> Option<ToolStepPayload> {
-    let payload: Value = serde_json::from_str(&step.payload_json).ok()?;
+fn extract_tool_part_payload(part: &models::SessionMessagePart) -> Option<ToolStepPayload> {
+    let payload: Value = serde_json::from_str(&part.payload_json).ok()?;
     let tool_call_id = payload.get("tool_call_id")?.as_str()?.to_string();
     if tool_call_id.is_empty() {
         return None;
@@ -123,39 +123,41 @@ fn extract_tool_step_payload(step: &events::SessionStepEvent) -> Option<ToolStep
 
     Some(ToolStepPayload {
         tool_call_id,
-        tool_name: if step.name.is_empty() {
+        tool_name: if part.name.is_empty() {
             "tool".to_string()
         } else {
-            step.name.clone()
+            part.name.clone()
         },
         args: payload.get("input").cloned().unwrap_or_else(|| json!({})),
         result: payload
             .get("output")
             .cloned()
-            .unwrap_or_else(|| Value::String(step.content.clone())),
+            .unwrap_or_else(|| Value::String(part.content.clone())),
     })
 }
 
-fn latest_tool_step_payload<'a, I>(steps: I, step_type: i32) -> Option<ToolStepPayload>
+#[cfg(test)]
+fn latest_tool_part_payload<'a, I>(parts: I, part_type: i32) -> Option<ToolStepPayload>
 where
-    I: IntoIterator<Item = &'a events::SessionStepEvent>,
+    I: IntoIterator<Item = &'a models::SessionMessagePart>,
     I::IntoIter: DoubleEndedIterator,
 {
-    steps
+    parts
         .into_iter()
         .rev()
-        .find(|step| step.step_type == step_type)
-        .and_then(extract_tool_step_payload)
+        .find(|part| part.part_type == part_type)
+        .and_then(extract_tool_part_payload)
 }
 
+#[cfg(test)]
 async fn fetch_session_metadata(
     gateway: &Arc<Gateway>,
     headers: &HeaderMap,
     path: &SessionPath,
 ) -> Result<proto::SessionResponse, Response> {
-    // UI route guards only need session metadata here; messages and steps are
-    // loaded through the paginated message endpoint.
-    fetch_session_with_limits(gateway, headers, path, Some(-1), Some(-1)).await
+    // UI route guards only need session metadata here; messages are loaded
+    // through the paginated message endpoint.
+    fetch_session_with_limits(gateway, headers, path, Some(-1)).await
 }
 
 async fn fetch_session_with_limits(
@@ -163,7 +165,6 @@ async fn fetch_session_with_limits(
     headers: &HeaderMap,
     path: &SessionPath,
     message_limit: Option<i32>,
-    step_limit: Option<i32>,
 ) -> Result<proto::SessionResponse, Response> {
     let request = tonic_request(
         headers,
@@ -172,7 +173,6 @@ async fn fetch_session_with_limits(
             agent: path.agent.clone(),
             session_id: path.session_id.clone(),
             message_limit: message_limit.unwrap_or_default(),
-            step_limit: step_limit.unwrap_or_default(),
         },
     )?;
     let response = gateway_handler(gateway)
@@ -189,8 +189,20 @@ fn latest_assistant_message_text(response: &proto::SessionResponse) -> Option<St
         .messages
         .iter()
         .rev()
-        .find(|message| message.role == 2 && !message.content.trim().is_empty())
-        .map(|message| message.content.clone())
+        .filter(|message| message.role == 2)
+        .find_map(|message| {
+            let text = message
+                .parts
+                .iter()
+                .filter(|part| part.part_type == models::SessionMessagePartType::Text as i32)
+                .map(|part| part.content.as_str())
+                .collect::<String>();
+            if !text.trim().is_empty() {
+                Some(text)
+            } else {
+                None
+            }
+        })
 }
 
 fn ndjson_line(value: Value) -> Vec<u8> {
@@ -201,6 +213,7 @@ fn data_stream_line(code: &str, value: Value) -> Vec<u8> {
     format!("{code}:{}\n", value).into_bytes()
 }
 
+#[cfg(test)]
 fn stable_payload_hash(payload: &str) -> u64 {
     const FNV_OFFSET: u64 = 0xcbf29ce484222325;
     const FNV_PRIME: u64 = 0x100000001b3;
@@ -210,11 +223,19 @@ fn stable_payload_hash(payload: &str) -> u64 {
     })
 }
 
-fn step_dedup_key(step: &events::SessionStepEvent) -> String {
-    let payload_hash = stable_payload_hash(&step.payload_json);
+#[cfg(test)]
+fn part_dedup_key(event: &crate::control::events::SessionMessagePartEvent) -> String {
+    let part = event.part.as_ref();
+    let payload_json = part
+        .map(|part| part.payload_json.as_str())
+        .unwrap_or_default();
+    let payload_hash = stable_payload_hash(payload_json);
+    let part_type = part.map(|part| part.part_type).unwrap_or_default();
+    let name = part.map(|part| part.name.as_str()).unwrap_or_default();
+    let content = part.map(|part| part.content.as_str()).unwrap_or_default();
     format!(
         "{}:{}:{}:{}:{}:{}",
-        step.message_id, step.timestamp, step.step_type, step.name, step.content, payload_hash
+        event.message_id, event.timestamp, part_type, name, content, payload_hash
     )
 }
 
@@ -244,7 +265,7 @@ pub async fn post_chat(
 
     let stream_request = match tonic_request(
         &headers,
-        proto::StreamSessionStepsRequest {
+        proto::StreamSessionPartsRequest {
             ns: path.ns.clone(),
             agent: path.agent.clone(),
             session_id: path.session_id.clone(),
@@ -255,7 +276,7 @@ pub async fn post_chat(
     };
 
     let step_stream = match gateway_handler(&gateway)
-        .handle_stream_session_steps(stream_request)
+        .handle_stream_session_parts(stream_request)
         .await
     {
         Ok(response) => response.into_inner(),
@@ -273,10 +294,10 @@ pub async fn post_chat(
     let headers_for_stream = headers.clone();
     let path_for_stream = path;
     let stream = async_stream::stream! {
-        let mut started_step = false;
+        let mut started_part = false;
         let mut started_message_id: Option<String> = None;
         let mut emitted_any_text = false;
-        let mut steps = step_stream;
+        let mut parts = step_stream;
         let timeout = tokio::time::sleep(STREAM_IDLE_TIMEOUT);
         tokio::pin!(timeout);
 
@@ -286,44 +307,61 @@ pub async fn post_chat(
                     yield Ok::<_, Infallible>(data_stream_line("3", json!("Timed out waiting for assistant response")));
                     return;
                 }
-                step_result = steps.next() => {
+                part_result = parts.next() => {
                     timeout.as_mut().reset(tokio::time::Instant::now() + STREAM_IDLE_TIMEOUT);
-                    let Some(step_result) = step_result else {
+                    let Some(part_result) = part_result else {
                         break;
                     };
-                    let step = match step_result {
-                        Ok(step) => step,
+                    let event = match part_result {
+                        Ok(event) => event,
                         Err(status) => {
                             yield Ok::<_, Infallible>(data_stream_line("3", json!(status.message())));
                             return;
                         }
                     };
 
-                    if !started_step && step.step_type != StepType::Done as i32 {
-                        let message_id = if step.message_id.is_empty() {
+                    let part = event.part.as_ref();
+                    let part_type = part.map(|part| part.part_type).unwrap_or_default();
+                    let content = part.map(|part| part.content.as_str()).unwrap_or_default();
+
+                    if !started_part && event.kind != SessionMessagePartEventKind::Done as i32 {
+                        let message_id = if event.message_id.is_empty() {
                             Uuid::now_v7().to_string()
                         } else {
-                            step.message_id.clone()
+                            event.message_id.clone()
                         };
                         started_message_id = Some(message_id.clone());
-                        started_step = true;
+                        started_part = true;
                         yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": message_id })));
-                    } else if started_message_id.as_deref() != Some(step.message_id.as_str()) && !step.message_id.is_empty() {
-                        started_message_id = Some(step.message_id.clone());
-                        yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": step.message_id })));
+                    } else if started_message_id.as_deref() != Some(event.message_id.as_str()) && !event.message_id.is_empty() {
+                        started_message_id = Some(event.message_id.clone());
+                        yield Ok::<_, Infallible>(data_stream_line("f", json!({ "messageId": event.message_id })));
                     }
 
-                    if step.step_type == StepType::Token as i32 {
-                        if !step.content.is_empty() {
+                    if event.kind == SessionMessagePartEventKind::Done as i32 {
+                        break;
+                    } else if event.kind == SessionMessagePartEventKind::Error as i32 {
+                        let error_text = if content.is_empty() {
+                            "Stream error".to_string()
+                        } else {
+                            content.to_string()
+                        };
+                        if !emitted_any_text {
+                            yield Ok::<_, Infallible>(data_stream_line("0", json!(error_text)));
+                        }
+                        yield Ok::<_, Infallible>(data_stream_line("3", json!(error_text)));
+                        return;
+                    } else if part_type == models::SessionMessagePartType::Text as i32 {
+                        if !content.is_empty() {
                             emitted_any_text = true;
-                            yield Ok::<_, Infallible>(data_stream_line("0", json!(step.content)));
+                            yield Ok::<_, Infallible>(data_stream_line("0", json!(content)));
                         }
-                    } else if step.step_type == StepType::Reasoning as i32 {
-                        if !step.content.is_empty() {
-                            yield Ok::<_, Infallible>(data_stream_line("g", json!(step.content)));
+                    } else if part_type == models::SessionMessagePartType::Reasoning as i32 {
+                        if !content.is_empty() {
+                            yield Ok::<_, Infallible>(data_stream_line("g", json!(content)));
                         }
-                    } else if step.step_type == StepType::Action as i32 {
-                        let payload = extract_tool_step_payload(&step);
+                    } else if part_type == models::SessionMessagePartType::ToolCall as i32 {
+                        let payload = part.and_then(extract_tool_part_payload);
                         let tool_call_id = payload
                             .as_ref()
                             .map(|payload| payload.tool_call_id.clone())
@@ -331,7 +369,7 @@ pub async fn post_chat(
                         let tool_name = payload
                             .as_ref()
                             .map(|payload| payload.tool_name.clone())
-                            .unwrap_or_else(|| if step.name.is_empty() { "tool".to_string() } else { step.name.clone() });
+                            .unwrap_or_else(|| part.map(|part| part.name.clone()).filter(|name| !name.is_empty()).unwrap_or_else(|| "tool".to_string()));
                         let args = payload
                             .as_ref()
                             .map(|payload| payload.args.clone())
@@ -341,31 +379,19 @@ pub async fn post_chat(
                             "toolName": tool_name,
                             "args": args
                         })));
-                    } else if step.step_type == StepType::Observation as i32 {
-                        let payload = extract_tool_step_payload(&step);
+                    } else if part_type == models::SessionMessagePartType::ToolResult as i32 {
+                        let payload = part.and_then(extract_tool_part_payload);
                         if let Some(payload) = payload {
                             yield Ok::<_, Infallible>(data_stream_line("a", json!({
                                 "toolCallId": payload.tool_call_id,
                                 "result": payload.result
                             })));
                         }
-                    } else if step.step_type == StepType::Usage as i32 {
-                        let usage = serde_json::from_str::<Value>(&step.payload_json)
-                            .unwrap_or_else(|_| json!({}));
+                    } else if part_type == models::SessionMessagePartType::Usage as i32 {
+                        let usage = part
+                            .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                            .unwrap_or_else(|| json!({}));
                         yield Ok::<_, Infallible>(data_stream_line("h", usage));
-                    } else if step.step_type == StepType::Done as i32 {
-                        break;
-                    } else if step.step_type == StepType::Error as i32 {
-                        let error_text = if step.content.is_empty() {
-                            "Stream error".to_string()
-                        } else {
-                            step.content.clone()
-                        };
-                        if !emitted_any_text {
-                            yield Ok::<_, Infallible>(data_stream_line("0", json!(error_text)));
-                        }
-                        yield Ok::<_, Infallible>(data_stream_line("3", json!(error_text)));
-                        return;
                     }
                 }
             }
@@ -377,12 +403,11 @@ pub async fn post_chat(
                 &headers_for_stream,
                 &path_for_stream,
                 Some(1),
-                Some(-1),
             )
             .await
             {
                 if let Some(text) = latest_assistant_message_text(&response) {
-                    if !started_step {
+                    if !started_part {
                         let message_id = response
                             .messages
                             .iter()
@@ -422,7 +447,7 @@ pub async fn get_chat(
 ) -> Response {
     let request = match tonic_request(
         &headers,
-        proto::StreamSessionStepsRequest {
+        proto::StreamSessionPartsRequest {
             ns: path.ns.clone(),
             agent: path.agent.clone(),
             session_id: path.session_id.clone(),
@@ -433,7 +458,7 @@ pub async fn get_chat(
     };
 
     let response = match gateway_handler(&gateway)
-        .handle_stream_session_steps(request)
+        .handle_stream_session_parts(request)
         .await
     {
         Ok(response) => response,
@@ -441,26 +466,40 @@ pub async fn get_chat(
     };
 
     let stream = async_stream::stream! {
-        let mut steps = response.into_inner();
-        while let Some(step_result) = steps.next().await {
-            let step = match step_result {
-                Ok(step) => step,
+        let mut parts = response.into_inner();
+        while let Some(part_result) = parts.next().await {
+            let event = match part_result {
+                Ok(event) => event,
                 Err(status) => {
                     yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "error", "value": status.message() })));
                     break;
                 }
             };
 
-            if step.step_type == StepType::Token as i32 {
-                if !step.content.is_empty() {
-                    yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "text", "value": step.content })));
+            let part = event.part.as_ref();
+            let part_type = part.map(|part| part.part_type).unwrap_or_default();
+            let content = part.map(|part| part.content.as_str()).unwrap_or_default();
+
+            if event.kind == SessionMessagePartEventKind::Done as i32 {
+                break;
+            } else if event.kind == SessionMessagePartEventKind::Error as i32 {
+                let error_text = if content.is_empty() {
+                    "Stream error".to_string()
+                } else {
+                    content.to_string()
+                };
+                yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "error", "value": error_text })));
+                break;
+            } else if part_type == models::SessionMessagePartType::Text as i32 {
+                if !content.is_empty() {
+                    yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "text", "value": content })));
                 }
-            } else if step.step_type == StepType::Reasoning as i32 {
-                if !step.content.is_empty() {
-                    yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "reasoning", "value": step.content })));
+            } else if part_type == models::SessionMessagePartType::Reasoning as i32 {
+                if !content.is_empty() {
+                    yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "reasoning", "value": content })));
                 }
-            } else if step.step_type == StepType::Action as i32 {
-                let payload = extract_tool_step_payload(&step);
+            } else if part_type == models::SessionMessagePartType::ToolCall as i32 {
+                let payload = part.and_then(extract_tool_part_payload);
                 let tool_call_id = payload
                     .as_ref()
                     .map(|payload| payload.tool_call_id.clone())
@@ -468,7 +507,7 @@ pub async fn get_chat(
                 let tool_name = payload
                     .as_ref()
                     .map(|payload| payload.tool_name.clone())
-                    .unwrap_or_else(|| if step.name.is_empty() { "tool".to_string() } else { step.name.clone() });
+                    .unwrap_or_else(|| part.map(|part| part.name.clone()).filter(|name: &String| !name.is_empty()).unwrap_or_else(|| "tool".to_string()));
                 let args = payload
                     .as_ref()
                     .map(|payload| payload.args.clone())
@@ -481,8 +520,8 @@ pub async fn get_chat(
                         "args": args
                     }
                 })));
-            } else if step.step_type == StepType::Observation as i32 {
-                let payload = extract_tool_step_payload(&step);
+            } else if part_type == models::SessionMessagePartType::ToolResult as i32 {
+                let payload = part.and_then(extract_tool_part_payload);
                 if let Some(payload) = payload {
                     yield Ok::<_, Infallible>(ndjson_line(json!({
                         "type": "tool_result",
@@ -492,23 +531,14 @@ pub async fn get_chat(
                         }
                     })));
                 }
-            } else if step.step_type == StepType::Usage as i32 {
-                let usage = serde_json::from_str::<Value>(&step.payload_json)
-                    .unwrap_or_else(|_| json!({}));
+            } else if part_type == models::SessionMessagePartType::Usage as i32 {
+                let usage = part
+                    .and_then(|part| serde_json::from_str::<Value>(&part.payload_json).ok())
+                    .unwrap_or_else(|| json!({}));
                 yield Ok::<_, Infallible>(ndjson_line(json!({
                     "type": "usage",
                     "value": usage
                 })));
-            } else if step.step_type == StepType::Done as i32 {
-                break;
-            } else if step.step_type == StepType::Error as i32 {
-                let error_text = if step.content.is_empty() {
-                    "Stream error".to_string()
-                } else {
-                    step.content
-                };
-                yield Ok::<_, Infallible>(ndjson_line(json!({ "type": "error", "value": error_text })));
-                break;
             }
         }
     };
@@ -553,12 +583,14 @@ pub async fn delete_chat(
 #[cfg(test)]
 mod tests {
     use super::{
-        data_stream_line, delete_chat, extract_tool_step_payload, fetch_session_metadata, get_chat,
-        last_message_text, latest_assistant_message_text, latest_tool_step_payload, map_status,
-        ndjson_line, post_chat, step_dedup_key, tonic_request, ChatRequestBody, SessionPath,
+        data_stream_line, delete_chat, extract_tool_part_payload, fetch_session_metadata, get_chat,
+        last_message_text, latest_assistant_message_text, latest_tool_part_payload, map_status,
+        ndjson_line, part_dedup_key, post_chat, tonic_request, ChatRequestBody, SessionPath,
         UiMessage, UiPart,
     };
-    use crate::control::events::{SessionControlEvent, SessionStepEvent, StepType};
+    use crate::control::events::{
+        SessionControlEvent, SessionMessagePartEvent, SessionMessagePartEventKind,
+    };
     use crate::control::{
         keys::{self, ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
@@ -692,6 +724,41 @@ mod tests {
         })
     }
 
+    fn message_part(
+        part_type: models::SessionMessagePartType,
+        content: impl Into<String>,
+        name: impl Into<String>,
+        payload_json: impl Into<String>,
+    ) -> models::SessionMessagePart {
+        models::SessionMessagePart {
+            id: String::new(),
+            part_type: part_type as i32,
+            content: content.into(),
+            name: name.into(),
+            payload_json: payload_json.into(),
+            created_at: 0,
+        }
+    }
+
+    fn part_event_for(
+        session_id: &str,
+        ns: &str,
+        message_id: &str,
+        kind: SessionMessagePartEventKind,
+        part: models::SessionMessagePart,
+        timestamp: i64,
+    ) -> SessionMessagePartEvent {
+        SessionMessagePartEvent {
+            session_id: session_id.to_string(),
+            kind: kind as i32,
+            part: Some(part),
+            timestamp,
+            agent: "agent".to_string(),
+            ns: ns.to_string(),
+            message_id: message_id.to_string(),
+        }
+    }
+
     #[test]
     fn last_message_text_prefers_content_then_text_parts() {
         let messages = vec![
@@ -731,22 +798,15 @@ mod tests {
     }
 
     #[test]
-    fn extract_tool_step_payload_parses_tool_metadata() {
-        let step = SessionStepEvent {
-            session_id: "s".to_string(),
-            step_type: StepType::Action as i32,
-            content: String::new(),
-            timestamp: 0,
-            agent: "agent".to_string(),
-            ns: "ns".to_string(),
-            message_id: "message".to_string(),
-            name: "search".to_string(),
-            payload_json:
-                r#"{"tool_call_id":"call-123","input":{"q":"rust"},"output":{"ok":true}}"#
-                    .to_string(),
-        };
+    fn extract_tool_part_payload_parses_tool_metadata() {
+        let part = message_part(
+            models::SessionMessagePartType::ToolCall,
+            "",
+            "search",
+            r#"{"tool_call_id":"call-123","input":{"q":"rust"},"output":{"ok":true}}"#,
+        );
 
-        let payload = extract_tool_step_payload(&step).expect("payload should parse");
+        let payload = extract_tool_part_payload(&part).expect("payload should parse");
         assert_eq!(payload.tool_call_id, "call-123");
         assert_eq!(payload.tool_name, "search");
         assert_eq!(payload.args["q"], "rust");
@@ -754,81 +814,65 @@ mod tests {
     }
 
     #[test]
-    fn extract_tool_step_payload_defaults_and_rejects_invalid_payloads() {
-        let fallback_step = SessionStepEvent {
-            session_id: "s".to_string(),
-            step_type: StepType::Observation as i32,
-            content: "fallback-result".to_string(),
-            timestamp: 0,
-            agent: "agent".to_string(),
-            ns: "ns".to_string(),
-            message_id: "message".to_string(),
-            name: String::new(),
-            payload_json: r#"{"tool_call_id":"call-9"}"#.to_string(),
-        };
-        let payload = extract_tool_step_payload(&fallback_step).expect("payload should parse");
+    fn extract_tool_part_payload_defaults_and_rejects_invalid_payloads() {
+        let fallback_part = message_part(
+            models::SessionMessagePartType::ToolResult,
+            "fallback-result",
+            "",
+            r#"{"tool_call_id":"call-9"}"#,
+        );
+        let payload = extract_tool_part_payload(&fallback_part).expect("payload should parse");
         assert_eq!(payload.tool_name, "tool");
         assert_eq!(payload.args, json!({}));
         assert_eq!(payload.result, Value::String("fallback-result".to_string()));
 
-        let missing_id = SessionStepEvent {
+        let missing_id = models::SessionMessagePart {
             payload_json: r#"{"input":{"q":"rust"}}"#.to_string(),
-            ..fallback_step.clone()
+            ..fallback_part.clone()
         };
-        assert!(extract_tool_step_payload(&missing_id).is_none());
+        assert!(extract_tool_part_payload(&missing_id).is_none());
 
-        let empty_id = SessionStepEvent {
+        let empty_id = models::SessionMessagePart {
             payload_json: r#"{"tool_call_id":""}"#.to_string(),
-            ..fallback_step.clone()
+            ..fallback_part.clone()
         };
-        assert!(extract_tool_step_payload(&empty_id).is_none());
+        assert!(extract_tool_part_payload(&empty_id).is_none());
 
-        let invalid_json = SessionStepEvent {
+        let invalid_json = models::SessionMessagePart {
             payload_json: "{not-json}".to_string(),
-            ..fallback_step
+            ..fallback_part
         };
-        assert!(extract_tool_step_payload(&invalid_json).is_none());
+        assert!(extract_tool_part_payload(&invalid_json).is_none());
     }
 
     #[test]
-    fn latest_tool_step_payload_returns_last_matching_entry() {
-        let steps = vec![
-            SessionStepEvent {
-                session_id: "s".to_string(),
-                step_type: StepType::Action as i32,
-                content: String::new(),
-                timestamp: 1,
-                agent: "agent".to_string(),
-                ns: "ns".to_string(),
-                message_id: "msg-1".to_string(),
-                name: "first".to_string(),
-                payload_json: r#"{"tool_call_id":"call-1","input":{"q":"first"}}"#.to_string(),
-            },
-            SessionStepEvent {
-                session_id: "s".to_string(),
-                step_type: StepType::Observation as i32,
-                content: String::new(),
-                timestamp: 2,
-                agent: "agent".to_string(),
-                ns: "ns".to_string(),
-                message_id: "msg-1".to_string(),
-                name: "obs".to_string(),
-                payload_json: r#"{"tool_call_id":"call-1","output":{"ok":true}}"#.to_string(),
-            },
-            SessionStepEvent {
-                session_id: "s".to_string(),
-                step_type: StepType::Action as i32,
-                content: String::new(),
-                timestamp: 3,
-                agent: "agent".to_string(),
-                ns: "ns".to_string(),
-                message_id: "msg-2".to_string(),
-                name: "second".to_string(),
-                payload_json: r#"{"tool_call_id":"call-2","input":{"q":"second"}}"#.to_string(),
-            },
+    fn latest_tool_part_payload_returns_last_matching_entry() {
+        let parts = vec![
+            message_part(
+                models::SessionMessagePartType::ToolCall,
+                "",
+                "first",
+                r#"{"tool_call_id":"call-1","input":{"q":"first"}}"#,
+            ),
+            message_part(
+                models::SessionMessagePartType::ToolResult,
+                "",
+                "obs",
+                r#"{"tool_call_id":"call-1","output":{"ok":true}}"#,
+            ),
+            message_part(
+                models::SessionMessagePartType::ToolCall,
+                "",
+                "second",
+                r#"{"tool_call_id":"call-2","input":{"q":"second"}}"#,
+            ),
         ];
 
-        let payload = latest_tool_step_payload(steps.iter(), StepType::Action as i32).unwrap();
+        let payload = latest_tool_part_payload(
+            parts.iter(),
+            models::SessionMessagePartType::ToolCall as i32,
+        )
+        .unwrap();
         assert_eq!(payload.tool_call_id, "call-2");
         assert_eq!(payload.tool_name, "second");
         assert_eq!(payload.args["q"], "second");
@@ -903,26 +947,37 @@ mod tests {
                 models::SessionMessage {
                     id: "m1".to_string(),
                     role: 1,
-                    content: "user".to_string(),
                     created_at: 1,
                     labels: HashMap::new(),
+                    parts: vec![message_part(
+                        models::SessionMessagePartType::Text,
+                        "user",
+                        "",
+                        "",
+                    )],
                 },
                 models::SessionMessage {
                     id: "m2".to_string(),
                     role: 2,
-                    content: String::new(),
                     created_at: 2,
                     labels: HashMap::new(),
+                    parts: Vec::new(),
                 },
                 models::SessionMessage {
                     id: "m3".to_string(),
                     role: 2,
-                    content: "done".to_string(),
                     created_at: 3,
                     labels: HashMap::new(),
+                    parts: vec![models::SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: models::SessionMessagePartType::Text as i32,
+                        content: "done".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 3,
+                    }],
                 },
             ],
-            steps: Vec::new(),
             labels: HashMap::new(),
         };
 
@@ -934,17 +989,14 @@ mod tests {
 
     #[test]
     fn framing_and_dedup_helpers_return_stable_output() {
-        let step = SessionStepEvent {
-            session_id: "s".to_string(),
-            step_type: StepType::Token as i32,
-            content: "hello".to_string(),
-            timestamp: 7,
-            agent: "agent".to_string(),
-            ns: "ns".to_string(),
-            message_id: "msg-1".to_string(),
-            name: "name".to_string(),
-            payload_json: String::new(),
-        };
+        let event = part_event_for(
+            "s",
+            "ns",
+            "msg-1",
+            SessionMessagePartEventKind::Delta,
+            message_part(models::SessionMessagePartType::Text, "hello", "name", ""),
+            7,
+        );
 
         assert_eq!(
             String::from_utf8(ndjson_line(json!({"type":"text","value":"hello"}))).unwrap(),
@@ -954,10 +1006,10 @@ mod tests {
             String::from_utf8(data_stream_line("0", json!("hello"))).unwrap(),
             "0:\"hello\"\n"
         );
-        let key = step_dedup_key(&step);
+        let key = part_dedup_key(&event);
         assert!(key.starts_with("msg-1:7:1:name:hello:"));
         assert!(!key.ends_with(':'));
-        assert_eq!(key, step_dedup_key(&step));
+        assert_eq!(key, part_dedup_key(&event));
     }
 
     #[tokio::test]
@@ -983,25 +1035,14 @@ mod tests {
             &models::SessionMessage {
                 id: "msg-1".to_string(),
                 role: models::MessageRole::RoleAssistant as i32,
-                content: "history should not load".to_string(),
                 created_at: 3,
                 labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
-        kv.set_msg(
-            &keys::session_message_step("default", "agent", "session-1", "msg-1", "step-1"),
-            &SessionStepEvent {
-                session_id: "session-1".to_string(),
-                step_type: StepType::Token as i32,
-                content: "step should not load".to_string(),
-                timestamp: 4,
-                agent: "agent".to_string(),
-                ns: "default".to_string(),
-                message_id: "msg-1".to_string(),
-                name: String::new(),
-                payload_json: String::new(),
+                parts: vec![message_part(
+                    models::SessionMessagePartType::Text,
+                    "history should not load",
+                    "",
+                    "",
+                )],
             },
         )
         .await
@@ -1028,7 +1069,6 @@ mod tests {
         assert_eq!(response.state, "IDLE");
         assert_eq!(response.labels.get("env").map(String::as_str), Some("test"));
         assert!(response.messages.is_empty());
-        assert!(response.steps.is_empty());
     }
 
     #[tokio::test]
@@ -1115,20 +1155,22 @@ mod tests {
         .unwrap();
 
         let topic_name =
-            topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+            topics::session_part_topic_for_shard(topics::session_part_shard(session_id));
         let streams = Arc::new(Mutex::new(HashMap::from([(
             topic_name,
-            vec![SessionStepEvent {
-                session_id: session_id.to_string(),
-                step_type: StepType::Error as i32,
-                content: "Error: provider overloaded".to_string(),
-                timestamp: 1,
-                agent: "agent".to_string(),
-                ns: "default".to_string(),
-                message_id: "assistant-1".to_string(),
-                name: String::new(),
-                payload_json: String::new(),
-            }
+            vec![part_event_for(
+                session_id,
+                "default",
+                "assistant-1",
+                SessionMessagePartEventKind::Error,
+                message_part(
+                    models::SessionMessagePartType::Error,
+                    "Error: provider overloaded",
+                    "",
+                    "",
+                ),
+                1,
+            )
             .encode_to_vec()],
         )])));
         let gateway = setup_gateway(kv, streams, Arc::new(Mutex::new(Vec::new())));
@@ -1162,57 +1204,55 @@ mod tests {
     async fn get_chat_streams_tool_calls_results_and_text() {
         let session_id = "session-123";
         let topic_name =
-            topics::session_step_topic_for_shard(topics::session_step_shard(session_id));
+            topics::session_part_topic_for_shard(topics::session_part_shard(session_id));
         let streams = Arc::new(Mutex::new(HashMap::from([(
             topic_name,
             vec![
-                SessionStepEvent {
-                    session_id: session_id.to_string(),
-                    step_type: StepType::Action as i32,
-                    content: String::new(),
-                    timestamp: 1,
-                    agent: "agent".to_string(),
-                    ns: "default".to_string(),
-                    message_id: "msg-1".to_string(),
-                    name: "search".to_string(),
-                    payload_json: r#"{"tool_call_id":"call-1","input":{"q":"rust"}}"#.to_string(),
-                }
+                part_event_for(
+                    session_id,
+                    "default",
+                    "msg-1",
+                    SessionMessagePartEventKind::Delta,
+                    message_part(
+                        models::SessionMessagePartType::ToolCall,
+                        "",
+                        "search",
+                        r#"{"tool_call_id":"call-1","input":{"q":"rust"}}"#,
+                    ),
+                    1,
+                )
                 .encode_to_vec(),
-                SessionStepEvent {
-                    session_id: session_id.to_string(),
-                    step_type: StepType::Observation as i32,
-                    content: "fallback".to_string(),
-                    timestamp: 2,
-                    agent: "agent".to_string(),
-                    ns: "default".to_string(),
-                    message_id: "msg-1".to_string(),
-                    name: "search".to_string(),
-                    payload_json: r#"{"tool_call_id":"call-1","output":{"ok":true}}"#.to_string(),
-                }
+                part_event_for(
+                    session_id,
+                    "default",
+                    "msg-1",
+                    SessionMessagePartEventKind::Delta,
+                    message_part(
+                        models::SessionMessagePartType::ToolResult,
+                        "fallback",
+                        "search",
+                        r#"{"tool_call_id":"call-1","output":{"ok":true}}"#,
+                    ),
+                    2,
+                )
                 .encode_to_vec(),
-                SessionStepEvent {
-                    session_id: session_id.to_string(),
-                    step_type: StepType::Token as i32,
-                    content: "Hello".to_string(),
-                    timestamp: 3,
-                    agent: "agent".to_string(),
-                    ns: "default".to_string(),
-                    message_id: "msg-1".to_string(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                }
+                part_event_for(
+                    session_id,
+                    "default",
+                    "msg-1",
+                    SessionMessagePartEventKind::Delta,
+                    message_part(models::SessionMessagePartType::Text, "Hello", "", ""),
+                    3,
+                )
                 .encode_to_vec(),
-                SessionStepEvent {
-                    session_id: session_id.to_string(),
-                    step_type: StepType::Done as i32,
-                    content: String::new(),
-                    timestamp: 4,
-                    agent: "agent".to_string(),
-                    ns: "default".to_string(),
-                    message_id: "msg-1".to_string(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                }
+                part_event_for(
+                    session_id,
+                    "default",
+                    "msg-1",
+                    SessionMessagePartEventKind::Done,
+                    message_part(models::SessionMessagePartType::Text, "", "", ""),
+                    4,
+                )
                 .encode_to_vec(),
             ],
         )])));

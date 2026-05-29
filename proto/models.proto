@@ -24,13 +24,34 @@ enum MessageRole {
   ROLE_SYSTEM = 3;
 }
 
+enum SessionMessagePartType {
+  SESSION_MESSAGE_PART_TYPE_UNSPECIFIED = 0;
+  SESSION_MESSAGE_PART_TYPE_TEXT = 1;
+  SESSION_MESSAGE_PART_TYPE_REASONING = 2;
+  SESSION_MESSAGE_PART_TYPE_TOOL_CALL = 3;
+  SESSION_MESSAGE_PART_TYPE_TOOL_RESULT = 4;
+  SESSION_MESSAGE_PART_TYPE_USAGE = 5;
+  SESSION_MESSAGE_PART_TYPE_ERROR = 6;
+}
+
+message SessionMessagePart {
+  string id = 1;
+  SessionMessagePartType part_type = 2;
+  string content = 3;
+  string name = 4;
+  string payload_json = 5;
+  // Unix timestamp in microseconds.
+  int64 created_at = 6;
+}
+
 message SessionMessage {
   string id = 1;
   MessageRole role = 2;
-  string content = 3;
+  reserved 3;
   // Unix timestamp in microseconds.
   int64 created_at = 4;
   map<string, string> labels = 5;
+  repeated SessionMessagePart parts = 6;
 }
 
 message Session {

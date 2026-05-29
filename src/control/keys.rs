@@ -141,6 +141,10 @@ impl ResourceKey {
             name: leaf.name.clone(),
         })
     }
+
+    pub fn parent_segments(&self) -> Result<Vec<ResourceSegment>> {
+        parse_path(&self.parent_path)
+    }
 }
 
 impl ResourceList {
@@ -310,42 +314,6 @@ pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) ->
         namespace,
         &[("Agent", agent), ("Session", session_id)],
         Some("SessionMessage"),
-    )
-}
-
-pub fn session_message_step(
-    namespace: &str,
-    agent: &str,
-    session_id: &str,
-    message_id: &str,
-    step_id: &str,
-) -> ResourceKey {
-    resource_key(
-        namespace,
-        &[
-            ("Agent", agent),
-            ("Session", session_id),
-            ("SessionMessage", message_id),
-        ],
-        "SessionStep",
-        step_id,
-    )
-}
-
-pub fn session_message_step_prefix(
-    namespace: &str,
-    agent: &str,
-    session_id: &str,
-    message_id: &str,
-) -> ResourceList {
-    direct_child_prefix(
-        namespace,
-        &[
-            ("Agent", agent),
-            ("Session", session_id),
-            ("SessionMessage", message_id),
-        ],
-        Some("SessionStep"),
     )
 }
 

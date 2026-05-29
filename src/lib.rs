@@ -13,9 +13,11 @@ pub mod manifest;
 pub mod memory;
 pub mod native_tools;
 pub mod orchestrator;
+pub mod profiling;
 pub mod scheduling;
 pub mod security;
 pub mod skills;
+pub mod telemetry;
 pub mod worker;
 pub use crate::core::executor::{
     AgentExecutor, CaptureSink, ExecutionContext, ExecutionSink, NullSink,

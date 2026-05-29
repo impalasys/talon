@@ -7,10 +7,15 @@ use crate::control::{
 };
 use anyhow::{bail, Result};
 use sqlx::{
+    pool::PoolConnection,
     sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous},
-    Row, SqlitePool,
+    Row, Sqlite, SqlitePool,
 };
-use std::{str::FromStr, time::Duration};
+use std::{
+    str::FromStr,
+    time::{Duration, Instant},
+};
+use tracing::{field, Instrument, Span};
 
 use super::shared::{quoted_identifier, validate_identifier};
 
@@ -132,12 +137,39 @@ fn key_from_row(row: &sqlx::sqlite::SqliteRow) -> Result<ResourceKey> {
 pub struct SqliteKvStore {
     pool: SqlitePool,
     table: String,
+    settings: SqlitePoolSettings,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct SqlitePoolSettings {
+    max_connections: u32,
+    busy_timeout: Duration,
+}
+
+impl SqlitePoolSettings {
+    fn from_env() -> Self {
+        let max_connections = std::env::var("TALON_SQLITE_MAX_CONNECTIONS")
+            .ok()
+            .and_then(|value| value.parse::<u32>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(5);
+        let busy_timeout_ms = std::env::var("TALON_SQLITE_BUSY_TIMEOUT_MS")
+            .ok()
+            .and_then(|value| value.parse::<u64>().ok())
+            .unwrap_or(5_000);
+
+        Self {
+            max_connections,
+            busy_timeout: Duration::from_millis(busy_timeout_ms),
+        }
+    }
 }
 
 impl SqliteKvStore {
     pub async fn new(url: &str, table: &str) -> Result<Self> {
         validate_identifier(table)?;
-        let pool = sqlite_pool(url).await?;
+        let settings = SqlitePoolSettings::from_env();
+        let pool = sqlite_pool(url, settings).await?;
 
         migrate_legacy_table(&pool, table).await?;
         let create_stmt = create_table_statement(table);
@@ -146,6 +178,7 @@ impl SqliteKvStore {
         Ok(Self {
             pool,
             table: table.to_string(),
+            settings,
         })
     }
 }
@@ -223,49 +256,164 @@ async fn migrate_legacy_table(pool: &SqlitePool, table: &str) -> Result<()> {
     Ok(())
 }
 
-async fn sqlite_pool(url: &str) -> Result<SqlitePool> {
+async fn sqlite_pool(url: &str, settings: SqlitePoolSettings) -> Result<SqlitePool> {
     let options = SqliteConnectOptions::from_str(url)?
         .create_if_missing(true)
         .journal_mode(SqliteJournalMode::Wal)
         .synchronous(SqliteSynchronous::Normal)
-        .busy_timeout(Duration::from_secs(5))
+        .busy_timeout(settings.busy_timeout)
         .foreign_keys(true);
     Ok(SqlitePoolOptions::new()
-        .max_connections(5)
+        .max_connections(settings.max_connections)
         .connect_with(options)
         .await?)
+}
+
+fn busy_timeout_ms(settings: SqlitePoolSettings) -> u64 {
+    settings.busy_timeout.as_millis().min(u128::from(u64::MAX)) as u64
+}
+
+async fn acquire_connection(
+    pool: &SqlitePool,
+    settings: SqlitePoolSettings,
+    parent_span: &Span,
+) -> Result<PoolConnection<Sqlite>> {
+    let pool_size_before = pool.size();
+    let pool_idle_before = pool.num_idle();
+    parent_span.record("sqlite.pool.size_before", u64::from(pool_size_before));
+    parent_span.record("sqlite.pool.idle_before", pool_idle_before as u64);
+
+    let span = tracing::info_span!(
+        "SqliteKvStore.acquire_connection",
+        "sqlite.pool.max_connections" = u64::from(settings.max_connections),
+        "sqlite.pool.size_before" = u64::from(pool_size_before),
+        "sqlite.pool.idle_before" = pool_idle_before as u64,
+        "sqlite.pool.size_after" = field::Empty,
+        "sqlite.pool.idle_after" = field::Empty,
+        pool_wait_us = field::Empty,
+    );
+    let started_at = Instant::now();
+    let conn = pool
+        .acquire()
+        .instrument(span.clone())
+        .instrument(parent_span.clone())
+        .await?;
+    let pool_wait_us = started_at.elapsed().as_micros().min(u128::from(u64::MAX)) as u64;
+    let pool_size_after = pool.size();
+    let pool_idle_after = pool.num_idle();
+
+    span.record("pool_wait_us", pool_wait_us);
+    span.record("sqlite.pool.size_after", u64::from(pool_size_after));
+    span.record("sqlite.pool.idle_after", pool_idle_after as u64);
+    parent_span.record("pool_wait_us", pool_wait_us);
+    parent_span.record("sqlite.pool.size_after", u64::from(pool_size_after));
+    parent_span.record("sqlite.pool.idle_after", pool_idle_after as u64);
+
+    Ok(conn)
+}
+
+fn record_query_elapsed(span: &Span, parent_span: &Span, started_at: Instant) {
+    let query_elapsed_us = started_at.elapsed().as_micros().min(u128::from(u64::MAX)) as u64;
+    span.record("query_elapsed_us", query_elapsed_us);
+    parent_span.record("query_elapsed_us", query_elapsed_us);
+}
+
+fn record_rows(span: &Span, parent_span: &Span, rows_returned: usize) {
+    span.record("rows_returned", rows_returned as u64);
+    parent_span.record("rows_returned", rows_returned as u64);
 }
 
 #[async_trait::async_trait]
 impl KeyValueStore for SqliteKvStore {
     async fn get(&self, key: &ResourceKey) -> Result<Option<Vec<u8>>> {
         let query = get_query(&self.table);
+        let span = tracing::info_span!(
+            "SqliteKvStore.get",
+            "db.system" = "sqlite",
+            "db.operation" = "get",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %key.kind,
+            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
+            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
+            "sqlite.pool.size_before" = field::Empty,
+            "sqlite.pool.idle_before" = field::Empty,
+            "sqlite.pool.size_after" = field::Empty,
+            "sqlite.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::info_span!(
+            "SqliteKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
+        let query_started_at = Instant::now();
         let row = sqlx::query(&query)
             .bind(&key.namespace)
             .bind(&key.parent_path)
             .bind(&key.kind)
             .bind(&key.name)
-            .fetch_optional(&self.pool)
+            .fetch_optional(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
             .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
 
         if let Some(row) = row {
             let value: Vec<u8> = row.try_get("value")?;
+            query_span.record("value_bytes", value.len() as u64);
+            span.record("value_bytes", value.len() as u64);
+            record_rows(&query_span, &span, 1);
             Ok(Some(value))
         } else {
+            record_rows(&query_span, &span, 0);
             Ok(None)
         }
     }
 
     async fn set(&self, key: &ResourceKey, value: &[u8]) -> Result<()> {
         let query = set_query(&self.table);
-        sqlx::query(&query)
+        let span = tracing::info_span!(
+            "SqliteKvStore.set",
+            "db.system" = "sqlite",
+            "db.operation" = "set",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %key.kind,
+            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
+            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
+            "sqlite.pool.size_before" = field::Empty,
+            "sqlite.pool.idle_before" = field::Empty,
+            "sqlite.pool.size_after" = field::Empty,
+            "sqlite.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+            value_bytes = value.len(),
+        );
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::info_span!(
+            "SqliteKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let result = sqlx::query(&query)
             .bind(&key.namespace)
             .bind(&key.parent_path)
             .bind(&key.kind)
             .bind(&key.name)
             .bind(value)
-            .execute(&self.pool)
+            .execute(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
             .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        query_span.record("rows_affected", result.rows_affected());
+        span.record("rows_affected", result.rows_affected());
         Ok(())
     }
 
@@ -276,6 +424,24 @@ impl KeyValueStore for SqliteKvStore {
         value: &[u8],
     ) -> Result<bool> {
         let query = compare_and_swap_query(&self.table, expected.is_some());
+        let span = tracing::info_span!(
+            "SqliteKvStore.compare_and_swap",
+            "db.system" = "sqlite",
+            "db.operation" = "compare_and_swap",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %key.kind,
+            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
+            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
+            "sqlite.pool.size_before" = field::Empty,
+            "sqlite.pool.idle_before" = field::Empty,
+            "sqlite.pool.size_after" = field::Empty,
+            "sqlite.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+            expected_present = expected.is_some(),
+            value_bytes = value.len(),
+        );
         let q = if let Some(expected) = expected {
             sqlx::query(&query)
                 .bind(&key.namespace)
@@ -292,31 +458,103 @@ impl KeyValueStore for SqliteKvStore {
                 .bind(&key.name)
                 .bind(value)
         };
-        let rows_affected = q.execute(&self.pool).await?.rows_affected();
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::info_span!(
+            "SqliteKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let rows_affected = q
+            .execute(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
+            .await?
+            .rows_affected();
+        record_query_elapsed(&query_span, &span, query_started_at);
+        query_span.record("rows_affected", rows_affected);
+        span.record("rows_affected", rows_affected);
         Ok(rows_affected == 1)
     }
 
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         let query = delete_query(&self.table);
-        sqlx::query(&query)
+        let span = tracing::info_span!(
+            "SqliteKvStore.delete",
+            "db.system" = "sqlite",
+            "db.operation" = "delete",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %key.kind,
+            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
+            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
+            "sqlite.pool.size_before" = field::Empty,
+            "sqlite.pool.idle_before" = field::Empty,
+            "sqlite.pool.size_after" = field::Empty,
+            "sqlite.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+        );
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::info_span!(
+            "SqliteKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let result = sqlx::query(&query)
             .bind(&key.namespace)
             .bind(&key.parent_path)
             .bind(&key.kind)
             .bind(&key.name)
-            .execute(&self.pool)
+            .execute(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
             .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        query_span.record("rows_affected", result.rows_affected());
+        span.record("rows_affected", result.rows_affected());
         Ok(())
     }
 
     async fn list_keys(&self, list: &ResourceList) -> Result<Vec<ResourceKey>> {
         let query = list_keys_query(&self.table, list.kind.is_some());
+        let span = tracing::info_span!(
+            "SqliteKvStore.list_keys",
+            "db.system" = "sqlite",
+            "db.operation" = "list_keys",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = list.kind.as_deref().unwrap_or("*"),
+            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
+            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
+            "sqlite.pool.size_before" = field::Empty,
+            "sqlite.pool.idle_before" = field::Empty,
+            "sqlite.pool.size_after" = field::Empty,
+            "sqlite.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+        );
         let mut query = sqlx::query(&query)
             .bind(&list.parent.namespace)
             .bind(&list.parent.parent_path);
         if let Some(kind) = &list.kind {
             query = query.bind(kind);
         }
-        let rows = query.fetch_all(&self.pool).await?;
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::info_span!(
+            "SqliteKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let rows = query
+            .fetch_all(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
+            .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        record_rows(&query_span, &span, rows.len());
 
         let mut keys = Vec::with_capacity(rows.len());
         for row in rows {
@@ -327,18 +565,54 @@ impl KeyValueStore for SqliteKvStore {
 
     async fn list_entries(&self, list: &ResourceList) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
         let query = list_entries_query(&self.table, list.kind.is_some());
+        let span = tracing::info_span!(
+            "SqliteKvStore.list_entries",
+            "db.system" = "sqlite",
+            "db.operation" = "list_entries",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = list.kind.as_deref().unwrap_or("*"),
+            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
+            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
+            "sqlite.pool.size_before" = field::Empty,
+            "sqlite.pool.idle_before" = field::Empty,
+            "sqlite.pool.size_after" = field::Empty,
+            "sqlite.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
         let mut query = sqlx::query(&query)
             .bind(&list.parent.namespace)
             .bind(&list.parent.parent_path);
         if let Some(kind) = &list.kind {
             query = query.bind(kind);
         }
-        let rows = query.fetch_all(&self.pool).await?;
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::info_span!(
+            "SqliteKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let rows = query
+            .fetch_all(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
+            .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        record_rows(&query_span, &span, rows.len());
 
         let mut entries = Vec::with_capacity(rows.len());
+        let mut total_value_bytes = 0usize;
         for row in rows {
-            entries.push((key_from_row(&row)?, row.try_get("value")?));
+            let value: Vec<u8> = row.try_get("value")?;
+            total_value_bytes += value.len();
+            entries.push((key_from_row(&row)?, value));
         }
+        query_span.record("value_bytes", total_value_bytes as u64);
+        span.record("value_bytes", total_value_bytes as u64);
         Ok(entries)
     }
 
@@ -356,14 +630,42 @@ impl KeyValueStore for SqliteKvStore {
         };
 
         let query = list_keys_page_query(&self.table);
+        let span = tracing::info_span!(
+            "SqliteKvStore.list_keys_page",
+            "db.system" = "sqlite",
+            "db.operation" = "list_keys_page",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %kind,
+            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
+            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
+            "sqlite.pool.size_before" = field::Empty,
+            "sqlite.pool.idle_before" = field::Empty,
+            "sqlite.pool.size_after" = field::Empty,
+            "sqlite.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            limit,
+        );
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::info_span!(
+            "SqliteKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+        );
+        let query_started_at = Instant::now();
         let rows = sqlx::query(&query)
             .bind(&list.parent.namespace)
             .bind(&list.parent.parent_path)
             .bind(kind)
             .bind(before_name)
             .bind(limit as i64)
-            .fetch_all(&self.pool)
+            .fetch_all(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
             .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        record_rows(&query_span, &span, rows.len());
 
         let mut keys = Vec::with_capacity(rows.len());
         for row in rows {
@@ -386,19 +688,54 @@ impl KeyValueStore for SqliteKvStore {
         };
 
         let query = list_entries_page_query(&self.table);
+        let span = tracing::info_span!(
+            "SqliteKvStore.list_entries_page",
+            "db.system" = "sqlite",
+            "db.operation" = "list_entries_page",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %kind,
+            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
+            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
+            "sqlite.pool.size_before" = field::Empty,
+            "sqlite.pool.idle_before" = field::Empty,
+            "sqlite.pool.size_after" = field::Empty,
+            "sqlite.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+            limit,
+        );
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::info_span!(
+            "SqliteKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
+        let query_started_at = Instant::now();
         let rows = sqlx::query(&query)
             .bind(&list.parent.namespace)
             .bind(&list.parent.parent_path)
             .bind(kind)
             .bind(before_name)
             .bind(limit as i64)
-            .fetch_all(&self.pool)
+            .fetch_all(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
             .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        record_rows(&query_span, &span, rows.len());
 
         let mut entries = Vec::with_capacity(rows.len());
+        let mut total_value_bytes = 0usize;
         for row in rows {
-            entries.push((key_from_row(&row)?, row.try_get("value")?));
+            let value: Vec<u8> = row.try_get("value")?;
+            total_value_bytes += value.len();
+            entries.push((key_from_row(&row)?, value));
         }
+        query_span.record("value_bytes", total_value_bytes as u64);
+        span.record("value_bytes", total_value_bytes as u64);
         Ok(entries)
     }
 }
@@ -455,7 +792,9 @@ mod tests {
         let dir = tempdir().unwrap();
         let db_path = dir.path().join("talon-kv-legacy.db");
         let url = sqlite_url_for_path(&db_path);
-        let setup_pool = sqlite_pool(&url).await.unwrap();
+        let setup_pool = sqlite_pool(&url, super::SqlitePoolSettings::from_env())
+            .await
+            .unwrap();
         sqlx::query(
             "CREATE TABLE talon_kv_store_test (
                 namespace TEXT NOT NULL,

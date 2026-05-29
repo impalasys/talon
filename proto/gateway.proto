@@ -112,9 +112,16 @@ service GatewayService {
     };
   }
 
-  rpc StreamSessionSteps(StreamSessionStepsRequest) returns (stream talon.events.SessionStepEvent) {
+  rpc StreamSessionParts(StreamSessionPartsRequest) returns (stream talon.events.SessionMessagePartEvent) {
     option (google.api.http) = {
       get: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/stream"
+    };
+  }
+
+  rpc StreamSessionPartsBatch(StreamSessionPartsBatchRequest) returns (stream talon.events.SessionMessagePartEvent) {
+    option (google.api.http) = {
+      post: "/v1/session-streams:batch"
+      body: "*"
     };
   }
 
@@ -440,8 +447,6 @@ message GetSessionRequest {
   string ns = 3;
   // 0 preserves legacy behavior and returns all messages. Use a negative value to return no messages.
   int32 message_limit = 4;
-  // 0 preserves legacy behavior and returns all steps for returned messages. Use a negative value to return no steps.
-  int32 step_limit = 5;
 }
 
 message ListSessionMessagesRequest {
@@ -454,7 +459,6 @@ message ListSessionMessagesRequest {
 
 message ListSessionMessagesResponseItem {
   talon.models.SessionMessage message = 1;
-  repeated talon.events.SessionStepEvent steps = 2;
 }
 
 message ListSessionMessagesResponse {
@@ -487,8 +491,7 @@ message SessionResponse {
   string agent = 2;
   string state = 3;
   repeated talon.models.SessionMessage messages = 4;
-  repeated talon.events.SessionStepEvent steps = 5;
-  map<string, string> labels = 6;
+  map<string, string> labels = 5;
 }
 
 message DeleteSessionRequest {
@@ -565,10 +568,16 @@ message StopSessionGenerationResponse {
   bool success = 1;
 }
 
-message StreamSessionStepsRequest {
+message StreamSessionPartsRequest {
   string session_id = 1;
   string agent = 2;
   string ns = 3;
+}
+
+message StreamSessionPartsBatchRequest {
+  // Canonical session resource names, e.g.
+  // @Namespace/default/Agent/assistant/@/Session/session-123
+  repeated string session_names = 1;
 }
 
 // -----------------------------------------

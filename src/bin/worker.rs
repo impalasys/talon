@@ -20,6 +20,11 @@ use talon::control::ControlPlane;
 use talon::worker::{scheduler_auth::SchedulerRequestAuthenticator, WorkerEventHandler};
 use tokio::{signal, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
+use tracing::Instrument;
+
+#[cfg(feature = "heap-profile")]
+#[global_allocator]
+static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 #[cfg(test)]
 const HEALTHY_PULL_RUNTIME_RESET: std::time::Duration = std::time::Duration::from_millis(50);
@@ -135,6 +140,16 @@ where
     F: FnMut(&str) -> Option<String>,
 {
     get("PULL_MODE").is_some()
+}
+
+fn session_dispatch_concurrency<F>(mut get: F) -> usize
+where
+    F: FnMut(&str) -> Option<String>,
+{
+    get("TALON_WORKER_SESSION_CONCURRENCY")
+        .and_then(|value| value.parse::<usize>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(1)
 }
 
 fn pubsub_project_id<F>(mut get: F) -> String
@@ -363,17 +378,80 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
         cancellation_token: CancellationToken,
     ) -> Result<()> {
         use futures::StreamExt;
+        use std::sync::Arc;
+        use tokio::sync::Semaphore;
+        use tokio::task::JoinSet;
 
         let mut stream = self
             .subscriber
             .subscribe_named(&self.topic_name, &self.subscription_name)
             .await?;
+        let concurrency = if event_type == "session_dispatch" {
+            session_dispatch_concurrency(|name| std::env::var(name).ok())
+        } else {
+            1
+        };
+        if concurrency <= 1 {
+            while let Some(payload) = stream.next().await {
+                if cancellation_token.is_cancelled() {
+                    break;
+                }
+                let span = tracing::info_span!(
+                    "LocalSocketPullSubscriptionBackend.dispatch",
+                    event_type = %event_type,
+                    "broker.driver" = "local_socket",
+                    "worker.session_concurrency" = concurrency,
+                    payload_bytes = payload.len(),
+                );
+                if let Err(err) = async { handler.dispatch(Some(&event_type), &payload).await }
+                    .instrument(span)
+                    .await
+                {
+                    tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
+                }
+            }
+            return Ok(());
+        }
+
+        tracing::info!(
+            event_type = %event_type,
+            concurrency,
+            "Starting concurrent local socket dispatch"
+        );
+        let semaphore = Arc::new(Semaphore::new(concurrency));
+        let mut tasks = JoinSet::new();
         while let Some(payload) = stream.next().await {
             if cancellation_token.is_cancelled() {
                 break;
             }
-            if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
-                tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
+            while let Some(result) = tasks.try_join_next() {
+                if let Err(err) = result {
+                    tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch task failed");
+                }
+            }
+            let permit = tokio::select! {
+                _ = cancellation_token.cancelled() => break,
+                permit = semaphore.clone().acquire_owned() => permit?,
+            };
+            let handler = handler.clone();
+            let event_type = event_type.clone();
+            let span = tracing::info_span!(
+                "LocalSocketPullSubscriptionBackend.dispatch",
+                event_type = %event_type,
+                "broker.driver" = "local_socket",
+                "worker.session_concurrency" = concurrency,
+                payload_bytes = payload.len(),
+            );
+            tasks.spawn(async move {
+                let _permit = permit;
+                if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
+                    tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
+                }
+            }.instrument(span));
+        }
+        while let Some(result) = tasks.join_next().await {
+            if let Err(err) = result {
+                tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch task failed");
             }
         }
         Ok(())
@@ -789,7 +867,9 @@ async fn schedule_fire(
 #[tokio::main]
 async fn main() -> Result<()> {
     talon::security::install_jwt_crypto_provider();
-    tracing_subscriber::fmt::init();
+    let _telemetry_guard = talon::telemetry::init_from_env("talon-worker")?;
+    talon::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
+    talon::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon Worker Engine...");
     tracing::info!("Connecting to control plane services...");
     run_worker_main_with(
@@ -830,9 +910,9 @@ mod tests {
         next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled, pull_subscription_specs,
         push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
         run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
-        serve_worker_http, worker_bind_addr, worker_port, worker_router,
-        LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend, PullSubscriptionBackend,
-        ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
+        serve_worker_http, session_dispatch_concurrency, worker_bind_addr, worker_port,
+        worker_router, LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend,
+        PullSubscriptionBackend, ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
     use axum::body::Bytes;
@@ -975,6 +1055,28 @@ mod tests {
         assert_eq!(worker_port(|_| Some("9090".to_string())), "9090");
         assert!(!pull_mode_enabled(|_| None));
         assert!(pull_mode_enabled(|_| Some(String::new())));
+        assert_eq!(session_dispatch_concurrency(|_| None), 1);
+        assert_eq!(
+            session_dispatch_concurrency(|name| match name {
+                "TALON_WORKER_SESSION_CONCURRENCY" => Some("8".to_string()),
+                _ => None,
+            }),
+            8
+        );
+        assert_eq!(
+            session_dispatch_concurrency(|name| match name {
+                "TALON_WORKER_SESSION_CONCURRENCY" => Some("0".to_string()),
+                _ => None,
+            }),
+            1
+        );
+        assert_eq!(
+            session_dispatch_concurrency(|name| match name {
+                "TALON_WORKER_SESSION_CONCURRENCY" => Some("not-a-number".to_string()),
+                _ => None,
+            }),
+            1
+        );
         assert_eq!(pubsub_project_id(|_| None), "talon-local");
         assert_eq!(
             pubsub_project_id(|_| Some("project-123".to_string())),

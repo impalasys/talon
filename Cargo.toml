@@ -5,6 +5,14 @@ edition = "2021"
 
 [features]
 bazel = []
+cpu-profile = ["dep:pprof"]
+heap-profile = [
+    "dep:tikv-jemallocator",
+    "tikv-jemallocator/profiling",
+    "dep:tikv-jemalloc-ctl",
+    "tikv-jemalloc-ctl/profiling",
+    "tikv-jemalloc-ctl/stats",
+]
 
 [dependencies]
 aead = "0.5"
@@ -19,6 +27,12 @@ chrono-tz = "0.10"
 cron = "0.12"
 jsonwebtoken = { version = "10.4", features = ["rust_crypto"] }
 futures = "0.3"
+opentelemetry = "0.31"
+opentelemetry-otlp = { version = "0.31", default-features = false, features = ["grpc-tonic", "trace"] }
+opentelemetry_sdk = "0.31"
+pprof = { version = "0.15", features = ["flamegraph"], optional = true }
+tikv-jemallocator = { version = "0.7", optional = true }
+tikv-jemalloc-ctl = { version = "0.7", optional = true }
 redb = "1.0"
 reqwest = { version = "0.11", features = ["json", "stream"] }
 rmcp = { version = "1.4", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
@@ -31,6 +45,7 @@ urlencoding = "2.1"
 tokio = { version = "1.0", features = ["full"] }
 tokio-tungstenite = "0.20"
 tracing = "0.1"
+tracing-opentelemetry = "0.32"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tonic = "0.12.3"
 tonic-web = "0.12.3"

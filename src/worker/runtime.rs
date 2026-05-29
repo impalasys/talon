@@ -6,7 +6,6 @@ use std::sync::Arc;
 
 use super::mcp_registry::McpRegistry;
 use crate::config::Config;
-use crate::control::events::{SessionStepEvent, StepType};
 use crate::control::ControlPlane;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::core::context_budget::tool_result_preview;
@@ -18,6 +17,7 @@ use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKi
 use crate::knowledge::KvKnowledgeBook;
 use crate::llm::ToolCall;
 use crate::skills::registry::ToolRegistry;
+use prost::Message;
 
 /// Fully-assembled, ready-to-run environment for one agent session.
 /// Build it from identity coordinates; it resolves everything else
@@ -50,17 +50,12 @@ impl AgentRuntime {
 
         // 2. Load session history from KV
         let msg_prefix = crate::control::keys::session_message_prefix(ns, agent_id, session_id);
-        let mut msg_keys = cp.kv.list_keys(&msg_prefix).await?;
-        msg_keys.sort();
+        let mut msg_entries = cp.kv.list_entries(&msg_prefix).await?;
+        msg_entries.sort_by(|(left, _), (right, _)| left.cmp(right));
 
         let mut history = Vec::new();
-        for key in msg_keys {
-            if let Some(msg) = cp
-                .kv
-                .get_msg::<models::SessionMessage>(&key)
-                .await
-                .unwrap_or(None)
-            {
+        for (_, value) in msg_entries {
+            if let Ok(msg) = models::SessionMessage::decode(value.as_slice()) {
                 let role = match msg.role {
                     1 => "user",
                     2 => "assistant",
@@ -71,44 +66,33 @@ impl AgentRuntime {
                 let mut tool_calls = None;
                 let mut tool_results: Vec<LoopMessage> = Vec::new();
 
-                if msg.role == 2 {
-                    let step_prefix = crate::control::keys::session_message_step_prefix(
-                        ns, agent_id, session_id, &msg.id,
-                    );
-                    let mut step_keys = cp.kv.list_keys(&step_prefix).await?;
-                    step_keys.sort();
-
+                if msg.role == models::MessageRole::RoleAssistant as i32 {
                     let mut collected_tool_calls = Vec::new();
-                    for step_key in step_keys {
-                        if let Some(step) = cp
-                            .kv
-                            .get_msg::<SessionStepEvent>(&step_key)
-                            .await
-                            .unwrap_or(None)
-                        {
-                            if step.step_type == StepType::Action as i32 {
-                                let payload: serde_json::Value =
-                                    serde_json::from_str(&step.payload_json)
-                                        .unwrap_or(serde_json::Value::Null);
-                                let tool_call_id = payload
-                                    .get("tool_call_id")
-                                    .and_then(|v| v.as_str())
-                                    .unwrap_or_default()
-                                    .to_string();
-                                let input = payload
-                                    .get("input")
-                                    .cloned()
+                    for part in &msg.parts {
+                        if part.part_type == models::SessionMessagePartType::ToolCall as i32 {
+                            let payload: serde_json::Value =
+                                serde_json::from_str(&part.payload_json)
                                     .unwrap_or(serde_json::Value::Null);
-                                collected_tool_calls.push(ToolCall {
-                                    id: tool_call_id,
-                                    name: step.name.clone(),
-                                    arguments: serde_json::to_string(&input)
-                                        .unwrap_or_else(|_| "null".to_string()),
-                                });
-                            } else if step.step_type == StepType::Observation as i32 {
-                                if let Some(message) = tool_result_message_from_step(&step) {
-                                    tool_results.push(message);
-                                }
+                            let tool_call_id = payload
+                                .get("tool_call_id")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or_default()
+                                .to_string();
+                            let input = payload
+                                .get("input")
+                                .cloned()
+                                .unwrap_or(serde_json::Value::Null);
+                            collected_tool_calls.push(ToolCall {
+                                id: tool_call_id,
+                                name: part.name.clone(),
+                                arguments: serde_json::to_string(&input)
+                                    .unwrap_or_else(|_| "null".to_string()),
+                            });
+                        } else if part.part_type
+                            == models::SessionMessagePartType::ToolResult as i32
+                        {
+                            if let Some(message) = tool_result_message_from_part(part) {
+                                tool_results.push(message);
                             }
                         }
                     }
@@ -120,7 +104,7 @@ impl AgentRuntime {
 
                 history.push(LoopMessage {
                     role: role.to_string(),
-                    content: msg.content,
+                    content: message_text(&msg),
                     tool_calls,
                     tool_call_id: None,
                 });
@@ -256,7 +240,7 @@ fn visible_tools_for_agent(
 
             if is_session_tool_name(&tool.name) {
                 return match tool.name.as_str() {
-                    "list_sessions" | "get_session" | "list_recent_steps" => {
+                    "list_sessions" | "get_session" => {
                         has_capability_action(spec, "sessions", "inspect")
                     }
                     _ => true,
@@ -281,7 +265,7 @@ fn is_schedule_tool_name(name: &str) -> bool {
 }
 
 fn is_session_tool_name(name: &str) -> bool {
-    matches!(name, "list_sessions" | "get_session" | "list_recent_steps")
+    matches!(name, "list_sessions" | "get_session")
 }
 
 fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: &str) -> bool {
@@ -344,16 +328,26 @@ fn sanitize_tool_name_component(value: &str) -> String {
     sanitized.trim_matches('_').to_string()
 }
 
-fn tool_result_message_from_step(step: &SessionStepEvent) -> Option<LoopMessage> {
+fn message_text(message: &models::SessionMessage) -> String {
+    message
+        .parts
+        .iter()
+        .filter(|part| part.part_type == models::SessionMessagePartType::Text as i32)
+        .map(|part| part.content.as_str())
+        .collect::<Vec<_>>()
+        .join("")
+}
+
+fn tool_result_message_from_part(part: &models::SessionMessagePart) -> Option<LoopMessage> {
     let payload: serde_json::Value =
-        serde_json::from_str(&step.payload_json).unwrap_or(serde_json::Value::Null);
+        serde_json::from_str(&part.payload_json).unwrap_or(serde_json::Value::Null);
     let tool_call_id = payload.get("tool_call_id").and_then(|v| v.as_str())?;
     let output = payload
         .get("output_preview")
         .and_then(|v| v.as_str())
         .or_else(|| payload.get("output").and_then(|v| v.as_str()))
         .map(tool_result_preview)
-        .unwrap_or_else(|| tool_result_preview(&step.content));
+        .unwrap_or_else(|| tool_result_preview(&part.content));
     Some(LoopMessage {
         role: "tool".to_string(),
         content: output,
@@ -366,12 +360,11 @@ fn tool_result_message_from_step(step: &SessionStepEvent) -> Option<LoopMessage>
 mod tests {
     use super::{
         builtin_tool_names, has_capability_action, qualify_mcp_tool_name,
-        tool_result_message_from_step, visible_tools_for_agent, AgentRuntime,
+        tool_result_message_from_part, visible_tools_for_agent, AgentRuntime,
     };
     use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::connectors::mcp::McpConnectionConfig;
     use crate::control::{
-        events::{SessionStepEvent, StepType},
         keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
@@ -382,6 +375,17 @@ mod tests {
     use std::pin::Pin;
     use std::sync::Arc;
     use tokio::sync::Mutex;
+
+    fn tool_result_part(content: String, payload_json: String) -> models::SessionMessagePart {
+        models::SessionMessagePart {
+            id: "part-1".to_string(),
+            part_type: models::SessionMessagePartType::ToolResult as i32,
+            content,
+            name: "tool".to_string(),
+            payload_json,
+            created_at: 0,
+        }
+    }
 
     #[derive(Default)]
     struct MockKvStore {
@@ -525,24 +529,17 @@ mod tests {
 
     #[test]
     fn tool_result_message_prefers_output_preview_when_present() {
-        let step = SessionStepEvent {
-            session_id: "session-1".to_string(),
-            step_type: StepType::Observation as i32,
-            content: "preview".to_string(),
-            timestamp: 0,
-            agent: "cmo".to_string(),
-            ns: "conic:wks:13".to_string(),
-            message_id: "message-1".to_string(),
-            name: "mcp_github_get_file_contents".to_string(),
-            payload_json: serde_json::json!({
+        let part = tool_result_part(
+            "preview".to_string(),
+            serde_json::json!({
                 "tool_call_id": "tool-1",
                 "output_preview": "small preview",
                 "output": format!("{{\"payload\":\"{}\"}}", "x".repeat(10_000)),
             })
             .to_string(),
-        };
+        );
 
-        let message = tool_result_message_from_step(&step).unwrap();
+        let message = tool_result_message_from_part(&part).unwrap();
 
         assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
         assert_eq!(message.content, "small preview");
@@ -556,23 +553,16 @@ mod tests {
             "y".repeat(8_000),
             "z".repeat(8_000)
         );
-        let step = SessionStepEvent {
-            session_id: "session-1".to_string(),
-            step_type: StepType::Observation as i32,
-            content: raw_output.clone(),
-            timestamp: 0,
-            agent: "cmo".to_string(),
-            ns: "conic:wks:13".to_string(),
-            message_id: "message-1".to_string(),
-            name: "mcp_github_search_code".to_string(),
-            payload_json: serde_json::json!({
+        let part = tool_result_part(
+            raw_output.clone(),
+            serde_json::json!({
                 "tool_call_id": "tool-1",
                 "output": raw_output,
             })
             .to_string(),
-        };
+        );
 
-        let message = tool_result_message_from_step(&step).unwrap();
+        let message = tool_result_message_from_part(&part).unwrap();
 
         assert!(message.content.len() < 10_000);
         assert!(
@@ -666,42 +656,28 @@ mod tests {
 
     #[test]
     fn tool_result_message_requires_tool_call_id() {
-        let step = SessionStepEvent {
-            session_id: "session-1".to_string(),
-            step_type: StepType::Observation as i32,
-            content: "preview".to_string(),
-            timestamp: 0,
-            agent: "cmo".to_string(),
-            ns: "conic:wks:13".to_string(),
-            message_id: "message-1".to_string(),
-            name: "mcp_github_get_file_contents".to_string(),
-            payload_json: serde_json::json!({
+        let part = tool_result_part(
+            "preview".to_string(),
+            serde_json::json!({
                 "output_preview": "small preview",
             })
             .to_string(),
-        };
+        );
 
-        assert!(tool_result_message_from_step(&step).is_none());
+        assert!(tool_result_message_from_part(&part).is_none());
     }
 
     #[test]
     fn tool_result_message_falls_back_to_step_content_when_payload_has_no_output() {
-        let step = SessionStepEvent {
-            session_id: "session-1".to_string(),
-            step_type: StepType::Observation as i32,
-            content: "fallback output".to_string(),
-            timestamp: 0,
-            agent: "cmo".to_string(),
-            ns: "conic:wks:13".to_string(),
-            message_id: "message-1".to_string(),
-            name: "mcp_demo_tool".to_string(),
-            payload_json: serde_json::json!({
+        let part = tool_result_part(
+            "fallback output".to_string(),
+            serde_json::json!({
                 "tool_call_id": "tool-1"
             })
             .to_string(),
-        };
+        );
 
-        let message = tool_result_message_from_step(&step).unwrap();
+        let message = tool_result_message_from_part(&part).unwrap();
         assert_eq!(message.content, "fallback output");
     }
 
@@ -792,9 +768,16 @@ mod tests {
             &models::SessionMessage {
                 id: "msg-1".to_string(),
                 role: 1,
-                content: "hello".to_string(),
                 created_at: 10,
                 labels: HashMap::new(),
+                parts: vec![models::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: models::SessionMessagePartType::Text as i32,
+                    content: "hello".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 10,
+                }],
             },
         )
         .await
@@ -804,9 +787,42 @@ mod tests {
             &models::SessionMessage {
                 id: "msg-2".to_string(),
                 role: 2,
-                content: "assistant reply".to_string(),
                 created_at: 20,
                 labels: HashMap::new(),
+                parts: vec![
+                    models::SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: models::SessionMessagePartType::Text as i32,
+                        content: "assistant reply".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 20,
+                    },
+                    models::SessionMessagePart {
+                        id: "000001".to_string(),
+                        part_type: models::SessionMessagePartType::ToolCall as i32,
+                        content: String::new(),
+                        name: "search".to_string(),
+                        payload_json: serde_json::json!({
+                            "tool_call_id": "call-1",
+                            "input": { "q": "talon" }
+                        })
+                        .to_string(),
+                        created_at: 21,
+                    },
+                    models::SessionMessagePart {
+                        id: "000002".to_string(),
+                        part_type: models::SessionMessagePartType::ToolResult as i32,
+                        content: "tool output".to_string(),
+                        name: "search".to_string(),
+                        payload_json: serde_json::json!({
+                            "tool_call_id": "call-1",
+                            "output_preview": "tool preview"
+                        })
+                        .to_string(),
+                        created_at: 22,
+                    },
+                ],
             },
         )
         .await
@@ -817,59 +833,6 @@ mod tests {
         )
         .await
         .unwrap();
-        kv.set_msg(
-            &crate::control::keys::session_message_step(
-                "conic",
-                "writer",
-                "session-1",
-                "msg-2",
-                "step-1",
-            ),
-            &SessionStepEvent {
-                session_id: "session-1".to_string(),
-                step_type: StepType::Action as i32,
-                content: String::new(),
-                timestamp: 21,
-                agent: "writer".to_string(),
-                ns: "conic".to_string(),
-                message_id: "msg-2".to_string(),
-                name: "search".to_string(),
-                payload_json: serde_json::json!({
-                    "tool_call_id": "call-1",
-                    "input": { "q": "talon" }
-                })
-                .to_string(),
-            },
-        )
-        .await
-        .unwrap();
-        kv.set_msg(
-            &crate::control::keys::session_message_step(
-                "conic",
-                "writer",
-                "session-1",
-                "msg-2",
-                "step-2",
-            ),
-            &SessionStepEvent {
-                session_id: "session-1".to_string(),
-                step_type: StepType::Observation as i32,
-                content: "tool output".to_string(),
-                timestamp: 22,
-                agent: "writer".to_string(),
-                ns: "conic".to_string(),
-                message_id: "msg-2".to_string(),
-                name: "search".to_string(),
-                payload_json: serde_json::json!({
-                    "tool_call_id": "call-1",
-                    "output_preview": "tool preview"
-                })
-                .to_string(),
-            },
-        )
-        .await
-        .unwrap();
-
         let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
             .await
             .unwrap();

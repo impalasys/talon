@@ -5,14 +5,15 @@ use super::{models, proto, GrpcGatewayHandler};
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
+use crate::gateway::session_streams::SessionStreamTarget;
 use crate::scheduling;
-use futures::future::try_join_all;
 use prost::Message;
 
 const LARGE_SESSION_PAYLOAD_WARNING_BYTES: usize = 128 * 1024;
 const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
+const DEFAULT_SESSION_STREAM_BATCH_MAX: usize = 10_000;
 
 async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> anyhow::Result<()> {
     let mut stack = vec![parent];
@@ -47,6 +48,43 @@ fn validated_page_size(page_size: i32) -> std::result::Result<usize, tonic::Stat
         page_size as usize
     };
     Ok(page_size.min(MAX_SESSION_MESSAGES_PAGE_SIZE))
+}
+
+fn stream_session_batch_max() -> usize {
+    std::env::var("TALON_STREAM_SESSION_PARTS_BATCH_MAX")
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(DEFAULT_SESSION_STREAM_BATCH_MAX)
+}
+
+fn parse_session_stream_target(
+    name: &str,
+) -> std::result::Result<SessionStreamTarget, tonic::Status> {
+    let key = keys::ResourceKey::parse_canonical(name).map_err(|err| {
+        tonic::Status::invalid_argument(format!("invalid session resource name {name:?}: {err}"))
+    })?;
+    if key.kind != "Session" {
+        return Err(tonic::Status::invalid_argument(format!(
+            "session resource name must identify a Session, got {}",
+            key.kind
+        )));
+    }
+
+    let parent_segments = key.parent_segments().map_err(|err| {
+        tonic::Status::invalid_argument(format!("invalid session parent in {name:?}: {err}"))
+    })?;
+    if parent_segments.len() != 1 || parent_segments[0].kind != "Agent" {
+        return Err(tonic::Status::invalid_argument(format!(
+            "session resource name must be under an Agent parent: {name}"
+        )));
+    }
+
+    Ok(SessionStreamTarget::new(
+        key.namespace,
+        parent_segments[0].name.clone(),
+        key.name,
+    ))
 }
 
 impl GrpcGatewayHandler {
@@ -113,7 +151,6 @@ impl GrpcGatewayHandler {
             agent: req.agent,
             state: "ACTIVE".to_string(),
             messages: vec![],
-            steps: vec![],
             labels: req.labels,
         }))
     }
@@ -131,7 +168,6 @@ impl GrpcGatewayHandler {
         );
         let req = req.into_inner();
         let message_limit = requested_limit(req.message_limit);
-        let step_limit = requested_limit(req.step_limit);
 
         let session_db_key = keys::session(&req.ns, &req.agent, &req.session_id);
         let msg_prefix = keys::session_message_prefix(&req.ns, &req.agent, &req.session_id);
@@ -288,118 +324,11 @@ impl GrpcGatewayHandler {
             "loaded session messages"
         );
 
-        let mut steps = Vec::new();
-        let mut remaining_steps = step_limit.unwrap_or(usize::MAX);
-        for message in messages.iter().rev() {
-            if remaining_steps == 0 {
-                break;
-            }
-            let step_prefix = keys::session_message_step_prefix(
-                &req.ns,
-                &req.agent,
-                &req.session_id,
-                &message.id,
-            );
-            let mut step_keys = self.gateway.kv.list_keys(&step_prefix).await.map_err(|e| {
-                tracing::error!(
-                    ns = %req.ns,
-                    agent = %req.agent,
-                    session_id = %req.session_id,
-                    message_id = %message.id,
-                    prefix = %step_prefix,
-                    error = %e,
-                    "failed to list session steps"
-                );
-                tonic::Status::internal(format!("Failed to list session steps: {}", e))
-            })?;
-            step_keys.sort();
-            tracing::info!(
-                ns = %req.ns,
-                agent = %req.agent,
-                session_id = %req.session_id,
-                message_id = %message.id,
-                step_key_count = step_keys.len(),
-                "loaded session step keys"
-            );
-
-            step_keys.reverse();
-            for key in step_keys {
-                if remaining_steps == 0 {
-                    break;
-                }
-                match self.gateway.kv.get(&key).await {
-                    Ok(Some(bytes)) => {
-                        let payload_bytes = bytes.len();
-                        if payload_bytes > LARGE_SESSION_PAYLOAD_WARNING_BYTES {
-                            tracing::warn!(
-                                ns = %req.ns,
-                                agent = %req.agent,
-                                session_id = %req.session_id,
-                                message_id = %message.id,
-                                key = %key,
-                                payload_bytes,
-                                "session step payload is unusually large"
-                            );
-                        }
-
-                        match events::SessionStepEvent::decode(bytes.as_slice()) {
-                            Ok(step) => {
-                                steps.push(step);
-                                remaining_steps = remaining_steps.saturating_sub(1);
-                            }
-                            Err(e) => {
-                                tracing::error!(
-                                    ns = %req.ns,
-                                    agent = %req.agent,
-                                    session_id = %req.session_id,
-                                    message_id = %message.id,
-                                    key = %key,
-                                    payload_bytes,
-                                    error = %e,
-                                    "failed to decode session step"
-                                );
-                            }
-                        }
-                    }
-                    Ok(None) => {
-                        tracing::warn!(
-                            ns = %req.ns,
-                            agent = %req.agent,
-                            session_id = %req.session_id,
-                            message_id = %message.id,
-                            key = %key,
-                            "session step key exists but value is missing"
-                        );
-                    }
-                    Err(e) => {
-                        tracing::error!(
-                            ns = %req.ns,
-                            agent = %req.agent,
-                            session_id = %req.session_id,
-                            message_id = %message.id,
-                            key = %key,
-                            error = %e,
-                            "failed to decode session step"
-                        );
-                    }
-                }
-            }
-        }
-        steps.reverse();
-        tracing::info!(
-            ns = %req.ns,
-            agent = %req.agent,
-            session_id = %req.session_id,
-            step_count = steps.len(),
-            "loaded session steps"
-        );
-
         Ok(tonic::Response::new(proto::SessionResponse {
             session_id: session.id,
             agent: session.agent,
             state: session.status,
             messages,
-            steps,
             labels: session.labels,
         }))
     }
@@ -462,7 +391,7 @@ impl GrpcGatewayHandler {
             }
 
             // Continue from the last key returned, regardless of whether it was
-            // a message key, a step key, or another nested descendant.
+            // a message key or another nested descendant.
             scan_before_name = entries.last().map(|(key, _)| key.name.clone());
 
             let remaining = target_message_count.saturating_sub(items.len());
@@ -502,43 +431,11 @@ impl GrpcGatewayHandler {
                 page_messages.push(message);
             }
 
-            let step_fetches = page_messages.into_iter().map(|message| {
-                let kv = self.gateway.kv.clone();
-                let ns = req.ns.clone();
-                let agent = req.agent.clone();
-                let session_id = req.session_id.clone();
-                async move {
-                    let step_prefix =
-                        keys::session_message_step_prefix(&ns, &agent, &session_id, &message.id);
-                    let mut step_entries = kv.list_entries(&step_prefix).await.map_err(|e| {
-                        tonic::Status::internal(format!("Failed to list session steps: {}", e))
-                    })?;
-                    step_entries.sort_by(|left, right| left.0.cmp(&right.0));
-                    let steps = step_entries
-                        .into_iter()
-                        .filter_map(|(step_key, step_bytes)| {
-                            events::SessionStepEvent::decode(step_bytes.as_slice())
-                                .map_err(|e| {
-                                    tracing::error!(
-                                        ns = %ns,
-                                        agent = %agent,
-                                        session_id = %session_id,
-                                        key = %step_key,
-                                        error = %e,
-                                        "failed to decode session step"
-                                    );
-                                })
-                                .ok()
-                        })
-                        .collect();
-
-                    Ok::<_, tonic::Status>(proto::ListSessionMessagesResponseItem {
-                        steps,
-                        message: Some(message),
-                    })
+            items.extend(page_messages.into_iter().map(|message| {
+                proto::ListSessionMessagesResponseItem {
+                    message: Some(message),
                 }
-            });
-            items.extend(try_join_all(step_fetches).await?);
+            }));
         }
 
         let has_more = items.len() > page_size;
@@ -759,10 +656,10 @@ impl GrpcGatewayHandler {
         }))
     }
 
-    pub async fn handle_stream_session_steps(
+    pub async fn handle_stream_session_parts(
         &self,
-        req: tonic::Request<proto::StreamSessionStepsRequest>,
-    ) -> std::result::Result<tonic::Response<<GrpcGatewayHandler as proto::gateway_service_server::GatewayService>::StreamSessionStepsStream>, tonic::Status>{
+        req: tonic::Request<proto::StreamSessionPartsRequest>,
+    ) -> std::result::Result<tonic::Response<<GrpcGatewayHandler as proto::gateway_service_server::GatewayService>::StreamSessionPartsStream>, tonic::Status>{
         crate::require_auth!(
             self,
             req,
@@ -775,7 +672,68 @@ impl GrpcGatewayHandler {
         let receiver = self
             .gateway
             .session_streams
-            .subscribe(&req.session_id)
+            .subscribe(&req.ns, &req.agent, &req.session_id)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))
+            })?;
+
+        let event_stream = async_stream::stream! {
+            let mut receiver = receiver;
+            while let Some(event) = receiver.recv().await {
+                yield event;
+            }
+        };
+
+        Ok(tonic::Response::new(Box::pin(event_stream)))
+    }
+
+    pub async fn handle_stream_session_parts_batch(
+        &self,
+        req: tonic::Request<proto::StreamSessionPartsBatchRequest>,
+    ) -> std::result::Result<
+        tonic::Response<
+            <GrpcGatewayHandler as proto::gateway_service_server::GatewayService>::StreamSessionPartsBatchStream,
+        >,
+        tonic::Status,
+    >{
+        let batch_max = stream_session_batch_max();
+        let request = req.get_ref();
+        if request.session_names.is_empty() {
+            return Err(tonic::Status::invalid_argument(
+                "session_names must contain at least one session",
+            ));
+        }
+        if request.session_names.len() > batch_max {
+            return Err(tonic::Status::invalid_argument(format!(
+                "session_names contains {} sessions, maximum is {}",
+                request.session_names.len(),
+                batch_max
+            )));
+        }
+
+        let targets = request
+            .session_names
+            .iter()
+            .map(|name| parse_session_stream_target(name))
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+
+        if let Some(auth_config) = &self.gateway.auth_config {
+            for target in &targets {
+                crate::gateway::auth::check_auth(
+                    req.metadata(),
+                    auth_config,
+                    &target.ns,
+                    Some(&target.agent),
+                    Some(&target.session_id),
+                )?;
+            }
+        }
+
+        let receiver = self
+            .gateway
+            .session_streams
+            .subscribe_many(targets)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to subscribe to session stream: {}", e))

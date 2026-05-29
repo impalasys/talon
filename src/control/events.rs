@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 #[cfg(not(feature = "bazel"))]
+pub mod models {
+    pub use crate::gateway::rpc::models::*;
+}
+
+#[cfg(not(feature = "bazel"))]
 pub mod proto {
     tonic::include_proto!("talon.events");
 }

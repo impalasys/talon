@@ -7,12 +7,13 @@ use serde_json::Value;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use crate::control::events::{SessionStepEvent, StepType};
+use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::{keys::ResourceKey, topics, KeyValueStore, MessagePublisher};
 use crate::core::context_budget::tool_result_preview;
 use crate::core::executor::{AgentEvent, ExecutionSink};
 use crate::gateway::rpc::models;
 use crate::llm::ChatUsage;
+use tracing::Instrument;
 
 #[derive(Debug, Clone)]
 pub struct SessionRunSummary {
@@ -29,7 +30,7 @@ pub struct SessionRunSummary {
 }
 
 /// Production sink: accumulates tokens, throttle-flushes partial text to KV,
-/// and publishes `SessionStepEvent`s to PubSub for real-time UI streaming.
+/// and publishes `SessionMessagePartEvent`s to PubSub for real-time UI streaming.
 pub struct PubSubSessionSink {
     pub kv: Arc<dyn KeyValueStore>,
     pub pubsub: Arc<dyn MessagePublisher>,
@@ -42,11 +43,10 @@ pub struct PubSubSessionSink {
     token_publish_interval: Duration,
     started_at: Instant,
     accumulated: Mutex<String>,
-    persisted_text_buffer: Mutex<String>,
     pending_token_event_buffer: Mutex<String>,
-    persisted_reasoning_buffer: Mutex<String>,
     pending_reasoning_event_buffer: Mutex<String>,
-    next_step_index: Mutex<u64>,
+    durable_parts: Mutex<Vec<models::SessionMessagePart>>,
+    next_part_index: Mutex<u64>,
     last_flush: Mutex<Instant>,
     last_token_publish: Mutex<Instant>,
     last_reasoning_publish: Mutex<Instant>,
@@ -94,7 +94,7 @@ impl PubSubSessionSink {
         token_publish_interval: Duration,
     ) -> Self {
         let session_id = session_id.into();
-        let status_topic = topics::session_step_topic_for_session(&session_id);
+        let status_topic = topics::session_part_topic_for_session(&session_id);
         Self {
             kv,
             pubsub,
@@ -107,11 +107,10 @@ impl PubSubSessionSink {
             token_publish_interval,
             started_at: Instant::now(),
             accumulated: Mutex::new(String::new()),
-            persisted_text_buffer: Mutex::new(String::new()),
             pending_token_event_buffer: Mutex::new(String::new()),
-            persisted_reasoning_buffer: Mutex::new(String::new()),
             pending_reasoning_event_buffer: Mutex::new(String::new()),
-            next_step_index: Mutex::new(0),
+            durable_parts: Mutex::new(Vec::new()),
+            next_part_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
             last_token_publish: Mutex::new(Instant::now()),
             last_reasoning_publish: Mutex::new(Instant::now()),
@@ -127,52 +126,48 @@ impl PubSubSessionSink {
         }
     }
 
-    fn next_step_id(&self) -> String {
-        let mut next = self.next_step_index.lock().unwrap();
+    fn next_part_id(&self) -> String {
+        let mut next = self.next_part_index.lock().unwrap();
         *next += 1;
         format!("{:06}", *next)
     }
 
-    async fn persist_step(
+    fn record_part(
         &self,
-        step_type: StepType,
+        part_type: models::SessionMessagePartType,
         name: String,
         content: String,
         payload_json: String,
     ) {
-        let key = crate::control::keys::session_message_step(
-            &self.ns,
-            &self.agent_id,
-            &self.session_id,
-            &self.reply_msg_id,
-            &self.next_step_id(),
-        );
-        let event = SessionStepEvent {
-            session_id: self.session_id.clone(),
-            step_type: step_type as i32,
-            content,
-            timestamp: chrono::Utc::now().timestamp_micros(),
-            agent: self.agent_id.clone(),
-            ns: self.ns.clone(),
-            message_id: self.reply_msg_id.clone(),
-            name,
-            payload_json,
-        };
-        let _ =
-            crate::control::ProtoKeyValueStoreExt::set_msg(self.kv.as_ref(), &key, &event).await;
+        self.durable_parts
+            .lock()
+            .unwrap()
+            .push(models::SessionMessagePart {
+                id: self.next_part_id(),
+                part_type: part_type as i32,
+                content,
+                name,
+                payload_json,
+                created_at: chrono::Utc::now().timestamp_micros(),
+            });
     }
 
-    async fn flush_persisted_text(&self) {
-        let content = {
-            let mut buffer = self.persisted_text_buffer.lock().unwrap();
-            if buffer.is_empty() {
-                return;
-            }
-            std::mem::take(&mut *buffer)
-        };
-
-        self.persist_step(StepType::Token, String::new(), content, String::new())
-            .await;
+    fn final_message_parts(&self, reply: &str) -> Vec<models::SessionMessagePart> {
+        let mut parts = self.durable_parts.lock().unwrap().clone();
+        if !reply.is_empty() {
+            parts.insert(
+                0,
+                models::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: models::SessionMessagePartType::Text as i32,
+                    content: reply.to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: chrono::Utc::now().timestamp_micros(),
+                },
+            );
+        }
+        parts
     }
 
     async fn flush_token_event_buffer(&self) {
@@ -190,20 +185,7 @@ impl PubSubSessionSink {
         self.publish_event(AgentEvent::Token(content)).await;
     }
 
-    async fn flush_persisted_reasoning(&self) {
-        let content = {
-            let mut buffer = self.persisted_reasoning_buffer.lock().unwrap();
-            if buffer.is_empty() {
-                return;
-            }
-            std::mem::take(&mut *buffer)
-        };
-
-        self.persist_step(StepType::Reasoning, String::new(), content, String::new())
-            .await;
-    }
-
-    async fn flush_reasoning_event_buffer(&self) {
+    async fn flush_reasoning_part_and_event(&self) {
         let content = {
             let mut buffer = self.pending_reasoning_event_buffer.lock().unwrap();
             if buffer.is_empty() {
@@ -212,17 +194,27 @@ impl PubSubSessionSink {
             std::mem::take(&mut *buffer)
         };
 
-        *self.last_reasoning_publish.lock().unwrap() = Instant::now();
+        self.record_part(
+            models::SessionMessagePartType::Reasoning,
+            String::new(),
+            content.clone(),
+            String::new(),
+        );
         self.publish_event(AgentEvent::Reasoning(content)).await;
     }
 
     async fn publish_event(&self, event: AgentEvent) {
-        let (step_type, name, content, payload_json) = match event {
-            AgentEvent::Reasoning(content) => {
-                (StepType::Reasoning, String::new(), content, String::new())
-            }
+        let (kind, part_type, name, content, payload_json) = match event {
+            AgentEvent::Reasoning(content) => (
+                SessionMessagePartEventKind::Delta,
+                models::SessionMessagePartType::Reasoning,
+                String::new(),
+                content,
+                String::new(),
+            ),
             AgentEvent::Action { id, name, input } => (
-                StepType::Action,
+                SessionMessagePartEventKind::Delta,
+                models::SessionMessagePartType::ToolCall,
                 name,
                 "Tool call".to_string(),
                 serde_json::to_string(&serde_json::json!({
@@ -232,7 +224,8 @@ impl PubSubSessionSink {
                 .unwrap_or_else(|_| "{}".to_string()),
             ),
             AgentEvent::Observation { id, name, output } => (
-                StepType::Observation,
+                SessionMessagePartEventKind::Delta,
+                models::SessionMessagePartType::ToolResult,
                 name,
                 output.clone(),
                 serde_json::to_string(&serde_json::json!({
@@ -241,31 +234,63 @@ impl PubSubSessionSink {
                 }))
                 .unwrap_or_else(|_| "{}".to_string()),
             ),
-            AgentEvent::Token(content) => (StepType::Token, String::new(), content, String::new()),
+            AgentEvent::Token(content) => (
+                SessionMessagePartEventKind::Delta,
+                models::SessionMessagePartType::Text,
+                String::new(),
+                content,
+                String::new(),
+            ),
             AgentEvent::Usage(usage) => (
-                StepType::Usage,
+                SessionMessagePartEventKind::Delta,
+                models::SessionMessagePartType::Usage,
                 String::new(),
                 String::new(),
                 serde_json::to_string(&usage).unwrap_or_else(|_| "{}".to_string()),
             ),
-            AgentEvent::Done(reply) => (StepType::Done, String::new(), reply, String::new()),
-            AgentEvent::Error(err) => (StepType::Error, String::new(), err, String::new()),
+            AgentEvent::Done(reply) => (
+                SessionMessagePartEventKind::Done,
+                models::SessionMessagePartType::Text,
+                String::new(),
+                reply,
+                String::new(),
+            ),
+            AgentEvent::Error(err) => (
+                SessionMessagePartEventKind::Error,
+                models::SessionMessagePartType::Error,
+                String::new(),
+                err,
+                String::new(),
+            ),
         };
 
-        let event = SessionStepEvent {
+        let event = SessionMessagePartEvent {
             session_id: self.session_id.clone(),
-            step_type: step_type as i32,
-            content,
+            kind: kind as i32,
+            part: Some(models::SessionMessagePart {
+                id: String::new(),
+                part_type: part_type as i32,
+                content,
+                name,
+                payload_json,
+                created_at: chrono::Utc::now().timestamp_micros(),
+            }),
             timestamp: chrono::Utc::now().timestamp_micros(),
             agent: self.agent_id.clone(),
             ns: self.ns.clone(),
             message_id: self.reply_msg_id.clone(),
-            name,
-            payload_json,
         };
-        let _ = self
-            .pubsub
-            .publish(&self.status_topic, &event.encode_to_vec())
+        let payload = event.encode_to_vec();
+        let _ = async { self.pubsub.publish(&self.status_topic, &payload).await }
+            .instrument(tracing::info_span!(
+                "PubSubSessionSink.publish_event",
+                namespace = %self.ns,
+                agent = %self.agent_id,
+                session = %self.session_id,
+                kind = ?kind,
+                part_type = ?part_type,
+                payload_bytes = payload.len(),
+            ))
             .await;
     }
 
@@ -279,21 +304,39 @@ impl PubSubSessionSink {
             let kv = self.kv.clone();
             let key = self.reply_msg_key.clone();
             let msg_id = self.reply_msg_id.clone();
-            tokio::spawn(async move {
-                let partial = models::SessionMessage {
-                    id: msg_id,
-                    role: 2, // ASSISTANT
-                    content: current_text,
-                    created_at: chrono::Utc::now().timestamp_micros(),
-                    labels: std::collections::HashMap::new(),
-                };
-                if let Err(e) =
-                    crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &key, &partial)
-                        .await
-                {
-                    tracing::error!("Failed to persist partial message: {}", e);
+            let ns = self.ns.clone();
+            let agent = self.agent_id.clone();
+            let session = self.session_id.clone();
+            tokio::spawn(
+                async move {
+                    let partial = models::SessionMessage {
+                        id: msg_id,
+                        role: 2, // ASSISTANT
+                        created_at: chrono::Utc::now().timestamp_micros(),
+                        labels: std::collections::HashMap::new(),
+                        parts: vec![models::SessionMessagePart {
+                            id: "000000".to_string(),
+                            part_type: models::SessionMessagePartType::Text as i32,
+                            content: current_text,
+                            name: String::new(),
+                            payload_json: String::new(),
+                            created_at: chrono::Utc::now().timestamp_micros(),
+                        }],
+                    };
+                    if let Err(e) =
+                        crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &key, &partial)
+                            .await
+                    {
+                        tracing::error!("Failed to persist partial message: {}", e);
+                    }
                 }
-            });
+                .instrument(tracing::info_span!(
+                    "PubSubSessionSink.persist_partial_message",
+                    namespace = %ns,
+                    agent = %agent,
+                    session = %session,
+                )),
+            );
         }
     }
 
@@ -333,7 +376,6 @@ impl ExecutionSink for PubSubSessionSink {
             acc.push_str(token);
             acc.clone()
         };
-        self.persisted_text_buffer.lock().unwrap().push_str(token);
         self.pending_token_event_buffer
             .lock()
             .unwrap()
@@ -347,28 +389,21 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_reasoning(&self, reasoning: &str) {
         *self.reasoning_chunks.lock().unwrap() += 1;
         *self.reasoning_chars.lock().unwrap() += reasoning.len();
-        self.persisted_reasoning_buffer
-            .lock()
-            .unwrap()
-            .push_str(reasoning);
         self.pending_reasoning_event_buffer
             .lock()
             .unwrap()
             .push_str(reasoning);
         if self.should_flush_reasoning_event() {
-            self.flush_persisted_reasoning().await;
-            self.flush_reasoning_event_buffer().await;
+            self.flush_reasoning_part_and_event().await;
         }
     }
 
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value) {
         *self.tool_calls.lock().unwrap() += 1;
-        self.flush_persisted_text().await;
         self.flush_token_event_buffer().await;
-        self.flush_persisted_reasoning().await;
-        self.flush_reasoning_event_buffer().await;
-        self.persist_step(
-            StepType::Action,
+        self.flush_reasoning_part_and_event().await;
+        self.record_part(
+            models::SessionMessagePartType::ToolCall,
             name.to_string(),
             "Tool call".to_string(),
             serde_json::to_string(&serde_json::json!({
@@ -376,8 +411,7 @@ impl ExecutionSink for PubSubSessionSink {
                 "input": input,
             }))
             .unwrap_or_else(|_| "{}".to_string()),
-        )
-        .await;
+        );
         self.publish_event(AgentEvent::Action {
             id: id.to_string(),
             name: name.to_string(),
@@ -388,11 +422,10 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn on_tool_result(&self, id: &str, name: &str, result: &str) {
         *self.tool_results.lock().unwrap() += 1;
-        self.flush_persisted_reasoning().await;
-        self.flush_reasoning_event_buffer().await;
+        self.flush_reasoning_part_and_event().await;
         let preview = tool_result_preview(result);
-        self.persist_step(
-            StepType::Observation,
+        self.record_part(
+            models::SessionMessagePartType::ToolResult,
             name.to_string(),
             preview.clone(),
             serde_json::to_string(&serde_json::json!({
@@ -401,8 +434,7 @@ impl ExecutionSink for PubSubSessionSink {
                 "output": result,
             }))
             .unwrap_or_else(|_| "{}".to_string()),
-        )
-        .await;
+        );
         self.publish_event(AgentEvent::Observation {
             id: id.to_string(),
             name: name.to_string(),
@@ -413,48 +445,51 @@ impl ExecutionSink for PubSubSessionSink {
 
     async fn on_usage(&self, usage: &ChatUsage) {
         *self.usage_events.lock().unwrap() += 1;
-        self.flush_persisted_reasoning().await;
-        self.flush_reasoning_event_buffer().await;
-        self.persist_step(
-            StepType::Usage,
+        self.flush_reasoning_part_and_event().await;
+        self.record_part(
+            models::SessionMessagePartType::Usage,
             String::new(),
             String::new(),
             serde_json::to_string(usage).unwrap_or_else(|_| "{}".to_string()),
-        )
-        .await;
+        );
         self.publish_event(AgentEvent::Usage(usage.clone())).await;
     }
 
     async fn on_done(&self, reply: &str) {
-        self.flush_persisted_text().await;
         self.flush_token_event_buffer().await;
-        self.flush_persisted_reasoning().await;
-        self.flush_reasoning_event_buffer().await;
+        self.flush_reasoning_part_and_event().await;
         // Final KV write (complete message)
-        let kv = self.kv.clone();
-        let key = self.reply_msg_key.clone();
-        let msg_id = self.reply_msg_id.clone();
         let reply = reply.to_string();
         let reply_for_event = reply.clone();
-        tokio::spawn(async move {
-            let msg = models::SessionMessage {
-                id: msg_id,
-                role: 2,
-                content: reply,
-                created_at: chrono::Utc::now().timestamp_micros(),
-                labels: std::collections::HashMap::new(),
-            };
-            let _ = crate::control::ProtoKeyValueStoreExt::set_msg(kv.as_ref(), &key, &msg).await;
-        });
+        let msg = models::SessionMessage {
+            id: self.reply_msg_id.clone(),
+            role: 2,
+            created_at: chrono::Utc::now().timestamp_micros(),
+            labels: std::collections::HashMap::new(),
+            parts: self.final_message_parts(&reply),
+        };
+        let _ = async {
+            crate::control::ProtoKeyValueStoreExt::set_msg(
+                self.kv.as_ref(),
+                &self.reply_msg_key,
+                &msg,
+            )
+            .await
+        }
+        .instrument(tracing::info_span!(
+            "PubSubSessionSink.persist_final_message",
+            namespace = %self.ns,
+            agent = %self.agent_id,
+            session = %self.session_id,
+        ))
+        .await;
 
         self.publish_event(AgentEvent::Done(reply_for_event)).await;
     }
 
     async fn on_error(&self, err: &str) {
-        self.flush_persisted_text().await;
         self.flush_token_event_buffer().await;
-        self.flush_persisted_reasoning().await;
-        self.flush_reasoning_event_buffer().await;
+        self.flush_reasoning_part_and_event().await;
 
         let visible_content = {
             let accumulated = self.accumulated.lock().unwrap();
@@ -464,12 +499,18 @@ impl ExecutionSink for PubSubSessionSink {
                 format!("{}\n\n{}", accumulated.as_str(), err)
             }
         };
+        self.record_part(
+            models::SessionMessagePartType::Error,
+            String::new(),
+            err.to_string(),
+            String::new(),
+        );
         let msg = models::SessionMessage {
             id: self.reply_msg_id.clone(),
             role: 2,
-            content: visible_content,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: std::collections::HashMap::new(),
+            parts: self.final_message_parts(&visible_content),
         };
         let _ = crate::control::ProtoKeyValueStoreExt::set_msg(
             self.kv.as_ref(),
@@ -478,13 +519,6 @@ impl ExecutionSink for PubSubSessionSink {
         )
         .await;
 
-        self.persist_step(
-            StepType::Error,
-            String::new(),
-            err.to_string(),
-            String::new(),
-        )
-        .await;
         self.publish_event(AgentEvent::Error(err.to_string())).await;
     }
 }
@@ -501,10 +535,11 @@ fn token_publish_interval() -> Duration {
 #[cfg(test)]
 mod tests {
     use super::{token_publish_interval, PubSubSessionSink};
-    use crate::control::events::{SessionStepEvent, StepType};
+    use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
     use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::{KeyValueStore, MessagePublisher};
     use crate::core::executor::ExecutionSink;
+    use crate::gateway::rpc::models;
     use async_trait::async_trait;
     use prost::Message;
     use serde_json::json;
@@ -558,13 +593,17 @@ mod tests {
     }
 
     struct MockPubSub {
-        events: Arc<Mutex<Vec<SessionStepEvent>>>,
+        events: Arc<Mutex<Vec<SessionMessagePartEvent>>>,
+    }
+
+    fn event_part(event: &SessionMessagePartEvent) -> &models::SessionMessagePart {
+        event.part.as_ref().expect("event part")
     }
 
     #[async_trait]
     impl MessagePublisher for MockPubSub {
         async fn publish(&self, _topic: &str, message: &[u8]) -> anyhow::Result<()> {
-            let event = SessionStepEvent::decode(message)?;
+            let event = SessionMessagePartEvent::decode(message)?;
             self.events.lock().await.push(event);
             Ok(())
         }
@@ -603,8 +642,11 @@ mod tests {
         let events = events.lock().await.clone();
         let token_events = events
             .iter()
-            .filter(|event| event.step_type == StepType::Token as i32)
-            .map(|event| event.content.clone())
+            .filter(|event| event.kind == SessionMessagePartEventKind::Delta as i32)
+            .filter(|event| {
+                event_part(event).part_type == models::SessionMessagePartType::Text as i32
+            })
+            .map(|event| event_part(event).content.clone())
             .collect::<Vec<_>>();
 
         assert_eq!(token_events, vec!["hello world".to_string()]);
@@ -633,10 +675,16 @@ mod tests {
             .await;
 
         let events = events.lock().await.clone();
-        assert_eq!(events[0].step_type, StepType::Token as i32);
-        assert_eq!(events[0].content, "drafting request");
-        assert_eq!(events[1].step_type, StepType::Action as i32);
-        assert_eq!(events[1].name, "create_prompt");
+        assert_eq!(
+            event_part(&events[0]).part_type,
+            models::SessionMessagePartType::Text as i32
+        );
+        assert_eq!(event_part(&events[0]).content, "drafting request");
+        assert_eq!(
+            event_part(&events[1]).part_type,
+            models::SessionMessagePartType::ToolCall as i32
+        );
+        assert_eq!(event_part(&events[1]).name, "create_prompt");
     }
 
     #[tokio::test]
@@ -664,17 +712,20 @@ mod tests {
         let events = events.lock().await.clone();
         let reasoning_events = events
             .iter()
-            .filter(|event| event.step_type == StepType::Reasoning as i32)
-            .map(|event| event.content.clone())
+            .filter(|event| {
+                event_part(event).part_type == models::SessionMessagePartType::Reasoning as i32
+            })
+            .map(|event| event_part(event).content.clone())
             .collect::<Vec<_>>();
         assert_eq!(reasoning_events, vec!["first second".to_string()]);
 
         let entries = kv.entries.lock().await.clone();
         let persisted_reasoning = entries
             .iter()
-            .filter_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
-            .filter(|event| event.step_type == StepType::Reasoning as i32)
-            .map(|event| event.content)
+            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .flat_map(|message| message.parts)
+            .filter(|part| part.part_type == models::SessionMessagePartType::Reasoning as i32)
+            .map(|part| part.content)
             .collect::<Vec<_>>();
         assert_eq!(persisted_reasoning, vec!["first second".to_string()]);
     }
@@ -702,12 +753,14 @@ mod tests {
 
         sink.on_tool_result("tool-1", "mcp_github_get_file_contents", &raw_output)
             .await;
+        sink.on_done("final").await;
 
         let entries = kv.entries.lock().await.clone();
         let persisted = entries
             .iter()
-            .find_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
-            .filter(|event| event.step_type == StepType::Observation as i32)
+            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .flat_map(|message| message.parts)
+            .find(|part| part.part_type == models::SessionMessagePartType::ToolResult as i32)
             .unwrap();
         let payload: serde_json::Value = serde_json::from_str(&persisted.payload_json).unwrap();
 
@@ -740,10 +793,12 @@ mod tests {
 
         let events = events.lock().await.clone();
         assert!(events.iter().any(
-            |event| event.step_type == StepType::Error as i32 && event.content == "tool failed"
+            |event| event.kind == SessionMessagePartEventKind::Error as i32
+                && event_part(event).content == "tool failed"
         ));
         assert!(events.iter().any(
-            |event| event.step_type == StepType::Done as i32 && event.content == "final reply"
+            |event| event.kind == SessionMessagePartEventKind::Done as i32
+                && event_part(event).content == "final reply"
         ));
 
         let entries = kv.entries.lock().await.clone();
@@ -753,23 +808,19 @@ mod tests {
                 crate::gateway::rpc::models::SessionMessage::decode(value.as_slice()).ok()
             })
             .collect::<Vec<_>>();
-        assert!(persisted_messages
-            .iter()
-            .any(|msg| msg.id == "reply-1" && msg.content == "partial \n\ntool failed"));
-        assert!(persisted_messages
-            .iter()
-            .any(|msg| msg.id == "reply-1" && msg.content == "final reply"));
+        assert!(persisted_messages.iter().any(|msg| msg.id == "reply-1"));
 
-        let persisted_steps = entries
+        let persisted_parts = entries
             .iter()
-            .filter_map(|(_, value)| SessionStepEvent::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .flat_map(|message| message.parts)
             .collect::<Vec<_>>();
-        assert!(persisted_steps
-            .iter()
-            .any(|event| event.step_type == StepType::Token as i32 && event.content == "partial "));
-        assert!(persisted_steps.iter().any(
-            |event| event.step_type == StepType::Error as i32 && event.content == "tool failed"
-        ));
+        assert!(persisted_parts.iter().any(|part| part.part_type
+            == models::SessionMessagePartType::Text as i32
+            && part.content == "final reply"));
+        assert!(persisted_parts.iter().any(|part| part.part_type
+            == models::SessionMessagePartType::Error as i32
+            && part.content == "tool failed"));
     }
 
     #[tokio::test]

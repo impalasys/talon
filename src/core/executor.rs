@@ -1,6 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
+use crate::config::Config;
+use crate::connectors::mcp::{call_tool_for_config, McpConnectionConfig};
+use crate::control::ControlPlane;
+use crate::core::context_budget::{compact_history_for_llm, tool_result_preview};
+use crate::knowledge::KnowledgeBook;
+use crate::llm::resolver::resolve_model_profile;
+use crate::llm::{ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall};
+use crate::skills::registry::ToolRegistry;
 use anyhow::Result;
 use async_trait::async_trait;
 use futures::StreamExt;
@@ -10,16 +18,6 @@ use std::collections::{BTreeMap, HashMap};
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio_util::sync::CancellationToken;
-use tracing::info_span;
-
-use crate::config::Config;
-use crate::connectors::mcp::{call_tool_for_config, McpConnectionConfig};
-use crate::control::ControlPlane;
-use crate::core::context_budget::{compact_history_for_llm, tool_result_preview};
-use crate::knowledge::KnowledgeBook;
-use crate::llm::resolver::resolve_model_profile;
-use crate::llm::{ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall};
-use crate::skills::registry::ToolRegistry;
 
 const DEFAULT_EXECUTION_TURN_LIMIT: usize = 25;
 
@@ -277,6 +275,11 @@ impl AgentExecutor {
 
     /// Run a task to completion, emitting events to `sink` along the way.
     /// Returns the final reply text.
+    #[tracing::instrument(
+        name = "AgentExecutor.execute",
+        skip_all,
+        fields(agent_id = %context.agent_id, task_chars = task.len())
+    )]
     pub async fn execute(
         &self,
         context: &mut ExecutionContext,
@@ -284,9 +287,6 @@ impl AgentExecutor {
         sink: &dyn ExecutionSink,
         cancellation_token: Option<&CancellationToken>,
     ) -> Result<String> {
-        let span = info_span!("agent_execute", agent_id = %context.agent_id, task = %task);
-        let _enter = span.enter();
-
         // Inject system prompt on first turn
         if context.history.is_empty() {
             let soul = self.assembler.assemble().await?;

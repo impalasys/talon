@@ -12,6 +12,10 @@ use tokio::signal;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(feature = "heap-profile")]
+#[global_allocator]
+static GLOBAL_ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
+
 fn select_auth_config<F>(mut get: F) -> AuthConfig
 where
     F: FnMut(&str) -> Option<String>,
@@ -192,6 +196,7 @@ where
 async fn main() -> Result<()> {
     talon::security::install_jwt_crypto_provider();
     tracing_subscriber::fmt::init();
+    talon::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon Gateway Server...");
     run_server_main_with(
         || Ok(Arc::new(Config::load_default()?)),

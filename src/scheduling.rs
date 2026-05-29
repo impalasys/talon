@@ -561,9 +561,16 @@ pub async fn send_message(
     let user_msg = models::SessionMessage {
         id: uuid::Uuid::now_v7().to_string(),
         role: models::MessageRole::RoleUser as i32,
-        content: message.to_string(),
         created_at: now.timestamp_micros(),
         labels,
+        parts: vec![models::SessionMessagePart {
+            id: "000000".to_string(),
+            part_type: models::SessionMessagePartType::Text as i32,
+            content: message.to_string(),
+            name: String::new(),
+            payload_json: String::new(),
+            created_at: now.timestamp_micros(),
+        }],
     };
     if let Err(err) = kv
         .set_msg(
