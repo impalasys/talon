@@ -379,7 +379,7 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
     ) -> Result<()> {
         use futures::StreamExt;
 
-        let mut stream = self
+        let stream = self
             .subscriber
             .subscribe_named(&self.topic_name, &self.subscription_name)
             .await?;
@@ -388,32 +388,10 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
         } else {
             1
         };
-        if concurrency <= 1 {
-            while let Some(payload) = stream.next().await {
-                if cancellation_token.is_cancelled() {
-                    break;
-                }
-                let span = tracing::info_span!(
-                    "LocalSocketPullSubscriptionBackend.dispatch",
-                    event_type = %event_type,
-                    "broker.driver" = "local_socket",
-                    "worker.session_concurrency" = concurrency,
-                    payload_bytes = payload.len(),
-                );
-                if let Err(err) = async { handler.dispatch(Some(&event_type), &payload).await }
-                    .instrument(span)
-                    .await
-                {
-                    tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
-                }
-            }
-            return Ok(());
-        }
-
         tracing::info!(
             event_type = %event_type,
             concurrency,
-            "Starting concurrent local socket dispatch"
+            "Starting local socket dispatch"
         );
         let dispatch_event_type = event_type.clone();
         stream
