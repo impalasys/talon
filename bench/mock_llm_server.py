@@ -28,7 +28,7 @@ class Counters:
         self.non_streaming_requests = 0
         self.in_flight = 0
         self.max_in_flight = 0
-        self.started_at = time.time()
+        self.started_at = time.monotonic()
 
     async def begin(self, streaming: bool) -> None:
         async with self._lock:
@@ -52,7 +52,7 @@ class Counters:
                 "non_streaming_requests": self.non_streaming_requests,
                 "in_flight": self.in_flight,
                 "max_in_flight": self.max_in_flight,
-                "uptime_seconds": time.time() - self.started_at,
+                "uptime_seconds": time.monotonic() - self.started_at,
             }
 
 

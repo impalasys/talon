@@ -158,9 +158,12 @@ impl PubSubSessionSink {
         let mut parts = self.durable_parts.lock().unwrap().clone();
         let text = {
             let accumulated = self.accumulated.lock().unwrap();
-            if accumulated.as_str() == reply {
+            if reply.starts_with(accumulated.as_str()) {
                 self.text_since_last_durable_part(reply)
+            } else if accumulated.ends_with(reply) || !reply.contains(accumulated.as_str()) {
+                reply.to_string()
             } else {
+                parts.retain(|part| part.part_type != models::SessionMessagePartType::Text as i32);
                 reply.to_string()
             }
         };
