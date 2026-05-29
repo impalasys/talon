@@ -336,15 +336,22 @@ async def amain() -> None:
     args = parser.parse_args()
 
     counters = Counters()
-    server = await asyncio.start_server(
-        lambda reader, writer: handle_connection(
+
+    async def connection_callback(
+        reader: asyncio.StreamReader,
+        writer: asyncio.StreamWriter,
+    ) -> None:
+        await handle_connection(
             reader,
             writer,
             latency_ms=args.latency_ms,
             tokens_per_second=args.tokens_per_second,
             response_tokens=args.response_tokens,
             counters=counters,
-        ),
+        )
+
+    server = await asyncio.start_server(
+        connection_callback,
         args.host,
         args.port,
         backlog=args.request_backlog,

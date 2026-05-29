@@ -789,9 +789,12 @@ async def run_workload(
                 await print_progress()
                 next_progress_at = time.perf_counter() + progress_interval_seconds
             while pending and time.perf_counter() < deadline:
-                timeout = deadline - time.perf_counter()
+                timeout = max(0.001, deadline - time.perf_counter())
                 if progress_interval_seconds > 0:
-                    timeout = min(timeout, max(0.1, next_progress_at - time.perf_counter()))
+                    timeout = max(
+                        0.001,
+                        min(timeout, max(0.1, next_progress_at - time.perf_counter())),
+                    )
                 newly_done, pending = await asyncio.wait(
                     pending,
                     timeout=timeout,
