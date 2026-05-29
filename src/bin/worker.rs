@@ -428,14 +428,14 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
                         tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch task failed");
                     }
                 }
-                payload = stream.next() => {
+                payload = stream.next(), if tasks.len() < concurrency => {
                     let Some(payload) = payload else {
                         break;
                     };
-                    let permit = tokio::select! {
-                        _ = cancellation_token.cancelled() => break,
-                        permit = semaphore.clone().acquire_owned() => permit?,
-                    };
+                    let permit = semaphore
+                        .clone()
+                        .try_acquire_owned()
+                        .expect("concurrency guard violation");
                     let handler = handler.clone();
                     let event_type = event_type.clone();
                     let span = tracing::info_span!(

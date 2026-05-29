@@ -1241,8 +1241,10 @@ async def run_profile(
             mock_metrics = {}
         if jaeger_url and args.jaeger_trace_limit > 0:
             try:
-                db_trace_summary = summarize_jaeger_db_spans(
-                    jaeger_url, args.jaeger_trace_limit
+                db_trace_summary = await asyncio.to_thread(
+                    summarize_jaeger_db_spans,
+                    jaeger_url,
+                    args.jaeger_trace_limit,
                 )
                 print(
                     "db trace summary "

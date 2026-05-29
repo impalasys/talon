@@ -525,14 +525,7 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_token_event_buffer().await;
         self.flush_reasoning_part_and_event().await;
 
-        let visible_content = {
-            let accumulated = self.accumulated.lock().unwrap();
-            if accumulated.trim().is_empty() {
-                err.to_string()
-            } else {
-                format!("{}\n\n{}", accumulated.as_str(), err)
-            }
-        };
+        self.record_accumulated_text_part();
         self.record_part(
             models::SessionMessagePartType::Error,
             String::new(),
@@ -544,7 +537,7 @@ impl ExecutionSink for PubSubSessionSink {
             role: models::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: std::collections::HashMap::new(),
-            parts: self.final_message_parts(&visible_content),
+            parts: self.durable_parts.lock().unwrap().clone(),
         };
         let _ = crate::control::ProtoKeyValueStoreExt::set_msg(
             self.kv.as_ref(),
@@ -926,7 +919,10 @@ mod tests {
             .iter()
             .map(|part| part.content.as_str())
             .collect::<Vec<_>>();
-        assert_eq!(reply_part_contents, vec!["tool failed", "final reply"]);
+        assert_eq!(
+            reply_part_contents,
+            vec!["partial ", "tool failed", "final reply"]
+        );
     }
 
     #[tokio::test]

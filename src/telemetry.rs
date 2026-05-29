@@ -3,6 +3,7 @@
 
 use anyhow::Result;
 use opentelemetry::trace::TracerProvider as _;
+use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::{
     trace::{RandomIdGenerator, Sampler, SdkTracerProvider},
     Resource,
@@ -50,10 +51,9 @@ pub fn init(config: TelemetryConfig) -> Result<TelemetryGuard> {
         });
     };
 
-    std::env::set_var("OTEL_EXPORTER_OTLP_ENDPOINT", endpoint);
-
     let exporter = opentelemetry_otlp::SpanExporter::builder()
         .with_tonic()
+        .with_endpoint(endpoint)
         .build()?;
     let tracer_provider = SdkTracerProvider::builder()
         .with_sampler(Sampler::ParentBased(Box::new(Sampler::TraceIdRatioBased(
