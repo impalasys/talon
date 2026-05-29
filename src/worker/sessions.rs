@@ -85,17 +85,14 @@ impl WorkerEventHandler {
             .insert(event.session_id.clone(), cancellation_token.clone());
         let outcome = async {
             // Build the fully-resolved runtime (spec, history, LLM, tools, knowledge)
-            let mut runtime = async {
-                AgentRuntime::build(
-                    ns,
-                    &event.agent,
-                    &event.session_id,
-                    &self.cp,
-                    &self.config,
-                    &self.mcp_registry,
-                )
-                .await
-            }
+            let mut runtime = AgentRuntime::build(
+                ns,
+                &event.agent,
+                &event.session_id,
+                &self.cp,
+                &self.config,
+                &self.mcp_registry,
+            )
             .instrument(tracing::info_span!("AgentRuntime.build"))
             .await?;
 
@@ -107,23 +104,21 @@ impl WorkerEventHandler {
                 &event.session_id,
                 &reply_msg_id,
             );
-            let _ = async {
-                self.cp
-                    .kv
-                    .set_msg(
-                        &reply_msg_key,
-                        &models::SessionMessage {
-                            id: reply_msg_id.clone(),
-                            role: models::MessageRole::RoleAssistant as i32,
-                            created_at: chrono::Utc::now().timestamp_micros(),
-                            labels: std::collections::HashMap::new(),
-                            parts: Vec::new(),
-                        },
-                    )
-                    .await
-            }
-            .instrument(tracing::info_span!("WorkerEventHandler.create_reply_slot"))
-            .await;
+            let _ = self
+                .cp
+                .kv
+                .set_msg(
+                    &reply_msg_key,
+                    &models::SessionMessage {
+                        id: reply_msg_id.clone(),
+                        role: models::MessageRole::RoleAssistant as i32,
+                        created_at: chrono::Utc::now().timestamp_micros(),
+                        labels: std::collections::HashMap::new(),
+                        parts: Vec::new(),
+                    },
+                )
+                .instrument(tracing::info_span!("WorkerEventHandler.create_reply_slot"))
+                .await;
 
             let sink = PubSubSessionSink::new(
                 self.cp.kv.clone(),

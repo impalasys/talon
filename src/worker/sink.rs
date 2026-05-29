@@ -46,6 +46,7 @@ pub struct PubSubSessionSink {
     pending_token_event_buffer: Mutex<String>,
     pending_reasoning_event_buffer: Mutex<String>,
     durable_parts: Mutex<Vec<models::SessionMessagePart>>,
+    durable_text_bytes: Mutex<usize>,
     next_part_index: Mutex<u64>,
     last_flush: Mutex<Instant>,
     last_token_publish: Mutex<Instant>,
@@ -110,6 +111,7 @@ impl PubSubSessionSink {
             pending_token_event_buffer: Mutex::new(String::new()),
             pending_reasoning_event_buffer: Mutex::new(String::new()),
             durable_parts: Mutex::new(Vec::new()),
+            durable_text_bytes: Mutex::new(0),
             next_part_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
             last_token_publish: Mutex::new(Instant::now()),
@@ -169,15 +171,43 @@ impl PubSubSessionSink {
 
     fn partial_message_parts(&self, current_text: String) -> Vec<models::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
-        parts.push(models::SessionMessagePart {
-            id: "000000".to_string(),
-            part_type: models::SessionMessagePartType::Text as i32,
-            content: current_text,
-            name: String::new(),
-            payload_json: String::new(),
-            created_at: chrono::Utc::now().timestamp_micros(),
-        });
+        let text = self.text_since_last_durable_part(&current_text);
+        if !text.is_empty() {
+            parts.push(models::SessionMessagePart {
+                id: "000000".to_string(),
+                part_type: models::SessionMessagePartType::Text as i32,
+                content: text,
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: chrono::Utc::now().timestamp_micros(),
+            });
+        }
         parts
+    }
+
+    fn text_since_last_durable_part(&self, current_text: &str) -> String {
+        let durable_bytes = *self.durable_text_bytes.lock().unwrap();
+        let start = durable_bytes.min(current_text.len());
+        current_text[start..].to_string()
+    }
+
+    fn record_accumulated_text_part(&self) {
+        let pending_text = {
+            let accumulated = self.accumulated.lock().unwrap();
+            let mut durable_bytes = self.durable_text_bytes.lock().unwrap();
+            let start = (*durable_bytes).min(accumulated.len());
+            let pending_text = accumulated[start..].to_string();
+            *durable_bytes = accumulated.len();
+            pending_text
+        };
+        if !pending_text.is_empty() {
+            self.record_part(
+                models::SessionMessagePartType::Text,
+                String::new(),
+                pending_text,
+                String::new(),
+            );
+        }
     }
 
     async fn flush_token_event_buffer(&self) {
@@ -404,6 +434,7 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_tool_call(&self, id: &str, name: &str, input: &Value) {
         *self.tool_calls.lock().unwrap() += 1;
         self.flush_token_event_buffer().await;
+        self.record_accumulated_text_part();
         self.flush_reasoning_part_and_event().await;
         self.record_part(
             models::SessionMessagePartType::ToolCall,
@@ -625,7 +656,7 @@ mod tests {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
         let sink = PubSubSessionSink::new_with_token_publish_interval(
-            kv,
+            kv.clone(),
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
@@ -660,7 +691,7 @@ mod tests {
         let events = Arc::new(Mutex::new(Vec::new()));
         let kv = Arc::new(MockKvStore::default());
         let sink = PubSubSessionSink::new_with_token_publish_interval(
-            kv,
+            kv.clone(),
             Arc::new(MockPubSub {
                 events: events.clone(),
             }),
@@ -688,6 +719,23 @@ mod tests {
             models::SessionMessagePartType::ToolCall as i32
         );
         assert_eq!(event_part(&events[1]).name, "create_prompt");
+
+        sink.on_done("final").await;
+        let entries = kv.entries.lock().await.clone();
+        let reply = entries
+            .iter()
+            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .find(|message| message.id == "reply-1")
+            .expect("reply message should be persisted");
+        let reply_part_contents = reply
+            .parts
+            .iter()
+            .map(|part| part.content.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(
+            reply_part_contents,
+            vec!["drafting request", "Tool call", "final"]
+        );
     }
 
     #[tokio::test]
