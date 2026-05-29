@@ -632,15 +632,19 @@ async def send_message(
     timings: RunTimings,
 ) -> None:
     timings.send_started = time.perf_counter()
-    await stub.SendMessage(
-        SendMessageRequest(
-            ns=ns,
-            agent=agent,
-            session_id=session_id,
-            message=f"benchmark message for {agent}",
+    try:
+        await stub.SendMessage(
+            SendMessageRequest(
+                ns=ns,
+                agent=agent,
+                session_id=session_id,
+                message=f"benchmark message for {agent}",
+            )
         )
-    )
-    timings.send_finished = time.perf_counter()
+        timings.send_finished = time.perf_counter()
+    except Exception as exc:
+        timings.errored = time.perf_counter()
+        timings.error = f"SendMessage failed: {exc}"
 
 
 async def run_workload(

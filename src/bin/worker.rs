@@ -378,8 +378,6 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
         cancellation_token: CancellationToken,
     ) -> Result<()> {
         use futures::StreamExt;
-        use std::sync::Arc;
-        use tokio::sync::Semaphore;
         use tokio::task::JoinSet;
 
         let mut stream = self
@@ -418,7 +416,6 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
             concurrency,
             "Starting concurrent local socket dispatch"
         );
-        let semaphore = Arc::new(Semaphore::new(concurrency));
         let mut tasks = JoinSet::new();
         loop {
             tokio::select! {
@@ -432,10 +429,6 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
                     let Some(payload) = payload else {
                         break;
                     };
-                    let permit = semaphore
-                        .clone()
-                        .try_acquire_owned()
-                        .expect("concurrency guard violation");
                     let handler = handler.clone();
                     let event_type = event_type.clone();
                     let span = tracing::info_span!(
@@ -446,7 +439,6 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
                         payload_bytes = payload.len(),
                     );
                     tasks.spawn(async move {
-                        let _permit = permit;
                         if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
                             tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
                         }
