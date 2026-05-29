@@ -357,7 +357,6 @@ impl KeyValueStore for SqliteKvStore {
             .bind(&key.name)
             .fetch_optional(&mut *conn)
             .instrument(query_span.clone())
-            .instrument(span.clone())
             .await?;
         record_query_elapsed(&query_span, &span, query_started_at);
 

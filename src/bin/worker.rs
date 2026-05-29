@@ -378,7 +378,6 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
         cancellation_token: CancellationToken,
     ) -> Result<()> {
         use futures::StreamExt;
-        use tokio::task::JoinSet;
 
         let mut stream = self
             .subscriber
@@ -416,44 +415,29 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
             concurrency,
             "Starting concurrent local socket dispatch"
         );
-        let mut tasks = JoinSet::new();
-        loop {
-            tokio::select! {
-                _ = cancellation_token.cancelled() => {
-                    tasks.abort_all();
-                    break;
-                }
-                result = tasks.join_next(), if !tasks.is_empty() => {
-                    if let Some(Err(err)) = result {
-                        tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch task failed");
-                    }
-                }
-                payload = stream.next(), if tasks.len() < concurrency => {
-                    let Some(payload) = payload else {
-                        break;
-                    };
-                    let handler = handler.clone();
-                    let event_type = event_type.clone();
-                    let span = tracing::info_span!(
-                        "LocalSocketPullSubscriptionBackend.dispatch",
-                        event_type = %event_type,
-                        "broker.driver" = "local_socket",
-                        "worker.session_concurrency" = concurrency,
-                        payload_bytes = payload.len(),
-                    );
-                    tasks.spawn(async move {
-                        if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
-                            tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
-                        }
-                    }.instrument(span));
+        let dispatch_event_type = event_type.clone();
+        let dispatch = stream.for_each_concurrent(concurrency, move |payload| {
+            let handler = handler.clone();
+            let event_type = dispatch_event_type.clone();
+            let span = tracing::info_span!(
+                "LocalSocketPullSubscriptionBackend.dispatch",
+                event_type = %event_type,
+                "broker.driver" = "local_socket",
+                "worker.session_concurrency" = concurrency,
+                payload_bytes = payload.len(),
+            );
+            async move {
+                if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
+                    tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
                 }
             }
-        }
-        while let Some(result) = tasks.join_next().await {
-            if let Err(err) = result {
-                tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch task failed");
-            }
-        }
+            .instrument(span)
+        });
+
+        tokio::select! {
+            _ = cancellation_token.cancelled() => {}
+            _ = dispatch => {}
+        };
         Ok(())
     }
 }
