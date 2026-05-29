@@ -6,6 +6,7 @@ use prost::Message;
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
+use tokio::sync::Mutex as AsyncMutex;
 
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::{keys::ResourceKey, topics, KeyValueStore, MessagePublisher};
@@ -50,6 +51,7 @@ pub struct PubSubSessionSink {
     next_part_index: Mutex<u64>,
     last_flush: Mutex<Instant>,
     pending_partial_flushes: Mutex<Vec<tokio::task::JoinHandle<()>>>,
+    persist_lock: Arc<AsyncMutex<()>>,
     last_token_publish: Mutex<Instant>,
     last_reasoning_publish: Mutex<Instant>,
     input_token_chunks: Mutex<u64>,
@@ -116,6 +118,7 @@ impl PubSubSessionSink {
             next_part_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
             pending_partial_flushes: Mutex::new(Vec::new()),
+            persist_lock: Arc::new(AsyncMutex::new(())),
             last_token_publish: Mutex::new(Instant::now()),
             last_reasoning_publish: Mutex::new(Instant::now()),
             input_token_chunks: Mutex::new(0),
@@ -359,6 +362,7 @@ impl PubSubSessionSink {
         if should_flush {
             let kv = self.kv.clone();
             let reply_msg_key = self.reply_msg_key.clone();
+            let persist_lock = self.persist_lock.clone();
             let partial = models::SessionMessage {
                 id: self.reply_msg_id.clone(),
                 role: models::MessageRole::RoleAssistant as i32,
@@ -374,6 +378,7 @@ impl PubSubSessionSink {
             );
             let handle = tokio::spawn(
                 async move {
+                    let _guard = persist_lock.lock().await;
                     if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
                         kv.as_ref(),
                         &reply_msg_key,
@@ -387,11 +392,7 @@ impl PubSubSessionSink {
                 .instrument(span),
             );
             let mut pending = self.pending_partial_flushes.lock().unwrap();
-            for handle in pending.drain(..) {
-                if !handle.is_finished() {
-                    handle.abort();
-                }
-            }
+            pending.retain(|handle| !handle.is_finished());
             pending.push(handle);
         }
     }
@@ -539,6 +540,7 @@ impl ExecutionSink for PubSubSessionSink {
             parts: self.final_message_parts(&reply),
         };
         let result = async {
+            let _guard = self.persist_lock.lock().await;
             crate::control::ProtoKeyValueStoreExt::set_msg(
                 self.kv.as_ref(),
                 &self.reply_msg_key,
@@ -579,13 +581,23 @@ impl ExecutionSink for PubSubSessionSink {
             labels: std::collections::HashMap::new(),
             parts: self.durable_parts.lock().unwrap().clone(),
         };
-        if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
-            self.kv.as_ref(),
-            &self.reply_msg_key,
-            &msg,
-        )
-        .await
-        {
+        let result = async {
+            let _guard = self.persist_lock.lock().await;
+            crate::control::ProtoKeyValueStoreExt::set_msg(
+                self.kv.as_ref(),
+                &self.reply_msg_key,
+                &msg,
+            )
+            .await
+        }
+        .instrument(tracing::info_span!(
+            "PubSubSessionSink.persist_error_message",
+            namespace = %self.ns,
+            agent = %self.agent_id,
+            session = %self.session_id,
+        ))
+        .await;
+        if let Err(e) = result {
             tracing::error!("Failed to persist error message: {}", e);
         }
 

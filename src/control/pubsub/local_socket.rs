@@ -9,14 +9,13 @@ use std::collections::HashMap;
 use std::os::unix::fs::FileTypeExt;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
-use std::sync::{Arc, OnceLock};
+use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{mpsc, Mutex, OnceCell};
 
-type SubscriberSender = mpsc::Sender<Vec<u8>>;
+type SubscriberSender = mpsc::UnboundedSender<Vec<u8>>;
 const MAX_FRAME_SIZE: usize = 32 * 1024 * 1024;
-const DEFAULT_SUBSCRIBER_BUFFER_SIZE: usize = 1024;
 
 #[derive(Default)]
 struct SubscriptionState {
@@ -317,7 +316,7 @@ async fn handle_connection(stream: UnixStream, state: Arc<Mutex<BrokerState>>) -
                 topic,
                 subscription,
             } => {
-                let (tx, mut rx) = mpsc::channel::<Vec<u8>>(subscriber_buffer_size());
+                let (tx, mut rx) = mpsc::unbounded_channel::<Vec<u8>>();
                 register_subscriber(&state, &topic, &subscription, tx).await;
                 write_frame(&mut writer, &ServerFrame::Ack { request_id }).await?;
                 while let Some(payload) = rx.recv().await {
@@ -394,22 +393,10 @@ async fn distribute_message(state: &Arc<Mutex<BrokerState>>, topic: &str, payloa
                 .expect("payload should be present before final subscriber")
                 .clone()
         };
-        if let Err(err) = sender.send(message).await {
+        if let Err(err) = sender.send(message) {
             tracing::warn!(error = %err, topic = %topic, "local socket broker failed to deliver message");
         }
     }
-}
-
-fn subscriber_buffer_size() -> usize {
-    static CACHE: OnceLock<usize> = OnceLock::new();
-
-    *CACHE.get_or_init(|| {
-        std::env::var("TALON_LOCAL_SOCKET_SUBSCRIBER_BUFFER_SIZE")
-            .ok()
-            .and_then(|value| value.parse::<usize>().ok())
-            .filter(|value| *value > 0)
-            .unwrap_or(DEFAULT_SUBSCRIBER_BUFFER_SIZE)
-    })
 }
 
 async fn write_frame<W: AsyncWriteExt + Unpin, T: Serialize>(
