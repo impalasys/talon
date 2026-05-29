@@ -131,7 +131,10 @@ async def read_http_request(
         name, value = line.split(":", 1)
         headers[name.strip().lower()] = value.strip()
 
-    content_length = int(headers.get("content-length", "0") or "0")
+    try:
+        content_length = int(headers.get("content-length", "0") or "0")
+    except ValueError:
+        content_length = 0
     body = b""
     if content_length > 0:
         body = await reader.readexactly(content_length)

@@ -155,17 +155,14 @@ impl PubSubSessionSink {
     fn final_message_parts(&self, reply: &str) -> Vec<models::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
         if !reply.is_empty() {
-            parts.insert(
-                0,
-                models::SessionMessagePart {
-                    id: "000000".to_string(),
-                    part_type: models::SessionMessagePartType::Text as i32,
-                    content: reply.to_string(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                    created_at: chrono::Utc::now().timestamp_micros(),
-                },
-            );
+            parts.push(models::SessionMessagePart {
+                id: self.next_part_id(),
+                part_type: models::SessionMessagePartType::Text as i32,
+                content: reply.to_string(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: chrono::Utc::now().timestamp_micros(),
+            });
         }
         parts
     }
@@ -821,6 +818,18 @@ mod tests {
         assert!(persisted_parts.iter().any(|part| part.part_type
             == models::SessionMessagePartType::Error as i32
             && part.content == "tool failed"));
+
+        let reply_message = persisted_messages
+            .iter()
+            .rev()
+            .find(|msg| msg.id == "reply-1")
+            .expect("reply message should be persisted");
+        let reply_part_contents = reply_message
+            .parts
+            .iter()
+            .map(|part| part.content.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(reply_part_contents, vec!["tool failed", "final reply"]);
     }
 
     #[tokio::test]

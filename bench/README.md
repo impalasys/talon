@@ -45,10 +45,11 @@ Enable OpenTelemetry tracing with a Jaeger UI in the generated Compose project:
 Inspect SQLite contention by comparing `SqliteKvStore.acquire_connection` and
 `SqliteKvStore.query` spans. A high `pool_wait_us` points at SQLx pool
 contention; a high `query_elapsed_us` points at SQLite lock, I/O, or scheduler
-wait inside query execution. With `--otel`, the harness also samples Jaeger's
-trace API and writes a SQLite span summary into the result JSON and
-`summary.md`; raise `--jaeger-trace-limit` if you want more traces included in
-that aggregate.
+wait inside query execution. Detailed KV spans are debug-level and the harness
+enables `talon::control::kv=debug` only when `--otel` is set. With `--otel`, the
+harness also samples Jaeger's trace API and writes a SQLite span summary into the
+result JSON and `summary.md`; raise `--jaeger-trace-limit` if you want more
+traces included in that aggregate.
 
 ```bash
 .venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --sqlite-pool-size 5 --sqlite-busy-timeout-ms 5000

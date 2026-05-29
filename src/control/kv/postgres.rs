@@ -299,7 +299,7 @@ async fn acquire_connection(
     parent_span.record("postgres.pool.size_before", u64::from(pool_size_before));
     parent_span.record("postgres.pool.idle_before", pool_idle_before as u64);
 
-    let span = tracing::info_span!(
+    let span = tracing::debug_span!(
         parent: parent_span,
         "PostgresKvStore.acquire_connection",
         "postgres.pool.max_connections" = u64::from(settings.max_connections),
@@ -340,7 +340,7 @@ fn record_rows(span: &Span, parent_span: &Span, rows_returned: usize) {
 impl KeyValueStore for PostgresKvStore {
     async fn get(&self, key: &ResourceKey) -> Result<Option<Vec<u8>>> {
         let query = get_query(&self.table);
-        let span = tracing::info_span!(
+        let span = tracing::debug_span!(
             "PostgresKvStore.get",
             "db.system" = "postgresql",
             "db.operation" = "get",
@@ -357,7 +357,7 @@ impl KeyValueStore for PostgresKvStore {
             value_bytes = field::Empty,
         );
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::info_span!(
+        let query_span = tracing::debug_span!(
             "PostgresKvStore.query",
             query_elapsed_us = field::Empty,
             rows_returned = field::Empty,
@@ -389,7 +389,7 @@ impl KeyValueStore for PostgresKvStore {
 
     async fn set(&self, key: &ResourceKey, value: &[u8]) -> Result<()> {
         let query = set_query(&self.table);
-        let span = tracing::info_span!(
+        let span = tracing::debug_span!(
             "PostgresKvStore.set",
             "db.system" = "postgresql",
             "db.operation" = "set",
@@ -406,7 +406,7 @@ impl KeyValueStore for PostgresKvStore {
             value_bytes = value.len(),
         );
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::info_span!(
+        let query_span = tracing::debug_span!(
             "PostgresKvStore.query",
             query_elapsed_us = field::Empty,
             rows_affected = field::Empty,
@@ -435,7 +435,7 @@ impl KeyValueStore for PostgresKvStore {
         value: &[u8],
     ) -> Result<bool> {
         let query = compare_and_swap_query(&self.table, expected.is_some());
-        let span = tracing::info_span!(
+        let span = tracing::debug_span!(
             "PostgresKvStore.compare_and_swap",
             "db.system" = "postgresql",
             "db.operation" = "compare_and_swap",
@@ -470,7 +470,7 @@ impl KeyValueStore for PostgresKvStore {
                 .bind(value)
         };
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::info_span!(
+        let query_span = tracing::debug_span!(
             "PostgresKvStore.query",
             query_elapsed_us = field::Empty,
             rows_affected = field::Empty,
@@ -490,7 +490,7 @@ impl KeyValueStore for PostgresKvStore {
 
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         let query = delete_query(&self.table);
-        let span = tracing::info_span!(
+        let span = tracing::debug_span!(
             "PostgresKvStore.delete",
             "db.system" = "postgresql",
             "db.operation" = "delete",
@@ -506,7 +506,7 @@ impl KeyValueStore for PostgresKvStore {
             rows_affected = field::Empty,
         );
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::info_span!(
+        let query_span = tracing::debug_span!(
             "PostgresKvStore.query",
             query_elapsed_us = field::Empty,
             rows_affected = field::Empty,
@@ -529,7 +529,7 @@ impl KeyValueStore for PostgresKvStore {
 
     async fn list_keys(&self, list: &ResourceList) -> Result<Vec<ResourceKey>> {
         let query = list_keys_query(&self.table, list.kind.is_some());
-        let span = tracing::info_span!(
+        let span = tracing::debug_span!(
             "PostgresKvStore.list_keys",
             "db.system" = "postgresql",
             "db.operation" = "list_keys",
@@ -551,7 +551,7 @@ impl KeyValueStore for PostgresKvStore {
             query = query.bind(kind);
         }
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::info_span!(
+        let query_span = tracing::debug_span!(
             "PostgresKvStore.query",
             query_elapsed_us = field::Empty,
             rows_returned = field::Empty,
@@ -574,7 +574,7 @@ impl KeyValueStore for PostgresKvStore {
 
     async fn list_entries(&self, list: &ResourceList) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
         let query = list_entries_query(&self.table, list.kind.is_some());
-        let span = tracing::info_span!(
+        let span = tracing::debug_span!(
             "PostgresKvStore.list_entries",
             "db.system" = "postgresql",
             "db.operation" = "list_entries",
@@ -597,7 +597,7 @@ impl KeyValueStore for PostgresKvStore {
             query = query.bind(kind);
         }
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::info_span!(
+        let query_span = tracing::debug_span!(
             "PostgresKvStore.query",
             query_elapsed_us = field::Empty,
             rows_returned = field::Empty,
@@ -638,7 +638,7 @@ impl KeyValueStore for PostgresKvStore {
         };
 
         let query = list_keys_page_query(&self.table);
-        let span = tracing::info_span!(
+        let span = tracing::debug_span!(
             "PostgresKvStore.list_keys_page",
             "db.system" = "postgresql",
             "db.operation" = "list_keys_page",
@@ -655,7 +655,7 @@ impl KeyValueStore for PostgresKvStore {
             limit,
         );
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::info_span!(
+        let query_span = tracing::debug_span!(
             "PostgresKvStore.query",
             query_elapsed_us = field::Empty,
             rows_returned = field::Empty,
@@ -695,7 +695,7 @@ impl KeyValueStore for PostgresKvStore {
         };
 
         let query = list_entries_page_query(&self.table);
-        let span = tracing::info_span!(
+        let span = tracing::debug_span!(
             "PostgresKvStore.list_entries_page",
             "db.system" = "postgresql",
             "db.operation" = "list_entries_page",
@@ -713,7 +713,7 @@ impl KeyValueStore for PostgresKvStore {
             limit,
         );
         let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::info_span!(
+        let query_span = tracing::debug_span!(
             "PostgresKvStore.query",
             query_elapsed_us = field::Empty,
             rows_returned = field::Empty,

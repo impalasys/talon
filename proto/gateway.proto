@@ -442,6 +442,9 @@ message CreateSessionRequest {
 }
 
 message GetSessionRequest {
+  reserved 5;
+  reserved "step_limit";
+
   string session_id = 1;
   string agent = 2;
   string ns = 3;
@@ -458,6 +461,9 @@ message ListSessionMessagesRequest {
 }
 
 message ListSessionMessagesResponseItem {
+  reserved 2;
+  reserved "steps";
+
   talon.models.SessionMessage message = 1;
 }
 
@@ -487,11 +493,14 @@ message ListSessionsResponse {
 }
 
 message SessionResponse {
+  reserved 5;
+  reserved "steps";
+
   string session_id = 1;
   string agent = 2;
   string state = 3;
   repeated talon.models.SessionMessage messages = 4;
-  map<string, string> labels = 5;
+  map<string, string> labels = 6;
 }
 
 message DeleteSessionRequest {

@@ -169,6 +169,17 @@ impl SessionStreamHub {
             }
         }
 
+        let cleanup_tx = tx.downgrade();
+        let cleanup_inserted = inserted.clone();
+        tokio::spawn(async move {
+            let Some(cleanup_tx) = wait_for_receiver_drop(cleanup_tx).await else {
+                return;
+            };
+            for (state, listener_key) in cleanup_inserted {
+                remove_listener(&state, &listener_key, &cleanup_tx).await;
+            }
+        });
+
         Ok(rx)
     }
 
@@ -269,16 +280,29 @@ async fn remove_listener(
     }
 }
 
+async fn wait_for_receiver_drop<T>(
+    weak_tx: mpsc::WeakUnboundedSender<T>,
+) -> Option<mpsc::UnboundedSender<T>> {
+    loop {
+        let tx = weak_tx.upgrade()?;
+        if tx.is_closed() {
+            return Some(tx);
+        }
+        drop(tx);
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{SessionStreamHub, SessionStreamTarget};
     use crate::control::{
         events::{SessionMessagePartEvent, SessionMessagePartEventKind},
-        topics, MessagePublisher,
+        keys, topics, MessagePublisher,
     };
     use crate::gateway::rpc::models::{SessionMessagePart, SessionMessagePartType};
     use prost::Message;
-    use std::collections::{HashMap, VecDeque};
+    use std::collections::{HashMap, HashSet, VecDeque};
     use std::pin::Pin;
     use std::sync::Arc;
     use tokio::sync::Mutex;
@@ -288,6 +312,7 @@ mod tests {
         batches: Mutex<HashMap<String, VecDeque<Vec<Vec<u8>>>>>,
         subscribe_calls: Mutex<Vec<String>>,
         fail_once_topics: Mutex<HashMap<String, usize>>,
+        pending_topics: Mutex<HashSet<String>>,
     }
 
     #[async_trait::async_trait]
@@ -307,6 +332,10 @@ mod tests {
                     *remaining -= 1;
                     anyhow::bail!("subscribe failed for {}", topic);
                 }
+            }
+
+            if self.pending_topics.lock().await.contains(topic) {
+                return Ok(Box::pin(futures::stream::pending()));
             }
 
             let batch = self
@@ -539,5 +568,76 @@ mod tests {
         }
         contents.sort();
         assert_eq!(contents, vec!["first", "second"]);
+    }
+
+    #[tokio::test]
+    async fn subscribe_many_cleans_up_listeners_when_receiver_drops() {
+        let first_id = "session-cleanup-one";
+        let second_id = "session-cleanup-two";
+        let first_topic =
+            topics::session_part_topic_for_shard(topics::session_part_shard(first_id));
+        let second_topic =
+            topics::session_part_topic_for_shard(topics::session_part_shard(second_id));
+        let pubsub = Arc::new(FakePubSub::default());
+        {
+            let mut pending = pubsub.pending_topics.lock().await;
+            pending.insert(first_topic);
+            pending.insert(second_topic);
+        }
+        let hub = SessionStreamHub::new(pubsub);
+
+        let receiver = hub
+            .subscribe_many(vec![
+                SessionStreamTarget::new("default", "agent", first_id),
+                SessionStreamTarget::new("default", "agent", second_id),
+            ])
+            .await
+            .expect("batch subscribe should succeed");
+
+        assert_listeners(&hub, &[first_id, second_id], 1).await;
+        drop(receiver);
+        wait_for_listeners(&hub, &[first_id, second_id], 0).await;
+    }
+
+    async fn assert_listeners(hub: &SessionStreamHub, session_ids: &[&str], expected: usize) {
+        for session_id in session_ids {
+            let shard = topics::session_part_shard(session_id) as usize;
+            let state = hub.shards.get(shard).expect("valid shard");
+            let listener_key = keys::session("default", "agent", session_id).canonical();
+            let guard = state.state.lock().await;
+            let actual = guard
+                .listeners
+                .get(&listener_key)
+                .map_or(0, std::vec::Vec::len);
+            assert_eq!(actual, expected, "listener count for {session_id}");
+        }
+    }
+
+    async fn wait_for_listeners(hub: &SessionStreamHub, session_ids: &[&str], expected: usize) {
+        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+            loop {
+                let mut all_match = true;
+                for session_id in session_ids {
+                    let shard = topics::session_part_shard(session_id) as usize;
+                    let state = hub.shards.get(shard).expect("valid shard");
+                    let listener_key = keys::session("default", "agent", session_id).canonical();
+                    let guard = state.state.lock().await;
+                    let actual = guard
+                        .listeners
+                        .get(&listener_key)
+                        .map_or(0, std::vec::Vec::len);
+                    if actual != expected {
+                        all_match = false;
+                        break;
+                    }
+                }
+                if all_match {
+                    return;
+                }
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .expect("listeners should reach expected count");
     }
 }

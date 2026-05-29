@@ -285,8 +285,10 @@ def write_compose_file(
     heap_profile_dir: Path,
     heap_profile_delay_seconds: int,
     heap_profile_label: str,
-) -> None:
+    ) -> None:
     rust_log = os.environ.get("RUST_LOG", "warn,talon=info")
+    if otel and "talon::control::kv" not in rust_log:
+        rust_log = f"{rust_log},talon::control::kv=debug"
     mock_script = (REPO_ROOT / "bench" / "mock_llm_server.py").resolve()
     mock_volume = f"{mock_script}:/bench/mock_llm_server.py:ro"
     config_volume = f"{config_path.resolve()}:/data/talon/talon.bench.yaml:ro"
@@ -581,7 +583,7 @@ async def consume_batch_stream(
             timing.stream_opened = opened
         stream_ready.set()
 
-        completed_streams = 0
+        completed_sessions = set()
         async for event in stream:
             index = by_session.get((event.ns, event.agent, event.session_id))
             if index is None:
@@ -599,16 +601,16 @@ async def consume_batch_stream(
                 and timing.completed is None
             ):
                 timing.completed = now
-                completed_streams += 1
+                completed_sessions.add(index)
             elif (
                 event.kind == SESSION_MESSAGE_PART_EVENT_KIND_ERROR
                 and timing.errored is None
             ):
                 timing.errored = now
                 timing.error = part.content or "stream emitted error part"
-                completed_streams += 1
+                completed_sessions.add(index)
 
-            if completed_streams == len(timings):
+            if len(completed_sessions) == len(timings):
                 stream.cancel()
                 return
     except asyncio.CancelledError:
