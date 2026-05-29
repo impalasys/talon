@@ -796,9 +796,15 @@ async def run_workload(
         for task in stream_tasks:
             if task in done and task.exception():
                 index = task_timing_indexes.get(task)
+                exc_repr = repr(task.exception())
                 if index is not None:
                     timings[index].errored = timings[index].errored or time.perf_counter()
-                    timings[index].error = timings[index].error or repr(task.exception())
+                    timings[index].error = timings[index].error or exc_repr
+                else:
+                    for timing in timings:
+                        if timing.completed is None and timing.error is None:
+                            timing.errored = timing.errored or time.perf_counter()
+                            timing.error = timing.error or exc_repr
 
     successes = [t for t in timings if t.completed is not None and t.error is None]
     errors = [t for t in timings if t.error is not None]
@@ -1235,7 +1241,7 @@ async def run_profile(
             stream_mode=args.stream_mode,
         )
         try:
-            mock_metrics = fetch_json(mock_metrics_url)
+            mock_metrics = await asyncio.to_thread(fetch_json, mock_metrics_url)
         except Exception as exc:
             print(f"warning: failed to fetch mock LLM metrics: {exc}", flush=True)
             mock_metrics = {}
