@@ -43,10 +43,6 @@ pub(super) fn namespaced_key(namespace: &str, key: &str) -> Result<String> {
         ["Agent", agent_name, "Session", session_id, "Messages", message] => {
             Ok(keys::session_message(namespace, agent_name, session_id, message).canonical())
         }
-        ["Agent", agent_name, "Session", session_id, "Messages", message, "Steps", step] => Ok(
-            keys::session_message_step(namespace, agent_name, session_id, message, step)
-                .canonical(),
-        ),
         ["Schedule", name] => Ok(keys::schedule(namespace, name).canonical()),
         ["AgentTemplate", name] => Ok(keys::agent_template(name).canonical()),
         ["McpServer", name] => Ok(keys::mcp_server(name).canonical()),

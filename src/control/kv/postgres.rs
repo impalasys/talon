@@ -6,7 +6,9 @@ use crate::control::{
     KeyValueStore,
 };
 use anyhow::{bail, Result};
-use sqlx::{PgConnection, PgPool, Row};
+use sqlx::{pool::PoolConnection, postgres::PgPoolOptions, PgConnection, PgPool, Postgres, Row};
+use std::time::Instant;
+use tracing::{field, Instrument, Span};
 
 use super::shared::{quoted_identifier, validate_identifier};
 
@@ -236,12 +238,33 @@ async fn migrate_legacy_table(conn: &mut PgConnection, table: &str) -> Result<()
 pub struct PostgresKvStore {
     pool: PgPool,
     table: String,
+    settings: PostgresPoolSettings,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct PostgresPoolSettings {
+    max_connections: u32,
+}
+
+impl PostgresPoolSettings {
+    fn from_env() -> Self {
+        let max_connections = std::env::var("TALON_POSTGRES_MAX_CONNECTIONS")
+            .ok()
+            .and_then(|value| value.parse::<u32>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(10);
+        Self { max_connections }
+    }
 }
 
 impl PostgresKvStore {
     pub async fn new(url: &str, table: &str) -> Result<Self> {
         validate_identifier(table)?;
-        let pool = PgPool::connect(url).await?;
+        let settings = PostgresPoolSettings::from_env();
+        let pool = PgPoolOptions::new()
+            .max_connections(settings.max_connections)
+            .connect(url)
+            .await?;
 
         let mut conn = pool.acquire().await?;
         let lock_key = format!("talon_kv_store:{table}:schema");
@@ -261,41 +284,158 @@ impl PostgresKvStore {
         Ok(Self {
             pool,
             table: table.to_string(),
+            settings,
         })
     }
+}
+
+async fn acquire_connection(
+    pool: &PgPool,
+    settings: PostgresPoolSettings,
+    parent_span: &Span,
+) -> Result<PoolConnection<Postgres>> {
+    let pool_size_before = pool.size();
+    let pool_idle_before = pool.num_idle();
+    parent_span.record("postgres.pool.size_before", u64::from(pool_size_before));
+    parent_span.record("postgres.pool.idle_before", pool_idle_before as u64);
+
+    let span = tracing::debug_span!(
+        parent: parent_span,
+        "PostgresKvStore.acquire_connection",
+        "postgres.pool.max_connections" = u64::from(settings.max_connections),
+        "postgres.pool.size_before" = u64::from(pool_size_before),
+        "postgres.pool.idle_before" = pool_idle_before as u64,
+        "postgres.pool.size_after" = field::Empty,
+        "postgres.pool.idle_after" = field::Empty,
+        pool_wait_us = field::Empty,
+    );
+    let started_at = Instant::now();
+    let conn = pool.acquire().instrument(span.clone()).await?;
+    let pool_wait_us = started_at.elapsed().as_micros().min(u128::from(u64::MAX)) as u64;
+    let pool_size_after = pool.size();
+    let pool_idle_after = pool.num_idle();
+
+    span.record("pool_wait_us", pool_wait_us);
+    span.record("postgres.pool.size_after", u64::from(pool_size_after));
+    span.record("postgres.pool.idle_after", pool_idle_after as u64);
+    parent_span.record("pool_wait_us", pool_wait_us);
+    parent_span.record("postgres.pool.size_after", u64::from(pool_size_after));
+    parent_span.record("postgres.pool.idle_after", pool_idle_after as u64);
+
+    Ok(conn)
+}
+
+fn record_query_elapsed(span: &Span, parent_span: &Span, started_at: Instant) {
+    let query_elapsed_us = started_at.elapsed().as_micros().min(u128::from(u64::MAX)) as u64;
+    span.record("query_elapsed_us", query_elapsed_us);
+    parent_span.record("query_elapsed_us", query_elapsed_us);
+}
+
+fn record_rows(span: &Span, parent_span: &Span, rows_returned: usize) {
+    span.record("rows_returned", rows_returned as u64);
+    parent_span.record("rows_returned", rows_returned as u64);
 }
 
 #[async_trait::async_trait]
 impl KeyValueStore for PostgresKvStore {
     async fn get(&self, key: &ResourceKey) -> Result<Option<Vec<u8>>> {
         let query = get_query(&self.table);
-        let row = sqlx::query(&query)
-            .bind(&key.namespace)
-            .bind(&key.parent_path)
-            .bind(&key.kind)
-            .bind(&key.name)
-            .fetch_optional(&self.pool)
-            .await?;
+        let span = tracing::debug_span!(
+            "PostgresKvStore.get",
+            "db.system" = "postgresql",
+            "db.operation" = "get",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %key.kind,
+            "postgres.pool.max_connections" = u64::from(self.settings.max_connections),
+            "postgres.pool.size_before" = field::Empty,
+            "postgres.pool.idle_before" = field::Empty,
+            "postgres.pool.size_after" = field::Empty,
+            "postgres.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
+        let span_for_body = span.clone();
+        async move {
+            let mut conn = acquire_connection(&self.pool, self.settings, &span_for_body).await?;
+            let query_span = tracing::debug_span!(
+                parent: &span_for_body,
+                "PostgresKvStore.query",
+                query_elapsed_us = field::Empty,
+                rows_returned = field::Empty,
+                value_bytes = field::Empty,
+            );
+            let query_started_at = Instant::now();
+            let row = sqlx::query(&query)
+                .bind(&key.namespace)
+                .bind(&key.parent_path)
+                .bind(&key.kind)
+                .bind(&key.name)
+                .fetch_optional(&mut *conn)
+                .instrument(query_span.clone())
+                .await?;
+            record_query_elapsed(&query_span, &span_for_body, query_started_at);
 
-        if let Some(row) = row {
-            let value: Vec<u8> = row.try_get("value")?;
-            Ok(Some(value))
-        } else {
-            Ok(None)
+            if let Some(row) = row {
+                let value: Vec<u8> = row.try_get("value")?;
+                query_span.record("value_bytes", value.len() as u64);
+                span_for_body.record("value_bytes", value.len() as u64);
+                record_rows(&query_span, &span_for_body, 1);
+                Ok(Some(value))
+            } else {
+                record_rows(&query_span, &span_for_body, 0);
+                Ok(None)
+            }
         }
+        .instrument(span)
+        .await
     }
 
     async fn set(&self, key: &ResourceKey, value: &[u8]) -> Result<()> {
         let query = set_query(&self.table);
-        sqlx::query(&query)
-            .bind(&key.namespace)
-            .bind(&key.parent_path)
-            .bind(&key.kind)
-            .bind(&key.name)
-            .bind(value)
-            .execute(&self.pool)
-            .await?;
-        Ok(())
+        let span = tracing::debug_span!(
+            "PostgresKvStore.set",
+            "db.system" = "postgresql",
+            "db.operation" = "set",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %key.kind,
+            "postgres.pool.max_connections" = u64::from(self.settings.max_connections),
+            "postgres.pool.size_before" = field::Empty,
+            "postgres.pool.idle_before" = field::Empty,
+            "postgres.pool.size_after" = field::Empty,
+            "postgres.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+            value_bytes = value.len(),
+        );
+        let span_for_body = span.clone();
+        async move {
+            let mut conn = acquire_connection(&self.pool, self.settings, &span_for_body).await?;
+            let query_span = tracing::debug_span!(
+                parent: &span_for_body,
+                "PostgresKvStore.query",
+                query_elapsed_us = field::Empty,
+                rows_affected = field::Empty,
+            );
+            let query_started_at = Instant::now();
+            let result = sqlx::query(&query)
+                .bind(&key.namespace)
+                .bind(&key.parent_path)
+                .bind(&key.kind)
+                .bind(&key.name)
+                .bind(value)
+                .execute(&mut *conn)
+                .instrument(query_span.clone())
+                .await?;
+            record_query_elapsed(&query_span, &span_for_body, query_started_at);
+            query_span.record("rows_affected", result.rows_affected());
+            span_for_body.record("rows_affected", result.rows_affected());
+            Ok(())
+        }
+        .instrument(span)
+        .await
     }
 
     async fn compare_and_swap(
@@ -305,6 +445,23 @@ impl KeyValueStore for PostgresKvStore {
         value: &[u8],
     ) -> Result<bool> {
         let query = compare_and_swap_query(&self.table, expected.is_some());
+        let span = tracing::debug_span!(
+            "PostgresKvStore.compare_and_swap",
+            "db.system" = "postgresql",
+            "db.operation" = "compare_and_swap",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %key.kind,
+            "postgres.pool.max_connections" = u64::from(self.settings.max_connections),
+            "postgres.pool.size_before" = field::Empty,
+            "postgres.pool.idle_before" = field::Empty,
+            "postgres.pool.size_after" = field::Empty,
+            "postgres.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+            expected_present = expected.is_some(),
+            value_bytes = value.len(),
+        );
 
         let q = if let Some(expected) = expected {
             sqlx::query(&query)
@@ -322,31 +479,104 @@ impl KeyValueStore for PostgresKvStore {
                 .bind(&key.name)
                 .bind(value)
         };
-        let rows_affected = q.execute(&self.pool).await?.rows_affected();
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::debug_span!(
+            parent: &span,
+            "PostgresKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let rows_affected = q
+            .execute(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
+            .await?
+            .rows_affected();
+        record_query_elapsed(&query_span, &span, query_started_at);
+        query_span.record("rows_affected", rows_affected);
+        span.record("rows_affected", rows_affected);
         Ok(rows_affected == 1)
     }
 
     async fn delete(&self, key: &ResourceKey) -> Result<()> {
         let query = delete_query(&self.table);
-        sqlx::query(&query)
+        let span = tracing::debug_span!(
+            "PostgresKvStore.delete",
+            "db.system" = "postgresql",
+            "db.operation" = "delete",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %key.kind,
+            "postgres.pool.max_connections" = u64::from(self.settings.max_connections),
+            "postgres.pool.size_before" = field::Empty,
+            "postgres.pool.idle_before" = field::Empty,
+            "postgres.pool.size_after" = field::Empty,
+            "postgres.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+        );
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::debug_span!(
+            parent: &span,
+            "PostgresKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let result = sqlx::query(&query)
             .bind(&key.namespace)
             .bind(&key.parent_path)
             .bind(&key.kind)
             .bind(&key.name)
-            .execute(&self.pool)
+            .execute(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
             .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        query_span.record("rows_affected", result.rows_affected());
+        span.record("rows_affected", result.rows_affected());
         Ok(())
     }
 
     async fn list_keys(&self, list: &ResourceList) -> Result<Vec<ResourceKey>> {
         let query = list_keys_query(&self.table, list.kind.is_some());
+        let span = tracing::debug_span!(
+            "PostgresKvStore.list_keys",
+            "db.system" = "postgresql",
+            "db.operation" = "list_keys",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = list.kind.as_deref().unwrap_or("*"),
+            "postgres.pool.max_connections" = u64::from(self.settings.max_connections),
+            "postgres.pool.size_before" = field::Empty,
+            "postgres.pool.idle_before" = field::Empty,
+            "postgres.pool.size_after" = field::Empty,
+            "postgres.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+        );
         let mut query = sqlx::query(&query)
             .bind(&list.parent.namespace)
             .bind(&list.parent.parent_path);
         if let Some(kind) = &list.kind {
             query = query.bind(kind);
         }
-        let rows = query.fetch_all(&self.pool).await?;
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::debug_span!(
+            parent: &span,
+            "PostgresKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let rows = query
+            .fetch_all(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
+            .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        record_rows(&query_span, &span, rows.len());
 
         let mut keys = Vec::with_capacity(rows.len());
         for row in rows {
@@ -357,18 +587,54 @@ impl KeyValueStore for PostgresKvStore {
 
     async fn list_entries(&self, list: &ResourceList) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
         let query = list_entries_query(&self.table, list.kind.is_some());
+        let span = tracing::debug_span!(
+            "PostgresKvStore.list_entries",
+            "db.system" = "postgresql",
+            "db.operation" = "list_entries",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = list.kind.as_deref().unwrap_or("*"),
+            "postgres.pool.max_connections" = u64::from(self.settings.max_connections),
+            "postgres.pool.size_before" = field::Empty,
+            "postgres.pool.idle_before" = field::Empty,
+            "postgres.pool.size_after" = field::Empty,
+            "postgres.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
         let mut query = sqlx::query(&query)
             .bind(&list.parent.namespace)
             .bind(&list.parent.parent_path);
         if let Some(kind) = &list.kind {
             query = query.bind(kind);
         }
-        let rows = query.fetch_all(&self.pool).await?;
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::debug_span!(
+            parent: &span,
+            "PostgresKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
+        let query_started_at = Instant::now();
+        let rows = query
+            .fetch_all(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
+            .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        record_rows(&query_span, &span, rows.len());
 
         let mut entries = Vec::with_capacity(rows.len());
+        let mut total_value_bytes = 0usize;
         for row in rows {
-            entries.push((key_from_row(&row)?, row.try_get("value")?));
+            let value: Vec<u8> = row.try_get("value")?;
+            total_value_bytes += value.len();
+            entries.push((key_from_row(&row)?, value));
         }
+        query_span.record("value_bytes", total_value_bytes as u64);
+        span.record("value_bytes", total_value_bytes as u64);
         Ok(entries)
     }
 
@@ -386,14 +652,42 @@ impl KeyValueStore for PostgresKvStore {
         };
 
         let query = list_keys_page_query(&self.table);
+        let span = tracing::debug_span!(
+            "PostgresKvStore.list_keys_page",
+            "db.system" = "postgresql",
+            "db.operation" = "list_keys_page",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %kind,
+            "postgres.pool.max_connections" = u64::from(self.settings.max_connections),
+            "postgres.pool.size_before" = field::Empty,
+            "postgres.pool.idle_before" = field::Empty,
+            "postgres.pool.size_after" = field::Empty,
+            "postgres.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            limit,
+        );
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::debug_span!(
+            parent: &span,
+            "PostgresKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+        );
+        let query_started_at = Instant::now();
         let rows = sqlx::query(&query)
             .bind(&list.parent.namespace)
             .bind(&list.parent.parent_path)
             .bind(kind)
             .bind(before_name)
             .bind(limit as i64)
-            .fetch_all(&self.pool)
+            .fetch_all(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
             .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        record_rows(&query_span, &span, rows.len());
 
         let mut keys = Vec::with_capacity(rows.len());
         for row in rows {
@@ -416,19 +710,54 @@ impl KeyValueStore for PostgresKvStore {
         };
 
         let query = list_entries_page_query(&self.table);
+        let span = tracing::debug_span!(
+            "PostgresKvStore.list_entries_page",
+            "db.system" = "postgresql",
+            "db.operation" = "list_entries_page",
+            "talon.kv.table" = %self.table,
+            "talon.resource.kind" = %kind,
+            "postgres.pool.max_connections" = u64::from(self.settings.max_connections),
+            "postgres.pool.size_before" = field::Empty,
+            "postgres.pool.idle_before" = field::Empty,
+            "postgres.pool.size_after" = field::Empty,
+            "postgres.pool.idle_after" = field::Empty,
+            pool_wait_us = field::Empty,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+            limit,
+        );
+        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
+        let query_span = tracing::debug_span!(
+            parent: &span,
+            "PostgresKvStore.query",
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
+        );
+        let query_started_at = Instant::now();
         let rows = sqlx::query(&query)
             .bind(&list.parent.namespace)
             .bind(&list.parent.parent_path)
             .bind(kind)
             .bind(before_name)
             .bind(limit as i64)
-            .fetch_all(&self.pool)
+            .fetch_all(&mut *conn)
+            .instrument(query_span.clone())
+            .instrument(span.clone())
             .await?;
+        record_query_elapsed(&query_span, &span, query_started_at);
+        record_rows(&query_span, &span, rows.len());
 
         let mut entries = Vec::with_capacity(rows.len());
+        let mut total_value_bytes = 0usize;
         for row in rows {
-            entries.push((key_from_row(&row)?, row.try_get("value")?));
+            let value: Vec<u8> = row.try_get("value")?;
+            total_value_bytes += value.len();
+            entries.push((key_from_row(&row)?, value));
         }
+        query_span.record("value_bytes", total_value_bytes as u64);
+        span.record("value_bytes", total_value_bytes as u64);
         Ok(entries)
     }
 }

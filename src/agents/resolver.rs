@@ -329,10 +329,7 @@ fn is_allowed_capability_action(capability: &str, action: &str) -> bool {
                 | "create:fresh"
                 | "create:named"
         ),
-        "sessions" => matches!(
-            action,
-            "inspect" | "read:messages" | "read:steps" | "send_message"
-        ),
+        "sessions" => matches!(action, "inspect" | "read:messages" | "send_message"),
         _ => false,
     }
 }

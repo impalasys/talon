@@ -13,6 +13,7 @@ use crate::control::ProtoKeyValueStoreExt;
 use crate::core::executor::ExecutionSink;
 use crate::gateway::rpc::models;
 use tokio_util::sync::CancellationToken;
+use tracing::Instrument;
 
 async fn execute_with_panic_boundary<F>(
     future: F,
@@ -59,6 +60,16 @@ enum SessionCompletionStatus {
 }
 
 impl WorkerEventHandler {
+    #[tracing::instrument(
+        name = "WorkerEventHandler.handle_session_message",
+        skip_all,
+        fields(
+            namespace = %event.ns,
+            agent = %event.agent,
+            session = %event.session_id,
+            message_chars = event.message.len(),
+        )
+    )]
     pub async fn handle_session_message(&self, event: SessionMessageEvent) -> Result<()> {
         tracing::info!(
             agent = %event.agent,
@@ -82,6 +93,7 @@ impl WorkerEventHandler {
                 &self.config,
                 &self.mcp_registry,
             )
+            .instrument(tracing::info_span!("AgentRuntime.build"))
             .await?;
 
             // Pre-allocate the assistant reply slot in KV
@@ -99,12 +111,13 @@ impl WorkerEventHandler {
                     &reply_msg_key,
                     &models::SessionMessage {
                         id: reply_msg_id.clone(),
-                        role: 2, // ASSISTANT
-                        content: String::new(),
+                        role: models::MessageRole::RoleAssistant as i32,
                         created_at: chrono::Utc::now().timestamp_micros(),
                         labels: std::collections::HashMap::new(),
+                        parts: Vec::new(),
                     },
                 )
+                .instrument(tracing::info_span!("WorkerEventHandler.create_reply_slot"))
                 .await;
 
             let sink = PubSubSessionSink::new(
@@ -128,6 +141,7 @@ impl WorkerEventHandler {
                 &event.agent,
                 &event.session_id,
             )
+            .instrument(tracing::info_span!("WorkerEventHandler.execute_session"))
             .await
             .map(|status| (status, sink.summary()))
         }
@@ -138,6 +152,9 @@ impl WorkerEventHandler {
             .await
             .remove(&event.session_id);
         self.release_session_lock(ns, &event.agent, &event.session_id)
+            .instrument(tracing::info_span!(
+                "WorkerEventHandler.release_session_lock"
+            ))
             .await;
 
         if let Ok((status, summary)) = &outcome {

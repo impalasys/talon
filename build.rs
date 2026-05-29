@@ -6,7 +6,6 @@ fn main() -> std::io::Result<()> {
     // be deserialized directly from YAML/JSON without shadow structs.
     // The rename_all = "camelCase" matches the YAML convention (systemPrompt, apiVersion, etc.)
     let serde_default_types = [
-        ".talon.events.SessionStepEvent",
         ".talon.manifests.FeatureSetDelta",
         ".talon.manifests.McpAuthBrokerSpec",
         ".talon.manifests.McpServer",
@@ -33,6 +32,7 @@ fn main() -> std::io::Result<()> {
         ".talon.models.ScheduleTarget",
         ".talon.models.Session",
         ".talon.models.SessionMessage",
+        ".talon.models.SessionMessagePart",
     ];
     let serde_derive_only_types = [".talon.manifests.PromptDelta"];
 

@@ -1,0 +1,17 @@
+.git
+.pytest_cache
+.venv*
+__pycache__
+*.py[cod]
+
+target
+node_modules
+ui/node_modules
+ui/.next
+ui/coverage
+ui/playwright-report
+ui/test-results
+docs-site/node_modules
+packages/*/dist
+
+bench/results

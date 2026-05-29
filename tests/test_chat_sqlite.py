@@ -14,13 +14,17 @@ from proto.gateway_pb2 import (
     CreateSessionRequest,
     GetSessionRequest,
     SendMessageRequest,
-    StreamSessionStepsRequest,
+    StreamSessionPartsRequest,
 )
 from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model
 
-STEP_TYPE_TOKEN = 1
-STEP_TYPE_REASONING = 6
-STEP_TYPE_USAGE = 7
+PART_TYPE_TEXT = 1
+PART_TYPE_REASONING = 2
+PART_TYPE_USAGE = 5
+
+
+def message_text(message):
+    return "".join(part.content for part in message.parts if part.part_type == PART_TYPE_TEXT)
 
 
 def ensure_namespace(stub, name):
@@ -95,7 +99,7 @@ def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_s
     assert success, "Agent did not reply in time or failed to revert to IDLE"
     agent_message = messages[-1]
     assert agent_message.role == 2
-    assert "12" in agent_message.content
+    assert "12" in message_text(agent_message)
 
 
 def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_server):
@@ -146,7 +150,7 @@ def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_ser
     sender = threading.Thread(target=send_msg)
     sender.start()
 
-    stream_req = StreamSessionStepsRequest(
+    stream_req = StreamSessionPartsRequest(
         agent="stream-agent",
         session_id=session_id,
         ns="talon-sqlite-stream-test",
@@ -156,13 +160,13 @@ def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_ser
         saw_reasoning = False
         saw_token = False
         saw_usage = False
-        for idx, event in enumerate(stub.StreamSessionSteps(stream_req)):
+        for idx, event in enumerate(stub.StreamSessionParts(stream_req)):
             events.append(event)
-            if event.step_type == STEP_TYPE_REASONING:
+            if event.part.part_type == PART_TYPE_REASONING:
                 saw_reasoning = True
-            if event.step_type == STEP_TYPE_TOKEN:
+            if event.part.part_type == PART_TYPE_TEXT:
                 saw_token = True
-            if event.step_type == STEP_TYPE_USAGE:
+            if event.part.part_type == PART_TYPE_USAGE:
                 saw_usage = True
             if saw_reasoning and saw_token and saw_usage:
                 break
@@ -173,12 +177,12 @@ def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_ser
     sender.join()
 
     assert len(events) >= 1
-    reasoning_events = [event for event in events if event.step_type == STEP_TYPE_REASONING]
-    token_events = [event for event in events if event.step_type == STEP_TYPE_TOKEN]
-    usage_events = [event for event in events if event.step_type == STEP_TYPE_USAGE]
+    reasoning_events = [event for event in events if event.part.part_type == PART_TYPE_REASONING]
+    token_events = [event for event in events if event.part.part_type == PART_TYPE_TEXT]
+    usage_events = [event for event in events if event.part.part_type == PART_TYPE_USAGE]
     assert len(reasoning_events) >= 1
     assert len(token_events) >= 1
     assert len(usage_events) >= 1
-    assert "Inspecting the request" in reasoning_events[0].content
-    streamed_text = "".join(event.content for event in token_events)
+    assert "Inspecting the request" in reasoning_events[0].part.content
+    streamed_text = "".join(event.part.content for event in token_events)
     assert "received" in streamed_text

@@ -1,4 +1,7 @@
 .env
+__pycache__/
+*.py[cod]
+bench/results*/
 node_modules/
 packages/copilot/dist/
 talon_gateway_proto-descriptor-set.proto.bin

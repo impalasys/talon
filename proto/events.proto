@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package talon.events;
 
+import "proto/models.proto";
+
 enum SystemAction {
     SYSTEM_ACTION_UNSPECIFIED = 0;
     SYSTEM_ACTION_CREATE = 1;
@@ -43,25 +45,19 @@ message SessionControlEvent {
     int64 timestamp = 5;
 }
 
-enum StepType {
-    STEP_TYPE_UNSPECIFIED = 0;
-    STEP_TYPE_TOKEN = 1;
-    STEP_TYPE_ACTION = 2;
-    STEP_TYPE_OBSERVATION = 3;
-    STEP_TYPE_DONE = 4;
-    STEP_TYPE_ERROR = 5;
-    STEP_TYPE_REASONING = 6;
-    STEP_TYPE_USAGE = 7;
+enum SessionMessagePartEventKind {
+    SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED = 0;
+    SESSION_MESSAGE_PART_EVENT_KIND_DELTA = 1;
+    SESSION_MESSAGE_PART_EVENT_KIND_DONE = 2;
+    SESSION_MESSAGE_PART_EVENT_KIND_ERROR = 3;
 }
 
-message SessionStepEvent {
+message SessionMessagePartEvent {
     string session_id = 1;
-    StepType step_type = 2;
-    string content = 3;
+    SessionMessagePartEventKind kind = 2;
+    talon.models.SessionMessagePart part = 3;
     int64 timestamp = 4;
     string agent = 5;
     string ns = 6;
     string message_id = 7;
-    string name = 8;
-    string payload_json = 9;
 }

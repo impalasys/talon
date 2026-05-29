@@ -9,14 +9,14 @@ use std::collections::HashMap;
 use std::os::unix::fs::FileTypeExt;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{mpsc, Mutex, OnceCell};
 
 type SubscriberSender = mpsc::Sender<Vec<u8>>;
 const MAX_FRAME_SIZE: usize = 32 * 1024 * 1024;
-const SUBSCRIBER_BUFFER_SIZE: usize = 1024;
+const DEFAULT_SUBSCRIBER_BUFFER_SIZE: usize = 16_384;
 
 #[derive(Default)]
 struct SubscriptionState {
@@ -317,7 +317,7 @@ async fn handle_connection(stream: UnixStream, state: Arc<Mutex<BrokerState>>) -
                 topic,
                 subscription,
             } => {
-                let (tx, mut rx) = mpsc::channel::<Vec<u8>>(SUBSCRIBER_BUFFER_SIZE);
+                let (tx, mut rx) = mpsc::channel::<Vec<u8>>(subscriber_buffer_size());
                 register_subscriber(&state, &topic, &subscription, tx).await;
                 write_frame(&mut writer, &ServerFrame::Ack { request_id }).await?;
                 while let Some(payload) = rx.recv().await {
@@ -354,50 +354,68 @@ async fn register_subscriber(
 }
 
 async fn distribute_message(state: &Arc<Mutex<BrokerState>>, topic: &str, payload: Vec<u8>) {
-    let targets = {
-        let mut state = state.lock().await;
-        let Some(subscriptions) = state.topics.get_mut(topic) else {
-            return;
-        };
-        let mut targets = Vec::new();
-        let mut empty_subscriptions = Vec::new();
-        for (subscription_name, subscription_state) in subscriptions.iter_mut() {
-            subscription_state
-                .subscribers
-                .retain(|sender| !sender.is_closed());
-            if subscription_state.subscribers.is_empty() {
-                empty_subscriptions.push(subscription_name.clone());
-                continue;
-            }
-            let index = subscription_state.next_index % subscription_state.subscribers.len();
-            let sender = subscription_state.subscribers[index].clone();
-            subscription_state.next_index =
-                (subscription_state.next_index + 1) % subscription_state.subscribers.len();
-            targets.push(sender);
-        }
-        for subscription_name in empty_subscriptions {
-            subscriptions.remove(&subscription_name);
-        }
-        targets
+    let mut state = state.lock().await;
+    let Some(subscriptions) = state.topics.get_mut(topic) else {
+        return;
     };
-
-    let target_count = targets.len();
-    let mut payload = Some(payload);
-    for (index, sender) in targets.into_iter().enumerate() {
-        let message = if index + 1 == target_count {
-            payload
-                .take()
-                .expect("payload should be present for final subscriber")
-        } else {
-            payload
-                .as_ref()
-                .expect("payload should be present before final subscriber")
-                .clone()
-        };
-        if let Err(err) = sender.try_send(message) {
-            tracing::warn!(error = %err, topic = %topic, "local socket broker dropped message");
+    let mut empty_subscriptions = Vec::new();
+    for (subscription_name, subscription_state) in subscriptions.iter_mut() {
+        subscription_state
+            .subscribers
+            .retain(|sender| !sender.is_closed());
+        if subscription_state.subscribers.is_empty() {
+            empty_subscriptions.push(subscription_name.clone());
+            continue;
+        }
+        let index = subscription_state.next_index % subscription_state.subscribers.len();
+        let sender = subscription_state.subscribers[index].clone();
+        match sender.try_send(payload.clone()) {
+            Ok(()) => {
+                subscription_state.next_index = (index + 1) % subscription_state.subscribers.len();
+            }
+            Err(mpsc::error::TrySendError::Full(_)) => {
+                tracing::warn!(
+                    topic = %topic,
+                    subscription = %subscription_name,
+                    "local socket subscriber buffer full; disconnecting slow subscriber"
+                );
+                subscription_state.subscribers.remove(index);
+                if subscription_state.subscribers.is_empty() {
+                    empty_subscriptions.push(subscription_name.clone());
+                } else {
+                    subscription_state.next_index = index % subscription_state.subscribers.len();
+                }
+            }
+            Err(mpsc::error::TrySendError::Closed(_)) => {
+                subscription_state.subscribers.remove(index);
+                if subscription_state.subscribers.is_empty() {
+                    empty_subscriptions.push(subscription_name.clone());
+                } else {
+                    subscription_state.next_index = index % subscription_state.subscribers.len();
+                }
+            }
         }
     }
+    for subscription_name in empty_subscriptions {
+        if subscriptions
+            .get(&subscription_name)
+            .is_some_and(|subscription| subscription.subscribers.is_empty())
+        {
+            subscriptions.remove(&subscription_name);
+        }
+    }
+}
+
+fn subscriber_buffer_size() -> usize {
+    static CACHE: OnceLock<usize> = OnceLock::new();
+
+    *CACHE.get_or_init(|| {
+        std::env::var("TALON_LOCAL_SOCKET_SUBSCRIBER_BUFFER_SIZE")
+            .ok()
+            .and_then(|value| value.parse::<usize>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(DEFAULT_SUBSCRIBER_BUFFER_SIZE)
+    })
 }
 
 async fn write_frame<W: AsyncWriteExt + Unpin, T: Serialize>(

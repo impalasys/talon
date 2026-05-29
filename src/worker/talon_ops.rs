@@ -32,7 +32,6 @@ use std::{
 
 use crate::{
     control::{
-        events,
         keys::{self, ResourceKey},
         ProtoKeyValueStoreExt,
     },
@@ -103,7 +102,6 @@ pub struct TalonOpsAccess {
 struct TalonOpsPolicy {
     allowed_namespace_prefixes: Vec<String>,
     allow_session_messages: bool,
-    allow_step_payloads: bool,
     max_list_limit: i32,
     max_history_lookback_seconds: i32,
 }
@@ -118,6 +116,7 @@ impl TalonOpsAccess {
         }
     }
 
+    #[cfg(test)]
     fn max_history_lookback_seconds(&self) -> i64 {
         let configured = self.policy.max_history_lookback_seconds;
         if configured > 0 {
@@ -234,33 +233,6 @@ impl TalonOpsServer {
         let mut keys = self.kv().list_keys(&prefix).await?;
         keys.sort();
         self.load_messages::<models::SessionMessage>(keys, 32).await
-    }
-
-    async fn get_session_steps(
-        &self,
-        namespace: &str,
-        agent: &str,
-        session_id: &str,
-    ) -> Result<Vec<events::SessionStepEvent>> {
-        let message_prefix = keys::session_message_prefix(namespace, agent, session_id);
-        let mut message_keys = self.kv().list_keys(&message_prefix).await?;
-        message_keys.sort();
-        let mut step_keys = Vec::new();
-        for message_key in message_keys {
-            let mut keys = self
-                .kv()
-                .list_keys(&keys::session_message_step_prefix(
-                    namespace,
-                    agent,
-                    session_id,
-                    &message_key.name,
-                ))
-                .await?;
-            step_keys.append(&mut keys);
-        }
-        step_keys.sort();
-        self.load_messages::<events::SessionStepEvent>(step_keys, 64)
-            .await
     }
 
     async fn list_schedule_models(&self, namespace: &str) -> Result<Vec<models::Schedule>> {
@@ -422,17 +394,6 @@ struct GetSessionArgs {
     agent: String,
     session_id: String,
     include_messages: Option<bool>,
-    include_steps: Option<bool>,
-}
-
-#[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
-#[serde(default)]
-struct ListRecentStepsArgs {
-    namespace: String,
-    agent: Option<String>,
-    session_id: Option<String>,
-    limit: Option<usize>,
-    since: Option<i64>,
 }
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
@@ -640,7 +601,7 @@ impl TalonOpsServer {
     }
 
     #[tool(
-        description = "Get a session, optionally including raw messages and step payloads if the binding policy allows it."
+        description = "Get a session, optionally including raw messages if the binding policy allows it."
     )]
     async fn get_session(
         &self,
@@ -662,16 +623,9 @@ impl TalonOpsServer {
             .map_err(internal_mcp_error)?
             .ok_or_else(|| McpError::invalid_params("session not found".to_string(), None))?;
         let include_messages = args.include_messages.unwrap_or(false);
-        let include_steps = args.include_steps.unwrap_or(false);
         if include_messages && !access.policy.allow_session_messages {
             return Err(McpError::invalid_params(
                 "binding policy does not allow session messages".to_string(),
-                None,
-            ));
-        }
-        if include_steps && !access.policy.allow_step_payloads {
-            return Err(McpError::invalid_params(
-                "binding policy does not allow step payloads".to_string(),
                 None,
             ));
         }
@@ -684,70 +638,7 @@ impl TalonOpsServer {
                 .map_err(internal_mcp_error)?;
             payload["messages"] = serde_json::to_value(&messages).map_err(internal_mcp_error)?;
         }
-        if include_steps {
-            let steps = self
-                .get_session_steps(&args.namespace, &args.agent, &args.session_id)
-                .await
-                .map_err(internal_mcp_error)?;
-            payload["steps"] = serde_json::to_value(&steps).map_err(internal_mcp_error)?;
-        }
         to_json_string(&payload)
-    }
-
-    #[tool(
-        description = "List recent session steps across visible namespaces, optionally filtered by agent or session."
-    )]
-    async fn list_recent_steps(
-        &self,
-        rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
-            axum::http::request::Parts,
-        >,
-        Parameters(args): Parameters<ListRecentStepsArgs>,
-    ) -> Result<String, McpError> {
-        let access = talon_ops_access_from_parts(&parts)?;
-        require_namespace_access(&access, &args.namespace)?;
-        let limit = bounded_limit(&access, args.limit);
-        let now = Utc::now().timestamp();
-        let min_timestamp = args
-            .since
-            .unwrap_or(now - access.max_history_lookback_seconds());
-        let agents = if let Some(agent) = args.agent.clone() {
-            vec![agent]
-        } else {
-            self.list_agent_names(&args.namespace)
-                .await
-                .map_err(internal_mcp_error)?
-        };
-        let mut steps = Vec::new();
-        for agent in agents {
-            let sessions = self
-                .list_sessions_for_agent(&args.namespace, &agent)
-                .await
-                .map_err(internal_mcp_error)?;
-            for session in sessions {
-                if args
-                    .session_id
-                    .as_ref()
-                    .map(|session_id| &session.id == session_id)
-                    .unwrap_or(true)
-                {
-                    let mut session_steps = self
-                        .get_session_steps(&args.namespace, &agent, &session.id)
-                        .await
-                        .map_err(internal_mcp_error)?;
-                    steps.append(&mut session_steps);
-                }
-            }
-        }
-        steps.retain(|step| step.timestamp >= min_timestamp);
-        steps.sort_by(|left, right| right.timestamp.cmp(&left.timestamp));
-        steps.truncate(limit);
-        if !access.policy.allow_step_payloads {
-            for step in &mut steps {
-                step.payload_json.clear();
-            }
-        }
-        to_json_string(&json!({ "steps": steps }))
     }
 
     #[tool(description = "List MCP bindings in a visible namespace.")]
@@ -1185,7 +1076,6 @@ fn parse_talon_ops_policy_from_target(target: &str) -> Result<TalonOpsPolicy> {
         .map_err(|error| anyhow!("invalid talon-ops target URL '{}': {}", target, error))?;
     let mut allowed_namespace_prefixes = Vec::new();
     let mut allow_session_messages = None;
-    let mut allow_step_payloads = None;
     let mut max_list_limit = None;
     let mut max_history_lookback_seconds = None;
     let mut seen_singletons = HashSet::new();
@@ -1203,10 +1093,6 @@ fn parse_talon_ops_policy_from_target(target: &str) -> Result<TalonOpsPolicy> {
             "session_messages" => {
                 ensure_singleton(&mut seen_singletons, "session_messages")?;
                 allow_session_messages = Some(parse_bool_query_param("session_messages", &value)?);
-            }
-            "step_payloads" => {
-                ensure_singleton(&mut seen_singletons, "step_payloads")?;
-                allow_step_payloads = Some(parse_bool_query_param("step_payloads", &value)?);
             }
             "max_limit" => {
                 ensure_singleton(&mut seen_singletons, "max_limit")?;
@@ -1237,7 +1123,6 @@ fn parse_talon_ops_policy_from_target(target: &str) -> Result<TalonOpsPolicy> {
     Ok(TalonOpsPolicy {
         allowed_namespace_prefixes,
         allow_session_messages: allow_session_messages.unwrap_or(false),
-        allow_step_payloads: allow_step_payloads.unwrap_or(false),
         max_list_limit: max_list_limit.unwrap_or(DEFAULT_MAX_LIST_LIMIT),
         max_history_lookback_seconds: max_history_lookback_seconds
             .unwrap_or(DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS),
@@ -1444,9 +1329,9 @@ mod tests {
         parse_talon_ops_policy_from_target, require_namespace_access, schedule_json,
         talon_jwt_secret, talon_ops_access_from_parts, talon_ops_access_from_request,
         talon_ops_auth_broker, to_json_string, DeleteScheduleArgs, GetAgentArgs, GetScheduleArgs,
-        ListMcpBindingsArgs, ListMcpServersArgs, ListNamespacesArgs, ListRecentStepsArgs,
-        ListSchedulesArgs, ListSessionsArgs, McpAuthBrokerClaims, McpAuthBrokerRequest,
-        PutScheduleArgs, TalonOpsAccess, TalonOpsAccessClaims, TalonOpsPolicy, TalonOpsServer,
+        ListMcpBindingsArgs, ListMcpServersArgs, ListNamespacesArgs, ListSchedulesArgs,
+        ListSessionsArgs, McpAuthBrokerClaims, McpAuthBrokerRequest, PutScheduleArgs,
+        TalonOpsAccess, TalonOpsAccessClaims, TalonOpsPolicy, TalonOpsServer,
         DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS, DEFAULT_MAX_LIST_LIMIT,
     };
     use crate::config::Config;
@@ -1469,7 +1354,6 @@ mod tests {
     };
     use futures::stream;
     use jsonwebtoken::{encode, EncodingKey, Header};
-    use prost::Message;
     use rmcp::handler::server::wrapper::Parameters;
     use serde_json::json;
     use std::{collections::HashMap, pin::Pin, sync::Arc};
@@ -1623,7 +1507,6 @@ mod tests {
                     .map(|prefix| prefix.to_string())
                     .collect(),
                 allow_session_messages: true,
-                allow_step_payloads: true,
                 max_list_limit: DEFAULT_MAX_LIST_LIMIT,
                 max_history_lookback_seconds: DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS,
             },
@@ -1741,7 +1624,7 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_reads_known_params() {
         let policy = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&allowed_prefix=conic%3Awks%3A&session_messages=1&step_payloads=0&max_limit=25&max_lookback_s=60",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&allowed_prefix=conic%3Awks%3A&session_messages=1&max_limit=25&max_lookback_s=60",
         )
         .expect("policy should parse");
 
@@ -1750,7 +1633,6 @@ mod tests {
             vec!["conic".to_string(), "conic:wks:".to_string()]
         );
         assert!(policy.allow_session_messages);
-        assert!(!policy.allow_step_payloads);
         assert_eq!(policy.max_list_limit, 25);
         assert_eq!(policy.max_history_lookback_seconds, 60);
     }
@@ -1793,7 +1675,6 @@ mod tests {
 
         assert_eq!(policy.allowed_namespace_prefixes, vec!["conic".to_string()]);
         assert!(!policy.allow_session_messages);
-        assert!(!policy.allow_step_payloads);
         assert_eq!(policy.max_list_limit, DEFAULT_MAX_LIST_LIMIT);
         assert_eq!(
             policy.max_history_lookback_seconds,
@@ -1823,7 +1704,6 @@ mod tests {
             policy: TalonOpsPolicy {
                 allowed_namespace_prefixes: vec!["conic".to_string()],
                 allow_session_messages: false,
-                allow_step_payloads: false,
                 max_list_limit: 12,
                 max_history_lookback_seconds: 42,
             },
@@ -2350,27 +2230,17 @@ mod tests {
             &models::SessionMessage {
                 id: "msg-1".to_string(),
                 role: 1,
-                content: "hello".to_string(),
                 created_at: 150,
                 labels: HashMap::new(),
+                parts: vec![models::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: models::SessionMessagePartType::Text as i32,
+                    content: "hello".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 150,
+                }],
             },
-        )
-        .await
-        .unwrap();
-        kv.set(
-            &keys::session_message_step("conic", "beta", "session-new", "msg-1", "step-1"),
-            &crate::control::events::SessionStepEvent {
-                session_id: "session-new".to_string(),
-                step_type: crate::control::events::StepType::Action as i32,
-                content: "tool".to_string(),
-                timestamp: 175,
-                agent: "beta".to_string(),
-                ns: "conic".to_string(),
-                message_id: "msg-1".to_string(),
-                name: "search".to_string(),
-                payload_json: "{\"q\":\"talon\"}".to_string(),
-            }
-            .encode_to_vec(),
         )
         .await
         .unwrap();
@@ -2444,23 +2314,6 @@ mod tests {
         let sessions_json: serde_json::Value = serde_json::from_str(&sessions).unwrap();
         assert_eq!(sessions_json["sessions"].as_array().unwrap().len(), 1);
         assert_eq!(sessions_json["sessions"][0]["id"], "session-new");
-
-        let recent_steps: String = server
-            .list_recent_steps(
-                rmcp::handler::server::common::Extension(parts.clone()),
-                Parameters(ListRecentStepsArgs {
-                    namespace: "conic".to_string(),
-                    agent: Some("beta".to_string()),
-                    session_id: Some("session-new".to_string()),
-                    limit: Some(10),
-                    since: Some(150),
-                }),
-            )
-            .await
-            .unwrap();
-        let steps_json: serde_json::Value = serde_json::from_str(&recent_steps).unwrap();
-        assert_eq!(steps_json["steps"].as_array().unwrap().len(), 1);
-        assert_eq!(steps_json["steps"][0]["name"], "search");
 
         let bindings: String = server
             .list_mcp_bindings(

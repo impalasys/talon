@@ -8,8 +8,13 @@ use crate::llm::provider::{
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use futures::{stream, StreamExt};
+use futures::{stream, Stream, StreamExt};
 use serde_json::Value;
+use std::{
+    pin::Pin,
+    sync::OnceLock,
+    task::{Context, Poll},
+};
 
 const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
 const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
@@ -36,7 +41,7 @@ impl OpenAiCompatibleProvider {
             api_key,
             base_url,
             model,
-            http_client: reqwest::Client::new(),
+            http_client: shared_http_client(),
         }
     }
 
@@ -241,6 +246,17 @@ impl OpenAiCompatibleProvider {
         );
     }
 
+    #[tracing::instrument(
+        name = "OpenAiCompatibleProvider.send_chat_request",
+        skip_all,
+        fields(
+            provider_base_url = %self.base_url,
+            model = %self.model,
+            stream,
+            message_count = request.messages.len(),
+            tool_count = request.tools.len(),
+        )
+    )]
     async fn send_chat_request(
         &self,
         request: ChatRequest,
@@ -472,12 +488,22 @@ impl OpenAiCompatibleProvider {
     }
 }
 
+fn shared_http_client() -> reqwest::Client {
+    static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+    CLIENT.get_or_init(reqwest::Client::new).clone()
+}
+
 #[async_trait]
 impl LlmProvider for OpenAiCompatibleProvider {
     async fn generate_embedding(&self, _text: &str) -> Result<Embedding> {
         Ok(vec![0.0; 768])
     }
 
+    #[tracing::instrument(
+        name = "OpenAiCompatibleProvider.chat_completion",
+        skip_all,
+        fields(provider_base_url = %self.base_url, model = %self.model)
+    )]
     async fn chat_completion(&self, request: ChatRequest) -> Result<ChatResponse> {
         use crate::llm::provider::ToolCall;
 
@@ -512,14 +538,22 @@ impl LlmProvider for OpenAiCompatibleProvider {
         })
     }
 
+    #[tracing::instrument(
+        name = "OpenAiCompatibleProvider.stream_chat_completion",
+        skip_all,
+        fields(provider_base_url = %self.base_url, model = %self.model)
+    )]
     async fn stream_chat_completion(&self, request: ChatRequest) -> Result<ChatStream> {
         let resp = self.send_chat_request(request, true).await?;
 
         let byte_stream = resp.bytes_stream();
         let line_stream = byte_stream.map(|item| item.map_err(|e| anyhow!("Stream error: {}", e)));
+        let parent_span = tracing::Span::current();
+        let parse_span = parent_span.clone();
 
         // Simple SSE state machine
         let mut buffer = String::new();
+        let mut saw_first_chunk = false;
         let sse_stream = line_stream.flat_map(move |result| match result {
             Ok(bytes) => {
                 let text = String::from_utf8_lossy(&bytes);
@@ -532,10 +566,18 @@ impl LlmProvider for OpenAiCompatibleProvider {
                         continue;
                     }
                     if line == "data: [DONE]" {
+                        parse_span
+                            .in_scope(|| tracing::info!("OpenAI-compatible LLM stream completed"));
                         break;
                     }
                     if let Some(data) = line.strip_prefix("data: ") {
                         if let Ok(value) = serde_json::from_str::<serde_json::Value>(data) {
+                            if !saw_first_chunk {
+                                saw_first_chunk = true;
+                                parse_span.in_scope(|| {
+                                    tracing::info!("OpenAI-compatible LLM stream first chunk")
+                                });
+                            }
                             if let Some(content) = value
                                 .pointer("/choices/0/delta/content")
                                 .and_then(|v| v.as_str())
@@ -591,7 +633,10 @@ impl LlmProvider for OpenAiCompatibleProvider {
             Err(e) => stream::iter(vec![Err(e)]),
         });
 
-        Ok(Box::pin(sse_stream))
+        Ok(Box::pin(SpanInstrumentedChatStream {
+            inner: Box::pin(sse_stream),
+            span: parent_span,
+        }))
     }
 
     async fn completion(&self, prompt: &str) -> Result<String> {
@@ -607,6 +652,21 @@ impl LlmProvider for OpenAiCompatibleProvider {
         })
         .await
         .map(|r| r.content)
+    }
+}
+
+struct SpanInstrumentedChatStream {
+    inner: ChatStream,
+    span: tracing::Span,
+}
+
+impl Stream for SpanInstrumentedChatStream {
+    type Item = Result<ChatStreamEvent>;
+
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        let this = self.get_mut();
+        let _entered = this.span.enter();
+        this.inner.as_mut().poll_next(cx)
     }
 }
 

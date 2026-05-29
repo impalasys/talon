@@ -4,7 +4,10 @@
 #[cfg(test)]
 mod tests {
     use crate::control::{
-        events::{LifecycleEvent, SessionControlEvent, SessionStepEvent, StepType},
+        events::{
+            LifecycleEvent, SessionControlEvent, SessionMessagePartEvent,
+            SessionMessagePartEventKind,
+        },
         scheduler::SchedulerBackend,
         topics,
     };
@@ -17,6 +20,36 @@ mod tests {
     use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::Mutex;
+
+    fn session_part(
+        session_id: &str,
+        agent: &str,
+        ns: &str,
+        message_id: &str,
+        kind: SessionMessagePartEventKind,
+        part_type: models::SessionMessagePartType,
+        content: impl Into<String>,
+        name: impl Into<String>,
+        payload_json: impl Into<String>,
+        timestamp: i64,
+    ) -> SessionMessagePartEvent {
+        SessionMessagePartEvent {
+            session_id: session_id.to_string(),
+            kind: kind as i32,
+            part: Some(models::SessionMessagePart {
+                id: String::new(),
+                part_type: part_type as i32,
+                content: content.into(),
+                name: name.into(),
+                payload_json: payload_json.into(),
+                created_at: timestamp,
+            }),
+            timestamp,
+            agent: agent.to_string(),
+            ns: ns.to_string(),
+            message_id: message_id.to_string(),
+        }
+    }
 
     #[derive(Default)]
     struct RecordingScheduler {
@@ -545,33 +578,35 @@ mod tests {
             .into_inner();
         let session_id = created_session.session_id.clone();
         let session_topic =
-            topics::session_step_topic_for_shard(topics::session_step_shard(&session_id));
+            topics::session_part_topic_for_shard(topics::session_part_shard(&session_id));
         pubsub.streams.lock().await.insert(
             session_topic,
             vec![
-                SessionStepEvent {
-                    session_id: session_id.clone(),
-                    step_type: StepType::Action as i32,
-                    content: String::new(),
-                    timestamp: 1,
-                    agent: "agent-1".to_string(),
-                    ns: "acme".to_string(),
-                    message_id: "msg-1".to_string(),
-                    name: "search".to_string(),
-                    payload_json: r#"{"tool_call_id":"call-1","input":{"q":"rust"}}"#.to_string(),
-                }
+                session_part(
+                    &session_id,
+                    "agent-1",
+                    "acme",
+                    "msg-1",
+                    SessionMessagePartEventKind::Delta,
+                    models::SessionMessagePartType::ToolCall,
+                    "",
+                    "search",
+                    r#"{"tool_call_id":"call-1","input":{"q":"rust"}}"#,
+                    1,
+                )
                 .encode_to_vec(),
-                SessionStepEvent {
-                    session_id: session_id.clone(),
-                    step_type: StepType::Done as i32,
-                    content: String::new(),
-                    timestamp: 2,
-                    agent: "agent-1".to_string(),
-                    ns: "acme".to_string(),
-                    message_id: "msg-1".to_string(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                }
+                session_part(
+                    &session_id,
+                    "agent-1",
+                    "acme",
+                    "msg-1",
+                    SessionMessagePartEventKind::Done,
+                    models::SessionMessagePartType::Text,
+                    "",
+                    "",
+                    "",
+                    2,
+                )
                 .encode_to_vec(),
             ],
         );
@@ -583,7 +618,6 @@ mod tests {
                     agent: "agent-1".to_string(),
                     ns: "acme".to_string(),
                     message_limit: 0,
-                    step_limit: 0,
                 }))
                 .await
                 .unwrap()
@@ -631,8 +665,8 @@ mod tests {
                 .into_inner()
                 .success
         );
-        let mut step_stream = handler
-            .stream_session_steps(tonic::Request::new(proto::StreamSessionStepsRequest {
+        let mut part_stream = handler
+            .stream_session_parts(tonic::Request::new(proto::StreamSessionPartsRequest {
                 session_id: session_id.clone(),
                 agent: "agent-1".to_string(),
                 ns: "acme".to_string(),
@@ -641,12 +675,19 @@ mod tests {
             .unwrap()
             .into_inner();
         assert_eq!(
-            step_stream.next().await.unwrap().unwrap().step_type,
-            StepType::Action as i32
+            part_stream
+                .next()
+                .await
+                .unwrap()
+                .unwrap()
+                .part
+                .unwrap()
+                .part_type,
+            models::SessionMessagePartType::ToolCall as i32
         );
         assert_eq!(
-            step_stream.next().await.unwrap().unwrap().step_type,
-            StepType::Done as i32
+            part_stream.next().await.unwrap().unwrap().kind,
+            SessionMessagePartEventKind::Done as i32
         );
 
         let created_schedule = handler
