@@ -49,6 +49,7 @@ pub struct PubSubSessionSink {
     durable_text_bytes: Mutex<usize>,
     next_part_index: Mutex<u64>,
     last_flush: Mutex<Instant>,
+    pending_partial_flushes: Mutex<Vec<tokio::task::JoinHandle<()>>>,
     last_token_publish: Mutex<Instant>,
     last_reasoning_publish: Mutex<Instant>,
     input_token_chunks: Mutex<u64>,
@@ -114,6 +115,7 @@ impl PubSubSessionSink {
             durable_text_bytes: Mutex::new(0),
             next_part_index: Mutex::new(0),
             last_flush: Mutex::new(Instant::now()),
+            pending_partial_flushes: Mutex::new(Vec::new()),
             last_token_publish: Mutex::new(Instant::now()),
             last_reasoning_publish: Mutex::new(Instant::now()),
             input_token_chunks: Mutex::new(0),
@@ -372,6 +374,8 @@ impl PubSubSessionSink {
             }
         };
         if should_flush {
+            let kv = self.kv.clone();
+            let reply_msg_key = self.reply_msg_key.clone();
             let partial = models::SessionMessage {
                 id: self.reply_msg_id.clone(),
                 role: models::MessageRole::RoleAssistant as i32,
@@ -379,23 +383,38 @@ impl PubSubSessionSink {
                 labels: std::collections::HashMap::new(),
                 parts: self.partial_message_parts(current_text),
             };
-            if let Err(e) = async {
-                crate::control::ProtoKeyValueStoreExt::set_msg(
-                    self.kv.as_ref(),
-                    &self.reply_msg_key,
-                    &partial,
-                )
-                .await
-            }
-            .instrument(tracing::info_span!(
+            let span = tracing::info_span!(
                 "PubSubSessionSink.persist_partial_message",
                 namespace = %self.ns,
                 agent = %self.agent_id,
                 session = %self.session_id,
-            ))
-            .await
-            {
-                tracing::error!("Failed to persist partial message: {}", e);
+            );
+            let handle = tokio::spawn(
+                async move {
+                    if let Err(e) = crate::control::ProtoKeyValueStoreExt::set_msg(
+                        kv.as_ref(),
+                        &reply_msg_key,
+                        &partial,
+                    )
+                    .await
+                    {
+                        tracing::error!("Failed to persist partial message: {}", e);
+                    }
+                }
+                .instrument(span),
+            );
+            self.pending_partial_flushes.lock().unwrap().push(handle);
+        }
+    }
+
+    async fn wait_for_partial_flushes(&self) {
+        let handles = {
+            let mut pending = self.pending_partial_flushes.lock().unwrap();
+            std::mem::take(&mut *pending)
+        };
+        for handle in handles {
+            if let Err(err) = handle.await {
+                tracing::debug!(error = %err, "Partial message persistence task did not complete");
             }
         }
     }
@@ -519,6 +538,7 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_done(&self, reply: &str) {
         self.flush_token_event_buffer().await;
         self.flush_reasoning_part_and_event().await;
+        self.wait_for_partial_flushes().await;
         // Final KV write (complete message)
         let reply = reply.to_string();
         let reply_for_event = reply.clone();
@@ -551,6 +571,7 @@ impl ExecutionSink for PubSubSessionSink {
     async fn on_error(&self, err: &str) {
         self.flush_token_event_buffer().await;
         self.flush_reasoning_part_and_event().await;
+        self.wait_for_partial_flushes().await;
 
         self.record_accumulated_text_part();
         self.record_part(
@@ -873,6 +894,7 @@ mod tests {
             .await;
         *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
         sink.on_token("partial").await;
+        sink.wait_for_partial_flushes().await;
 
         let entries = kv.entries.lock().await.clone();
         let partial = entries

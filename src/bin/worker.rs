@@ -419,7 +419,10 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
         let mut tasks = JoinSet::new();
         loop {
             tokio::select! {
-                _ = cancellation_token.cancelled() => break,
+                _ = cancellation_token.cancelled() => {
+                    tasks.abort_all();
+                    break;
+                }
                 result = tasks.join_next(), if !tasks.is_empty() => {
                     if let Some(Err(err)) = result {
                         tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch task failed");

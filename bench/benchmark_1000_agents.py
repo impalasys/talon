@@ -713,92 +713,96 @@ async def run_workload(
                 stream_tasks.append(task)
                 task_timing_indexes[task] = index
 
-        await asyncio.wait_for(asyncio.gather(*(event.wait() for event in stream_ready)), timeout=60)
-        await asyncio.sleep(1.0)
-
-        workload_started = time.perf_counter()
-        await asyncio.gather(
-            *(
-                send_message(
-                    stub,
-                    ns,
-                    agent_names[index],
-                    session_ids[index],
-                    timings[index],
-                )
-                for index in range(agents)
-            )
-        )
-
-        async def print_progress() -> None:
-            completed = sum(1 for timing in timings if timing.completed is not None)
-            errored = sum(1 for timing in timings if timing.error is not None)
-            first_parts = sum(1 for timing in timings if timing.first_part is not None)
-            first_tokens = sum(1 for timing in timings if timing.first_token is not None)
-            sent = sum(1 for timing in timings if timing.send_finished is not None)
-            outstanding = agents - completed - errored
-
-            mock_part = ""
-            if mock_metrics_url:
-                try:
-                    mock_metrics = await asyncio.to_thread(fetch_json, mock_metrics_url, 2.0)
-                    mock_part = (
-                        f" mock_requests={mock_metrics.get('requests')}"
-                        f" mock_in_flight={mock_metrics.get('in_flight')}"
-                        f" mock_max_in_flight={mock_metrics.get('max_in_flight')}"
-                    )
-                except Exception as exc:
-                    mock_part = f" mock_metrics_error={type(exc).__name__}"
-
-            stats_part = ""
-            if stats_samples:
-                latest = stats_samples[-1]
-                memory_usage = latest.get("memory_usage_bytes")
-                memory_limit = latest.get("memory_limit_bytes")
-                cpu_percent = latest.get("cpu_percent")
-                if isinstance(cpu_percent, (int, float)):
-                    stats_part += f" talon_cpu={cpu_percent:.1f}%"
-                if isinstance(memory_usage, int):
-                    stats_part += f" talon_mem={mib(memory_usage)}/{mib(memory_limit)}"
-
-            print(
-                "progress "
-                f"elapsed={time.perf_counter() - workload_started:.1f}s "
-                f"sent={sent}/{agents} first_part={first_parts} first_token={first_tokens} "
-                f"completed={completed} errors={errored} outstanding={outstanding}"
-                f"{mock_part}{stats_part}",
-                flush=True,
-            )
-
-        pending = set(stream_tasks)
         done: set[asyncio.Task[Any]] = set()
-        deadline = time.perf_counter() + send_timeout_seconds
-        next_progress_at = time.perf_counter()
-        if progress_interval_seconds > 0:
-            await print_progress()
-            next_progress_at = time.perf_counter() + progress_interval_seconds
-        while pending and time.perf_counter() < deadline:
-            timeout = deadline - time.perf_counter()
-            if progress_interval_seconds > 0:
-                timeout = min(timeout, max(0.1, next_progress_at - time.perf_counter()))
-            newly_done, pending = await asyncio.wait(
-                pending,
-                timeout=timeout,
-                return_when=asyncio.FIRST_COMPLETED,
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*(event.wait() for event in stream_ready)), timeout=60
             )
-            done.update(newly_done)
-            if progress_interval_seconds > 0 and time.perf_counter() >= next_progress_at:
+            await asyncio.sleep(1.0)
+
+            workload_started = time.perf_counter()
+            await asyncio.gather(
+                *(
+                    send_message(
+                        stub,
+                        ns,
+                        agent_names[index],
+                        session_ids[index],
+                        timings[index],
+                    )
+                    for index in range(agents)
+                )
+            )
+
+            async def print_progress() -> None:
+                completed = sum(1 for timing in timings if timing.completed is not None)
+                errored = sum(1 for timing in timings if timing.error is not None)
+                first_parts = sum(1 for timing in timings if timing.first_part is not None)
+                first_tokens = sum(1 for timing in timings if timing.first_token is not None)
+                sent = sum(1 for timing in timings if timing.send_finished is not None)
+                outstanding = agents - completed - errored
+
+                mock_part = ""
+                if mock_metrics_url:
+                    try:
+                        mock_metrics = await asyncio.to_thread(fetch_json, mock_metrics_url, 2.0)
+                        mock_part = (
+                            f" mock_requests={mock_metrics.get('requests')}"
+                            f" mock_in_flight={mock_metrics.get('in_flight')}"
+                            f" mock_max_in_flight={mock_metrics.get('max_in_flight')}"
+                        )
+                    except Exception as exc:
+                        mock_part = f" mock_metrics_error={type(exc).__name__}"
+
+                stats_part = ""
+                if stats_samples:
+                    latest = stats_samples[-1]
+                    memory_usage = latest.get("memory_usage_bytes")
+                    memory_limit = latest.get("memory_limit_bytes")
+                    cpu_percent = latest.get("cpu_percent")
+                    if isinstance(cpu_percent, (int, float)):
+                        stats_part += f" talon_cpu={cpu_percent:.1f}%"
+                    if isinstance(memory_usage, int):
+                        stats_part += f" talon_mem={mib(memory_usage)}/{mib(memory_limit)}"
+
+                print(
+                    "progress "
+                    f"elapsed={time.perf_counter() - workload_started:.1f}s "
+                    f"sent={sent}/{agents} first_part={first_parts} first_token={first_tokens} "
+                    f"completed={completed} errors={errored} outstanding={outstanding}"
+                    f"{mock_part}{stats_part}",
+                    flush=True,
+                )
+
+            pending = set(stream_tasks)
+            deadline = time.perf_counter() + send_timeout_seconds
+            next_progress_at = time.perf_counter()
+            if progress_interval_seconds > 0:
                 await print_progress()
                 next_progress_at = time.perf_counter() + progress_interval_seconds
-        done.update(task for task in stream_tasks if task.done())
-        pending = {task for task in stream_tasks if not task.done()}
-        workload_finished = time.perf_counter()
-        for task in pending:
-            task.cancel()
-        if pending:
-            await asyncio.gather(*pending, return_exceptions=True)
+            while pending and time.perf_counter() < deadline:
+                timeout = deadline - time.perf_counter()
+                if progress_interval_seconds > 0:
+                    timeout = min(timeout, max(0.1, next_progress_at - time.perf_counter()))
+                newly_done, pending = await asyncio.wait(
+                    pending,
+                    timeout=timeout,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                done.update(newly_done)
+                if progress_interval_seconds > 0 and time.perf_counter() >= next_progress_at:
+                    await print_progress()
+                    next_progress_at = time.perf_counter() + progress_interval_seconds
+            done.update(task for task in stream_tasks if task.done())
+            workload_finished = time.perf_counter()
+        finally:
+            pending = {task for task in stream_tasks if not task.done()}
+            for task in pending:
+                task.cancel()
+            if pending:
+                await asyncio.gather(*pending, return_exceptions=True)
         for task in stream_tasks:
-            if task in done and task.exception():
+            if task in done and not task.cancelled() and task.exception():
                 index = task_timing_indexes.get(task)
                 exc_repr = repr(task.exception())
                 if index is not None:

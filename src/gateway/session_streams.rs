@@ -250,6 +250,20 @@ impl SessionStreamHub {
                 use prost::Message;
 
                 while let Some(bytes) = stream.next().await {
+                    let is_idle = {
+                        let mut guard = state.state.lock().unwrap();
+                        if guard.listeners.is_empty() {
+                            guard.lifecycle = ShardLifecycle::Idle;
+                            true
+                        } else {
+                            false
+                        }
+                    };
+                    if is_idle {
+                        state.ready.notify_waiters();
+                        break;
+                    }
+
                     let event = match SessionMessagePartEvent::decode(bytes.as_slice()) {
                         Ok(event) => event,
                         Err(err) => {
