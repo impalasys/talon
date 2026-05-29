@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::os::unix::fs::FileTypeExt;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{mpsc, Mutex, OnceCell};
@@ -401,11 +401,15 @@ async fn distribute_message(state: &Arc<Mutex<BrokerState>>, topic: &str, payloa
 }
 
 fn subscriber_buffer_size() -> usize {
-    std::env::var("TALON_LOCAL_SOCKET_SUBSCRIBER_BUFFER_SIZE")
-        .ok()
-        .and_then(|value| value.parse::<usize>().ok())
-        .filter(|value| *value > 0)
-        .unwrap_or(DEFAULT_SUBSCRIBER_BUFFER_SIZE)
+    static CACHE: OnceLock<usize> = OnceLock::new();
+
+    *CACHE.get_or_init(|| {
+        std::env::var("TALON_LOCAL_SOCKET_SUBSCRIBER_BUFFER_SIZE")
+            .ok()
+            .and_then(|value| value.parse::<usize>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(DEFAULT_SUBSCRIBER_BUFFER_SIZE)
+    })
 }
 
 async fn write_frame<W: AsyncWriteExt + Unpin, T: Serialize>(

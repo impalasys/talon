@@ -8,6 +8,10 @@ use tokio::sync::{mpsc, Mutex, Notify, OnceCell};
 
 use crate::control::{events::SessionMessagePartEvent, keys, topics, MessagePublisher};
 
+type SessionStreamItem = Result<SessionMessagePartEvent, tonic::Status>;
+type SessionStreamSender = mpsc::UnboundedSender<SessionStreamItem>;
+type SessionStreamRawReceiver = mpsc::UnboundedReceiver<SessionStreamItem>;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ShardLifecycle {
     Idle,
@@ -24,8 +28,7 @@ impl Default for ShardLifecycle {
 #[derive(Default)]
 struct ShardState {
     lifecycle: ShardLifecycle,
-    listeners:
-        HashMap<String, Vec<mpsc::UnboundedSender<Result<SessionMessagePartEvent, tonic::Status>>>>,
+    listeners: HashMap<String, Vec<SessionStreamSender>>,
 }
 
 struct Shard {
@@ -77,6 +80,41 @@ pub struct SessionStreamHub {
     initialized: OnceCell<()>,
 }
 
+pub struct SessionStreamReceiver {
+    receiver: SessionStreamRawReceiver,
+    cleanup: Option<SessionStreamCleanup>,
+}
+
+struct SessionStreamCleanup {
+    tx: mpsc::WeakUnboundedSender<SessionStreamItem>,
+    listeners: Vec<(Arc<Shard>, String)>,
+}
+
+impl SessionStreamReceiver {
+    pub async fn recv(&mut self) -> Option<SessionStreamItem> {
+        self.receiver.recv().await
+    }
+}
+
+impl Drop for SessionStreamReceiver {
+    fn drop(&mut self) {
+        let Some(cleanup) = self.cleanup.take() else {
+            return;
+        };
+        let Some(tx) = cleanup.tx.upgrade() else {
+            return;
+        };
+        let Ok(handle) = tokio::runtime::Handle::try_current() else {
+            return;
+        };
+        handle.spawn(async move {
+            for (state, listener_key) in cleanup.listeners {
+                remove_listener(&state, &listener_key, &tx).await;
+            }
+        });
+    }
+}
+
 impl SessionStreamHub {
     pub fn new(pubsub: Arc<dyn MessagePublisher + Send + Sync>) -> Self {
         let shard_count = topics::session_part_shard_count() as usize;
@@ -96,8 +134,7 @@ impl SessionStreamHub {
         ns: &str,
         agent: &str,
         session_id: &str,
-    ) -> anyhow::Result<mpsc::UnboundedReceiver<Result<SessionMessagePartEvent, tonic::Status>>>
-    {
+    ) -> anyhow::Result<SessionStreamReceiver> {
         self.subscribe_many(vec![SessionStreamTarget::new(ns, agent, session_id)])
             .await
     }
@@ -105,8 +142,7 @@ impl SessionStreamHub {
     pub async fn subscribe_many(
         &self,
         targets: Vec<SessionStreamTarget>,
-    ) -> anyhow::Result<mpsc::UnboundedReceiver<Result<SessionMessagePartEvent, tonic::Status>>>
-    {
+    ) -> anyhow::Result<SessionStreamReceiver> {
         if targets.is_empty() {
             anyhow::bail!("session stream batch must contain at least one target");
         }
@@ -169,18 +205,13 @@ impl SessionStreamHub {
             }
         }
 
-        let cleanup_tx = tx.downgrade();
-        let cleanup_inserted = inserted.clone();
-        tokio::spawn(async move {
-            let Some(cleanup_tx) = wait_for_receiver_drop(cleanup_tx).await else {
-                return;
-            };
-            for (state, listener_key) in cleanup_inserted {
-                remove_listener(&state, &listener_key, &cleanup_tx).await;
-            }
-        });
-
-        Ok(rx)
+        Ok(SessionStreamReceiver {
+            receiver: rx,
+            cleanup: Some(SessionStreamCleanup {
+                tx: tx.downgrade(),
+                listeners: inserted,
+            }),
+        })
     }
 
     async fn ensure_shard_task(&self, shard: usize, state: Arc<Shard>) -> anyhow::Result<()> {
@@ -266,30 +297,13 @@ impl SessionStreamHub {
     }
 }
 
-async fn remove_listener(
-    state: &Arc<Shard>,
-    listener_key: &str,
-    tx: &mpsc::UnboundedSender<Result<SessionMessagePartEvent, tonic::Status>>,
-) {
+async fn remove_listener(state: &Arc<Shard>, listener_key: &str, tx: &SessionStreamSender) {
     let mut guard = state.state.lock().await;
     if let Some(entries) = guard.listeners.get_mut(listener_key) {
         entries.retain(|sender| !sender.same_channel(tx));
         if entries.is_empty() {
             guard.listeners.remove(listener_key);
         }
-    }
-}
-
-async fn wait_for_receiver_drop<T>(
-    weak_tx: mpsc::WeakUnboundedSender<T>,
-) -> Option<mpsc::UnboundedSender<T>> {
-    loop {
-        let tx = weak_tx.upgrade()?;
-        if tx.is_closed() {
-            return Some(tx);
-        }
-        drop(tx);
-        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
 }
 

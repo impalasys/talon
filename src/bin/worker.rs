@@ -420,34 +420,39 @@ impl PullSubscriptionBackend for LocalSocketPullSubscriptionBackend {
         );
         let semaphore = Arc::new(Semaphore::new(concurrency));
         let mut tasks = JoinSet::new();
-        while let Some(payload) = stream.next().await {
-            if cancellation_token.is_cancelled() {
-                break;
-            }
-            while let Some(result) = tasks.try_join_next() {
-                if let Err(err) = result {
-                    tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch task failed");
-                }
-            }
-            let permit = tokio::select! {
+        loop {
+            tokio::select! {
                 _ = cancellation_token.cancelled() => break,
-                permit = semaphore.clone().acquire_owned() => permit?,
-            };
-            let handler = handler.clone();
-            let event_type = event_type.clone();
-            let span = tracing::info_span!(
-                "LocalSocketPullSubscriptionBackend.dispatch",
-                event_type = %event_type,
-                "broker.driver" = "local_socket",
-                "worker.session_concurrency" = concurrency,
-                payload_bytes = payload.len(),
-            );
-            tasks.spawn(async move {
-                let _permit = permit;
-                if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
-                    tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
+                result = tasks.join_next(), if !tasks.is_empty() => {
+                    if let Some(Err(err)) = result {
+                        tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch task failed");
+                    }
                 }
-            }.instrument(span));
+                payload = stream.next() => {
+                    let Some(payload) = payload else {
+                        break;
+                    };
+                    let permit = tokio::select! {
+                        _ = cancellation_token.cancelled() => break,
+                        permit = semaphore.clone().acquire_owned() => permit?,
+                    };
+                    let handler = handler.clone();
+                    let event_type = event_type.clone();
+                    let span = tracing::info_span!(
+                        "LocalSocketPullSubscriptionBackend.dispatch",
+                        event_type = %event_type,
+                        "broker.driver" = "local_socket",
+                        "worker.session_concurrency" = concurrency,
+                        payload_bytes = payload.len(),
+                    );
+                    tasks.spawn(async move {
+                        let _permit = permit;
+                        if let Err(err) = handler.dispatch(Some(&event_type), &payload).await {
+                            tracing::error!(event_type = %event_type, error = %err, "Local socket dispatch failed");
+                        }
+                    }.instrument(span));
+                }
+            }
         }
         while let Some(result) = tasks.join_next().await {
             if let Err(err) = result {

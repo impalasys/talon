@@ -167,6 +167,19 @@ impl PubSubSessionSink {
         parts
     }
 
+    fn partial_message_parts(&self, current_text: String) -> Vec<models::SessionMessagePart> {
+        let mut parts = self.durable_parts.lock().unwrap().clone();
+        parts.push(models::SessionMessagePart {
+            id: "000000".to_string(),
+            part_type: models::SessionMessagePartType::Text as i32,
+            content: current_text,
+            name: String::new(),
+            payload_json: String::new(),
+            created_at: chrono::Utc::now().timestamp_micros(),
+        });
+        parts
+    }
+
     async fn flush_token_event_buffer(&self) {
         let content = {
             let mut buffer = self.pending_token_event_buffer.lock().unwrap();
@@ -303,14 +316,7 @@ impl PubSubSessionSink {
                 role: models::MessageRole::RoleAssistant as i32,
                 created_at: chrono::Utc::now().timestamp_micros(),
                 labels: std::collections::HashMap::new(),
-                parts: vec![models::SessionMessagePart {
-                    id: "000000".to_string(),
-                    part_type: models::SessionMessagePartType::Text as i32,
-                    content: current_text,
-                    name: String::new(),
-                    payload_json: String::new(),
-                    created_at: chrono::Utc::now().timestamp_micros(),
-                }],
+                parts: self.partial_message_parts(current_text),
             };
             if let Err(e) = async {
                 crate::control::ProtoKeyValueStoreExt::set_msg(
@@ -537,7 +543,7 @@ mod tests {
     use prost::Message;
     use serde_json::json;
     use std::sync::Arc;
-    use std::time::Duration;
+    use std::time::{Duration, Instant};
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -760,6 +766,49 @@ mod tests {
         assert!(persisted.content.len() < raw_output.len());
         assert_eq!(payload["output"], raw_output);
         assert_eq!(payload["output_preview"], persisted.content);
+    }
+
+    #[tokio::test]
+    async fn partial_flush_preserves_durable_parts() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let kv = Arc::new(MockKvStore::default());
+        let sink = PubSubSessionSink::new_with_token_publish_interval(
+            kv.clone(),
+            Arc::new(MockPubSub {
+                events: events.clone(),
+            }),
+            "conic",
+            "session-1",
+            "infra",
+            "reply-1",
+            reply_key(),
+            Duration::from_secs(10),
+        );
+
+        sink.on_tool_call("tool-1", "search", &json!({"q": "talon"}))
+            .await;
+        *sink.last_flush.lock().unwrap() = Instant::now() - Duration::from_secs(2);
+        sink.on_token("partial").await;
+
+        let entries = kv.entries.lock().await.clone();
+        let partial = entries
+            .iter()
+            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .find(|message| message.id == "reply-1")
+            .expect("partial reply message should be persisted");
+        let part_types = partial
+            .parts
+            .iter()
+            .map(|part| part.part_type)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            part_types,
+            vec![
+                models::SessionMessagePartType::ToolCall as i32,
+                models::SessionMessagePartType::Text as i32
+            ]
+        );
+        assert_eq!(partial.parts.last().unwrap().content, "partial");
     }
 
     #[tokio::test]
