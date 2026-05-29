@@ -156,11 +156,19 @@ impl PubSubSessionSink {
 
     fn final_message_parts(&self, reply: &str) -> Vec<models::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
-        if !reply.is_empty() {
+        let text = {
+            let accumulated = self.accumulated.lock().unwrap();
+            if accumulated.as_str() == reply {
+                self.text_since_last_durable_part(reply)
+            } else {
+                reply.to_string()
+            }
+        };
+        if !text.is_empty() {
             parts.push(models::SessionMessagePart {
                 id: self.next_part_id(),
                 part_type: models::SessionMessagePartType::Text as i32,
-                content: reply.to_string(),
+                content: text,
                 name: String::new(),
                 payload_json: String::new(),
                 created_at: chrono::Utc::now().timestamp_micros(),

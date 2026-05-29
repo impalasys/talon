@@ -3,6 +3,7 @@
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+use std::sync::OnceLock;
 
 pub const SESSION_DISPATCH_TOPIC: &str = "talon.session.dispatch";
 pub const SESSION_CONTROL_TOPIC: &str = "talon.session.control";
@@ -11,11 +12,15 @@ pub const SESSION_PARTS_TOPIC_PREFIX: &str = "talon.session.parts";
 pub const DEFAULT_SESSION_PART_SHARDS: u32 = 32;
 
 pub fn session_part_shard_count() -> u32 {
-    std::env::var("TALON_SESSION_PART_SHARDS")
-        .ok()
-        .and_then(|value| value.parse::<u32>().ok())
-        .filter(|count| *count > 0)
-        .unwrap_or(DEFAULT_SESSION_PART_SHARDS)
+    static CACHE: OnceLock<u32> = OnceLock::new();
+
+    *CACHE.get_or_init(|| {
+        std::env::var("TALON_SESSION_PART_SHARDS")
+            .ok()
+            .and_then(|value| value.parse::<u32>().ok())
+            .filter(|count| *count > 0)
+            .unwrap_or(DEFAULT_SESSION_PART_SHARDS)
+    })
 }
 
 pub fn session_part_shard(session_id: &str) -> u32 {
