@@ -45,7 +45,8 @@ pub fn init(config: TelemetryConfig) -> Result<TelemetryGuard> {
         tracing_subscriber::registry()
             .with(env_filter)
             .with(fmt_layer)
-            .init();
+            .try_init()
+            .ok();
         return Ok(TelemetryGuard {
             tracer_provider: None,
         });
@@ -74,7 +75,8 @@ pub fn init(config: TelemetryConfig) -> Result<TelemetryGuard> {
         .with(env_filter)
         .with(fmt_layer)
         .with(otel_layer)
-        .init();
+        .try_init()
+        .ok();
 
     Ok(TelemetryGuard {
         tracer_provider: Some(tracer_provider),

@@ -181,9 +181,9 @@ impl PubSubSessionSink {
         parts
     }
 
-    fn partial_message_parts(&self, current_text: String) -> Vec<models::SessionMessagePart> {
+    fn partial_message_parts(&self, current_text: &str) -> Vec<models::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
-        let text = self.text_since_last_durable_part(&current_text);
+        let text = self.text_since_last_durable_part(current_text);
         if !text.is_empty() {
             parts.push(models::SessionMessagePart {
                 id: "000000".to_string(),
@@ -346,7 +346,7 @@ impl PubSubSessionSink {
             .await;
     }
 
-    async fn maybe_flush_kv(&self, current_text: String) {
+    fn maybe_flush_kv(&self, current_text: String) {
         let should_flush = {
             let mut last = self.last_flush.lock().unwrap();
             if last.elapsed().as_millis() > 1000 {
@@ -364,7 +364,7 @@ impl PubSubSessionSink {
                 role: models::MessageRole::RoleAssistant as i32,
                 created_at: chrono::Utc::now().timestamp_micros(),
                 labels: std::collections::HashMap::new(),
-                parts: self.partial_message_parts(current_text),
+                parts: self.partial_message_parts(&current_text),
             };
             let span = tracing::info_span!(
                 "PubSubSessionSink.persist_partial_message",
@@ -444,7 +444,7 @@ impl ExecutionSink for PubSubSessionSink {
             .lock()
             .unwrap()
             .push_str(token);
-        self.maybe_flush_kv(current_text).await;
+        self.maybe_flush_kv(current_text);
         if self.should_flush_token_event() {
             self.flush_token_event_buffer().await;
         }

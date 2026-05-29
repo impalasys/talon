@@ -87,7 +87,7 @@ pub struct SessionStreamReceiver {
 
 struct SessionStreamCleanup {
     tx: mpsc::WeakUnboundedSender<SessionStreamItem>,
-    listeners: Vec<(Arc<Shard>, String)>,
+    listeners: Vec<(Arc<Shard>, Vec<String>)>,
 }
 
 impl SessionStreamReceiver {
@@ -104,8 +104,8 @@ impl Drop for SessionStreamReceiver {
         let Some(tx) = cleanup.tx.upgrade() else {
             return;
         };
-        for (state, listener_key) in cleanup.listeners {
-            remove_listener(&state, &listener_key, &tx);
+        for (state, listener_keys) in cleanup.listeners {
+            remove_listeners(&state, &listener_keys, &tx);
         }
     }
 }
@@ -178,23 +178,23 @@ impl SessionStreamHub {
                 .expect("state should exist for grouped shard")
                 .clone();
             let mut guard = state.state.lock().unwrap();
-            for listener_key in listener_keys {
+            for listener_key in &listener_keys {
                 guard
                     .listeners
                     .entry(listener_key.clone())
                     .or_default()
                     .push(tx.clone());
-                inserted.push((state.clone(), listener_key));
             }
             drop(guard);
 
+            inserted.push((state.clone(), listener_keys));
             shards_to_ensure.entry(shard).or_insert(state);
         }
 
         for (shard, state) in shards_to_ensure {
             if let Err(err) = self.ensure_shard_task(shard, state.clone()).await {
-                for (state, listener_key) in inserted {
-                    remove_listener(&state, &listener_key, &tx);
+                for (state, listener_keys) in inserted {
+                    remove_listeners(&state, &listener_keys, &tx);
                 }
                 return Err(err);
             }
@@ -306,12 +306,14 @@ impl SessionStreamHub {
     }
 }
 
-fn remove_listener(state: &Arc<Shard>, listener_key: &str, tx: &SessionStreamSender) {
+fn remove_listeners(state: &Arc<Shard>, listener_keys: &[String], tx: &SessionStreamSender) {
     let mut guard = state.state.lock().unwrap();
-    if let Some(entries) = guard.listeners.get_mut(listener_key) {
-        entries.retain(|sender| !sender.same_channel(tx));
-        if entries.is_empty() {
-            guard.listeners.remove(listener_key);
+    for listener_key in listener_keys {
+        if let Some(entries) = guard.listeners.get_mut(listener_key) {
+            entries.retain(|sender| !sender.same_channel(tx));
+            if entries.is_empty() {
+                guard.listeners.remove(listener_key);
+            }
         }
     }
 }
