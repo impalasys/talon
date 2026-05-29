@@ -15,4 +15,3 @@ docs-site/node_modules
 packages/*/dist
 
 bench/results
-talon_gateway_proto-descriptor-set.proto.bin

@@ -123,9 +123,9 @@ def mib(value: int | float | None) -> str:
 
 
 def wait_for_port(host: str, port: int, timeout_seconds: float = 60.0) -> None:
-    deadline = time.time() + timeout_seconds
+    deadline = time.monotonic() + timeout_seconds
     last_error: OSError | None = None
-    while time.time() < deadline:
+    while time.monotonic() < deadline:
         try:
             with socket.create_connection((host, port), timeout=1):
                 return
@@ -1023,11 +1023,16 @@ def summarize_jaeger_db_spans(
         }
     )
     url = f"{jaeger_url}/api/traces?{params}"
-    deadline = time.time() + wait_seconds
+    deadline = time.monotonic() + wait_seconds
     payload: dict[str, Any] = {}
     while True:
-        payload = fetch_json(url, timeout_seconds=30.0)
-        if payload.get("data") or time.time() >= deadline:
+        try:
+            payload = fetch_json(url, timeout_seconds=30.0)
+            if payload.get("data"):
+                break
+        except Exception:
+            pass
+        if time.monotonic() >= deadline:
             break
         time.sleep(1.0)
     by_operation: dict[str, dict[str, list[int | float]]] = {}

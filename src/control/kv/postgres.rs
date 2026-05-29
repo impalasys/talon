@@ -300,6 +300,7 @@ async fn acquire_connection(
     parent_span.record("postgres.pool.idle_before", pool_idle_before as u64);
 
     let span = tracing::info_span!(
+        parent: parent_span,
         "PostgresKvStore.acquire_connection",
         "postgres.pool.max_connections" = u64::from(settings.max_connections),
         "postgres.pool.size_before" = u64::from(pool_size_before),
@@ -309,11 +310,7 @@ async fn acquire_connection(
         pool_wait_us = field::Empty,
     );
     let started_at = Instant::now();
-    let conn = pool
-        .acquire()
-        .instrument(span.clone())
-        .instrument(parent_span.clone())
-        .await?;
+    let conn = pool.acquire().instrument(span.clone()).await?;
     let pool_wait_us = started_at.elapsed().as_micros().min(u128::from(u64::MAX)) as u64;
     let pool_size_after = pool.size();
     let pool_idle_after = pool.num_idle();

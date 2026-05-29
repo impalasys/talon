@@ -117,6 +117,8 @@ impl SessionStreamHub {
 
         let mut inserted = Vec::new();
         let mut shards_to_ensure = HashMap::new();
+        let mut targets_by_shard: HashMap<usize, Vec<String>> = HashMap::new();
+        let mut shard_states = HashMap::new();
         let mut seen = HashSet::new();
 
         for target in targets {
@@ -132,15 +134,29 @@ impl SessionStreamHub {
                 .ok_or_else(|| anyhow::anyhow!("Invalid session shard {}", shard))?
                 .clone();
 
-            let mut guard = state.state.lock().await;
-            guard
-                .listeners
-                .entry(listener_key.clone())
+            targets_by_shard
+                .entry(shard)
                 .or_default()
-                .push(tx.clone());
+                .push(listener_key);
+            shard_states.entry(shard).or_insert(state);
+        }
+
+        for (shard, listener_keys) in targets_by_shard {
+            let state = shard_states
+                .get(&shard)
+                .expect("state should exist for grouped shard")
+                .clone();
+            let mut guard = state.state.lock().await;
+            for listener_key in listener_keys {
+                guard
+                    .listeners
+                    .entry(listener_key.clone())
+                    .or_default()
+                    .push(tx.clone());
+                inserted.push((state.clone(), listener_key));
+            }
             drop(guard);
 
-            inserted.push((state.clone(), listener_key));
             shards_to_ensure.entry(shard).or_insert(state);
         }
 
