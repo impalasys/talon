@@ -92,5 +92,9 @@ name = "talon-cli"
 path = "src/bin/cli.rs"
 
 [[bin]]
+name = "talon-standalone"
+path = "src/bin/standalone.rs"
+
+[[bin]]
 name = "talon-bench-colocated"
 path = "src/bin/bench_colocated.rs"

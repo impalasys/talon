@@ -74,7 +74,7 @@ Notes:
 
 ### RocksDB control plane
 
-For single-process embedded experiments, the control plane database can use RocksDB:
+For single-process embedded deployments, the control plane database can use RocksDB:
 
 ```yaml
 control_plane:
@@ -89,7 +89,7 @@ Notes:
 
 - Talon will create `talon-control-plane.rocksdb` under `data_dir`.
 - You can also set `control_plane.database.url` directly to a RocksDB path such as `rocksdb:///absolute/path/talon-control-plane.rocksdb`.
-- RocksDB is embedded and cannot be opened read/write by separate gateway and worker processes. Use a colocated runtime when benchmarking or experimenting with this driver.
+- RocksDB is embedded and cannot be opened read/write by separate gateway and worker processes. Start `talon-standalone` instead of separate `talon-server` and `talon-worker` processes so gateway and worker subscriptions share one control plane.
 - Runtime tuning is exposed through environment variables: `TALON_ROCKSDB_COMPRESSION=none|lz4`, `TALON_ROCKSDB_WRITE_BUFFER_SIZE_MB`, `TALON_ROCKSDB_MAX_WRITE_BUFFER_NUMBER`, `TALON_ROCKSDB_BLOCK_CACHE_SIZE_MB`, and `TALON_ROCKSDB_MAX_BACKGROUND_JOBS`.
 - `TALON_ROCKSDB_DISABLE_WAL=true` skips the write-ahead log and can improve benchmark throughput, but writes can be lost after a crash. Keep it disabled for durable deployments.
 
