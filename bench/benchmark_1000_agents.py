@@ -981,8 +981,38 @@ def compose_down(project_name: str, compose_path: Path) -> None:
         print(result.stderr.strip(), flush=True)
 
 
+def print_compose_diagnostics(project_name: str, compose_path: Path, service: str) -> None:
+    ps = compose_command(project_name, compose_path, "ps", "-a", check=False)
+    if ps.stdout.strip():
+        print("docker compose ps:", flush=True)
+        print(ps.stdout.strip(), flush=True)
+    if ps.stderr.strip():
+        print(ps.stderr.strip(), flush=True)
+
+    logs = compose_command(
+        project_name,
+        compose_path,
+        "logs",
+        "--tail",
+        "200",
+        service,
+        check=False,
+    )
+    if logs.stdout.strip():
+        print(f"docker compose logs {service}:", flush=True)
+        print(logs.stdout.strip(), flush=True)
+    if logs.stderr.strip():
+        print(logs.stderr.strip(), flush=True)
+
+
 def compose_port(project_name: str, compose_path: Path, service: str, port: int) -> tuple[str, int]:
-    result = compose_command(project_name, compose_path, "port", service, str(port))
+    result = compose_command(project_name, compose_path, "port", service, str(port), check=False)
+    if result.returncode != 0 or not result.stdout.strip():
+        detail = (result.stderr or result.stdout).strip()
+        print_compose_diagnostics(project_name, compose_path, service)
+        raise RuntimeError(
+            f"failed to resolve docker compose port for {service}:{port}: {detail}"
+        )
     endpoint = result.stdout.strip().splitlines()[-1]
     host, raw_port = endpoint.rsplit(":", 1)
     host = host.strip("[]")
