@@ -80,6 +80,28 @@ gateway and worker pools in the benchmark container. Override it with
 `--postgres-memory` if you want to cap the database container separately from
 Talon's 1 vCPU / memory limit.
 
+Run the benchmark against the embedded RocksDB store:
+
+```bash
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --skip-build --database rocksdb --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --mock-cpus 4 --mock-memory 2g
+```
+
+RocksDB is an embedded store with a single read/write process lock. The harness
+therefore uses `talon-bench-colocated` for `--database rocksdb`, running gateway
+and worker in one process with one shared control-plane handle. SQLite and
+Postgres keep the normal separate `talon-server` and `talon-worker` processes.
+
+For RocksDB tuning experiments, the harness can pass through:
+`--rocksdb-disable-wal`, `--rocksdb-compression`, `--rocksdb-write-buffer-size-mb`,
+`--rocksdb-max-write-buffer-number`, `--rocksdb-block-cache-size-mb`,
+`--rocksdb-max-background-jobs`, and `--rocksdb-serialize-writes` /
+`--no-rocksdb-serialize-writes`. Disabling WAL is a benchmark-only durability
+tradeoff unless the workload can tolerate crash-time data loss.
+
+Very large fan-out runs may also need higher container file-descriptor limits.
+Use `--talon-nofile` for the Talon container and `--mock-nofile` for the mock LLM
+container.
+
 Use a fixed project name when you want a predictable OrbStack group:
 
 ```bash

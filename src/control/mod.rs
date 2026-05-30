@@ -212,6 +212,15 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             kv = std::sync::Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
             scheduler_database_url = Some(sqlite_url);
         }
+        "rocksdb" => {
+            let rocksdb_path = rocksdb_database_path(db_config).await?;
+            println!(
+                "Connecting to RocksDbKvStore at {}...",
+                rocksdb_path.display()
+            );
+            kv = std::sync::Arc::new(kv::RocksDbKvStore::new(&rocksdb_path)?);
+            scheduler_database_url = None;
+        }
         other => {
             return Err(anyhow::anyhow!("Unsupported database driver: {}", other));
         }
@@ -375,6 +384,38 @@ async fn sqlite_database_url(
     Ok(kv::sqlite_url_for_path(&db_path))
 }
 
+async fn rocksdb_database_path(
+    db_config: &crate::config::proto::DatabaseConfig,
+) -> anyhow::Result<PathBuf> {
+    use crate::config::SecretExt;
+
+    if let Some(url_secret) = db_config.url.as_ref() {
+        let raw: String = url_secret.resolve().await?;
+        let path = raw.strip_prefix("rocksdb://").unwrap_or(&raw);
+        if path.trim().is_empty() {
+            return Err(anyhow::anyhow!(
+                "RocksDB database URL must resolve to a non-empty path"
+            ));
+        }
+        let path = PathBuf::from(path);
+        if let Some(parent) = path.parent() {
+            tokio::fs::create_dir_all(parent).await?;
+        }
+        return Ok(path);
+    }
+    let data_dir = db_config.data_dir.trim();
+    if data_dir.is_empty() {
+        return Err(anyhow::anyhow!(
+            "RocksDB database requires either control_plane.database.url or control_plane.database.data_dir"
+        ));
+    }
+    let db_path = PathBuf::from(data_dir).join("talon-control-plane.rocksdb");
+    if let Some(parent) = db_path.parent() {
+        tokio::fs::create_dir_all(parent).await?;
+    }
+    Ok(db_path)
+}
+
 fn configured_scheduler_callback_auth_from_env(
 ) -> Option<crate::config::proto::SchedulerCallbackAuthConfig> {
     if let Some(token) = std::env::var("TALON_SCHEDULER_AUTH_TOKEN")
@@ -416,7 +457,8 @@ fn configured_scheduler_callback_auth_from_env(
 mod tests {
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
-        message_broker_config, sqlite_database_url, KeyValueStore, ProtoKeyValueStoreExt,
+        message_broker_config, rocksdb_database_path, sqlite_database_url, KeyValueStore,
+        ProtoKeyValueStoreExt,
     };
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
@@ -794,6 +836,45 @@ mod tests {
         assert!(err
             .to_string()
             .contains("SQLite database requires either control_plane.database.url or control_plane.database.data_dir"));
+    }
+
+    #[tokio::test]
+    async fn rocksdb_database_path_uses_data_dir_or_explicit_url() {
+        let dir = tempdir().unwrap();
+        let cfg = proto::DatabaseConfig {
+            data_dir: dir.path().display().to_string(),
+            driver: "rocksdb".to_string(),
+            url: None,
+        };
+        let path = rocksdb_database_path(&cfg).await.unwrap();
+        assert!(path.ends_with("talon-control-plane.rocksdb"));
+
+        let explicit = proto::DatabaseConfig {
+            data_dir: String::new(),
+            driver: "rocksdb".to_string(),
+            url: Some(crate::config::Secret {
+                source: Some(secret::Source::Plain(
+                    "rocksdb:///tmp/explicit.rocksdb".to_string(),
+                )),
+            }),
+        };
+        assert_eq!(
+            rocksdb_database_path(&explicit).await.unwrap(),
+            std::path::PathBuf::from("/tmp/explicit.rocksdb")
+        );
+    }
+
+    #[tokio::test]
+    async fn rocksdb_database_path_requires_path_or_url() {
+        let cfg = proto::DatabaseConfig {
+            data_dir: "   ".to_string(),
+            driver: "rocksdb".to_string(),
+            url: None,
+        };
+        let err = rocksdb_database_path(&cfg).await.unwrap_err();
+        assert!(err
+            .to_string()
+            .contains("RocksDB database requires either control_plane.database.url or control_plane.database.data_dir"));
     }
 
     #[test]

@@ -1,6 +1,9 @@
 FROM rust:1.91.1-slim AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    clang \
+    g++ \
+    libclang-dev \
     pkg-config \
     make \
     libssl-dev \
@@ -24,7 +27,8 @@ RUN if [ -n "$CARGO_FEATURES" ]; then \
     mkdir -p /usr/src/talon/dist && \
     cp /usr/src/talon/target/release/talon-server /usr/src/talon/dist/talon-server && \
     cp /usr/src/talon/target/release/talon-worker /usr/src/talon/dist/talon-worker && \
-    cp /usr/src/talon/target/release/talon-cli /usr/src/talon/dist/talon-cli
+    cp /usr/src/talon/target/release/talon-cli /usr/src/talon/dist/talon-cli && \
+    cp /usr/src/talon/target/release/talon-bench-colocated /usr/src/talon/dist/talon-bench-colocated
 
 FROM debian:trixie-slim
 
@@ -37,6 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
 COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker
 COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
+COPY --from=builder /usr/src/talon/dist/talon-bench-colocated /usr/local/bin/talon-bench-colocated
 
 RUN mkdir -p /data/talon
 
