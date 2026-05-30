@@ -3,7 +3,7 @@
 
 use crate::control::{
     keys::{ResourceKey, ResourceList},
-    page_entries_desc, page_keys_desc, KeyValueStore,
+    KeyValueStore,
 };
 use anyhow::{anyhow, bail, Result};
 use rocksdb::{
@@ -22,6 +22,26 @@ fn key_bytes(key: &ResourceKey) -> Vec<u8> {
 
 fn prefix_bytes(list: &ResourceList) -> Vec<u8> {
     list.canonical_prefix().into_bytes()
+}
+
+fn page_cursor_bytes(list: &ResourceList, kind: &str, before_name: &str) -> Vec<u8> {
+    key_bytes(&ResourceKey {
+        namespace: list.parent.namespace.clone(),
+        parent_path: list.parent.parent_path.clone(),
+        kind: kind.to_string(),
+        name: before_name.to_string(),
+    })
+}
+
+fn page_seek_bytes(prefix: &[u8], cursor: Option<&[u8]>) -> Vec<u8> {
+    match cursor {
+        Some(cursor) => cursor.to_vec(),
+        None => {
+            let mut seek = prefix.to_vec();
+            seek.push(0xff);
+            seek
+        }
+    }
 }
 
 fn parse_key(bytes: &[u8]) -> Result<ResourceKey> {
@@ -333,11 +353,6 @@ impl KeyValueStore for RocksDbKvStore {
                         }
                         keys.push(parse_key(&raw_key)?);
                     }
-                    keys.sort_by(|left, right| {
-                        left.kind
-                            .cmp(&right.kind)
-                            .then_with(|| left.name.cmp(&right.name))
-                    });
                     Ok(keys)
                 })
                 .await?;
@@ -378,12 +393,6 @@ impl KeyValueStore for RocksDbKvStore {
                         value_bytes += value.len();
                         entries.push((parse_key(&raw_key)?, value.to_vec()));
                     }
-                    entries.sort_by(|left, right| {
-                        left.0
-                            .kind
-                            .cmp(&right.0.kind)
-                            .then_with(|| left.0.name.cmp(&right.0.name))
-                    });
                     Ok((entries, value_bytes))
                 })
                 .await?;
@@ -406,14 +415,54 @@ impl KeyValueStore for RocksDbKvStore {
         if limit == 0 {
             return Ok(Vec::new());
         }
-        if list.kind.is_none() {
+        let Some(kind) = &list.kind else {
             bail!("paged resource listing requires an explicit resource kind");
-        }
-        Ok(page_keys_desc(
-            self.list_keys(list).await?,
-            before_name,
+        };
+        let prefix = prefix_bytes(list);
+        let cursor = before_name.map(|before_name| page_cursor_bytes(list, kind, before_name));
+        let seek_key = page_seek_bytes(&prefix, cursor.as_deref());
+        let span = tracing::debug_span!(
+            "RocksDbKvStore.list_keys_page",
+            "db.system" = "rocksdb",
+            "db.operation" = "list_keys_page",
+            "talon.kv.path" = %self.path.as_str(),
+            "talon.resource.kind" = %kind,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
             limit,
-        ))
+        );
+        let span_for_body = span.clone();
+        async move {
+            let started_at = Instant::now();
+            let keys = self
+                .spawn_blocking("list_keys_page", move |db, _| {
+                    let mut keys = Vec::with_capacity(limit);
+                    for item in
+                        db.iterator(IteratorMode::From(&seek_key, rocksdb::Direction::Reverse))
+                    {
+                        let (raw_key, _) = item?;
+                        if !raw_key.starts_with(&prefix) {
+                            break;
+                        }
+                        if let Some(cursor) = cursor.as_deref() {
+                            if raw_key.as_ref() >= cursor {
+                                continue;
+                            }
+                        }
+                        keys.push(parse_key(&raw_key)?);
+                        if keys.len() >= limit {
+                            break;
+                        }
+                    }
+                    Ok(keys)
+                })
+                .await?;
+            record_elapsed(&span_for_body, started_at);
+            span_for_body.record("rows_returned", keys.len() as u64);
+            Ok(keys)
+        }
+        .instrument(span)
+        .await
     }
 
     async fn list_entries_page(
@@ -425,14 +474,58 @@ impl KeyValueStore for RocksDbKvStore {
         if limit == 0 {
             return Ok(Vec::new());
         }
-        if list.kind.is_none() {
+        let Some(kind) = &list.kind else {
             bail!("paged resource listing requires an explicit resource kind");
-        }
-        Ok(page_entries_desc(
-            self.list_entries(list).await?,
-            before_name,
+        };
+        let prefix = prefix_bytes(list);
+        let cursor = before_name.map(|before_name| page_cursor_bytes(list, kind, before_name));
+        let seek_key = page_seek_bytes(&prefix, cursor.as_deref());
+        let span = tracing::debug_span!(
+            "RocksDbKvStore.list_entries_page",
+            "db.system" = "rocksdb",
+            "db.operation" = "list_entries_page",
+            "talon.kv.path" = %self.path.as_str(),
+            "talon.resource.kind" = %kind,
+            query_elapsed_us = field::Empty,
+            rows_returned = field::Empty,
+            value_bytes = field::Empty,
             limit,
-        ))
+        );
+        let span_for_body = span.clone();
+        async move {
+            let started_at = Instant::now();
+            let (entries, value_bytes) = self
+                .spawn_blocking("list_entries_page", move |db, _| {
+                    let mut entries = Vec::with_capacity(limit);
+                    let mut value_bytes = 0usize;
+                    for item in
+                        db.iterator(IteratorMode::From(&seek_key, rocksdb::Direction::Reverse))
+                    {
+                        let (raw_key, value) = item?;
+                        if !raw_key.starts_with(&prefix) {
+                            break;
+                        }
+                        if let Some(cursor) = cursor.as_deref() {
+                            if raw_key.as_ref() >= cursor {
+                                continue;
+                            }
+                        }
+                        value_bytes += value.len();
+                        entries.push((parse_key(&raw_key)?, value.to_vec()));
+                        if entries.len() >= limit {
+                            break;
+                        }
+                    }
+                    Ok((entries, value_bytes))
+                })
+                .await?;
+            record_elapsed(&span_for_body, started_at);
+            span_for_body.record("rows_returned", entries.len() as u64);
+            span_for_body.record("value_bytes", value_bytes as u64);
+            Ok(entries)
+        }
+        .instrument(span)
+        .await
     }
 }
 
