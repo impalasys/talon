@@ -76,14 +76,14 @@ async fn spawn_subscription(
             topic,
             event_type,
             concurrency,
-            "Starting standalone worker subscription"
+            "Starting node worker subscription"
         );
         stream
             .take_until(shutdown.cancelled_owned())
             .for_each_concurrent(concurrency, move |payload| {
                 let handler = handler.clone();
                 let span = tracing::info_span!(
-                    "TalonStandalone.dispatch",
+                    "TalonNode.dispatch",
                     topic,
                     event_type,
                     "worker.session_concurrency" = concurrency,
@@ -248,9 +248,9 @@ async fn run() -> Result<()> {
 #[tokio::main]
 async fn main() -> Result<()> {
     talon::security::install_jwt_crypto_provider();
-    let _telemetry_guard = talon::telemetry::init_from_env("talon-standalone")?;
+    let _telemetry_guard = talon::telemetry::init_from_env("talon-node")?;
     talon::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
     talon::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
-    tracing::info!("Starting Talon standalone runtime...");
+    tracing::info!("Starting Talon node runtime...");
     run().await
 }

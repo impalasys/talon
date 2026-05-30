@@ -87,8 +87,8 @@ Run the benchmark against the embedded RocksDB store:
 ```
 
 RocksDB is an embedded store with a single read/write process lock. The harness
-therefore uses `talon-standalone` for `--database rocksdb`, running gateway and
-worker in one process with one shared control-plane handle. SQLite and
+therefore uses `talon-node` for `--database rocksdb`, running gateway and worker
+in one process with one shared control-plane handle. SQLite and
 Postgres keep the normal separate `talon-server` and `talon-worker` processes.
 
 For RocksDB tuning experiments, the harness can pass through:

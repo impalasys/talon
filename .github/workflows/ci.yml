@@ -184,7 +184,7 @@ jobs:
           cp target/release/talon-server "$ARTIFACT_DIR"/
           cp target/release/talon-worker "$ARTIFACT_DIR"/
           cp target/release/talon-cli "$ARTIFACT_DIR"/
-          cp target/release/talon-standalone "$ARTIFACT_DIR"/
+          cp target/release/talon-node "$ARTIFACT_DIR"/
           cp talon.yaml "$ARTIFACT_DIR"/
           if [ "${RUNNER_OS}" = "Linux" ]; then
             cp talon_gateway_proto-descriptor-set.proto.bin "$ARTIFACT_DIR"/
@@ -192,7 +192,7 @@ jobs:
           if [ "${RUNNER_OS}" = "macOS" ]; then
             (
               cd "$ARTIFACT_DIR"
-              shasum -a 256 talon-server talon-worker talon-cli talon-standalone talon.yaml > SHA256SUMS
+              shasum -a 256 talon-server talon-worker talon-cli talon-node talon.yaml > SHA256SUMS
             )
           else
             (
@@ -201,7 +201,7 @@ jobs:
                 talon-server \
                 talon-worker \
                 talon-cli \
-                talon-standalone \
+                talon-node \
                 talon.yaml \
                 talon_gateway_proto-descriptor-set.proto.bin > SHA256SUMS
             )

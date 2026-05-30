@@ -199,7 +199,7 @@ def talon_command(database: str) -> str:
     if database == "rocksdb":
         return """
 set -eu
-exec talon-standalone
+exec talon-node
 """.strip()
 
     return """

@@ -28,8 +28,7 @@ RUN if [ -n "$CARGO_FEATURES" ]; then \
     cp /usr/src/talon/target/release/talon-server /usr/src/talon/dist/talon-server && \
     cp /usr/src/talon/target/release/talon-worker /usr/src/talon/dist/talon-worker && \
     cp /usr/src/talon/target/release/talon-cli /usr/src/talon/dist/talon-cli && \
-    cp /usr/src/talon/target/release/talon-standalone /usr/src/talon/dist/talon-standalone && \
-    cp /usr/src/talon/target/release/talon-bench-colocated /usr/src/talon/dist/talon-bench-colocated
+    cp /usr/src/talon/target/release/talon-node /usr/src/talon/dist/talon-node
 
 FROM debian:trixie-slim
 
@@ -42,8 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
 COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker
 COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
-COPY --from=builder /usr/src/talon/dist/talon-standalone /usr/local/bin/talon-standalone
-COPY --from=builder /usr/src/talon/dist/talon-bench-colocated /usr/local/bin/talon-bench-colocated
+COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
 
 RUN mkdir -p /data/talon
 
