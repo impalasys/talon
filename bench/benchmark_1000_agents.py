@@ -719,6 +719,7 @@ async def run_workload(
     provision_concurrency: int,
     send_concurrency: int,
     grpc_client_channels: int,
+    batch_stream_size: int,
     send_timeout_seconds: float,
     worker_warmup_seconds: float,
     progress_interval_seconds: float,
@@ -755,20 +756,24 @@ async def run_workload(
         agent_names = [f"agent-{index:04d}" for index in range(agents)]
         task_timing_indexes: dict[asyncio.Task[Any], int | None] = {}
         if stream_mode == "batch":
-            stream_ready = [asyncio.Event()]
-            stream_tasks = [
-                asyncio.create_task(
+            stream_ready = []
+            stream_tasks = []
+            for chunk_index, start in enumerate(range(0, agents, batch_stream_size)):
+                end = min(agents, start + batch_stream_size)
+                ready = asyncio.Event()
+                stream_ready.append(ready)
+                task = asyncio.create_task(
                     consume_batch_stream(
-                        stub,
+                        stubs[chunk_index % len(stubs)],
                         ns,
-                        agent_names,
-                        session_ids,
-                        timings,
-                        stream_ready[0],
+                        agent_names[start:end],
+                        session_ids[start:end],
+                        timings[start:end],
+                        ready,
                     )
                 )
-            ]
-            task_timing_indexes[stream_tasks[0]] = None
+                stream_tasks.append(task)
+                task_timing_indexes[task] = None
         else:
             stream_ready = [asyncio.Event() for _ in range(agents)]
             stream_tasks = []
@@ -1354,6 +1359,7 @@ async def run_profile(
             provision_concurrency=args.provision_concurrency,
             send_concurrency=args.send_concurrency,
             grpc_client_channels=args.grpc_client_channels,
+            batch_stream_size=args.batch_stream_size,
             send_timeout_seconds=args.timeout_seconds,
             worker_warmup_seconds=args.worker_warmup_seconds,
             progress_interval_seconds=args.progress_interval_seconds,
@@ -1476,6 +1482,7 @@ async def run_profile(
             "provision_concurrency": args.provision_concurrency,
             "send_concurrency": args.send_concurrency,
             "grpc_client_channels": args.grpc_client_channels,
+            "batch_stream_size": args.batch_stream_size if args.stream_mode == "batch" else None,
             "worker_concurrency": args.worker_concurrency,
             "stream_mode": args.stream_mode,
         },
@@ -1685,6 +1692,12 @@ async def amain() -> None:
         default="per-session",
         help="Use one stream per session or one batched stream for all sessions.",
     )
+    parser.add_argument(
+        "--batch-stream-size",
+        type=int,
+        default=10000,
+        help="Maximum sessions per StreamSessionPartsBatch request.",
+    )
     parser.add_argument("--database", choices=("sqlite", "postgres", "rocksdb"), default="sqlite")
     parser.add_argument("--sqlite-pool-size", type=int, default=5)
     parser.add_argument("--sqlite-busy-timeout-ms", type=int, default=5000)
@@ -1741,6 +1754,8 @@ async def amain() -> None:
         raise ValueError("--send-concurrency must be greater than 0")
     if args.grpc_client_channels <= 0:
         raise ValueError("--grpc-client-channels must be greater than 0")
+    if args.batch_stream_size <= 0:
+        raise ValueError("--batch-stream-size must be greater than 0")
     if args.mock_cpus is not None and args.mock_cpus <= 0:
         raise ValueError("--mock-cpus must be greater than 0")
     if args.mock_nofile is not None and args.mock_nofile <= 0:
