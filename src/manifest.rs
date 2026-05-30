@@ -390,21 +390,75 @@ pub fn render_agent_yaml(agent: &models::Agent) -> Result<String> {
         .definition
         .as_ref()
         .ok_or_else(|| anyhow!("Agent missing definition"))?;
-    let effective_spec = agent
-        .effective_spec
-        .as_ref()
-        .ok_or_else(|| anyhow!("Agent missing effective_spec"))?;
 
-    let yaml_agent = AgentYaml {
-        name: &agent.name,
-        ns: &agent.ns,
-        definition: AgentDefinitionYaml::from_proto(definition)?,
-        effective_spec: AgentSpecManifest::from_proto(effective_spec),
-        template_deps: &agent.template_deps,
-        labels: &agent.labels,
+    let yaml_agent = AgentManifest {
+        api_version: "talon.impalasys.com/v1".to_string(),
+        kind: "Agent".to_string(),
+        metadata: ObjectMetaManifest {
+            name: agent.name.clone(),
+            namespace: agent.ns.clone(),
+            labels: agent.labels.clone(),
+            annotations: HashMap::new(),
+        },
+        definition: AgentDefinitionManifest::from_proto(definition)?,
     };
 
     serde_yaml::to_string(&yaml_agent).context("Failed to serialize Agent to YAML")
+}
+
+pub fn render_mcp_server_yaml(server: &manifests::McpServer) -> Result<String> {
+    let metadata = server
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("MCPServer missing metadata"))?;
+    let spec = server
+        .spec
+        .as_ref()
+        .ok_or_else(|| anyhow!("MCPServer missing spec"))?;
+
+    let yaml_server = McpServerManifest {
+        api_version: server.api_version.clone(),
+        kind: server.kind.clone(),
+        metadata: ObjectMetaManifest::from_proto(metadata),
+        spec: McpServerSpecManifest::from_proto(spec),
+    };
+
+    serde_yaml::to_string(&yaml_server).context("Failed to serialize MCPServer to YAML")
+}
+
+pub fn render_mcp_server_binding_yaml(binding: &manifests::McpServerBinding) -> Result<String> {
+    let metadata = binding
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("McpServerBinding missing metadata"))?;
+    let spec = binding
+        .spec
+        .as_ref()
+        .ok_or_else(|| anyhow!("McpServerBinding missing spec"))?;
+
+    let yaml_binding = McpServerBindingManifest {
+        api_version: binding.api_version.clone(),
+        kind: binding.kind.clone(),
+        metadata: ObjectMetaManifest::from_proto(metadata),
+        spec: McpServerBindingSpecManifest::from_proto(spec),
+    };
+
+    serde_yaml::to_string(&yaml_binding).context("Failed to serialize McpServerBinding to YAML")
+}
+
+pub fn render_namespace_yaml(namespace: &models::Namespace) -> Result<String> {
+    let yaml_namespace = NamespaceManifest {
+        api_version: "talon.impalasys.com/v1".to_string(),
+        kind: "Namespace".to_string(),
+        metadata: ObjectMetaManifest {
+            name: namespace.name.clone(),
+            namespace: String::new(),
+            labels: namespace.labels.clone(),
+            annotations: HashMap::new(),
+        },
+    };
+
+    serde_yaml::to_string(&yaml_namespace).context("Failed to serialize Namespace to YAML")
 }
 
 pub fn render_agent_json(agent: &models::Agent) -> Result<serde_json::Value> {
@@ -490,6 +544,37 @@ impl McpServerBindingSpecManifest {
                 audience: spec.audience,
             }),
             allowed_tool_names: self.allowed_tool_names,
+        }
+    }
+
+    fn from_proto(spec: &manifests::McpServerBindingSpec) -> Self {
+        Self {
+            server_ref: spec.server_ref.clone(),
+            args: spec.args.clone(),
+            headers: spec.headers.clone(),
+            disabled: spec.disabled,
+            auth_broker: spec
+                .auth_broker
+                .as_ref()
+                .map(|broker| McpAuthBrokerSpecManifest {
+                    kind: broker.kind.clone(),
+                    url: broker.url.clone(),
+                    cache_ttl_seconds: broker.cache_ttl_seconds,
+                    audience: broker.audience.clone(),
+                }),
+            allowed_tool_names: spec.allowed_tool_names.clone(),
+        }
+    }
+}
+
+impl McpServerSpecManifest {
+    fn from_proto(spec: &manifests::McpServerSpec) -> Self {
+        Self {
+            transport: spec.transport.clone(),
+            target: spec.target.clone(),
+            args: spec.args.clone(),
+            headers: spec.headers.clone(),
+            disabled: spec.disabled,
         }
     }
 }
@@ -1186,7 +1271,7 @@ spec:
     }
 
     #[test]
-    fn render_agent_yaml_and_json_include_definition_and_effective_spec() {
+    fn render_agent_yaml_round_trips_manifest_and_json_includes_runtime_fields() {
         let agent = models::Agent {
             name: "ctl".to_string(),
             ns: "conic".to_string(),
@@ -1249,11 +1334,18 @@ spec:
 
         let yaml = render_agent_yaml(&agent).expect("agent yaml should render");
         let json = render_agent_json(&agent).expect("agent json should render");
+        let reparsed = parse_agent(&yaml).expect("rendered agent manifest should parse");
 
+        assert!(yaml.contains("apiVersion: talon.impalasys.com/v1"));
+        assert!(yaml.contains("kind: Agent"));
+        assert!(yaml.contains("namespace: conic"));
         assert!(yaml.contains("templateName: assistant"));
-        assert!(yaml.contains("systemPrompt: test"));
+        assert!(yaml.contains("append: ' extra'"));
+        assert_eq!(reparsed.name, "ctl");
+        assert_eq!(reparsed.ns, "conic");
         assert_eq!(json["name"], "ctl");
         assert_eq!(json["ns"], "conic");
+        assert_eq!(json["effectiveSpec"]["systemPrompt"], "test");
         assert_eq!(json["templateDeps"][0], "assistant");
         assert_eq!(json["labels"]["visibility"], "internal");
     }
