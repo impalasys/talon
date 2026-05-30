@@ -156,6 +156,11 @@ def write_talon_config(path: Path, database: str) -> None:
     driver: sqlite
     data_dir: /data/talon/bench
 """.rstrip()
+    elif database == "rocksdb":
+        database_config = """
+    driver: rocksdb
+    data_dir: /data/talon/bench
+""".rstrip()
     elif database == "postgres":
         database_config = """
     driver: postgres
@@ -190,7 +195,13 @@ control_plane:
     )
 
 
-def talon_command() -> str:
+def talon_command(database: str) -> str:
+    if database == "rocksdb":
+        return """
+set -eu
+exec talon-node
+""".strip()
+
     return """
 set -eu
 talon-server &
@@ -274,6 +285,7 @@ def write_compose_file(
     mock_request_backlog: int,
     mock_cpus: float | None,
     mock_memory: str | None,
+    mock_nofile: int | None,
     database: str,
     sqlite_pool_size: int,
     sqlite_busy_timeout_ms: int,
@@ -281,6 +293,13 @@ def write_compose_file(
     postgres_memory: str | None,
     postgres_max_connections: int,
     postgres_server_max_connections: int,
+    rocksdb_disable_wal: bool,
+    rocksdb_compression: str | None,
+    rocksdb_write_buffer_size_mb: int | None,
+    rocksdb_max_write_buffer_number: int | None,
+    rocksdb_block_cache_size_mb: int | None,
+    rocksdb_max_background_jobs: int | None,
+    talon_nofile: int | None,
     otel: bool,
     cpu_profile: bool,
     cpu_profile_path: Path,
@@ -299,7 +318,7 @@ def write_compose_file(
     mock_volume = f"{mock_script}:/bench/mock_llm_server.py:ro"
     config_volume = f"{config_path.resolve()}:/data/talon/talon.bench.yaml:ro"
     data_volume = f"{data_dir.resolve()}:/data/talon/bench:rw"
-    command = talon_command().replace("$", "$$")
+    command = talon_command(database).replace("$", "$$")
     jaeger_service = ""
     if otel:
         jaeger_service = f"""
@@ -341,11 +360,50 @@ def write_compose_file(
       TALON_HEAP_PROFILE_DELAY_SECONDS: "{heap_profile_delay_seconds}"
       TALON_HEAP_PROFILE_LABEL: {json_quote(heap_profile_label)}
 """
+    rocksdb_env = ""
+    if database == "rocksdb":
+        lines = []
+        if rocksdb_disable_wal:
+            lines.append('      TALON_ROCKSDB_DISABLE_WAL: "true"')
+        if rocksdb_compression:
+            lines.append(f"      TALON_ROCKSDB_COMPRESSION: {json_quote(rocksdb_compression)}")
+        if rocksdb_write_buffer_size_mb is not None:
+            lines.append(
+                f'      TALON_ROCKSDB_WRITE_BUFFER_SIZE_MB: "{rocksdb_write_buffer_size_mb}"'
+            )
+        if rocksdb_max_write_buffer_number is not None:
+            lines.append(
+                f'      TALON_ROCKSDB_MAX_WRITE_BUFFER_NUMBER: "{rocksdb_max_write_buffer_number}"'
+            )
+        if rocksdb_block_cache_size_mb is not None:
+            lines.append(
+                f'      TALON_ROCKSDB_BLOCK_CACHE_SIZE_MB: "{rocksdb_block_cache_size_mb}"'
+            )
+        if rocksdb_max_background_jobs is not None:
+            lines.append(
+                f'      TALON_ROCKSDB_MAX_BACKGROUND_JOBS: "{rocksdb_max_background_jobs}"'
+            )
+        if lines:
+            rocksdb_env = "\n".join(lines) + "\n"
     mock_resource_limits = ""
     if mock_cpus is not None:
         mock_resource_limits += f"    cpus: {mock_cpus}\n"
     if mock_memory:
         mock_resource_limits += f"    mem_limit: {mock_memory}\n    memswap_limit: {mock_memory}\n"
+    mock_ulimits = ""
+    if mock_nofile is not None:
+        mock_ulimits = f"""    ulimits:
+      nofile:
+        soft: {mock_nofile}
+        hard: {mock_nofile}
+"""
+    talon_ulimits = ""
+    if talon_nofile is not None:
+        talon_ulimits = f"""    ulimits:
+      nofile:
+        soft: {talon_nofile}
+        hard: {talon_nofile}
+"""
     postgres_service = ""
     postgres_env = ""
     postgres_resource_limits = ""
@@ -423,6 +481,7 @@ services:
       - --request-backlog
       - "{mock_request_backlog}"
 {mock_resource_limits.rstrip()}
+{mock_ulimits.rstrip()}
     volumes:
       - {json_quote(mock_volume)}
     ports:
@@ -436,6 +495,7 @@ services:
     cpus: 1.0
     mem_limit: {memory}
     memswap_limit: {memory}
+{talon_ulimits.rstrip()}
     environment:
       TALON_CONFIG_PATH: /data/talon/talon.bench.yaml
       RUST_LOG: {json_quote(rust_log)}
@@ -453,6 +513,7 @@ services:
 {otel_env.rstrip()}
 {cpu_profile_env.rstrip()}
 {heap_profile_env.rstrip()}
+{rocksdb_env.rstrip()}
     command:
       - /bin/sh
       - -lc
@@ -509,13 +570,12 @@ async def provision(stub: GatewayServiceStub, ns: str, agents: int, concurrency:
 
     agent_names = await asyncio.gather(*(create_agent(i) for i in range(agents)))
 
-    async def create_session(agent: str) -> tuple[str, str]:
+    async def create_session(agent: str) -> str:
         async with sem:
             response = await stub.CreateSession(CreateSessionRequest(ns=ns, agent=agent))
-            return agent, response.session_id
+            return response.session_id
 
-    sessions = await asyncio.gather(*(create_session(agent) for agent in agent_names))
-    return [session_id for _, session_id in sorted(sessions)]
+    return await asyncio.gather(*(create_session(agent) for agent in agent_names))
 
 
 async def consume_stream(
@@ -658,6 +718,8 @@ async def run_workload(
     agents: int,
     provision_concurrency: int,
     send_concurrency: int,
+    grpc_client_channels: int,
+    batch_stream_size: int,
     send_timeout_seconds: float,
     worker_warmup_seconds: float,
     progress_interval_seconds: float,
@@ -670,9 +732,14 @@ async def run_workload(
         ("grpc.max_receive_message_length", 64 * 1024 * 1024),
         ("grpc.max_send_message_length", 64 * 1024 * 1024),
     ]
-    async with grpc.aio.insecure_channel(grpc_target, options=options) as channel:
-        await channel.channel_ready()
-        stub = GatewayServiceStub(channel)
+    async with contextlib.AsyncExitStack() as stack:
+        channels = [
+            await stack.enter_async_context(grpc.aio.insecure_channel(grpc_target, options=options))
+            for _ in range(grpc_client_channels)
+        ]
+        await asyncio.gather(*(channel.channel_ready() for channel in channels))
+        stubs = [GatewayServiceStub(channel) for channel in channels]
+        stub = stubs[0]
 
         if worker_warmup_seconds > 0:
             await asyncio.sleep(worker_warmup_seconds)
@@ -689,27 +756,32 @@ async def run_workload(
         agent_names = [f"agent-{index:04d}" for index in range(agents)]
         task_timing_indexes: dict[asyncio.Task[Any], int | None] = {}
         if stream_mode == "batch":
-            stream_ready = [asyncio.Event()]
-            stream_tasks = [
-                asyncio.create_task(
+            stream_ready = []
+            stream_tasks = []
+            for chunk_index, start in enumerate(range(0, agents, batch_stream_size)):
+                end = min(agents, start + batch_stream_size)
+                ready = asyncio.Event()
+                stream_ready.append(ready)
+                task = asyncio.create_task(
                     consume_batch_stream(
-                        stub,
+                        stubs[chunk_index % len(stubs)],
                         ns,
-                        agent_names,
-                        session_ids,
-                        timings,
-                        stream_ready[0],
+                        agent_names[start:end],
+                        session_ids[start:end],
+                        timings[start:end],
+                        ready,
                     )
                 )
-            ]
-            task_timing_indexes[stream_tasks[0]] = None
+                stream_tasks.append(task)
+                task_timing_indexes[task] = None
         else:
             stream_ready = [asyncio.Event() for _ in range(agents)]
             stream_tasks = []
             for index in range(agents):
+                stream_stub = stubs[index % len(stubs)]
                 task = asyncio.create_task(
                     consume_stream(
-                        stub,
+                        stream_stub,
                         ns,
                         agent_names[index],
                         session_ids[index],
@@ -732,8 +804,9 @@ async def run_workload(
 
             async def send_with_sem(index: int) -> None:
                 async with send_sem:
+                    send_stub = stubs[index % len(stubs)]
                     await send_message(
-                        stub,
+                        send_stub,
                         ns,
                         agent_names[index],
                         session_ids[index],
@@ -749,6 +822,10 @@ async def run_workload(
                 first_tokens = sum(1 for timing in timings if timing.first_token is not None)
                 sent = sum(1 for timing in timings if timing.send_finished is not None)
                 outstanding = agents - completed - errored
+                first_error = next(
+                    (timing.error for timing in timings if timing.error is not None),
+                    None,
+                )
 
                 mock_part = ""
                 if mock_metrics_url:
@@ -781,6 +858,8 @@ async def run_workload(
                     f"{mock_part}{stats_part}",
                     flush=True,
                 )
+                if first_error is not None:
+                    print(f"progress first_error={first_error[:500]}", flush=True)
 
             pending = set(stream_tasks)
             deadline = time.perf_counter() + send_timeout_seconds
@@ -902,8 +981,38 @@ def compose_down(project_name: str, compose_path: Path) -> None:
         print(result.stderr.strip(), flush=True)
 
 
+def print_compose_diagnostics(project_name: str, compose_path: Path, service: str) -> None:
+    ps = compose_command(project_name, compose_path, "ps", "-a", check=False)
+    if ps.stdout.strip():
+        print("docker compose ps:", flush=True)
+        print(ps.stdout.strip(), flush=True)
+    if ps.stderr.strip():
+        print(ps.stderr.strip(), flush=True)
+
+    logs = compose_command(
+        project_name,
+        compose_path,
+        "logs",
+        "--tail",
+        "200",
+        service,
+        check=False,
+    )
+    if logs.stdout.strip():
+        print(f"docker compose logs {service}:", flush=True)
+        print(logs.stdout.strip(), flush=True)
+    if logs.stderr.strip():
+        print(logs.stderr.strip(), flush=True)
+
+
 def compose_port(project_name: str, compose_path: Path, service: str, port: int) -> tuple[str, int]:
-    result = compose_command(project_name, compose_path, "port", service, str(port))
+    result = compose_command(project_name, compose_path, "port", service, str(port), check=False)
+    if result.returncode != 0 or not result.stdout.strip():
+        detail = (result.stderr or result.stdout).strip()
+        print_compose_diagnostics(project_name, compose_path, service)
+        raise RuntimeError(
+            f"failed to resolve docker compose port for {service}:{port}: {detail}"
+        )
     endpoint = result.stdout.strip().splitlines()[-1]
     host, raw_port = endpoint.rsplit(":", 1)
     host = host.strip("[]")
@@ -1013,6 +1122,13 @@ def sqlite_size_bytes(data_dir: Path) -> int:
     return sum(path.stat().st_size for path in data_dir.glob("*.db*") if path.is_file())
 
 
+def rocksdb_size_bytes(data_dir: Path) -> int:
+    rocksdb_dir = data_dir / "talon-control-plane.rocksdb"
+    if not rocksdb_dir.exists():
+        return 0
+    return sum(path.stat().st_size for path in rocksdb_dir.rglob("*") if path.is_file())
+
+
 def fetch_json(url: str, timeout_seconds: float = 5.0) -> dict[str, Any]:
     with urlopen(url, timeout=timeout_seconds) as response:
         return json.loads(response.read().decode("utf-8"))
@@ -1072,6 +1188,7 @@ def summarize_jaeger_db_spans(
             if not (
                 operation.startswith("SqliteKvStore.")
                 or operation.startswith("PostgresKvStore.")
+                or operation.startswith("RocksDbKvStore.")
                 or operation.startswith("sqlite.")
             ):
                 continue
@@ -1169,6 +1286,7 @@ async def run_profile(
         mock_request_backlog=args.mock_request_backlog,
         mock_cpus=args.mock_cpus,
         mock_memory=args.mock_memory,
+        mock_nofile=args.mock_nofile,
         database=args.database,
         sqlite_pool_size=args.sqlite_pool_size,
         sqlite_busy_timeout_ms=args.sqlite_busy_timeout_ms,
@@ -1176,6 +1294,13 @@ async def run_profile(
         postgres_memory=args.postgres_memory,
         postgres_max_connections=args.postgres_max_connections,
         postgres_server_max_connections=args.postgres_server_max_connections,
+        rocksdb_disable_wal=args.rocksdb_disable_wal,
+        rocksdb_compression=args.rocksdb_compression,
+        rocksdb_write_buffer_size_mb=args.rocksdb_write_buffer_size_mb,
+        rocksdb_max_write_buffer_number=args.rocksdb_max_write_buffer_number,
+        rocksdb_block_cache_size_mb=args.rocksdb_block_cache_size_mb,
+        rocksdb_max_background_jobs=args.rocksdb_max_background_jobs,
+        talon_nofile=args.talon_nofile,
         otel=args.otel,
         cpu_profile=args.cpu_profile,
         cpu_profile_path=cpu_profile_container_path,
@@ -1263,6 +1388,8 @@ async def run_profile(
             agents=args.agents,
             provision_concurrency=args.provision_concurrency,
             send_concurrency=args.send_concurrency,
+            grpc_client_channels=args.grpc_client_channels,
+            batch_stream_size=args.batch_stream_size,
             send_timeout_seconds=args.timeout_seconds,
             worker_warmup_seconds=args.worker_warmup_seconds,
             progress_interval_seconds=args.progress_interval_seconds,
@@ -1362,6 +1489,16 @@ async def run_profile(
             else None,
             "postgres_cpus": args.postgres_cpus if args.database == "postgres" else None,
             "postgres_memory": args.postgres_memory if args.database == "postgres" else None,
+            "rocksdb_tuning": {
+                "disable_wal": args.rocksdb_disable_wal,
+                "compression": args.rocksdb_compression,
+                "write_buffer_size_mb": args.rocksdb_write_buffer_size_mb,
+                "max_write_buffer_number": args.rocksdb_max_write_buffer_number,
+                "block_cache_size_mb": args.rocksdb_block_cache_size_mb,
+                "max_background_jobs": args.rocksdb_max_background_jobs,
+            }
+            if args.database == "rocksdb"
+            else None,
             "trace_summary": db_trace_summary,
         },
         "sqlite": {
@@ -1374,6 +1511,8 @@ async def run_profile(
             "agents": args.agents,
             "provision_concurrency": args.provision_concurrency,
             "send_concurrency": args.send_concurrency,
+            "grpc_client_channels": args.grpc_client_channels,
+            "batch_stream_size": args.batch_stream_size if args.stream_mode == "batch" else None,
             "worker_concurrency": args.worker_concurrency,
             "stream_mode": args.stream_mode,
         },
@@ -1400,6 +1539,10 @@ async def run_profile(
             "request_backlog": args.mock_request_backlog,
             "cpus": args.mock_cpus,
             "memory": args.mock_memory,
+            "nofile": args.mock_nofile,
+        },
+        "talon_ulimits": {
+            "nofile": args.talon_nofile,
         },
         "talon_container": {
             "oom_killed": bool(container_state.get("OOMKilled")),
@@ -1409,6 +1552,7 @@ async def run_profile(
         },
         "postgres_container": postgres_stats if postgres_container else None,
         "sqlite_size_bytes": sqlite_size_bytes(data_dir),
+        "rocksdb_size_bytes": rocksdb_size_bytes(data_dir),
         "stats_samples": stats_samples,
         "postgres_stats_samples": postgres_stats_samples,
         "logs": {
@@ -1470,18 +1614,31 @@ def write_summary(output_dir: Path, results: list[dict[str, Any]]) -> None:
         if not trace_summary:
             trace_summary = (result.get("sqlite") or {}).get("trace_summary")
         summary = (trace_summary or {}).get("operations") or {}
-        prefix = "PostgresKvStore" if database == "postgres" else "SqliteKvStore"
+        if database == "postgres":
+            prefix = "PostgresKvStore"
+        elif database == "rocksdb":
+            prefix = "RocksDbKvStore"
+        else:
+            prefix = "SqliteKvStore"
         acquire = summary.get(f"{prefix}.acquire_connection") or summary.get("sqlite.pool_acquire")
         query = summary.get(f"{prefix}.query") or summary.get("sqlite.query")
+        if database == "rocksdb":
+            query = (
+                summary.get("RocksDbKvStore.set")
+                or summary.get("RocksDbKvStore.get")
+                or summary.get("RocksDbKvStore.list_entries")
+                or query
+            )
         acquire_p95 = ((acquire or {}).get("pool_wait_us") or {}).get("p95")
         query_p95 = ((query or {}).get("query_elapsed_us") or {}).get("p95")
         if acquire_p95 is None and query_p95 is None:
             continue
-        pool = (
-            (result.get("database") or {}).get("postgres_max_connections")
-            if database == "postgres"
-            else (result.get("sqlite") or {}).get("pool_size", "n/a")
-        )
+        if database == "postgres":
+            pool = (result.get("database") or {}).get("postgres_max_connections")
+        elif database == "sqlite":
+            pool = (result.get("sqlite") or {}).get("pool_size", "n/a")
+        else:
+            pool = "n/a"
         db_lines.append(
             "| {latency} ms | {database} | {pool} | {acquire} | {query} |".format(
                 latency=result["latency_ms"],
@@ -1531,6 +1688,12 @@ async def amain() -> None:
     parser.add_argument("--mock-request-backlog", type=int, default=4096)
     parser.add_argument("--mock-cpus", type=float, default=None)
     parser.add_argument("--mock-memory", default=None)
+    parser.add_argument(
+        "--mock-nofile",
+        type=int,
+        default=None,
+        help="Set the mock LLM container nofile soft/hard ulimit.",
+    )
     parser.add_argument("--timeout-seconds", type=float, default=900)
     parser.add_argument("--provision-concurrency", type=int, default=100)
     parser.add_argument(
@@ -1539,7 +1702,19 @@ async def amain() -> None:
         default=None,
         help="Maximum concurrent SendMessage RPCs. Defaults to --agents.",
     )
+    parser.add_argument(
+        "--grpc-client-channels",
+        type=int,
+        default=1,
+        help="Number of client gRPC channels used for stream and send RPCs.",
+    )
     parser.add_argument("--worker-concurrency", type=int, default=1000)
+    parser.add_argument(
+        "--talon-nofile",
+        type=int,
+        default=None,
+        help="Set the Talon container nofile soft/hard ulimit.",
+    )
     parser.add_argument("--local-socket-buffer-size", type=int, default=10000)
     parser.add_argument(
         "--stream-mode",
@@ -1547,13 +1722,25 @@ async def amain() -> None:
         default="per-session",
         help="Use one stream per session or one batched stream for all sessions.",
     )
-    parser.add_argument("--database", choices=("sqlite", "postgres"), default="sqlite")
+    parser.add_argument(
+        "--batch-stream-size",
+        type=int,
+        default=10000,
+        help="Maximum sessions per StreamSessionPartsBatch request.",
+    )
+    parser.add_argument("--database", choices=("sqlite", "postgres", "rocksdb"), default="sqlite")
     parser.add_argument("--sqlite-pool-size", type=int, default=5)
     parser.add_argument("--sqlite-busy-timeout-ms", type=int, default=5000)
     parser.add_argument("--postgres-max-connections", type=int, default=200)
     parser.add_argument("--postgres-server-max-connections", type=int, default=None)
     parser.add_argument("--postgres-cpus", type=float, default=None)
     parser.add_argument("--postgres-memory", default=None)
+    parser.add_argument("--rocksdb-disable-wal", action="store_true")
+    parser.add_argument("--rocksdb-compression", choices=("lz4", "none"), default=None)
+    parser.add_argument("--rocksdb-write-buffer-size-mb", type=int, default=None)
+    parser.add_argument("--rocksdb-max-write-buffer-number", type=int, default=None)
+    parser.add_argument("--rocksdb-block-cache-size-mb", type=int, default=None)
+    parser.add_argument("--rocksdb-max-background-jobs", type=int, default=None)
     parser.add_argument("--jaeger-trace-limit", type=int, default=200)
     parser.add_argument("--worker-warmup-seconds", type=float, default=3.0)
     parser.add_argument("--progress-interval-seconds", type=float, default=5.0)
@@ -1595,8 +1782,16 @@ async def amain() -> None:
         args.send_concurrency = args.agents
     if args.send_concurrency <= 0:
         raise ValueError("--send-concurrency must be greater than 0")
+    if args.grpc_client_channels <= 0:
+        raise ValueError("--grpc-client-channels must be greater than 0")
+    if args.batch_stream_size <= 0:
+        raise ValueError("--batch-stream-size must be greater than 0")
     if args.mock_cpus is not None and args.mock_cpus <= 0:
         raise ValueError("--mock-cpus must be greater than 0")
+    if args.mock_nofile is not None and args.mock_nofile <= 0:
+        raise ValueError("--mock-nofile must be greater than 0")
+    if args.talon_nofile is not None and args.talon_nofile <= 0:
+        raise ValueError("--talon-nofile must be greater than 0")
     if args.postgres_max_connections <= 0:
         raise ValueError("--postgres-max-connections must be greater than 0")
     if args.postgres_server_max_connections is None:
@@ -1609,6 +1804,15 @@ async def amain() -> None:
         )
     if args.postgres_cpus is not None and args.postgres_cpus <= 0:
         raise ValueError("--postgres-cpus must be greater than 0")
+    for name in (
+        "rocksdb_write_buffer_size_mb",
+        "rocksdb_max_write_buffer_number",
+        "rocksdb_block_cache_size_mb",
+        "rocksdb_max_background_jobs",
+    ):
+        value = getattr(args, name)
+        if value is not None and value <= 0:
+            raise ValueError(f"--{name.replace('_', '-')} must be greater than 0")
     if args.cpu_profile_seconds <= 0:
         raise ValueError("--cpu-profile-seconds must be greater than 0")
     if args.cpu_profile_delay_seconds < 0:

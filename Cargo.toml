@@ -34,6 +34,7 @@ pprof = { version = "0.15", features = ["flamegraph"], optional = true }
 tikv-jemallocator = { version = "0.7", optional = true }
 tikv-jemalloc-ctl = { version = "0.7", optional = true }
 redb = "1.0"
+rocksdb = "0.24"
 reqwest = { version = "0.11", features = ["json", "stream"] }
 rmcp = { version = "1.4", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
 prost = "0.13"
@@ -89,3 +90,7 @@ path = "src/bin/worker.rs"
 [[bin]]
 name = "talon-cli"
 path = "src/bin/cli.rs"
+
+[[bin]]
+name = "talon-node"
+path = "src/bin/node.rs"
