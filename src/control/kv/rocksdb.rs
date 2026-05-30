@@ -9,11 +9,8 @@ use anyhow::{anyhow, bail, Result};
 use rocksdb::{
     BlockBasedOptions, Cache, DBCompressionType, IteratorMode, Options, WriteOptions, DB,
 };
-use std::{
-    path::Path,
-    sync::{Arc, Mutex},
-    time::Instant,
-};
+use std::{path::Path, sync::Arc, time::Instant};
+use tokio::sync::Mutex;
 use tracing::{field, Instrument, Span};
 
 fn key_bytes(key: &ResourceKey) -> Vec<u8> {
@@ -108,11 +105,10 @@ impl RocksDbKvStore {
     async fn spawn_blocking<T, F>(&self, operation: &'static str, f: F) -> Result<T>
     where
         T: Send + 'static,
-        F: FnOnce(Arc<DB>, Arc<Mutex<()>>) -> Result<T> + Send + 'static,
+        F: FnOnce(Arc<DB>) -> Result<T> + Send + 'static,
     {
         let db = Arc::clone(&self.db);
-        let write_lock = Arc::clone(&self.write_lock);
-        tokio::task::spawn_blocking(move || f(db, write_lock))
+        tokio::task::spawn_blocking(move || f(db))
             .await
             .map_err(|err| anyhow!("RocksDbKvStore.{operation} task failed: {err}"))?
     }
@@ -158,7 +154,10 @@ fn env_mib(name: &str) -> Result<Option<usize>> {
     if parsed == 0 {
         bail!("{name} must be greater than zero");
     }
-    Ok(Some(parsed * 1024 * 1024))
+    parsed
+        .checked_mul(1024 * 1024)
+        .map(Some)
+        .ok_or_else(|| anyhow!("{name} value is too large"))
 }
 
 fn compression_from_env() -> Result<DBCompressionType> {
@@ -188,7 +187,7 @@ impl KeyValueStore for RocksDbKvStore {
         async move {
             let started_at = Instant::now();
             let value = self
-                .spawn_blocking("get", move |db, _| Ok(db.get(encoded)?))
+                .spawn_blocking("get", move |db| Ok(db.get(encoded)?))
                 .await?;
             record_elapsed(&span_for_body, started_at);
             span_for_body.record("rows_returned", u64::from(value.is_some()));
@@ -216,12 +215,12 @@ impl KeyValueStore for RocksDbKvStore {
         );
         let span_for_body = span.clone();
         let write_options = Arc::clone(&self.write_options);
+        let write_lock = Arc::clone(&self.write_lock);
         async move {
             let started_at = Instant::now();
-            self.spawn_blocking("set", move |db, write_lock| {
-                let _guard = write_lock
-                    .lock()
-                    .map_err(|_| anyhow!("RocksDB write lock is poisoned"))?;
+            let write_guard = write_lock.lock_owned().await;
+            self.spawn_blocking("set", move |db| {
+                let _write_guard = write_guard;
                 db.put_opt(encoded, value, &write_options)?;
                 Ok(())
             })
@@ -256,13 +255,13 @@ impl KeyValueStore for RocksDbKvStore {
         );
         let span_for_body = span.clone();
         let write_options = Arc::clone(&self.write_options);
+        let write_lock = Arc::clone(&self.write_lock);
         async move {
             let started_at = Instant::now();
+            let write_guard = write_lock.lock_owned().await;
             let swapped = self
-                .spawn_blocking("compare_and_swap", move |db, write_lock| {
-                    let _guard = write_lock
-                        .lock()
-                        .map_err(|_| anyhow!("RocksDB write lock is poisoned"))?;
+                .spawn_blocking("compare_and_swap", move |db| {
+                    let _write_guard = write_guard;
                     let current = db.get(&encoded)?;
                     let matches = match (current.as_deref(), expected.as_deref()) {
                         (None, None) => true,
@@ -296,12 +295,12 @@ impl KeyValueStore for RocksDbKvStore {
         );
         let span_for_body = span.clone();
         let write_options = Arc::clone(&self.write_options);
+        let write_lock = Arc::clone(&self.write_lock);
         async move {
             let started_at = Instant::now();
-            self.spawn_blocking("delete", move |db, write_lock| {
-                let _guard = write_lock
-                    .lock()
-                    .map_err(|_| anyhow!("RocksDB write lock is poisoned"))?;
+            let write_guard = write_lock.lock_owned().await;
+            self.spawn_blocking("delete", move |db| {
+                let _write_guard = write_guard;
                 db.delete_opt(encoded, &write_options)?;
                 Ok(())
             })
@@ -329,7 +328,7 @@ impl KeyValueStore for RocksDbKvStore {
         async move {
             let started_at = Instant::now();
             let mut keys = self
-                .spawn_blocking("list_keys", move |db, _| {
+                .spawn_blocking("list_keys", move |db| {
                     let mut keys = Vec::new();
                     for item in
                         db.iterator(IteratorMode::From(&prefix, rocksdb::Direction::Forward))
@@ -367,7 +366,7 @@ impl KeyValueStore for RocksDbKvStore {
         async move {
             let started_at = Instant::now();
             let entries = self
-                .spawn_blocking("list_entries", move |db, _| {
+                .spawn_blocking("list_entries", move |db| {
                     let mut entries = Vec::new();
                     let mut value_bytes = 0usize;
                     for item in
@@ -422,7 +421,7 @@ impl KeyValueStore for RocksDbKvStore {
         async move {
             let started_at = Instant::now();
             let keys = self
-                .spawn_blocking("list_keys_page", move |db, _| {
+                .spawn_blocking("list_keys_page", move |db| {
                     let mut keys = Vec::with_capacity(limit);
                     for item in
                         db.iterator(IteratorMode::From(&seek_key, rocksdb::Direction::Reverse))
@@ -482,7 +481,7 @@ impl KeyValueStore for RocksDbKvStore {
         async move {
             let started_at = Instant::now();
             let (entries, value_bytes) = self
-                .spawn_blocking("list_entries_page", move |db, _| {
+                .spawn_blocking("list_entries_page", move |db| {
                     let mut entries = Vec::with_capacity(limit);
                     let mut value_bytes = 0usize;
                     for item in
