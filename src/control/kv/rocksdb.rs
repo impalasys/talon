@@ -59,7 +59,6 @@ pub struct RocksDbKvStore {
     path: Arc<String>,
     write_lock: Arc<Mutex<()>>,
     write_options: Arc<WriteOptions>,
-    serialize_writes: bool,
 }
 
 impl RocksDbKvStore {
@@ -97,14 +96,12 @@ impl RocksDbKvStore {
         }
         let mut write_options = WriteOptions::default();
         write_options.disable_wal(env_bool("TALON_ROCKSDB_DISABLE_WAL", false)?);
-        let serialize_writes = env_bool("TALON_ROCKSDB_SERIALIZE_WRITES", true)?;
         let db = DB::open(&options, path)?;
         Ok(Self {
             db: Arc::new(db),
             path: Arc::new(path.display().to_string()),
             write_lock: Arc::new(Mutex::new(())),
             write_options: Arc::new(write_options),
-            serialize_writes,
         })
     }
 
@@ -219,18 +216,13 @@ impl KeyValueStore for RocksDbKvStore {
         );
         let span_for_body = span.clone();
         let write_options = Arc::clone(&self.write_options);
-        let serialize_writes = self.serialize_writes;
         async move {
             let started_at = Instant::now();
             self.spawn_blocking("set", move |db, write_lock| {
-                if serialize_writes {
-                    let _guard = write_lock
-                        .lock()
-                        .map_err(|_| anyhow!("RocksDB write lock is poisoned"))?;
-                    db.put_opt(encoded, value, &write_options)?;
-                } else {
-                    db.put_opt(encoded, value, &write_options)?;
-                }
+                let _guard = write_lock
+                    .lock()
+                    .map_err(|_| anyhow!("RocksDB write lock is poisoned"))?;
+                db.put_opt(encoded, value, &write_options)?;
                 Ok(())
             })
             .await?;
@@ -304,18 +296,13 @@ impl KeyValueStore for RocksDbKvStore {
         );
         let span_for_body = span.clone();
         let write_options = Arc::clone(&self.write_options);
-        let serialize_writes = self.serialize_writes;
         async move {
             let started_at = Instant::now();
             self.spawn_blocking("delete", move |db, write_lock| {
-                if serialize_writes {
-                    let _guard = write_lock
-                        .lock()
-                        .map_err(|_| anyhow!("RocksDB write lock is poisoned"))?;
-                    db.delete_opt(encoded, &write_options)?;
-                } else {
-                    db.delete_opt(encoded, &write_options)?;
-                }
+                let _guard = write_lock
+                    .lock()
+                    .map_err(|_| anyhow!("RocksDB write lock is poisoned"))?;
+                db.delete_opt(encoded, &write_options)?;
                 Ok(())
             })
             .await?;

@@ -299,7 +299,6 @@ def write_compose_file(
     rocksdb_max_write_buffer_number: int | None,
     rocksdb_block_cache_size_mb: int | None,
     rocksdb_max_background_jobs: int | None,
-    rocksdb_serialize_writes: bool | None,
     talon_nofile: int | None,
     otel: bool,
     cpu_profile: bool,
@@ -383,11 +382,6 @@ def write_compose_file(
         if rocksdb_max_background_jobs is not None:
             lines.append(
                 f'      TALON_ROCKSDB_MAX_BACKGROUND_JOBS: "{rocksdb_max_background_jobs}"'
-            )
-        if rocksdb_serialize_writes is not None:
-            lines.append(
-                '      TALON_ROCKSDB_SERIALIZE_WRITES: '
-                f'"{str(rocksdb_serialize_writes).lower()}"'
             )
         if lines:
             rocksdb_env = "\n".join(lines) + "\n"
@@ -1271,7 +1265,6 @@ async def run_profile(
         rocksdb_max_write_buffer_number=args.rocksdb_max_write_buffer_number,
         rocksdb_block_cache_size_mb=args.rocksdb_block_cache_size_mb,
         rocksdb_max_background_jobs=args.rocksdb_max_background_jobs,
-        rocksdb_serialize_writes=args.rocksdb_serialize_writes,
         talon_nofile=args.talon_nofile,
         otel=args.otel,
         cpu_profile=args.cpu_profile,
@@ -1467,7 +1460,6 @@ async def run_profile(
                 "max_write_buffer_number": args.rocksdb_max_write_buffer_number,
                 "block_cache_size_mb": args.rocksdb_block_cache_size_mb,
                 "max_background_jobs": args.rocksdb_max_background_jobs,
-                "serialize_writes": args.rocksdb_serialize_writes,
             }
             if args.database == "rocksdb"
             else None,
@@ -1706,12 +1698,6 @@ async def amain() -> None:
     parser.add_argument("--rocksdb-max-write-buffer-number", type=int, default=None)
     parser.add_argument("--rocksdb-block-cache-size-mb", type=int, default=None)
     parser.add_argument("--rocksdb-max-background-jobs", type=int, default=None)
-    parser.add_argument(
-        "--rocksdb-serialize-writes",
-        action=argparse.BooleanOptionalAction,
-        default=None,
-        help="Override RocksDB's process-local write serialization guard.",
-    )
     parser.add_argument("--jaeger-trace-limit", type=int, default=200)
     parser.add_argument("--worker-warmup-seconds", type=float, default=3.0)
     parser.add_argument("--progress-interval-seconds", type=float, default=5.0)

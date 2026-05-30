@@ -32,9 +32,13 @@ on:
         required: true
         default: "7000"
       memory:
-        description: "Talon container memory limit"
+        description: "SQLite Talon container memory limit"
         required: true
         default: "512m"
+      rocksdb_memory:
+        description: "RocksDB Talon container memory limit"
+        required: true
+        default: "768m"
       timeout_seconds:
         description: "Benchmark workload timeout"
         required: true
@@ -57,6 +61,7 @@ jobs:
     env:
       BENCH_AGENTS: ${{ github.event_name == 'workflow_dispatch' && inputs.agents || '7000' }}
       BENCH_MEMORY: ${{ github.event_name == 'workflow_dispatch' && inputs.memory || '512m' }}
+      BENCH_ROCKSDB_MEMORY: ${{ github.event_name == 'workflow_dispatch' && inputs.rocksdb_memory || '768m' }}
       BENCH_TIMEOUT_SECONDS: ${{ github.event_name == 'workflow_dispatch' && inputs.timeout_seconds || '900' }}
       BENCH_IMAGE_TAG: talon-bench-runtime:${{ github.sha }}
       BENCH_OUTPUT_DIR: bench/results/ci-1vcpu
@@ -93,10 +98,13 @@ jobs:
           cache-from: type=gha,scope=talon-bench-runtime
           cache-to: type=gha,mode=max,scope=talon-bench-runtime
 
-      - name: Run 1 vCPU benchmark
+      - name: Run 1 vCPU benchmark matrix
         run: |
+          status=0
+
           python bench/benchmark_1000_agents.py \
             --skip-build \
+            --database sqlite \
             --agents "${BENCH_AGENTS}" \
             --latencies 0 \
             --memory "${BENCH_MEMORY}" \
@@ -107,7 +115,29 @@ jobs:
             --mock-request-backlog 8192 \
             --progress-interval-seconds 10 \
             --image-tag "${BENCH_IMAGE_TAG}" \
-            --output-dir "${BENCH_OUTPUT_DIR}"
+            --output-dir "${BENCH_OUTPUT_DIR}/sqlite" || status=1
+
+          python bench/benchmark_1000_agents.py \
+            --skip-build \
+            --database rocksdb \
+            --agents "${BENCH_AGENTS}" \
+            --latencies 0 \
+            --memory "${BENCH_ROCKSDB_MEMORY}" \
+            --timeout-seconds "${BENCH_TIMEOUT_SECONDS}" \
+            --send-concurrency "${BENCH_AGENTS}" \
+            --worker-concurrency "${BENCH_AGENTS}" \
+            --stream-mode batch \
+            --mock-request-backlog 8192 \
+            --progress-interval-seconds 10 \
+            --rocksdb-compression none \
+            --rocksdb-write-buffer-size-mb 16 \
+            --rocksdb-max-write-buffer-number 2 \
+            --rocksdb-block-cache-size-mb 16 \
+            --rocksdb-max-background-jobs 2 \
+            --image-tag "${BENCH_IMAGE_TAG}" \
+            --output-dir "${BENCH_OUTPUT_DIR}/rocksdb" || status=1
+
+          exit "${status}"
 
       - name: Comment benchmark results
         if: always() && github.event_name == 'pull_request'
@@ -118,18 +148,70 @@ jobs:
             const path = require("path");
 
             const marker = "<!-- talon-1vcpu-benchmark -->";
-            const summaryPath = path.join(process.env.BENCH_OUTPUT_DIR, "summary.md");
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const summary = fs.existsSync(summaryPath)
-              ? fs.readFileSync(summaryPath, "utf8").trim()
-              : "_Benchmark did not produce `summary.md`; see the workflow run for logs._";
+
+            function findResultJson(dir) {
+              if (!fs.existsSync(dir)) {
+                return null;
+              }
+              const name = fs.readdirSync(dir)
+                .find((entry) => entry.startsWith("talon-bench-") && entry.endsWith(".json"));
+              return name ? path.join(dir, name) : null;
+            }
+
+            function formatSeconds(value) {
+              return Number.isFinite(value) ? `${value.toFixed(2)}s` : "n/a";
+            }
+
+            function formatRate(value) {
+              return Number.isFinite(value) ? value.toFixed(2) : "n/a";
+            }
+
+            function formatMemory(bytes) {
+              return Number.isFinite(bytes) ? `${(bytes / 1024 / 1024).toFixed(1)} MiB` : "n/a";
+            }
+
+            function row(database, dirName, memory) {
+              const resultPath = findResultJson(path.join(process.env.BENCH_OUTPUT_DIR, dirName));
+              if (!resultPath) {
+                return `| ${database} | ${memory} | n/a | n/a | n/a | n/a | n/a | n/a | n/a | no result |`;
+              }
+              const result = JSON.parse(fs.readFileSync(resultPath, "utf8"));
+              const workload = result.workload || {};
+              const p95 = workload.send_to_done_seconds?.p95;
+              const peakMemory = result.talon_container?.peak_memory_usage_bytes;
+              const oom = result.talon_container?.oom_killed ? "yes" : "no";
+              const status = workload.success_count >= Number(process.env.BENCH_AGENTS)
+                ? "pass"
+                : "failed";
+              return [
+                `| ${database}`,
+                memory,
+                workload.success_count ?? "n/a",
+                workload.error_count ?? "n/a",
+                workload.timeout_count ?? "n/a",
+                formatSeconds(workload.workload_seconds),
+                formatRate(workload.throughput_completed_per_second),
+                formatSeconds(p95),
+                formatMemory(peakMemory),
+                `${oom} / ${status} |`,
+              ].join(" | ");
+            }
+
+            const matrix = [
+              "| Database | Memory | Success | Errors | Timeouts | Workload seconds | Completed/sec | p95 send-to-done | Peak memory | OOM / Status |",
+              "| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :--- |",
+              row("SQLite", "sqlite", process.env.BENCH_MEMORY),
+              row("RocksDB", "rocksdb", process.env.BENCH_ROCKSDB_MEMORY),
+            ].join("\n");
+
             const body = [
               marker,
               "## Talon 1 vCPU Benchmark",
               "",
-              summary,
+              matrix,
               "",
-              `Config: ${process.env.BENCH_AGENTS} concurrent agents, ${process.env.BENCH_MEMORY} Talon memory limit, 1 vCPU Talon, SQLite, batch stream.`,
+              `Config: ${process.env.BENCH_AGENTS} concurrent agents, 1 vCPU Talon, batch stream. SQLite memory: ${process.env.BENCH_MEMORY}. RocksDB memory: ${process.env.BENCH_ROCKSDB_MEMORY}.`,
               "",
               `Run: ${runUrl}`,
             ].join("\n");

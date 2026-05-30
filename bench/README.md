@@ -94,9 +94,8 @@ Postgres keep the normal separate `talon-server` and `talon-worker` processes.
 For RocksDB tuning experiments, the harness can pass through:
 `--rocksdb-disable-wal`, `--rocksdb-compression`, `--rocksdb-write-buffer-size-mb`,
 `--rocksdb-max-write-buffer-number`, `--rocksdb-block-cache-size-mb`,
-`--rocksdb-max-background-jobs`, and `--rocksdb-serialize-writes` /
-`--no-rocksdb-serialize-writes`. Disabling WAL is a benchmark-only durability
-tradeoff unless the workload can tolerate crash-time data loss.
+and `--rocksdb-max-background-jobs`. Disabling WAL is a benchmark-only
+durability tradeoff unless the workload can tolerate crash-time data loss.
 
 Very large fan-out runs may also need higher container file-descriptor limits.
 Use `--talon-nofile` for the Talon container and `--mock-nofile` for the mock LLM
