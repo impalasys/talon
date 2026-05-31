@@ -40,7 +40,8 @@ fn main() -> std::io::Result<()> {
     ];
     let serde_derive_only_types = [".talon.manifests.PromptDelta"];
 
-    let mut builder = tonic_build::configure();
+    let mut builder =
+        tonic_build::configure().protoc_arg("--experimental_allow_proto3_optional");
     for t in &serde_default_types {
         builder = builder
             .type_attribute(t, "#[derive(serde::Serialize, serde::Deserialize)]")
