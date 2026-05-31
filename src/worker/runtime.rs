@@ -47,6 +47,14 @@ impl AgentRuntime {
         let spec = agent
             .effective_spec
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' has no effective spec", agent_id))?;
+        let session = cp
+            .kv
+            .get_msg::<models::Session>(&crate::control::keys::session(ns, agent_id, session_id))
+            .await?;
+        let is_channel_session = session
+            .as_ref()
+            .map(|session| session.labels.contains_key("talon.impalasys.com/channel"))
+            .unwrap_or(false);
 
         // 2. Load session history from KV
         let msg_prefix = crate::control::keys::session_message_prefix(ns, agent_id, session_id);
@@ -122,6 +130,9 @@ impl AgentRuntime {
         let mut reg = ToolRegistry::new();
         crate::knowledge::register_tools(&mut reg);
         crate::native_tools::register_tools(&mut reg, &spec);
+        if is_channel_session {
+            crate::native_tools::register_channel_tools(&mut reg);
+        }
         let builtin_tool_names = builtin_tool_names();
         for mcp_ref in &spec.mcp_server_refs {
             let server = match mcp_registry.resolve_server(cp, mcp_ref, ns).await {
@@ -192,7 +203,7 @@ impl AgentRuntime {
         let registry = Arc::new(tokio::sync::RwLock::new(reg));
 
         // 5. Build executor
-        let executor = AgentExecutor::new(
+        let executor = AgentExecutor::new_with_session(
             llm,
             ContextAssembler::new("."),
             registry,
@@ -200,6 +211,7 @@ impl AgentRuntime {
             Arc::new(KvKnowledgeBook::new(cp.kv.clone())),
             ns.to_string(),
             agent_id.to_string(),
+            session_id.to_string(),
             cp.clone(),
             spec.clone(),
             mcp_tools,
@@ -295,6 +307,8 @@ fn builtin_tool_names() -> &'static [&'static str] {
         crate::native_tools::LIST_SCHEDULES_TOOL,
         crate::native_tools::UPDATE_SCHEDULE_TOOL,
         crate::native_tools::DELETE_SCHEDULE_TOOL,
+        crate::native_tools::CHANNEL_PUBLISH_TOOL,
+        crate::native_tools::CHANNEL_SKIP_REPLY_TOOL,
     ]
 }
 

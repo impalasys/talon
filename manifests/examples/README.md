@@ -3,6 +3,7 @@ This directory contains example assets referenced by the public Talon tutorials.
 The files are organized by tutorial:
 
 - `chatgpt-app/`
+- `channel-collaboration/`
 - `marketing-agency/`
 - `customer-retention-system/`
 - `internal-ops-copilot/`
@@ -19,5 +20,6 @@ Current conventions:
 
 - each YAML manifest file is a separate `talon-cli apply` input
 - markdown under `knowledge/` is loaded with `talon-cli knowledge sync`
+- `channel-collaboration/` can also be bootstrapped with the `tutorial-channels` Docker Compose profile
 - schedules are created through the gateway API, because `talon-cli apply` does not currently support `Schedule` manifests
 - tutorial agent templates should point at real providers configured through `.env`, with the public examples defaulting to `openai`

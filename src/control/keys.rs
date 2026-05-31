@@ -317,6 +317,48 @@ pub fn session_message_prefix(namespace: &str, agent: &str, session_id: &str) ->
     )
 }
 
+pub fn channel(namespace: &str, name: &str) -> ResourceKey {
+    resource_key(namespace, &[], "Channel", name)
+}
+
+pub fn channel_prefix(namespace: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[], Some("Channel"))
+}
+
+pub fn channel_parent(namespace: &str, name: &str) -> ResourceParent {
+    channel(namespace, name).as_parent()
+}
+
+pub fn channel_message(namespace: &str, channel: &str, message_id: &str) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Channel", channel)],
+        "ChannelMessage",
+        message_id,
+    )
+}
+
+pub fn channel_message_prefix(namespace: &str, channel: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[("Channel", channel)], Some("ChannelMessage"))
+}
+
+pub fn channel_subscription(namespace: &str, channel: &str, name: &str) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Channel", channel)],
+        "ChannelSubscription",
+        name,
+    )
+}
+
+pub fn channel_subscription_prefix(namespace: &str, channel: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Channel", channel)],
+        Some("ChannelSubscription"),
+    )
+}
+
 pub fn schedule(namespace: &str, name: &str) -> ResourceKey {
     resource_key(namespace, &[], "Schedule", name)
 }
@@ -391,6 +433,18 @@ mod tests {
             session_message("Impala:Talon", "hello-agent", "session-id", "message-id")
                 .canonical(),
             "@Namespace/Impala:Talon/Agent/hello-agent/Session/session-id/@/SessionMessage/message-id"
+        );
+        assert_eq!(
+            channel("Impala:Talon", "incident-123").canonical(),
+            "@Namespace/Impala:Talon/@/Channel/incident-123"
+        );
+        assert_eq!(
+            channel_message("Impala:Talon", "incident-123", "msg-1").canonical(),
+            "@Namespace/Impala:Talon/Channel/incident-123/@/ChannelMessage/msg-1"
+        );
+        assert_eq!(
+            channel_subscription("Impala:Talon", "incident-123", "researcher").canonical(),
+            "@Namespace/Impala:Talon/Channel/incident-123/@/ChannelSubscription/researcher"
         );
     }
 

@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::pin::Pin;
 
 pub mod agents;
+pub mod channels;
 pub mod knowledge;
 pub mod knowledge_resources;
 pub mod mcp_bindings;
@@ -16,6 +17,8 @@ pub mod schedules;
 pub mod sessions;
 pub mod templates;
 
+#[cfg(test)]
+mod channels_tests;
 #[cfg(test)]
 mod crud_tests;
 #[cfg(test)]
@@ -95,6 +98,12 @@ macro_rules! require_auth {
 pub struct GrpcGatewayHandler {
     pub gateway: Arc<Gateway>,
 }
+
+pub type ChannelEventStream = Pin<
+    Box<
+        dyn futures::Stream<Item = std::result::Result<events::ChannelEvent, tonic::Status>> + Send,
+    >,
+>;
 
 #[tonic::async_trait]
 impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
@@ -394,5 +403,112 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<Self::StreamSessionPartsBatchStream>, tonic::Status>
     {
         self.handle_stream_session_parts_batch(req).await
+    }
+
+    async fn create_channel(
+        &self,
+        req: tonic::Request<proto::CreateChannelRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
+        self.handle_create_channel(req).await
+    }
+
+    async fn get_channel(
+        &self,
+        req: tonic::Request<proto::GetChannelRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
+        self.handle_get_channel(req).await
+    }
+
+    async fn modify_channel(
+        &self,
+        req: tonic::Request<proto::ModifyChannelRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
+        self.handle_modify_channel(req).await
+    }
+
+    async fn list_channels(
+        &self,
+        req: tonic::Request<proto::ListChannelsRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListChannelsResponse>, tonic::Status> {
+        self.handle_list_channels(req).await
+    }
+
+    async fn delete_channel(
+        &self,
+        req: tonic::Request<proto::DeleteChannelRequest>,
+    ) -> std::result::Result<tonic::Response<proto::DeleteChannelResponse>, tonic::Status> {
+        self.handle_delete_channel(req).await
+    }
+
+    async fn post_channel_message(
+        &self,
+        req: tonic::Request<proto::PostChannelMessageRequest>,
+    ) -> std::result::Result<tonic::Response<proto::PostChannelMessageResponse>, tonic::Status>
+    {
+        self.handle_post_channel_message(req).await
+    }
+
+    async fn get_channel_message(
+        &self,
+        req: tonic::Request<proto::GetChannelMessageRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ChannelMessageResponse>, tonic::Status> {
+        self.handle_get_channel_message(req).await
+    }
+
+    async fn list_channel_messages(
+        &self,
+        req: tonic::Request<proto::ListChannelMessagesRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListChannelMessagesResponse>, tonic::Status>
+    {
+        self.handle_list_channel_messages(req).await
+    }
+
+    async fn create_channel_subscription(
+        &self,
+        req: tonic::Request<proto::CreateChannelSubscriptionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status>
+    {
+        self.handle_create_channel_subscription(req).await
+    }
+
+    async fn get_channel_subscription(
+        &self,
+        req: tonic::Request<proto::GetChannelSubscriptionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status>
+    {
+        self.handle_get_channel_subscription(req).await
+    }
+
+    async fn modify_channel_subscription(
+        &self,
+        req: tonic::Request<proto::ModifyChannelSubscriptionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status>
+    {
+        self.handle_modify_channel_subscription(req).await
+    }
+
+    async fn list_channel_subscriptions(
+        &self,
+        req: tonic::Request<proto::ListChannelSubscriptionsRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListChannelSubscriptionsResponse>, tonic::Status>
+    {
+        self.handle_list_channel_subscriptions(req).await
+    }
+
+    async fn delete_channel_subscription(
+        &self,
+        req: tonic::Request<proto::DeleteChannelSubscriptionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::DeleteChannelSubscriptionResponse>, tonic::Status>
+    {
+        self.handle_delete_channel_subscription(req).await
+    }
+
+    type StreamChannelEventsStream = ChannelEventStream;
+
+    async fn stream_channel_events(
+        &self,
+        req: tonic::Request<proto::StreamChannelEventsRequest>,
+    ) -> std::result::Result<tonic::Response<Self::StreamChannelEventsStream>, tonic::Status> {
+        self.handle_stream_channel_events(req).await
     }
 }

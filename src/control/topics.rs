@@ -9,6 +9,7 @@ pub const SESSION_DISPATCH_TOPIC: &str = "talon.session.dispatch";
 pub const SESSION_CONTROL_TOPIC: &str = "talon.session.control";
 pub const RESOURCE_LIFECYCLE_TOPIC: &str = "talon.resource.lifecycle";
 pub const SESSION_PARTS_TOPIC_PREFIX: &str = "talon.session.parts";
+pub const CHANNEL_EVENTS_TOPIC_PREFIX: &str = "talon.channel.events";
 pub const DEFAULT_SESSION_PART_SHARDS: u32 = 32;
 
 pub fn session_part_shard_count() -> u32 {
@@ -36,4 +37,8 @@ pub fn session_part_topic_for_shard(shard: u32) -> String {
 
 pub fn session_part_topic_for_session(session_id: &str) -> String {
     session_part_topic_for_shard(session_part_shard(session_id))
+}
+
+pub fn channel_events_topic(ns: &str, channel: &str) -> String {
+    format!("{}.{}.{}", CHANNEL_EVENTS_TOPIC_PREFIX, ns, channel)
 }

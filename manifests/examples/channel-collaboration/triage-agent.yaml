@@ -1,0 +1,16 @@
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: triage-agent
+  namespace: channel-collaboration
+  labels:
+    role: triage
+    tutorial: channel-collaboration
+definition:
+  templated:
+    templateName: channel-agent-template
+    delta:
+      systemPrompt:
+        append: |
+          You are responsible for first-response triage. Identify the next concrete step,
+          owner, and any missing information.

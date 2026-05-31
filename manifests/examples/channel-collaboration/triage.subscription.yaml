@@ -1,0 +1,15 @@
+apiVersion: talon.impalasys.com/v1
+kind: ChannelSubscription
+metadata:
+  name: triage
+  namespace: channel-collaboration
+  labels:
+    tutorial: channel-collaboration
+spec:
+  channel: incident-room
+  agent: triage-agent
+  enabled: true
+  trigger: mention
+  contextPolicy:
+    mode: recent_public
+    maxMessages: 20

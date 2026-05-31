@@ -470,6 +470,15 @@ pub fn normalize_session_mode(session_mode: &str) -> Result<String> {
 }
 
 pub async fn create_session(cp: &ControlPlane, ns: &str, agent: &str) -> Result<String> {
+    create_session_with_labels(cp, ns, agent, HashMap::new()).await
+}
+
+pub async fn create_session_with_labels(
+    cp: &ControlPlane,
+    ns: &str,
+    agent: &str,
+    labels: HashMap<String, String>,
+) -> Result<String> {
     cp.kv
         .get_msg::<models::Agent>(&keys::agent(ns, agent))
         .await?
@@ -483,7 +492,7 @@ pub async fn create_session(cp: &ControlPlane, ns: &str, agent: &str) -> Result<
         created_at: chrono::Utc::now().timestamp_micros(),
         last_active: chrono::Utc::now().timestamp_micros(),
         metadata: std::collections::HashMap::new(),
-        labels: std::collections::HashMap::new(),
+        labels,
     };
     cp.kv
         .set_msg(&keys::session(ns, agent, &session_id), &session)

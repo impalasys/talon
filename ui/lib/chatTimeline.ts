@@ -59,6 +59,48 @@ function parseJsonObject(payloadJson: unknown): Record<string, unknown> {
   }
 }
 
+function parsePartPayload(part: any): Record<string, unknown> {
+  if (!part || typeof part !== 'object') return {};
+  const payload = part.payloadJson ?? part.payload_json;
+  if (typeof payload === 'string') return parseJsonObject(payload);
+  return parseObjectPayload(payload);
+}
+
+function partType(part: any): unknown {
+  return part?.partType ?? part?.part_type ?? part?.type;
+}
+
+function partContent(part: any): string {
+  if (typeof part?.text === 'string') return part.text;
+  if (typeof part?.content === 'string') return part.content;
+  return '';
+}
+
+function isTextPart(part: any): boolean {
+  const type = partType(part);
+  return type === 'text' || type === 1 || type === 'SESSION_MESSAGE_PART_TYPE_TEXT';
+}
+
+function isReasoningPart(part: any): boolean {
+  const type = partType(part);
+  return type === 'reasoning' || type === 2 || type === 'SESSION_MESSAGE_PART_TYPE_REASONING';
+}
+
+function isErrorPart(part: any): boolean {
+  const type = partType(part);
+  return type === 6 || type === 'SESSION_MESSAGE_PART_TYPE_ERROR';
+}
+
+function isToolCallPart(part: any): boolean {
+  const type = partType(part);
+  return type === 3 || type === 'SESSION_MESSAGE_PART_TYPE_TOOL_CALL';
+}
+
+function isToolResultPart(part: any): boolean {
+  const type = partType(part);
+  return type === 4 || type === 'SESSION_MESSAGE_PART_TYPE_TOOL_RESULT';
+}
+
 function appendTextToTimeline(
   timeline: AssistantTimelineItem[],
   chunk: string,
@@ -113,39 +155,111 @@ function legacyToolInvocationsFromParts(message: any): ToolInvocationItem[] {
 
   const toolInvocations = new Map<string, ToolInvocationItem>();
   for (const part of message.parts) {
-    if (!part || typeof part !== 'object' || typeof part.toolCallId !== 'string') continue;
+    if (!part || typeof part !== 'object') continue;
+
+    const payload = parsePartPayload(part);
+    const toolCallId =
+      typeof part.toolCallId === 'string'
+        ? part.toolCallId
+        : typeof payload.tool_call_id === 'string'
+          ? payload.tool_call_id
+          : '';
+    if (!toolCallId) continue;
 
     const toolName =
       typeof part.toolName === 'string'
         ? part.toolName
         : typeof part.type === 'string' && part.type.startsWith('tool-')
           ? part.type.slice(5)
-          : 'tool';
+          : typeof part.name === 'string' && part.name
+            ? part.name
+            : 'tool';
 
-    const previous = toolInvocations.get(part.toolCallId);
-    toolInvocations.set(part.toolCallId, {
-      toolCallId: part.toolCallId,
+    const previous = toolInvocations.get(toolCallId);
+    toolInvocations.set(toolCallId, {
+      toolCallId,
       toolName,
-      args: 'input' in part ? part.input : previous?.args ?? {},
+      args: 'input' in part ? part.input : payload.input ?? previous?.args ?? {},
       result:
         part.state === 'output-available'
           ? part.output
           : part.state === 'output-error'
             ? part.errorText
-            : previous?.result,
+            : isToolResultPart(part)
+              ? payload.output ?? payload.output_preview ?? partContent(part)
+              : previous?.result,
     });
   }
 
   return Array.from(toolInvocations.values());
 }
 
+function timelineFromParts(message: any): AssistantTimelineItem[] {
+  if (!Array.isArray(message?.parts)) return [];
+
+  let timeline: AssistantTimelineItem[] = [];
+  for (const part of message.parts) {
+    if (!part || typeof part !== 'object') continue;
+
+    if (isTextPart(part) || isErrorPart(part)) {
+      timeline = appendTextToTimeline(timeline, partContent(part));
+      continue;
+    }
+
+    const payload = parsePartPayload(part);
+    const toolCallId =
+      typeof part.toolCallId === 'string'
+        ? part.toolCallId
+        : typeof payload.tool_call_id === 'string'
+          ? payload.tool_call_id
+          : '';
+    const toolName =
+      typeof part.toolName === 'string'
+        ? part.toolName
+        : typeof part.type === 'string' && part.type.startsWith('tool-')
+          ? part.type.slice(5)
+          : typeof part.name === 'string' && part.name
+            ? part.name
+            : 'tool';
+
+    if (isToolCallPart(part) || (typeof part.type === 'string' && part.type.startsWith('tool-'))) {
+      timeline = upsertToolInTimeline(
+        timeline,
+        toolCallId,
+        toolName,
+        'input' in part ? part.input : payload.input ?? {},
+        part.state === 'output-available'
+          ? part.output
+          : part.state === 'output-error'
+            ? part.errorText
+            : undefined,
+      );
+      continue;
+    }
+
+    if (isToolResultPart(part)) {
+      timeline = upsertToolInTimeline(
+        timeline,
+        toolCallId,
+        toolName,
+        undefined,
+        payload.output ?? payload.output_preview ?? partContent(part),
+      );
+    }
+  }
+
+  return timeline;
+}
+
 export function getMessageContent(message: any): string {
-  if (typeof message?.content === 'string') return message.content;
-  if (!Array.isArray(message?.parts)) return '';
-  return message.parts
-    .filter((part: any) => part?.type === 'text' && typeof part.text === 'string')
-    .map((part: any) => part.text)
-    .join('');
+  if (Array.isArray(message?.parts)) {
+    const content = message.parts
+      .filter((part: any) => isTextPart(part) || isErrorPart(part))
+      .map(partContent)
+      .join('');
+    if (content) return content;
+  }
+  return typeof message?.content === 'string' ? message.content : '';
 }
 
 export function getMessageReasoningContent(message: any): string {
@@ -155,14 +269,28 @@ export function getMessageReasoningContent(message: any): string {
 
   if (!Array.isArray(message?.parts)) return '';
   return message.parts
-    .filter((part: any) => part?.type === 'reasoning' && typeof part.text === 'string')
-    .map((part: any) => part.text)
+    .filter(isReasoningPart)
+    .map(partContent)
     .join('');
 }
 
 export function getMessageUsage(message: any): UsageSummary | null {
   if (message?.usage && typeof message.usage === 'object') {
     return message.usage as UsageSummary;
+  }
+  if (Array.isArray(message?.parts)) {
+    const usagePart = message.parts.find(
+      (part: any) => partType(part) === 5 || partType(part) === 'SESSION_MESSAGE_PART_TYPE_USAGE',
+    );
+    if (usagePart) {
+      const payload = parsePartPayload(usagePart);
+      return {
+        inputTokens: typeof payload.input_tokens === 'number' ? payload.input_tokens : undefined,
+        outputTokens: typeof payload.output_tokens === 'number' ? payload.output_tokens : undefined,
+        reasoningTokens: typeof payload.reasoning_tokens === 'number' ? payload.reasoning_tokens : undefined,
+        totalTokens: typeof payload.total_tokens === 'number' ? payload.total_tokens : undefined,
+      };
+    }
   }
   return null;
 }
@@ -171,6 +299,9 @@ export function getMessageAssistantTimeline(message: any): AssistantTimelineItem
   if (Array.isArray(message?.timeline) && message.timeline.length > 0) {
     return message.timeline as AssistantTimelineItem[];
   }
+
+  const partTimeline = timelineFromParts(message);
+  if (partTimeline.length > 0) return partTimeline;
 
   const toolInvocations = Array.isArray(message?.toolInvocations)
     ? (message.toolInvocations as ToolInvocationItem[])

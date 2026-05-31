@@ -83,9 +83,44 @@ impl WorkerEventHandler {
             .lock()
             .await
             .insert(event.session_id.clone(), cancellation_token.clone());
+        // Pre-allocate the assistant reply slot before runtime construction so
+        // provider/config errors can be recorded in the session history.
+        let reply_msg_id = uuid::Uuid::now_v7().to_string();
+        let reply_msg_key = crate::control::keys::session_message(
+            ns,
+            &event.agent,
+            &event.session_id,
+            &reply_msg_id,
+        );
+        let _ = self
+            .cp
+            .kv
+            .set_msg(
+                &reply_msg_key,
+                &models::SessionMessage {
+                    id: reply_msg_id.clone(),
+                    role: models::MessageRole::RoleAssistant as i32,
+                    created_at: chrono::Utc::now().timestamp_micros(),
+                    labels: std::collections::HashMap::new(),
+                    parts: Vec::new(),
+                },
+            )
+            .instrument(tracing::info_span!("WorkerEventHandler.create_reply_slot"))
+            .await;
+
+        let sink = PubSubSessionSink::new(
+            self.cp.kv.clone(),
+            self.cp.pubsub.clone(),
+            event.ns.clone(),
+            event.session_id.clone(),
+            event.agent.clone(),
+            reply_msg_id,
+            reply_msg_key,
+        );
+
         let outcome = async {
             // Build the fully-resolved runtime (spec, history, LLM, tools, knowledge)
-            let mut runtime = AgentRuntime::build(
+            let mut runtime = match AgentRuntime::build(
                 ns,
                 &event.agent,
                 &event.session_id,
@@ -94,41 +129,20 @@ impl WorkerEventHandler {
                 &self.mcp_registry,
             )
             .instrument(tracing::info_span!("AgentRuntime.build"))
-            .await?;
-
-            // Pre-allocate the assistant reply slot in KV
-            let reply_msg_id = uuid::Uuid::now_v7().to_string();
-            let reply_msg_key = crate::control::keys::session_message(
-                ns,
-                &event.agent,
-                &event.session_id,
-                &reply_msg_id,
-            );
-            let _ = self
-                .cp
-                .kv
-                .set_msg(
-                    &reply_msg_key,
-                    &models::SessionMessage {
-                        id: reply_msg_id.clone(),
-                        role: models::MessageRole::RoleAssistant as i32,
-                        created_at: chrono::Utc::now().timestamp_micros(),
-                        labels: std::collections::HashMap::new(),
-                        parts: Vec::new(),
-                    },
-                )
-                .instrument(tracing::info_span!("WorkerEventHandler.create_reply_slot"))
-                .await;
-
-            let sink = PubSubSessionSink::new(
-                self.cp.kv.clone(),
-                self.cp.pubsub.clone(),
-                event.ns.clone(),
-                event.session_id.clone(),
-                event.agent.clone(),
-                reply_msg_id,
-                reply_msg_key,
-            );
+            .await
+            {
+                Ok(runtime) => runtime,
+                Err(err) => {
+                    tracing::error!(
+                        agent = %event.agent,
+                        session = %event.session_id,
+                        "Failed to build agent runtime: {}",
+                        err
+                    );
+                    sink.on_error(&format!("Error: {}", err)).await;
+                    return Ok((SessionCompletionStatus::Errored, sink.summary()));
+                }
+            };
 
             execute_with_panic_boundary(
                 runtime.executor.execute(
@@ -346,14 +360,24 @@ mod tests {
         }
     }
 
-    fn handler_with_kv(kv: Arc<MockKvStore>) -> WorkerEventHandler {
+    fn handler_with_config(kv: Arc<MockKvStore>, config: Config) -> WorkerEventHandler {
         WorkerEventHandler {
             cp: Arc::new(ControlPlane {
                 kv,
                 pubsub: Arc::new(MockPubSub),
                 scheduler: Arc::new(NoopSchedulerBackend),
             }),
-            config: Arc::new(Config {
+            config: Arc::new(config),
+            mcp_registry: Arc::new(McpRegistry::new()),
+            scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
+            session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
+        }
+    }
+
+    fn handler_with_kv(kv: Arc<MockKvStore>) -> WorkerEventHandler {
+        handler_with_config(
+            kv,
+            Config {
                 providers: HashMap::from([(
                     "novita".to_string(),
                     ProviderConfig {
@@ -373,11 +397,8 @@ mod tests {
                 )]),
                 default_provider: "novita".to_string(),
                 ..Config::default()
-            }),
-            mcp_registry: Arc::new(McpRegistry::new()),
-            scheduler_authenticator: Arc::new(SchedulerRequestAuthenticator::deny_all()),
-            session_cancellations: Arc::new(AsyncMutex::new(HashMap::new())),
-        }
+            },
+        )
     }
 
     #[tokio::test]
@@ -533,6 +554,151 @@ mod tests {
             .expect("session should load")
             .expect("session should exist");
         assert_eq!(updated.status, "IDLE");
+    }
+
+    #[tokio::test]
+    async fn handle_session_message_persists_runtime_build_error_and_keeps_user_message() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_config(
+            kv.clone(),
+            Config {
+                providers: HashMap::from([(
+                    "openai".to_string(),
+                    ProviderConfig {
+                        config: Some(proto::llm_provider_config::Config::Openai(
+                            proto::OpenAiConfig {
+                                model: "gpt-test".to_string(),
+                                api_key: None,
+                                org_id: String::new(),
+                            },
+                        )),
+                    },
+                )]),
+                default_provider: "openai".to_string(),
+                ..Config::default()
+            },
+        );
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+        };
+
+        kv.set_msg(
+            &crate::control::keys::agent("conic:test", "assistant"),
+            &models::Agent {
+                name: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                definition: None,
+                effective_spec: Some(spec),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &models::Session {
+                id: "session-1".to_string(),
+                agent: "assistant".to_string(),
+                ns: "conic:test".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 0,
+                last_active: 123,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message(
+                "conic:test",
+                "assistant",
+                "session-1",
+                "user-1",
+            ),
+            &models::SessionMessage {
+                id: "user-1".to_string(),
+                role: models::MessageRole::RoleUser as i32,
+                created_at: 1,
+                labels: HashMap::new(),
+                parts: vec![models::SessionMessagePart {
+                    id: "000000".to_string(),
+                    part_type: models::SessionMessagePartType::Text as i32,
+                    content: "operator prompt".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 1,
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        handler
+            .handle_session_message(SessionMessageEvent {
+                ns: "conic:test".to_string(),
+                agent: "assistant".to_string(),
+                session_id: "session-1".to_string(),
+                message_id: "user-1".to_string(),
+                direction: MessageDirection::Inbound as i32,
+                message: "operator prompt".to_string(),
+                timestamp: 1,
+            })
+            .await
+            .expect("runtime build errors should be persisted and acked");
+
+        let session = kv
+            .get_msg::<models::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.status, "IDLE");
+
+        let message_keys = kv
+            .list_keys(&crate::control::keys::session_message_prefix(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .unwrap();
+        let mut user_message = None;
+        let mut error_message = None;
+        for key in message_keys {
+            if let Some(message) = kv.get_msg::<models::SessionMessage>(&key).await.unwrap() {
+                if message.role == models::MessageRole::RoleUser as i32 {
+                    user_message = Some(message);
+                } else if message.role == models::MessageRole::RoleAssistant as i32
+                    && message
+                        .parts
+                        .iter()
+                        .any(|part| part.part_type == models::SessionMessagePartType::Error as i32)
+                {
+                    error_message = Some(message);
+                }
+            }
+        }
+
+        let user_message = user_message.expect("operator message should remain persisted");
+        assert_eq!(user_message.parts[0].content, "operator prompt");
+        let error_message = error_message.expect("assistant error should be persisted");
+        let error_part = error_message
+            .parts
+            .iter()
+            .find(|part| part.part_type == models::SessionMessagePartType::Error as i32)
+            .expect("error part should exist");
+        assert!(error_part
+            .content
+            .contains("OpenAI provider config is missing api_key"));
     }
 
     #[tokio::test]

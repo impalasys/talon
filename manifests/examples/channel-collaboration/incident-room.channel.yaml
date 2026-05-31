@@ -1,0 +1,12 @@
+apiVersion: talon.impalasys.com/v1
+kind: Channel
+metadata:
+  name: incident-room
+  namespace: channel-collaboration
+  labels:
+    tutorial: channel-collaboration
+spec:
+  title: Incident Room
+  status: open
+  metadata:
+    purpose: Multi-agent incident coordination

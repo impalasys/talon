@@ -228,6 +228,115 @@ describe("fallback readers", () => {
     ]);
   });
 
+  it("reads canonical Talon message parts instead of deprecated message content", () => {
+    const message = {
+      role: "assistant",
+      content: "stale legacy content",
+      parts: [
+        { partType: 1, content: "Hello " },
+        { part_type: "SESSION_MESSAGE_PART_TYPE_TEXT", content: "world" },
+        { partType: 2, content: "reasoning step" },
+        {
+          partType: 3,
+          name: "knowledge_search",
+          payloadJson: JSON.stringify({
+            tool_call_id: "call-1",
+            input: { query: "docs" },
+          }),
+        },
+        {
+          part_type: "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT",
+          name: "knowledge_search",
+          content: "done",
+          payload_json: JSON.stringify({
+            tool_call_id: "call-1",
+            output: "done",
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageContent(message)).toBe("Hello world");
+    expect(getMessageReasoningContent(message)).toBe("reasoning step");
+    expect(getMessageToolInvocations(message)).toEqual([
+      {
+        toolCallId: "call-1",
+        toolName: "knowledge_search",
+        args: { query: "docs" },
+        result: "done",
+      },
+    ]);
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      { type: "text", text: "Hello world" },
+      {
+        type: "tool",
+        toolCallId: "call-1",
+        toolName: "knowledge_search",
+        args: { query: "docs" },
+        result: "done",
+      },
+    ]);
+  });
+
+  it("reads canonical error and usage parts", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        { part_type: "SESSION_MESSAGE_PART_TYPE_ERROR", content: "Provider failed" },
+        {
+          partType: 5,
+          payloadJson: JSON.stringify({
+            input_tokens: 10,
+            output_tokens: 3,
+            reasoning_tokens: 2,
+            total_tokens: 15,
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageContent(message)).toBe("Provider failed");
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      { type: "text", text: "Provider failed" },
+    ]);
+    expect(getMessageUsage(message)).toEqual({
+      inputTokens: 10,
+      outputTokens: 3,
+      reasoningTokens: 2,
+      totalTokens: 15,
+    });
+    expect(getMessageUsage({ parts: [] })).toBeNull();
+  });
+
+  it("keeps AI SDK tool parts interleaved with text", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        { type: "text", text: "Before " },
+        {
+          type: "tool-search",
+          toolCallId: "call-2",
+          input: { query: "ops" },
+          state: "output-error",
+          errorText: "denied",
+        },
+        { type: "text", text: "after" },
+      ],
+    };
+
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      { type: "text", text: "Before " },
+      {
+        type: "tool",
+        toolCallId: "call-2",
+        toolName: "search",
+        args: { query: "ops" },
+        result: "denied",
+      },
+      { type: "text", text: "after" },
+    ]);
+  });
+
   it("falls back to text then tools when no timeline exists", () => {
     const message = {
       role: "assistant",
@@ -244,6 +353,36 @@ describe("fallback readers", () => {
         toolCallId: "call-1",
         toolName: "knowledge_search",
         args: { query: "docs" },
+      },
+    ]);
+  });
+
+  it("handles no-op assistant id reconciliation and implicit tool targets", () => {
+    const messages = [
+      { id: "assistant-1", role: "assistant", content: "A" },
+    ];
+
+    expect(reconcileAssistantMessageId(messages, "", "assistant-2")).toBe(messages);
+    expect(reconcileAssistantMessageId(messages, "missing", "assistant-2")).toEqual([
+      ...messages,
+      {
+        id: "assistant-2",
+        role: "assistant",
+        content: "",
+        parts: [{ type: "text", text: "" }],
+        reasoningContent: "",
+        timeline: [],
+      },
+    ]);
+
+    const withTool = applyToolInvocationToMessages(messages, "call-3", "lookup", { id: 1 });
+    expect(getMessageAssistantTimeline(withTool[0])).toEqual([
+      { type: "text", text: "A" },
+      {
+        type: "tool",
+        toolCallId: "call-3",
+        toolName: "lookup",
+        args: { id: 1 },
       },
     ]);
   });

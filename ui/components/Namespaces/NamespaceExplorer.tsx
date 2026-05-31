@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
-import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText } from 'lucide-react';
+import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getGatewayClient, buildGatewayHeaders, normalizeGatewayUrl } from '../../lib/grpc';
@@ -61,12 +61,13 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type SelectionType = 'namespace' | 'agent' | 'session' | 'schedule' | 'template' | 'mcp-server' | 'mcp-binding' | 'knowledge';
+export type SelectionType = 'namespace' | 'agent' | 'session' | 'channel' | 'channel-subscription' | 'schedule' | 'template' | 'mcp-server' | 'mcp-binding' | 'knowledge';
 
 export type Selection = {
   type: SelectionType;
   ns: string;
   agent?: string;
+  channel?: string;
   sessionId?: string;
   resourceName?: string;
   fullPath: string;
@@ -134,6 +135,25 @@ type ExplorerKnowledge = {
   };
 };
 
+type ExplorerChannel = {
+  name?: string;
+  ns?: string;
+  title?: string;
+  status?: string;
+  updatedAt?: bigint | number | string;
+  updated_at?: bigint | number | string;
+  labels?: Record<string, string>;
+};
+
+type ExplorerChannelSubscription = {
+  name?: string;
+  ns?: string;
+  channel?: string;
+  agent?: string;
+  enabled?: boolean;
+  trigger?: string;
+};
+
 function namespaceLabel(labels?: Record<string, string>) {
   return labels?.workspace_name || labels?.workspace || labels?.display_name || labels?.name;
 }
@@ -144,14 +164,18 @@ function nodeSortWeight(node: TreeNode) {
       return 0;
     case 'agent':
       return 1;
-    case 'mcp-binding':
+    case 'channel':
       return 2;
-    case 'schedule':
+    case 'channel-subscription':
       return 3;
-    case 'session':
+    case 'mcp-binding':
       return 4;
-    default:
+    case 'schedule':
       return 5;
+    case 'session':
+      return 6;
+    default:
+      return 7;
   }
 }
 
@@ -185,6 +209,9 @@ function selectionExpansionIds(selection: Selection | null) {
   const ids = namespaceAncestors(selection.ns);
   if (selection.agent) {
     ids.push(`${selection.ns}:${selection.agent}`);
+  }
+  if (selection.channel) {
+    ids.push(`${selection.ns}:channel:${selection.channel}`);
   }
   return ids;
 }
@@ -342,7 +369,7 @@ function NamespaceNode({
   toggleExpanded: (id: string) => void
 }) {
   const childNodes = Object.values(node.children).sort(compareTreeNodes);
-  const hasChildrenOrCanHaveChildren = node.selection.type !== 'session' && node.selection.type !== 'schedule';
+  const hasChildrenOrCanHaveChildren = !['session', 'schedule', 'knowledge', 'mcp-binding', 'channel-subscription'].includes(node.selection.type);
   const isExpanded = expanded.has(node.id);
   const isSelected = selectedNodeId === node.id;
 
@@ -405,6 +432,8 @@ function NamespaceNode({
          {node.selection.type === 'namespace' && <Folder className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-muted-foreground")} />}
          {node.selection.type === 'agent' && <Cpu className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-emerald-500")} />}
          {node.selection.type === 'session' && <MessageSquare className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
+         {node.selection.type === 'channel' && <Hash className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-cyan-400")} />}
+         {node.selection.type === 'channel-subscription' && <Radio className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-cyan-300")} />}
          {node.selection.type === 'schedule' && <Clock3 className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-amber-500")} />}
          {node.selection.type === 'mcp-binding' && <Plug className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
          {node.selection.type === 'knowledge' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-violet-400")} />}
@@ -486,7 +515,15 @@ export function NamespaceExplorer({
   const [mcpBindingsByNamespace, setMcpBindingsByNamespace] = useState<Record<string, ExplorerMcpBinding[]>>({});
   const [schedulesByNamespace, setSchedulesByNamespace] = useState<Record<string, ExplorerSchedule[]>>({});
   const [knowledgeByNamespace, setKnowledgeByNamespace] = useState<Record<string, ExplorerKnowledge[]>>({});
+  const [channelsByNamespace, setChannelsByNamespace] = useState<Record<string, ExplorerChannel[]>>({});
+  const [channelSubscriptionsByKey, setChannelSubscriptionsByKey] = useState<Record<string, ExplorerChannelSubscription[]>>({});
   const [isSubmittingAgent, setIsSubmittingAgent] = useState(false);
+  const [channelModalOpen, setChannelModalOpen] = useState<{ isOpen: boolean, ns: string }>({ isOpen: false, ns: '' });
+  const [channelForm, setChannelForm] = useState({ name: '', title: '' });
+  const [isSubmittingChannel, setIsSubmittingChannel] = useState(false);
+  const [subscriptionModalOpen, setSubscriptionModalOpen] = useState<{ isOpen: boolean, ns: string, channel: string }>({ isOpen: false, ns: '', channel: '' });
+  const [subscriptionForm, setSubscriptionForm] = useState({ name: '', agent: '', trigger: 'mention', enabled: true });
+  const [isSubmittingSubscription, setIsSubmittingSubscription] = useState(false);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean, node: TreeNode | null }>({ isOpen: false, node: null });
   const [isDeleting, setIsDeleting] = useState(false);
@@ -586,6 +623,47 @@ export function NamespaceExplorer({
               console.warn(`Could not fetch agents for ns ${ns}`, e);
             }
 
+            const namespaceChannels = channelsByNamespace[ns] || [];
+            for (const channel of namespaceChannels) {
+              const channelName = channel.name || 'unknown-channel';
+              const channelId = `${ns}:channel:${channelName}`;
+              const status = channel.status || 'open';
+              currentLevel.children[`channel:${channelName}`] = {
+                id: channelId,
+                name: channelName,
+                badge: status === 'closed' ? 'closed' : (channel.title || 'channel'),
+                selection: {
+                  type: 'channel',
+                  ns,
+                  channel: channelName,
+                  resourceName: channelName,
+                  fullPath: channelId,
+                },
+                children: {},
+              };
+
+              if (expanded.has(channelId)) {
+                const subscriptions = channelSubscriptionsByKey[`${ns}/${channelName}`] || [];
+                for (const subscription of subscriptions) {
+                  const subscriptionName = subscription.name || 'unknown-subscription';
+                  const subscriptionId = `${channelId}:subscription:${subscriptionName}`;
+                  currentLevel.children[`channel:${channelName}`].children[`subscription:${subscriptionName}`] = {
+                    id: subscriptionId,
+                    name: subscriptionName,
+                    badge: subscription.enabled === false ? 'disabled' : (subscription.trigger || 'mention'),
+                    selection: {
+                      type: 'channel-subscription',
+                      ns,
+                      channel: channelName,
+                      resourceName: subscriptionName,
+                      fullPath: subscriptionId,
+                    },
+                    children: {},
+                  };
+                }
+              }
+            }
+
             const namespaceBindings = mcpBindingsByNamespace[ns] || [];
             for (const binding of namespaceBindings) {
               const bindingName = binding.metadata?.name || 'unknown-binding';
@@ -650,7 +728,7 @@ export function NamespaceExplorer({
     } catch (e) {
       console.error(e);
     }
-  }, [isConnected, expanded, knowledgeByNamespace, mcpBindingsByNamespace, schedulesByNamespace, selectedNode]);
+  }, [channelSubscriptionsByKey, channelsByNamespace, isConnected, expanded, knowledgeByNamespace, mcpBindingsByNamespace, schedulesByNamespace, selectedNode]);
 
   useEffect(() => {
     if (!selectedNode?.ns) return;
@@ -787,6 +865,66 @@ export function NamespaceExplorer({
     }
   }, [expanded, isConnected, selectedNode]);
 
+  const refreshChannels = useCallback(async () => {
+    if (!isConnected) {
+      setChannelsByNamespace({});
+      setChannelSubscriptionsByKey({});
+      return;
+    }
+
+    try {
+      const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
+      const baseUrl = normalizeGatewayUrl(gatewayUrl);
+      const headers =
+        typeof window === 'undefined'
+          ? undefined
+          : buildGatewayHeaders(window.localStorage.getItem('talon_auth_token'));
+      const channelEntries = await Promise.all(
+        Array.from(namespaces).map(async (ns) => {
+          try {
+            const response = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels`, { headers });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const payload = await response.json();
+            return [ns, payload.channels || []] as const;
+          } catch (e) {
+            console.warn(`Could not fetch channels for ns ${ns}`, e);
+            return [ns, []] as const;
+          }
+        }),
+      );
+      const channelMap = Object.fromEntries(channelEntries);
+      setChannelsByNamespace(channelMap);
+
+      const expandedChannels = Object.entries(channelMap).flatMap(([ns, channels]) =>
+        (channels as ExplorerChannel[])
+          .map((channel) => channel.name || '')
+          .filter((name) => name && expanded.has(`${ns}:channel:${name}`))
+          .map((name) => ({ ns, name })),
+      );
+      const subscriptionEntries = await Promise.all(
+        expandedChannels.map(async ({ ns, name }) => {
+          try {
+            const response = await fetch(
+              `${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels/${encodeURIComponent(name)}/subscriptions`,
+              { headers },
+            );
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const payload = await response.json();
+            return [`${ns}/${name}`, payload.subscriptions || []] as const;
+          } catch (e) {
+            console.warn(`Could not fetch channel subscriptions for ${ns}/${name}`, e);
+            return [`${ns}/${name}`, []] as const;
+          }
+        }),
+      );
+      setChannelSubscriptionsByKey(Object.fromEntries(subscriptionEntries));
+    } catch (e) {
+      console.warn('Could not list namespaces for channels', e);
+      setChannelsByNamespace({});
+      setChannelSubscriptionsByKey({});
+    }
+  }, [expanded, gatewayUrl, isConnected, selectedNode]);
+
   useEffect(() => {
     refreshData();
     const interval = setInterval(refreshData, 3000);
@@ -822,6 +960,12 @@ export function NamespaceExplorer({
     const interval = setInterval(refreshKnowledge, 5000);
     return () => clearInterval(interval);
   }, [refreshKnowledge]);
+
+  useEffect(() => {
+    refreshChannels();
+    const interval = setInterval(refreshChannels, 5000);
+    return () => clearInterval(interval);
+  }, [refreshChannels]);
 
   useEffect(() => {
     if (selectedNode && selectedNode.type === 'namespace' && !newNamespace) {
@@ -884,6 +1028,83 @@ export function NamespaceExplorer({
     }
   };
 
+  const handleCreateChannelSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!channelForm.name.trim()) return;
+    setIsSubmittingChannel(true);
+    try {
+      const baseUrl = normalizeGatewayUrl(gatewayUrl);
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(typeof window === 'undefined' ? {} : (buildGatewayHeaders(window.localStorage.getItem('talon_auth_token')) || {})),
+      };
+      const response = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(channelModalOpen.ns)}/channels`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          ns: channelModalOpen.ns,
+          channel: {
+            name: channelForm.name.trim(),
+            title: channelForm.title.trim(),
+            status: 'open',
+          },
+        }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setExpanded(prev => new Set(prev).add(channelModalOpen.ns));
+      await refreshChannels();
+      await refreshData();
+      setChannelModalOpen({ isOpen: false, ns: '' });
+      setChannelForm({ name: '', title: '' });
+    } catch (e) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : 'Error creating channel');
+    } finally {
+      setIsSubmittingChannel(false);
+    }
+  };
+
+  const handleCreateSubscriptionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subscriptionForm.name.trim() || !subscriptionForm.agent.trim()) return;
+    setIsSubmittingSubscription(true);
+    try {
+      const baseUrl = normalizeGatewayUrl(gatewayUrl);
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(typeof window === 'undefined' ? {} : (buildGatewayHeaders(window.localStorage.getItem('talon_auth_token')) || {})),
+      };
+      const response = await fetch(
+        `${baseUrl}/v1/ns/${encodeURIComponent(subscriptionModalOpen.ns)}/channels/${encodeURIComponent(subscriptionModalOpen.channel)}/subscriptions`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            ns: subscriptionModalOpen.ns,
+            channel: subscriptionModalOpen.channel,
+            subscription: {
+              name: subscriptionForm.name.trim(),
+              agent: subscriptionForm.agent.trim(),
+              enabled: subscriptionForm.enabled,
+              trigger: subscriptionForm.trigger,
+            },
+          }),
+        },
+      );
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      setExpanded(prev => new Set(prev).add(`${subscriptionModalOpen.ns}:channel:${subscriptionModalOpen.channel}`));
+      await refreshChannels();
+      await refreshData();
+      setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' });
+      setSubscriptionForm({ name: '', agent: '', trigger: 'mention', enabled: true });
+    } catch (e) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : 'Error creating channel subscription');
+    } finally {
+      setIsSubmittingSubscription(false);
+    }
+  };
+
   const handleDeleteConfirmed = async () => {
     if (!deleteConfirm.node) return;
     const { selection } = deleteConfirm.node;
@@ -895,9 +1116,28 @@ export function NamespaceExplorer({
         alert("DeleteAgent is currently not supported by the GatewayService");
       } else if (selection.type === 'session') {
         await getGatewayClient().deleteSession({ ns: selection.ns, agent: selection.agent!, sessionId: selection.sessionId! });
+      } else if (selection.type === 'channel') {
+        const response = await fetch(
+          `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(selection.ns)}/channels/${encodeURIComponent(selection.resourceName || selection.channel || '')}`,
+          {
+            method: 'DELETE',
+            headers: typeof window === 'undefined' ? undefined : buildGatewayHeaders(window.localStorage.getItem('talon_auth_token')),
+          },
+        );
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      } else if (selection.type === 'channel-subscription') {
+        const response = await fetch(
+          `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(selection.ns)}/channels/${encodeURIComponent(selection.channel || '')}/subscriptions/${encodeURIComponent(selection.resourceName || '')}`,
+          {
+            method: 'DELETE',
+            headers: typeof window === 'undefined' ? undefined : buildGatewayHeaders(window.localStorage.getItem('talon_auth_token')),
+          },
+        );
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
       } else if (selection.type === 'schedule') {
         await getGatewayClient().deleteSchedule({ ns: selection.ns, name: selection.resourceName || '' });
       }
+      await refreshChannels();
       await refreshData();
       setDeleteConfirm({ isOpen: false, node: null });
     } catch (e) {
@@ -1129,6 +1369,21 @@ export function NamespaceExplorer({
                </div>
              </DropdownItem>
           )}
+
+          {menuNode?.selection.type === 'namespace' && (
+             <DropdownItem
+               id="create_channel"
+               onAction={() => {
+                setContextMenu(null);
+                setChannelModalOpen({ isOpen: true, ns: menuNode.selection.ns });
+               }}
+             >
+               <div className="flex items-center gap-2">
+                 <Hash className="w-4 h-4 text-muted-foreground"/>
+                 Create Channel
+               </div>
+             </DropdownItem>
+          )}
           
           {menuNode?.selection.type === 'agent' && (
              <DropdownItem 
@@ -1147,6 +1402,25 @@ export function NamespaceExplorer({
                <div className="flex items-center gap-2">
                  <PlusCircle className="w-4 h-4 text-muted-foreground"/>
                  Create Session
+               </div>
+             </DropdownItem>
+          )}
+
+          {menuNode?.selection.type === 'channel' && (
+             <DropdownItem
+               id="create_channel_subscription"
+               onAction={() => {
+                setContextMenu(null);
+                setSubscriptionModalOpen({
+                  isOpen: true,
+                  ns: menuNode.selection.ns,
+                  channel: menuNode.selection.channel || menuNode.selection.resourceName || '',
+                });
+               }}
+             >
+               <div className="flex items-center gap-2">
+                 <Radio className="w-4 h-4 text-muted-foreground"/>
+                 Create Subscription
                </div>
              </DropdownItem>
           )}
@@ -1250,6 +1524,107 @@ export function NamespaceExplorer({
                 </Button>
               </ModalFooter>
             </>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={channelModalOpen.isOpen} onOpenChange={(open) => !open && setChannelModalOpen({ isOpen: false, ns: '' })}>
+        <ModalContent className="sm:max-w-md">
+          <ModalHeader className="flex flex-col gap-1">Create Channel</ModalHeader>
+          <ModalBody>
+            <form id="create-channel-form" onSubmit={handleCreateChannelSubmit} className="space-y-4">
+              <div>
+                <Label className="block text-sm font-medium mb-1">Channel Name</Label>
+                <Input
+                  className="w-full"
+                  placeholder="incident-room"
+                  value={channelForm.name}
+                  onChange={(e) => setChannelForm(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label className="block text-sm font-medium mb-1">Title</Label>
+                <Input
+                  className="w-full"
+                  placeholder="Incident Room"
+                  value={channelForm.title}
+                  onChange={(e) => setChannelForm(prev => ({ ...prev, title: e.target.value }))}
+                />
+              </div>
+            </form>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" appearance="outline" onClick={() => setChannelModalOpen({ isOpen: false, ns: '' })}>
+              Cancel
+            </Button>
+            <Button color="primary" type="submit" form="create-channel-form" disabled={isSubmittingChannel || !channelForm.name.trim()}>
+              Create Channel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={subscriptionModalOpen.isOpen} onOpenChange={(open) => !open && setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' })}>
+        <ModalContent className="sm:max-w-md">
+          <ModalHeader className="flex flex-col gap-1">Create Channel Subscription</ModalHeader>
+          <ModalBody>
+            <form id="create-channel-subscription-form" onSubmit={handleCreateSubscriptionSubmit} className="space-y-4">
+              <div>
+                <Label className="block text-sm font-medium mb-1">Subscription Name</Label>
+                <Input
+                  className="w-full"
+                  placeholder="triage"
+                  value={subscriptionForm.name}
+                  onChange={(e) => setSubscriptionForm(prev => ({ ...prev, name: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label className="block text-sm font-medium mb-1">Agent</Label>
+                <Input
+                  className="w-full"
+                  placeholder="triage-agent"
+                  value={subscriptionForm.agent}
+                  onChange={(e) => setSubscriptionForm(prev => ({ ...prev, agent: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label className="block text-sm font-medium mb-1">Trigger</Label>
+                <Select
+                  value={subscriptionForm.trigger}
+                  onChange={(key) => setSubscriptionForm(prev => ({ ...prev, trigger: key as string }))}
+                  isRequired
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem id="mention">mention</SelectItem>
+                    <SelectItem id="manual">manual</SelectItem>
+                    <SelectItem id="all">all</SelectItem>
+                    <SelectItem id="disabled">disabled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={subscriptionForm.enabled}
+                  onChange={(e) => setSubscriptionForm(prev => ({ ...prev, enabled: e.target.checked }))}
+                />
+                Enabled
+              </label>
+            </form>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" appearance="outline" onClick={() => setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' })}>
+              Cancel
+            </Button>
+            <Button color="primary" type="submit" form="create-channel-subscription-form" disabled={isSubmittingSubscription || !subscriptionForm.name.trim() || !subscriptionForm.agent.trim()}>
+              Create Subscription
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
 

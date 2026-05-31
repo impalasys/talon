@@ -326,11 +326,11 @@ function MarkdownMessage({ children }: { children: string }) {
   );
 }
 
-function getAssistantSignature(messages: Array<{ role?: unknown; id?: unknown; content?: unknown }> | undefined) {
+function getAssistantSignature(messages: any[] | undefined) {
   if (!Array.isArray(messages)) return "";
   return messages
     .filter((message) => message?.role === "assistant" || message?.role === 2 || message?.role === "ROLE_ASSISTANT")
-    .map((message) => `${String(message.id ?? "")}:${String(message.content ?? "").length}`)
+    .map((message) => `${String(message.id ?? "")}:${getMessageContent(message).length}`)
     .join("|");
 }
 
@@ -355,7 +355,7 @@ function stableHistoryMessageId(message: any, index: number) {
   }
   const role = normalizeMessageRole(message?.role);
   const createdAt = message?.createdAt ?? message?.created_at ?? "unknown";
-  const content = typeof message?.content === "string" ? message.content : "";
+  const content = getMessageContent(message);
   return `history-${role}-${createdAt}-${index}-${stableStringHash(content)}`;
 }
 
@@ -401,7 +401,8 @@ function normalizeHistoryPage(response: any): SessionHistoryPage {
     .map((message: any, index: number) => ({
       id: stableHistoryMessageId(message, index),
       role: normalizeMessageRole(message.role),
-      content: message.content,
+      content: getMessageContent(message),
+      parts: Array.isArray(message.parts) ? message.parts : undefined,
       createdAt: message.createdAt ?? message.created_at,
     }));
   const steps = items.flatMap((item) => item?.steps || []);

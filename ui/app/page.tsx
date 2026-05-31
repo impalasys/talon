@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { dump } from 'js-yaml';
 import { 
   Terminal, 
-  Send, 
   Activity, 
   Database, 
   Settings2, 
@@ -22,12 +21,14 @@ import {
   Folder,
   Plug,
   Clock3,
-  Square
+  Square,
+  Hash,
+  Radio
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { TalonCopilot } from '@talonai/copilot';
+import { TalonChannel, TalonCopilot } from '@talonai/copilot';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
 import { updateGatewayClient, getGatewayClient, buildGatewayHeaders, normalizeGatewayUrl } from '../lib/grpc';
 
@@ -46,6 +47,7 @@ function areSelectionsEqual(left: Selection | null, right: Selection | null) {
     left.type === right.type &&
     left.ns === right.ns &&
     left.agent === right.agent &&
+    left.channel === right.channel &&
     left.sessionId === right.sessionId &&
     left.resourceName === right.resourceName
   );
@@ -55,6 +57,7 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
   const type = searchParams.get('type');
   const ns = searchParams.get('ns');
   const agent = searchParams.get('agent');
+  const channel = searchParams.get('channel');
   const sessionId = searchParams.get('session');
   const resourceName = searchParams.get('name');
 
@@ -94,6 +97,27 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
       ns,
       agent,
       fullPath: `${ns}/${agent}`,
+    };
+  }
+
+  if (type === 'channel-subscription' && channel && resourceName) {
+    return {
+      type: 'channel-subscription',
+      ns,
+      channel,
+      resourceName,
+      fullPath: `${ns}:channel:${channel}:subscription:${resourceName}`,
+    };
+  }
+
+  if (type === 'channel' && (resourceName || channel)) {
+    const channelName = resourceName || channel || '';
+    return {
+      type: 'channel',
+      ns,
+      channel: channelName,
+      resourceName: channelName,
+      fullPath: `${ns}:channel:${channelName}`,
     };
   }
 
@@ -155,6 +179,10 @@ function buildSearchParams(isConnected: boolean, selection: Selection | null, cu
     params.set('agent', selection.agent);
   }
 
+  if (selection?.channel) {
+    params.set('channel', selection.channel);
+  }
+
   if (selection?.sessionId) {
     params.set('session', selection.sessionId);
   }
@@ -171,6 +199,7 @@ function getSelectionTitle(selection: Selection | null) {
   if (selection.type === 'namespace') return selection.ns;
   if (selection.type === 'agent') return selection.agent || 'Agent';
   if (selection.type === 'session') return selection.sessionId || 'Session';
+  if (selection.type === 'channel') return selection.channel || selection.resourceName || 'Channel';
   return selection.resourceName || selection.type;
 }
 
@@ -179,6 +208,8 @@ function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'namespace') return 'Namespace';
   if (selection.type === 'agent') return `${selection.ns} / Agent`;
   if (selection.type === 'session') return `${selection.ns} / ${selection.agent}`;
+  if (selection.type === 'channel') return `${selection.ns} / Channel`;
+  if (selection.type === 'channel-subscription') return `${selection.ns} / ${selection.channel} / ChannelSubscription`;
   if (selection.type === 'schedule') return `${selection.ns} / Schedule`;
   if (selection.type === 'mcp-binding') return `${selection.ns} / MCP Binding`;
   if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
@@ -198,6 +229,8 @@ function selectionIcon(selection: Selection | null) {
   if (selection.type === 'namespace') return <Folder className="w-4 h-4 text-muted-foreground" />;
   if (selection.type === 'agent') return <Cpu className="w-4 h-4 text-emerald-500" />;
   if (selection.type === 'session') return <MessageSquare className="w-4 h-4 text-blue-500" />;
+  if (selection.type === 'channel') return <Hash className="w-4 h-4 text-cyan-400" />;
+  if (selection.type === 'channel-subscription') return <Radio className="w-4 h-4 text-cyan-300" />;
   if (selection.type === 'schedule') return <Clock3 className="w-4 h-4 text-amber-500" />;
   if (selection.type === 'mcp-binding') return <Plug className="w-4 h-4 text-blue-500" />;
   if (selection.type === 'knowledge') return <FileText className="w-4 h-4 text-violet-400" />;
@@ -258,6 +291,32 @@ type ScheduleDocument = {
   };
 };
 
+type ChannelDocument = {
+  name?: string;
+  ns?: string;
+  title?: string;
+  status?: string;
+  metadata?: Record<string, string>;
+  labels?: Record<string, string>;
+};
+
+type ChannelSubscriptionDocument = {
+  name?: string;
+  ns?: string;
+  channel?: string;
+  agent?: string;
+  enabled?: boolean;
+  trigger?: string;
+  contextPolicy?: {
+    mode?: string;
+    maxMessages?: number;
+  };
+  context_policy?: {
+    mode?: string;
+    max_messages?: number;
+  };
+};
+
 function formatMicros(value: unknown) {
   const normalized = typeof value === 'string' ? Number(value) : value;
   if (typeof normalized !== 'number' || !Number.isFinite(normalized) || normalized <= 0) {
@@ -272,25 +331,6 @@ function formatMicros(value: unknown) {
     second: '2-digit',
     hour12: true,
   });
-}
-
-function microsFromUuidLike(id: unknown) {
-  if (typeof id !== 'string') return null;
-  if (id.length === 36 && id.charAt(8) === '-') {
-    const hex = id.substring(0, 13).replace('-', '');
-    const time = parseInt(hex, 16);
-    return Number.isNaN(time) ? null : time * 1000;
-  }
-  return null;
-}
-
-function formatMessageTimestamp(message: any) {
-  const explicit = message?.createdAt ?? message?.created_at;
-  if (explicit !== undefined && explicit !== null && explicit !== '') {
-    return formatMicros(explicit);
-  }
-  const inferred = microsFromUuidLike(message?.id);
-  return inferred ? formatMicros(inferred) : '—';
 }
 
 function scheduleField<T>(primary: T | undefined, fallback: T | undefined): T | undefined {
@@ -332,7 +372,7 @@ function ScheduleInspector({
         : scheduleField(spec.runAt, spec.run_at) || '—';
 
   return (
-    <div className="min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl border border-border bg-muted/20">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-muted/20">
       <div className="border-b border-border px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -365,11 +405,11 @@ function ScheduleInspector({
       </div>
 
       {tab === 'raw' ? (
-        <pre className="h-full overflow-auto whitespace-pre-wrap break-words p-4 text-[13px] leading-relaxed text-foreground [overflow-wrap:anywhere]">
+        <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-4 text-[13px] leading-relaxed text-foreground [overflow-wrap:anywhere]">
           <code>{resourceYaml}</code>
         </pre>
       ) : (
-        <div className="grid h-full gap-4 overflow-auto p-4 md:grid-cols-2">
+        <div className="grid min-h-0 flex-1 gap-4 overflow-auto p-4 md:grid-cols-2">
           <div className="rounded-xl border border-border bg-background/70 p-4">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">Overview</div>
             <dl className="mt-3 space-y-2 text-sm">
@@ -449,6 +489,141 @@ function ScheduleInspector({
     </div>
   );
 }
+
+function ChannelInspector({
+  gatewayUrl,
+  authToken,
+  channel,
+  resourceYaml,
+  onOpenSession,
+}: {
+  gatewayUrl: string;
+  authToken: string;
+  channel: ChannelDocument;
+  resourceYaml: string;
+  onOpenSession: (agent: string, sessionId: string) => void;
+}) {
+  const [tab, setTab] = useState<'messages' | 'subscriptions' | 'raw'>('messages');
+  const [subscriptions, setSubscriptions] = useState<ChannelSubscriptionDocument[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const ns = channel.ns || '';
+  const channelName = channel.name || '';
+  const headers = useCallback(() => ({
+    ...(buildGatewayHeaders(authToken) || {}),
+  }), [authToken]);
+
+  const refresh = useCallback(async () => {
+    if (!ns || !channelName) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const baseUrl = normalizeGatewayUrl(gatewayUrl);
+      const subscriptionsResponse = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels/${encodeURIComponent(channelName)}/subscriptions`, { headers: headers() });
+      if (!subscriptionsResponse.ok) throw new Error(`Subscriptions HTTP ${subscriptionsResponse.status}`);
+      const subscriptionsPayload = await subscriptionsResponse.json();
+      setSubscriptions(subscriptionsPayload.subscriptions || []);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load channel subscriptions');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [channelName, gatewayUrl, headers, ns]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const status = channel.status || 'open';
+
+  return (
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border bg-muted/20">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
+        {(['messages', 'subscriptions', 'raw'] as const).map((nextTab) => (
+          <button
+            key={nextTab}
+            type="button"
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium capitalize",
+              tab === nextTab ? 'bg-foreground text-background' : 'bg-background text-muted-foreground border border-border'
+            )}
+            onClick={() => setTab(nextTab)}
+          >
+            {nextTab}
+          </button>
+        ))}
+        <span className={cn("ml-auto rounded-full px-2 py-1 text-[11px] font-medium", status === 'open' ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-muted text-muted-foreground")}>
+          {status}
+        </span>
+      </div>
+
+      {tab === 'raw' ? (
+        <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-4 text-[13px] leading-relaxed text-foreground [overflow-wrap:anywhere]">
+          <code>{resourceYaml}</code>
+        </pre>
+      ) : tab === 'subscriptions' ? (
+        <div className="min-h-0 flex-1 overflow-auto p-4">
+          {isLoading && <div className="mb-3 text-xs text-muted-foreground">Loading subscriptions…</div>}
+          {error && <div className="mb-3 rounded-lg border border-red-200/60 bg-red-50/60 p-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/20 dark:text-red-400">{error}</div>}
+          {subscriptions.length === 0 ? (
+            <div className="text-sm text-muted-foreground">No channel subscriptions.</div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2">
+              {subscriptions.map((subscription) => {
+                const policy = subscription.contextPolicy || subscription.context_policy;
+                const maxMessages =
+                  policy && 'maxMessages' in policy
+                    ? policy.maxMessages
+                    : policy && 'max_messages' in policy
+                      ? policy.max_messages
+                      : 20;
+                return (
+                  <div key={subscription.name} className="rounded-xl border border-border bg-background/70 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-medium text-foreground">{subscription.name || 'unnamed'}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">{subscription.agent || 'no agent'}</div>
+                      </div>
+                      <span className={cn("rounded-full px-2 py-1 text-[11px] font-medium", subscription.enabled === false ? "bg-muted text-muted-foreground" : "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300")}>
+                        {subscription.enabled === false ? 'disabled' : (subscription.trigger || 'mention')}
+                      </span>
+                    </div>
+                    <div className="mt-3 text-xs text-muted-foreground">
+                      Context: {policy?.mode || 'recent_public'} / {maxMessages} messages
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        <TalonChannel
+          className="min-h-0 flex-1"
+          gatewayUrl={gatewayUrl}
+          authToken={authToken}
+          namespace={ns}
+          channel={channel}
+          renderMessageActions={(message) => {
+            const sourceAgent = message.sourceAgent || message.source_agent || '';
+            const sourceSessionId = message.sourceSessionId || message.source_session_id || '';
+            if (!sourceAgent || !sourceSessionId) return null;
+            return (
+              <button
+                type="button"
+                className="text-xs text-blue-600 hover:underline dark:text-blue-300"
+                onClick={() => onOpenSession(sourceAgent, sourceSessionId)}
+              >
+                Open session
+              </button>
+            );
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 function extractStreamEvents(data: unknown): StreamEventItem[] {
   if (!Array.isArray(data)) return [];
 
@@ -685,6 +860,12 @@ function DebuggerPageContent() {
         case 'agent':
           path = `/v1/ns/${encodeURIComponent(selectedNamespace.ns)}/agents/${encodeURIComponent(selectedNamespace.agent || '')}`;
           break;
+        case 'channel':
+          path = `/v1/ns/${encodeURIComponent(selectedNamespace.ns)}/channels/${encodeURIComponent(selectedNamespace.resourceName || selectedNamespace.channel || '')}`;
+          break;
+        case 'channel-subscription':
+          path = `/v1/ns/${encodeURIComponent(selectedNamespace.ns)}/channels/${encodeURIComponent(selectedNamespace.channel || '')}/subscriptions/${encodeURIComponent(selectedNamespace.resourceName || '')}`;
+          break;
         case 'schedule':
           path = `/v1/ns/${encodeURIComponent(selectedNamespace.ns)}/schedules/${encodeURIComponent(selectedNamespace.resourceName || '')}`;
           break;
@@ -711,6 +892,10 @@ function DebuggerPageContent() {
         const document =
           selectedNamespace.type === 'agent'
             ? payload.agent
+            : selectedNamespace.type === 'channel'
+              ? payload.channel
+            : selectedNamespace.type === 'channel-subscription'
+              ? payload.subscription
             : selectedNamespace.type === 'schedule'
               ? payload.schedule
             : selectedNamespace.type === 'template'
@@ -978,6 +1163,22 @@ function DebuggerPageContent() {
                         ns: selectedNamespace.ns,
                         agent,
                         fullPath: `${selectedNamespace.ns}/${agent}`,
+                      });
+                    }}
+                  />
+                ) : selectedNamespace.type === 'channel' && resourceDocument ? (
+                  <ChannelInspector
+                    gatewayUrl={gatewayUrl}
+                    authToken={authToken}
+                    channel={resourceDocument as ChannelDocument}
+                    resourceYaml={resourceYaml}
+                    onOpenSession={(agent, sessionId) => {
+                      setSelectedNamespace({
+                        type: 'session',
+                        ns: selectedNamespace.ns,
+                        agent,
+                        sessionId,
+                        fullPath: `${selectedNamespace.ns}/${agent}/${sessionId}`,
                       });
                     }}
                   />

@@ -234,6 +234,51 @@ struct KnowledgeSpecManifest {
     content: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ChannelManifest {
+    api_version: String,
+    kind: String,
+    metadata: ObjectMetaManifest,
+    #[serde(default)]
+    spec: ChannelSpecManifest,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct ChannelSpecManifest {
+    title: String,
+    status: String,
+    metadata: HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ChannelSubscriptionManifest {
+    api_version: String,
+    kind: String,
+    metadata: ObjectMetaManifest,
+    spec: ChannelSubscriptionSpecManifest,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct ChannelSubscriptionSpecManifest {
+    channel: String,
+    agent: String,
+    enabled: bool,
+    trigger: String,
+    context_policy: Option<ChannelContextPolicyManifest>,
+    metadata: HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct ChannelContextPolicyManifest {
+    mode: String,
+    max_messages: u32,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct AgentYaml<'a> {
@@ -362,6 +407,65 @@ pub fn parse_knowledge(yaml: &str) -> Result<manifests::Knowledge> {
             path: knowledge.spec.path,
             content: knowledge.spec.content,
         }),
+    })
+}
+
+pub fn parse_channel(yaml: &str) -> Result<models::Channel> {
+    let channel: ChannelManifest =
+        serde_yaml::from_str(yaml).context("Failed to parse Channel YAML")?;
+
+    if channel.kind != "Channel" {
+        bail!("Expected kind 'Channel', got '{}'", channel.kind);
+    }
+    if channel.metadata.namespace.trim().is_empty() {
+        bail!("Channel metadata.namespace is required");
+    }
+
+    Ok(models::Channel {
+        name: channel.metadata.name,
+        ns: channel.metadata.namespace,
+        title: channel.spec.title,
+        status: if channel.spec.status.is_empty() {
+            "open".to_string()
+        } else {
+            channel.spec.status
+        },
+        created_at: 0,
+        updated_at: 0,
+        metadata: channel.spec.metadata,
+        labels: channel.metadata.labels,
+    })
+}
+
+pub fn parse_channel_subscription(yaml: &str) -> Result<models::ChannelSubscription> {
+    let subscription: ChannelSubscriptionManifest =
+        serde_yaml::from_str(yaml).context("Failed to parse ChannelSubscription YAML")?;
+
+    if subscription.kind != "ChannelSubscription" {
+        bail!(
+            "Expected kind 'ChannelSubscription', got '{}'",
+            subscription.kind
+        );
+    }
+    if subscription.metadata.namespace.trim().is_empty() {
+        bail!("ChannelSubscription metadata.namespace is required");
+    }
+
+    Ok(models::ChannelSubscription {
+        name: subscription.metadata.name,
+        ns: subscription.metadata.namespace,
+        channel: subscription.spec.channel,
+        agent: subscription.spec.agent,
+        enabled: subscription.spec.enabled,
+        trigger: subscription.spec.trigger,
+        context_policy: subscription.spec.context_policy.map(|policy| {
+            models::ChannelContextPolicy {
+                mode: policy.mode,
+                max_messages: policy.max_messages,
+            }
+        }),
+        metadata: subscription.spec.metadata,
+        labels: subscription.metadata.labels,
     })
 }
 
@@ -504,6 +608,57 @@ pub fn render_knowledge_yaml(knowledge: &manifests::Knowledge) -> Result<String>
     };
 
     serde_yaml::to_string(&yaml_knowledge).context("Failed to serialize Knowledge to YAML")
+}
+
+pub fn render_channel_yaml(channel: &models::Channel) -> Result<String> {
+    let yaml_channel = ChannelManifest {
+        api_version: "talon.impalasys.com/v1".to_string(),
+        kind: "Channel".to_string(),
+        metadata: ObjectMetaManifest {
+            name: channel.name.clone(),
+            namespace: channel.ns.clone(),
+            labels: channel.labels.clone(),
+            annotations: HashMap::new(),
+        },
+        spec: ChannelSpecManifest {
+            title: channel.title.clone(),
+            status: channel.status.clone(),
+            metadata: channel.metadata.clone(),
+        },
+    };
+
+    serde_yaml::to_string(&yaml_channel).context("Failed to serialize Channel to YAML")
+}
+
+pub fn render_channel_subscription_yaml(
+    subscription: &models::ChannelSubscription,
+) -> Result<String> {
+    let yaml_subscription = ChannelSubscriptionManifest {
+        api_version: "talon.impalasys.com/v1".to_string(),
+        kind: "ChannelSubscription".to_string(),
+        metadata: ObjectMetaManifest {
+            name: subscription.name.clone(),
+            namespace: subscription.ns.clone(),
+            labels: subscription.labels.clone(),
+            annotations: HashMap::new(),
+        },
+        spec: ChannelSubscriptionSpecManifest {
+            channel: subscription.channel.clone(),
+            agent: subscription.agent.clone(),
+            enabled: subscription.enabled,
+            trigger: subscription.trigger.clone(),
+            context_policy: subscription.context_policy.as_ref().map(|policy| {
+                ChannelContextPolicyManifest {
+                    mode: policy.mode.clone(),
+                    max_messages: policy.max_messages,
+                }
+            }),
+            metadata: subscription.metadata.clone(),
+        },
+    };
+
+    serde_yaml::to_string(&yaml_subscription)
+        .context("Failed to serialize ChannelSubscription to YAML")
 }
 
 // ---------------------------------------------------------------------------
@@ -1097,6 +1252,72 @@ metadata:
             namespace.labels.get("visibility").map(String::as_str),
             Some("internal")
         );
+    }
+
+    #[test]
+    fn parse_and_render_channel_manifests() {
+        let channel = parse_channel(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Channel
+metadata:
+  name: incident-123
+  namespace: conic
+  labels:
+    team: platform
+spec:
+  title: Checkout latency incident
+  status: open
+  metadata:
+    severity: sev2
+"#,
+        )
+        .expect("channel manifest should parse");
+        assert_eq!(channel.name, "incident-123");
+        assert_eq!(channel.ns, "conic");
+        assert_eq!(
+            channel.metadata.get("severity").map(String::as_str),
+            Some("sev2")
+        );
+
+        let rendered = render_channel_yaml(&channel).expect("channel yaml should render");
+        let reparsed = parse_channel(&rendered).expect("rendered channel should parse");
+        assert_eq!(reparsed.title, "Checkout latency incident");
+
+        let subscription = parse_channel_subscription(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: ChannelSubscription
+metadata:
+  name: incident-researcher
+  namespace: conic
+spec:
+  channel: incident-123
+  agent: researcher
+  enabled: true
+  trigger: mention
+  contextPolicy:
+    mode: recent_public
+    maxMessages: 20
+"#,
+        )
+        .expect("channel subscription manifest should parse");
+        assert_eq!(subscription.channel, "incident-123");
+        assert_eq!(subscription.agent, "researcher");
+        assert!(subscription.enabled);
+        assert_eq!(
+            subscription
+                .context_policy
+                .as_ref()
+                .map(|policy| policy.max_messages),
+            Some(20)
+        );
+
+        let rendered = render_channel_subscription_yaml(&subscription)
+            .expect("channel subscription yaml should render");
+        let reparsed = parse_channel_subscription(&rendered)
+            .expect("rendered channel subscription should parse");
+        assert_eq!(reparsed.trigger, "mention");
     }
 
     #[test]

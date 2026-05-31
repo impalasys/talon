@@ -33,6 +33,10 @@ fn main() -> std::io::Result<()> {
         ".talon.models.Session",
         ".talon.models.SessionMessage",
         ".talon.models.SessionMessagePart",
+        ".talon.models.Channel",
+        ".talon.models.ChannelMessage",
+        ".talon.models.ChannelContextPolicy",
+        ".talon.models.ChannelSubscription",
     ];
     let serde_derive_only_types = [".talon.manifests.PromptDelta"];
 

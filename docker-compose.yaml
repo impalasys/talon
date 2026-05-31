@@ -98,6 +98,34 @@ services:
     entrypoint: ["/usr/local/bin/talon-cli"]
     command: ["apply", "-f", "/manifests/default_agent.yaml"]
 
+  init-tutorial-channels:
+    profiles: ["tutorial-channels"]
+    build:
+      context: .
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
+    depends_on:
+      gateway:
+        condition: service_healthy
+      envoy:
+        condition: service_started
+    volumes:
+      - ./manifests:/manifests:ro
+    env_file:
+      - .env
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        REST_GATEWAY=http://envoy:8081
+        GRPC_GATEWAY=http://gateway:50051
+        talon-cli --gateway "$$REST_GATEWAY" --rest apply -f /manifests/examples/channel-collaboration/namespace.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" get template channel-agent-template >/dev/null 2>&1 || talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/channel-agent-template.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/triage-agent.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/scribe-agent.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/incident-room.channel.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/triage.subscription.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/channel-collaboration/scribe.subscription.yaml
+
   pubsub:
     image: gcr.io/google.com/cloudsdktool/cloud-sdk:emulators
     command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
@@ -117,10 +145,12 @@ services:
     entrypoint: /bin/sh -c "echo 'postgres:5432:*:talon:password' > /tmp/pgpass && chmod 600 /tmp/pgpass && exec /entrypoint.sh"
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_PASSWORD: adminadmin
     volumes:
       - pgadmin-data:/var/lib/pgadmin
       - ./dockerfiles/pgadmin-servers.json:/pgadmin4/servers.json:ro
+    ports:
+      - "5050:80"
     depends_on:
       postgres:
         condition: service_healthy

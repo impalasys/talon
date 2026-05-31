@@ -69,7 +69,48 @@ export type TalonCopilotProps = {
   historyStepLimit?: number;
 };
 
+export type ChannelMessage = {
+  id?: string;
+  ns?: string;
+  channel?: string;
+  authorKind?: string;
+  author_kind?: string;
+  author?: string;
+  content?: string;
+  createdAt?: string | number | bigint;
+  created_at?: string | number | bigint;
+  sourceAgent?: string;
+  source_agent?: string;
+  sourceSessionId?: string;
+  source_session_id?: string;
+};
+
+export type TalonChannelProps = {
+  namespace: string;
+  channel: string | {
+    name?: string;
+    ns?: string;
+    title?: string;
+    status?: string;
+    metadata?: Record<string, string>;
+    labels?: Record<string, string>;
+  };
+  gatewayUrl: string;
+  authToken?: string | null;
+  className?: string;
+  style?: React.CSSProperties;
+  disabled?: boolean;
+  author?: string;
+  authorKind?: string;
+  messageLimit?: number;
+  refreshIntervalMs?: number | false;
+  timestampLocale?: Intl.LocalesArgument;
+  formatTimestamp?: (message: ChannelMessage) => string;
+  renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
+};
+
 export function TalonCopilot(props: TalonCopilotProps): React.JSX.Element;
+export function TalonChannel(props: TalonChannelProps): React.JSX.Element;
 export function buildGatewayHeaders(
   authToken?: string | null,
 ): { Authorization: string } | undefined;

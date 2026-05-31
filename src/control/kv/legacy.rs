@@ -43,11 +43,26 @@ pub(super) fn namespaced_key(namespace: &str, key: &str) -> Result<String> {
         ["Agent", agent_name, "Session", session_id, "Messages", message] => {
             Ok(keys::session_message(namespace, agent_name, session_id, message).canonical())
         }
+        ["Agent", agent_name, "Session", session_id, "Messages", message, "Steps", step] => {
+            Ok(keys::ResourceKey::new(
+                namespace,
+                &[
+                    ("Agent", agent_name),
+                    ("Session", session_id),
+                    ("SessionMessage", message),
+                ],
+                "SessionStep",
+                step,
+            )
+            .canonical())
+        }
         ["Schedule", name] => Ok(keys::schedule(namespace, name).canonical()),
         ["AgentTemplate", name] => Ok(keys::agent_template(name).canonical()),
         ["McpServer", name] => Ok(keys::mcp_server(name).canonical()),
         ["McpServerBinding", name] => Ok(keys::mcp_server_binding(namespace, name).canonical()),
-        ["KnowledgeResource", name] => Ok(keys::knowledge_resource(namespace, name).canonical()),
+        ["KnowledgeResource", rest @ ..] if !rest.is_empty() => {
+            Ok(keys::knowledge_resource(namespace, &rest.join("/")).canonical())
+        }
         ["Agent", agent, "Memory", rest @ ..] if !rest.is_empty() => {
             Ok(keys::agent_memory(namespace, agent, &rest.join("/")).canonical())
         }
@@ -71,8 +86,27 @@ mod tests {
             crate::control::keys::session_message("acme", "agent-1", "s1", "m1").canonical()
         );
         assert_eq!(
+            namespaced_key("acme", "Agent/agent-1/Session/s1/Messages/m1/Steps/000001").unwrap(),
+            crate::control::keys::ResourceKey::new(
+                "acme",
+                &[
+                    ("Agent", "agent-1"),
+                    ("Session", "s1"),
+                    ("SessionMessage", "m1"),
+                ],
+                "SessionStep",
+                "000001",
+            )
+            .canonical()
+        );
+        assert_eq!(
             namespaced_key("Sys:ns", "Namespace/acme:team").unwrap(),
             crate::control::keys::namespace_metadata("acme:team").canonical()
+        );
+        assert_eq!(
+            namespaced_key("acme", "KnowledgeResource/playbooks/aeo-prompt-strategy.md").unwrap(),
+            crate::control::keys::knowledge_resource("acme", "playbooks/aeo-prompt-strategy.md")
+                .canonical()
         );
         assert_eq!(
             namespaced_key("acme:ns:internal", "NamespaceRef/acme:team").unwrap(),

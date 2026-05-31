@@ -67,6 +67,50 @@ message Session {
   map<string, string> labels = 8;
 }
 
+message Channel {
+  string name = 1;
+  string ns = 2;
+  string title = 3;
+  string status = 4;
+  // Unix timestamp in microseconds.
+  int64 created_at = 5;
+  // Unix timestamp in microseconds.
+  int64 updated_at = 6;
+  map<string, string> metadata = 7;
+  map<string, string> labels = 8;
+}
+
+message ChannelMessage {
+  string id = 1;
+  string ns = 2;
+  string channel = 3;
+  string author_kind = 4;
+  string author = 5;
+  string content = 6;
+  // Unix timestamp in microseconds.
+  int64 created_at = 7;
+  string source_agent = 8;
+  string source_session_id = 9;
+  map<string, string> labels = 10;
+}
+
+message ChannelContextPolicy {
+  string mode = 1;
+  uint32 max_messages = 2;
+}
+
+message ChannelSubscription {
+  string name = 1;
+  string ns = 2;
+  string channel = 3;
+  string agent = 4;
+  bool enabled = 5;
+  string trigger = 6;
+  ChannelContextPolicy context_policy = 7;
+  map<string, string> metadata = 8;
+  map<string, string> labels = 9;
+}
+
 message ScheduleTarget {
   string agent = 1;
   string session_mode = 2;

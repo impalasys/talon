@@ -1,5 +1,10 @@
 export { TalonCopilot, type GatewayClientLike, type TalonCopilotProps } from "./TalonCopilot";
 export {
+  TalonChannel,
+  type ChannelMessage,
+  type TalonChannelProps,
+} from "./TalonChannel";
+export {
   type AssistantTimelineItem,
   type CopilotMessage,
   type UsageSummary,

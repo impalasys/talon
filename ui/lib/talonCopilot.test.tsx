@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { TalonCopilot } from '@talonai/copilot';
+import { TalonChannel, TalonCopilot } from '@talonai/copilot';
 
 function makeJsonResponse(payload: any, ok = true) {
   return {
@@ -46,7 +46,12 @@ describe('TalonCopilot', () => {
             message: {
               id: 'assistant-1',
               role: 'ROLE_ASSISTANT',
-              content: 'Hello from history',
+              parts: [
+                {
+                  partType: 1,
+                  content: 'Hello from history',
+                },
+              ],
               createdAt: String(Date.now() * 1000),
             },
             steps: [],
@@ -512,5 +517,126 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Recovered after stream timeout.')).toBeInTheDocument();
     expect(screen.queryByText('recover this')).not.toBeInTheDocument();
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('TalonChannel', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders channel messages without inspector tabs', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: '019e7fa7-2cfe-7670-a661-42e0a70a751d',
+          authorKind: 'user',
+          author: 'sightline',
+          content: '@triage-agent How are you doing?',
+          createdAt: String(Date.now() * 1000),
+        },
+      ],
+    }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel={{ name: 'incident-room', status: 'open' }}
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    expect(await screen.findByText('@triage-agent How are you doing?')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'subscriptions' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open session' })).not.toBeInTheDocument();
+  });
+
+  it('renders injected channel message actions', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'agent-message-1',
+          authorKind: 'agent',
+          author: 'triage-agent',
+          content: 'I am checking the incident.',
+          sourceAgent: 'triage-agent',
+          sourceSessionId: 'session-1',
+        },
+      ],
+    }));
+    const openSession = jest.fn();
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+        renderMessageActions={(message) => {
+          const agent = message.sourceAgent || message.source_agent;
+          const sessionId = message.sourceSessionId || message.source_session_id;
+          if (!agent || !sessionId) return null;
+          return <button type="button" onClick={() => openSession(agent, sessionId)}>Open session</button>;
+        }}
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Open session' }));
+    expect(openSession).toHaveBeenCalledWith('triage-agent', 'session-1');
+  });
+
+  it('posts a channel message through the gateway', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(makeJsonResponse({ message: { id: 'channel-message-1' } }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-message-1',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'hello channel',
+          },
+        ],
+      }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    fireEvent.change(await screen.findByPlaceholderText('Message #incident-room'), {
+      target: { value: 'hello channel' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            ns: 'channel-collaboration',
+            channel: 'incident-room',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'hello channel',
+          }),
+        }),
+      );
+    });
+    expect(await screen.findByText('hello channel')).toBeInTheDocument();
   });
 });
