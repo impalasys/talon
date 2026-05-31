@@ -98,6 +98,32 @@ mod tests {
         .expect("channel seed should succeed");
     }
 
+    async fn seed_channel_message(
+        kv: &Arc<MockKvStore>,
+        ns: &str,
+        channel: &str,
+        id: &str,
+        content: &str,
+    ) {
+        kv.set_msg(
+            &keys::channel_message(ns, channel, id),
+            &models::ChannelMessage {
+                id: id.to_string(),
+                ns: ns.to_string(),
+                channel: channel.to_string(),
+                author_kind: "user".to_string(),
+                author: "tester".to_string(),
+                content: content.to_string(),
+                created_at: 1,
+                source_agent: String::new(),
+                source_session_id: String::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .expect("channel message seed should succeed");
+    }
+
     fn subscription(
         name: &str,
         ns: &str,
@@ -400,6 +426,122 @@ mod tests {
             .into_inner();
 
         assert!(response.routed_sessions.is_empty());
+    }
+
+    #[tokio::test]
+    async fn list_channel_messages_paginates_like_session_messages() {
+        let (handler, kv, _) = setup_handler();
+        seed_channel(&kv, "acme", "incident-1").await;
+
+        for index in 1..=3 {
+            seed_channel_message(
+                &kv,
+                "acme",
+                "incident-1",
+                &format!("019f0000-0000-7000-8000-00000000000{index}"),
+                &format!("message-{index}"),
+            )
+            .await;
+        }
+
+        let newest_page = handler
+            .handle_list_channel_messages(tonic::Request::new(proto::ListChannelMessagesRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                limit: 0,
+                page_size: 2,
+                before_message_id: None,
+            }))
+            .await
+            .expect("newest page should succeed")
+            .into_inner();
+
+        assert!(newest_page.has_more);
+        assert_eq!(
+            newest_page.next_before_message_id.as_deref(),
+            Some("019f0000-0000-7000-8000-000000000002")
+        );
+        assert_eq!(
+            newest_page
+                .messages
+                .iter()
+                .map(|message| message.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["message-2", "message-3"]
+        );
+
+        let older_page = handler
+            .handle_list_channel_messages(tonic::Request::new(proto::ListChannelMessagesRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                limit: 0,
+                page_size: 2,
+                before_message_id: Some("019f0000-0000-7000-8000-000000000002".to_string()),
+            }))
+            .await
+            .expect("older page should succeed")
+            .into_inner();
+
+        assert!(!older_page.has_more);
+        assert_eq!(
+            older_page
+                .messages
+                .iter()
+                .map(|message| message.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["message-1"]
+        );
+    }
+
+    #[tokio::test]
+    async fn list_channel_messages_preserves_legacy_limit_and_validates_page_size() {
+        let (handler, kv, _) = setup_handler();
+        seed_channel(&kv, "acme", "incident-1").await;
+        for index in 1..=3 {
+            seed_channel_message(
+                &kv,
+                "acme",
+                "incident-1",
+                &format!("019f0000-0000-7000-8000-00000000000{index}"),
+                &format!("message-{index}"),
+            )
+            .await;
+        }
+
+        let legacy_page = handler
+            .handle_list_channel_messages(tonic::Request::new(proto::ListChannelMessagesRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                limit: 2,
+                page_size: 0,
+                before_message_id: None,
+            }))
+            .await
+            .expect("legacy limit page should succeed")
+            .into_inner();
+
+        assert!(legacy_page.has_more);
+        assert_eq!(legacy_page.messages.len(), 2);
+        assert_eq!(
+            legacy_page
+                .messages
+                .iter()
+                .map(|message| message.content.as_str())
+                .collect::<Vec<_>>(),
+            vec!["message-2", "message-3"]
+        );
+
+        let err = handler
+            .handle_list_channel_messages(tonic::Request::new(proto::ListChannelMessagesRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                limit: 0,
+                page_size: -1,
+                before_message_id: None,
+            }))
+            .await
+            .expect_err("negative page size should fail");
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
     }
 
     #[tokio::test]

@@ -552,6 +552,10 @@ describe('TalonChannel', () => {
     expect(await screen.findByText('@triage-agent How are you doing?')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'subscriptions' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Open session' })).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=100',
+      expect.anything(),
+    );
   });
 
   it('renders injected channel message actions', async () => {
@@ -668,5 +672,65 @@ describe('TalonChannel', () => {
     expect(screen.queryByPlaceholderText('Message #match-room')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /send channel message/i })).not.toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads older channel message pages when scrolled near the top', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: '019f0000-0000-7000-8000-000000000002',
+            authorKind: 'agent',
+            author: 'triage-agent',
+            content: 'Newest channel page',
+            createdAt: '2000',
+          },
+        ],
+        hasMore: true,
+        nextBeforeMessageId: '019f0000-0000-7000-8000-000000000002',
+      }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: '019f0000-0000-7000-8000-000000000001',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Older channel page',
+            createdAt: '1000',
+          },
+        ],
+        hasMore: false,
+      }));
+
+    const { container } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        messageLimit={1}
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await screen.findByText('Newest channel page');
+
+    const scrollContainer = container.querySelector('div[aria-label="Channel messages"]') as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, value: 0, writable: true });
+    Object.defineProperty(scrollContainer, 'scrollHeight', { configurable: true, value: 1000 });
+    fireEvent.scroll(scrollContainer);
+
+    expect(await screen.findByText('Older channel page')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=1',
+      expect.anything(),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=1&before_message_id=019f0000-0000-7000-8000-000000000002',
+      expect.anything(),
+    );
   });
 });

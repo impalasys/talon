@@ -663,10 +663,14 @@ message ListChannelMessagesRequest {
   string ns = 1;
   string channel = 2;
   int32 limit = 3;
+  int32 page_size = 4;
+  optional string before_message_id = 5;
 }
 
 message ListChannelMessagesResponse {
   repeated talon.models.ChannelMessage messages = 1;
+  bool has_more = 2;
+  optional string next_before_message_id = 3;
 }
 
 message CreateChannelSubscriptionRequest {

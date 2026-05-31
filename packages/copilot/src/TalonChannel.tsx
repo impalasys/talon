@@ -10,6 +10,7 @@ function border(color: string) {
 
 const activeControlBackground = "var(--copilot-control-bg, var(--foreground, #020617))";
 const activeControlColor = "var(--copilot-control-fg, var(--background, #ffffff))";
+const CHANNEL_SCROLL_LOAD_THRESHOLD_PX = 64;
 
 type ChannelLike = {
   name?: string;
@@ -106,6 +107,65 @@ function defaultFormatTimestamp(message: ChannelMessage, timestampLocale?: Intl.
   });
 }
 
+function buildGatewayChannelMessagesUrl(
+  gatewayUrl: string,
+  namespace: string,
+  channel: string,
+  pageSize: number,
+  beforeMessageId?: string,
+) {
+  const url = new URL(`${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(namespace)}/channels/${encodeURIComponent(channel)}/messages`);
+  url.searchParams.set("page_size", String(Math.trunc(pageSize)));
+  if (beforeMessageId) {
+    url.searchParams.set("before_message_id", beforeMessageId);
+  }
+  return url.toString();
+}
+
+function normalizeChannelPage(response: any): {
+  messages: ChannelMessage[];
+  hasMore: boolean;
+  nextBeforeMessageId: string | null;
+} {
+  return {
+    messages: Array.isArray(response?.messages) ? response.messages : [],
+    hasMore: Boolean(response?.hasMore ?? response?.has_more),
+    nextBeforeMessageId:
+      typeof response?.nextBeforeMessageId === "string"
+        ? response.nextBeforeMessageId
+        : typeof response?.next_before_message_id === "string"
+          ? response.next_before_message_id
+          : null,
+  };
+}
+
+function channelMessageTimestamp(message: ChannelMessage) {
+  return normalizeEpochToMilliseconds(message.createdAt ?? message.created_at) ?? millisecondsFromUuidLike(message.id);
+}
+
+function channelMessageKey(message: ChannelMessage, fallbackIndex: number) {
+  return message.id || `${message.createdAt ?? message.created_at ?? fallbackIndex}:${message.author || ""}:${message.content || ""}`;
+}
+
+function compareChannelMessages(left: ChannelMessage, right: ChannelMessage) {
+  const leftTimestamp = channelMessageTimestamp(left);
+  const rightTimestamp = channelMessageTimestamp(right);
+  if (leftTimestamp !== null && rightTimestamp !== null && leftTimestamp !== rightTimestamp) {
+    return leftTimestamp - rightTimestamp;
+  }
+  if (left.id && right.id && left.id !== right.id) {
+    return left.id < right.id ? -1 : 1;
+  }
+  return 0;
+}
+
+function mergeChannelMessages(existing: ChannelMessage[], incoming: ChannelMessage[]) {
+  const byKey = new Map<string, ChannelMessage>();
+  existing.forEach((message, index) => byKey.set(channelMessageKey(message, index), message));
+  incoming.forEach((message, index) => byKey.set(channelMessageKey(message, existing.length + index), message));
+  return Array.from(byKey.values()).sort(compareChannelMessages);
+}
+
 export function TalonChannel({
   namespace,
   channel,
@@ -127,8 +187,14 @@ export function TalonChannel({
   const [draft, setDraft] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
+  const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [nextBeforeMessageId, setNextBeforeMessageId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const pendingRefreshRef = useRef(false);
+  const messagesRef = useRef<ChannelMessage[]>([]);
+  const isLoadingOlderMessagesRef = useRef(false);
 
   const channelName = coerceChannelName(channel);
   const status = coerceChannelStatus(channel);
@@ -147,8 +213,12 @@ export function TalonChannel({
     return (message: ChannelMessage) => defaultFormatTimestamp(message, timestampLocale);
   }, [formatTimestamp, timestampLocale]);
 
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   const refresh = useCallback(
-    async (options?: { silent?: boolean }) => {
+    async (options?: { silent?: boolean; replace?: boolean }) => {
       if (!namespace || !channelName || disabled || pendingRefreshRef.current) return;
       pendingRefreshRef.current = true;
       if (!options?.silent) {
@@ -156,15 +226,29 @@ export function TalonChannel({
       }
       setError(null);
       try {
-        const baseUrl = normalizeGatewayUrl(gatewayUrl);
-        const encodedNs = encodeURIComponent(namespace);
-        const encodedChannel = encodeURIComponent(channelName);
-        const messagesResponse = await fetch(`${baseUrl}/v1/ns/${encodedNs}/channels/${encodedChannel}/messages?limit=${encodeURIComponent(String(messageLimit))}`, {
-          headers: headers(),
-        });
+        const messagesResponse = await fetch(
+          buildGatewayChannelMessagesUrl(gatewayUrl, namespace, channelName, messageLimit),
+          { headers: headers() },
+        );
         if (!messagesResponse.ok) throw new Error(`Messages HTTP ${messagesResponse.status}`);
-        const messagesPayload = await messagesResponse.json();
-        setMessages(Array.isArray(messagesPayload.messages) ? messagesPayload.messages : []);
+        const page = normalizeChannelPage(await messagesResponse.json());
+        const newestIds = new Set(page.messages.map((message, index) => channelMessageKey(message, index)));
+        const oldestNewestMessage = page.messages[0];
+        const oldestNewestTimestamp = oldestNewestMessage ? channelMessageTimestamp(oldestNewestMessage) : null;
+        const hasLoadedOlderMessages = messagesRef.current.some((message, index) => {
+          const key = channelMessageKey(message, index);
+          if (newestIds.has(key)) return false;
+          const messageTimestamp = channelMessageTimestamp(message);
+          if (messageTimestamp !== null && oldestNewestTimestamp !== null) {
+            return messageTimestamp < oldestNewestTimestamp;
+          }
+          return Boolean(message.id && oldestNewestMessage?.id && message.id < oldestNewestMessage.id);
+        });
+        setMessages((existing) => options?.replace ? page.messages : mergeChannelMessages(existing, page.messages));
+        if (options?.replace || !hasLoadedOlderMessages) {
+          setHasMoreMessages(page.hasMore);
+          setNextBeforeMessageId(page.nextBeforeMessageId);
+        }
       } catch (err: any) {
         setError(err?.message || "Failed to load channel");
       } finally {
@@ -178,7 +262,14 @@ export function TalonChannel({
   );
 
   useEffect(() => {
-    void refresh();
+    setMessages([]);
+    messagesRef.current = [];
+    setHasMoreMessages(false);
+    setNextBeforeMessageId(null);
+    setIsLoadingOlderMessages(false);
+    isLoadingOlderMessagesRef.current = false;
+    pendingRefreshRef.current = false;
+    void refresh({ replace: true });
   }, [refresh]);
 
   useEffect(() => {
@@ -189,6 +280,44 @@ export function TalonChannel({
     }, intervalMs);
     return () => window.clearInterval(timer);
   }, [channelName, disabled, namespace, refresh, refreshIntervalMs]);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (!namespace || !channelName || disabled || !hasMoreMessages || !nextBeforeMessageId || isLoadingOlderMessagesRef.current) return;
+    const container = scrollContainerRef.current;
+    const previousScrollHeight = container?.scrollHeight ?? 0;
+    const previousScrollTop = container?.scrollTop ?? 0;
+    isLoadingOlderMessagesRef.current = true;
+    setIsLoadingOlderMessages(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        buildGatewayChannelMessagesUrl(gatewayUrl, namespace, channelName, messageLimit, nextBeforeMessageId),
+        { headers: headers() },
+      );
+      if (!response.ok) throw new Error(`Messages HTTP ${response.status}`);
+      const page = normalizeChannelPage(await response.json());
+      setMessages((existing) => mergeChannelMessages(existing, page.messages));
+      setHasMoreMessages(page.hasMore);
+      setNextBeforeMessageId(page.nextBeforeMessageId);
+      window.requestAnimationFrame(() => {
+        const nextContainer = scrollContainerRef.current;
+        if (!nextContainer) return;
+        nextContainer.scrollTop = nextContainer.scrollHeight - previousScrollHeight + previousScrollTop;
+      });
+    } catch (err: any) {
+      setError(err?.message || "Failed to load older channel messages");
+    } finally {
+      isLoadingOlderMessagesRef.current = false;
+      setIsLoadingOlderMessages(false);
+    }
+  }, [channelName, disabled, gatewayUrl, hasMoreMessages, headers, messageLimit, namespace, nextBeforeMessageId]);
+
+  const handleMessageScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    if (!hasMoreMessages || isLoadingOlderMessagesRef.current || !nextBeforeMessageId) return;
+    if (event.currentTarget.scrollTop <= CHANNEL_SCROLL_LOAD_THRESHOLD_PX) {
+      void loadOlderMessages();
+    }
+  }, [hasMoreMessages, loadOlderMessages, nextBeforeMessageId]);
 
   const postMessage = useCallback(
     async (event: React.FormEvent) => {
@@ -245,8 +374,14 @@ export function TalonChannel({
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-        <div style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "1rem" }}>
+        <div
+          ref={scrollContainerRef}
+          aria-label="Channel messages"
+          onScroll={handleMessageScroll}
+          style={{ flex: 1, minHeight: 0, overflow: "auto", padding: "1rem" }}
+        >
           {isLoading ? <div style={{ marginBottom: 12, fontSize: 12, opacity: 0.68 }}>Loading channel...</div> : null}
+          {isLoadingOlderMessages ? <div style={{ marginBottom: 12, fontSize: 12, opacity: 0.68 }}>Loading older messages...</div> : null}
           {error ? (
             <div style={{ marginBottom: 12, borderRadius: 10, border: border("rgba(252,165,165,0.6)"), background: "rgba(254,242,242,0.82)", color: "rgb(185,28,28)", padding: 12, fontSize: 13 }}>
               {error}
@@ -256,11 +391,11 @@ export function TalonChannel({
             <div style={{ fontSize: 14, opacity: 0.68 }}>No channel messages.</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {messages.map((message) => {
+              {messages.map((message, index) => {
                 const messageAuthorKind = message.authorKind || message.author_kind || "user";
                 const messageActions = renderMessageActions?.(message);
                 return (
-                  <div key={message.id} style={{ borderRadius: 12, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: "1rem" }}>
+                  <div key={channelMessageKey(message, index)} style={{ borderRadius: 12, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: "1rem" }}>
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 12, opacity: 0.72 }}>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, color: "inherit", opacity: 1 }}>
                         <Hash size="13" />

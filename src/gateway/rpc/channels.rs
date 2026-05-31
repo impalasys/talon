@@ -12,6 +12,7 @@ use std::collections::{HashMap, HashSet};
 
 const DEFAULT_CHANNEL_MESSAGES_LIMIT: usize = 50;
 const MAX_CHANNEL_MESSAGES_LIMIT: usize = 200;
+const CHANNEL_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const DEFAULT_CHANNEL_CONTEXT_MESSAGES: usize = 20;
 const MAX_CHANNEL_CONTEXT_MESSAGES: usize = 50;
 
@@ -46,6 +47,27 @@ fn validate_resource_name(kind: &str, name: &str) -> Result<(), tonic::Status> {
         )));
     }
     Ok(())
+}
+
+fn validated_channel_messages_page_size(
+    page_size: i32,
+    legacy_limit: i32,
+) -> Result<usize, tonic::Status> {
+    if page_size < 0 {
+        return Err(tonic::Status::invalid_argument(
+            "page_size must be non-negative",
+        ));
+    }
+
+    let requested = if page_size > 0 {
+        page_size as usize
+    } else if legacy_limit > 0 {
+        legacy_limit as usize
+    } else {
+        DEFAULT_CHANNEL_MESSAGES_LIMIT
+    };
+
+    Ok(requested.min(MAX_CHANNEL_MESSAGES_LIMIT))
 }
 
 fn normalize_trigger(trigger: &str) -> Result<String, tonic::Status> {
@@ -473,31 +495,61 @@ impl GrpcGatewayHandler {
             )?;
         }
         let req = req.into_inner();
-        let limit = if req.limit <= 0 {
-            DEFAULT_CHANNEL_MESSAGES_LIMIT
-        } else {
-            (req.limit as usize).min(MAX_CHANNEL_MESSAGES_LIMIT)
-        };
-        let mut entries = self
-            .gateway
-            .kv
-            .list_entries(&keys::channel_message_prefix(&req.ns, &req.channel))
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("failed to list channel messages: {e}"))
-            })?;
-        entries.sort_by(|a, b| a.0.cmp(&b.0));
-        let mut messages = Vec::new();
-        for (_, value) in entries.into_iter().rev().take(limit) {
-            messages.push(
-                models::ChannelMessage::decode(value.as_slice()).map_err(|e| {
-                    tonic::Status::internal(format!("failed to decode channel message: {e}"))
-                })?,
-            );
+        let page_size = validated_channel_messages_page_size(req.page_size, req.limit)?;
+        let before_name = req
+            .before_message_id
+            .as_deref()
+            .filter(|before_message_id| !before_message_id.is_empty())
+            .map(str::to_string);
+        let target_message_count = page_size + 1;
+        let mut scan_before_name = before_name;
+        let mut messages = Vec::with_capacity(target_message_count);
+
+        while messages.len() < target_message_count {
+            let entries = self
+                .gateway
+                .kv
+                .list_entries_page(
+                    &keys::channel_message_prefix(&req.ns, &req.channel),
+                    scan_before_name.as_deref(),
+                    CHANNEL_MESSAGE_KEY_SCAN_BATCH_SIZE,
+                )
+                .await
+                .map_err(|e| {
+                    tonic::Status::internal(format!("failed to list channel messages: {e}"))
+                })?;
+
+            if entries.is_empty() {
+                break;
+            }
+
+            scan_before_name = entries.last().map(|(key, _)| key.name.clone());
+            let remaining = target_message_count.saturating_sub(messages.len());
+            for (_, value) in entries.into_iter().take(remaining) {
+                messages.push(
+                    models::ChannelMessage::decode(value.as_slice()).map_err(|e| {
+                        tonic::Status::internal(format!("failed to decode channel message: {e}"))
+                    })?,
+                );
+            }
         }
+
+        let has_more = messages.len() > page_size;
+        if has_more {
+            messages.truncate(page_size);
+        }
+
         messages.reverse();
+        let next_before_message_id = if has_more {
+            messages.first().map(|message| message.id.clone())
+        } else {
+            None
+        };
+
         Ok(tonic::Response::new(proto::ListChannelMessagesResponse {
             messages,
+            has_more,
+            next_before_message_id,
         }))
     }
 
