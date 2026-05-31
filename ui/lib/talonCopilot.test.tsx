@@ -594,6 +594,48 @@ describe('TalonChannel', () => {
     expect(openSession).toHaveBeenCalledWith('triage-agent', 'session-1');
   });
 
+  it('scrolls channel messages to the bottom after loading the newest page', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+
+    const scrollTo = jest.fn();
+    const originalScrollTo = HTMLElement.prototype.scrollTo;
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    });
+
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'channel-message-1',
+          authorKind: 'agent',
+          author: 'triage-agent',
+          content: 'Newest channel message',
+        },
+      ],
+    }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    expect(await screen.findByText('Newest channel message')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(scrollTo).toHaveBeenCalled();
+    });
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: originalScrollTo,
+    });
+  });
+
   it('posts a channel message through the gateway', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();

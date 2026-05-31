@@ -195,6 +195,7 @@ export function TalonChannel({
   const pendingRefreshRef = useRef(false);
   const messagesRef = useRef<ChannelMessage[]>([]);
   const isLoadingOlderMessagesRef = useRef(false);
+  const skipNextAutoScrollRef = useRef(false);
 
   const channelName = coerceChannelName(channel);
   const status = coerceChannelStatus(channel);
@@ -216,6 +217,27 @@ export function TalonChannel({
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  const scrollMessagesToBottom = useCallback((behavior: ScrollBehavior) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    if (typeof container.scrollTo === "function") {
+      container.scrollTo({ top: container.scrollHeight, behavior });
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
+  }, []);
+
+  useEffect(() => {
+    if (skipNextAutoScrollRef.current) {
+      skipNextAutoScrollRef.current = false;
+      return;
+    }
+    const rafId = window.requestAnimationFrame(() => {
+      scrollMessagesToBottom("auto");
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, [messages, isLoading, error, scrollMessagesToBottom]);
 
   const refresh = useCallback(
     async (options?: { silent?: boolean; replace?: boolean }) => {
@@ -268,6 +290,7 @@ export function TalonChannel({
     setNextBeforeMessageId(null);
     setIsLoadingOlderMessages(false);
     isLoadingOlderMessagesRef.current = false;
+    skipNextAutoScrollRef.current = false;
     pendingRefreshRef.current = false;
     void refresh({ replace: true });
   }, [refresh]);
@@ -296,6 +319,7 @@ export function TalonChannel({
       );
       if (!response.ok) throw new Error(`Messages HTTP ${response.status}`);
       const page = normalizeChannelPage(await response.json());
+      skipNextAutoScrollRef.current = true;
       setMessages((existing) => mergeChannelMessages(existing, page.messages));
       setHasMoreMessages(page.hasMore);
       setNextBeforeMessageId(page.nextBeforeMessageId);
