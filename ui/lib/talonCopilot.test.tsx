@@ -639,4 +639,34 @@ describe('TalonChannel', () => {
     });
     expect(await screen.findByText('hello channel')).toBeInTheDocument();
   });
+
+  it('can render a channel in observer mode without user input', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'agent-message-1',
+          authorKind: 'agent',
+          author: 'red-agent',
+          content: 'Opening move recorded.',
+        },
+      ],
+    }));
+
+    render(
+      <TalonChannel
+        namespace="game"
+        channel="match-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+        disableUserInput
+      />,
+    );
+
+    expect(await screen.findByText('Opening move recorded.')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Message #match-room')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /send channel message/i })).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

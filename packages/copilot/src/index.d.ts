@@ -100,6 +100,7 @@ export type TalonChannelProps = {
   className?: string;
   style?: React.CSSProperties;
   disabled?: boolean;
+  disableUserInput?: boolean;
   author?: string;
   authorKind?: string;
   messageLimit?: number;

@@ -44,6 +44,7 @@ export type TalonChannelProps = {
   className?: string;
   style?: React.CSSProperties;
   disabled?: boolean;
+  disableUserInput?: boolean;
   author?: string;
   authorKind?: string;
   messageLimit?: number;
@@ -113,6 +114,7 @@ export function TalonChannel({
   className,
   style,
   disabled = false,
+  disableUserInput = false,
   author = "sightline",
   authorKind = "user",
   messageLimit = 100,
@@ -130,6 +132,7 @@ export function TalonChannel({
 
   const channelName = coerceChannelName(channel);
   const status = coerceChannelStatus(channel);
+  const isUserInputDisabled = disabled || disableUserInput || status === "closed";
 
   const headers = useCallback(
     (json = false): HeadersInit => ({
@@ -191,7 +194,7 @@ export function TalonChannel({
     async (event: React.FormEvent) => {
       event.preventDefault();
       const content = draft.trim();
-      if (!content || !namespace || !channelName || disabled || status === "closed") return;
+      if (!content || !namespace || !channelName || isUserInputDisabled) return;
       setIsPosting(true);
       setError(null);
       try {
@@ -221,10 +224,10 @@ export function TalonChannel({
         setIsPosting(false);
       }
     },
-    [author, authorKind, channelName, disabled, draft, gatewayUrl, headers, namespace, refresh, status],
+    [author, authorKind, channelName, draft, gatewayUrl, headers, isUserInputDisabled, namespace, refresh],
   );
 
-  const canPost = Boolean(draft.trim()) && !isPosting && !disabled && status !== "closed";
+  const canPost = Boolean(draft.trim()) && !isPosting && !isUserInputDisabled;
 
   return (
     <div
@@ -276,57 +279,59 @@ export function TalonChannel({
           )}
         </div>
 
-        <form onSubmit={postMessage} style={{ display: "flex", alignItems: "flex-end", gap: 8, borderTop: border("rgba(148,163,184,0.2)"), background: "rgba(255,255,255,0.72)", padding: "0.75rem" }}>
-          <textarea
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder={`Message #${channelName}`}
-            rows={1}
-            disabled={disabled || status === "closed"}
-            style={{
-              flex: 1,
-              minHeight: 40,
-              maxHeight: 128,
-              resize: "none",
-              borderRadius: 10,
-              border: border("rgba(148,163,184,0.28)"),
-              background: "rgba(255,255,255,0.9)",
-              padding: "0.55rem 0.7rem",
-              fontSize: 14,
-              color: "inherit",
-              outline: "none",
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                if (canPost) {
-                  event.currentTarget.form?.requestSubmit();
+        {disableUserInput ? null : (
+          <form onSubmit={postMessage} style={{ display: "flex", alignItems: "flex-end", gap: 8, borderTop: border("rgba(148,163,184,0.2)"), background: "rgba(255,255,255,0.72)", padding: "0.75rem" }}>
+            <textarea
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder={`Message #${channelName}`}
+              rows={1}
+              disabled={isUserInputDisabled}
+              style={{
+                flex: 1,
+                minHeight: 40,
+                maxHeight: 128,
+                resize: "none",
+                borderRadius: 10,
+                border: border("rgba(148,163,184,0.28)"),
+                background: "rgba(255,255,255,0.9)",
+                padding: "0.55rem 0.7rem",
+                fontSize: 14,
+                color: "inherit",
+                outline: "none",
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  if (canPost) {
+                    event.currentTarget.form?.requestSubmit();
+                  }
                 }
-              }
-            }}
-          />
-          <button
-            type="submit"
-            disabled={!canPost}
-            aria-label="Send channel message"
-            style={{
-              width: 40,
-              height: 40,
-              flexShrink: 0,
-              borderRadius: 12,
-              border: "none",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: canPost ? "pointer" : "not-allowed",
-              opacity: canPost ? 1 : 0.5,
-              background: activeControlBackground,
-              color: activeControlColor,
-            }}
-          >
-            <Send size="16" strokeWidth={2} />
-          </button>
-        </form>
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!canPost}
+              aria-label="Send channel message"
+              style={{
+                width: 40,
+                height: 40,
+                flexShrink: 0,
+                borderRadius: 12,
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: canPost ? "pointer" : "not-allowed",
+                opacity: canPost ? 1 : 0.5,
+                background: activeControlBackground,
+                color: activeControlColor,
+              }}
+            >
+              <Send size="16" strokeWidth={2} />
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

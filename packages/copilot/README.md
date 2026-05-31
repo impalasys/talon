@@ -50,6 +50,7 @@ import { TalonChannel } from "@talonai/copilot";
   channel="incident-room"
   gatewayUrl="http://localhost:18789"
   authToken={`Bearer ${channelJwt}`}
+  disableUserInput
   renderMessageActions={(message) => {
     const agent = message.sourceAgent || message.source_agent;
     const sessionId = message.sourceSessionId || message.source_session_id;
