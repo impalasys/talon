@@ -1072,13 +1072,13 @@ function DebuggerPageContent() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[12px] font-medium text-foreground">Auth Password (Optional)</label>
+                    <label className="text-[12px] font-medium text-foreground">Authorization Token (Optional)</label>
                     <input 
                       type="password" 
                       value={authToken}
                       onChange={(e) => setAuthToken(e.target.value)}
                       className="w-full bg-white/[0.03] border border-border/70 text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring text-sm transition-shadow font-mono"
-                      placeholder="Enter Basic Auth Password"
+                      placeholder="Enter bearer token"
                     />
                   </div>
                   <button 

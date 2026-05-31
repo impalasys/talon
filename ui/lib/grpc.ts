@@ -6,10 +6,18 @@ export function normalizeGatewayUrl(url: string) {
   return url.trim().replace(/\/+$/, "");
 }
 
+function hasAuthorizationScheme(value: string) {
+  return /^(Basic|Bearer)\s+/i.test(value);
+}
+
 export function buildGatewayHeaders(authToken?: string | null) {
   if (!authToken) return undefined;
+  const normalizedToken = authToken.trim();
+  if (!normalizedToken) return undefined;
   return {
-    Authorization: `Basic ${btoa(`:${authToken}`)}`,
+    Authorization: hasAuthorizationScheme(normalizedToken)
+      ? normalizedToken
+      : `Bearer ${normalizedToken}`,
   };
 }
 
