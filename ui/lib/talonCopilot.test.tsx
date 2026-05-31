@@ -302,7 +302,7 @@ describe('TalonCopilot', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          Authorization: 'Basic OnNlY3JldC10b2tlbg==',
+          Authorization: 'Bearer secret-token',
         }),
       }),
     );
@@ -312,7 +312,7 @@ describe('TalonCopilot', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          Authorization: 'Basic OnNlY3JldC10b2tlbg==',
+          Authorization: 'Bearer secret-token',
         }),
       }),
     );
