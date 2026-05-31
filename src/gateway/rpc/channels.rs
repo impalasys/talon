@@ -366,7 +366,14 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::PostChannelMessageRequest>,
     ) -> Result<tonic::Response<proto::PostChannelMessageResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_channel_auth(
+                req.metadata(),
+                auth_config,
+                &req.get_ref().ns,
+                &req.get_ref().channel,
+            )?;
+        }
         let req = req.into_inner();
         if req.content.trim().is_empty() {
             return Err(tonic::Status::invalid_argument("content is required"));
@@ -428,7 +435,14 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::GetChannelMessageRequest>,
     ) -> Result<tonic::Response<proto::ChannelMessageResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_channel_auth(
+                req.metadata(),
+                auth_config,
+                &req.get_ref().ns,
+                &req.get_ref().channel,
+            )?;
+        }
         let req = req.into_inner();
         let message = self
             .gateway
@@ -450,7 +464,14 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::ListChannelMessagesRequest>,
     ) -> Result<tonic::Response<proto::ListChannelMessagesResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_channel_auth(
+                req.metadata(),
+                auth_config,
+                &req.get_ref().ns,
+                &req.get_ref().channel,
+            )?;
+        }
         let req = req.into_inner();
         let limit = if req.limit <= 0 {
             DEFAULT_CHANNEL_MESSAGES_LIMIT
@@ -613,7 +634,14 @@ impl GrpcGatewayHandler {
         &self,
         req: tonic::Request<proto::StreamChannelEventsRequest>,
     ) -> Result<tonic::Response<super::ChannelEventStream>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
+        if let Some(auth_config) = &self.gateway.auth_config {
+            crate::gateway::auth::check_channel_auth(
+                req.metadata(),
+                auth_config,
+                &req.get_ref().ns,
+                &req.get_ref().channel,
+            )?;
+        }
         let req = req.into_inner();
         let topic = topics::channel_events_topic(&req.ns, &req.channel);
         let stream = self

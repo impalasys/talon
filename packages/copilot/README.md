@@ -49,7 +49,7 @@ import { TalonChannel } from "@talonai/copilot";
   namespace="support"
   channel="incident-room"
   gatewayUrl="http://localhost:18789"
-  authToken="secret-token"
+  authToken={`Bearer ${channelJwt}`}
   renderMessageActions={(message) => {
     const agent = message.sourceAgent || message.source_agent;
     const sessionId = message.sourceSessionId || message.source_session_id;
@@ -57,3 +57,14 @@ import { TalonChannel } from "@talonai/copilot";
   }}
 />
 ```
+
+For untrusted frontends, mint a short-lived channel token on your backend and pass it as a Bearer token:
+
+```bash
+talon-cli --jwt-secret "$GATEWAY_JWT_SECRET" auth channel-token \
+  --namespace support \
+  --channel incident-room \
+  --ttl-seconds 900
+```
+
+The token is scoped to channel message APIs for that namespace/channel only.

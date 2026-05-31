@@ -66,6 +66,10 @@ struct CliClaims {
     sub: String,
     aud: String,
     exp: usize,
+    #[serde(rename = "talon:ns", skip_serializing_if = "Option::is_none")]
+    ns: Option<String>,
+    #[serde(rename = "talon:channel", skip_serializing_if = "Option::is_none")]
+    channel: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -121,6 +125,8 @@ fn mint_gateway_jwt(secret: &str) -> Result<String> {
         sub: "talon-cli".to_string(),
         aud: "talon".to_string(),
         exp,
+        ns: None,
+        channel: None,
     };
     jsonwebtoken::encode(
         &Header::default(),
@@ -128,6 +134,47 @@ fn mint_gateway_jwt(secret: &str) -> Result<String> {
         &EncodingKey::from_secret(secret.as_bytes()),
     )
     .context("Failed to sign Talon CLI JWT")
+}
+
+fn mint_channel_jwt(
+    secret: &str,
+    namespace: &str,
+    channel: &str,
+    subject: &str,
+    ttl_seconds: u64,
+) -> Result<String> {
+    let namespace = namespace.trim();
+    let channel = channel.trim();
+    let subject = subject.trim();
+    if namespace.is_empty() {
+        anyhow::bail!("namespace cannot be empty");
+    }
+    if channel.is_empty() {
+        anyhow::bail!("channel cannot be empty");
+    }
+    if subject.is_empty() {
+        anyhow::bail!("subject cannot be empty");
+    }
+    if ttl_seconds == 0 {
+        anyhow::bail!("ttl-seconds must be greater than zero");
+    }
+    let exp = (std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_secs()
+        + ttl_seconds) as usize;
+    let claims = CliClaims {
+        sub: subject.to_string(),
+        aud: "talon".to_string(),
+        exp,
+        ns: Some(namespace.to_string()),
+        channel: Some(channel.to_string()),
+    };
+    jsonwebtoken::encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(secret.as_bytes()),
+    )
+    .context("Failed to sign Talon channel JWT")
 }
 
 fn auth_interceptor(cli: &Cli) -> Result<AuthInterceptor> {
@@ -997,6 +1044,11 @@ async fn sync_knowledge_dir(cli: &Cli, namespace: &str, dir: &str) -> Result<(us
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Mint scoped auth tokens for clients.
+    Auth {
+        #[command(subcommand)]
+        command: AuthCommands,
+    },
     /// Manage namespace knowledge artifacts directly by path.
     Knowledge {
         #[command(subcommand)]
@@ -1046,6 +1098,21 @@ enum Commands {
         dir: String,
         #[arg(long, default_value = "client.ts")]
         out: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum AuthCommands {
+    /// Mint a JWT that can only access messages in one channel.
+    ChannelToken {
+        #[arg(short, long)]
+        namespace: String,
+        #[arg(short, long)]
+        channel: String,
+        #[arg(long, default_value = "talon-channel-client")]
+        subject: String,
+        #[arg(long, default_value_t = 3600)]
+        ttl_seconds: u64,
     },
 }
 
@@ -1978,6 +2045,22 @@ struct RunOutcome {
 
 async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
     match &cli.command {
+        Commands::Auth { command } => match command {
+            AuthCommands::ChannelToken {
+                namespace,
+                channel,
+                subject,
+                ttl_seconds,
+            } => {
+                let secret = resolve_gateway_jwt_secret(cli)
+                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
+                println!(
+                    "{}",
+                    mint_channel_jwt(&secret, namespace, channel, subject, *ttl_seconds)?
+                );
+                return Ok(RunOutcome { exit_code: None });
+            }
+        },
         Commands::Knowledge { command } => match command {
             KnowledgeCommands::Get { namespace, path } => {
                 let knowledge = knowledge_get(&cli, namespace, path).await?;
@@ -2254,7 +2337,7 @@ mod tests {
         build_rest_apply_plan, canonicalize_manifest_path, collect_markdown_files, feature_ts_type,
         grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target,
         grpc_get_yaml, knowledge_delete, knowledge_get, knowledge_list, knowledge_resource_name,
-        knowledge_set, manifest_json_payload, parse_raw_manifest, parse_vars,
+        knowledge_set, manifest_json_payload, mint_channel_jwt, parse_raw_manifest, parse_vars,
         read_knowledge_content, relative_knowledge_path, render_json_payload, render_manifest_file,
         render_manifest_template, render_rest_get_yaml, resolve_authorization_header,
         resolve_manifest_sources, rest_apply_manifest, rest_client, rest_delete_path,
@@ -2587,6 +2670,21 @@ mod tests {
             .unwrap()
             .unwrap()
             .starts_with("Basic "));
+    }
+
+    #[test]
+    fn mint_channel_jwt_scopes_token_to_namespace_and_channel() {
+        let token = mint_channel_jwt("secret", "ops", "incident-room", "web-client", 60).unwrap();
+        let claims = talon::gateway::auth::verify_jwt(&token, "secret").unwrap();
+        assert_eq!(claims.sub, "web-client");
+        assert_eq!(claims.ns.as_deref(), Some("ops"));
+        assert_eq!(claims.channel.as_deref(), Some("incident-room"));
+        assert!(claims.exp > 0);
+
+        assert!(mint_channel_jwt("secret", "", "incident-room", "web-client", 60).is_err());
+        assert!(mint_channel_jwt("secret", "ops", "", "web-client", 60).is_err());
+        assert!(mint_channel_jwt("secret", "ops", "incident-room", "", 60).is_err());
+        assert!(mint_channel_jwt("secret", "ops", "incident-room", "web-client", 0).is_err());
     }
 
     #[test]
