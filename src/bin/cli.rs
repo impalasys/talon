@@ -509,7 +509,117 @@ async fn rest_get_yaml(
             .cloned()
             .with_context(|| format!("REST response missing {}", response_key))?
     };
-    serde_yaml::to_string(&value).with_context(|| format!("Failed to serialize {} YAML", kind))
+    render_rest_get_yaml(response_key, value)
+        .with_context(|| format!("Failed to serialize {} YAML", kind))
+}
+
+fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<String> {
+    match response_key {
+        "agent" => render_rest_agent_yaml(value),
+        "namespace" => render_rest_namespace_yaml(value),
+        "server" => {
+            let mut value = value;
+            normalize_manifest_metadata_maps(&mut value);
+            let server: talon::gateway::rpc::manifests::McpServer =
+                serde_json::from_value(value).context("Failed to decode MCPServer JSON")?;
+            talon::manifest::render_mcp_server_yaml(&server)
+        }
+        "binding" => {
+            let mut value = value;
+            normalize_manifest_metadata_maps(&mut value);
+            let binding: talon::gateway::rpc::manifests::McpServerBinding =
+                serde_json::from_value(value).context("Failed to decode McpServerBinding JSON")?;
+            talon::manifest::render_mcp_server_binding_yaml(&binding)
+        }
+        "knowledge" => {
+            let mut value = value;
+            normalize_manifest_metadata_maps(&mut value);
+            let knowledge: talon::gateway::rpc::manifests::Knowledge =
+                serde_json::from_value(value).context("Failed to decode Knowledge JSON")?;
+            talon::manifest::render_knowledge_yaml(&knowledge)
+        }
+        "template" => {
+            let mut value = value;
+            normalize_manifest_metadata_maps(&mut value);
+            let template_json =
+                serde_json::to_string(&value).context("Failed to serialize AgentTemplate JSON")?;
+            let template = talon::manifest::parse_agent_template(&template_json)
+                .context("Failed to decode AgentTemplate manifest")?;
+            talon::manifest::render_agent_template_yaml(&template)
+        }
+        "schedule" => serde_yaml::to_string(&value).context("Failed to serialize Schedule YAML"),
+        other => anyhow::bail!("Unsupported REST response resource '{}'", other),
+    }
+}
+
+fn normalize_manifest_metadata_maps(value: &mut serde_json::Value) {
+    let Some(metadata) = value
+        .get_mut("metadata")
+        .and_then(|metadata| metadata.as_object_mut())
+    else {
+        return;
+    };
+
+    for key in ["labels", "annotations"] {
+        if metadata.get(key).is_some_and(|value| value.is_null()) {
+            metadata.insert(key.to_string(), json!({}));
+        }
+    }
+}
+
+fn render_rest_agent_yaml(agent: serde_json::Value) -> Result<String> {
+    let name = agent
+        .get("name")
+        .or_else(|| agent.get("agent"))
+        .and_then(|name| name.as_str())
+        .context("Agent response missing name")?;
+    let namespace = agent
+        .get("ns")
+        .and_then(|namespace| namespace.as_str())
+        .context("Agent response missing ns")?;
+    let definition = agent
+        .get("definition")
+        .cloned()
+        .context("Agent response missing definition")?;
+    let labels = agent
+        .get("labels")
+        .filter(|labels| !labels.is_null())
+        .cloned()
+        .unwrap_or_else(|| json!({}));
+
+    serde_yaml::to_string(&json!({
+        "apiVersion": "talon.impalasys.com/v1",
+        "kind": "Agent",
+        "metadata": {
+            "name": name,
+            "namespace": namespace,
+            "labels": labels,
+        },
+        "definition": definition,
+    }))
+    .context("Failed to serialize Agent YAML")
+}
+
+fn render_rest_namespace_yaml(namespace: serde_json::Value) -> Result<String> {
+    let name = namespace
+        .get("name")
+        .and_then(|name| name.as_str())
+        .context("Namespace response missing name")?;
+    let labels = namespace
+        .get("labels")
+        .filter(|labels| !labels.is_null())
+        .cloned()
+        .unwrap_or_else(|| json!({}));
+
+    serde_yaml::to_string(&json!({
+        "apiVersion": "talon.impalasys.com/v1",
+        "kind": "Namespace",
+        "metadata": {
+            "name": name,
+            "labels": labels,
+        },
+    }))
+    .context("Failed to serialize Namespace YAML")
 }
 
 async fn rest_delete_resource(
@@ -1290,7 +1400,7 @@ async fn grpc_get_yaml(
                 .await
                 .with_context(|| format!("Failed to fetch MCPServer '{}'", name))?;
             let server = resp.into_inner().server.context("Resource not found.")?;
-            serde_yaml::to_string(&server).context("Failed to serialize to YAML")
+            talon::manifest::render_mcp_server_yaml(&server)
         }
         GrpcGetTarget::Knowledge { ns, name } => {
             let resp = client
@@ -1756,11 +1866,12 @@ mod tests {
         grpc_get_yaml, knowledge_delete, knowledge_get, knowledge_list, knowledge_resource_name,
         knowledge_set, manifest_json_payload, parse_raw_manifest, parse_vars,
         read_knowledge_content, relative_knowledge_path, render_json_payload, render_manifest_file,
-        render_manifest_template, resolve_authorization_header, resolve_manifest_sources,
-        rest_apply_manifest, rest_client, rest_delete_path, rest_delete_resource, rest_get_path,
-        rest_get_yaml, rest_request_json, run_cli, schedule_json, sdk_method_for_template,
-        sdk_methods_from_dir, sync_knowledge_dir, to_camel_case, Cli, Commands, GrpcApplyPlan,
-        GrpcDeleteTarget, GrpcGetTarget, KnowledgeCommands, RenderFormat,
+        render_manifest_template, render_rest_get_yaml, resolve_authorization_header,
+        resolve_manifest_sources, rest_apply_manifest, rest_client, rest_delete_path,
+        rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json, run_cli,
+        schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
+        to_camel_case, Cli, Commands, GrpcApplyPlan, GrpcDeleteTarget, GrpcGetTarget,
+        KnowledgeCommands, RenderFormat,
     };
     use axum::{
         extract::{Path as AxumPath, State},
@@ -1988,6 +2099,66 @@ mod tests {
         )
         .unwrap();
         assert_eq!(raw.kind, "Namespace");
+    }
+
+    #[test]
+    fn render_rest_get_yaml_canonicalizes_template_and_ignores_null_labels() {
+        let template_yaml = render_rest_get_yaml(
+            "template",
+            json!({
+                "apiVersion": "talon.impalasys.com/v1",
+                "kind": "AgentTemplate",
+                "metadata": {
+                    "name": "writer",
+                    "labels": null,
+                },
+                "definition": {
+                    "customSpec": {
+                        "systemPrompt": "Write"
+                    }
+                }
+            }),
+        )
+        .unwrap();
+        let template =
+            talon::manifest::parse_agent_template(&template_yaml).expect("template should parse");
+        assert_eq!(
+            template.metadata.as_ref().map(|meta| meta.name.as_str()),
+            Some("writer")
+        );
+
+        let agent_yaml = render_rest_get_yaml(
+            "agent",
+            json!({
+                "name": "writer",
+                "ns": "conic",
+                "labels": null,
+                "definition": {
+                    "customSpec": {
+                        "systemPrompt": "Write"
+                    }
+                }
+            }),
+        )
+        .unwrap();
+        assert!(!agent_yaml.contains("labels: null"));
+        let agent = talon::manifest::parse_agent(&agent_yaml).expect("agent should parse");
+        assert_eq!(agent.name, "writer");
+        assert!(agent.labels.is_empty());
+
+        let namespace_yaml = render_rest_get_yaml(
+            "namespace",
+            json!({
+                "name": "conic",
+                "labels": null,
+            }),
+        )
+        .unwrap();
+        assert!(!namespace_yaml.contains("labels: null"));
+        let namespace =
+            talon::manifest::parse_namespace(&namespace_yaml).expect("namespace should parse");
+        assert_eq!(namespace.name, "conic");
+        assert!(namespace.labels.is_empty());
     }
 
     #[test]
@@ -2945,7 +3116,12 @@ mod tests {
         let initial_yaml = grpc_get_yaml(&cli, "agent", "conic/writer", None)
             .await
             .unwrap();
+        assert_eq!(parse_raw_manifest(&initial_yaml).unwrap().kind, "Agent");
+        assert!(initial_yaml.contains("apiVersion: talon.impalasys.com/v1"));
+        assert!(initial_yaml.contains("namespace: conic"));
         assert!(initial_yaml.contains("systemPrompt: First version"));
+        let reapplied = grpc_apply_manifest(&cli, &initial_yaml).await.unwrap();
+        assert!(reapplied.contains("Agent 'conic/writer' applied successfully."));
 
         let updated = grpc_apply_manifest(
             &cli,
@@ -2999,8 +3175,11 @@ mod tests {
         let mcp_yaml = grpc_get_yaml(&cli, "mcp", "docs-server", None)
             .await
             .unwrap();
+        assert_eq!(parse_raw_manifest(&mcp_yaml).unwrap().kind, "McpServer");
         assert!(mcp_yaml.contains("name: docs-server"));
         assert!(mcp_yaml.contains("transport: streamable-http"));
+        let reapplied_mcp = grpc_apply_manifest(&cli, &mcp_yaml).await.unwrap();
+        assert!(reapplied_mcp.contains("MCPServer 'docs-server' applied successfully."));
 
         let deleted_mcp = grpc_delete_resource(&cli, "mcp", "docs-server", None)
             .await
@@ -3180,7 +3359,14 @@ mod tests {
         let created_yaml = rest_get_yaml(&cli, "agent", "conic/writer", None)
             .await
             .unwrap();
+        assert_eq!(parse_raw_manifest(&created_yaml).unwrap().kind, "Agent");
+        assert!(created_yaml.contains("apiVersion: talon.impalasys.com/v1"));
+        assert!(created_yaml.contains("namespace: conic"));
         assert!(created_yaml.contains("systemPrompt: REST create"));
+        let reapplied_agent = rest_apply_manifest(&cli, &created_yaml, true)
+            .await
+            .unwrap();
+        assert!(reapplied_agent.contains("Agent 'conic/writer' applied successfully."));
 
         let updated_agent = rest_apply_manifest(
             &cli,
@@ -3357,6 +3543,10 @@ mod tests {
         let namespace_yaml = rest_get_yaml(&cli, "namespace", "conic", None)
             .await
             .unwrap();
+        assert_eq!(
+            parse_raw_manifest(&namespace_yaml).unwrap().kind,
+            "Namespace"
+        );
         assert!(namespace_yaml.contains("name: conic"));
         let namespace_deleted = rest_delete_resource(&cli, "namespace", "conic", None)
             .await
@@ -3392,6 +3582,10 @@ mod tests {
         let binding_yaml = rest_get_yaml(&cli, "mcpbinding", "docs", Some(&namespace))
             .await
             .unwrap();
+        assert_eq!(
+            parse_raw_manifest(&binding_yaml).unwrap().kind,
+            "McpServerBinding"
+        );
         assert!(binding_yaml.contains("name: docs"));
         let binding_deleted = rest_delete_resource(&cli, "mcpbinding", "docs", Some(&namespace))
             .await
@@ -3409,6 +3603,7 @@ mod tests {
         let server_yaml = rest_get_yaml(&cli, "mcp", "docs-server", None)
             .await
             .unwrap();
+        assert_eq!(parse_raw_manifest(&server_yaml).unwrap().kind, "McpServer");
         assert!(server_yaml.contains("transport: streamable-http"));
         let server_deleted = rest_delete_resource(&cli, "mcp", "docs-server", None)
             .await
