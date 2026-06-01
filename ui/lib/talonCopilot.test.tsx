@@ -620,6 +620,77 @@ describe('TalonChannel', () => {
     expect(screen.getByText('Message from next room')).toBeInTheDocument();
   });
 
+  it('reloads channel messages when auth changes without clearing the current view first', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'initial-message',
+          authorKind: 'user',
+          author: 'sightline',
+          content: 'Initial channel message',
+        },
+      ],
+    }));
+    let resolveReload: (value: any) => void = () => {};
+    const reloadResponse = new Promise((resolve) => {
+      resolveReload = resolve;
+    });
+    fetchMock.mockImplementationOnce(() => reloadResponse as any);
+
+    const { rerender } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        authToken="old-token"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    expect(await screen.findByText('Initial channel message')).toBeInTheDocument();
+
+    rerender(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        authToken="new-token"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('Initial channel message')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=100',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer new-token',
+        }),
+      }),
+    );
+
+    await act(async () => {
+      resolveReload(makeJsonResponse({
+        messages: [
+          {
+            id: 'updated-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Updated channel message',
+          },
+        ],
+      }));
+      await reloadResponse;
+    });
+
+    expect(await screen.findByText('Updated channel message')).toBeInTheDocument();
+    expect(screen.queryByText('Initial channel message')).not.toBeInTheDocument();
+  });
+
   it('renders injected channel message actions', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();

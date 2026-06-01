@@ -199,6 +199,8 @@ export function TalonChannel({
   const isLoadingOlderMessagesRef = useRef(false);
   const skipNextAutoScrollRef = useRef(false);
   const delayedRefreshTimeoutRef = useRef<number | null>(null);
+  const loadedChannelRef = useRef<{ namespace: string; channelName: string } | null>(null);
+  const refreshConfigVersionRef = useRef(0);
 
   const channelName = coerceChannelName(channel);
   const status = coerceChannelStatus(channel);
@@ -208,6 +210,10 @@ export function TalonChannel({
   useEffect(() => {
     currentChannelRef.current = { namespace, channelName };
   }, [namespace, channelName]);
+
+  useEffect(() => {
+    refreshConfigVersionRef.current += 1;
+  }, [authToken, disabled, gatewayUrl, messageLimit]);
 
   const headers = useCallback(
     (json = false): HeadersInit => ({
@@ -261,6 +267,7 @@ export function TalonChannel({
       if (!namespace || !channelName || disabled || pendingRefreshRef.current) return;
       const requestNamespace = namespace;
       const requestChannelName = channelName;
+      const requestConfigVersion = refreshConfigVersionRef.current;
       pendingRefreshRef.current = true;
       if (!options?.silent) {
         setIsLoading(true);
@@ -275,7 +282,8 @@ export function TalonChannel({
         const responseJson = await messagesResponse.json();
         if (
           requestNamespace !== currentChannelRef.current.namespace ||
-          requestChannelName !== currentChannelRef.current.channelName
+          requestChannelName !== currentChannelRef.current.channelName ||
+          requestConfigVersion !== refreshConfigVersionRef.current
         ) {
           return;
         }
@@ -300,14 +308,16 @@ export function TalonChannel({
       } catch (err: any) {
         if (
           requestNamespace === currentChannelRef.current.namespace &&
-          requestChannelName === currentChannelRef.current.channelName
+          requestChannelName === currentChannelRef.current.channelName &&
+          requestConfigVersion === refreshConfigVersionRef.current
         ) {
           setError(err?.message || "Failed to load channel");
         }
       } finally {
         if (
           requestNamespace === currentChannelRef.current.namespace &&
-          requestChannelName === currentChannelRef.current.channelName
+          requestChannelName === currentChannelRef.current.channelName &&
+          requestConfigVersion === refreshConfigVersionRef.current
         ) {
           pendingRefreshRef.current = false;
           if (!options?.silent) {
@@ -320,18 +330,26 @@ export function TalonChannel({
   );
 
   useEffect(() => {
-    setMessages([]);
-    messagesRef.current = [];
-    setHasMoreMessages(false);
-    setNextBeforeMessageId(null);
-    setIsLoading(false);
-    setIsLoadingOlderMessages(false);
-    setError(null);
-    isLoadingOlderMessagesRef.current = false;
-    skipNextAutoScrollRef.current = false;
+    const previousChannel = loadedChannelRef.current;
+    const channelChanged =
+      !previousChannel ||
+      previousChannel.namespace !== namespace ||
+      previousChannel.channelName !== channelName;
+    loadedChannelRef.current = { namespace, channelName };
     pendingRefreshRef.current = false;
-    void refresh({ replace: true });
-  }, [namespace, channelName]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (channelChanged) {
+      setMessages([]);
+      messagesRef.current = [];
+      setHasMoreMessages(false);
+      setNextBeforeMessageId(null);
+      setIsLoading(false);
+      setIsLoadingOlderMessages(false);
+      setError(null);
+      isLoadingOlderMessagesRef.current = false;
+      skipNextAutoScrollRef.current = false;
+    }
+    void refresh({ replace: true, silent: !channelChanged });
+  }, [namespace, channelName, refresh]);
 
   useEffect(() => {
     if (refreshIntervalMs === false || disabled || !namespace || !channelName) return;
