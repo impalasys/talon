@@ -233,7 +233,7 @@ export function TalonChannel({
         delayedRefreshTimeoutRef.current = null;
       }
     };
-  }, []);
+  }, [namespace, channelName]);
 
   const scrollMessagesToBottom = useCallback((behavior: ScrollBehavior) => {
     const container = scrollContainerRef.current;

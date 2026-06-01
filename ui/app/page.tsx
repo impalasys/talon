@@ -597,13 +597,10 @@ function ChannelInspector({
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
               {subscriptions.map((subscription) => {
-                const policy = subscription.contextPolicy || subscription.context_policy;
-                const maxMessages =
-                  policy && 'maxMessages' in policy
-                    ? policy.maxMessages
-                    : policy && 'max_messages' in policy
-                      ? policy.max_messages
-                      : 20;
+                const policy = (subscription.contextPolicy || subscription.context_policy) as
+                  | { mode?: string; maxMessages?: number; max_messages?: number }
+                  | undefined;
+                const maxMessages = policy?.maxMessages ?? policy?.max_messages ?? 20;
                 return (
                   <div key={subscription.name} className="rounded-xl border border-border bg-background/70 p-4">
                     <div className="flex items-start justify-between gap-3">
