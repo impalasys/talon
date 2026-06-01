@@ -308,6 +308,53 @@ describe("fallback readers", () => {
     expect(getMessageUsage({ parts: [] })).toBeNull();
   });
 
+  it("reads camelCase tool and usage fields from part payloads", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        {
+          partType: 3,
+          payloadJson: JSON.stringify({
+            toolCallId: "call-camel",
+            input: { query: "ops" },
+          }),
+        },
+        {
+          partType: 4,
+          payloadJson: JSON.stringify({
+            toolCallId: "call-camel",
+            outputPreview: "preview result",
+          }),
+        },
+        {
+          partType: 5,
+          payloadJson: JSON.stringify({
+            inputTokens: 10,
+            outputTokens: 3,
+            reasoningTokens: 2,
+            totalTokens: 15,
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      {
+        type: "tool",
+        toolCallId: "call-camel",
+        toolName: "tool",
+        args: { query: "ops" },
+        result: "preview result",
+      },
+    ]);
+    expect(getMessageUsage(message)).toEqual({
+      inputTokens: 10,
+      outputTokens: 3,
+      reasoningTokens: 2,
+      totalTokens: 15,
+    });
+  });
+
   it("keeps AI SDK tool parts interleaved with text", () => {
     const message = {
       role: "assistant",
@@ -432,6 +479,59 @@ describe("metadata helpers", () => {
     expect(hydrated[0]).toEqual(messages[0]);
     expect(getMessageReasoningContent(hydrated[1])).toBe("reason one ");
     expect(getMessageUsage(hydrated[1])).toEqual({
+      inputTokens: 4,
+      outputTokens: 5,
+      reasoningTokens: 6,
+      totalTokens: 15,
+    });
+  });
+
+  it("hydrates camelCase tool and usage fields from steps", () => {
+    const messages = [
+      { id: "assistant-1", role: "assistant", content: "" },
+    ];
+    const steps = [
+      {
+        messageId: "assistant-1",
+        stepType: "STEP_TYPE_ACTION",
+        name: "knowledge_search",
+        payloadJson: JSON.stringify({
+          toolCallId: "call-camel",
+          input: { query: "docs" },
+        }),
+      },
+      {
+        messageId: "assistant-1",
+        stepType: "STEP_TYPE_OBSERVATION",
+        name: "knowledge_search",
+        payloadJson: JSON.stringify({
+          toolCallId: "call-camel",
+          outputPreview: "docs found",
+        }),
+      },
+      {
+        messageId: "assistant-1",
+        stepType: "STEP_TYPE_USAGE",
+        payloadJson: JSON.stringify({
+          inputTokens: 4,
+          outputTokens: 5,
+          reasoningTokens: 6,
+          totalTokens: 15,
+        }),
+      },
+    ];
+
+    const hydrated = hydrateMessagesWithSteps(messages, steps);
+    expect(getMessageAssistantTimeline(hydrated[0])).toEqual([
+      {
+        type: "tool",
+        toolCallId: "call-camel",
+        toolName: "knowledge_search",
+        args: { query: "docs" },
+        result: "docs found",
+      },
+    ]);
+    expect(getMessageUsage(hydrated[0])).toEqual({
       inputTokens: 4,
       outputTokens: 5,
       reasoningTokens: 6,

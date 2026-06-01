@@ -77,6 +77,39 @@ function partContent(part: any): string {
   return '';
 }
 
+function payloadString(payload: Record<string, unknown>, snakeCase: string, camelCase: string): string | undefined {
+  const snakeValue = payload[snakeCase];
+  if (typeof snakeValue === 'string') return snakeValue;
+  const camelValue = payload[camelCase];
+  return typeof camelValue === 'string' ? camelValue : undefined;
+}
+
+function payloadNumber(payload: Record<string, unknown>, snakeCase: string, camelCase: string): number | undefined {
+  const snakeValue = payload[snakeCase];
+  if (typeof snakeValue === 'number') return snakeValue;
+  const camelValue = payload[camelCase];
+  return typeof camelValue === 'number' ? camelValue : undefined;
+}
+
+function toolCallIdFromPart(part: any, payload: Record<string, unknown>): string {
+  if (typeof part?.toolCallId === 'string') return part.toolCallId;
+  if (typeof part?.tool_call_id === 'string') return part.tool_call_id;
+  return payloadString(payload, 'tool_call_id', 'toolCallId') ?? '';
+}
+
+function toolResultFromPayload(payload: Record<string, unknown>, fallback: unknown): unknown {
+  return payload.output ?? payload.output_preview ?? payload.outputPreview ?? fallback;
+}
+
+function usageFromPayload(payload: Record<string, unknown>): UsageSummary {
+  return {
+    inputTokens: payloadNumber(payload, 'input_tokens', 'inputTokens'),
+    outputTokens: payloadNumber(payload, 'output_tokens', 'outputTokens'),
+    reasoningTokens: payloadNumber(payload, 'reasoning_tokens', 'reasoningTokens'),
+    totalTokens: payloadNumber(payload, 'total_tokens', 'totalTokens'),
+  };
+}
+
 function isTextPart(part: any): boolean {
   const type = partType(part);
   return type === 'text' || type === 1 || type === 'SESSION_MESSAGE_PART_TYPE_TEXT';
@@ -159,12 +192,7 @@ function legacyToolInvocationsFromParts(message: any): ToolInvocationItem[] {
     if (!part || typeof part !== 'object') continue;
 
     const payload = parsePartPayload(part);
-    const toolCallId =
-      typeof part.toolCallId === 'string'
-        ? part.toolCallId
-        : typeof payload.tool_call_id === 'string'
-          ? payload.tool_call_id
-          : '';
+    const toolCallId = toolCallIdFromPart(part, payload);
     if (!toolCallId) continue;
 
     const toolName =
@@ -187,7 +215,7 @@ function legacyToolInvocationsFromParts(message: any): ToolInvocationItem[] {
           : part.state === 'output-error'
             ? part.errorText
             : isToolResultPart(part)
-              ? payload.output ?? payload.output_preview ?? partContent(part)
+              ? toolResultFromPayload(payload, partContent(part))
               : previous?.result,
     });
   }
@@ -208,12 +236,7 @@ function timelineFromParts(message: any): AssistantTimelineItem[] {
     }
 
     const payload = parsePartPayload(part);
-    const toolCallId =
-      typeof part.toolCallId === 'string'
-        ? part.toolCallId
-        : typeof payload.tool_call_id === 'string'
-          ? payload.tool_call_id
-          : '';
+    const toolCallId = toolCallIdFromPart(part, payload);
     const toolName =
       typeof part.toolName === 'string'
         ? part.toolName
@@ -244,7 +267,7 @@ function timelineFromParts(message: any): AssistantTimelineItem[] {
         toolCallId,
         toolName,
         undefined,
-        payload.output ?? payload.output_preview ?? partContent(part),
+        toolResultFromPayload(payload, partContent(part)),
       );
     }
   }
@@ -285,12 +308,7 @@ export function getMessageUsage(message: any): UsageSummary | null {
     );
     if (usagePart) {
       const payload = parsePartPayload(usagePart);
-      return {
-        inputTokens: typeof payload.input_tokens === 'number' ? payload.input_tokens : undefined,
-        outputTokens: typeof payload.output_tokens === 'number' ? payload.output_tokens : undefined,
-        reasoningTokens: typeof payload.reasoning_tokens === 'number' ? payload.reasoning_tokens : undefined,
-        totalTokens: typeof payload.total_tokens === 'number' ? payload.total_tokens : undefined,
-      };
+      return usageFromPayload(payload);
     }
   }
   return null;
@@ -378,12 +396,7 @@ function buildUsageFromSteps(steps: any[] | undefined): Map<string, UsageSummary
     if (!messageId || !isUsageStep(step?.stepType)) continue;
 
     const payload = parseJsonObject(step.payloadJson);
-    byMessage.set(messageId, {
-      inputTokens: typeof payload.input_tokens === 'number' ? payload.input_tokens : undefined,
-      outputTokens: typeof payload.output_tokens === 'number' ? payload.output_tokens : undefined,
-      reasoningTokens: typeof payload.reasoning_tokens === 'number' ? payload.reasoning_tokens : undefined,
-      totalTokens: typeof payload.total_tokens === 'number' ? payload.total_tokens : undefined,
-    });
+    byMessage.set(messageId, usageFromPayload(payload));
   }
 
   return byMessage;
@@ -414,7 +427,7 @@ function buildAssistantTimelineFromSteps(steps: any[] | undefined): Map<string, 
 
     if (isActionStep(step?.stepType)) {
       const payload = parseJsonObject(step.payloadJson);
-      const toolCallId = typeof payload.tool_call_id === 'string' ? payload.tool_call_id : '';
+      const toolCallId = payloadString(payload, 'tool_call_id', 'toolCallId') ?? '';
       byMessage.set(
         messageId,
         upsertToolInTimeline(
@@ -429,7 +442,7 @@ function buildAssistantTimelineFromSteps(steps: any[] | undefined): Map<string, 
 
     if (isObservationStep(step?.stepType)) {
       const payload = parseJsonObject(step.payloadJson);
-      const toolCallId = typeof payload.tool_call_id === 'string' ? payload.tool_call_id : '';
+      const toolCallId = payloadString(payload, 'tool_call_id', 'toolCallId') ?? '';
       byMessage.set(
         messageId,
         upsertToolInTimeline(
@@ -437,7 +450,7 @@ function buildAssistantTimelineFromSteps(steps: any[] | undefined): Map<string, 
           toolCallId,
           step.name || 'tool',
           undefined,
-          payload.output ?? step.content,
+          toolResultFromPayload(payload, step.content),
         ),
       );
     }

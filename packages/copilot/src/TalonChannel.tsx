@@ -203,6 +203,11 @@ export function TalonChannel({
   const channelName = coerceChannelName(channel);
   const status = coerceChannelStatus(channel);
   const isUserInputDisabled = disabled || disableUserInput || status === "closed";
+  const currentChannelRef = useRef({ namespace, channelName });
+
+  useEffect(() => {
+    currentChannelRef.current = { namespace, channelName };
+  }, [namespace, channelName]);
 
   const headers = useCallback(
     (json = false): HeadersInit => ({
@@ -254,6 +259,8 @@ export function TalonChannel({
   const refresh = useCallback(
     async (options?: { silent?: boolean; replace?: boolean }) => {
       if (!namespace || !channelName || disabled || pendingRefreshRef.current) return;
+      const requestNamespace = namespace;
+      const requestChannelName = channelName;
       pendingRefreshRef.current = true;
       if (!options?.silent) {
         setIsLoading(true);
@@ -261,11 +268,18 @@ export function TalonChannel({
       setError(null);
       try {
         const messagesResponse = await fetch(
-          buildGatewayChannelMessagesUrl(gatewayUrl, namespace, channelName, messageLimit),
+          buildGatewayChannelMessagesUrl(gatewayUrl, requestNamespace, requestChannelName, messageLimit),
           { headers: headers() },
         );
         if (!messagesResponse.ok) throw new Error(`Messages HTTP ${messagesResponse.status}`);
-        const page = normalizeChannelPage(await messagesResponse.json());
+        const responseJson = await messagesResponse.json();
+        if (
+          requestNamespace !== currentChannelRef.current.namespace ||
+          requestChannelName !== currentChannelRef.current.channelName
+        ) {
+          return;
+        }
+        const page = normalizeChannelPage(responseJson);
         const newestIds = new Set(page.messages.map((message, index) => channelMessageKey(message, index)));
         const oldestNewestMessage = page.messages[0];
         const oldestNewestTimestamp = oldestNewestMessage ? channelMessageTimestamp(oldestNewestMessage) : null;
@@ -284,11 +298,21 @@ export function TalonChannel({
           setNextBeforeMessageId(page.nextBeforeMessageId);
         }
       } catch (err: any) {
-        setError(err?.message || "Failed to load channel");
+        if (
+          requestNamespace === currentChannelRef.current.namespace &&
+          requestChannelName === currentChannelRef.current.channelName
+        ) {
+          setError(err?.message || "Failed to load channel");
+        }
       } finally {
-        pendingRefreshRef.current = false;
-        if (!options?.silent) {
-          setIsLoading(false);
+        if (
+          requestNamespace === currentChannelRef.current.namespace &&
+          requestChannelName === currentChannelRef.current.channelName
+        ) {
+          pendingRefreshRef.current = false;
+          if (!options?.silent) {
+            setIsLoading(false);
+          }
         }
       }
     },
@@ -300,7 +324,9 @@ export function TalonChannel({
     messagesRef.current = [];
     setHasMoreMessages(false);
     setNextBeforeMessageId(null);
+    setIsLoading(false);
     setIsLoadingOlderMessages(false);
+    setError(null);
     isLoadingOlderMessagesRef.current = false;
     skipNextAutoScrollRef.current = false;
     pendingRefreshRef.current = false;
@@ -318,16 +344,25 @@ export function TalonChannel({
 
   const loadOlderMessages = useCallback(async () => {
     if (!namespace || !channelName || disabled || !hasMoreMessages || !nextBeforeMessageId || isLoadingOlderMessagesRef.current) return;
+    const requestNamespace = namespace;
+    const requestChannelName = channelName;
     isLoadingOlderMessagesRef.current = true;
     setIsLoadingOlderMessages(true);
     setError(null);
     try {
       const response = await fetch(
-        buildGatewayChannelMessagesUrl(gatewayUrl, namespace, channelName, messageLimit, nextBeforeMessageId),
+        buildGatewayChannelMessagesUrl(gatewayUrl, requestNamespace, requestChannelName, messageLimit, nextBeforeMessageId),
         { headers: headers() },
       );
       if (!response.ok) throw new Error(`Messages HTTP ${response.status}`);
-      const page = normalizeChannelPage(await response.json());
+      const responseJson = await response.json();
+      if (
+        requestNamespace !== currentChannelRef.current.namespace ||
+        requestChannelName !== currentChannelRef.current.channelName
+      ) {
+        return;
+      }
+      const page = normalizeChannelPage(responseJson);
       skipNextAutoScrollRef.current = true;
       const container = scrollContainerRef.current;
       const previousScrollHeight = container?.scrollHeight ?? 0;
@@ -341,10 +376,20 @@ export function TalonChannel({
         nextContainer.scrollTop = nextContainer.scrollHeight - previousScrollHeight + previousScrollTop;
       });
     } catch (err: any) {
-      setError(err?.message || "Failed to load older channel messages");
+      if (
+        requestNamespace === currentChannelRef.current.namespace &&
+        requestChannelName === currentChannelRef.current.channelName
+      ) {
+        setError(err?.message || "Failed to load older channel messages");
+      }
     } finally {
-      isLoadingOlderMessagesRef.current = false;
-      setIsLoadingOlderMessages(false);
+      if (
+        requestNamespace === currentChannelRef.current.namespace &&
+        requestChannelName === currentChannelRef.current.channelName
+      ) {
+        isLoadingOlderMessagesRef.current = false;
+        setIsLoadingOlderMessages(false);
+      }
     }
   }, [channelName, disabled, gatewayUrl, hasMoreMessages, headers, messageLimit, namespace, nextBeforeMessageId]);
 

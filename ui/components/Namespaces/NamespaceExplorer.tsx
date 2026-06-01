@@ -540,6 +540,7 @@ export function NamespaceExplorer({
   const selectedNodeRef = useRef(selectedNode);
   const refreshChannelsInFlightRef = useRef(false);
   const refreshChannelsDebounceRef = useRef<number | null>(null);
+  const refreshChannelsQueuedRef = useRef(false);
 
   useEffect(() => {
     expandedRef.current = expanded;
@@ -881,13 +882,16 @@ export function NamespaceExplorer({
     if (!isConnected) {
       setChannelsByNamespace({});
       setChannelSubscriptionsByKey({});
+      refreshChannelsQueuedRef.current = false;
       return;
     }
     if (refreshChannelsInFlightRef.current) {
+      refreshChannelsQueuedRef.current = true;
       return;
     }
 
     refreshChannelsInFlightRef.current = true;
+    refreshChannelsQueuedRef.current = false;
     try {
       const currentExpanded = expandedRef.current;
       const namespaces = collectExpandedNamespaceIds(currentExpanded, selectedNodeRef.current);
@@ -941,6 +945,9 @@ export function NamespaceExplorer({
       setChannelSubscriptionsByKey({});
     } finally {
       refreshChannelsInFlightRef.current = false;
+      if (refreshChannelsQueuedRef.current) {
+        void refreshChannels();
+      }
     }
   }, [gatewayUrl, isConnected]);
 

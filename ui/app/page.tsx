@@ -509,28 +509,55 @@ function ChannelInspector({
   const [error, setError] = useState<string | null>(null);
   const ns = channel.ns || '';
   const channelName = channel.name || '';
+  const currentChannelRef = useRef({ ns, channelName });
+
+  useEffect(() => {
+    currentChannelRef.current = { ns, channelName };
+  }, [ns, channelName]);
+
   const headers = useCallback(() => ({
     ...(buildGatewayHeaders(authToken) || {}),
   }), [authToken]);
 
   const refresh = useCallback(async () => {
     if (!ns || !channelName) return;
+    const requestNs = ns;
+    const requestChannelName = channelName;
     setIsLoading(true);
     setError(null);
     try {
       const baseUrl = normalizeGatewayUrl(gatewayUrl);
-      const subscriptionsResponse = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels/${encodeURIComponent(channelName)}/subscriptions`, { headers: headers() });
+      const subscriptionsResponse = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(requestNs)}/channels/${encodeURIComponent(requestChannelName)}/subscriptions`, { headers: headers() });
       if (!subscriptionsResponse.ok) throw new Error(`Subscriptions HTTP ${subscriptionsResponse.status}`);
       const subscriptionsPayload = await subscriptionsResponse.json();
+      if (
+        requestNs !== currentChannelRef.current.ns ||
+        requestChannelName !== currentChannelRef.current.channelName
+      ) {
+        return;
+      }
       setSubscriptions(subscriptionsPayload.subscriptions || []);
     } catch (err: any) {
-      setError(err?.message || 'Failed to load channel subscriptions');
+      if (
+        requestNs === currentChannelRef.current.ns &&
+        requestChannelName === currentChannelRef.current.channelName
+      ) {
+        setError(err?.message || 'Failed to load channel subscriptions');
+      }
     } finally {
-      setIsLoading(false);
+      if (
+        requestNs === currentChannelRef.current.ns &&
+        requestChannelName === currentChannelRef.current.channelName
+      ) {
+        setIsLoading(false);
+      }
     }
   }, [channelName, gatewayUrl, headers, ns]);
 
   useEffect(() => {
+    setSubscriptions([]);
+    setIsLoading(false);
+    setError(null);
     refresh();
   }, [refresh]);
 

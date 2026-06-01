@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { TalonChannel, TalonCopilot } from '@talonai/copilot';
 
 function makeJsonResponse(payload: any, ok = true) {
@@ -556,6 +556,68 @@ describe('TalonChannel', () => {
       'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=100',
       expect.anything(),
     );
+  });
+
+  it('ignores stale channel refresh responses after switching channels', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    let resolveIncidentResponse: (value: any) => void = () => {};
+    const incidentResponse = new Promise((resolve) => {
+      resolveIncidentResponse = resolve;
+    });
+
+    fetchMock.mockImplementation((url: string) => {
+      if (url.includes('/channels/incident-room/messages')) {
+        return incidentResponse;
+      }
+      return Promise.resolve(makeJsonResponse({
+        messages: [
+          {
+            id: 'next-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Message from next room',
+          },
+        ],
+      }));
+    });
+
+    const { rerender } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    rerender(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="next-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    expect(await screen.findByText('Message from next room')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveIncidentResponse(makeJsonResponse({
+        messages: [
+          {
+            id: 'stale-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Stale incident message',
+          },
+        ],
+      }));
+      await incidentResponse;
+    });
+
+    expect(screen.queryByText('Stale incident message')).not.toBeInTheDocument();
+    expect(screen.getByText('Message from next room')).toBeInTheDocument();
   });
 
   it('renders injected channel message actions', async () => {
