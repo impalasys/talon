@@ -70,6 +70,7 @@ function parseJsonObject(payloadJson: unknown): Record<string, unknown> {
 function parsePartPayload(part: Record<string, unknown> | undefined): Record<string, unknown> {
   if (!part || typeof part !== "object") return {};
   const payload = part.payloadJson ?? part.payload_json;
+  if (!payload) return {};
   if (typeof payload === "string") return parseJsonObject(payload);
   return parseObjectPayload(payload);
 }

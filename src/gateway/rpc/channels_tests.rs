@@ -464,9 +464,9 @@ mod tests {
         )
         .await
         .unwrap();
-        seed_channel_message_at(&kv, "acme", "incident-1", "z-old", "old", 10).await;
-        seed_channel_message_at(&kv, "acme", "incident-1", "m-mid", "mid", 20).await;
-        seed_channel_message_at(&kv, "acme", "incident-1", "a-new", "new", 30).await;
+        seed_channel_message_at(&kv, "acme", "incident-1", "000-old", "old", 10).await;
+        seed_channel_message_at(&kv, "acme", "incident-1", "010-mid", "mid", 20).await;
+        seed_channel_message_at(&kv, "acme", "incident-1", "020-new", "new", 30).await;
 
         let response = handler
             .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {

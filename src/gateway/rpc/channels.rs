@@ -788,8 +788,18 @@ async fn route_channel_message(
     manual_subscriptions: &[String],
 ) -> Vec<proto::RoutedChannelSession> {
     let mut results = Vec::new();
-    let Ok(subscriptions) = matching_subscriptions(cp, message, manual_subscriptions).await else {
-        return results;
+    let subscriptions = match matching_subscriptions(cp, message, manual_subscriptions).await {
+        Ok(subscriptions) => subscriptions,
+        Err(error) => {
+            tracing::error!(
+                error = %error,
+                ns = %message.ns,
+                channel = %message.channel,
+                message_id = %message.id,
+                "failed to match channel subscriptions"
+            );
+            return results;
+        }
     };
     for subscription in subscriptions {
         let result = route_to_subscription(cp, message, &subscription).await;
@@ -915,7 +925,11 @@ async fn format_channel_prompt(
 ) -> anyhow::Result<String> {
     let entries = cp
         .kv
-        .list_entries(&keys::channel_message_prefix(&message.ns, &message.channel))
+        .list_entries_page(
+            &keys::channel_message_prefix(&message.ns, &message.channel),
+            None,
+            limit,
+        )
         .await?;
 
     let mut recent = Vec::new();
