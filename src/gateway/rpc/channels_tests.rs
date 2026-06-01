@@ -179,6 +179,24 @@ mod tests {
             .expect_err("leading whitespace channel name should fail");
         assert_eq!(invalid_channel.code(), tonic::Code::InvalidArgument);
 
+        let invalid_special_channel = handler
+            .handle_create_channel(tonic::Request::new(proto::CreateChannelRequest {
+                ns: "acme".to_string(),
+                channel: Some(models::Channel {
+                    name: "incident?debug=true".to_string(),
+                    ns: String::new(),
+                    title: "Incident 2".to_string(),
+                    status: String::new(),
+                    created_at: 0,
+                    updated_at: 0,
+                    metadata: HashMap::new(),
+                    labels: HashMap::new(),
+                }),
+            }))
+            .await
+            .expect_err("special URL characters in channel name should fail");
+        assert_eq!(invalid_special_channel.code(), tonic::Code::InvalidArgument);
+
         let invalid_subscription = handler
             .handle_create_channel_subscription(tonic::Request::new(
                 proto::CreateChannelSubscriptionRequest {
@@ -190,6 +208,27 @@ mod tests {
             .await
             .expect_err("trailing whitespace subscription name should fail");
         assert_eq!(invalid_subscription.code(), tonic::Code::InvalidArgument);
+
+        let invalid_special_subscription = handler
+            .handle_create_channel_subscription(tonic::Request::new(
+                proto::CreateChannelSubscriptionRequest {
+                    ns: "acme".to_string(),
+                    channel: "incident-1".to_string(),
+                    subscription: Some(subscription(
+                        "primary&debug=true",
+                        "",
+                        "",
+                        "analyst",
+                        "mention",
+                    )),
+                },
+            ))
+            .await
+            .expect_err("special URL characters in subscription name should fail");
+        assert_eq!(
+            invalid_special_subscription.code(),
+            tonic::Code::InvalidArgument
+        );
     }
 
     #[tokio::test]

@@ -208,7 +208,7 @@ function legacyToolInvocationsFromParts(message: any): ToolInvocationItem[] {
     toolInvocations.set(toolCallId, {
       toolCallId,
       toolName,
-      args: 'input' in part ? part.input : payload.input ?? previous?.args ?? {},
+      args: part.input ?? payload.input ?? previous?.args ?? {},
       result:
         part.state === 'output-available'
           ? part.output
@@ -251,7 +251,7 @@ function timelineFromParts(message: any): AssistantTimelineItem[] {
         timeline,
         toolCallId,
         toolName,
-        'input' in part ? part.input : payload.input ?? {},
+        part.input ?? payload.input ?? {},
         part.state === 'output-available'
           ? part.output
           : part.state === 'output-error'

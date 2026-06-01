@@ -46,9 +46,12 @@ fn validate_resource_name(kind: &str, name: &str) -> Result<(), tonic::Status> {
             "{kind} name cannot contain leading or trailing whitespace"
         )));
     }
-    if name.contains('/') {
+    if !name
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | ':'))
+    {
         return Err(tonic::Status::invalid_argument(format!(
-            "{kind} name cannot contain '/'"
+            "{kind} name can only contain ASCII alphanumeric characters, '-', '_', '.', and ':'"
         )));
     }
     Ok(())

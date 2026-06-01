@@ -216,7 +216,7 @@ function legacyToolInvocationsFromParts(message: CopilotMessage): ToolInvocation
     toolInvocations.set(toolCallId, {
       toolCallId,
       toolName,
-      args: "input" in part ? part.input : payload.input ?? previous?.args ?? {},
+      args: part.input ?? payload.input ?? previous?.args ?? {},
       result:
         part.state === "output-available"
           ? part.output
@@ -259,7 +259,7 @@ function timelineFromParts(message: Partial<CopilotMessage>): AssistantTimelineI
         timeline,
         toolCallId,
         toolName,
-        "input" in part ? part.input : payload.input ?? {},
+        part.input ?? payload.input ?? {},
         part.state === "output-available"
           ? part.output
           : part.state === "output-error"
