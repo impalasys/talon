@@ -691,6 +691,11 @@ fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<
         }
         "schedule" => serde_yaml::to_string(&value).context("Failed to serialize Schedule YAML"),
         "channel" => {
+            let mut value = value;
+            normalize_json_int64_fields(
+                &mut value,
+                &["createdAt", "created_at", "updatedAt", "updated_at"],
+            )?;
             let channel: models::Channel =
                 serde_json::from_value(value).context("Failed to decode Channel JSON")?;
             talon::manifest::render_channel_yaml(&channel)
@@ -717,6 +722,27 @@ fn normalize_manifest_metadata_maps(value: &mut serde_json::Value) {
             metadata.insert(key.to_string(), json!({}));
         }
     }
+}
+
+fn normalize_json_int64_fields(value: &mut serde_json::Value, fields: &[&str]) -> Result<()> {
+    let Some(object) = value.as_object_mut() else {
+        return Ok(());
+    };
+
+    for field in fields {
+        let Some(field_value) = object.get_mut(*field) else {
+            continue;
+        };
+        let Some(raw) = field_value.as_str() else {
+            continue;
+        };
+        let parsed = raw
+            .parse::<i64>()
+            .with_context(|| format!("Failed to parse {field} as int64"))?;
+        *field_value = serde_json::Value::Number(parsed.into());
+    }
+
+    Ok(())
 }
 
 fn render_rest_agent_yaml(agent: serde_json::Value) -> Result<String> {
@@ -2632,6 +2658,24 @@ mod tests {
             talon::manifest::parse_namespace(&namespace_yaml).expect("namespace should parse");
         assert_eq!(namespace.name, "conic");
         assert!(namespace.labels.is_empty());
+
+        let channel_yaml = render_rest_get_yaml(
+            "channel",
+            json!({
+                "name": "match",
+                "ns": "codewords:main",
+                "title": "Match",
+                "status": "open",
+                "createdAt": "1780272630893454",
+                "updatedAt": "1780272631893454",
+                "metadata": {},
+                "labels": {},
+            }),
+        )
+        .unwrap();
+        let channel = talon::manifest::parse_channel(&channel_yaml).expect("channel should parse");
+        assert_eq!(channel.name, "match");
+        assert_eq!(channel.ns, "codewords:main");
     }
 
     #[test]

@@ -105,6 +105,17 @@ mod tests {
         id: &str,
         content: &str,
     ) {
+        seed_channel_message_at(kv, ns, channel, id, content, 1).await;
+    }
+
+    async fn seed_channel_message_at(
+        kv: &Arc<MockKvStore>,
+        ns: &str,
+        channel: &str,
+        id: &str,
+        content: &str,
+        created_at: i64,
+    ) {
         kv.set_msg(
             &keys::channel_message(ns, channel, id),
             &models::ChannelMessage {
@@ -114,7 +125,7 @@ mod tests {
                 author_kind: "user".to_string(),
                 author: "tester".to_string(),
                 content: content.to_string(),
-                created_at: 1,
+                created_at,
                 source_agent: String::new(),
                 source_session_id: String::new(),
                 labels: HashMap::new(),
@@ -397,6 +408,111 @@ mod tests {
                 .count(),
             2
         );
+    }
+
+    #[tokio::test]
+    async fn mention_trigger_matches_whole_agent_or_subscription_name() {
+        let (handler, kv, _) = setup_handler();
+        seed_channel(&kv, "acme", "incident-1").await;
+        seed_agent(&kv, "acme", "bot").await;
+        seed_agent(&kv, "acme", "bot-helper").await;
+        kv.set_msg(
+            &keys::channel_subscription("acme", "incident-1", "bot"),
+            &subscription("bot", "acme", "incident-1", "bot", "mention"),
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::channel_subscription("acme", "incident-1", "helper"),
+            &subscription("helper", "acme", "incident-1", "bot-helper", "mention"),
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "@bot-helper please investigate".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should succeed")
+            .into_inner();
+
+        assert_eq!(response.routed_sessions.len(), 1);
+        assert_eq!(response.routed_sessions[0].subscription, "helper");
+        assert_eq!(response.routed_sessions[0].agent, "bot-helper");
+    }
+
+    #[tokio::test]
+    async fn channel_prompt_context_uses_created_at_order() {
+        let (handler, kv, _) = setup_handler();
+        seed_channel(&kv, "acme", "incident-1").await;
+        seed_agent(&kv, "acme", "reviewer").await;
+        let mut sub = subscription("reviewer", "acme", "incident-1", "reviewer", "manual");
+        sub.context_policy = Some(models::ChannelContextPolicy {
+            mode: "recent_public".to_string(),
+            max_messages: 3,
+        });
+        kv.set_msg(
+            &keys::channel_subscription("acme", "incident-1", "reviewer"),
+            &sub,
+        )
+        .await
+        .unwrap();
+        seed_channel_message_at(&kv, "acme", "incident-1", "z-old", "old", 10).await;
+        seed_channel_message_at(&kv, "acme", "incident-1", "m-mid", "mid", 20).await;
+        seed_channel_message_at(&kv, "acme", "incident-1", "a-new", "new", 30).await;
+
+        let response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "current".to_string(),
+                subscription_names: vec!["reviewer".to_string()],
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should succeed")
+            .into_inner();
+
+        let routed = response
+            .routed_sessions
+            .first()
+            .expect("manual subscription should route");
+        let entries = kv
+            .list_entries(&keys::session_message_prefix(
+                "acme",
+                &routed.agent,
+                &routed.session_id,
+            ))
+            .await
+            .unwrap();
+        let user_message = models::SessionMessage::decode(entries[0].1.as_slice()).unwrap();
+        let prompt = user_message
+            .parts
+            .iter()
+            .map(|part| part.content.as_str())
+            .collect::<String>();
+
+        assert!(!prompt.contains("- user:tester: old"));
+        let mid = prompt
+            .find("- user:tester: mid")
+            .expect("mid should be present");
+        let new = prompt
+            .find("- user:tester: new")
+            .expect("new should be present");
+        let current = prompt
+            .find("- user:sre: current")
+            .expect("current should be present");
+        assert!(mid < new);
+        assert!(new < current);
     }
 
     #[tokio::test]

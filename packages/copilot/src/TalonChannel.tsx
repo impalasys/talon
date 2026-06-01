@@ -196,6 +196,7 @@ export function TalonChannel({
   const messagesRef = useRef<ChannelMessage[]>([]);
   const isLoadingOlderMessagesRef = useRef(false);
   const skipNextAutoScrollRef = useRef(false);
+  const delayedRefreshTimeoutRef = useRef<number | null>(null);
 
   const channelName = coerceChannelName(channel);
   const status = coerceChannelStatus(channel);
@@ -217,6 +218,15 @@ export function TalonChannel({
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (delayedRefreshTimeoutRef.current !== null) {
+        window.clearTimeout(delayedRefreshTimeoutRef.current);
+        delayedRefreshTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   const scrollMessagesToBottom = useCallback((behavior: ScrollBehavior) => {
     const container = scrollContainerRef.current;
@@ -368,7 +378,11 @@ export function TalonChannel({
         if (!response.ok) throw new Error(`Post HTTP ${response.status}`);
         setDraft("");
         await refresh();
-        window.setTimeout(() => {
+        if (delayedRefreshTimeoutRef.current !== null) {
+          window.clearTimeout(delayedRefreshTimeoutRef.current);
+        }
+        delayedRefreshTimeoutRef.current = window.setTimeout(() => {
+          delayedRefreshTimeoutRef.current = null;
           void refresh({ silent: true });
         }, 1000);
       } catch (err: any) {

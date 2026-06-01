@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -536,6 +536,18 @@ export function NamespaceExplorer({
     explorer: 360,
     templates: 168,
   });
+  const expandedRef = useRef(expanded);
+  const selectedNodeRef = useRef(selectedNode);
+  const refreshChannelsInFlightRef = useRef(false);
+  const refreshChannelsDebounceRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    expandedRef.current = expanded;
+  }, [expanded]);
+
+  useEffect(() => {
+    selectedNodeRef.current = selectedNode;
+  }, [selectedNode]);
 
   const refreshData = useCallback(async () => {
     if (!isConnected) return;
@@ -871,9 +883,14 @@ export function NamespaceExplorer({
       setChannelSubscriptionsByKey({});
       return;
     }
+    if (refreshChannelsInFlightRef.current) {
+      return;
+    }
 
+    refreshChannelsInFlightRef.current = true;
     try {
-      const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
+      const currentExpanded = expandedRef.current;
+      const namespaces = collectExpandedNamespaceIds(currentExpanded, selectedNodeRef.current);
       const baseUrl = normalizeGatewayUrl(gatewayUrl);
       const headers =
         typeof window === 'undefined'
@@ -898,7 +915,7 @@ export function NamespaceExplorer({
       const expandedChannels = Object.entries(channelMap).flatMap(([ns, channels]) =>
         (channels as ExplorerChannel[])
           .map((channel) => channel.name || '')
-          .filter((name) => name && expanded.has(`${ns}:channel:${name}`))
+          .filter((name) => name && currentExpanded.has(`${ns}:channel:${name}`))
           .map((name) => ({ ns, name })),
       );
       const subscriptionEntries = await Promise.all(
@@ -922,8 +939,10 @@ export function NamespaceExplorer({
       console.warn('Could not list namespaces for channels', e);
       setChannelsByNamespace({});
       setChannelSubscriptionsByKey({});
+    } finally {
+      refreshChannelsInFlightRef.current = false;
     }
-  }, [expanded, gatewayUrl, isConnected, selectedNode]);
+  }, [gatewayUrl, isConnected]);
 
   useEffect(() => {
     refreshData();
@@ -966,6 +985,23 @@ export function NamespaceExplorer({
     const interval = setInterval(refreshChannels, 5000);
     return () => clearInterval(interval);
   }, [refreshChannels]);
+
+  useEffect(() => {
+    if (!isConnected) return;
+    if (refreshChannelsDebounceRef.current !== null) {
+      window.clearTimeout(refreshChannelsDebounceRef.current);
+    }
+    refreshChannelsDebounceRef.current = window.setTimeout(() => {
+      refreshChannelsDebounceRef.current = null;
+      void refreshChannels();
+    }, 150);
+    return () => {
+      if (refreshChannelsDebounceRef.current !== null) {
+        window.clearTimeout(refreshChannelsDebounceRef.current);
+        refreshChannelsDebounceRef.current = null;
+      }
+    };
+  }, [expanded, selectedNode, isConnected, refreshChannels]);
 
   useEffect(() => {
     if (selectedNode && selectedNode.type === 'namespace' && !newNamespace) {

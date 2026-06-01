@@ -15,6 +15,7 @@ const MAX_CHANNEL_MESSAGES_LIMIT: usize = 200;
 const CHANNEL_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const DEFAULT_CHANNEL_CONTEXT_MESSAGES: usize = 20;
 const MAX_CHANNEL_CONTEXT_MESSAGES: usize = 50;
+const CHANNEL_TIMESTAMP_CAS_RETRIES: usize = 8;
 
 const LABEL_CHANNEL: &str = "talon.impalasys.com/channel";
 const LABEL_CHANNEL_MESSAGE: &str = "talon.impalasys.com/channel-message";
@@ -81,6 +82,28 @@ fn normalize_trigger(trigger: &str) -> Result<String, tonic::Status> {
     }
 }
 
+fn mention_boundary(ch: char) -> bool {
+    !(ch.is_ascii_alphanumeric() || ch == '_' || ch == '-')
+}
+
+fn contains_mention(content: &str, target: &str) -> bool {
+    let target = target.trim();
+    if target.is_empty() {
+        return false;
+    }
+
+    let needle = format!("@{target}");
+    let mut offset = 0;
+    while let Some(match_offset) = content[offset..].find(&needle) {
+        let end = offset + match_offset + needle.len();
+        if content[end..].chars().next().is_none_or(mention_boundary) {
+            return true;
+        }
+        offset = end;
+    }
+    false
+}
+
 fn context_limit(subscription: &models::ChannelSubscription) -> usize {
     subscription
         .context_policy
@@ -110,11 +133,25 @@ async fn update_channel_timestamp(
     now: i64,
 ) -> anyhow::Result<()> {
     let key = keys::channel(ns, channel_name);
-    if let Some(mut channel) = kv.get_msg::<models::Channel>(&key).await? {
-        channel.updated_at = now;
-        kv.set_msg(&key, &channel).await?;
+
+    for _ in 0..CHANNEL_TIMESTAMP_CAS_RETRIES {
+        let Some(current_bytes) = kv.get(&key).await? else {
+            return Ok(());
+        };
+        let mut channel = models::Channel::decode(current_bytes.as_slice())?;
+        channel.updated_at = channel.updated_at.max(now);
+        let updated = channel.encode_to_vec();
+        if kv
+            .compare_and_swap(&key, Some(current_bytes.as_slice()), &updated)
+            .await?
+        {
+            return Ok(());
+        }
     }
-    Ok(())
+
+    Err(anyhow::anyhow!(
+        "failed to update channel timestamp after concurrent modifications"
+    ))
 }
 
 async fn persist_channel_message(
@@ -800,10 +837,8 @@ async fn matching_subscriptions(
             "all" => message.author_kind != "agent",
             "mention" => {
                 message.author_kind != "agent"
-                    && (message
-                        .content
-                        .contains(&format!("@{}", subscription.agent))
-                        || message.content.contains(&format!("@{}", subscription.name)))
+                    && (contains_mention(&message.content, &subscription.agent)
+                        || contains_mention(&message.content, &subscription.name))
             }
             "routed" | "disabled" => false,
             _ => false,
@@ -878,15 +913,21 @@ async fn format_channel_prompt(
     subscription: &models::ChannelSubscription,
     limit: usize,
 ) -> anyhow::Result<String> {
-    let mut entries = cp
+    let entries = cp
         .kv
         .list_entries(&keys::channel_message_prefix(&message.ns, &message.channel))
         .await?;
-    entries.sort_by(|a, b| a.0.cmp(&b.0));
+
     let mut recent = Vec::new();
-    for (_, value) in entries.into_iter().rev().take(limit) {
+    for (_, value) in entries {
         recent.push(models::ChannelMessage::decode(value.as_slice())?);
     }
+    recent.sort_by(|left, right| {
+        left.created_at
+            .cmp(&right.created_at)
+            .then_with(|| left.id.cmp(&right.id))
+    });
+    recent = recent.into_iter().rev().take(limit).collect();
     recent.reverse();
     let mut context = String::new();
     for item in recent {

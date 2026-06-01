@@ -686,6 +686,44 @@ describe('TalonChannel', () => {
     expect(await screen.findByText('hello channel')).toBeInTheDocument();
   });
 
+  it('clears delayed channel refresh when unmounted after posting', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(makeJsonResponse({ message: { id: 'channel-message-1' } }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-message-1',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'hello channel',
+          },
+        ],
+      }));
+    const clearTimeoutSpy = jest.spyOn(window, 'clearTimeout');
+
+    const { unmount } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    fireEvent.change(await screen.findByPlaceholderText('Message #incident-room'), {
+      target: { value: 'hello channel' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    unmount();
+
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+  });
+
   it('can render a channel in observer mode without user input', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();
