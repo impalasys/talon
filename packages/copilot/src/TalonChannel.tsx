@@ -316,9 +316,6 @@ export function TalonChannel({
 
   const loadOlderMessages = useCallback(async () => {
     if (!namespace || !channelName || disabled || !hasMoreMessages || !nextBeforeMessageId || isLoadingOlderMessagesRef.current) return;
-    const container = scrollContainerRef.current;
-    const previousScrollHeight = container?.scrollHeight ?? 0;
-    const previousScrollTop = container?.scrollTop ?? 0;
     isLoadingOlderMessagesRef.current = true;
     setIsLoadingOlderMessages(true);
     setError(null);
@@ -330,6 +327,9 @@ export function TalonChannel({
       if (!response.ok) throw new Error(`Messages HTTP ${response.status}`);
       const page = normalizeChannelPage(await response.json());
       skipNextAutoScrollRef.current = true;
+      const container = scrollContainerRef.current;
+      const previousScrollHeight = container?.scrollHeight ?? 0;
+      const previousScrollTop = container?.scrollTop ?? 0;
       setMessages((existing) => mergeChannelMessages(existing, page.messages));
       setHasMoreMessages(page.hasMore);
       setNextBeforeMessageId(page.nextBeforeMessageId);

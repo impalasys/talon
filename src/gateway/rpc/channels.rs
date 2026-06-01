@@ -6,7 +6,7 @@ use crate::control::topics;
 use crate::control::{events, keys, keys::ResourceParent, ControlPlane, KeyValueStore};
 use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
 use crate::scheduling;
-use futures::StreamExt;
+use futures::{stream, StreamExt, TryStreamExt};
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 
@@ -16,6 +16,7 @@ const CHANNEL_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const DEFAULT_CHANNEL_CONTEXT_MESSAGES: usize = 20;
 const MAX_CHANNEL_CONTEXT_MESSAGES: usize = 50;
 const CHANNEL_TIMESTAMP_CAS_RETRIES: usize = 8;
+const CHANNEL_DELETE_DESCENDANTS_CONCURRENCY: usize = 32;
 
 const LABEL_CHANNEL: &str = "talon.impalasys.com/channel";
 const LABEL_CHANNEL_MESSAGE: &str = "talon.impalasys.com/channel-message";
@@ -26,9 +27,11 @@ const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> anyhow::Result<()> {
     let list = parent.list(None);
     let children = kv.list_keys(&list).await?;
-    for child in children {
-        kv.delete(&child).await?;
-    }
+    stream::iter(children)
+        .map(|child| async move { kv.delete(&child).await })
+        .buffer_unordered(CHANNEL_DELETE_DESCENDANTS_CONCURRENCY)
+        .try_collect::<Vec<_>>()
+        .await?;
     Ok(())
 }
 
@@ -177,7 +180,17 @@ async fn persist_channel_message(
             &message,
         )
         .await?;
-    update_channel_timestamp(cp.kv.as_ref(), &message.ns, &message.channel, now).await?;
+    if let Err(error) =
+        update_channel_timestamp(cp.kv.as_ref(), &message.ns, &message.channel, now).await
+    {
+        tracing::warn!(
+            error = %error,
+            ns = %message.ns,
+            channel = %message.channel,
+            message_id = %message.id,
+            "failed to update channel timestamp after channel message persistence"
+        );
+    }
     if let Err(error) = publish_channel_event(
         cp.pubsub.as_ref(),
         events::ChannelEvent {
@@ -816,8 +829,31 @@ async fn route_channel_message(
             return results;
         }
     };
+    if subscriptions.is_empty() {
+        return results;
+    }
+
+    let max_context_limit = subscriptions
+        .iter()
+        .map(context_limit)
+        .max()
+        .unwrap_or(DEFAULT_CHANNEL_CONTEXT_MESSAGES);
+    let recent_messages = match recent_channel_messages(cp, message, max_context_limit).await {
+        Ok(messages) => messages,
+        Err(error) => {
+            tracing::error!(
+                error = %error,
+                ns = %message.ns,
+                channel = %message.channel,
+                message_id = %message.id,
+                "failed to load recent channel context"
+            );
+            return results;
+        }
+    };
+
     for subscription in subscriptions {
-        let result = route_to_subscription(cp, message, &subscription).await;
+        let result = route_to_subscription(cp, message, &subscription, &recent_messages).await;
         results.push(match result {
             Ok(session_id) => proto::RoutedChannelSession {
                 subscription: subscription.name,
@@ -880,6 +916,7 @@ async fn route_to_subscription(
     cp: &ControlPlane,
     message: &models::ChannelMessage,
     subscription: &models::ChannelSubscription,
+    recent_messages: &[models::ChannelMessage],
 ) -> anyhow::Result<String> {
     let mut labels = HashMap::new();
     labels.insert(LABEL_CHANNEL.to_string(), message.channel.clone());
@@ -901,8 +938,12 @@ async fn route_to_subscription(
     )
     .await?;
     labels.insert(LABEL_MESSAGE_SOURCE.to_string(), "channel".to_string());
-    let prompt =
-        format_channel_prompt(cp, message, subscription, context_limit(subscription)).await?;
+    let prompt = format_channel_prompt(
+        message,
+        subscription,
+        recent_messages,
+        context_limit(subscription),
+    );
     scheduling::send_message(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
@@ -943,12 +984,11 @@ async fn route_to_subscription(
     Ok(session_id)
 }
 
-async fn format_channel_prompt(
+async fn recent_channel_messages(
     cp: &ControlPlane,
     message: &models::ChannelMessage,
-    subscription: &models::ChannelSubscription,
     limit: usize,
-) -> anyhow::Result<String> {
+) -> anyhow::Result<Vec<models::ChannelMessage>> {
     let entries = cp
         .kv
         .list_entries_page(
@@ -969,14 +1009,24 @@ async fn format_channel_prompt(
     });
     recent = recent.into_iter().rev().take(limit).collect();
     recent.reverse();
+    Ok(recent)
+}
+
+fn format_channel_prompt(
+    message: &models::ChannelMessage,
+    subscription: &models::ChannelSubscription,
+    recent_messages: &[models::ChannelMessage],
+    limit: usize,
+) -> String {
+    let start = recent_messages.len().saturating_sub(limit);
     let mut context = String::new();
-    for item in recent {
+    for item in &recent_messages[start..] {
         context.push_str(&format!(
             "- {}:{}: {}\n",
             item.author_kind, item.author, item.content
         ));
     }
-    Ok(format!(
+    format!(
         "You are subscribed to Talon channel '{}' as agent '{}'. Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. If no public reply is needed, call channel_skip_reply.\n\nTriggering channel message id: {}\nTriggering author: {}:{}\nTriggering content:\n{}\n\nRecent public channel context:\n{}",
         message.channel,
         subscription.agent,
@@ -985,5 +1035,5 @@ async fn format_channel_prompt(
         message.author,
         message.content,
         context
-    ))
+    )
 }
