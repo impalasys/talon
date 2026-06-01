@@ -41,6 +41,11 @@ fn validate_resource_name(kind: &str, name: &str) -> Result<(), tonic::Status> {
             "{kind} name is required"
         )));
     }
+    if name.trim() != name {
+        return Err(tonic::Status::invalid_argument(format!(
+            "{kind} name cannot contain leading or trailing whitespace"
+        )));
+    }
     if name.contains('/') {
         return Err(tonic::Status::invalid_argument(format!(
             "{kind} name cannot contain '/'"

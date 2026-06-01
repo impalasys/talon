@@ -156,6 +156,43 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn channel_resource_names_reject_edge_whitespace() {
+        let (handler, kv, _) = setup_handler();
+        seed_agent(&kv, "acme", "analyst").await;
+        seed_channel(&kv, "acme", "incident-1").await;
+
+        let invalid_channel = handler
+            .handle_create_channel(tonic::Request::new(proto::CreateChannelRequest {
+                ns: "acme".to_string(),
+                channel: Some(models::Channel {
+                    name: " incident-2".to_string(),
+                    ns: String::new(),
+                    title: "Incident 2".to_string(),
+                    status: String::new(),
+                    created_at: 0,
+                    updated_at: 0,
+                    metadata: HashMap::new(),
+                    labels: HashMap::new(),
+                }),
+            }))
+            .await
+            .expect_err("leading whitespace channel name should fail");
+        assert_eq!(invalid_channel.code(), tonic::Code::InvalidArgument);
+
+        let invalid_subscription = handler
+            .handle_create_channel_subscription(tonic::Request::new(
+                proto::CreateChannelSubscriptionRequest {
+                    ns: "acme".to_string(),
+                    channel: "incident-1".to_string(),
+                    subscription: Some(subscription("primary ", "", "", "analyst", "mention")),
+                },
+            ))
+            .await
+            .expect_err("trailing whitespace subscription name should fail");
+        assert_eq!(invalid_subscription.code(), tonic::Code::InvalidArgument);
+    }
+
+    #[tokio::test]
     async fn channel_and_subscription_crud_round_trip() {
         let (handler, kv, _) = setup_handler();
         seed_agent(&kv, "acme", "analyst").await;
