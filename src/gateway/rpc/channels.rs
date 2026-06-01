@@ -24,14 +24,10 @@ const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 
 async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> anyhow::Result<()> {
-    let mut stack = vec![parent];
-    while let Some(parent) = stack.pop() {
-        let list = parent.list(None);
-        let children = kv.list_keys(&list).await?;
-        for child in children {
-            stack.push(child.as_parent());
-            kv.delete(&child).await?;
-        }
+    let list = parent.list(None);
+    let children = kv.list_keys(&list).await?;
+    for child in children {
+        kv.delete(&child).await?;
     }
     Ok(())
 }
@@ -95,8 +91,18 @@ fn contains_mention(content: &str, target: &str) -> bool {
     let needle = format!("@{target}");
     let mut offset = 0;
     while let Some(match_offset) = content[offset..].find(&needle) {
-        let end = offset + match_offset + needle.len();
-        if content[end..].chars().next().is_none_or(mention_boundary) {
+        let start = offset + match_offset;
+        let end = start + needle.len();
+        let start_ok = if start == 0 {
+            true
+        } else {
+            content[..start]
+                .chars()
+                .next_back()
+                .is_none_or(mention_boundary)
+        };
+        let end_ok = content[end..].chars().next().is_none_or(mention_boundary);
+        if start_ok && end_ok {
             return true;
         }
         offset = end;
@@ -172,7 +178,7 @@ async fn persist_channel_message(
         )
         .await?;
     update_channel_timestamp(cp.kv.as_ref(), &message.ns, &message.channel, now).await?;
-    publish_channel_event(
+    if let Err(error) = publish_channel_event(
         cp.pubsub.as_ref(),
         events::ChannelEvent {
             ns: message.ns.clone(),
@@ -186,7 +192,16 @@ async fn persist_channel_message(
             timestamp: now,
         },
     )
-    .await?;
+    .await
+    {
+        tracing::warn!(
+            error = %error,
+            ns = %message.ns,
+            channel = %message.channel,
+            message_id = %message.id,
+            "failed to publish channel event for created message"
+        );
+    }
     Ok(message)
 }
 
@@ -899,7 +914,7 @@ async fn route_to_subscription(
         chrono::Utc::now(),
     )
     .await?;
-    publish_channel_event(
+    if let Err(error) = publish_channel_event(
         cp.pubsub.as_ref(),
         events::ChannelEvent {
             ns: message.ns.clone(),
@@ -913,7 +928,18 @@ async fn route_to_subscription(
             timestamp: chrono::Utc::now().timestamp_micros(),
         },
     )
-    .await?;
+    .await
+    {
+        tracing::warn!(
+            error = %error,
+            ns = %message.ns,
+            channel = %message.channel,
+            session_id = %session_id,
+            agent = %subscription.agent,
+            subscription = %subscription.name,
+            "failed to publish channel event for routed session"
+        );
+    }
     Ok(session_id)
 }
 
