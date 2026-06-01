@@ -102,6 +102,7 @@ pub struct TalonOpsAccess {
 struct TalonOpsPolicy {
     allowed_namespace_prefixes: Vec<String>,
     allow_session_messages: bool,
+    allow_channel_messages: bool,
     max_list_limit: i32,
     max_history_lookback_seconds: i32,
 }
@@ -210,6 +211,77 @@ impl TalonOpsServer {
             .get_msg::<models::Agent>(&keys::agent(namespace, name))
             .await?
             .ok_or_else(|| anyhow!("agent '{name}' not found in namespace '{namespace}'"))
+    }
+
+    async fn list_channel_models(&self, namespace: &str) -> Result<Vec<models::Channel>> {
+        let mut keys = self
+            .kv()
+            .list_keys(&keys::channel_prefix(namespace))
+            .await?;
+        keys.sort();
+        self.load_messages::<models::Channel>(keys, 32).await
+    }
+
+    async fn get_channel_model(&self, namespace: &str, name: &str) -> Result<models::Channel> {
+        self.kv()
+            .get_msg::<models::Channel>(&keys::channel(namespace, name))
+            .await?
+            .ok_or_else(|| anyhow!("channel '{name}' not found in namespace '{namespace}'"))
+    }
+
+    async fn get_channel_message_model(
+        &self,
+        namespace: &str,
+        channel: &str,
+        message_id: &str,
+    ) -> Result<models::ChannelMessage> {
+        self.kv()
+            .get_msg::<models::ChannelMessage>(&keys::channel_message(
+                namespace, channel, message_id,
+            ))
+            .await?
+            .ok_or_else(|| {
+                anyhow!("channel message '{message_id}' not found in channel '{channel}'")
+            })
+    }
+
+    async fn list_channel_message_models(
+        &self,
+        namespace: &str,
+        channel: &str,
+        before_message_id: Option<&str>,
+        limit: usize,
+    ) -> Result<(Vec<models::ChannelMessage>, bool, Option<String>)> {
+        if limit == 0 {
+            return Ok((Vec::new(), false, None));
+        }
+        let mut keys = self
+            .kv()
+            .list_keys(&keys::channel_message_prefix(namespace, channel))
+            .await?;
+        keys.sort_by(|left, right| right.name.cmp(&left.name));
+        if let Some(before_message_id) = before_message_id.filter(|value| !value.is_empty()) {
+            keys.retain(|key| key.name.as_str() < before_message_id);
+        }
+        keys.truncate(limit.saturating_add(1));
+        let has_more = keys.len() > limit;
+        if has_more {
+            keys.truncate(limit);
+        }
+
+        let mut messages = Vec::with_capacity(keys.len());
+        for key in keys {
+            if let Some(message) = self.kv().get_msg::<models::ChannelMessage>(&key).await? {
+                messages.push(message);
+            }
+        }
+        messages.reverse();
+        let next_before_message_id = if has_more {
+            messages.first().map(|message| message.id.clone())
+        } else {
+            None
+        };
+        Ok((messages, has_more, next_before_message_id))
     }
 
     async fn list_sessions_for_agent(
@@ -375,6 +447,36 @@ struct ListAgentsArgs {
 struct GetAgentArgs {
     namespace: String,
     name: String,
+}
+
+#[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
+#[serde(default)]
+struct ListChannelsArgs {
+    namespace: String,
+    status: Option<String>,
+    limit: Option<usize>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+struct GetChannelArgs {
+    namespace: String,
+    name: String,
+}
+
+#[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
+#[serde(default)]
+struct ListChannelMessagesArgs {
+    namespace: String,
+    channel: String,
+    page_size: Option<usize>,
+    before_message_id: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+struct GetChannelMessageArgs {
+    namespace: String,
+    channel: String,
+    message_id: String,
 }
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
@@ -557,6 +659,101 @@ impl TalonOpsServer {
         to_json_string(
             &json!({ "agent": crate::manifest::render_agent_json(&agent).map_err(internal_mcp_error)? }),
         )
+    }
+
+    #[tool(
+        description = "List channels in a namespace visible to the caller's talon-ops binding policy."
+    )]
+    async fn list_channels(
+        &self,
+        rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
+            axum::http::request::Parts,
+        >,
+        Parameters(args): Parameters<ListChannelsArgs>,
+    ) -> Result<String, McpError> {
+        let access = talon_ops_access_from_parts(&parts)?;
+        require_namespace_access(&access, &args.namespace)?;
+        let limit = bounded_limit(&access, args.limit);
+        let mut channels = self
+            .list_channel_models(&args.namespace)
+            .await
+            .map_err(internal_mcp_error)?;
+        channels.retain(|channel| {
+            args.status
+                .as_ref()
+                .map(|status| channel.status == *status)
+                .unwrap_or(true)
+        });
+        channels.sort_by(|left, right| left.name.cmp(&right.name));
+        channels.truncate(limit);
+        to_json_string(&json!({ "channels": channels }))
+    }
+
+    #[tool(description = "Get a single channel in a visible namespace.")]
+    async fn get_channel(
+        &self,
+        rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
+            axum::http::request::Parts,
+        >,
+        Parameters(args): Parameters<GetChannelArgs>,
+    ) -> Result<String, McpError> {
+        let access = talon_ops_access_from_parts(&parts)?;
+        require_namespace_access(&access, &args.namespace)?;
+        let channel = self
+            .get_channel_model(&args.namespace, &args.name)
+            .await
+            .map_err(internal_mcp_error)?;
+        to_json_string(&json!({ "channel": channel }))
+    }
+
+    #[tool(
+        description = "List public channel messages if the talon-ops binding policy allows channel messages."
+    )]
+    async fn list_channel_messages(
+        &self,
+        rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
+            axum::http::request::Parts,
+        >,
+        Parameters(args): Parameters<ListChannelMessagesArgs>,
+    ) -> Result<String, McpError> {
+        let access = talon_ops_access_from_parts(&parts)?;
+        require_namespace_access(&access, &args.namespace)?;
+        require_channel_messages_access(&access)?;
+        let page_size = bounded_limit(&access, args.page_size);
+        let (messages, has_more, next_before_message_id) = self
+            .list_channel_message_models(
+                &args.namespace,
+                &args.channel,
+                args.before_message_id.as_deref(),
+                page_size,
+            )
+            .await
+            .map_err(internal_mcp_error)?;
+        to_json_string(&json!({
+            "messages": messages,
+            "hasMore": has_more,
+            "nextBeforeMessageId": next_before_message_id,
+        }))
+    }
+
+    #[tool(
+        description = "Get a single public channel message if the talon-ops binding policy allows channel messages."
+    )]
+    async fn get_channel_message(
+        &self,
+        rmcp::handler::server::common::Extension(parts): rmcp::handler::server::common::Extension<
+            axum::http::request::Parts,
+        >,
+        Parameters(args): Parameters<GetChannelMessageArgs>,
+    ) -> Result<String, McpError> {
+        let access = talon_ops_access_from_parts(&parts)?;
+        require_namespace_access(&access, &args.namespace)?;
+        require_channel_messages_access(&access)?;
+        let message = self
+            .get_channel_message_model(&args.namespace, &args.channel, &args.message_id)
+            .await
+            .map_err(internal_mcp_error)?;
+        to_json_string(&json!({ "message": message }))
     }
 
     #[tool(description = "List sessions in one or more visible namespaces and agents.")]
@@ -1076,6 +1273,7 @@ fn parse_talon_ops_policy_from_target(target: &str) -> Result<TalonOpsPolicy> {
         .map_err(|error| anyhow!("invalid talon-ops target URL '{}': {}", target, error))?;
     let mut allowed_namespace_prefixes = Vec::new();
     let mut allow_session_messages = None;
+    let mut allow_channel_messages = None;
     let mut max_list_limit = None;
     let mut max_history_lookback_seconds = None;
     let mut seen_singletons = HashSet::new();
@@ -1093,6 +1291,10 @@ fn parse_talon_ops_policy_from_target(target: &str) -> Result<TalonOpsPolicy> {
             "session_messages" => {
                 ensure_singleton(&mut seen_singletons, "session_messages")?;
                 allow_session_messages = Some(parse_bool_query_param("session_messages", &value)?);
+            }
+            "channel_messages" => {
+                ensure_singleton(&mut seen_singletons, "channel_messages")?;
+                allow_channel_messages = Some(parse_bool_query_param("channel_messages", &value)?);
             }
             "max_limit" => {
                 ensure_singleton(&mut seen_singletons, "max_limit")?;
@@ -1123,6 +1325,7 @@ fn parse_talon_ops_policy_from_target(target: &str) -> Result<TalonOpsPolicy> {
     Ok(TalonOpsPolicy {
         allowed_namespace_prefixes,
         allow_session_messages: allow_session_messages.unwrap_or(false),
+        allow_channel_messages: allow_channel_messages.unwrap_or(false),
         max_list_limit: max_list_limit.unwrap_or(DEFAULT_MAX_LIST_LIMIT),
         max_history_lookback_seconds: max_history_lookback_seconds
             .unwrap_or(DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS),
@@ -1269,6 +1472,17 @@ fn require_namespace_access(access: &TalonOpsAccess, namespace: &str) -> Result<
     }
 }
 
+fn require_channel_messages_access(access: &TalonOpsAccess) -> Result<(), McpError> {
+    if access.policy.allow_channel_messages {
+        Ok(())
+    } else {
+        Err(McpError::invalid_params(
+            "binding policy does not allow channel messages".to_string(),
+            None,
+        ))
+    }
+}
+
 fn to_json_string(value: &Value) -> Result<String, McpError> {
     serde_json::to_string(value).map_err(internal_mcp_error)
 }
@@ -1328,7 +1542,8 @@ mod tests {
         parse_non_negative_i32_query_param, parse_talon_ops_access_claims,
         parse_talon_ops_policy_from_target, require_namespace_access, schedule_json,
         talon_jwt_secret, talon_ops_access_from_parts, talon_ops_access_from_request,
-        talon_ops_auth_broker, to_json_string, DeleteScheduleArgs, GetAgentArgs, GetScheduleArgs,
+        talon_ops_auth_broker, to_json_string, DeleteScheduleArgs, GetAgentArgs, GetChannelArgs,
+        GetChannelMessageArgs, GetScheduleArgs, ListChannelMessagesArgs, ListChannelsArgs,
         ListMcpBindingsArgs, ListMcpServersArgs, ListNamespacesArgs, ListSchedulesArgs,
         ListSessionsArgs, McpAuthBrokerClaims, McpAuthBrokerRequest, PutScheduleArgs,
         TalonOpsAccess, TalonOpsAccessClaims, TalonOpsPolicy, TalonOpsServer,
@@ -1507,6 +1722,7 @@ mod tests {
                     .map(|prefix| prefix.to_string())
                     .collect(),
                 allow_session_messages: true,
+                allow_channel_messages: true,
                 max_list_limit: DEFAULT_MAX_LIST_LIMIT,
                 max_history_lookback_seconds: DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS,
             },
@@ -1587,6 +1803,50 @@ mod tests {
         .unwrap();
     }
 
+    async fn seed_channel(kv: &MockKvStore, namespace: &str, name: &str, status: &str) {
+        kv.set_msg(
+            &keys::channel(namespace, name),
+            &models::Channel {
+                name: name.to_string(),
+                ns: namespace.to_string(),
+                title: name.to_string(),
+                status: status.to_string(),
+                created_at: 1,
+                updated_at: 1,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
+    async fn seed_channel_message(
+        kv: &MockKvStore,
+        namespace: &str,
+        channel: &str,
+        id: &str,
+        content: &str,
+    ) {
+        kv.set_msg(
+            &keys::channel_message(namespace, channel, id),
+            &models::ChannelMessage {
+                id: id.to_string(),
+                ns: namespace.to_string(),
+                channel: channel.to_string(),
+                author_kind: "user".to_string(),
+                author: "operator".to_string(),
+                content: content.to_string(),
+                created_at: 1,
+                source_agent: String::new(),
+                source_session_id: String::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+    }
+
     #[test]
     fn talon_ops_access_checks_prefix_scope() {
         let access = access(&["conic", "conic:wks:"]);
@@ -1624,7 +1884,7 @@ mod tests {
     #[test]
     fn parse_talon_ops_policy_from_target_reads_known_params() {
         let policy = parse_talon_ops_policy_from_target(
-            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&allowed_prefix=conic%3Awks%3A&session_messages=1&max_limit=25&max_lookback_s=60",
+            "https://worker.example.com/mcp/talon-ops?allowed_prefix=conic&allowed_prefix=conic%3Awks%3A&session_messages=1&channel_messages=1&max_limit=25&max_lookback_s=60",
         )
         .expect("policy should parse");
 
@@ -1633,6 +1893,7 @@ mod tests {
             vec!["conic".to_string(), "conic:wks:".to_string()]
         );
         assert!(policy.allow_session_messages);
+        assert!(policy.allow_channel_messages);
         assert_eq!(policy.max_list_limit, 25);
         assert_eq!(policy.max_history_lookback_seconds, 60);
     }
@@ -1675,6 +1936,7 @@ mod tests {
 
         assert_eq!(policy.allowed_namespace_prefixes, vec!["conic".to_string()]);
         assert!(!policy.allow_session_messages);
+        assert!(!policy.allow_channel_messages);
         assert_eq!(policy.max_list_limit, DEFAULT_MAX_LIST_LIMIT);
         assert_eq!(
             policy.max_history_lookback_seconds,
@@ -1704,6 +1966,7 @@ mod tests {
             policy: TalonOpsPolicy {
                 allowed_namespace_prefixes: vec!["conic".to_string()],
                 allow_session_messages: false,
+                allow_channel_messages: false,
                 max_list_limit: 12,
                 max_history_lookback_seconds: 42,
             },
@@ -1998,6 +2261,7 @@ mod tests {
             .expect("policy should load");
         assert_eq!(policy.allowed_namespace_prefixes, vec!["conic".to_string()]);
         assert!(policy.allow_session_messages);
+        assert!(!policy.allow_channel_messages);
 
         let access = load_talon_ops_binding(&kv, "conic", "talon-ops", Some("ctl"))
             .await
@@ -2194,6 +2458,24 @@ mod tests {
         seed_agent(kv.as_ref(), "conic", "alpha").await;
         seed_agent(kv.as_ref(), "conic", "beta").await;
         seed_agent(kv.as_ref(), "default", "hidden").await;
+        seed_channel(kv.as_ref(), "conic", "incident-room", "open").await;
+        seed_channel(kv.as_ref(), "default", "hidden-room", "open").await;
+        seed_channel_message(
+            kv.as_ref(),
+            "conic",
+            "incident-room",
+            "019f0000-0000-7000-8000-000000000001",
+            "first",
+        )
+        .await;
+        seed_channel_message(
+            kv.as_ref(),
+            "conic",
+            "incident-room",
+            "019f0000-0000-7000-8000-000000000002",
+            "second",
+        )
+        .await;
 
         kv.set_msg(
             &keys::session("conic", "alpha", "session-old"),
@@ -2297,6 +2579,93 @@ mod tests {
             .await
             .unwrap();
         assert!(agent.contains("alpha"));
+
+        let channels: String = server
+            .list_channels(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(ListChannelsArgs {
+                    namespace: "conic".to_string(),
+                    status: Some("open".to_string()),
+                    limit: Some(10),
+                }),
+            )
+            .await
+            .unwrap();
+        let channels_json: serde_json::Value = serde_json::from_str(&channels).unwrap();
+        assert_eq!(channels_json["channels"].as_array().unwrap().len(), 1);
+        assert_eq!(channels_json["channels"][0]["name"], "incident-room");
+
+        let channel: String = server
+            .get_channel(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(GetChannelArgs {
+                    namespace: "conic".to_string(),
+                    name: "incident-room".to_string(),
+                }),
+            )
+            .await
+            .unwrap();
+        assert!(channel.contains("incident-room"));
+
+        let messages: String = server
+            .list_channel_messages(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(ListChannelMessagesArgs {
+                    namespace: "conic".to_string(),
+                    channel: "incident-room".to_string(),
+                    page_size: Some(1),
+                    before_message_id: None,
+                }),
+            )
+            .await
+            .unwrap();
+        let messages_json: serde_json::Value = serde_json::from_str(&messages).unwrap();
+        assert_eq!(messages_json["messages"].as_array().unwrap().len(), 1);
+        assert_eq!(messages_json["messages"][0]["content"], "second");
+        assert_eq!(messages_json["hasMore"], true);
+        assert_eq!(
+            messages_json["nextBeforeMessageId"],
+            "019f0000-0000-7000-8000-000000000002"
+        );
+
+        let message: String = server
+            .get_channel_message(
+                rmcp::handler::server::common::Extension(parts.clone()),
+                Parameters(GetChannelMessageArgs {
+                    namespace: "conic".to_string(),
+                    channel: "incident-room".to_string(),
+                    message_id: "019f0000-0000-7000-8000-000000000001".to_string(),
+                }),
+            )
+            .await
+            .unwrap();
+        let message_json: serde_json::Value = serde_json::from_str(&message).unwrap();
+        assert_eq!(message_json["message"]["content"], "first");
+
+        let denied = server
+            .list_channel_messages(
+                rmcp::handler::server::common::Extension(parts_with_access(TalonOpsAccess {
+                    namespace: "conic".to_string(),
+                    binding_name: "talon-ops".to_string(),
+                    agent_name: None,
+                    policy: TalonOpsPolicy {
+                        allowed_namespace_prefixes: vec!["conic".to_string()],
+                        allow_session_messages: true,
+                        allow_channel_messages: false,
+                        max_list_limit: DEFAULT_MAX_LIST_LIMIT,
+                        max_history_lookback_seconds: DEFAULT_MAX_HISTORY_LOOKBACK_SECONDS,
+                    },
+                })),
+                Parameters(ListChannelMessagesArgs {
+                    namespace: "conic".to_string(),
+                    channel: "incident-room".to_string(),
+                    page_size: Some(1),
+                    before_message_id: None,
+                }),
+            )
+            .await
+            .expect_err("channel messages should require policy");
+        assert!(denied.message.contains("does not allow channel messages"));
 
         let sessions: String = server
             .list_sessions(

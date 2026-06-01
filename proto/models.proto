@@ -109,6 +109,8 @@ message ChannelSubscription {
   ChannelContextPolicy context_policy = 7;
   map<string, string> metadata = 8;
   map<string, string> labels = 9;
+  // Reply behavior for routed sessions. Defaults to "tool"; "none" withholds channel reply tools.
+  string reply_mode = 10;
 }
 
 message ScheduleTarget {

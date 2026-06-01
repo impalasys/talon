@@ -51,9 +51,18 @@ impl AgentRuntime {
             .kv
             .get_msg::<models::Session>(&crate::control::keys::session(ns, agent_id, session_id))
             .await?;
-        let is_channel_session = session
+        let allow_channel_reply_tools = session
             .as_ref()
-            .map(|session| session.labels.contains_key("talon.impalasys.com/channel"))
+            .map(|session| {
+                session
+                    .labels
+                    .contains_key(crate::gateway::rpc::channels::LABEL_CHANNEL)
+                    && session
+                        .labels
+                        .get(crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE)
+                        .map(|mode| mode != "none")
+                        .unwrap_or(true)
+            })
             .unwrap_or(false);
 
         // 2. Load session history from KV
@@ -130,7 +139,7 @@ impl AgentRuntime {
         let mut reg = ToolRegistry::new();
         crate::knowledge::register_tools(&mut reg);
         crate::native_tools::register_tools(&mut reg, &spec);
-        if is_channel_session {
+        if allow_channel_reply_tools {
             crate::native_tools::register_channel_tools(&mut reg);
         }
         let builtin_tool_names = builtin_tool_names();
@@ -750,6 +759,108 @@ mod tests {
             Err(err) => err,
         };
         assert!(no_spec.to_string().contains("has no effective spec"));
+    }
+
+    #[tokio::test]
+    async fn channel_reply_mode_none_withholds_channel_reply_tools() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+        };
+
+        kv.set_msg(
+            &crate::control::keys::agent("conic", "writer"),
+            &models::Agent {
+                name: "writer".to_string(),
+                ns: "conic".to_string(),
+                definition: None,
+                effective_spec: Some(spec),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let mut reply_labels = HashMap::new();
+        reply_labels.insert(
+            crate::gateway::rpc::channels::LABEL_CHANNEL.to_string(),
+            "incident-room".to_string(),
+        );
+        kv.set_msg(
+            &crate::control::keys::session("conic", "writer", "reply-session"),
+            &models::Session {
+                id: "reply-session".to_string(),
+                agent: "writer".to_string(),
+                ns: "conic".to_string(),
+                status: "active".to_string(),
+                labels: reply_labels,
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+
+        let mut no_reply_labels = HashMap::new();
+        no_reply_labels.insert(
+            crate::gateway::rpc::channels::LABEL_CHANNEL.to_string(),
+            "incident-room".to_string(),
+        );
+        no_reply_labels.insert(
+            crate::gateway::rpc::channels::LABEL_CHANNEL_REPLY_MODE.to_string(),
+            "none".to_string(),
+        );
+        kv.set_msg(
+            &crate::control::keys::session("conic", "writer", "no-reply-session"),
+            &models::Session {
+                id: "no-reply-session".to_string(),
+                agent: "writer".to_string(),
+                ns: "conic".to_string(),
+                status: "active".to_string(),
+                labels: no_reply_labels,
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+
+        let reply_runtime =
+            AgentRuntime::build("conic", "writer", "reply-session", &cp, &config, &registry)
+                .await
+                .unwrap();
+        let reply_registry = reply_runtime.executor.registry.read().await;
+        assert!(reply_registry
+            .tools
+            .contains_key(crate::native_tools::CHANNEL_PUBLISH_TOOL));
+        assert!(reply_registry
+            .tools
+            .contains_key(crate::native_tools::CHANNEL_SKIP_REPLY_TOOL));
+        drop(reply_registry);
+
+        let no_reply_runtime = AgentRuntime::build(
+            "conic",
+            "writer",
+            "no-reply-session",
+            &cp,
+            &config,
+            &registry,
+        )
+        .await
+        .unwrap();
+        let no_reply_registry = no_reply_runtime.executor.registry.read().await;
+        assert!(!no_reply_registry
+            .tools
+            .contains_key(crate::native_tools::CHANNEL_PUBLISH_TOOL));
+        assert!(!no_reply_registry
+            .tools
+            .contains_key(crate::native_tools::CHANNEL_SKIP_REPLY_TOOL));
     }
 
     #[tokio::test]

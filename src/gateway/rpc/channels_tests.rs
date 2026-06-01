@@ -18,6 +18,7 @@ mod tests {
     const LABEL_CHANNEL_MESSAGE: &str = "talon.impalasys.com/channel-message";
     const LABEL_CHANNEL_SUBSCRIPTION: &str = "talon.impalasys.com/channel-subscription";
     const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
+    const LABEL_CHANNEL_REPLY_MODE: &str = "talon.impalasys.com/channel-reply-mode";
     const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 
     fn setup_handler() -> (GrpcGatewayHandler, Arc<MockKvStore>, Arc<RecordingPubSub>) {
@@ -152,6 +153,7 @@ mod tests {
             context_policy: None,
             metadata: HashMap::new(),
             labels: HashMap::new(),
+            reply_mode: String::new(),
         }
     }
 
@@ -543,6 +545,68 @@ mod tests {
                 .count(),
             2
         );
+    }
+
+    #[tokio::test]
+    async fn reply_mode_none_routes_without_channel_reply_prompt() {
+        let (handler, kv, _) = setup_handler();
+        seed_channel(&kv, "acme", "incident-1").await;
+        seed_agent(&kv, "acme", "observer").await;
+        let mut no_reply = subscription("primary", "acme", "incident-1", "observer", "mention");
+        no_reply.reply_mode = "none".to_string();
+        kv.set_msg(
+            &keys::channel_subscription("acme", "incident-1", "primary"),
+            &no_reply,
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "@observer watch this".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should succeed")
+            .into_inner();
+
+        assert_eq!(response.routed_sessions.len(), 1);
+        let routed = &response.routed_sessions[0];
+        let session = kv
+            .get_msg::<models::Session>(&keys::session("acme", &routed.agent, &routed.session_id))
+            .await
+            .unwrap()
+            .expect("routed session should be persisted");
+        assert_eq!(
+            session
+                .labels
+                .get(LABEL_CHANNEL_REPLY_MODE)
+                .map(String::as_str),
+            Some("none")
+        );
+
+        let entries = kv
+            .list_entries(&keys::session_message_prefix(
+                "acme",
+                &routed.agent,
+                &routed.session_id,
+            ))
+            .await
+            .unwrap();
+        let user_message = models::SessionMessage::decode(entries[0].1.as_slice()).unwrap();
+        let prompt = user_message
+            .parts
+            .iter()
+            .map(|part| part.content.as_str())
+            .collect::<String>();
+        assert!(prompt.contains("replyMode none"));
+        assert!(!prompt.contains("channel_publish"));
+        assert!(!prompt.contains("channel_skip_reply"));
     }
 
     #[tokio::test]
@@ -983,6 +1047,38 @@ mod tests {
         .await
         .expect_err("unlinked session should fail");
         assert!(err.to_string().contains("not linked to a channel"));
+
+        let no_reply_session = crate::scheduling::create_session_with_labels(
+            &control_plane(kv.clone(), pubsub.clone()),
+            "acme",
+            "analyst",
+            HashMap::from([
+                (LABEL_CHANNEL.to_string(), "incident-1".to_string()),
+                (LABEL_CHANNEL_REPLY_MODE.to_string(), "none".to_string()),
+            ]),
+        )
+        .await
+        .expect("no-reply session create should succeed");
+        let err = crate::gateway::rpc::channels::publish_channel_message_from_session(
+            &cp,
+            "acme",
+            "analyst",
+            &no_reply_session,
+            "not allowed",
+        )
+        .await
+        .expect_err("no-reply session should not publish");
+        assert!(err.to_string().contains("replies are disabled"));
+        let err = crate::gateway::rpc::channels::skip_channel_reply_from_session(
+            &cp,
+            "acme",
+            "analyst",
+            &no_reply_session,
+            "not needed",
+        )
+        .await
+        .expect_err("no-reply session should not skip");
+        assert!(err.to_string().contains("replies are disabled"));
 
         let channel_events = pubsub
             .published

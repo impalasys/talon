@@ -152,6 +152,8 @@ type ExplorerChannelSubscription = {
   agent?: string;
   enabled?: boolean;
   trigger?: string;
+  replyMode?: string;
+  reply_mode?: string;
 };
 
 function namespaceLabel(labels?: Record<string, string>) {
@@ -522,7 +524,7 @@ export function NamespaceExplorer({
   const [channelForm, setChannelForm] = useState({ name: '', title: '' });
   const [isSubmittingChannel, setIsSubmittingChannel] = useState(false);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState<{ isOpen: boolean, ns: string, channel: string }>({ isOpen: false, ns: '', channel: '' });
-  const [subscriptionForm, setSubscriptionForm] = useState({ name: '', agent: '', trigger: 'mention', enabled: true });
+  const [subscriptionForm, setSubscriptionForm] = useState({ name: '', agent: '', trigger: 'mention', replyMode: 'tool', enabled: true });
   const [isSubmittingSubscription, setIsSubmittingSubscription] = useState(false);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean, node: TreeNode | null }>({ isOpen: false, node: null });
@@ -663,7 +665,9 @@ export function NamespaceExplorer({
                   currentLevel.children[`channel:${channelName}`].children[`subscription:${subscriptionName}`] = {
                     id: subscriptionId,
                     name: subscriptionName,
-                    badge: subscription.enabled === false ? 'disabled' : (subscription.trigger || 'mention'),
+                    badge: subscription.enabled === false
+                      ? 'disabled'
+                      : `${subscription.trigger || 'mention'}${(subscription.replyMode || subscription.reply_mode) === 'none' ? ' / no reply' : ''}`,
                     selection: {
                       type: 'channel-subscription',
                       ns,
@@ -1130,6 +1134,7 @@ export function NamespaceExplorer({
               agent: subscriptionForm.agent.trim(),
               enabled: subscriptionForm.enabled,
               trigger: subscriptionForm.trigger,
+              replyMode: subscriptionForm.replyMode,
             },
           }),
         },
@@ -1139,7 +1144,7 @@ export function NamespaceExplorer({
       await refreshChannels();
       await refreshData();
       setSubscriptionModalOpen({ isOpen: false, ns: '', channel: '' });
-      setSubscriptionForm({ name: '', agent: '', trigger: 'mention', enabled: true });
+      setSubscriptionForm({ name: '', agent: '', trigger: 'mention', replyMode: 'tool', enabled: true });
     } catch (e) {
       console.error(e);
       alert(e instanceof Error ? e.message : 'Error creating channel subscription');
@@ -1647,6 +1652,22 @@ export function NamespaceExplorer({
                     <SelectItem id="manual">manual</SelectItem>
                     <SelectItem id="all">all</SelectItem>
                     <SelectItem id="disabled">disabled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="block text-sm font-medium mb-1">Reply Mode</Label>
+                <Select
+                  value={subscriptionForm.replyMode}
+                  onChange={(key) => setSubscriptionForm(prev => ({ ...prev, replyMode: key as string }))}
+                  isRequired
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem id="tool">tool</SelectItem>
+                    <SelectItem id="none">none</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

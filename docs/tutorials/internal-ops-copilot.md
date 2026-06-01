@@ -62,6 +62,10 @@ The binding should point at `talon-ops` and allow only:
 
 - `list_schedules`
 - `get_schedule`
+- `list_channels`
+- `get_channel`
+- `list_channel_messages`
+- `get_channel_message`
 - `list_mcp_bindings`
 - `get_mcp_binding`
 

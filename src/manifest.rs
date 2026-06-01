@@ -268,6 +268,7 @@ struct ChannelSubscriptionSpecManifest {
     agent: String,
     enabled: bool,
     trigger: String,
+    reply_mode: String,
     context_policy: Option<ChannelContextPolicyManifest>,
     metadata: HashMap<String, String>,
 }
@@ -458,6 +459,7 @@ pub fn parse_channel_subscription(yaml: &str) -> Result<models::ChannelSubscript
         agent: subscription.spec.agent,
         enabled: subscription.spec.enabled,
         trigger: subscription.spec.trigger,
+        reply_mode: subscription.spec.reply_mode,
         context_policy: subscription.spec.context_policy.map(|policy| {
             models::ChannelContextPolicy {
                 mode: policy.mode,
@@ -647,6 +649,7 @@ pub fn render_channel_subscription_yaml(
             agent: subscription.agent.clone(),
             enabled: subscription.enabled,
             trigger: subscription.trigger.clone(),
+            reply_mode: subscription.reply_mode.clone(),
             context_policy: subscription.context_policy.as_ref().map(|policy| {
                 ChannelContextPolicyManifest {
                     mode: policy.mode.clone(),
@@ -1296,6 +1299,7 @@ spec:
   agent: researcher
   enabled: true
   trigger: mention
+  replyMode: none
   contextPolicy:
     mode: recent_public
     maxMessages: 20
@@ -1305,6 +1309,7 @@ spec:
         assert_eq!(subscription.channel, "incident-123");
         assert_eq!(subscription.agent, "researcher");
         assert!(subscription.enabled);
+        assert_eq!(subscription.reply_mode, "none");
         assert_eq!(
             subscription
                 .context_policy
@@ -1318,6 +1323,7 @@ spec:
         let reparsed = parse_channel_subscription(&rendered)
             .expect("rendered channel subscription should parse");
         assert_eq!(reparsed.trigger, "mention");
+        assert_eq!(reparsed.reply_mode, "none");
     }
 
     #[test]

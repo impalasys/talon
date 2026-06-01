@@ -73,6 +73,7 @@ In Sightline:
 3. expand `triage-agent` or `scribe-agent` to inspect the private sessions created by channel routing
 
 Normal assistant text stays inside the private session. A public channel reply appears only when an agent explicitly calls `channel_publish`.
+Set `replyMode: none` on a `ChannelSubscription` when a routed session should observe or process the channel message without receiving channel reply tools.
 
 ## Why this structure matters
 

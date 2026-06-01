@@ -20,10 +20,11 @@ const CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE: usize = 512;
 const CHANNEL_DELETE_DESCENDANTS_CONCURRENCY: usize = 32;
 const MAX_RESOURCE_NAME_LEN: usize = 253;
 
-const LABEL_CHANNEL: &str = "talon.impalasys.com/channel";
+pub const LABEL_CHANNEL: &str = "talon.impalasys.com/channel";
 const LABEL_CHANNEL_MESSAGE: &str = "talon.impalasys.com/channel-message";
 const LABEL_CHANNEL_SUBSCRIPTION: &str = "talon.impalasys.com/channel-subscription";
 const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
+pub const LABEL_CHANNEL_REPLY_MODE: &str = "talon.impalasys.com/channel-reply-mode";
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 
 async fn delete_descendants(kv: &dyn KeyValueStore, ns: &str, channel: &str) -> anyhow::Result<()> {
@@ -117,6 +118,17 @@ fn normalize_trigger(trigger: &str) -> Result<String, tonic::Status> {
         "mention" | "manual" | "all" | "routed" | "disabled" => Ok(trigger),
         other => Err(tonic::Status::invalid_argument(format!(
             "channel subscription trigger must be mention, manual, all, routed, or disabled; got {other}"
+        ))),
+    }
+}
+
+fn normalize_reply_mode(reply_mode: &str) -> Result<String, tonic::Status> {
+    let reply_mode = reply_mode.trim().to_ascii_lowercase();
+    match reply_mode.as_str() {
+        "" => Ok("tool".to_string()),
+        "tool" | "none" => Ok(reply_mode),
+        other => Err(tonic::Status::invalid_argument(format!(
+            "channel subscription replyMode must be tool or none; got {other}"
         ))),
     }
 }
@@ -282,6 +294,14 @@ pub async fn publish_channel_message_from_session(
         .filter(|value| !value.is_empty())
         .cloned()
         .ok_or_else(|| anyhow::anyhow!("session is not linked to a channel"))?;
+    if session
+        .labels
+        .get(LABEL_CHANNEL_REPLY_MODE)
+        .map(|mode| mode == "none")
+        .unwrap_or(false)
+    {
+        anyhow::bail!("channel replies are disabled for this subscription");
+    }
     let mut labels = HashMap::new();
     labels.insert(
         LABEL_MESSAGE_SOURCE.to_string(),
@@ -329,6 +349,14 @@ pub async fn skip_channel_reply_from_session(
         .filter(|value| !value.is_empty())
         .cloned()
         .ok_or_else(|| anyhow::anyhow!("session is not linked to a channel"))?;
+    if session
+        .labels
+        .get(LABEL_CHANNEL_REPLY_MODE)
+        .map(|mode| mode == "none")
+        .unwrap_or(false)
+    {
+        anyhow::bail!("channel replies are disabled for this subscription");
+    }
     publish_channel_event(
         cp.pubsub.as_ref(),
         events::ChannelEvent {
@@ -827,6 +855,7 @@ async fn validate_subscription(
     validate_resource_name("channel", &subscription.channel)?;
     validate_resource_name("agent", &subscription.agent)?;
     subscription.trigger = normalize_trigger(&subscription.trigger)?;
+    subscription.reply_mode = normalize_reply_mode(&subscription.reply_mode)?;
     handler
         .gateway
         .kv
@@ -992,6 +1021,10 @@ async fn route_to_subscription(
         LABEL_CHANNEL_TRIGGER.to_string(),
         subscription.trigger.clone(),
     );
+    labels.insert(
+        LABEL_CHANNEL_REPLY_MODE.to_string(),
+        subscription.reply_mode.clone(),
+    );
 
     let session_id = scheduling::create_session_with_labels(
         cp,
@@ -1095,10 +1128,16 @@ fn format_channel_prompt(
     } else {
         format!("\n\nRecent public channel context:\n{}", context)
     };
+    let reply_instruction = if subscription.reply_mode == "none" {
+        "Normal assistant text stays private in your session and will not be posted to the channel. This subscription is configured with replyMode none, so no public channel reply is expected."
+    } else {
+        "Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. If no public reply is needed, call channel_skip_reply."
+    };
     format!(
-        "You are subscribed to Talon channel '{}' as agent '{}'. Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. If no public reply is needed, call channel_skip_reply.\n\nTriggering channel message id: {}\nTriggering author: {}:{}\nTriggering content:\n{}{}",
+        "You are subscribed to Talon channel '{}' as agent '{}'. {}\n\nTriggering channel message id: {}\nTriggering author: {}:{}\nTriggering content:\n{}{}",
         message.channel,
         subscription.agent,
+        reply_instruction,
         message.id,
         message.author_kind,
         message.author,
