@@ -551,6 +551,36 @@ mod tests {
             .into_inner();
         assert_eq!(boundary_response.routed_sessions.len(), 1);
         assert_eq!(boundary_response.routed_sessions[0].subscription, "bot");
+
+        let unicode_suffix_response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "paging @botПривет should not match".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should succeed")
+            .into_inner();
+        assert!(unicode_suffix_response.routed_sessions.is_empty());
+
+        let unicode_prefix_response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "paging Привет@bot should not match".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should succeed")
+            .into_inner();
+        assert!(unicode_prefix_response.routed_sessions.is_empty());
     }
 
     #[tokio::test]

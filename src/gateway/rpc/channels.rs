@@ -87,7 +87,7 @@ fn normalize_trigger(trigger: &str) -> Result<String, tonic::Status> {
 }
 
 fn mention_boundary(ch: char) -> bool {
-    !(ch.is_ascii_alphanumeric() || ch == '_' || ch == '-')
+    !(ch.is_alphanumeric() || ch == '_' || ch == '-')
 }
 
 fn contains_mention(content: &str, target: &str) -> bool {
