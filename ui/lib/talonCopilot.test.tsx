@@ -558,6 +558,37 @@ describe('TalonChannel', () => {
     );
   });
 
+  it('renders channel message markdown', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'channel-md',
+          authorKind: 'agent',
+          author: 'scribe-agent',
+          content: '### Match Update\n\n- Blue guessed `apple`\n- Red is thinking',
+          createdAt: String(Date.now() * 1000),
+        },
+      ],
+    }));
+
+    const { container } = render(
+      <TalonChannel
+        namespace="game"
+        channel="match-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await screen.findByText('Match Update');
+    expect(container.querySelector('h3')).not.toBeNull();
+    expect(container.querySelector('ul')).not.toBeNull();
+    expect(screen.getByText(/Blue guessed/)).toBeInTheDocument();
+    expect(screen.getByText('Red is thinking')).toBeInTheDocument();
+  });
+
   it('ignores stale channel refresh responses after switching channels', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();

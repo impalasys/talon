@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Hash, Send } from "lucide-react";
 import { buildGatewayHeaders, normalizeGatewayUrl } from "./lib/grpc";
+import { MarkdownMessage } from "./lib/MarkdownMessage";
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -507,8 +508,8 @@ export function TalonChannel({
                       <span style={{ fontFamily: "ui-monospace, SFMono-Regular, monospace" }}>{resolvedFormatTimestamp(message)}</span>
                       {messageActions ? <div style={{ marginLeft: "auto" }}>{messageActions}</div> : null}
                     </div>
-                    <div style={{ marginTop: 8, whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.6 }}>
-                      {message.content || ""}
+                    <div style={{ marginTop: 8, whiteSpace: "normal", overflowWrap: "anywhere", fontSize: 14, lineHeight: 1.6 }}>
+                      <MarkdownMessage>{message.content || ""}</MarkdownMessage>
                     </div>
                   </div>
                 );
