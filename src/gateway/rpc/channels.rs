@@ -1007,8 +1007,6 @@ async fn recent_channel_messages(
             .cmp(&right.created_at)
             .then_with(|| left.id.cmp(&right.id))
     });
-    recent = recent.into_iter().rev().take(limit).collect();
-    recent.reverse();
     Ok(recent)
 }
 

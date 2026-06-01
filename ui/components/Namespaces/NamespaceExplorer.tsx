@@ -910,7 +910,7 @@ export function NamespaceExplorer({
         }),
       );
       const channelMap = Object.fromEntries(channelEntries);
-      setChannelsByNamespace(channelMap);
+      setChannelsByNamespace(prev => ({ ...prev, ...channelMap }));
 
       const expandedChannels = Object.entries(channelMap).flatMap(([ns, channels]) =>
         (channels as ExplorerChannel[])
@@ -934,7 +934,7 @@ export function NamespaceExplorer({
           }
         }),
       );
-      setChannelSubscriptionsByKey(Object.fromEntries(subscriptionEntries));
+      setChannelSubscriptionsByKey(prev => ({ ...prev, ...Object.fromEntries(subscriptionEntries) }));
     } catch (e) {
       console.warn('Could not list namespaces for channels', e);
       setChannelsByNamespace({});
