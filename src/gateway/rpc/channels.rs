@@ -148,7 +148,10 @@ async fn update_channel_timestamp(
             return Ok(());
         };
         let mut channel = models::Channel::decode(current_bytes.as_slice())?;
-        channel.updated_at = channel.updated_at.max(now);
+        if channel.updated_at >= now {
+            return Ok(());
+        }
+        channel.updated_at = now;
         let updated = channel.encode_to_vec();
         if kv
             .compare_and_swap(&key, Some(current_bytes.as_slice()), &updated)

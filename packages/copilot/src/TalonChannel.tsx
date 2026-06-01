@@ -39,7 +39,7 @@ export type ChannelMessage = {
 
 export type TalonChannelProps = {
   namespace: string;
-  channel: string | ChannelLike;
+  channel: string | ChannelLike | null | undefined;
   gatewayUrl: string;
   authToken?: string | null;
   className?: string;
@@ -55,11 +55,13 @@ export type TalonChannelProps = {
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
 };
 
-function coerceChannelName(channel: string | ChannelLike) {
+function coerceChannelName(channel: string | ChannelLike | null | undefined) {
+  if (!channel) return "";
   return typeof channel === "string" ? channel : channel.name || "";
 }
 
-function coerceChannelStatus(channel: string | ChannelLike) {
+function coerceChannelStatus(channel: string | ChannelLike | null | undefined) {
+  if (!channel) return "open";
   return typeof channel === "string" ? "open" : channel.status || "open";
 }
 
