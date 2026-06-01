@@ -331,7 +331,7 @@ export function TalonChannel({
     skipNextAutoScrollRef.current = false;
     pendingRefreshRef.current = false;
     void refresh({ replace: true });
-  }, [refresh]);
+  }, [namespace, channelName]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (refreshIntervalMs === false || disabled || !namespace || !channelName) return;

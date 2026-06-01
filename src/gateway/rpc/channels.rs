@@ -3,7 +3,7 @@
 
 use super::{models, proto, GrpcGatewayHandler};
 use crate::control::topics;
-use crate::control::{events, keys, keys::ResourceParent, ControlPlane, KeyValueStore};
+use crate::control::{events, keys, ControlPlane, KeyValueStore};
 use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
 use crate::scheduling;
 use futures::{stream, StreamExt, TryStreamExt};
@@ -16,7 +16,9 @@ const CHANNEL_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const DEFAULT_CHANNEL_CONTEXT_MESSAGES: usize = 20;
 const MAX_CHANNEL_CONTEXT_MESSAGES: usize = 50;
 const CHANNEL_TIMESTAMP_CAS_RETRIES: usize = 8;
+const CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE: usize = 512;
 const CHANNEL_DELETE_DESCENDANTS_CONCURRENCY: usize = 32;
+const MAX_RESOURCE_NAME_LEN: usize = 253;
 
 const LABEL_CHANNEL: &str = "talon.impalasys.com/channel";
 const LABEL_CHANNEL_MESSAGE: &str = "talon.impalasys.com/channel-message";
@@ -24,14 +26,39 @@ const LABEL_CHANNEL_SUBSCRIPTION: &str = "talon.impalasys.com/channel-subscripti
 const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
 
-async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> anyhow::Result<()> {
-    let list = parent.list(None);
-    let children = kv.list_keys(&list).await?;
-    stream::iter(children)
-        .map(|child| async move { kv.delete(&child).await })
-        .buffer_unordered(CHANNEL_DELETE_DESCENDANTS_CONCURRENCY)
-        .try_collect::<Vec<_>>()
-        .await?;
+async fn delete_descendants(kv: &dyn KeyValueStore, ns: &str, channel: &str) -> anyhow::Result<()> {
+    delete_descendant_list(kv, &keys::channel_message_prefix(ns, channel)).await?;
+    delete_descendant_list(kv, &keys::channel_subscription_prefix(ns, channel)).await?;
+    Ok(())
+}
+
+async fn delete_descendant_list(
+    kv: &dyn KeyValueStore,
+    list: &keys::ResourceList,
+) -> anyhow::Result<()> {
+    let mut before_name: Option<String> = None;
+    loop {
+        let children = kv
+            .list_keys_page(
+                list,
+                before_name.as_deref(),
+                CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE,
+            )
+            .await?;
+        if children.is_empty() {
+            break;
+        }
+        before_name = children.last().map(|child| child.name.clone());
+        let child_count = children.len();
+        stream::iter(children)
+            .map(|child| async move { kv.delete(&child).await })
+            .buffer_unordered(CHANNEL_DELETE_DESCENDANTS_CONCURRENCY)
+            .try_collect::<Vec<_>>()
+            .await?;
+        if child_count < CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE {
+            break;
+        }
+    }
     Ok(())
 }
 
@@ -39,6 +66,11 @@ fn validate_resource_name(kind: &str, name: &str) -> Result<(), tonic::Status> {
     if name.trim().is_empty() {
         return Err(tonic::Status::invalid_argument(format!(
             "{kind} name is required"
+        )));
+    }
+    if name.len() > MAX_RESOURCE_NAME_LEN {
+        return Err(tonic::Status::invalid_argument(format!(
+            "{kind} name cannot exceed {MAX_RESOURCE_NAME_LEN} characters"
         )));
     }
     if name.trim() != name {
@@ -442,14 +474,11 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::DeleteChannelResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        delete_descendants(
-            self.gateway.kv.as_ref(),
-            keys::channel_parent(&req.ns, &req.name),
-        )
-        .await
-        .map_err(|e| {
-            tonic::Status::internal(format!("failed to delete channel descendants: {e}"))
-        })?;
+        delete_descendants(self.gateway.kv.as_ref(), &req.ns, &req.name)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("failed to delete channel descendants: {e}"))
+            })?;
         self.gateway
             .kv
             .delete(&keys::channel(&req.ns, &req.name))
@@ -929,9 +958,9 @@ async fn matching_subscriptions(
         };
         let should_route = match trigger.as_str() {
             "manual" => manual.contains(subscription.name.as_str()),
-            "all" => message.author_kind != "agent",
+            "all" => message.author != subscription.agent,
             "mention" => {
-                message.author_kind != "agent"
+                message.author != subscription.agent
                     && (contains_mention(&message.content, &subscription.agent)
                         || contains_mention(&message.content, &subscription.name))
             }

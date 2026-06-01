@@ -197,6 +197,24 @@ mod tests {
             .expect_err("special URL characters in channel name should fail");
         assert_eq!(invalid_special_channel.code(), tonic::Code::InvalidArgument);
 
+        let invalid_long_channel = handler
+            .handle_create_channel(tonic::Request::new(proto::CreateChannelRequest {
+                ns: "acme".to_string(),
+                channel: Some(models::Channel {
+                    name: "a".repeat(254),
+                    ns: String::new(),
+                    title: "Incident 2".to_string(),
+                    status: String::new(),
+                    created_at: 0,
+                    updated_at: 0,
+                    metadata: HashMap::new(),
+                    labels: HashMap::new(),
+                }),
+            }))
+            .await
+            .expect_err("overlong channel name should fail");
+        assert_eq!(invalid_long_channel.code(), tonic::Code::InvalidArgument);
+
         let invalid_subscription = handler
             .handle_create_channel_subscription(tonic::Request::new(
                 proto::CreateChannelSubscriptionRequest {
@@ -356,6 +374,47 @@ mod tests {
             .await
             .unwrap()
             .is_none());
+    }
+
+    #[tokio::test]
+    async fn delete_channel_removes_large_message_history_in_pages() {
+        let (handler, kv, _) = setup_handler();
+        seed_channel(&kv, "acme", "incident-1").await;
+        kv.set_msg(
+            &keys::channel_subscription("acme", "incident-1", "primary"),
+            &subscription("primary", "acme", "incident-1", "analyst", "mention"),
+        )
+        .await
+        .unwrap();
+        for index in 0..520 {
+            seed_channel_message(
+                &kv,
+                "acme",
+                "incident-1",
+                &format!("message-{index:03}"),
+                &format!("message {index}"),
+            )
+            .await;
+        }
+
+        handler
+            .handle_delete_channel(tonic::Request::new(proto::DeleteChannelRequest {
+                ns: "acme".to_string(),
+                name: "incident-1".to_string(),
+            }))
+            .await
+            .expect("channel delete should succeed");
+
+        assert!(kv
+            .list_entries(&keys::channel_message_prefix("acme", "incident-1"))
+            .await
+            .unwrap()
+            .is_empty());
+        assert!(kv
+            .list_entries(&keys::channel_subscription_prefix("acme", "incident-1"))
+            .await
+            .unwrap()
+            .is_empty());
     }
 
     #[tokio::test]
@@ -688,7 +747,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_authored_channel_messages_do_not_auto_route() {
+    async fn agent_authored_channel_messages_route_to_other_agents_but_not_self() {
         let (handler, kv, _) = setup_handler();
         seed_channel(&kv, "acme", "incident-1").await;
         seed_agent(&kv, "acme", "analyst").await;
@@ -699,12 +758,27 @@ mod tests {
         .await
         .unwrap();
 
-        let response = handler
+        let self_response = handler
             .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
                 ns: "acme".to_string(),
                 channel: "incident-1".to_string(),
                 author_kind: "agent".to_string(),
-                author: "someone".to_string(),
+                author: "analyst".to_string(),
+                content: "self update".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should succeed")
+            .into_inner();
+        assert!(self_response.routed_sessions.is_empty());
+
+        let other_agent_response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "agent".to_string(),
+                author: "scribe".to_string(),
                 content: "agent update".to_string(),
                 subscription_names: Vec::new(),
                 labels: HashMap::new(),
@@ -712,8 +786,11 @@ mod tests {
             .await
             .expect("post should succeed")
             .into_inner();
-
-        assert!(response.routed_sessions.is_empty());
+        assert_eq!(other_agent_response.routed_sessions.len(), 1);
+        assert_eq!(
+            other_agent_response.routed_sessions[0].subscription,
+            "primary"
+        );
     }
 
     #[tokio::test]
