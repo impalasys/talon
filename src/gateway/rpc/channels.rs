@@ -895,12 +895,35 @@ async fn matching_subscriptions(
         .await?;
     let mut subscriptions = Vec::new();
     for (_, value) in entries {
-        let subscription = models::ChannelSubscription::decode(value.as_slice())?;
+        let subscription = match models::ChannelSubscription::decode(value.as_slice()) {
+            Ok(subscription) => subscription,
+            Err(error) => {
+                tracing::warn!(
+                    error = %error,
+                    ns = %message.ns,
+                    channel = %message.channel,
+                    message_id = %message.id,
+                    "failed to decode channel subscription; skipping"
+                );
+                continue;
+            }
+        };
         if !subscription.enabled {
             continue;
         }
-        let trigger = normalize_trigger(&subscription.trigger)
-            .map_err(|status| anyhow::anyhow!(status.message().to_string()))?;
+        let trigger = match normalize_trigger(&subscription.trigger) {
+            Ok(trigger) => trigger,
+            Err(error) => {
+                tracing::warn!(
+                    error = %error,
+                    ns = %message.ns,
+                    channel = %message.channel,
+                    subscription = %subscription.name,
+                    "failed to normalize channel subscription trigger; skipping"
+                );
+                continue;
+            }
+        };
         let should_route = match trigger.as_str() {
             "manual" => manual.contains(subscription.name.as_str()),
             "all" => message.author_kind != "agent",

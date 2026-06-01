@@ -448,6 +448,43 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn post_channel_message_skips_corrupt_subscriptions() {
+        let (handler, kv, _) = setup_handler();
+        seed_channel(&kv, "acme", "incident-1").await;
+        seed_agent(&kv, "acme", "analyst").await;
+        kv.set(
+            &keys::channel_subscription("acme", "incident-1", "corrupt"),
+            b"not-a-protobuf",
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::channel_subscription("acme", "incident-1", "primary"),
+            &subscription("primary", "acme", "incident-1", "analyst", "mention"),
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "@analyst please investigate".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should skip corrupt subscription and still route")
+            .into_inner();
+
+        assert_eq!(response.routed_sessions.len(), 1);
+        assert_eq!(response.routed_sessions[0].subscription, "primary");
+        assert!(response.routed_sessions[0].error.is_empty());
+    }
+
+    #[tokio::test]
     async fn mention_trigger_matches_whole_agent_or_subscription_name() {
         let (handler, kv, _) = setup_handler();
         seed_channel(&kv, "acme", "incident-1").await;
