@@ -533,17 +533,15 @@ mod tests {
             .collect::<String>();
 
         assert!(!prompt.contains("- user:tester: old"));
+        assert!(prompt.contains("Triggering content:\ncurrent"));
+        assert!(!prompt.contains("- user:sre: current"));
         let mid = prompt
             .find("- user:tester: mid")
             .expect("mid should be present");
         let new = prompt
             .find("- user:tester: new")
             .expect("new should be present");
-        let current = prompt
-            .find("- user:sre: current")
-            .expect("current should be present");
         assert!(mid < new);
-        assert!(new < current);
     }
 
     #[tokio::test]

@@ -844,14 +844,14 @@ async fn route_channel_message(
     let recent_messages = match recent_channel_messages(cp, message, max_context_limit).await {
         Ok(messages) => messages,
         Err(error) => {
-            tracing::error!(
+            tracing::warn!(
                 error = %error,
                 ns = %message.ns,
                 channel = %message.channel,
                 message_id = %message.id,
-                "failed to load recent channel context"
+                "failed to load recent channel context; proceeding with empty context"
             );
-            return results;
+            Vec::new()
         }
     };
 
@@ -1022,19 +1022,27 @@ fn format_channel_prompt(
     let start = recent_messages.len().saturating_sub(limit);
     let mut context = String::new();
     for item in &recent_messages[start..] {
+        if item.id == message.id {
+            continue;
+        }
         context.push_str(&format!(
             "- {}:{}: {}\n",
             item.author_kind, item.author, item.content
         ));
     }
+    let context_section = if context.is_empty() {
+        String::new()
+    } else {
+        format!("\n\nRecent public channel context:\n{}", context)
+    };
     format!(
-        "You are subscribed to Talon channel '{}' as agent '{}'. Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. If no public reply is needed, call channel_skip_reply.\n\nTriggering channel message id: {}\nTriggering author: {}:{}\nTriggering content:\n{}\n\nRecent public channel context:\n{}",
+        "You are subscribed to Talon channel '{}' as agent '{}'. Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. If no public reply is needed, call channel_skip_reply.\n\nTriggering channel message id: {}\nTriggering author: {}:{}\nTriggering content:\n{}{}",
         message.channel,
         subscription.agent,
         message.id,
         message.author_kind,
         message.author,
         message.content,
-        context
+        context_section
     )
 }

@@ -129,6 +129,15 @@ fn check_basic_password(auth_header: &str, expected_pass: Option<&String>) -> Re
     ))
 }
 
+fn bearer_token(auth_header: &str) -> Result<&str, Status> {
+    match auth_header.get(..7) {
+        Some(scheme) if auth_header.len() > 7 && scheme.eq_ignore_ascii_case("bearer ") => {
+            Ok(&auth_header[7..])
+        }
+        _ => Err(Status::unauthenticated("Missing bearer token")),
+    }
+}
+
 pub fn check_auth(
     metadata: &MetadataMap,
     auth_config: &AuthConfig,
@@ -144,9 +153,7 @@ pub fn check_auth(
                 .and_then(|v| v.to_str().ok())
                 .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
 
-            let token = auth_header
-                .strip_prefix("Bearer ")
-                .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+            let token = bearer_token(auth_header)?;
 
             if auth_config.tokens.iter().any(|t| t == token) {
                 Ok(())
@@ -164,9 +171,7 @@ pub fn check_auth(
                 return Ok(());
             }
 
-            let token = auth_header
-                .strip_prefix("Bearer ")
-                .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+            let token = bearer_token(auth_header)?;
 
             let secret = auth_config
                 .jwt_secret
@@ -212,9 +217,7 @@ pub fn check_channel_auth(
                 return Ok(());
             }
 
-            let token = auth_header
-                .strip_prefix("Bearer ")
-                .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+            let token = bearer_token(auth_header)?;
 
             let secret = auth_config
                 .jwt_secret
@@ -327,9 +330,7 @@ impl tonic::service::Interceptor for TalonAuthInterceptor {
                 Err(Status::unauthenticated("Invalid password"))
             }
             AuthMode::Token => {
-                let token = auth_header
-                    .strip_prefix("Bearer ")
-                    .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+                let token = bearer_token(auth_header)?;
                 if self.config.tokens.iter().any(|t| t == token) {
                     Ok(request)
                 } else {
@@ -341,9 +342,7 @@ impl tonic::service::Interceptor for TalonAuthInterceptor {
                     return Ok(request);
                 }
 
-                let token = auth_header
-                    .strip_prefix("Bearer ")
-                    .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+                let token = bearer_token(auth_header)?;
                 let secret = self
                     .config
                     .jwt_secret
@@ -389,8 +388,7 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
         AuthMode::Token => {
             if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
                 if let Ok(auth_str) = auth_header.to_str() {
-                    if auth_str.starts_with("Bearer ") {
-                        let token = &auth_str[7..];
+                    if let Ok(token) = bearer_token(auth_str) {
                         if auth_config.tokens.iter().any(|t| t == token) {
                             return next.run(req).await;
                         }
@@ -412,8 +410,7 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
                     ) {
                         return next.run(req).await;
                     }
-                    if auth_str.starts_with("Bearer ") {
-                        let token = &auth_str[7..];
+                    if let Ok(token) = bearer_token(auth_str) {
                         if let Some(secret) = &auth_config.jwt_secret {
                             if verify_jwt(token, secret).is_ok() {
                                 return next.run(req).await;
@@ -619,6 +616,11 @@ mod tests {
         );
 
         assert!(check_channel_auth(&metadata, &config, "ops", "incident-room").is_ok());
+        metadata.insert(
+            "authorization",
+            format!("bearer {}", token).parse().unwrap(),
+        );
+        assert!(check_channel_auth(&metadata, &config, "ops", "incident-room").is_ok());
         assert!(check_channel_auth(&metadata, &config, "ops", "other-room").is_err());
         assert!(check_channel_auth(&metadata, &config, "other", "incident-room").is_err());
         assert!(check_auth(&metadata, &config, "ops", None, None).is_err());
@@ -693,7 +695,7 @@ mod tests {
         let mut token_request = tonic::Request::new(());
         token_request
             .metadata_mut()
-            .insert("authorization", "Bearer good".parse().unwrap());
+            .insert("authorization", "bearer good".parse().unwrap());
         assert!(token_interceptor.call(token_request).is_ok());
 
         let secret = "jwt-secret";
