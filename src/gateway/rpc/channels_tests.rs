@@ -82,13 +82,17 @@ mod tests {
     }
 
     async fn seed_channel(kv: &Arc<MockKvStore>, ns: &str, name: &str) {
+        seed_channel_with_status(kv, ns, name, "open").await;
+    }
+
+    async fn seed_channel_with_status(kv: &Arc<MockKvStore>, ns: &str, name: &str, status: &str) {
         kv.set_msg(
             &keys::channel(ns, name),
             &models::Channel {
                 name: name.to_string(),
                 ns: ns.to_string(),
                 title: "Incident room".to_string(),
-                status: "open".to_string(),
+                status: status.to_string(),
                 created_at: 1,
                 updated_at: 1,
                 metadata: HashMap::new(),
@@ -1098,6 +1102,26 @@ mod tests {
         .await
         .expect_err("no-reply session should not skip");
         assert!(err.to_string().contains("replies are disabled"));
+
+        let closed_session = crate::scheduling::create_session_with_labels(
+            &control_plane(kv.clone(), pubsub.clone()),
+            "acme",
+            "analyst",
+            HashMap::from([(LABEL_CHANNEL.to_string(), "closed-room".to_string())]),
+        )
+        .await
+        .expect("closed channel session create should succeed");
+        seed_channel_with_status(&kv, "acme", "closed-room", "closed").await;
+        let err = crate::gateway::rpc::channels::publish_channel_message_from_session(
+            &cp,
+            "acme",
+            "analyst",
+            &closed_session,
+            "not allowed",
+        )
+        .await
+        .expect_err("closed channel session should not publish");
+        assert!(err.to_string().contains("channel is closed"));
 
         let channel_events = pubsub
             .published

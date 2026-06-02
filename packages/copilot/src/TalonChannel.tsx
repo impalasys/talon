@@ -102,8 +102,8 @@ function normalizeEpochToMilliseconds(value: unknown) {
     normalized = value;
   }
   if (typeof normalized !== "number" || !Number.isFinite(normalized) || normalized <= 0) return null;
-  if (normalized >= 1e15) return Math.trunc(normalized / 1000);
-  if (normalized >= 1e12) return Math.trunc(normalized);
+  if (normalized >= 1e14) return Math.trunc(normalized / 1000);
+  if (normalized >= 1e11) return Math.trunc(normalized);
   if (normalized >= 1e9) return Math.trunc(normalized * 1000);
   return null;
 }

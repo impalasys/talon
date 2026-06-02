@@ -12,7 +12,6 @@ use std::collections::{HashMap, HashSet};
 
 const DEFAULT_CHANNEL_MESSAGES_LIMIT: usize = 50;
 const MAX_CHANNEL_MESSAGES_LIMIT: usize = 200;
-const CHANNEL_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const DEFAULT_CHANNEL_CONTEXT_MESSAGES: usize = 20;
 const MAX_CHANNEL_CONTEXT_MESSAGES: usize = 50;
 const CHANNEL_TIMESTAMP_CAS_RETRIES: usize = 8;
@@ -154,9 +153,9 @@ fn contains_mention(content: &str, target: &str) -> bool {
             content[..start]
                 .chars()
                 .next_back()
-                .is_none_or(mention_boundary)
+                .map_or(true, mention_boundary)
         };
-        let end_ok = content[end..].chars().next().is_none_or(mention_boundary);
+        let end_ok = content[end..].chars().next().map_or(true, mention_boundary);
         if start_ok && end_ok {
             return true;
         }
@@ -294,6 +293,14 @@ pub async fn publish_channel_message_from_session(
         .filter(|value| !value.is_empty())
         .cloned()
         .ok_or_else(|| anyhow::anyhow!("session is not linked to a channel"))?;
+    let channel_obj = cp
+        .kv
+        .get_msg::<models::Channel>(&keys::channel(ns, &channel))
+        .await?
+        .ok_or_else(|| anyhow::anyhow!("channel not found"))?;
+    if channel_obj.status == "closed" {
+        anyhow::bail!("channel is closed");
+    }
     if session
         .labels
         .get(LABEL_CHANNEL_REPLY_MODE)
@@ -639,13 +646,14 @@ impl GrpcGatewayHandler {
         let mut messages = Vec::with_capacity(target_message_count);
 
         while messages.len() < target_message_count {
+            let remaining = target_message_count.saturating_sub(messages.len());
             let entries = self
                 .gateway
                 .kv
                 .list_entries_page(
                     &keys::channel_message_prefix(&req.ns, &req.channel),
                     scan_before_name.as_deref(),
-                    CHANNEL_MESSAGE_KEY_SCAN_BATCH_SIZE,
+                    remaining,
                 )
                 .await
                 .map_err(|e| {
@@ -657,7 +665,6 @@ impl GrpcGatewayHandler {
             }
 
             scan_before_name = entries.last().map(|(key, _)| key.name.clone());
-            let remaining = target_message_count.saturating_sub(messages.len());
             for (_, value) in entries.into_iter().take(remaining) {
                 messages.push(
                     models::ChannelMessage::decode(value.as_slice()).map_err(|e| {
