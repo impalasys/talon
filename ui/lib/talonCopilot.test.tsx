@@ -995,6 +995,48 @@ describe('TalonChannel', () => {
     expect(await screen.findByText('hello channel')).toBeInTheDocument();
   });
 
+  it('does not post duplicate channel messages while a submit is in flight', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    let resolvePost: (value: any) => void = () => {};
+    const postResponse = new Promise((resolve) => {
+      resolvePost = resolve;
+    });
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockImplementationOnce(() => postResponse as any)
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    const input = await screen.findByPlaceholderText('Message #incident-room');
+    fireEvent.change(input, {
+      target: { value: 'hello once' },
+    });
+    const sendButton = screen.getByRole('button', { name: /send channel message/i });
+    fireEvent.click(sendButton);
+    fireEvent.click(sendButton);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages',
+      expect.objectContaining({ method: 'POST' }),
+    );
+
+    await act(async () => {
+      resolvePost(makeJsonResponse({ message: { id: 'channel-message-1' } }));
+      await postResponse;
+    });
+  });
+
   it('keeps the channel draft when posting fails', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();

@@ -469,6 +469,7 @@ export function TalonChannel({
 }: TalonChannelProps) {
   const [draft, setDraft] = useState("");
   const [isPosting, setIsPosting] = useState(false);
+  const isPostingRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const skipNextAutoScrollRef = useRef(false);
   const isNearBottomRef = useRef(true);
@@ -547,7 +548,8 @@ export function TalonChannel({
   const handleSubmit = useCallback(async (event: React.FormEvent) => {
     event.preventDefault();
     const content = draft.trim();
-    if (!content || isUserInputDisabled) return;
+    if (!content || isPostingRef.current || isUserInputDisabled) return;
+    isPostingRef.current = true;
     setIsPosting(true);
     try {
       await postMessage({ author, authorKind, content });
@@ -555,6 +557,7 @@ export function TalonChannel({
     } catch {
       // The hook owns the visible error state; keep the draft so the operator can retry.
     } finally {
+      isPostingRef.current = false;
       setIsPosting(false);
     }
   }, [author, authorKind, draft, isUserInputDisabled, postMessage]);

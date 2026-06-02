@@ -127,7 +127,7 @@ fn normalize_reply_mode(reply_mode: &str) -> Result<String, tonic::Status> {
 }
 
 fn mention_boundary(ch: char) -> bool {
-    !(ch.is_alphanumeric() || ch == '_' || ch == '-')
+    !(ch.is_alphanumeric() || ch == '_' || ch == '-' || ch == '.' || ch == ':')
 }
 
 fn contains_mention(content: &str, target: &str) -> bool {
@@ -1036,7 +1036,7 @@ async fn route_to_subscription(
         recent_messages,
         context_limit(subscription),
     );
-    scheduling::send_message(
+    if let Err(error) = scheduling::send_message(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
         &message.ns,
@@ -1046,7 +1046,26 @@ async fn route_to_subscription(
         labels,
         chrono::Utc::now(),
     )
-    .await?;
+    .await
+    {
+        if let Err(cleanup_error) = delete_routed_session(
+            cp.kv.as_ref(),
+            &message.ns,
+            &subscription.agent,
+            &session_id,
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %cleanup_error,
+                ns = %message.ns,
+                agent = %subscription.agent,
+                session_id = %session_id,
+                "failed to clean up routed channel session after scheduling error"
+            );
+        }
+        return Err(error);
+    }
     if let Err(error) = publish_channel_event(
         cp.pubsub.as_ref(),
         events::ChannelEvent {
@@ -1074,6 +1093,25 @@ async fn route_to_subscription(
         );
     }
     Ok(session_id)
+}
+
+async fn delete_routed_session(
+    kv: &dyn KeyValueStore,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+) -> anyhow::Result<()> {
+    let mut stack = vec![keys::session_parent(ns, agent, session_id)];
+    while let Some(parent) = stack.pop() {
+        let list = parent.list(None);
+        let children = kv.list_keys(&list).await?;
+        for child in children {
+            stack.push(child.as_parent());
+            kv.delete(&child).await?;
+        }
+    }
+    kv.delete(&keys::session(ns, agent, session_id)).await?;
+    Ok(())
 }
 
 async fn recent_channel_messages(

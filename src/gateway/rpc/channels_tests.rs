@@ -5,14 +5,17 @@
 mod tests {
     use crate::control::{
         events, keys, scheduler::NoopSchedulerBackend, topics, ControlPlane, KeyValueStore,
-        ProtoKeyValueStoreExt,
+        MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
     use crate::gateway::server::Gateway;
     use crate::test_support::{MockKvStore, RecordingPubSub};
+    use futures::stream;
     use prost::Message;
     use std::collections::HashMap;
+    use std::pin::Pin;
     use std::sync::Arc;
+    use tokio::sync::Mutex;
 
     const LABEL_CHANNEL: &str = "talon.impalasys.com/channel";
     const LABEL_CHANNEL_MESSAGE: &str = "talon.impalasys.com/channel-message";
@@ -38,6 +41,32 @@ mod tests {
             kv,
             pubsub,
             scheduler: Arc::new(NoopSchedulerBackend),
+        }
+    }
+
+    #[derive(Default)]
+    struct FailingSessionPubSub {
+        published: Mutex<Vec<(String, Vec<u8>)>>,
+    }
+
+    #[async_trait::async_trait]
+    impl MessagePublisher for FailingSessionPubSub {
+        async fn publish(&self, topic: &str, message: &[u8]) -> anyhow::Result<()> {
+            if topic == topics::SESSION_DISPATCH_TOPIC {
+                anyhow::bail!("session publish failed");
+            }
+            self.published
+                .lock()
+                .await
+                .push((topic.to_string(), message.to_vec()));
+            Ok(())
+        }
+
+        async fn subscribe(
+            &self,
+            _topic: &str,
+        ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
+            Ok(Box::pin(stream::empty()))
         }
     }
 
@@ -702,6 +731,21 @@ mod tests {
             .into_inner();
         assert!(email_response.routed_sessions.is_empty());
 
+        let colon_response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "do not match namespace-style @bot:prod tokens".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should succeed")
+            .into_inner();
+        assert!(colon_response.routed_sessions.is_empty());
+
         let boundary_response = handler
             .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
                 ns: "acme".to_string(),
@@ -762,6 +806,53 @@ mod tests {
             .expect("post should succeed")
             .into_inner();
         assert!(unicode_prefix_response.routed_sessions.is_empty());
+    }
+
+    #[tokio::test]
+    async fn route_failure_cleans_up_new_channel_session() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(FailingSessionPubSub::default());
+        let gateway = Arc::new(Gateway::new(
+            None,
+            kv.clone(),
+            pubsub,
+            Arc::new(NoopSchedulerBackend),
+        ));
+        let handler = GrpcGatewayHandler { gateway };
+        seed_channel(&kv, "acme", "incident-1").await;
+        seed_agent(&kv, "acme", "analyst").await;
+        kv.set_msg(
+            &keys::channel_subscription("acme", "incident-1", "primary"),
+            &subscription("primary", "acme", "incident-1", "analyst", "mention"),
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "@analyst please investigate".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should still persist the channel message")
+            .into_inner();
+
+        assert_eq!(response.routed_sessions.len(), 1);
+        assert_eq!(response.routed_sessions[0].subscription, "primary");
+        assert!(response.routed_sessions[0].session_id.is_empty());
+        assert!(response.routed_sessions[0]
+            .error
+            .contains("session publish failed"));
+        assert!(kv
+            .list_keys(&keys::session_prefix("acme", "analyst"))
+            .await
+            .unwrap()
+            .is_empty());
     }
 
     #[tokio::test]
