@@ -418,6 +418,7 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
+        validate_resource_name("channel", &req.name)?;
         let channel = self
             .gateway
             .kv
@@ -497,6 +498,7 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::DeleteChannelResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
+        validate_resource_name("channel", &req.name)?;
         self.gateway
             .kv
             .delete(&keys::channel(&req.ns, &req.name))
@@ -525,6 +527,7 @@ impl GrpcGatewayHandler {
             )?;
         }
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
         if req.content.trim().is_empty() {
             return Err(tonic::Status::invalid_argument("content is required"));
         }
@@ -594,6 +597,7 @@ impl GrpcGatewayHandler {
             )?;
         }
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
         let message = self
             .gateway
             .kv
@@ -623,6 +627,7 @@ impl GrpcGatewayHandler {
             )?;
         }
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
         let page_size = validated_channel_messages_page_size(req.page_size, req.limit)?;
         let before_name = req
             .before_message_id
@@ -687,6 +692,7 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
         let mut subscription = req
             .subscription
             .ok_or_else(|| tonic::Status::invalid_argument("subscription is required"))?;
@@ -722,6 +728,8 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
+        validate_resource_name("channel subscription", &req.name)?;
         let subscription = self
             .gateway
             .kv
@@ -744,6 +752,8 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
+        validate_resource_name("channel subscription", &req.name)?;
         let mut subscription = req
             .subscription
             .ok_or_else(|| tonic::Status::invalid_argument("subscription is required"))?;
@@ -770,6 +780,7 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::ListChannelSubscriptionsResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
         let mut entries = self
             .gateway
             .kv
@@ -796,6 +807,8 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::DeleteChannelSubscriptionResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
+        validate_resource_name("channel subscription", &req.name)?;
         self.gateway
             .kv
             .delete(&keys::channel_subscription(
@@ -823,6 +836,7 @@ impl GrpcGatewayHandler {
             )?;
         }
         let req = req.into_inner();
+        validate_resource_name("channel", &req.channel)?;
         let topic = topics::channel_events_topic(&req.ns, &req.channel);
         let stream = self
             .gateway

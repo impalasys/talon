@@ -41,7 +41,7 @@ export type CopilotMessage = {
   role: "user" | "assistant" | "system";
   content: string;
   createdAt?: string | number | bigint;
-  parts?: Array<Record<string, unknown>>;
+  parts?: unknown;
   reasoningContent?: string;
   timeline?: AssistantTimelineItem[];
   usage?: UsageSummary;

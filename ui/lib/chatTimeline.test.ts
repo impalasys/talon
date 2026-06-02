@@ -133,6 +133,22 @@ describe("live timeline helpers", () => {
     expect(getMessageAssistantTimeline(messages[0])).toEqual([]);
   });
 
+  it("handles non-array message parts without crashing", () => {
+    const message = {
+      id: "assistant-1",
+      role: "assistant",
+      content: "Legacy fallback",
+      parts: { type: "text", text: "not an array" },
+    };
+
+    expect(getMessageContent(message)).toBe("Legacy fallback");
+    expect(getMessageReasoningContent(message)).toBe("");
+    expect(getMessageUsage(message)).toBeNull();
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      { type: "text", text: "Legacy fallback" },
+    ]);
+  });
+
   it("can append reasoning, usage, and reconcile placeholder ids", () => {
     let messages: any[] = ensureAssistantMessage([], "temp-id");
     messages = appendAssistantText(messages, "temp-id", "Working ");

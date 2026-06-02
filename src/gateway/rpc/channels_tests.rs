@@ -250,6 +250,20 @@ mod tests {
             .expect_err("overlong channel name should fail");
         assert_eq!(invalid_long_channel.code(), tonic::Code::InvalidArgument);
 
+        let invalid_message_channel = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "../incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "sre".to_string(),
+                content: "hello".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect_err("message channel path traversal should fail");
+        assert_eq!(invalid_message_channel.code(), tonic::Code::InvalidArgument);
+
         let invalid_subscription = handler
             .handle_create_channel_subscription(tonic::Request::new(
                 proto::CreateChannelSubscriptionRequest {
