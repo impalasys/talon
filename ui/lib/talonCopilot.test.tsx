@@ -722,6 +722,78 @@ describe('TalonChannel', () => {
     expect(screen.queryByText('Initial channel message')).not.toBeInTheDocument();
   });
 
+  it('does not block channel refreshes when auth changes during an active refresh', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    let resolveInitialRefresh: (value: any) => void = () => {};
+    const initialRefresh = new Promise((resolve) => {
+      resolveInitialRefresh = resolve;
+    });
+
+    fetchMock
+      .mockImplementationOnce(() => initialRefresh as any)
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'authorized-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Authorized channel message',
+          },
+        ],
+      }));
+
+    const { rerender } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        authToken="old-token"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        authToken="new-token"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=100',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer new-token',
+        }),
+      }),
+    );
+
+    await act(async () => {
+      resolveInitialRefresh(makeJsonResponse({
+        messages: [
+          {
+            id: 'stale-auth-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Stale auth message',
+          },
+        ],
+      }));
+      await initialRefresh;
+    });
+
+    expect(await screen.findByText('Authorized channel message')).toBeInTheDocument();
+    expect(screen.queryByText('Stale auth message')).not.toBeInTheDocument();
+  });
+
   it('renders injected channel message actions', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();

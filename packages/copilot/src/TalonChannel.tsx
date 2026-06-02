@@ -208,6 +208,7 @@ export function useTalonChannelMessages({
   const [nextBeforeMessageId, setNextBeforeMessageId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const pendingRefreshRef = useRef(false);
+  const refreshRequestIdRef = useRef(0);
   const messagesRef = useRef<ChannelMessage[]>([]);
   const isLoadingOlderMessagesRef = useRef(false);
   const delayedRefreshTimeoutRef = useRef<number | null>(null);
@@ -224,6 +225,9 @@ export function useTalonChannelMessages({
 
   useEffect(() => {
     refreshConfigVersionRef.current += 1;
+    refreshRequestIdRef.current += 1;
+    pendingRefreshRef.current = false;
+    setIsLoading(false);
   }, [authToken, disabled, gatewayUrl, messageLimit]);
 
   const headers = useCallback(
@@ -253,6 +257,8 @@ export function useTalonChannelMessages({
       const requestNamespace = namespace;
       const requestChannelName = channelName;
       const requestConfigVersion = refreshConfigVersionRef.current;
+      const requestId = refreshRequestIdRef.current + 1;
+      refreshRequestIdRef.current = requestId;
       pendingRefreshRef.current = true;
       if (!options?.silent) {
         setIsLoading(true);
@@ -302,7 +308,8 @@ export function useTalonChannelMessages({
         if (
           requestNamespace === currentChannelRef.current.namespace &&
           requestChannelName === currentChannelRef.current.channelName &&
-          requestConfigVersion === refreshConfigVersionRef.current
+          requestConfigVersion === refreshConfigVersionRef.current &&
+          requestId === refreshRequestIdRef.current
         ) {
           pendingRefreshRef.current = false;
           if (!options?.silent) {
@@ -321,6 +328,7 @@ export function useTalonChannelMessages({
       previousChannel.namespace !== namespace ||
       previousChannel.channelName !== channelName;
     loadedChannelRef.current = { namespace, channelName };
+    refreshRequestIdRef.current += 1;
     pendingRefreshRef.current = false;
     if (channelChanged) {
       setMessages([]);
