@@ -110,8 +110,41 @@ export type TalonChannelProps = {
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
 };
 
+export type UseTalonChannelMessagesOptions = {
+  namespace: string;
+  channel: string | {
+    name?: string;
+    ns?: string;
+    title?: string;
+    status?: string;
+    metadata?: Record<string, string>;
+    labels?: Record<string, string>;
+  } | null | undefined;
+  gatewayUrl: string;
+  authToken?: string | null;
+  disabled?: boolean;
+  messageLimit?: number;
+  refreshIntervalMs?: number | false;
+};
+
+export type UseTalonChannelMessagesResult = {
+  channelName: string;
+  status: string;
+  messages: ChannelMessage[];
+  isLoading: boolean;
+  isLoadingOlderMessages: boolean;
+  hasMoreMessages: boolean;
+  error: string | null;
+  refresh: (options?: { silent?: boolean; replace?: boolean }) => Promise<void>;
+  loadOlderMessages: () => Promise<void>;
+  postMessage: (options: { author: string; authorKind: string; content: string }) => Promise<void>;
+};
+
 export function TalonCopilot(props: TalonCopilotProps): React.JSX.Element;
 export function TalonChannel(props: TalonChannelProps): React.JSX.Element;
+export function useTalonChannelMessages(
+  options: UseTalonChannelMessagesOptions,
+): UseTalonChannelMessagesResult;
 export function buildGatewayHeaders(
   authToken?: string | null,
 ): { Authorization: string } | undefined;

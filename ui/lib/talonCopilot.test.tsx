@@ -850,6 +850,32 @@ describe('TalonChannel', () => {
     expect(await screen.findByText('hello channel')).toBeInTheDocument();
   });
 
+  it('keeps the channel draft when posting fails', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'nope' }) } as any);
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    const input = await screen.findByPlaceholderText('Message #incident-room');
+    fireEvent.change(input, {
+      target: { value: 'retry me' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
+
+    expect(await screen.findByText('Post HTTP 500')).toBeInTheDocument();
+    expect(input).toHaveValue('retry me');
+  });
+
   it('clears delayed channel refresh when unmounted after posting', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();

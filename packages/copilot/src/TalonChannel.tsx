@@ -56,6 +56,29 @@ export type TalonChannelProps = {
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
 };
 
+export type UseTalonChannelMessagesOptions = {
+  namespace: string;
+  channel: string | ChannelLike | null | undefined;
+  gatewayUrl: string;
+  authToken?: string | null;
+  disabled?: boolean;
+  messageLimit?: number;
+  refreshIntervalMs?: number | false;
+};
+
+export type UseTalonChannelMessagesResult = {
+  channelName: string;
+  status: string;
+  messages: ChannelMessage[];
+  isLoading: boolean;
+  isLoadingOlderMessages: boolean;
+  hasMoreMessages: boolean;
+  error: string | null;
+  refresh: (options?: { silent?: boolean; replace?: boolean }) => Promise<void>;
+  loadOlderMessages: () => Promise<void>;
+  postMessage: (options: { author: string; authorKind: string; content: string }) => Promise<void>;
+};
+
 function coerceChannelName(channel: string | ChannelLike | null | undefined) {
   if (!channel) return "";
   return typeof channel === "string" ? channel : channel.name || "";
@@ -169,43 +192,30 @@ function mergeChannelMessages(existing: ChannelMessage[], incoming: ChannelMessa
   return Array.from(byKey.values()).sort(compareChannelMessages);
 }
 
-export function TalonChannel({
+export function useTalonChannelMessages({
   namespace,
   channel,
   gatewayUrl,
   authToken,
-  className,
-  style,
   disabled = false,
-  disableUserInput = false,
-  author = "sightline",
-  authorKind = "user",
   messageLimit = 100,
   refreshIntervalMs = 2000,
-  timestampLocale,
-  formatTimestamp,
-  renderMessageActions,
-}: TalonChannelProps) {
+}: UseTalonChannelMessagesOptions): UseTalonChannelMessagesResult {
   const [messages, setMessages] = useState<ChannelMessage[]>([]);
-  const [draft, setDraft] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isPosting, setIsPosting] = useState(false);
   const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [nextBeforeMessageId, setNextBeforeMessageId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const pendingRefreshRef = useRef(false);
   const messagesRef = useRef<ChannelMessage[]>([]);
   const isLoadingOlderMessagesRef = useRef(false);
-  const skipNextAutoScrollRef = useRef(false);
   const delayedRefreshTimeoutRef = useRef<number | null>(null);
   const loadedChannelRef = useRef<{ namespace: string; channelName: string } | null>(null);
   const refreshConfigVersionRef = useRef(0);
 
   const channelName = coerceChannelName(channel);
   const status = coerceChannelStatus(channel);
-  const isUserInputDisabled = disabled || disableUserInput || status === "closed";
   const currentChannelRef = useRef({ namespace, channelName });
 
   useEffect(() => {
@@ -224,11 +234,6 @@ export function TalonChannel({
     [authToken],
   );
 
-  const resolvedFormatTimestamp = useMemo(() => {
-    if (formatTimestamp) return formatTimestamp;
-    return (message: ChannelMessage) => defaultFormatTimestamp(message, timestampLocale);
-  }, [formatTimestamp, timestampLocale]);
-
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
@@ -241,27 +246,6 @@ export function TalonChannel({
       }
     };
   }, [namespace, channelName]);
-
-  const scrollMessagesToBottom = useCallback((behavior: ScrollBehavior) => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    if (typeof container.scrollTo === "function") {
-      container.scrollTo({ top: container.scrollHeight, behavior });
-      return;
-    }
-    container.scrollTop = container.scrollHeight;
-  }, []);
-
-  useEffect(() => {
-    if (skipNextAutoScrollRef.current) {
-      skipNextAutoScrollRef.current = false;
-      return;
-    }
-    const rafId = window.requestAnimationFrame(() => {
-      scrollMessagesToBottom("auto");
-    });
-    return () => window.cancelAnimationFrame(rafId);
-  }, [messages, isLoading, error, scrollMessagesToBottom]);
 
   const refresh = useCallback(
     async (options?: { silent?: boolean; replace?: boolean }) => {
@@ -347,7 +331,6 @@ export function TalonChannel({
       setIsLoadingOlderMessages(false);
       setError(null);
       isLoadingOlderMessagesRef.current = false;
-      skipNextAutoScrollRef.current = false;
     }
     void refresh({ replace: true, silent: !channelChanged });
   }, [namespace, channelName, refresh]);
@@ -382,18 +365,9 @@ export function TalonChannel({
         return;
       }
       const page = normalizeChannelPage(responseJson);
-      skipNextAutoScrollRef.current = true;
-      const container = scrollContainerRef.current;
-      const previousScrollHeight = container?.scrollHeight ?? 0;
-      const previousScrollTop = container?.scrollTop ?? 0;
       setMessages((existing) => mergeChannelMessages(existing, page.messages));
       setHasMoreMessages(page.hasMore);
       setNextBeforeMessageId(page.nextBeforeMessageId);
-      window.requestAnimationFrame(() => {
-        const nextContainer = scrollContainerRef.current;
-        if (!nextContainer) return;
-        nextContainer.scrollTop = nextContainer.scrollHeight - previousScrollHeight + previousScrollTop;
-      });
     } catch (err: any) {
       if (
         requestNamespace === currentChannelRef.current.namespace &&
@@ -412,19 +386,10 @@ export function TalonChannel({
     }
   }, [channelName, disabled, gatewayUrl, hasMoreMessages, headers, messageLimit, namespace, nextBeforeMessageId]);
 
-  const handleMessageScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
-    if (!hasMoreMessages || isLoadingOlderMessagesRef.current || !nextBeforeMessageId) return;
-    if (event.currentTarget.scrollTop <= CHANNEL_SCROLL_LOAD_THRESHOLD_PX) {
-      void loadOlderMessages();
-    }
-  }, [hasMoreMessages, loadOlderMessages, nextBeforeMessageId]);
-
   const postMessage = useCallback(
-    async (event: React.FormEvent) => {
-      event.preventDefault();
-      const content = draft.trim();
-      if (!content || !namespace || !channelName || isUserInputDisabled) return;
-      setIsPosting(true);
+    async ({ author, authorKind, content }: { author: string; authorKind: string; content: string }) => {
+      const trimmedContent = content.trim();
+      if (!trimmedContent || !namespace || !channelName || disabled || status === "closed") return;
       setError(null);
       try {
         const response = await fetch(
@@ -437,12 +402,11 @@ export function TalonChannel({
               channel: channelName,
               authorKind,
               author,
-              content,
+              content: trimmedContent,
             }),
           },
         );
         if (!response.ok) throw new Error(`Post HTTP ${response.status}`);
-        setDraft("");
         await refresh();
         if (delayedRefreshTimeoutRef.current !== null) {
           window.clearTimeout(delayedRefreshTimeoutRef.current);
@@ -453,14 +417,126 @@ export function TalonChannel({
         }, 1000);
       } catch (err: any) {
         setError(err?.message || "Failed to post channel message");
-      } finally {
-        setIsPosting(false);
+        throw err;
       }
     },
-    [author, authorKind, channelName, draft, gatewayUrl, headers, isUserInputDisabled, namespace, refresh],
+    [channelName, disabled, gatewayUrl, headers, namespace, refresh, status],
   );
 
+  return {
+    channelName,
+    status,
+    messages,
+    isLoading,
+    isLoadingOlderMessages,
+    hasMoreMessages,
+    error,
+    refresh,
+    loadOlderMessages,
+    postMessage,
+  };
+}
+
+export function TalonChannel({
+  namespace,
+  channel,
+  gatewayUrl,
+  authToken,
+  className,
+  style,
+  disabled = false,
+  disableUserInput = false,
+  author = "sightline",
+  authorKind = "user",
+  messageLimit = 100,
+  refreshIntervalMs = 2000,
+  timestampLocale,
+  formatTimestamp,
+  renderMessageActions,
+}: TalonChannelProps) {
+  const [draft, setDraft] = useState("");
+  const [isPosting, setIsPosting] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const skipNextAutoScrollRef = useRef(false);
+  const {
+    channelName,
+    status,
+    messages,
+    isLoading,
+    isLoadingOlderMessages,
+    hasMoreMessages,
+    error,
+    loadOlderMessages,
+    postMessage,
+  } = useTalonChannelMessages({
+    namespace,
+    channel,
+    gatewayUrl,
+    authToken,
+    disabled,
+    messageLimit,
+    refreshIntervalMs,
+  });
+  const isUserInputDisabled = disabled || disableUserInput || status === "closed";
+
+  const resolvedFormatTimestamp = useMemo(() => {
+    if (formatTimestamp) return formatTimestamp;
+    return (message: ChannelMessage) => defaultFormatTimestamp(message, timestampLocale);
+  }, [formatTimestamp, timestampLocale]);
+
+  const scrollMessagesToBottom = useCallback((behavior: ScrollBehavior) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    if (typeof container.scrollTo === "function") {
+      container.scrollTo({ top: container.scrollHeight, behavior });
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
+  }, []);
+
   const canPost = Boolean(draft.trim()) && !isPosting && !isUserInputDisabled;
+
+  useEffect(() => {
+    if (skipNextAutoScrollRef.current) {
+      skipNextAutoScrollRef.current = false;
+      return;
+    }
+    const rafId = window.requestAnimationFrame(() => {
+      scrollMessagesToBottom("auto");
+    });
+    return () => window.cancelAnimationFrame(rafId);
+  }, [messages, isLoading, error, scrollMessagesToBottom]);
+
+  const handleMessageScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    if (!hasMoreMessages || isLoadingOlderMessages) return;
+    if (event.currentTarget.scrollTop > CHANNEL_SCROLL_LOAD_THRESHOLD_PX) return;
+    const container = event.currentTarget;
+    const previousScrollHeight = container.scrollHeight;
+    const previousScrollTop = container.scrollTop;
+    skipNextAutoScrollRef.current = true;
+    void loadOlderMessages().then(() => {
+      window.requestAnimationFrame(() => {
+        const nextContainer = scrollContainerRef.current;
+        if (!nextContainer) return;
+        nextContainer.scrollTop = nextContainer.scrollHeight - previousScrollHeight + previousScrollTop;
+      });
+    });
+  }, [hasMoreMessages, isLoadingOlderMessages, loadOlderMessages]);
+
+  const handleSubmit = useCallback(async (event: React.FormEvent) => {
+    event.preventDefault();
+    const content = draft.trim();
+    if (!content || isUserInputDisabled) return;
+    setIsPosting(true);
+    try {
+      await postMessage({ author, authorKind, content });
+      setDraft("");
+    } catch {
+      // The hook owns the visible error state; keep the draft so the operator can retry.
+    } finally {
+      setIsPosting(false);
+    }
+  }, [author, authorKind, draft, isUserInputDisabled, postMessage]);
 
   return (
     <div
@@ -519,7 +595,7 @@ export function TalonChannel({
         </div>
 
         {disableUserInput ? null : (
-          <form onSubmit={postMessage} style={{ display: "flex", alignItems: "flex-end", gap: 8, borderTop: border("rgba(148,163,184,0.2)"), background: "rgba(255,255,255,0.72)", padding: "0.75rem" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", alignItems: "flex-end", gap: 8, borderTop: border("rgba(148,163,184,0.2)"), background: "rgba(255,255,255,0.72)", padding: "0.75rem" }}>
             <textarea
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
