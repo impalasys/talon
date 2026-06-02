@@ -947,7 +947,15 @@ export function NamespaceExplorer({
         return;
       }
       const channelMap = Object.fromEntries(channelEntries);
-      setChannelsByNamespace(prev => ({ ...prev, ...channelMap }));
+      setChannelsByNamespace(prev => {
+        const next = { ...prev };
+        for (const ns of Object.keys(next)) {
+          if (!namespaces.has(ns)) {
+            delete next[ns];
+          }
+        }
+        return { ...next, ...channelMap };
+      });
 
       const expandedChannels = Object.entries(channelMap).flatMap(([ns, channels]) =>
         (channels as ExplorerChannel[])
