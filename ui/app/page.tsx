@@ -869,6 +869,7 @@ function DebuggerPageContent() {
       return;
     }
 
+    const selection = selectedNamespace;
     let cancelled = false;
     const fetchResource = async () => {
       setResourceLoading(true);
@@ -877,33 +878,33 @@ function DebuggerPageContent() {
       const headers = buildGatewayHeaders(authToken);
       let path = '';
 
-      switch (selectedNamespace.type) {
+      switch (selection.type) {
         case 'namespace':
-          path = `/v1/namespaces/${encodeURIComponent(selectedNamespace.ns)}`;
+          path = `/v1/namespaces/${encodeURIComponent(selection.ns)}`;
           break;
         case 'agent':
-          path = `/v1/ns/${encodeURIComponent(selectedNamespace.ns)}/agents/${encodeURIComponent(selectedNamespace.agent || '')}`;
+          path = `/v1/ns/${encodeURIComponent(selection.ns)}/agents/${encodeURIComponent(selection.agent || '')}`;
           break;
         case 'channel':
-          path = `/v1/ns/${encodeURIComponent(selectedNamespace.ns)}/channels/${encodeURIComponent(selectedNamespace.resourceName || selectedNamespace.channel || '')}`;
+          path = `/v1/ns/${encodeURIComponent(selection.ns)}/channels/${encodeURIComponent(selection.resourceName || selection.channel || '')}`;
           break;
         case 'channel-subscription':
-          path = `/v1/ns/${encodeURIComponent(selectedNamespace.ns)}/channels/${encodeURIComponent(selectedNamespace.channel || '')}/subscriptions/${encodeURIComponent(selectedNamespace.resourceName || '')}`;
+          path = `/v1/ns/${encodeURIComponent(selection.ns)}/channels/${encodeURIComponent(selection.channel || '')}/subscriptions/${encodeURIComponent(selection.resourceName || '')}`;
           break;
         case 'schedule':
-          path = `/v1/ns/${encodeURIComponent(selectedNamespace.ns)}/schedules/${encodeURIComponent(selectedNamespace.resourceName || '')}`;
+          path = `/v1/ns/${encodeURIComponent(selection.ns)}/schedules/${encodeURIComponent(selection.resourceName || '')}`;
           break;
         case 'template':
-          path = `/v1/templates/${encodeURIComponent(selectedNamespace.resourceName || '')}`;
+          path = `/v1/templates/${encodeURIComponent(selection.resourceName || '')}`;
           break;
         case 'mcp-server':
-          path = `/v1/mcp-servers/${encodeURIComponent(selectedNamespace.resourceName || '')}`;
+          path = `/v1/mcp-servers/${encodeURIComponent(selection.resourceName || '')}`;
           break;
         case 'mcp-binding':
-          path = `/v1/namespaces/${encodeURIComponent(selectedNamespace.ns)}/mcp-bindings/${encodeURIComponent(selectedNamespace.resourceName || '')}`;
+          path = `/v1/namespaces/${encodeURIComponent(selection.ns)}/mcp-bindings/${encodeURIComponent(selection.resourceName || '')}`;
           break;
         case 'knowledge':
-          path = `/v1/namespaces/${encodeURIComponent(selectedNamespace.ns)}/knowledge/${encodeURIComponent(selectedNamespace.resourceName || '')}`;
+          path = `/v1/namespaces/${encodeURIComponent(selection.ns)}/knowledge/${encodeURIComponent(selection.resourceName || '')}`;
           break;
       }
 
@@ -914,19 +915,19 @@ function DebuggerPageContent() {
         }
         const payload = await response.json();
         const document =
-          selectedNamespace.type === 'agent'
+          selection.type === 'agent'
             ? payload.agent
-            : selectedNamespace.type === 'channel'
+            : selection.type === 'channel'
               ? payload.channel
-            : selectedNamespace.type === 'channel-subscription'
+            : selection.type === 'channel-subscription'
               ? payload.subscription
-            : selectedNamespace.type === 'schedule'
+            : selection.type === 'schedule'
               ? payload.schedule
-            : selectedNamespace.type === 'template'
+            : selection.type === 'template'
               ? payload.template
-              : selectedNamespace.type === 'mcp-server'
+              : selection.type === 'mcp-server'
                 ? payload.server
-                : selectedNamespace.type === 'mcp-binding'
+                : selection.type === 'mcp-binding'
                   ? payload.binding
                 : payload;
 

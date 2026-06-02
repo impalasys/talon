@@ -277,11 +277,10 @@ function timelineFromParts(message: any): AssistantTimelineItem[] {
 
 export function getMessageContent(message: any): string {
   if (Array.isArray(message?.parts)) {
-    const content = message.parts
+    return message.parts
       .filter((part: any) => isTextPart(part) || isErrorPart(part))
       .map(partContent)
       .join('');
-    if (content) return content;
   }
   return typeof message?.content === 'string' ? message.content : '';
 }

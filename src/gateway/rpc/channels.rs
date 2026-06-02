@@ -36,19 +36,13 @@ async fn delete_descendant_list(
     kv: &dyn KeyValueStore,
     list: &keys::ResourceList,
 ) -> anyhow::Result<()> {
-    let mut before_name: Option<String> = None;
     loop {
         let children = kv
-            .list_keys_page(
-                list,
-                before_name.as_deref(),
-                CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE,
-            )
+            .list_keys_page(list, None, CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE)
             .await?;
         if children.is_empty() {
             break;
         }
-        before_name = children.last().map(|child| child.name.clone());
         let child_count = children.len();
         stream::iter(children)
             .map(|child| async move { kv.delete(&child).await })
@@ -509,16 +503,16 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::DeleteChannelResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        delete_descendants(self.gateway.kv.as_ref(), &req.ns, &req.name)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("failed to delete channel descendants: {e}"))
-            })?;
         self.gateway
             .kv
             .delete(&keys::channel(&req.ns, &req.name))
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to delete channel: {e}")))?;
+        delete_descendants(self.gateway.kv.as_ref(), &req.ns, &req.name)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("failed to delete channel descendants: {e}"))
+            })?;
         Ok(tonic::Response::new(proto::DeleteChannelResponse {
             success: true,
         }))
