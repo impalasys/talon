@@ -575,7 +575,7 @@ export function TalonChannel({
                 const messageAuthorKind = message.authorKind || message.author_kind || "user";
                 const messageActions = renderMessageActions?.(message);
                 return (
-                  <div key={channelMessageKey(message, index)} style={{ borderRadius: 12, border: border("rgba(148,163,184,0.24)"), background: "rgba(255,255,255,0.72)", padding: "1rem" }}>
+                  <div key={channelMessageKey(message, index)} style={{ borderRadius: 12, border: border("rgba(148,163,184,0.24)"), background: "var(--copilot-channel-message-bg, rgba(255,255,255,0.72))", color: "var(--copilot-channel-message-fg, inherit)", padding: "1rem" }}>
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, fontSize: 12, opacity: 0.72 }}>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, color: "inherit", opacity: 1 }}>
                         <Hash size="13" />
@@ -595,7 +595,7 @@ export function TalonChannel({
         </div>
 
         {disableUserInput ? null : (
-          <form onSubmit={handleSubmit} style={{ display: "flex", alignItems: "flex-end", gap: 8, borderTop: border("rgba(148,163,184,0.2)"), background: "rgba(255,255,255,0.72)", padding: "0.75rem" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", alignItems: "flex-end", gap: 8, borderTop: border("rgba(148,163,184,0.2)"), background: "var(--copilot-channel-input-bg, rgba(255,255,255,0.72))", padding: "0.75rem" }}>
             <textarea
               value={draft}
               onChange={(event) => setDraft(event.target.value)}

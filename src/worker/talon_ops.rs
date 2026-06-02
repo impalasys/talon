@@ -13,6 +13,7 @@ use axum::{
 use chrono::Utc;
 use futures::{stream, StreamExt};
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use prost::Message;
 use rmcp::{
     handler::server::{router::tool::ToolRouter, wrapper::Parameters},
     model::{ServerCapabilities, ServerInfo},
@@ -255,25 +256,22 @@ impl TalonOpsServer {
         if limit == 0 {
             return Ok((Vec::new(), false, None));
         }
-        let mut keys = self
+        let mut entries = self
             .kv()
-            .list_keys(&keys::channel_message_prefix(namespace, channel))
+            .list_entries_page(
+                &keys::channel_message_prefix(namespace, channel),
+                before_message_id.filter(|value| !value.is_empty()),
+                limit.saturating_add(1),
+            )
             .await?;
-        keys.sort_by(|left, right| right.name.cmp(&left.name));
-        if let Some(before_message_id) = before_message_id.filter(|value| !value.is_empty()) {
-            keys.retain(|key| key.name.as_str() < before_message_id);
-        }
-        keys.truncate(limit.saturating_add(1));
-        let has_more = keys.len() > limit;
+        let has_more = entries.len() > limit;
         if has_more {
-            keys.truncate(limit);
+            entries.truncate(limit);
         }
 
-        let mut messages = Vec::with_capacity(keys.len());
-        for key in keys {
-            if let Some(message) = self.kv().get_msg::<models::ChannelMessage>(&key).await? {
-                messages.push(message);
-            }
+        let mut messages = Vec::with_capacity(entries.len());
+        for (_, value) in entries {
+            messages.push(models::ChannelMessage::decode(value.as_slice())?);
         }
         messages.reverse();
         let next_before_message_id = if has_more {
@@ -1623,6 +1621,19 @@ mod tests {
                 .filter(|key| list.matches(key))
                 .cloned()
                 .collect())
+        }
+
+        async fn list_entries_page(
+            &self,
+            list: &ResourceList,
+            before_name: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<(ResourceKey, Vec<u8>)>> {
+            Ok(crate::control::page_entries_desc(
+                self.list_entries(list).await?,
+                before_name,
+                limit,
+            ))
         }
     }
 

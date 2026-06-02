@@ -543,6 +543,8 @@ export function NamespaceExplorer({
   const refreshChannelsInFlightRef = useRef(false);
   const refreshChannelsDebounceRef = useRef<number | null>(null);
   const refreshChannelsQueuedRef = useRef(false);
+  const refreshChannelsAbortRef = useRef<AbortController | null>(null);
+  const refreshChannelsConfigVersionRef = useRef(0);
 
   useEffect(() => {
     expandedRef.current = expanded;
@@ -551,6 +553,21 @@ export function NamespaceExplorer({
   useEffect(() => {
     selectedNodeRef.current = selectedNode;
   }, [selectedNode]);
+
+  useEffect(() => {
+    refreshChannelsConfigVersionRef.current += 1;
+    refreshChannelsAbortRef.current?.abort();
+  }, [gatewayUrl, isConnected]);
+
+  useEffect(() => {
+    return () => {
+      refreshChannelsAbortRef.current?.abort();
+      if (refreshChannelsDebounceRef.current !== null) {
+        window.clearTimeout(refreshChannelsDebounceRef.current);
+        refreshChannelsDebounceRef.current = null;
+      }
+    };
+  }, []);
 
   const refreshData = useCallback(async () => {
     if (!isConnected) return;
@@ -884,6 +901,7 @@ export function NamespaceExplorer({
 
   const refreshChannels = useCallback(async () => {
     if (!isConnected) {
+      refreshChannelsAbortRef.current?.abort();
       setChannelsByNamespace({});
       setChannelSubscriptionsByKey({});
       refreshChannelsQueuedRef.current = false;
@@ -896,6 +914,10 @@ export function NamespaceExplorer({
 
     refreshChannelsInFlightRef.current = true;
     refreshChannelsQueuedRef.current = false;
+    const requestVersion = refreshChannelsConfigVersionRef.current;
+    const abortController = new AbortController();
+    refreshChannelsAbortRef.current?.abort();
+    refreshChannelsAbortRef.current = abortController;
     try {
       const currentExpanded = expandedRef.current;
       const namespaces = collectExpandedNamespaceIds(currentExpanded, selectedNodeRef.current);
@@ -907,16 +929,23 @@ export function NamespaceExplorer({
       const channelEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const response = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels`, { headers });
+            const response = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels`, {
+              headers,
+              signal: abortController.signal,
+            });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
             return [ns, payload.channels || []] as const;
           } catch (e) {
+            if (abortController.signal.aborted) throw e;
             console.warn(`Could not fetch channels for ns ${ns}`, e);
             return [ns, []] as const;
           }
         }),
       );
+      if (abortController.signal.aborted || requestVersion !== refreshChannelsConfigVersionRef.current) {
+        return;
+      }
       const channelMap = Object.fromEntries(channelEntries);
       setChannelsByNamespace(prev => ({ ...prev, ...channelMap }));
 
@@ -931,23 +960,33 @@ export function NamespaceExplorer({
           try {
             const response = await fetch(
               `${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels/${encodeURIComponent(name)}/subscriptions`,
-              { headers },
+              { headers, signal: abortController.signal },
             );
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
             return [`${ns}/${name}`, payload.subscriptions || []] as const;
           } catch (e) {
+            if (abortController.signal.aborted) throw e;
             console.warn(`Could not fetch channel subscriptions for ${ns}/${name}`, e);
             return [`${ns}/${name}`, []] as const;
           }
         }),
       );
+      if (abortController.signal.aborted || requestVersion !== refreshChannelsConfigVersionRef.current) {
+        return;
+      }
       setChannelSubscriptionsByKey(prev => ({ ...prev, ...Object.fromEntries(subscriptionEntries) }));
     } catch (e) {
+      if (abortController.signal.aborted || requestVersion !== refreshChannelsConfigVersionRef.current) {
+        return;
+      }
       console.warn('Could not list namespaces for channels', e);
       setChannelsByNamespace({});
       setChannelSubscriptionsByKey({});
     } finally {
+      if (refreshChannelsAbortRef.current === abortController) {
+        refreshChannelsAbortRef.current = null;
+      }
       refreshChannelsInFlightRef.current = false;
       if (refreshChannelsQueuedRef.current) {
         void refreshChannels();
