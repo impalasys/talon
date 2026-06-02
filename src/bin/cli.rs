@@ -65,7 +65,7 @@ struct AuthInterceptor {
 struct CliClaims {
     sub: String,
     aud: String,
-    exp: usize,
+    exp: u64,
     #[serde(rename = "talon:ns", skip_serializing_if = "Option::is_none")]
     ns: Option<String>,
     #[serde(rename = "talon:channel", skip_serializing_if = "Option::is_none")]
@@ -117,10 +117,10 @@ fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
 }
 
 fn mint_gateway_jwt(secret: &str) -> Result<String> {
-    let exp = (std::time::SystemTime::now()
+    let exp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs()
-        + 3600) as usize;
+        + 3600;
     let claims = CliClaims {
         sub: "talon-cli".to_string(),
         aud: "talon".to_string(),
@@ -158,10 +158,10 @@ fn mint_channel_jwt(
     if ttl_seconds == 0 {
         anyhow::bail!("ttl-seconds must be greater than zero");
     }
-    let exp = (std::time::SystemTime::now()
+    let exp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs()
-        + ttl_seconds) as usize;
+        + ttl_seconds;
     let claims = CliClaims {
         sub: subject.to_string(),
         aud: "talon".to_string(),

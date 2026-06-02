@@ -837,6 +837,25 @@ mod tests {
             .into_inner();
         assert!(self_response.routed_sessions.is_empty());
 
+        let user_name_collision_response = handler
+            .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
+                ns: "acme".to_string(),
+                channel: "incident-1".to_string(),
+                author_kind: "user".to_string(),
+                author: "analyst".to_string(),
+                content: "operator update".to_string(),
+                subscription_names: Vec::new(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .expect("post should succeed")
+            .into_inner();
+        assert_eq!(user_name_collision_response.routed_sessions.len(), 1);
+        assert_eq!(
+            user_name_collision_response.routed_sessions[0].subscription,
+            "primary"
+        );
+
         let other_agent_response = handler
             .handle_post_channel_message(tonic::Request::new(proto::PostChannelMessageRequest {
                 ns: "acme".to_string(),

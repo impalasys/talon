@@ -975,7 +975,7 @@ export function NamespaceExplorer({
       if (abortController.signal.aborted || requestVersion !== refreshChannelsConfigVersionRef.current) {
         return;
       }
-      setChannelSubscriptionsByKey(prev => ({ ...prev, ...Object.fromEntries(subscriptionEntries) }));
+      setChannelSubscriptionsByKey(Object.fromEntries(subscriptionEntries));
     } catch (e) {
       if (abortController.signal.aborted || requestVersion !== refreshChannelsConfigVersionRef.current) {
         return;

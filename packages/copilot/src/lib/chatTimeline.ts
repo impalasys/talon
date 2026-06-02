@@ -67,7 +67,7 @@ function parseJsonObject(payloadJson: unknown): Record<string, unknown> {
   }
 }
 
-function parsePartPayload(part: Record<string, unknown> | undefined): Record<string, unknown> {
+function parsePartPayload(part: any): Record<string, unknown> {
   if (!part || typeof part !== "object") return {};
   const payload = part.payloadJson ?? part.payload_json;
   if (!payload) return {};
@@ -75,11 +75,11 @@ function parsePartPayload(part: Record<string, unknown> | undefined): Record<str
   return parseObjectPayload(payload);
 }
 
-function partType(part: Record<string, unknown> | undefined): unknown {
+function partType(part: any): unknown {
   return part?.partType ?? part?.part_type ?? part?.type;
 }
 
-function partContent(part: Record<string, unknown> | undefined): string {
+function partContent(part: any): string {
   if (typeof part?.text === "string") return part.text;
   if (typeof part?.content === "string") return part.content;
   return "";

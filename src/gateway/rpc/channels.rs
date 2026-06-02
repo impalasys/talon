@@ -985,11 +985,12 @@ async fn matching_subscriptions(
                 continue;
             }
         };
+        let is_self = message.author_kind == "agent" && message.author == subscription.agent;
         let should_route = match trigger.as_str() {
             "manual" => manual.contains(subscription.name.as_str()),
-            "all" => message.author != subscription.agent,
+            "all" => !is_self,
             "mention" => {
-                message.author != subscription.agent
+                !is_self
                     && (contains_mention(&message.content, &subscription.agent)
                         || contains_mention(&message.content, &subscription.name))
             }
