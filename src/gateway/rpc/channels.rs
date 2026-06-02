@@ -141,14 +141,8 @@ fn contains_mention(content: &str, target: &str) -> bool {
     while let Some(match_offset) = content[offset..].find(&needle) {
         let start = offset + match_offset;
         let end = start + needle.len();
-        let start_ok = if start == 0 {
-            true
-        } else {
-            content[..start]
-                .chars()
-                .next_back()
-                .map_or(true, mention_boundary)
-        };
+        let previous = content[..start].chars().next_back();
+        let start_ok = previous.map_or(true, |ch| ch != '@' && mention_boundary(ch));
         let end_ok = content[end..].chars().next().map_or(true, mention_boundary);
         if start_ok && end_ok {
             return true;

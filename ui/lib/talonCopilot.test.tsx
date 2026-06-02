@@ -522,6 +522,7 @@ describe('TalonCopilot', () => {
 
 describe('TalonChannel', () => {
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -870,6 +871,78 @@ describe('TalonChannel', () => {
       configurable: true,
       value: originalScrollTo,
     });
+  });
+
+  it('does not auto-scroll channel messages while reading older history', async () => {
+    jest.useFakeTimers();
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+
+    const scrollTo = jest.fn();
+    const originalScrollTo = HTMLElement.prototype.scrollTo;
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    });
+
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-message-1',
+            authorKind: 'agent',
+            author: 'triage-agent',
+            content: 'First channel message',
+          },
+        ],
+      }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-message-2',
+            authorKind: 'agent',
+            author: 'triage-agent',
+            content: 'Background channel message',
+          },
+        ],
+      }));
+
+    const { container } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={750}
+      />,
+    );
+
+    expect(await screen.findByText('First channel message')).toBeInTheDocument();
+    await waitFor(() => expect(scrollTo).toHaveBeenCalled());
+    await act(async () => {
+      jest.advanceTimersByTime(32);
+      await Promise.resolve();
+    });
+    scrollTo.mockClear();
+
+    const scrollContainer = container.querySelector('div[aria-label="Channel messages"]') as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, value: 0, writable: true });
+    Object.defineProperty(scrollContainer, 'scrollHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(scrollContainer, 'clientHeight', { configurable: true, value: 200 });
+    fireEvent.scroll(scrollContainer);
+
+    await act(async () => {
+      jest.advanceTimersByTime(750);
+      await Promise.resolve();
+    });
+
+    expect(await screen.findByText('Background channel message')).toBeInTheDocument();
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: originalScrollTo,
+    });
+    jest.useRealTimers();
   });
 
   it('posts a channel message through the gateway', async () => {

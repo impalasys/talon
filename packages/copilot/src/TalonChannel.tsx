@@ -12,6 +12,7 @@ function border(color: string) {
 const activeControlBackground = "var(--copilot-control-bg, var(--foreground, #020617))";
 const activeControlColor = "var(--copilot-control-fg, var(--background, #ffffff))";
 const CHANNEL_SCROLL_LOAD_THRESHOLD_PX = 64;
+const CHANNEL_SCROLL_BOTTOM_THRESHOLD_PX = 96;
 
 type ChannelLike = {
   name?: string;
@@ -183,6 +184,10 @@ function compareChannelMessages(left: ChannelMessage, right: ChannelMessage) {
     return left.id < right.id ? -1 : 1;
   }
   return 0;
+}
+
+function isNearScrollBottom(container: HTMLElement) {
+  return container.scrollHeight - container.scrollTop - container.clientHeight <= CHANNEL_SCROLL_BOTTOM_THRESHOLD_PX;
 }
 
 function mergeChannelMessages(existing: ChannelMessage[], incoming: ChannelMessage[]) {
@@ -466,6 +471,7 @@ export function TalonChannel({
   const [isPosting, setIsPosting] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const skipNextAutoScrollRef = useRef(false);
+  const isNearBottomRef = useRef(true);
   const {
     channelName,
     status,
@@ -505,17 +511,24 @@ export function TalonChannel({
   const canPost = Boolean(draft.trim()) && !isPosting && !isUserInputDisabled;
 
   useEffect(() => {
+    isNearBottomRef.current = true;
+  }, [namespace, channelName]);
+
+  useEffect(() => {
     if (skipNextAutoScrollRef.current) {
       skipNextAutoScrollRef.current = false;
       return;
     }
+    if (messages.length > 0 && !isNearBottomRef.current) return;
     const rafId = window.requestAnimationFrame(() => {
       scrollMessagesToBottom("auto");
+      isNearBottomRef.current = true;
     });
     return () => window.cancelAnimationFrame(rafId);
-  }, [messages, isLoading, error, scrollMessagesToBottom]);
+  }, [messages, scrollMessagesToBottom]);
 
   const handleMessageScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    isNearBottomRef.current = isNearScrollBottom(event.currentTarget);
     if (!hasMoreMessages || isLoadingOlderMessages) return;
     if (event.currentTarget.scrollTop > CHANNEL_SCROLL_LOAD_THRESHOLD_PX) return;
     const container = event.currentTarget;
@@ -571,7 +584,7 @@ export function TalonChannel({
           {isLoading ? <div style={{ marginBottom: 12, fontSize: 12, opacity: 0.68 }}>Loading channel...</div> : null}
           {isLoadingOlderMessages ? <div style={{ marginBottom: 12, fontSize: 12, opacity: 0.68 }}>Loading older messages...</div> : null}
           {error ? (
-            <div style={{ marginBottom: 12, borderRadius: 10, border: border("rgba(252,165,165,0.6)"), background: "rgba(254,242,242,0.82)", color: "rgb(185,28,28)", padding: 12, fontSize: 13 }}>
+            <div style={{ marginBottom: 12, borderRadius: 10, border: border("var(--copilot-channel-error-border, rgba(248,113,113,0.5))"), background: "var(--copilot-channel-error-bg, rgba(248,113,113,0.12))", color: "var(--copilot-channel-error-fg, inherit)", padding: 12, fontSize: 13 }}>
               {error}
             </div>
           ) : null}
