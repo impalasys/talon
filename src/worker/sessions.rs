@@ -3,6 +3,7 @@
 
 use anyhow::Result;
 use futures::FutureExt;
+use prost::Message;
 use std::panic::AssertUnwindSafe;
 
 use super::runtime::AgentRuntime;
@@ -14,6 +15,8 @@ use crate::core::executor::ExecutionSink;
 use crate::gateway::rpc::models;
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
+
+const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
 
 async fn execute_with_panic_boundary<F>(
     future: F,
@@ -225,29 +228,63 @@ impl WorkerEventHandler {
 
     async fn release_session_lock(&self, ns: &str, agent_id: &str, session_id: &str) {
         let key = crate::control::keys::session(ns, agent_id, session_id);
-        if let Ok(Some(mut session)) = self.cp.kv.get_msg::<models::Session>(&key).await {
+        let mut released_session = None;
+        let mut last_error = None;
+        for _ in 0..MAX_SESSION_RELEASE_CAS_RETRIES {
+            let current = match self.cp.kv.get(&key).await {
+                Ok(Some(current)) => current,
+                Ok(None) => return,
+                Err(err) => {
+                    last_error = Some(err.to_string());
+                    break;
+                }
+            };
+            let mut session = match models::Session::decode(current.as_slice()) {
+                Ok(session) => session,
+                Err(err) => {
+                    last_error = Some(err.to_string());
+                    break;
+                }
+            };
             session.status = "IDLE".to_string();
-            if let Err(err) = self.cp.kv.set_msg(&key, &session).await {
-                tracing::error!(
-                    namespace = %ns,
-                    agent = %agent_id,
-                    session = %session_id,
-                    error = %err,
-                    "failed to release session lock"
-                );
-                return;
-            }
-            if let Err(err) =
-                crate::workflows::dispatch_workflow_from_session_labels(&self.cp, &session).await
+            let updated = session.encode_to_vec();
+            match self
+                .cp
+                .kv
+                .compare_and_swap(&key, Some(current.as_slice()), &updated)
+                .await
             {
-                tracing::warn!(
-                    namespace = %ns,
-                    agent = %agent_id,
-                    session = %session_id,
-                    error = %err,
-                    "failed to dispatch workflow from completed child session"
-                );
+                Ok(true) => {
+                    released_session = Some(session);
+                    break;
+                }
+                Ok(false) => continue,
+                Err(err) => {
+                    last_error = Some(err.to_string());
+                    break;
+                }
             }
+        }
+        let Some(session) = released_session else {
+            tracing::error!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                error = last_error.as_deref().unwrap_or("compare-and-swap conflict"),
+                "failed to release session lock atomically"
+            );
+            return;
+        };
+        if let Err(err) =
+            crate::workflows::dispatch_workflow_from_session_labels(&self.cp, &session).await
+        {
+            tracing::warn!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                error = %err,
+                "failed to dispatch workflow from completed child session"
+            );
         }
     }
 }

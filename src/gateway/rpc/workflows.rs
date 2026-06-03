@@ -21,21 +21,16 @@ impl GrpcGatewayHandler {
         workflows::validate_workflow(&workflow)
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         let key = keys::workflow(&req.ns, &workflow.name);
-        if self
+        let payload = workflow.encode_to_vec();
+        let created = self
             .gateway
             .kv
-            .get_msg::<models::Workflow>(&key)
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?
-            .is_some()
-        {
-            return Err(tonic::Status::already_exists("workflow already exists"));
-        }
-        self.gateway
-            .kv
-            .set_msg(&key, &workflow)
+            .compare_and_swap(&key, None, &payload)
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?;
+        if !created {
+            return Err(tonic::Status::already_exists("workflow already exists"));
+        }
         Ok(tonic::Response::new(proto::WorkflowResponse {
             workflow: Some(workflow),
         }))

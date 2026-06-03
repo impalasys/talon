@@ -1505,18 +1505,23 @@ async fn rest_stream_workflow_events(
     }
 
     let mut stream = response.bytes_stream();
-    let mut buffer = String::new();
+    let mut buffer = Vec::new();
     while let Some(chunk) = stream.next().await {
         let chunk = chunk.with_context(|| format!("Failed to read REST stream from {}", url))?;
-        buffer.push_str(&String::from_utf8_lossy(&chunk));
-        while let Some(newline) = buffer.find('\n') {
-            let line = buffer[..newline].trim_end_matches('\r').to_string();
+        buffer.extend_from_slice(&chunk);
+        while let Some(newline) = buffer.iter().position(|byte| *byte == b'\n') {
+            let line = String::from_utf8_lossy(&buffer[..newline])
+                .trim_end_matches('\r')
+                .to_string();
             buffer.drain(..=newline);
             print_stream_event_line(&line)?;
         }
     }
     if !buffer.is_empty() {
-        print_stream_event_line(buffer.trim_end_matches('\r'))?;
+        let line = String::from_utf8_lossy(&buffer)
+            .trim_end_matches('\r')
+            .to_string();
+        print_stream_event_line(&line)?;
     }
     Ok(())
 }
