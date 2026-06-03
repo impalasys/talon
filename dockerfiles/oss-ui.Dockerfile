@@ -11,7 +11,7 @@ WORKDIR /repo/ui
 COPY pnpm-workspace.yaml /repo/pnpm-workspace.yaml
 COPY pnpm-lock.yaml /repo/pnpm-lock.yaml
 COPY ui/package.json ./
-COPY packages/copilot/package.json /repo/packages/copilot/package.json
+COPY packages/talon-chat/package.json /repo/packages/talon-chat/package.json
 RUN --mount=type=cache,target=/pnpm/store \
     pnpm install --frozen-lockfile --config.node-linker=hoisted
 
@@ -25,9 +25,9 @@ COPY ui/components ./components
 COPY ui/lib ./lib
 COPY ui/proto ./proto
 COPY ui/utils ./utils
-COPY packages/copilot/src /repo/packages/copilot/src
-COPY packages/copilot/README.md /repo/packages/copilot/README.md
-COPY packages/copilot/tsup.config.ts /repo/packages/copilot/tsup.config.ts
+COPY packages/talon-chat/src /repo/packages/talon-chat/src
+COPY packages/talon-chat/README.md /repo/packages/talon-chat/README.md
+COPY packages/talon-chat/tsup.config.ts /repo/packages/talon-chat/tsup.config.ts
 COPY ui/global.d.ts ./global.d.ts
 COPY ui/next-env.d.ts ./next-env.d.ts
 COPY ui/next.config.mjs ./next.config.mjs

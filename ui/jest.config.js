@@ -12,13 +12,13 @@ const customJestConfig = {
     '/node_modules/',
   ],
   moduleNameMapper: {
-    '^@talonai/copilot$': '<rootDir>/../packages/copilot/src/index.ts',
+    '^@impalasys/talon-chat$': '<rootDir>/../packages/talon-chat/src/index.ts',
     '^streamdown$': '<rootDir>/test/streamdownMock.js',
   },
   collectCoverage: true,
   collectCoverageFrom: [
     'lib/**/*.{ts,tsx}',
-    '../packages/copilot/src/**/*.{ts,tsx}',
+    '../packages/talon-chat/src/**/*.{ts,tsx}',
     '!**/*.d.ts',
     '!proto/**',
     '!e2e/**',

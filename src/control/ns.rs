@@ -7,6 +7,10 @@
 /// but shouldn't collide with dynamic tenant/workspace namespaces.
 pub const TALON_SYSTEM: &str = "Sys";
 
+/// Built-in root-level namespace for quickstarts, local development, and
+/// single-tenant applications.
+pub const DEFAULT: &str = "default";
+
 /// Standard domain prefix.
 /// In Kubernetes, while namespaces are short (e.g. `kube-system`), domains are
 /// usually reserved for API Groups (e.g. `manifests.talon.impalasys.com/v1`) or

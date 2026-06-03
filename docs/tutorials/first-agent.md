@@ -118,7 +118,7 @@ curl -sS http://localhost:18789/v1/ui/ns/first-agent/agents/hello-agent/sessions
   -d '{"messages":[{"content":"Explain what Talon is in two bullets."}]}'
 ```
 
-The UI surface returns a streamed response format used by Sightline and `@talonai/copilot`.
+The UI surface returns a streamed response format used by Sightline and `@impalasys/talon-chat`.
 
 ## 4. Inspect the result in Sightline
 

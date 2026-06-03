@@ -1,15 +1,15 @@
 {
-  "name": "@talonai/copilot",
+  "name": "@impalasys/talon-chat",
   "version": "0.2.1",
-  "description": "React copilot chat panel for Talon agent sessions",
+  "description": "React chat panels for Talon agent sessions and channels",
   "type": "module",
   "license": "ISC",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/impalasys/talon.git",
-    "directory": "packages/copilot"
+    "directory": "packages/talon-chat"
   },
-  "homepage": "https://github.com/impalasys/talon/tree/main/packages/copilot",
+  "homepage": "https://github.com/impalasys/talon/tree/main/packages/talon-chat",
   "bugs": {
     "url": "https://github.com/impalasys/talon/issues"
   },

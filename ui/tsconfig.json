@@ -20,7 +20,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@talonai/copilot": ["../packages/copilot/src/index.ts"]
+      "@impalasys/talon-chat": ["../packages/talon-chat/src/index.ts"]
     },
     "plugins": [
       {

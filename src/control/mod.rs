@@ -165,6 +165,33 @@ pub struct ControlPlane {
     pub scheduler: std::sync::Arc<dyn scheduler::SchedulerBackend + Send + Sync>,
 }
 
+async fn ensure_builtin_namespaces(kv: &(dyn KeyValueStore + Send + Sync)) -> anyhow::Result<()> {
+    let default_key = keys::namespace_metadata(ns::DEFAULT);
+    if kv
+        .get_msg::<crate::gateway::rpc::models::Namespace>(&default_key)
+        .await?
+        .is_none()
+    {
+        kv.set_msg(
+            &default_key,
+            &crate::gateway::rpc::models::Namespace {
+                name: ns::DEFAULT.to_string(),
+                parent: String::new(),
+                is_deleted: false,
+                deleted_at: 0,
+                labels: std::collections::HashMap::new(),
+            },
+        )
+        .await?;
+    }
+    kv.set(
+        &keys::namespace_ref(None, ns::DEFAULT),
+        ns::DEFAULT.as_bytes(),
+    )
+    .await?;
+    Ok(())
+}
+
 fn message_broker_config(
     cp: &crate::config::proto::ControlPlaneConfig,
 ) -> anyhow::Result<&crate::config::proto::MessageBrokerConfig> {
@@ -225,6 +252,8 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             return Err(anyhow::anyhow!("Unsupported database driver: {}", other));
         }
     }
+
+    ensure_builtin_namespaces(kv.as_ref()).await?;
 
     let mb_config = message_broker_config(cp)?;
     let pubsub: std::sync::Arc<dyn MessagePublisher + Send + Sync> = match mb_config.driver.as_str()
@@ -457,8 +486,8 @@ fn configured_scheduler_callback_auth_from_env(
 mod tests {
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
-        message_broker_config, rocksdb_database_path, sqlite_database_url, KeyValueStore,
-        ProtoKeyValueStoreExt,
+        ensure_builtin_namespaces, message_broker_config, rocksdb_database_path,
+        sqlite_database_url, KeyValueStore, ProtoKeyValueStoreExt,
     };
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
@@ -676,6 +705,44 @@ mod tests {
             .await
             .unwrap()
             .is_none());
+    }
+
+    #[tokio::test]
+    async fn ensure_builtin_namespaces_seeds_default_without_clobbering_existing_metadata() {
+        let kv = MockKvStore::default();
+        ensure_builtin_namespaces(&kv).await.unwrap();
+
+        let seeded = kv
+            .get_msg::<models::Namespace>(&keys::namespace_metadata("default"))
+            .await
+            .unwrap()
+            .expect("default namespace should be seeded");
+        assert_eq!(seeded.name, "default");
+        assert!(seeded.parent.is_empty());
+        assert!(!seeded.is_deleted);
+        assert_eq!(
+            kv.get(&keys::namespace_ref(None, "default")).await.unwrap(),
+            Some(b"default".to_vec())
+        );
+
+        let mut labeled = seeded;
+        labeled
+            .labels
+            .insert("owner".to_string(), "app".to_string());
+        kv.set_msg(&keys::namespace_metadata("default"), &labeled)
+            .await
+            .unwrap();
+        ensure_builtin_namespaces(&kv).await.unwrap();
+
+        let preserved = kv
+            .get_msg::<models::Namespace>(&keys::namespace_metadata("default"))
+            .await
+            .unwrap()
+            .expect("default namespace should still exist");
+        assert_eq!(
+            preserved.labels.get("owner").map(String::as_str),
+            Some("app")
+        );
     }
 
     #[tokio::test]

@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { TalonChannel, TalonCopilot } from '@talonai/copilot';
+import { TalonChannel, TalonCopilot } from '@impalasys/talon-chat';
 
 function makeJsonResponse(payload: any, ok = true) {
   return {

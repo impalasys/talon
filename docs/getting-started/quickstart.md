@@ -140,7 +140,7 @@ curl -sS http://localhost:18789/v1/ui/ns/quickstart/agents/hello-agent/sessions/
   -d '{"messages":[{"content":"Explain what Talon is in two bullets."}]}'
 ```
 
-This uses the same browser-oriented UI session surface that Sightline and `@talonai/copilot` use.
+This uses the same browser-oriented UI session surface that Sightline and `@impalasys/talon-chat` use.
 
 ## 8. Open Sightline and inspect the run
 

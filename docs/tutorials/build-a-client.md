@@ -113,10 +113,10 @@ The body shape is the same one used by Sightline and the copilot package.
 
 ## Fastest React path
 
-If you want a working chat panel instead of building the stream parser yourself, use `@talonai/copilot`.
+If you want a working chat panel instead of building the stream parser yourself, use `@impalasys/talon-chat`.
 
 ```tsx
-import { TalonCopilot } from "@talonai/copilot";
+import { TalonCopilot } from "@impalasys/talon-chat";
 
 export function App() {
   return (
@@ -136,7 +136,7 @@ That component handles:
 - transcript hydration from the canonical session state
 - streamed tool and reasoning events
 
-The minimal package usage is documented in `packages/copilot/README.md`.
+The minimal package usage is documented in `packages/talon-chat/README.md`.
 
 ## What to avoid
 

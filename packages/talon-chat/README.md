@@ -1,11 +1,11 @@
-# `@talonai/copilot`
+# `@impalasys/talon-chat`
 
-`@talonai/copilot` provides React panels for Talon agent sessions and channels.
+`@impalasys/talon-chat` provides React panels for Talon agent sessions and channels.
 
 ## Install
 
 ```bash
-pnpm add @talonai/copilot
+pnpm add @impalasys/talon-chat
 ```
 
 `react` and `react-dom` are required peer dependencies.
@@ -13,7 +13,7 @@ pnpm add @talonai/copilot
 ## Usage
 
 ```tsx
-import { TalonCopilot } from "@talonai/copilot";
+import { TalonCopilot } from "@impalasys/talon-chat";
 
 export function App() {
   return (
@@ -43,7 +43,7 @@ You can also inject a gateway client for session CRUD:
 Channels can be rendered with the same package:
 
 ```tsx
-import { TalonChannel } from "@talonai/copilot";
+import { TalonChannel } from "@impalasys/talon-chat";
 
 <TalonChannel
   namespace="support"

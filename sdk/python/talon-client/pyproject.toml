@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "impalasys-talon-client"
+version = "0.1.0"
+description = "Generated Talon protobuf and gRPC client bindings"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "AGPL-3.0-only"
+dependencies = [
+  "grpcio>=1.76,<2",
+  "protobuf>=6.33,<7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/talon_client"]
+
