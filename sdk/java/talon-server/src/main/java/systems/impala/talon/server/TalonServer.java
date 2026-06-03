@@ -91,11 +91,10 @@ public final class TalonServer implements AutoCloseable {
     public void close() throws IOException {
         process.destroy();
         try {
-            if (process.isAlive()) {
-                Thread.sleep(2000);
+            if (!process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS)) {
                 process.destroyForcibly();
+                process.waitFor();
             }
-            process.waitFor();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -127,9 +126,11 @@ public final class TalonServer implements AutoCloseable {
         try (InputStream stream = TalonServer.class.getResourceAsStream(resource)) {
             if (stream == null) return null;
             Path dir = Files.createTempDirectory("talon-node-");
+            dir.toFile().deleteOnExit();
             Path target = dir.resolve("talon-node");
             Files.copy(stream, target);
             target.toFile().setExecutable(true);
+            target.toFile().deleteOnExit();
             return target;
         }
     }
@@ -199,4 +200,3 @@ public final class TalonServer implements AutoCloseable {
         }
     }
 }
-

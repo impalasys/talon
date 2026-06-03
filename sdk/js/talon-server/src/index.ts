@@ -76,14 +76,16 @@ export class TalonServer {
   }
 
   async stop(): Promise<void> {
-    if (!this.child.killed) {
+    if (isRunning(this.child)) {
       this.child.kill("SIGINT");
       await Promise.race([
         onceExit(this.child),
-        new Promise<void>((resolve) => setTimeout(resolve, 2000)).then(() => {
-          if (!this.child.killed) this.child.kill("SIGKILL");
-        }),
+        delay(2000),
       ]);
+      if (isRunning(this.child)) {
+        this.child.kill("SIGKILL");
+        await onceExit(this.child);
+      }
     }
     if (!this.keepTempDir) {
       await rm(this.tempDir, { recursive: true, force: true });
@@ -146,8 +148,17 @@ function waitForPort(port: number, timeoutMs: number): Promise<void> {
   });
 }
 
+function isRunning(child: ChildProcessWithoutNullStreams): boolean {
+  return child.exitCode === null && child.signalCode === null;
+}
+
 function onceExit(child: ChildProcessWithoutNullStreams): Promise<void> {
+  if (!isRunning(child)) return Promise.resolve();
   return new Promise((resolve) => child.once("exit", () => resolve()));
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function configYaml(provider?: Provider): string {
@@ -159,4 +170,3 @@ function configYaml(provider?: Provider): string {
   yaml += "control_plane:\n  database:\n    driver: sqlite\n    data_dir: ./data\n  message_broker:\n    driver: local_socket\n";
   return yaml;
 }
-

@@ -33,12 +33,12 @@ type Provider struct {
 type Options struct {
 	TalonNodePath  string
 	Version        string
-	GrpcPort      int
-	UIPort        int
-	KeepTempDir   bool
-	Env           map[string]string
+	GrpcPort       int
+	UIPort         int
+	KeepTempDir    bool
+	Env            map[string]string
 	StartupTimeout time.Duration
-	Provider      *Provider
+	Provider       *Provider
 }
 
 type Server struct {
@@ -275,8 +275,14 @@ func extractTalonNode(data []byte, targetDir string) error {
 		if filepath.Base(header.Name) != "talon-node" {
 			continue
 		}
-		out, err := os.OpenFile(filepath.Join(targetDir, "talon-node"), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o755)
+		out, err := os.CreateTemp(targetDir, "talon-node-*")
 		if err != nil {
+			return err
+		}
+		tmpPath := out.Name()
+		defer os.Remove(tmpPath)
+		if err := out.Chmod(0o755); err != nil {
+			_ = out.Close()
 			return err
 		}
 		_, copyErr := io.Copy(out, tr)
@@ -284,7 +290,10 @@ func extractTalonNode(data []byte, targetDir string) error {
 		if copyErr != nil {
 			return copyErr
 		}
-		return closeErr
+		if closeErr != nil {
+			return closeErr
+		}
+		return os.Rename(tmpPath, filepath.Join(targetDir, "talon-node"))
 	}
 	return errors.New("talon-node not found in archive")
 }

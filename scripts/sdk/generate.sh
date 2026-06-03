@@ -116,9 +116,6 @@ PATH="$NPM_BIN:$PATH" "$PROTOC" -I. -Ithird_party/googleapis \
   google/api/annotations.proto
 
 PYTHON_CODEGEN="${PYTHON_CODEGEN:-python3}"
-if [[ -x /usr/bin/python3 ]] && /usr/bin/python3 -m pip --version >/dev/null 2>&1; then
-  PYTHON_CODEGEN="/usr/bin/python3"
-fi
 PY_TOOLS="$ROOT/.tools/python-codegen"
 "$PYTHON_CODEGEN" -m pip install --quiet --target "$PY_TOOLS" grpcio-tools==1.76.0
 PYTHONPATH="$PY_TOOLS${PYTHONPATH:+:$PYTHONPATH}" "$PYTHON_CODEGEN" -m grpc_tools.protoc -I. -Ithird_party/googleapis \
