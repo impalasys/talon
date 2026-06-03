@@ -269,7 +269,7 @@ jobs:
               echo "${package}@${version} already exists; skipping"
               return 0
             fi
-            npm publish "$path" --access public
+            pnpm publish "$path" --access public --no-git-checks
           }
           publish_if_changed "$JS_NODE_LINUX_CHANGED" "@impalasys/talon-node-linux-x64" "$JS_NODE_LINUX_VERSION" "sdk/js/talon-node-linux-x64"
           publish_if_changed "$JS_NODE_DARWIN_CHANGED" "@impalasys/talon-node-darwin-arm64" "$JS_NODE_DARWIN_VERSION" "sdk/js/talon-node-darwin-arm64"
@@ -285,7 +285,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v6
         with:
           python-version: "3.13"
 

@@ -20,8 +20,8 @@
     "test": "tsc -p tsconfig.json && node --test dist/index.test.js"
   },
   "optionalDependencies": {
-    "@impalasys/talon-node-darwin-arm64": "0.1.0",
-    "@impalasys/talon-node-linux-x64": "0.1.0"
+    "@impalasys/talon-node-darwin-arm64": "workspace:0.1.0",
+    "@impalasys/talon-node-linux-x64": "workspace:0.1.0"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",
