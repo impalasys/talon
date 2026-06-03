@@ -12,6 +12,40 @@ PROTO_SRCS=(
   proto/gateway.proto
 )
 
+case "$(uname -s)-$(uname -m)" in
+  Darwin-arm64)
+    PROTOC_PLATFORM="osx-aarch_64"
+    JAVA_GRPC_PLATFORM="osx-aarch_64"
+    ;;
+  Darwin-x86_64)
+    PROTOC_PLATFORM="osx-x86_64"
+    JAVA_GRPC_PLATFORM="osx-x86_64"
+    ;;
+  Linux-x86_64)
+    PROTOC_PLATFORM="linux-x86_64"
+    JAVA_GRPC_PLATFORM="linux-x86_64"
+    ;;
+  Linux-aarch64|Linux-arm64)
+    PROTOC_PLATFORM="linux-aarch_64"
+    JAVA_GRPC_PLATFORM="linux-aarch_64"
+    ;;
+  *)
+    echo "Unsupported platform for SDK codegen: $(uname -s)-$(uname -m)" >&2
+    exit 1
+    ;;
+esac
+
+PROTOC_VERSION="${PROTOC_VERSION:-34.1}"
+PROTOC_ROOT="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}"
+PROTOC="$PROTOC_ROOT/bin/protoc"
+if [[ ! -x "$PROTOC" ]]; then
+  mkdir -p "$PROTOC_ROOT"
+  PROTOC_ZIP="$ROOT/.tools/protoc/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
+  curl -fL -o "$PROTOC_ZIP" \
+    "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-${PROTOC_PLATFORM}.zip"
+  unzip -q -o "$PROTOC_ZIP" -d "$PROTOC_ROOT"
+fi
+
 GO_MODULE="github.com/impalasys/talon/sdk/go/talon-client"
 GO_OPTS=(
   "--go_opt=module=${GO_MODULE}"
@@ -34,31 +68,12 @@ mkdir -p sdk/js/talon-client/src/gen sdk/python/talon-client/src/talon_client
 
 export PATH="$(go env GOPATH)/bin:$PATH"
 
-protoc -I. -Ithird_party/googleapis \
+"$PROTOC" -I. -Ithird_party/googleapis \
   --experimental_allow_proto3_optional \
   --go_out=sdk/go/talon-client \
   --go-grpc_out=sdk/go/talon-client \
   "${GO_OPTS[@]}" \
   "${PROTO_SRCS[@]}"
-
-case "$(uname -s)-$(uname -m)" in
-  Darwin-arm64)
-    JAVA_GRPC_PLATFORM="osx-aarch_64"
-    ;;
-  Darwin-x86_64)
-    JAVA_GRPC_PLATFORM="osx-x86_64"
-    ;;
-  Linux-x86_64)
-    JAVA_GRPC_PLATFORM="linux-x86_64"
-    ;;
-  Linux-aarch64|Linux-arm64)
-    JAVA_GRPC_PLATFORM="linux-aarch_64"
-    ;;
-  *)
-    echo "Unsupported platform for grpc-java codegen: $(uname -s)-$(uname -m)" >&2
-    exit 1
-    ;;
-esac
 
 JAVA_GRPC_VERSION="${JAVA_GRPC_VERSION:-1.76.0}"
 JAVA_GRPC_PLUGIN="$ROOT/.tools/protoc-gen-grpc-java/protoc-gen-grpc-java-${JAVA_GRPC_VERSION}-${JAVA_GRPC_PLATFORM}.exe"
@@ -69,7 +84,7 @@ if [[ ! -x "$JAVA_GRPC_PLUGIN" ]]; then
   chmod +x "$JAVA_GRPC_PLUGIN"
 fi
 
-protoc -I. -Ithird_party/googleapis \
+"$PROTOC" -I. -Ithird_party/googleapis \
   --experimental_allow_proto3_optional \
   --java_out=sdk/java/talon-client/src/main/java \
   "--grpc-java_out=sdk/java/talon-client/src/main/java" \
@@ -90,7 +105,7 @@ exec npm exec --yes --package @connectrpc/protoc-gen-connect-es@1.7.0 -- protoc-
 EOF
 chmod +x "$NPM_BIN/protoc-gen-es" "$NPM_BIN/protoc-gen-connect-es"
 
-PATH="$NPM_BIN:$PATH" protoc -I. -Ithird_party/googleapis \
+PATH="$NPM_BIN:$PATH" "$PROTOC" -I. -Ithird_party/googleapis \
   --experimental_allow_proto3_optional \
   --es_out=sdk/js/talon-client/src/gen \
   --es_opt=target=ts,import_extension=.js \
