@@ -9,7 +9,7 @@ mod tests {
             SessionMessagePartEventKind,
         },
         scheduler::SchedulerBackend,
-        topics, ControlPlane, ProtoKeyValueStoreExt,
+        topics, ControlPlane, KeyValueStore, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::proto::gateway_service_server::GatewayService;
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
@@ -927,6 +927,31 @@ mod tests {
             .unwrap()
             .into_inner();
         assert_eq!(listed.workflows.len(), 1);
+        kv.set(
+            &crate::control::keys::workflow("customer-retention", "corrupt-workflow"),
+            b"not a workflow protobuf",
+        )
+        .await
+        .unwrap();
+        let listed_with_corrupt = handler
+            .list_workflows(tonic::Request::new(proto::ListWorkflowsRequest {
+                ns: "customer-retention".to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(listed_with_corrupt.workflows.len(), 1);
+
+        let invalid_run_input = handler
+            .create_workflow_run(tonic::Request::new(proto::CreateWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                input_json: "{invalid json".to_string(),
+                labels: HashMap::new(),
+            }))
+            .await
+            .unwrap_err();
+        assert_eq!(invalid_run_input.code(), tonic::Code::InvalidArgument);
 
         let run = handler
             .create_workflow_run(tonic::Request::new(proto::CreateWorkflowRunRequest {
@@ -982,6 +1007,25 @@ mod tests {
             .unwrap()
             .into_inner();
         assert_eq!(listed_runs.runs.len(), 1);
+        kv.set(
+            &crate::control::keys::workflow_run(
+                "customer-retention",
+                "retention-review",
+                "corrupt-run",
+            ),
+            b"not a workflow run protobuf",
+        )
+        .await
+        .unwrap();
+        let listed_runs_with_corrupt = handler
+            .list_workflow_runs(tonic::Request::new(proto::ListWorkflowRunsRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(listed_runs_with_corrupt.runs.len(), 1);
 
         let invalid_resume = handler
             .resume_workflow_run(tonic::Request::new(proto::ResumeWorkflowRunRequest {
@@ -1036,7 +1080,10 @@ mod tests {
         };
         pubsub.streams.lock().await.insert(
             topics::workflow_events_topic("customer-retention", "retention-review", &run.id),
-            vec![event.encode_to_vec()],
+            vec![
+                b"not a workflow event protobuf".to_vec(),
+                event.encode_to_vec(),
+            ],
         );
         let mut stream = handler
             .stream_workflow_events(tonic::Request::new(proto::StreamWorkflowEventsRequest {

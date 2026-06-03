@@ -68,11 +68,17 @@ impl GrpcGatewayHandler {
             .map_err(|err| tonic::Status::internal(err.to_string()))?;
         entries.sort_by(|left, right| left.0.cmp(&right.0));
         let mut workflows = Vec::new();
-        for (_, bytes) in entries {
-            workflows.push(
-                models::Workflow::decode(bytes.as_slice())
-                    .map_err(|err| tonic::Status::internal(err.to_string()))?,
-            );
+        for (key, bytes) in entries {
+            match models::Workflow::decode(bytes.as_slice()) {
+                Ok(workflow) => workflows.push(workflow),
+                Err(err) => {
+                    tracing::warn!(
+                        workflow_key = %key,
+                        error = %err,
+                        "failed to decode workflow while listing; skipping entry"
+                    );
+                }
+            }
         }
         Ok(tonic::Response::new(proto::ListWorkflowsResponse {
             workflows,
@@ -108,14 +114,27 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
+        let input = if req.input_json.trim().is_empty() {
+            serde_json::Value::Null
+        } else {
+            serde_json::from_str(&req.input_json)
+                .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?
+        };
+        let spec = workflow
+            .spec
+            .as_ref()
+            .ok_or_else(|| tonic::Status::invalid_argument("workflow spec is required"))?;
+        workflows::validate_input(&spec.input_schema_json, &input)
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         let run = workflows::create_run(
             &self.gateway.control_plane(),
             &workflow,
-            req.input_json,
+            serde_json::to_string(&input)
+                .map_err(|err| tonic::Status::internal(err.to_string()))?,
             req.labels,
         )
         .await
-        .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+        .map_err(|err| tonic::Status::internal(err.to_string()))?;
         Ok(tonic::Response::new(proto::WorkflowRunResponse {
             run: Some(run),
             steps: Vec::new(),
@@ -165,11 +184,17 @@ impl GrpcGatewayHandler {
             .map_err(|err| tonic::Status::internal(err.to_string()))?;
         entries.sort_by(|left, right| right.0.cmp(&left.0));
         let mut runs = Vec::new();
-        for (_, bytes) in entries {
-            runs.push(
-                models::WorkflowRun::decode(bytes.as_slice())
-                    .map_err(|err| tonic::Status::internal(err.to_string()))?,
-            );
+        for (key, bytes) in entries {
+            match models::WorkflowRun::decode(bytes.as_slice()) {
+                Ok(run) => runs.push(run),
+                Err(err) => {
+                    tracing::warn!(
+                        run_key = %key,
+                        error = %err,
+                        "failed to decode workflow run while listing; skipping entry"
+                    );
+                }
+            }
         }
         Ok(tonic::Response::new(proto::ListWorkflowRunsResponse {
             runs,
@@ -252,7 +277,13 @@ impl GrpcGatewayHandler {
         let event_stream = stream.filter_map(|bytes| async move {
             match models::WorkflowRunEvent::decode(bytes.as_slice()) {
                 Ok(event) => Some(Ok(event)),
-                Err(err) => Some(Err(tonic::Status::internal(err.to_string()))),
+                Err(err) => {
+                    tracing::warn!(
+                        error = %err,
+                        "failed to decode workflow run event while streaming; skipping entry"
+                    );
+                    None
+                }
             }
         });
         Ok(tonic::Response::new(Box::pin(event_stream)))

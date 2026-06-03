@@ -17,6 +17,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
 
 const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
+const SESSION_RELEASE_CAS_BACKOFF_MS: u64 = 10;
 
 async fn execute_with_panic_boundary<F>(
     future: F,
@@ -258,7 +259,13 @@ impl WorkerEventHandler {
                     released_session = Some(session);
                     break;
                 }
-                Ok(false) => continue,
+                Ok(false) => {
+                    tokio::time::sleep(std::time::Duration::from_millis(
+                        SESSION_RELEASE_CAS_BACKOFF_MS,
+                    ))
+                    .await;
+                    continue;
+                }
                 Err(err) => {
                     last_error = Some(err.to_string());
                     break;
