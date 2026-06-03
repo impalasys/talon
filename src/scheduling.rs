@@ -96,22 +96,33 @@ pub fn validate_schedule(schedule: &models::Schedule) -> Result<()> {
         .as_ref()
         .ok_or_else(|| anyhow!("schedule target is required"))?;
 
-    if target.agent.is_empty() {
-        return Err(anyhow!("schedule target agent is required"));
-    }
-    let session_mode = normalize_session_mode(&target.session_mode)?;
-    if session_mode != "new" && session_mode != "reuse" {
+    let targets_agent = !target.agent.trim().is_empty();
+    let targets_workflow = !target.workflow.trim().is_empty();
+    if targets_agent == targets_workflow {
         return Err(anyhow!(
-            "schedule target session_mode must be 'new' or 'reuse'"
+            "schedule target must set exactly one of agent or workflow"
         ));
     }
-    if session_mode == "reuse" && target.session_id.is_empty() {
-        return Err(anyhow!(
-            "schedule target session_id is required for reuse sessions"
-        ));
-    }
-    if spec.input_message.trim().is_empty() {
-        return Err(anyhow!("schedule input message is required"));
+    if targets_agent {
+        let session_mode = normalize_session_mode(&target.session_mode)?;
+        if session_mode != "new" && session_mode != "reuse" {
+            return Err(anyhow!(
+                "schedule target session_mode must be 'new' or 'reuse'"
+            ));
+        }
+        if session_mode == "reuse" && target.session_id.is_empty() {
+            return Err(anyhow!(
+                "schedule target session_id is required for reuse sessions"
+            ));
+        }
+        if spec.input_message.trim().is_empty() {
+            return Err(anyhow!("schedule input_message is required for agent targets"));
+        }
+    } else if spec.input_json.trim().is_empty() {
+        return Err(anyhow!("schedule input_json is required for workflow targets"));
+    } else {
+        serde_json::from_str::<serde_json::Value>(&spec.input_json)
+            .map_err(|err| anyhow!("schedule input_json must be valid JSON: {err}"))?;
     }
 
     match spec.kind.as_str() {
@@ -410,6 +421,26 @@ pub async fn dispatch_schedule(
         .target
         .as_ref()
         .ok_or_else(|| anyhow!("schedule target missing"))?;
+
+    if !target.workflow.trim().is_empty() {
+        let workflow = cp
+            .kv
+            .get_msg::<models::Workflow>(&keys::workflow(&schedule.ns, &target.workflow))
+            .await?
+            .ok_or_else(|| anyhow!("workflow '{}' not found", target.workflow))?;
+        let mut labels = HashMap::new();
+        labels.insert(
+            "talon.impalasys.com/message-source".to_string(),
+            "schedule".to_string(),
+        );
+        labels.insert(
+            "talon.impalasys.com/schedule-name".to_string(),
+            schedule.name.clone(),
+        );
+        let run = crate::workflows::create_run(cp, &workflow, spec.input_json.clone(), labels)
+            .await?;
+        return Ok(run.id);
+    }
 
     let session_mode = normalize_session_mode(&target.session_mode)?;
     let session_id = if session_mode == "new" {
@@ -966,10 +997,12 @@ mod tests {
                 timezone: "America/Los_Angeles".to_string(),
                 target: Some(models::ScheduleTarget {
                     agent: "assistant".to_string(),
+                    workflow: String::new(),
                     session_mode: "new".to_string(),
                     session_id: "".to_string(),
                 }),
                 input_message: "check in".to_string(),
+                input_json: String::new(),
                 enabled: true,
             }),
             status: None,
@@ -1374,7 +1407,7 @@ mod tests {
         assert!(validate_schedule(&missing_agent)
             .unwrap_err()
             .to_string()
-            .contains("schedule target agent is required"));
+            .contains("schedule target must set exactly one of agent or workflow"));
 
         let mut invalid_mode = schedule("every");
         invalid_mode
@@ -1395,7 +1428,7 @@ mod tests {
         assert!(validate_schedule(&blank_message)
             .unwrap_err()
             .to_string()
-            .contains("schedule input message is required"));
+            .contains("schedule input_message is required for agent targets"));
 
         let mut invalid_kind = schedule("every");
         invalid_kind.spec.as_mut().unwrap().kind = "mystery".to_string();
@@ -1497,6 +1530,68 @@ mod tests {
             .session_id = session_id.clone();
         let dispatched_session = dispatch_schedule(&cp, &scheduled, now).await.unwrap();
         assert_eq!(dispatched_session, session_id);
+        assert_eq!(pubsub.messages.lock().await.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn dispatch_schedule_can_start_workflow_run() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(MockPubSub::default());
+        let cp = ControlPlane {
+            kv: kv.clone(),
+            pubsub: pubsub.clone(),
+            scheduler: Arc::new(NoopSchedulerBackend),
+        };
+        let workflow = models::Workflow {
+            name: "retention-review".to_string(),
+            ns: "conic:test".to_string(),
+            labels: HashMap::new(),
+            spec: Some(models::WorkflowSpec {
+                input_schema_json: r#"{"type":"object","required":["accountId"]}"#.to_string(),
+                steps: vec![models::WorkflowStep {
+                    id: "copy".to_string(),
+                    r#type: "transform".to_string(),
+                    input_json: r#"{"accountId":"${$.input.accountId}"}"#.to_string(),
+                    ..Default::default()
+                }],
+                output_json: r#"{"accountId":"${$.steps.copy.output.accountId}"}"#.to_string(),
+                ..Default::default()
+            }),
+        };
+        kv.set_msg(&keys::workflow("conic:test", "retention-review"), &workflow)
+            .await
+            .unwrap();
+
+        let mut scheduled = schedule("every");
+        let spec = scheduled.spec.as_mut().unwrap();
+        let target = spec.target.as_mut().unwrap();
+        target.agent.clear();
+        target.workflow = "retention-review".to_string();
+        target.session_mode.clear();
+        spec.input_message.clear();
+        spec.input_json = r#"{"accountId":"acct_123"}"#.to_string();
+
+        validate_schedule(&scheduled).expect("workflow schedule should validate");
+        let now = DateTime::parse_from_rfc3339("2026-05-02T12:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+        let run_id = dispatch_schedule(&cp, &scheduled, now).await.unwrap();
+
+        let run = kv
+            .get_msg::<models::WorkflowRun>(&keys::workflow_run(
+                "conic:test",
+                "retention-review",
+                &run_id,
+            ))
+            .await
+            .unwrap()
+            .expect("workflow run should be persisted");
+        assert_eq!(run.workflow, "retention-review");
+        assert_eq!(run.input_json, r#"{"accountId":"acct_123"}"#);
+        assert_eq!(
+            run.labels.get("talon.impalasys.com/schedule-name"),
+            Some(&"daily-digest".to_string())
+        );
         assert_eq!(pubsub.messages.lock().await.len(), 2);
     }
 

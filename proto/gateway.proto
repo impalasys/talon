@@ -245,6 +245,62 @@ service GatewayService {
     };
   }
 
+  // Workflows
+  rpc CreateWorkflow(CreateWorkflowRequest) returns (WorkflowResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/workflows"
+      body: "*"
+    };
+  }
+  rpc GetWorkflow(GetWorkflowRequest) returns (WorkflowResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/workflows/{name}"
+    };
+  }
+  rpc ListWorkflows(ListWorkflowsRequest) returns (ListWorkflowsResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/workflows"
+    };
+  }
+  rpc DeleteWorkflow(DeleteWorkflowRequest) returns (DeleteWorkflowResponse) {
+    option (google.api.http) = {
+      delete: "/v1/ns/{ns}/workflows/{name}"
+    };
+  }
+  rpc CreateWorkflowRun(CreateWorkflowRunRequest) returns (WorkflowRunResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/workflows/{workflow}/runs"
+      body: "*"
+    };
+  }
+  rpc GetWorkflowRun(GetWorkflowRunRequest) returns (WorkflowRunResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/workflows/{workflow}/runs/{run_id}"
+    };
+  }
+  rpc ListWorkflowRuns(ListWorkflowRunsRequest) returns (ListWorkflowRunsResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/workflows/{workflow}/runs"
+    };
+  }
+  rpc ResumeWorkflowRun(ResumeWorkflowRunRequest) returns (WorkflowRunResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/workflows/{workflow}/runs/{run_id}:resume"
+      body: "*"
+    };
+  }
+  rpc CancelWorkflowRun(CancelWorkflowRunRequest) returns (WorkflowRunResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/workflows/{workflow}/runs/{run_id}:cancel"
+      body: "*"
+    };
+  }
+  rpc StreamWorkflowEvents(StreamWorkflowEventsRequest) returns (stream talon.models.WorkflowRunEvent) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/workflows/{workflow}/runs/{run_id}/stream"
+    };
+  }
+
   // Namespaces
   rpc CreateNamespace(CreateNamespaceRequest) returns (NamespaceResponse) {
     option (google.api.http) = {
@@ -775,6 +831,84 @@ message DeleteScheduleRequest {
 
 message DeleteScheduleResponse {
   bool success = 1;
+}
+
+message CreateWorkflowRequest {
+  string ns = 1;
+  talon.models.Workflow workflow = 2;
+}
+
+message GetWorkflowRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message ListWorkflowsRequest {
+  string ns = 1;
+}
+
+message DeleteWorkflowRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message WorkflowResponse {
+  talon.models.Workflow workflow = 1;
+}
+
+message ListWorkflowsResponse {
+  repeated talon.models.Workflow workflows = 1;
+}
+
+message DeleteWorkflowResponse {
+  bool success = 1;
+}
+
+message CreateWorkflowRunRequest {
+  string ns = 1;
+  string workflow = 2;
+  string input_json = 3;
+  map<string, string> labels = 4;
+}
+
+message GetWorkflowRunRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+}
+
+message ListWorkflowRunsRequest {
+  string ns = 1;
+  string workflow = 2;
+}
+
+message ResumeWorkflowRunRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+  string step_id = 4;
+  string resume_json = 5;
+}
+
+message CancelWorkflowRunRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+}
+
+message StreamWorkflowEventsRequest {
+  string ns = 1;
+  string workflow = 2;
+  string run_id = 3;
+}
+
+message WorkflowRunResponse {
+  talon.models.WorkflowRun run = 1;
+  repeated talon.models.WorkflowStepRun steps = 2;
+}
+
+message ListWorkflowRunsResponse {
+  repeated talon.models.WorkflowRun runs = 1;
 }
 
 message ScheduleResponse {

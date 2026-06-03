@@ -280,6 +280,63 @@ struct ChannelContextPolicyManifest {
     max_messages: u32,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct WorkflowManifest {
+    api_version: String,
+    kind: String,
+    metadata: ObjectMetaManifest,
+    spec: WorkflowSpecManifest,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct WorkflowSpecManifest {
+    description: String,
+    input_schema: serde_yaml::Value,
+    output_schema: serde_yaml::Value,
+    steps: Vec<WorkflowStepManifest>,
+    output: serde_yaml::Value,
+    concurrency: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct WorkflowStepManifest {
+    id: String,
+    #[serde(rename = "type")]
+    type_name: String,
+    after: Vec<String>,
+    when: serde_yaml::Value,
+    agent: String,
+    prompt: String,
+    tool: String,
+    input: serde_yaml::Value,
+    workflow: String,
+    output: Option<WorkflowStepOutputPolicyManifest>,
+    resume_schema: serde_yaml::Value,
+    retry: Option<WorkflowStepRetryPolicyManifest>,
+    timeout: String,
+    duration: String,
+    until: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct WorkflowStepOutputPolicyManifest {
+    format: String,
+    schema: serde_yaml::Value,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct WorkflowStepRetryPolicyManifest {
+    max_attempts: u32,
+    initial_backoff_seconds: i64,
+    max_backoff_seconds: i64,
+    multiplier: f64,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct AgentYaml<'a> {
@@ -469,6 +526,27 @@ pub fn parse_channel_subscription(yaml: &str) -> Result<models::ChannelSubscript
         metadata: subscription.spec.metadata,
         labels: subscription.metadata.labels,
     })
+}
+
+pub fn parse_workflow(yaml: &str) -> Result<models::Workflow> {
+    let workflow: WorkflowManifest =
+        serde_yaml::from_str(yaml).context("Failed to parse Workflow YAML")?;
+
+    if workflow.kind != "Workflow" {
+        bail!("Expected kind 'Workflow', got '{}'", workflow.kind);
+    }
+    if workflow.metadata.namespace.trim().is_empty() {
+        bail!("Workflow metadata.namespace is required");
+    }
+
+    let workflow = models::Workflow {
+        name: workflow.metadata.name,
+        ns: workflow.metadata.namespace,
+        spec: Some(workflow.spec.into_proto()?),
+        labels: workflow.metadata.labels,
+    };
+    crate::workflows::validate_workflow(&workflow)?;
+    Ok(workflow)
 }
 
 pub fn render_agent_template_yaml(template: &manifests::AgentTemplate) -> Result<String> {
@@ -664,6 +742,26 @@ pub fn render_channel_subscription_yaml(
         .context("Failed to serialize ChannelSubscription to YAML")
 }
 
+pub fn render_workflow_yaml(workflow: &models::Workflow) -> Result<String> {
+    let spec = workflow
+        .spec
+        .as_ref()
+        .ok_or_else(|| anyhow!("Workflow missing spec"))?;
+    let yaml_workflow = WorkflowManifest {
+        api_version: "talon.impalasys.com/v1".to_string(),
+        kind: "Workflow".to_string(),
+        metadata: ObjectMetaManifest {
+            name: workflow.name.clone(),
+            namespace: workflow.ns.clone(),
+            labels: workflow.labels.clone(),
+            annotations: HashMap::new(),
+        },
+        spec: WorkflowSpecManifest::from_proto(spec)?,
+    };
+
+    serde_yaml::to_string(&yaml_workflow).context("Failed to serialize Workflow to YAML")
+}
+
 // ---------------------------------------------------------------------------
 // Manifest conversions
 // ---------------------------------------------------------------------------
@@ -735,6 +833,140 @@ impl McpServerSpecManifest {
             disabled: spec.disabled,
         }
     }
+}
+
+impl WorkflowSpecManifest {
+    fn into_proto(self) -> Result<models::WorkflowSpec> {
+        Ok(models::WorkflowSpec {
+            description: self.description,
+            input_schema_json: yaml_value_to_json_string(self.input_schema)?,
+            output_schema_json: yaml_value_to_json_string(self.output_schema)?,
+            steps: self
+                .steps
+                .into_iter()
+                .map(WorkflowStepManifest::into_proto)
+                .collect::<Result<Vec<_>>>()?,
+            output_json: yaml_value_to_json_string(self.output)?,
+            concurrency: self.concurrency,
+        })
+    }
+
+    fn from_proto(spec: &models::WorkflowSpec) -> Result<Self> {
+        Ok(Self {
+            description: spec.description.clone(),
+            input_schema: json_string_to_yaml_value(&spec.input_schema_json)?,
+            output_schema: json_string_to_yaml_value(&spec.output_schema_json)?,
+            steps: spec
+                .steps
+                .iter()
+                .map(WorkflowStepManifest::from_proto)
+                .collect::<Result<Vec<_>>>()?,
+            output: json_string_to_yaml_value(&spec.output_json)?,
+            concurrency: spec.concurrency,
+        })
+    }
+}
+
+impl WorkflowStepManifest {
+    fn into_proto(self) -> Result<models::WorkflowStep> {
+        Ok(models::WorkflowStep {
+            id: self.id,
+            r#type: self.type_name,
+            after: self.after,
+            when_json: yaml_value_to_json_string(self.when)?,
+            agent: self.agent,
+            prompt: self.prompt,
+            tool: self.tool,
+            input_json: yaml_value_to_json_string(self.input)?,
+            workflow: self.workflow,
+            output: self.output.map(WorkflowStepOutputPolicyManifest::into_proto).transpose()?,
+            resume_schema_json: yaml_value_to_json_string(self.resume_schema)?,
+            retry: self.retry.map(WorkflowStepRetryPolicyManifest::into_proto).transpose()?,
+            timeout: self.timeout,
+            wait_duration: self.duration,
+            wait_until: self.until,
+        })
+    }
+
+    fn from_proto(step: &models::WorkflowStep) -> Result<Self> {
+        Ok(Self {
+            id: step.id.clone(),
+            type_name: step.r#type.clone(),
+            after: step.after.clone(),
+            when: json_string_to_yaml_value(&step.when_json)?,
+            agent: step.agent.clone(),
+            prompt: step.prompt.clone(),
+            tool: step.tool.clone(),
+            input: json_string_to_yaml_value(&step.input_json)?,
+            workflow: step.workflow.clone(),
+            output: step
+                .output
+                .as_ref()
+                .map(WorkflowStepOutputPolicyManifest::from_proto)
+                .transpose()?,
+            resume_schema: json_string_to_yaml_value(&step.resume_schema_json)?,
+            retry: step
+                .retry
+                .as_ref()
+                .map(WorkflowStepRetryPolicyManifest::from_proto),
+            timeout: step.timeout.clone(),
+            duration: step.wait_duration.clone(),
+            until: step.wait_until.clone(),
+        })
+    }
+}
+
+impl WorkflowStepOutputPolicyManifest {
+    fn into_proto(self) -> Result<models::WorkflowStepOutputPolicy> {
+        Ok(models::WorkflowStepOutputPolicy {
+            format: self.format,
+            schema_json: yaml_value_to_json_string(self.schema)?,
+        })
+    }
+
+    fn from_proto(policy: &models::WorkflowStepOutputPolicy) -> Result<Self> {
+        Ok(Self {
+            format: policy.format.clone(),
+            schema: json_string_to_yaml_value(&policy.schema_json)?,
+        })
+    }
+}
+
+impl WorkflowStepRetryPolicyManifest {
+    fn into_proto(self) -> Result<models::WorkflowStepRetryPolicy> {
+        Ok(models::WorkflowStepRetryPolicy {
+            max_attempts: self.max_attempts,
+            initial_backoff_seconds: self.initial_backoff_seconds,
+            max_backoff_seconds: self.max_backoff_seconds,
+            multiplier: self.multiplier,
+        })
+    }
+
+    fn from_proto(policy: &models::WorkflowStepRetryPolicy) -> Self {
+        Self {
+            max_attempts: policy.max_attempts,
+            initial_backoff_seconds: policy.initial_backoff_seconds,
+            max_backoff_seconds: policy.max_backoff_seconds,
+            multiplier: policy.multiplier,
+        }
+    }
+}
+
+fn yaml_value_to_json_string(value: serde_yaml::Value) -> Result<String> {
+    if matches!(value, serde_yaml::Value::Null) {
+        return Ok(String::new());
+    }
+    let json = serde_json::to_value(value).context("Failed to convert YAML value to JSON")?;
+    serde_json::to_string(&json).context("Failed to serialize YAML value as JSON")
+}
+
+fn json_string_to_yaml_value(value: &str) -> Result<serde_yaml::Value> {
+    if value.trim().is_empty() {
+        return Ok(serde_yaml::Value::Null);
+    }
+    let json: serde_json::Value =
+        serde_json::from_str(value).context("Failed to parse stored JSON value")?;
+    serde_yaml::to_value(json).context("Failed to convert JSON value to YAML")
 }
 
 impl AgentDefinitionManifest {
@@ -1946,7 +2178,170 @@ definition: {}
         let empty =
             CapabilitiesPolicyDeltaManifest::from_proto(&manifests::CapabilitiesPolicyDelta {
                 replace: HashMap::new(),
-            });
+        });
         assert!(empty.replace.is_none());
+    }
+
+    #[test]
+    fn parse_and_render_workflow_manifest_supports_dag_syntax() {
+        let workflow = parse_workflow(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Workflow
+metadata:
+  name: retention-review
+  namespace: customer-retention
+  labels:
+    app: retention
+spec:
+  description: Review an account.
+  inputSchema:
+    type: object
+    required: [accountId]
+    properties:
+      accountId:
+        type: string
+  outputSchema:
+    type: object
+    properties:
+      summary:
+        type: string
+  steps:
+    - id: review
+      type: transform
+      input:
+        summary: Review ${$.input.accountId}
+    - id: approval
+      type: pause
+      after: [review]
+      when:
+        path: $.steps.review.output.summary
+        contains: acct_
+      prompt: Approve ${$.input.accountId}?
+      resumeSchema:
+        type: object
+        required: [approved]
+        properties:
+          approved:
+            type: boolean
+    - id: timedWait
+      type: wait
+      after: [approval]
+      duration: 5m
+      timeout: 1h
+      retry:
+        maxAttempts: 3
+        initialBackoffSeconds: 1
+        maxBackoffSeconds: 30
+        multiplier: 2.0
+  output:
+    summary: ${$.steps.review.output.summary}
+"#,
+        )
+        .expect("workflow manifest should parse");
+
+        assert_eq!(workflow.name, "retention-review");
+        assert_eq!(workflow.ns, "customer-retention");
+        let spec = workflow.spec.as_ref().expect("spec should be present");
+        assert_eq!(spec.steps.len(), 3);
+        assert_eq!(spec.steps[1].after, vec!["review".to_string()]);
+        assert_eq!(spec.steps[2].wait_duration, "5m");
+        assert_eq!(spec.steps[2].timeout, "1h");
+        assert_eq!(
+            spec.steps[2].retry.as_ref().unwrap().max_attempts,
+            3
+        );
+
+        let rendered = render_workflow_yaml(&workflow).expect("workflow should render");
+        assert!(rendered.contains("kind: Workflow"));
+        assert!(rendered.contains("retention-review"));
+        assert!(rendered.contains("duration: 5m"));
+        assert!(rendered.contains("maxAttempts: 3"));
+    }
+
+    #[test]
+    fn parse_workflow_rejects_invalid_workflow_shapes() {
+        let base = |steps: &str| {
+            format!(
+                r#"
+apiVersion: talon.impalasys.com/v1
+kind: Workflow
+metadata:
+  name: invalid
+  namespace: default
+spec:
+  steps:
+{steps}
+  output: {{}}
+"#
+            )
+        };
+
+        let duplicate = parse_workflow(&base(
+            r#"
+    - id: same
+      type: transform
+    - id: same
+      type: transform
+"#,
+        ))
+        .unwrap_err();
+        assert!(duplicate
+            .to_string()
+            .contains("duplicate workflow step id"));
+
+        let unknown_dep = parse_workflow(&base(
+            r#"
+    - id: second
+      type: transform
+      after: [missing]
+"#,
+        ))
+        .unwrap_err();
+        assert!(unknown_dep.to_string().contains("depends on unknown step"));
+
+        let unsupported = parse_workflow(&base(
+            r#"
+    - id: nope
+      type: foreach
+"#,
+        ))
+        .unwrap_err();
+        assert!(unsupported
+            .to_string()
+            .contains("unsupported workflow step type"));
+
+        let invalid_predicate = parse_workflow(&base(
+            r#"
+    - id: badWhen
+      type: transform
+      when:
+        path: $.input.flag
+"#,
+        ))
+        .unwrap_err();
+        assert!(invalid_predicate
+            .to_string()
+            .contains("predicate must set exactly one comparator"));
+
+        let invalid_schema = parse_workflow(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Workflow
+metadata:
+  name: invalid-schema
+  namespace: default
+spec:
+  inputSchema: []
+  steps:
+    - id: ok
+      type: transform
+  output: {}
+"#,
+        )
+        .unwrap_err();
+        assert!(invalid_schema
+            .to_string()
+            .contains("inputSchema must be a JSON object"));
     }
 }

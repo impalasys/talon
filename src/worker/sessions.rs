@@ -228,6 +228,17 @@ impl WorkerEventHandler {
         if let Ok(Some(mut session)) = self.cp.kv.get_msg::<models::Session>(&key).await {
             session.status = "IDLE".to_string();
             let _ = self.cp.kv.set_msg(&key, &session).await;
+            if let Err(err) =
+                crate::workflows::dispatch_workflow_from_session_labels(&self.cp, &session).await
+            {
+                tracing::warn!(
+                    namespace = %ns,
+                    agent = %agent_id,
+                    session = %session_id,
+                    error = %err,
+                    "failed to dispatch workflow from completed child session"
+                );
+            }
         }
     }
 }

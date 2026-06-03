@@ -366,6 +366,9 @@ impl TalonOpsServer {
                     } else {
                         args.agent.clone()
                     },
+                    workflow: existing_target
+                        .map(|target| target.workflow.clone())
+                        .unwrap_or_default(),
                     session_mode: crate::scheduling::normalize_session_mode(
                         &args
                             .session_mode
@@ -386,6 +389,9 @@ impl TalonOpsServer {
                 } else {
                     args.input_message.clone()
                 },
+                input_json: existing_spec
+                    .map(|spec| spec.input_json.clone())
+                    .unwrap_or_default(),
                 enabled: args
                     .enabled
                     .or_else(|| existing_spec.map(|spec| spec.enabled))
@@ -2187,10 +2193,12 @@ mod tests {
                 timezone: "UTC".to_string(),
                 target: Some(models::ScheduleTarget {
                     agent: "ctl".to_string(),
+                    workflow: String::new(),
                     session_mode: "new".to_string(),
                     session_id: String::new(),
                 }),
                 input_message: "ping".to_string(),
+                input_json: String::new(),
                 enabled: true,
             }),
             status: Some(models::ScheduleStatus {

@@ -40,6 +40,10 @@ impl WorkerEventHandler {
                 let event = crate::control::events::SessionControlEvent::decode(payload)?;
                 self.handle_session_control(event).await
             }
+            Some("workflow_dispatch") => {
+                let event = crate::control::events::WorkflowDispatchEvent::decode(payload)?;
+                self.handle_workflow_dispatch(event).await
+            }
             Some("resource_lifecycle") => {
                 let event = crate::control::events::LifecycleEvent::decode(payload)?;
                 self.handle_lifecycle_event(event).await
@@ -52,6 +56,10 @@ impl WorkerEventHandler {
 
                 if let Ok(event) = crate::control::events::SessionControlEvent::decode(payload) {
                     return self.handle_session_control(event).await;
+                }
+
+                if let Ok(event) = crate::control::events::WorkflowDispatchEvent::decode(payload) {
+                    return self.handle_workflow_dispatch(event).await;
                 }
 
                 if let Ok(event) = crate::control::events::LifecycleEvent::decode(payload) {
@@ -255,16 +263,53 @@ impl WorkerEventHandler {
         }
     }
 
+    pub async fn handle_workflow_wakeup(
+        &self,
+        payload: crate::workflows::WorkflowWakeupPayload,
+    ) -> Result<()> {
+        crate::workflows::handle_workflow_wakeup(&self.cp, payload).await
+    }
+
     pub fn event_type_for_subscription(subscription: &str) -> Option<&'static str> {
         if subscription.contains(topics::SESSION_DISPATCH_TOPIC) {
             Some("session_dispatch")
         } else if subscription.contains(topics::SESSION_CONTROL_TOPIC) {
             Some("session_control")
+        } else if subscription.contains(topics::WORKFLOW_DISPATCH_TOPIC) {
+            Some("workflow_dispatch")
         } else if subscription.contains(topics::RESOURCE_LIFECYCLE_TOPIC) {
             Some("resource_lifecycle")
         } else {
             None
         }
+    }
+}
+
+impl WorkerEventHandler {
+    pub async fn handle_workflow_dispatch(
+        &self,
+        event: crate::control::events::WorkflowDispatchEvent,
+    ) -> Result<()> {
+        tracing::info!(
+            namespace = %event.ns,
+            workflow = %event.workflow,
+            run_id = %event.run_id,
+            reason = %event.reason,
+            "Handling workflow dispatch"
+        );
+        let Some(run) = crate::workflows::claim_run(
+            self.cp.kv.as_ref(),
+            &event.ns,
+            &event.workflow,
+            &event.run_id,
+            chrono::Utc::now(),
+            &event.reason,
+        )
+        .await?
+        else {
+            return Ok(());
+        };
+        crate::workflows::advance_run(&self.cp, run).await
     }
 }
 
@@ -391,10 +436,12 @@ mod tests {
                 timezone: String::new(),
                 target: Some(models::ScheduleTarget {
                     agent: "assistant".to_string(),
+                    workflow: String::new(),
                     session_mode: session_mode.to_string(),
                     session_id: "session-1".to_string(),
                 }),
                 input_message: "Run the report".to_string(),
+                input_json: String::new(),
                 enabled: true,
             }),
             status: Some(models::ScheduleStatus {

@@ -16,6 +16,7 @@ pub mod namespaces;
 pub mod schedules;
 pub mod sessions;
 pub mod templates;
+pub mod workflows;
 
 #[cfg(test)]
 mod channels_tests;
@@ -102,6 +103,13 @@ pub struct GrpcGatewayHandler {
 pub type ChannelEventStream = Pin<
     Box<
         dyn futures::Stream<Item = std::result::Result<events::ChannelEvent, tonic::Status>> + Send,
+    >,
+>;
+
+pub type WorkflowEventStream = Pin<
+    Box<
+        dyn futures::Stream<Item = std::result::Result<models::WorkflowRunEvent, tonic::Status>>
+            + Send,
     >,
 >;
 
@@ -291,6 +299,60 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
         req: tonic::Request<proto::DeleteScheduleRequest>,
     ) -> std::result::Result<tonic::Response<proto::DeleteScheduleResponse>, tonic::Status> {
         self.handle_delete_schedule(req).await
+    }
+    async fn create_workflow(
+        &self,
+        req: tonic::Request<proto::CreateWorkflowRequest>,
+    ) -> std::result::Result<tonic::Response<proto::WorkflowResponse>, tonic::Status> {
+        self.handle_create_workflow(req).await
+    }
+    async fn get_workflow(
+        &self,
+        req: tonic::Request<proto::GetWorkflowRequest>,
+    ) -> std::result::Result<tonic::Response<proto::WorkflowResponse>, tonic::Status> {
+        self.handle_get_workflow(req).await
+    }
+    async fn list_workflows(
+        &self,
+        req: tonic::Request<proto::ListWorkflowsRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListWorkflowsResponse>, tonic::Status> {
+        self.handle_list_workflows(req).await
+    }
+    async fn delete_workflow(
+        &self,
+        req: tonic::Request<proto::DeleteWorkflowRequest>,
+    ) -> std::result::Result<tonic::Response<proto::DeleteWorkflowResponse>, tonic::Status> {
+        self.handle_delete_workflow(req).await
+    }
+    async fn create_workflow_run(
+        &self,
+        req: tonic::Request<proto::CreateWorkflowRunRequest>,
+    ) -> std::result::Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
+        self.handle_create_workflow_run(req).await
+    }
+    async fn get_workflow_run(
+        &self,
+        req: tonic::Request<proto::GetWorkflowRunRequest>,
+    ) -> std::result::Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
+        self.handle_get_workflow_run(req).await
+    }
+    async fn list_workflow_runs(
+        &self,
+        req: tonic::Request<proto::ListWorkflowRunsRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListWorkflowRunsResponse>, tonic::Status> {
+        self.handle_list_workflow_runs(req).await
+    }
+    async fn resume_workflow_run(
+        &self,
+        req: tonic::Request<proto::ResumeWorkflowRunRequest>,
+    ) -> std::result::Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
+        self.handle_resume_workflow_run(req).await
+    }
+    async fn cancel_workflow_run(
+        &self,
+        req: tonic::Request<proto::CancelWorkflowRunRequest>,
+    ) -> std::result::Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
+        self.handle_cancel_workflow_run(req).await
     }
     async fn send_message(
         &self,
@@ -523,5 +585,14 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
         req: tonic::Request<proto::StreamChannelEventsRequest>,
     ) -> std::result::Result<tonic::Response<Self::StreamChannelEventsStream>, tonic::Status> {
         self.handle_stream_channel_events(req).await
+    }
+
+    type StreamWorkflowEventsStream = WorkflowEventStream;
+
+    async fn stream_workflow_events(
+        &self,
+        req: tonic::Request<proto::StreamWorkflowEventsRequest>,
+    ) -> std::result::Result<tonic::Response<Self::StreamWorkflowEventsStream>, tonic::Status> {
+        self.handle_stream_workflow_events(req).await
     }
 }

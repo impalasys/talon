@@ -367,6 +367,66 @@ pub fn schedule_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("Schedule"))
 }
 
+pub fn workflow(namespace: &str, name: &str) -> ResourceKey {
+    resource_key(namespace, &[], "Workflow", name)
+}
+
+pub fn workflow_prefix(namespace: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[], Some("Workflow"))
+}
+
+pub fn workflow_run(namespace: &str, workflow: &str, run_id: &str) -> ResourceKey {
+    resource_key(namespace, &[("Workflow", workflow)], "WorkflowRun", run_id)
+}
+
+pub fn workflow_run_prefix(namespace: &str, workflow: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[("Workflow", workflow)], Some("WorkflowRun"))
+}
+
+pub fn workflow_step_run(
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+    step_run_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Workflow", workflow), ("WorkflowRun", run_id)],
+        "WorkflowStepRun",
+        step_run_id,
+    )
+}
+
+pub fn workflow_step_run_prefix(namespace: &str, workflow: &str, run_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Workflow", workflow), ("WorkflowRun", run_id)],
+        Some("WorkflowStepRun"),
+    )
+}
+
+pub fn workflow_run_event(
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+    event_id: &str,
+) -> ResourceKey {
+    resource_key(
+        namespace,
+        &[("Workflow", workflow), ("WorkflowRun", run_id)],
+        "WorkflowRunEvent",
+        event_id,
+    )
+}
+
+pub fn workflow_run_event_prefix(namespace: &str, workflow: &str, run_id: &str) -> ResourceList {
+    direct_child_prefix(
+        namespace,
+        &[("Workflow", workflow), ("WorkflowRun", run_id)],
+        Some("WorkflowRunEvent"),
+    )
+}
+
 pub fn agent_template(name: &str) -> ResourceKey {
     resource_key(ns::TALON_SYSTEM, &[], "AgentTemplate", name)
 }

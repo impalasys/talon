@@ -7,9 +7,11 @@ use std::sync::OnceLock;
 
 pub const SESSION_DISPATCH_TOPIC: &str = "talon.session.dispatch";
 pub const SESSION_CONTROL_TOPIC: &str = "talon.session.control";
+pub const WORKFLOW_DISPATCH_TOPIC: &str = "talon.workflow.dispatch";
 pub const RESOURCE_LIFECYCLE_TOPIC: &str = "talon.resource.lifecycle";
 pub const SESSION_PARTS_TOPIC_PREFIX: &str = "talon.session.parts";
 pub const CHANNEL_EVENTS_TOPIC_PREFIX: &str = "talon.channel.events";
+pub const WORKFLOW_EVENTS_TOPIC_PREFIX: &str = "talon.workflow.events";
 pub const DEFAULT_SESSION_PART_SHARDS: u32 = 32;
 
 pub fn session_part_shard_count() -> u32 {
@@ -41,4 +43,11 @@ pub fn session_part_topic_for_session(session_id: &str) -> String {
 
 pub fn channel_events_topic(ns: &str, channel: &str) -> String {
     format!("{}.{}.{}", CHANNEL_EVENTS_TOPIC_PREFIX, ns, channel)
+}
+
+pub fn workflow_events_topic(ns: &str, workflow: &str, run_id: &str) -> String {
+    format!(
+        "{}.{}.{}.{}",
+        WORKFLOW_EVENTS_TOPIC_PREFIX, ns, workflow, run_id
+    )
 }

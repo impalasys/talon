@@ -9,7 +9,7 @@ mod tests {
             SessionMessagePartEventKind,
         },
         scheduler::SchedulerBackend,
-        topics,
+        topics, ControlPlane, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::proto::gateway_service_server::GatewayService;
     use crate::gateway::rpc::{manifests, models, proto, GrpcGatewayHandler};
@@ -198,14 +198,38 @@ mod tests {
                 timezone: "UTC".to_string(),
                 target: Some(models::ScheduleTarget {
                     agent: agent.to_string(),
+                    workflow: String::new(),
                     session_mode: "new".to_string(),
                     session_id: String::new(),
                 }),
                 input_message: "check in".to_string(),
+                input_json: String::new(),
                 enabled: true,
             }),
             status: None,
             labels: HashMap::from([("team".to_string(), "ops".to_string())]),
+        }
+    }
+
+    fn workflow(name: &str, namespace: &str) -> models::Workflow {
+        models::Workflow {
+            name: name.to_string(),
+            ns: namespace.to_string(),
+            labels: HashMap::from([("app".to_string(), "retention".to_string())]),
+            spec: Some(models::WorkflowSpec {
+                input_schema_json: r#"{"type":"object"}"#.to_string(),
+                steps: vec![models::WorkflowStep {
+                    id: "approval".to_string(),
+                    r#type: "pause".to_string(),
+                    prompt: "Approve?".to_string(),
+                    resume_schema_json:
+                        r#"{"type":"object","required":["approved"],"properties":{"approved":{"type":"boolean"}}}"#
+                            .to_string(),
+                    ..Default::default()
+                }],
+                output_json: r#"{"approved":"${$.steps.approval.resume.approved}"}"#.to_string(),
+                ..Default::default()
+            }),
         }
     }
 
@@ -864,6 +888,189 @@ mod tests {
                     .map(|event| event.action == "stop_generation")
                     .unwrap_or(false)
         }));
+    }
+
+    #[tokio::test]
+    async fn gateway_service_forwards_workflow_crud_run_resume_cancel_and_stream_methods() {
+        let (handler, kv, scheduler, pubsub) = setup_handler();
+        let workflow = workflow("retention-review", "customer-retention");
+
+        let created = handler
+            .create_workflow(tonic::Request::new(proto::CreateWorkflowRequest {
+                ns: "customer-retention".to_string(),
+                workflow: Some(workflow.clone()),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .workflow
+            .expect("workflow should be returned");
+        assert_eq!(created.name, "retention-review");
+
+        let fetched = handler
+            .get_workflow(tonic::Request::new(proto::GetWorkflowRequest {
+                ns: "customer-retention".to_string(),
+                name: "retention-review".to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .workflow
+            .expect("workflow should fetch");
+        assert_eq!(fetched.labels.get("app"), Some(&"retention".to_string()));
+
+        let listed = handler
+            .list_workflows(tonic::Request::new(proto::ListWorkflowsRequest {
+                ns: "customer-retention".to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(listed.workflows.len(), 1);
+
+        let run = handler
+            .create_workflow_run(tonic::Request::new(proto::CreateWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                input_json: "{}".to_string(),
+                labels: HashMap::from([("source".to_string(), "test".to_string())]),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .run
+            .expect("run should be returned");
+        assert_eq!(run.status, "QUEUED");
+        assert_eq!(run.labels.get("source"), Some(&"test".to_string()));
+
+        let cp = ControlPlane {
+            kv: kv.clone(),
+            pubsub: pubsub.clone(),
+            scheduler,
+        };
+        let claimed = crate::workflows::claim_run(
+            cp.kv.as_ref(),
+            "customer-retention",
+            "retention-review",
+            &run.id,
+            chrono::Utc::now(),
+            "test",
+        )
+        .await
+        .unwrap()
+        .expect("run should claim");
+        crate::workflows::advance_run(&cp, claimed).await.unwrap();
+
+        let got_run = handler
+            .get_workflow_run(tonic::Request::new(proto::GetWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                run_id: run.id.clone(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(got_run.run.as_ref().unwrap().status, "SUSPENDED");
+        assert_eq!(got_run.steps.len(), 1);
+
+        let listed_runs = handler
+            .list_workflow_runs(tonic::Request::new(proto::ListWorkflowRunsRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(listed_runs.runs.len(), 1);
+
+        let invalid_resume = handler
+            .resume_workflow_run(tonic::Request::new(proto::ResumeWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                run_id: run.id.clone(),
+                step_id: "approval".to_string(),
+                resume_json: r#"{"approved":"yes"}"#.to_string(),
+            }))
+            .await
+            .unwrap_err();
+        assert_eq!(invalid_resume.code(), tonic::Code::InvalidArgument);
+
+        let resumed = handler
+            .resume_workflow_run(tonic::Request::new(proto::ResumeWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                run_id: run.id.clone(),
+                step_id: "approval".to_string(),
+                resume_json: r#"{"approved":true}"#.to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .run
+            .expect("run should return");
+        assert_eq!(resumed.status, "SUSPENDED");
+
+        let event = models::WorkflowRunEvent {
+            id: "event-1".to_string(),
+            ns: "customer-retention".to_string(),
+            workflow: "retention-review".to_string(),
+            run_id: run.id.clone(),
+            r#type: "run_resumed".to_string(),
+            step_id: "approval".to_string(),
+            message: "resumed".to_string(),
+            payload_json: "{}".to_string(),
+            timestamp: 1,
+        };
+        pubsub.streams.lock().await.insert(
+            topics::workflow_events_topic("customer-retention", "retention-review", &run.id),
+            vec![event.encode_to_vec()],
+        );
+        let mut stream = handler
+            .stream_workflow_events(tonic::Request::new(proto::StreamWorkflowEventsRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                run_id: run.id.clone(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        let streamed = stream
+            .next()
+            .await
+            .expect("stream should yield")
+            .expect("stream item should decode");
+        assert_eq!(streamed.r#type, "run_resumed");
+
+        let cancelled = handler
+            .cancel_workflow_run(tonic::Request::new(proto::CancelWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                run_id: run.id.clone(),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .run
+            .unwrap();
+        assert_eq!(cancelled.status, "CANCELLED");
+
+        let deleted = handler
+            .delete_workflow(tonic::Request::new(proto::DeleteWorkflowRequest {
+                ns: "customer-retention".to_string(),
+                name: "retention-review".to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert!(deleted.success);
+        assert!(kv
+            .get_msg::<models::Workflow>(&crate::control::keys::workflow(
+                "customer-retention",
+                "retention-review",
+            ))
+            .await
+            .unwrap()
+            .is_none());
     }
 
     #[tokio::test]
