@@ -169,7 +169,11 @@ impl WorkerEventHandler {
             .lock()
             .await
             .remove(&event.session_id);
-        self.release_session_lock(ns, &event.agent, &event.session_id)
+        let completion_status = outcome
+            .as_ref()
+            .map(|(status, _)| *status)
+            .unwrap_or(SessionCompletionStatus::Errored);
+        self.release_session_lock(ns, &event.agent, &event.session_id, completion_status)
             .instrument(tracing::info_span!(
                 "WorkerEventHandler.release_session_lock"
             ))
@@ -227,7 +231,13 @@ impl WorkerEventHandler {
         Ok(())
     }
 
-    async fn release_session_lock(&self, ns: &str, agent_id: &str, session_id: &str) {
+    async fn release_session_lock(
+        &self,
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+        completion_status: SessionCompletionStatus,
+    ) {
         let key = crate::control::keys::session(ns, agent_id, session_id);
         let mut released_session = None;
         let mut last_error = None;
@@ -247,7 +257,11 @@ impl WorkerEventHandler {
                     break;
                 }
             };
-            session.status = "IDLE".to_string();
+            session.status = match completion_status {
+                SessionCompletionStatus::Completed => "IDLE",
+                SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => "ERROR",
+            }
+            .to_string();
             let updated = session.encode_to_vec();
             match self
                 .cp
@@ -606,7 +620,12 @@ mod tests {
         .expect("session should persist");
 
         handler
-            .release_session_lock("conic:test", "assistant", "session-1")
+            .release_session_lock(
+                "conic:test",
+                "assistant",
+                "session-1",
+                SessionCompletionStatus::Completed,
+            )
             .await;
 
         let updated = kv
@@ -727,7 +746,7 @@ mod tests {
             .await
             .unwrap()
             .unwrap();
-        assert_eq!(session.status, "IDLE");
+        assert_eq!(session.status, "ERROR");
 
         let message_keys = kv
             .list_keys(&crate::control::keys::session_message_prefix(

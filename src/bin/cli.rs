@@ -269,6 +269,24 @@ fn auth_interceptor(cli: &Cli) -> Result<AuthInterceptor> {
     Ok(AuthInterceptor { authorization })
 }
 
+async fn connect_gateway(
+    cli: &Cli,
+) -> Result<
+    GatewayServiceClient<
+        tonic::service::interceptor::InterceptedService<tonic::transport::Channel, AuthInterceptor>,
+    >,
+> {
+    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
+        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect()
+        .await
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
+    Ok(GatewayServiceClient::with_interceptor(
+        channel,
+        auth_interceptor(cli)?,
+    ))
+}
+
 fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
     if let Some(token) = resolve_gateway_token(cli) {
         Ok(Some(format!("Bearer {}", token)))
@@ -1251,12 +1269,7 @@ async fn workflow_run_create(
         )
         .await;
     }
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
     let response = client
         .create_workflow_run(CreateWorkflowRunRequest {
             ns: namespace.to_string(),
@@ -1291,12 +1304,7 @@ async fn workflow_run_get(
         )
         .await;
     }
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
     let response = client
         .get_workflow_run(GetWorkflowRunRequest {
             ns: namespace.to_string(),
@@ -1328,12 +1336,7 @@ async fn workflow_run_list(
         )
         .await;
     }
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
     let response = client
         .list_workflow_runs(ListWorkflowRunsRequest {
             ns: namespace.to_string(),
@@ -1375,12 +1378,7 @@ async fn workflow_run_resume(
         )
         .await;
     }
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
     let response = client
         .resume_workflow_run(ResumeWorkflowRunRequest {
             ns: namespace.to_string(),
@@ -1416,12 +1414,7 @@ async fn workflow_run_cancel(
         )
         .await;
     }
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
     let response = client
         .cancel_workflow_run(CancelWorkflowRunRequest {
             ns: namespace.to_string(),
@@ -1445,12 +1438,7 @@ async fn workflow_run_events(
         rest_stream_workflow_events(cli, namespace, workflow, run_id).await?;
         return Ok(());
     }
-    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
-        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
-        .connect()
-        .await
-        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
-    let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
+    let mut client = connect_gateway(cli).await?;
     let mut stream = client
         .stream_workflow_events(StreamWorkflowEventsRequest {
             ns: namespace.to_string(),

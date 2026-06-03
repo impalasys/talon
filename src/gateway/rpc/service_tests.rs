@@ -1049,10 +1049,10 @@ mod tests {
             }))
             .await
             .unwrap()
-            .into_inner()
-            .run
-            .expect("run should return");
-        assert_eq!(resumed.status, "SUSPENDED");
+            .into_inner();
+        assert_eq!(resumed.run.as_ref().unwrap().status, "SUSPENDED");
+        assert_eq!(resumed.steps.len(), 1);
+        assert_eq!(resumed.steps[0].id, "approval");
 
         let missing_stream = match handler
             .stream_workflow_events(tonic::Request::new(proto::StreamWorkflowEventsRequest {
@@ -1109,10 +1109,9 @@ mod tests {
             }))
             .await
             .unwrap()
-            .into_inner()
-            .run
-            .unwrap();
-        assert_eq!(cancelled.status, "CANCELLED");
+            .into_inner();
+        assert_eq!(cancelled.run.as_ref().unwrap().status, "CANCELLED");
+        assert_eq!(cancelled.steps.len(), 1);
 
         let deleted = handler
             .delete_workflow(tonic::Request::new(proto::DeleteWorkflowRequest {

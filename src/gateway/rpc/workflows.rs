@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{models, proto, GrpcGatewayHandler};
-use crate::control::{keys, topics, ProtoKeyValueStoreExt};
+use crate::control::{keys, topics, KeyValueStore, ProtoKeyValueStoreExt};
 use crate::workflows;
 use futures::StreamExt;
 use prost::Message;
@@ -158,12 +158,7 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow run not found"))?;
-        let mut steps = workflows::load_step_runs(self.gateway.kv.as_ref(), &run)
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?
-            .into_values()
-            .collect::<Vec<_>>();
-        steps.sort_by(|left, right| left.id.cmp(&right.id));
+        let steps = load_sorted_workflow_step_runs(self.gateway.kv.as_ref(), &run).await?;
         Ok(tonic::Response::new(proto::WorkflowRunResponse {
             run: Some(run),
             steps,
@@ -217,9 +212,10 @@ impl GrpcGatewayHandler {
         )
         .await
         .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+        let steps = load_sorted_workflow_step_runs(self.gateway.kv.as_ref(), &run).await?;
         Ok(tonic::Response::new(proto::WorkflowRunResponse {
             run: Some(run),
-            steps: Vec::new(),
+            steps,
         }))
     }
 
@@ -237,9 +233,10 @@ impl GrpcGatewayHandler {
         )
         .await
         .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+        let steps = load_sorted_workflow_step_runs(self.gateway.kv.as_ref(), &run).await?;
         Ok(tonic::Response::new(proto::WorkflowRunResponse {
             run: Some(run),
-            steps: Vec::new(),
+            steps,
         }))
     }
 
@@ -288,6 +285,19 @@ impl GrpcGatewayHandler {
         });
         Ok(tonic::Response::new(Box::pin(event_stream)))
     }
+}
+
+async fn load_sorted_workflow_step_runs(
+    kv: &dyn KeyValueStore,
+    run: &models::WorkflowRun,
+) -> Result<Vec<models::WorkflowStepRun>, tonic::Status> {
+    let mut steps = workflows::load_step_runs(kv, run)
+        .await
+        .map_err(|err| tonic::Status::internal(err.to_string()))?
+        .into_values()
+        .collect::<Vec<_>>();
+    steps.sort_by(|left, right| left.id.cmp(&right.id));
+    Ok(steps)
 }
 
 trait GatewayControlPlaneExt {

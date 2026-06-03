@@ -817,6 +817,37 @@ async fn try_complete_agent_step(
     if session.status == "PROCESSING" {
         return Ok(false);
     }
+    if session.status == "ERROR" {
+        let mut failed = current;
+        failed.status = STATUS_FAILED.to_string();
+        failed.error = format!("child session '{}' failed", session.id);
+        failed.updated_at = Utc::now().timestamp_micros();
+        let failed = apply_failed_retry_policy(cp, run, step, failed).await?;
+        persist_step_run(cp, run, &failed).await?;
+        if failed.status == STATUS_WAITING_RETRY {
+            append_run_event(
+                cp,
+                run,
+                &step.id,
+                "step_retry_scheduled",
+                &failed.error,
+                json!({ "error": failed.error, "nextRetryAt": failed.next_retry_at }),
+            )
+            .await?;
+        } else {
+            append_run_event(
+                cp,
+                run,
+                &step.id,
+                "step_failed",
+                &failed.error,
+                json!({ "error": failed.error }),
+            )
+            .await?;
+        }
+        step_runs.insert(step.id.clone(), failed);
+        return Ok(true);
+    }
     let text = latest_assistant_text(cp.kv.as_ref(), &run.ns, &step.agent, &session.id).await?;
     let output = match apply_output_policy(step, &text) {
         Ok(output) => output,
@@ -3226,5 +3257,113 @@ spec:
             std::env::remove_var("NOVITA_BASE_URL");
         }
         server.abort();
+    }
+
+    #[tokio::test]
+    async fn failed_child_agent_session_fails_step_without_using_stale_output() {
+        let kv = Arc::new(MockKvStore::new());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = workflow_handler(kv.clone(), pubsub);
+        let workflow = models::Workflow {
+            name: "agent-failure".to_string(),
+            ns: "customer-retention".to_string(),
+            labels: HashMap::new(),
+            spec: Some(models::WorkflowSpec {
+                steps: vec![models::WorkflowStep {
+                    id: "draft".to_string(),
+                    r#type: "agent".to_string(),
+                    agent: "campaign-writer".to_string(),
+                    prompt: "Draft an action".to_string(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
+        };
+        kv.set_msg(
+            &keys::workflow("customer-retention", "agent-failure"),
+            &workflow,
+        )
+        .await
+        .expect("workflow should persist");
+        kv.set_msg(
+            &keys::agent("customer-retention", "campaign-writer"),
+            &models::Agent {
+                name: "campaign-writer".to_string(),
+                ns: "customer-retention".to_string(),
+                definition: None,
+                effective_spec: Some(manifests::AgentSpec {
+                    features: Vec::new(),
+                    model_policy: None,
+                    system_prompt: "Write concise retention actions.".to_string(),
+                    mcp_server_refs: Vec::new(),
+                    capabilities: HashMap::new(),
+                }),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .expect("agent should persist");
+
+        let run = create_run(&handler.cp, &workflow, "{}".to_string(), HashMap::new())
+            .await
+            .expect("run should create");
+        handler
+            .handle_workflow_dispatch(workflow_dispatch(&run, "created"))
+            .await
+            .expect("workflow should start child session");
+        let waiting = stored_run(&kv, "customer-retention", "agent-failure", &run.id).await;
+        let draft_step = stored_step(&kv, &waiting, "draft").await;
+        assert_eq!(draft_step.status, STATUS_WAITING_CHILD_SESSION);
+
+        let session_key = keys::session(
+            "customer-retention",
+            "campaign-writer",
+            &draft_step.child_session_id,
+        );
+        let mut session = kv
+            .get_msg::<models::Session>(&session_key)
+            .await
+            .expect("session should load")
+            .expect("session should exist");
+        kv.set_msg(
+            &keys::session_message(
+                "customer-retention",
+                "campaign-writer",
+                &draft_step.child_session_id,
+                "old-assistant",
+            ),
+            &models::SessionMessage {
+                id: "old-assistant".to_string(),
+                role: models::MessageRole::RoleAssistant as i32,
+                created_at: 1,
+                labels: HashMap::new(),
+                parts: vec![models::SessionMessagePart {
+                    id: "old-text".to_string(),
+                    part_type: models::SessionMessagePartType::Text as i32,
+                    content: "stale output from previous turn".to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 1,
+                }],
+            },
+        )
+        .await
+        .expect("stale assistant message should persist");
+        session.status = "ERROR".to_string();
+        kv.set_msg(&session_key, &session)
+            .await
+            .expect("failed child session should persist");
+
+        handler
+            .handle_workflow_dispatch(workflow_dispatch(&run, "child_session_completed"))
+            .await
+            .expect("workflow should process failed child session");
+        let failed = stored_run(&kv, "customer-retention", "agent-failure", &run.id).await;
+        let failed_step = stored_step(&kv, &failed, "draft").await;
+        assert_eq!(failed_step.status, STATUS_FAILED);
+        assert!(failed_step.error.contains("child session"));
+        assert_ne!(failed_step.output_json, r#"{"text":"stale output from previous turn"}"#);
+        assert_eq!(failed.status, STATUS_FAILED);
     }
 }
