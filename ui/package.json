@@ -1,5 +1,5 @@
 {
-  "name": "@impalasys/talon-ui",
+  "name": "@impalasys/talon-sightline",
   "version": "1.0.0",
   "private": true,
   "description": "",
@@ -18,7 +18,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.17.1",
   "dependencies": {
-    "@talonai/copilot": "workspace:*",
+    "@impalasys/talon-chat": "workspace:*",
     "@ai-sdk/openai": "3.0.51",
     "@ai-sdk/react": "1.2.12",
     "@connectrpc/connect": "^2.1.1",

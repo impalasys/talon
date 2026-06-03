@@ -33,7 +33,7 @@ In the checked-in local stack, the control plane uses Postgres and a Pub/Sub emu
 src/                  Rust runtime, gateway, worker, control plane, CLI
 src/bin/              talon-server, talon-worker, talon-cli entrypoints
 ui/                   Next.js operator UI
-packages/copilot/     React client package for Talon-backed chat surfaces
+packages/talon-chat/ React client package for Talon-backed chat surfaces
 proto/                Protobuf service and schema definitions
 manifests/            Default and example namespace/agent resources
 dockerfiles/          Runtime, UI, and Envoy container builds

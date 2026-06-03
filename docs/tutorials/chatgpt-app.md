@@ -102,7 +102,7 @@ This is the same route a frontend would call.
 The fastest frontend path is the shared copilot component:
 
 ```tsx
-import { TalonCopilot } from "@talonai/copilot";
+import { TalonCopilot } from "@impalasys/talon-chat";
 
 export function SupportApp() {
   return (
@@ -115,7 +115,7 @@ export function SupportApp() {
 }
 ```
 
-See `packages/copilot/README.md` for the minimal integration shape.
+See `packages/talon-chat/README.md` for the minimal integration shape.
 
 ## 7. Inspect the app in Sightline
 

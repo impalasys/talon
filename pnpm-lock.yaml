@@ -8,7 +8,7 @@ importers:
 
   docs-site: {}
 
-  packages/copilot:
+  packages/talon-chat:
     dependencies:
       lucide-react:
         specifier: ^0.400.0
@@ -83,15 +83,15 @@ importers:
       '@connectrpc/connect-web':
         specifier: ^2.1.1
         version: 2.1.1(@bufbuild/protobuf@2.12.0)(@connectrpc/connect@2.1.1(@bufbuild/protobuf@2.12.0))
+      '@impalasys/talon-chat':
+        specifier: workspace:*
+        version: link:../packages/talon-chat
       '@tailgrids/icons':
         specifier: ^2.0.0
         version: 2.0.0(typescript@5.9.3)
       '@tailwindcss/postcss':
         specifier: ^4.1.13
         version: 4.3.0
-      '@talonai/copilot':
-        specifier: workspace:*
-        version: link:../packages/copilot
       ai:
         specifier: ^5.0.52
         version: 5.0.188(zod@3.25.76)
