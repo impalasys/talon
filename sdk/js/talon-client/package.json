@@ -4,6 +4,11 @@
   "description": "Generated Talon protobuf and RPC client bindings",
   "type": "module",
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/impalasys/talon.git",
+    "directory": "sdk/js/talon-client"
+  },
   "sideEffects": false,
   "files": [
     "dist",
@@ -23,6 +28,9 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsc -p tsconfig.json && node --test dist/index.test.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@bufbuild/protobuf": "^1.10.1",

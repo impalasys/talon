@@ -56,37 +56,45 @@ jobs:
         run: python3 scripts/sdk/detect_version_changes.py
 
   build-node-binaries:
-    name: Build talon-node SDK Binary
+    name: Cross-compile talon-node SDK Binary
     if: needs.detect.outputs.needs_node_binaries == 'true'
     needs: detect
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux-x64
-          - os: macos-14
-            platform: darwin-arm64
-    runs-on: ${{ matrix.os }}
+          - platform: linux-x64
+            target: x86_64-unknown-linux-gnu
+          - platform: darwin-arm64
+            target: aarch64-apple-darwin
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross-compilation tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          python3 -m pip install --user ziglang
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          cargo install cargo-zigbuild --locked
 
       - name: Build talon-node
-        run: cargo build --locked --release --bin talon-node
+        run: cargo zigbuild --locked --release --bin talon-node --target "${{ matrix.target }}"
 
       - name: Package talon-node
         run: |
+          set -euo pipefail
           mkdir -p "dist/talon-node-${{ matrix.platform }}"
-          cp target/release/talon-node "dist/talon-node-${{ matrix.platform }}/"
+          cp "target/${{ matrix.target }}/release/talon-node" "dist/talon-node-${{ matrix.platform }}/"
           tar -C dist -czf "dist/talon-node-${{ matrix.platform }}.tar.gz" "talon-node-${{ matrix.platform }}"
-          if [ "${RUNNER_OS}" = "macOS" ]; then
-            shasum -a 256 "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
-          else
-            sha256sum "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
-          fi
+          sha256sum "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
 
       - name: Upload talon-node binary
         uses: actions/upload-artifact@v4
@@ -193,8 +201,6 @@ jobs:
       - detect
       - build-node-binaries
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v5
 
@@ -206,10 +212,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
-          cache: "pnpm"
-          cache-dependency-path: sdk/js/pnpm-lock.yaml
+          package-manager-cache: false
+
+      - name: Ensure npm supports trusted publishing
+        run: npm install -g npm@latest
 
       - name: Download talon-node binaries
         if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
@@ -253,15 +261,11 @@ jobs:
           JS_NODE_DARWIN_VERSION: ${{ needs.detect.outputs.js_node_darwin_version }}
         run: |
           set -euo pipefail
-          if [ -z "${NODE_AUTH_TOKEN}" ]; then
-            echo "NPM_TOKEN is required"
-            exit 1
-          fi
           publish_if_changed() {
             local changed="$1"
             local package="$2"
             local version="$3"
-            local path="$4"
+            local package_path="$4"
             if [ "$changed" != "true" ]; then
               return 0
             fi
@@ -269,7 +273,10 @@ jobs:
               echo "${package}@${version} already exists; skipping"
               return 0
             fi
-            pnpm publish "$path" --access public --no-git-checks
+            local pack_dir
+            pack_dir="$(mktemp -d)"
+            pnpm --dir "$package_path" pack --pack-destination "$pack_dir"
+            npm publish "$pack_dir"/*.tgz --access public
           }
           publish_if_changed "$JS_NODE_LINUX_CHANGED" "@impalasys/talon-node-linux-x64" "$JS_NODE_LINUX_VERSION" "sdk/js/talon-node-linux-x64"
           publish_if_changed "$JS_NODE_DARWIN_CHANGED" "@impalasys/talon-node-darwin-arm64" "$JS_NODE_DARWIN_VERSION" "sdk/js/talon-node-darwin-arm64"

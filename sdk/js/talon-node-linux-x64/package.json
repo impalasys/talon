@@ -4,11 +4,18 @@
   "description": "Linux x86_64 talon-node binary",
   "type": "module",
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/impalasys/talon.git",
+    "directory": "sdk/js/talon-node-linux-x64"
+  },
   "os": ["linux"],
   "cpu": ["x64"],
   "files": ["bin", "index.js"],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./index.js"
   }
 }
-
