@@ -465,7 +465,7 @@ fn workflow_upsert_retry_backoff_ms(attempt: usize) -> u64 {
     let exponential = WORKFLOW_UPSERT_RETRY_BACKOFF_MS
         .saturating_mul(1_u64 << shift)
         .min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS);
-    let jitter = (uuid::Uuid::now_v7().as_u128() % WORKFLOW_UPSERT_RETRY_BACKOFF_MS as u128) as u64;
+    let jitter = (uuid::Uuid::now_v7().as_u128() % (exponential as u128 / 2 + 1)) as u64;
     (exponential + jitter).min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS)
 }
 
