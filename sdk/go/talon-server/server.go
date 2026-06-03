@@ -1,0 +1,341 @@
+package talonserver
+
+import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"sync"
+	"time"
+)
+
+const defaultVersion = "latest"
+
+type Provider struct {
+	Name    string
+	BaseURL string
+	Model   string
+	APIKey  string
+}
+
+type Options struct {
+	TalonNodePath  string
+	Version        string
+	GrpcPort      int
+	UIPort        int
+	KeepTempDir   bool
+	Env           map[string]string
+	StartupTimeout time.Duration
+	Provider      *Provider
+}
+
+type Server struct {
+	process    *exec.Cmd
+	tempDir    string
+	configPath string
+	grpcPort   int
+	uiPort     int
+	keepTemp   bool
+	logs       lockedBuffer
+}
+
+type lockedBuffer struct {
+	mu   sync.Mutex
+	data []byte
+}
+
+func (b *lockedBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.data = append(b.data, p...)
+	return len(p), nil
+}
+
+func (b *lockedBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return string(b.data)
+}
+
+func Start(ctx context.Context, opts Options) (*Server, error) {
+	if opts.StartupTimeout == 0 {
+		opts.StartupTimeout = 30 * time.Second
+	}
+	if opts.Version == "" {
+		opts.Version = defaultVersion
+	}
+	nodePath, err := resolveTalonNode(ctx, opts)
+	if err != nil {
+		return nil, err
+	}
+	grpcPort := opts.GrpcPort
+	if grpcPort == 0 {
+		grpcPort, err = freePort()
+		if err != nil {
+			return nil, err
+		}
+	}
+	uiPort := opts.UIPort
+	if uiPort == 0 {
+		uiPort, err = freePort()
+		if err != nil {
+			return nil, err
+		}
+	}
+	tempDir, err := os.MkdirTemp("", "talon-server-")
+	if err != nil {
+		return nil, err
+	}
+	configPath := filepath.Join(tempDir, "talon.yaml")
+	if err := os.MkdirAll(filepath.Join(tempDir, "data"), 0o755); err != nil {
+		_ = os.RemoveAll(tempDir)
+		return nil, err
+	}
+	if err := os.WriteFile(configPath, []byte(configYAML(opts.Provider)), 0o600); err != nil {
+		_ = os.RemoveAll(tempDir)
+		return nil, err
+	}
+
+	cmd := exec.CommandContext(ctx, nodePath)
+	server := &Server{
+		process:    cmd,
+		tempDir:    tempDir,
+		configPath: configPath,
+		grpcPort:   grpcPort,
+		uiPort:     uiPort,
+		keepTemp:   opts.KeepTempDir,
+	}
+	cmd.Stdout = &server.logs
+	cmd.Stderr = &server.logs
+	cmd.Env = append(os.Environ(),
+		"GRPC_ADDR=127.0.0.1:"+fmt.Sprint(grpcPort),
+		"GATEWAY_UI_ADDR=127.0.0.1:"+fmt.Sprint(uiPort),
+		"TALON_CONFIG_PATH="+configPath,
+		"RUST_LOG=info",
+	)
+	for k, v := range opts.Env {
+		cmd.Env = append(cmd.Env, k+"="+v)
+	}
+	if err := cmd.Start(); err != nil {
+		_ = os.RemoveAll(tempDir)
+		return nil, err
+	}
+	if err := waitForPort(ctx, "127.0.0.1", grpcPort, opts.StartupTimeout); err != nil {
+		_ = server.Stop()
+		return nil, fmt.Errorf("talon-node did not become ready: %w; logs:\n%s", err, server.Logs())
+	}
+	return server, nil
+}
+
+func (s *Server) GrpcEndpoint() string { return "127.0.0.1:" + fmt.Sprint(s.grpcPort) }
+func (s *Server) UIEndpoint() string   { return "http://127.0.0.1:" + fmt.Sprint(s.uiPort) }
+func (s *Server) TempDir() string      { return s.tempDir }
+func (s *Server) ConfigPath() string   { return s.configPath }
+func (s *Server) Logs() string         { return s.logs.String() }
+
+func (s *Server) Stop() error {
+	var err error
+	if s.process != nil && s.process.Process != nil {
+		err = s.process.Process.Signal(os.Interrupt)
+		done := make(chan error, 1)
+		go func() { done <- s.process.Wait() }()
+		select {
+		case waitErr := <-done:
+			if waitErr != nil && err == nil {
+				err = waitErr
+			}
+		case <-time.After(2 * time.Second):
+			_ = s.process.Process.Kill()
+			err = <-done
+		}
+	}
+	if !s.keepTemp {
+		if rmErr := os.RemoveAll(s.tempDir); rmErr != nil && err == nil {
+			err = rmErr
+		}
+	}
+	return err
+}
+
+func resolveTalonNode(ctx context.Context, opts Options) (string, error) {
+	if opts.TalonNodePath != "" {
+		return opts.TalonNodePath, nil
+	}
+	if env := os.Getenv("TALON_NODE_PATH"); env != "" {
+		return env, nil
+	}
+	return downloadTalonNode(ctx, opts.Version)
+}
+
+func downloadTalonNode(ctx context.Context, version string) (string, error) {
+	platform, err := platformName()
+	if err != nil {
+		return "", err
+	}
+	cache, err := os.UserCacheDir()
+	if err != nil {
+		return "", err
+	}
+	targetDir := filepath.Join(cache, "talon", "node", version, platform)
+	target := filepath.Join(targetDir, "talon-node")
+	if _, err := os.Stat(target); err == nil {
+		return target, nil
+	}
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
+		return "", err
+	}
+	base := fmt.Sprintf("https://github.com/impalasys/talon/releases/%s/download", version)
+	if version != "latest" {
+		base = fmt.Sprintf("https://github.com/impalasys/talon/releases/download/%s", version)
+	}
+	archiveURL := fmt.Sprintf("%s/talon-node-%s.tar.gz", base, platform)
+	checksumURL := archiveURL + ".sha256"
+	archive, err := httpGet(ctx, archiveURL)
+	if err != nil {
+		return "", err
+	}
+	checksum, err := httpGet(ctx, checksumURL)
+	if err != nil {
+		return "", err
+	}
+	if err := verifySHA256(archive, string(checksum)); err != nil {
+		return "", err
+	}
+	if err := extractTalonNode(archive, targetDir); err != nil {
+		return "", err
+	}
+	return target, os.Chmod(target, 0o755)
+}
+
+func platformName() (string, error) {
+	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" {
+		return "linux-x64", nil
+	}
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+		return "darwin-arm64", nil
+	}
+	return "", fmt.Errorf("unsupported talon-node platform: %s-%s", runtime.GOOS, runtime.GOARCH)
+}
+
+func httpGet(ctx context.Context, url string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("download %s failed: %s", url, resp.Status)
+	}
+	return io.ReadAll(resp.Body)
+}
+
+func verifySHA256(data []byte, expectedLine string) error {
+	expected := strings.Fields(expectedLine)
+	if len(expected) == 0 {
+		return errors.New("empty checksum")
+	}
+	sum := sha256.Sum256(data)
+	if hex.EncodeToString(sum[:]) != expected[0] {
+		return errors.New("talon-node checksum mismatch")
+	}
+	return nil
+}
+
+func extractTalonNode(data []byte, targetDir string) error {
+	gz, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+	tr := tar.NewReader(gz)
+	for {
+		header, err := tr.Next()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if filepath.Base(header.Name) != "talon-node" {
+			continue
+		}
+		out, err := os.OpenFile(filepath.Join(targetDir, "talon-node"), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o755)
+		if err != nil {
+			return err
+		}
+		_, copyErr := io.Copy(out, tr)
+		closeErr := out.Close()
+		if copyErr != nil {
+			return copyErr
+		}
+		return closeErr
+	}
+	return errors.New("talon-node not found in archive")
+}
+
+func freePort() (int, error) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return 0, err
+	}
+	defer listener.Close()
+	return listener.Addr().(*net.TCPAddr).Port, nil
+}
+
+func waitForPort(ctx context.Context, host string, port int, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, fmt.Sprint(port)), 250*time.Millisecond)
+		if err == nil {
+			_ = conn.Close()
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(100 * time.Millisecond):
+		}
+	}
+	return errors.New("timeout")
+}
+
+func configYAML(provider *Provider) string {
+	var providers string
+	if provider != nil {
+		name := provider.Name
+		if name == "" {
+			name = "mock"
+		}
+		providers = fmt.Sprintf(`providers:
+  %s:
+    type: openai_compatible
+    base_url: %q
+    model: %q
+    api_key: %q
+default_provider: %q
+`, name, provider.BaseURL, provider.Model, provider.APIKey, name)
+	}
+	return providers + `control_plane:
+  database:
+    driver: sqlite
+    data_dir: ./data
+  message_broker:
+    driver: local_socket
+`
+}

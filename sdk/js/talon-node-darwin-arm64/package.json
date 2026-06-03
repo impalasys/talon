@@ -1,0 +1,14 @@
+{
+  "name": "@impalasys/talon-node-darwin-arm64",
+  "version": "0.1.0",
+  "description": "macOS arm64 talon-node binary",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "os": ["darwin"],
+  "cpu": ["arm64"],
+  "files": ["bin", "index.js"],
+  "exports": {
+    ".": "./index.js"
+  }
+}
+

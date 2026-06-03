@@ -1,0 +1,30 @@
+version: v2
+managed:
+  enabled: true
+plugins:
+  - remote: buf.build/protocolbuffers/go
+    out: sdk/go/talon-client
+    opt:
+      - module=github.com/impalasys/talon/sdk/go/talon-client
+  - remote: buf.build/grpc/go
+    out: sdk/go/talon-client
+    opt:
+      - module=github.com/impalasys/talon/sdk/go/talon-client
+  - remote: buf.build/protocolbuffers/java
+    out: sdk/java/talon-client/src/main/java
+  - remote: buf.build/grpc/java
+    out: sdk/java/talon-client/src/main/java
+  - remote: buf.build/bufbuild/es
+    out: sdk/js/talon-client/src/gen
+    opt:
+      - target=ts
+      - import_extension=.js
+  - remote: buf.build/connectrpc/es
+    out: sdk/js/talon-client/src/gen
+    opt:
+      - target=ts
+      - import_extension=.js
+  - remote: buf.build/protocolbuffers/python
+    out: sdk/python/talon-client/src/talon_client
+  - remote: buf.build/grpc/python
+    out: sdk/python/talon-client/src/talon_client

@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "talon-client",
+    "talon-server",
+    "tools/codegen",
+]
+resolver = "2"
+

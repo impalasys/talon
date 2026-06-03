@@ -1,0 +1,30 @@
+{
+  "name": "@impalasys/talon-server",
+  "version": "0.1.0",
+  "description": "Local Talon node helper for tests and development",
+  "type": "module",
+  "license": "AGPL-3.0-only",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsc -p tsconfig.json && node --test dist/index.test.js"
+  },
+  "optionalDependencies": {
+    "@impalasys/talon-node-darwin-arm64": "0.1.0",
+    "@impalasys/talon-node-linux-x64": "0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@impalasys/talon-server-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsc -p tsconfig.json && node dist/index.js"
+  },
+  "dependencies": {
+    "@connectrpc/connect": "^1.7.0",
+    "@connectrpc/connect-node": "^1.7.0",
+    "@impalasys/talon-client": "file:../../js/talon-client",
+    "@impalasys/talon-server": "file:../../js/talon-server"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.1",
+    "typescript": "^6.0.3"
+  }
+}
+

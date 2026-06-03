@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "impalasys-talon-python-example"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+  "grpcio>=1.76,<2",
+  "impalasys-talon-client",
+  "impalasys-talon-server",
+]
+
+[tool.uv.sources]
+impalasys-talon-client = { path = "../../python/talon-client", editable = true }
+impalasys-talon-server = { path = "../../python/talon-server", editable = true }
+
