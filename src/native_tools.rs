@@ -16,6 +16,32 @@ pub const GET_SCHEDULE_TOOL: &str = "get_schedule";
 pub const LIST_SCHEDULES_TOOL: &str = "list_schedules";
 pub const UPDATE_SCHEDULE_TOOL: &str = "update_schedule";
 pub const DELETE_SCHEDULE_TOOL: &str = "delete_schedule";
+pub const CHANNEL_PUBLISH_TOOL: &str = "channel_publish";
+pub const CHANNEL_SKIP_REPLY_TOOL: &str = "channel_skip_reply";
+
+pub fn register_channel_tools(registry: &mut ToolRegistry) {
+    registry.register_builtin(
+        CHANNEL_PUBLISH_TOOL,
+        "Publish a public response to the channel that triggered this session. Normal assistant text remains private; use this tool for channel-visible replies.",
+        json!({
+            "type": "object",
+            "properties": {
+                "content": { "type": "string", "description": "Public channel response content." }
+            },
+            "required": ["content"]
+        }),
+    );
+    registry.register_builtin(
+        CHANNEL_SKIP_REPLY_TOOL,
+        "Mark this channel-triggered session as not needing a public channel reply.",
+        json!({
+            "type": "object",
+            "properties": {
+                "reason": { "type": "string", "description": "Optional private reason for skipping a channel reply." }
+            }
+        }),
+    );
+}
 
 pub fn register_tools(registry: &mut ToolRegistry, spec: &manifests::AgentSpec) {
     if !has_capability_action(spec, "schedules", "inspect")
@@ -118,7 +144,50 @@ pub async fn execute_tool(
     name: &str,
     args: &Value,
 ) -> Result<Option<String>> {
+    execute_tool_for_session(cp, current_namespace, current_agent, "", spec, name, args).await
+}
+
+pub async fn execute_tool_for_session(
+    cp: &ControlPlane,
+    current_namespace: &str,
+    current_agent: &str,
+    current_session: &str,
+    spec: &manifests::AgentSpec,
+    name: &str,
+    args: &Value,
+) -> Result<Option<String>> {
     match name {
+        CHANNEL_PUBLISH_TOOL => {
+            let content = req_str(args, "content")?;
+            let message = crate::gateway::rpc::channels::publish_channel_message_from_session(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                content,
+            )
+            .await?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "published": true,
+                "messageId": message.id,
+                "channel": message.channel
+            }))?))
+        }
+        CHANNEL_SKIP_REPLY_TOOL => {
+            let reason = opt_str(args, "reason").unwrap_or("");
+            crate::gateway::rpc::channels::skip_channel_reply_from_session(
+                cp,
+                current_namespace,
+                current_agent,
+                current_session,
+                reason,
+            )
+            .await?;
+            Ok(Some(serde_json::to_string_pretty(&json!({
+                "published": false,
+                "skipped": true
+            }))?))
+        }
         LIST_SCHEDULES_TOOL => {
             require_capability(spec, "schedules", "inspect")?;
             let namespace = opt_str(args, "namespace").unwrap_or(current_namespace);

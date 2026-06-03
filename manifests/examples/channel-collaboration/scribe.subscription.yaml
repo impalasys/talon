@@ -1,0 +1,15 @@
+apiVersion: talon.impalasys.com/v1
+kind: ChannelSubscription
+metadata:
+  name: scribe
+  namespace: channel-collaboration
+  labels:
+    tutorial: channel-collaboration
+spec:
+  channel: incident-room
+  agent: scribe-agent
+  enabled: true
+  trigger: manual
+  contextPolicy:
+    mode: recent_public
+    maxMessages: 30

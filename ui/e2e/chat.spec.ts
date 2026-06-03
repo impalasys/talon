@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createClient } from "@connectrpc/connect";
@@ -8,7 +9,7 @@ import { GatewayService } from "../proto/proto/gateway_pb";
 async function createTestSession() {
   const API_PORT = process.env.API_PORT || '18789';
   const gatewayUrl = `http://127.0.0.1:${API_PORT}`;
-  const runId = Date.now().toString();
+  const runId = `${Date.now()}-${randomUUID().slice(0, 8)}`;
   const testNs = `e2e-ns-${runId}`;
   const testAgent = `e2e-agent-${runId}`;
 
@@ -92,10 +93,32 @@ async function waitForSessionText(
       pageSize: 50,
     });
     const contents = (history.items ?? [])
-      .map((item: any) => item.message?.content)
+      .map((item: any) => sessionMessageText(item.message))
       .filter(Boolean);
     expect(contents).toContain(expectedText);
   }).toPass({ timeout: 60000 });
+}
+
+function sessionMessageText(message: any): string {
+  if (Array.isArray(message?.parts)) {
+    const content = message.parts
+      .filter((part: any) => {
+        const type = part?.partType ?? part?.part_type ?? part?.type;
+        return type === 1 || type === 'SESSION_MESSAGE_PART_TYPE_TEXT' || type === 'text' || type === 6 || type === 'SESSION_MESSAGE_PART_TYPE_ERROR';
+      })
+      .map((part: any) => typeof part?.content === 'string' ? part.content : typeof part?.text === 'string' ? part.text : '')
+      .join('');
+    if (content) return content;
+  }
+  return typeof message?.content === 'string' ? message.content : '';
+}
+
+function hasReasoningPart(message: any): boolean {
+  return Array.isArray(message?.parts) && message.parts.some((part: any) => {
+    const type = part?.partType ?? part?.part_type ?? part?.type;
+    const content = typeof part?.content === 'string' ? part.content : typeof part?.text === 'string' ? part.text : '';
+    return content.length > 0 && (type === 2 || type === 'SESSION_MESSAGE_PART_TYPE_REASONING' || type === 'reasoning');
+  });
 }
 
 async function annotatePaginationProof(page: Page, label: string) {
@@ -151,13 +174,14 @@ test.describe('Chat Streaming', () => {
     });
 
     await expect(async () => {
-      const session = await client.getSession({
+      const history = await client.listSessionMessages({
         ns: testNs,
         agent: testAgent,
         sessionId,
+        pageSize: 50,
       }) as any;
-      expect(session.messages?.some((message: any) => message.content === 'Hello! I am a mock LLM. How can I assist you today?')).toBeTruthy();
-      expect((session.steps ?? []).some((step: any) => step.stepType === 6 || step.stepType === 'STEP_TYPE_REASONING')).toBeTruthy();
+      expect((history.items ?? []).some((item: any) => sessionMessageText(item.message) === 'Hello! I am a mock LLM. How can I assist you today?')).toBeTruthy();
+      expect((history.items ?? []).some((item: any) => hasReasoningPart(item.message))).toBeTruthy();
     }).toPass({ timeout: 30000 });
 
     await page.reload();

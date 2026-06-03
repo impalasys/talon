@@ -41,7 +41,7 @@ export type CopilotMessage = {
   role: "user" | "assistant" | "system";
   content: string;
   createdAt?: string | number | bigint;
-  parts?: Array<Record<string, unknown>>;
+  parts?: unknown;
   reasoningContent?: string;
   timeline?: AssistantTimelineItem[];
   usage?: UsageSummary;
@@ -69,7 +69,82 @@ export type TalonCopilotProps = {
   historyStepLimit?: number;
 };
 
+export type ChannelMessage = {
+  id?: string;
+  ns?: string;
+  channel?: string;
+  authorKind?: string;
+  author_kind?: string;
+  author?: string;
+  content?: string;
+  createdAt?: string | number | bigint;
+  created_at?: string | number | bigint;
+  sourceAgent?: string;
+  source_agent?: string;
+  sourceSessionId?: string;
+  source_session_id?: string;
+};
+
+export type TalonChannelProps = {
+  namespace: string;
+  channel: string | {
+    name?: string;
+    ns?: string;
+    title?: string;
+    status?: string;
+    metadata?: Record<string, string>;
+    labels?: Record<string, string>;
+  };
+  gatewayUrl: string;
+  authToken?: string | null;
+  className?: string;
+  style?: React.CSSProperties;
+  disabled?: boolean;
+  disableUserInput?: boolean;
+  author?: string;
+  authorKind?: string;
+  messageLimit?: number;
+  refreshIntervalMs?: number | false;
+  timestampLocale?: Intl.LocalesArgument;
+  formatTimestamp?: (message: ChannelMessage) => string;
+  renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
+};
+
+export type UseTalonChannelMessagesOptions = {
+  namespace: string;
+  channel: string | {
+    name?: string;
+    ns?: string;
+    title?: string;
+    status?: string;
+    metadata?: Record<string, string>;
+    labels?: Record<string, string>;
+  } | null | undefined;
+  gatewayUrl: string;
+  authToken?: string | null;
+  disabled?: boolean;
+  messageLimit?: number;
+  refreshIntervalMs?: number | false;
+};
+
+export type UseTalonChannelMessagesResult = {
+  channelName: string;
+  status: string;
+  messages: ChannelMessage[];
+  isLoading: boolean;
+  isLoadingOlderMessages: boolean;
+  hasMoreMessages: boolean;
+  error: string | null;
+  refresh: (options?: { silent?: boolean; replace?: boolean }) => Promise<void>;
+  loadOlderMessages: () => Promise<void>;
+  postMessage: (options: { author: string; authorKind: string; content: string }) => Promise<void>;
+};
+
 export function TalonCopilot(props: TalonCopilotProps): React.JSX.Element;
+export function TalonChannel(props: TalonChannelProps): React.JSX.Element;
+export function useTalonChannelMessages(
+  options: UseTalonChannelMessagesOptions,
+): UseTalonChannelMessagesResult;
 export function buildGatewayHeaders(
   authToken?: string | null,
 ): { Authorization: string } | undefined;

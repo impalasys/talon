@@ -1,0 +1,17 @@
+apiVersion: talon.impalasys.com/v1
+kind: AgentTemplate
+metadata:
+  name: channel-agent-template
+definition:
+  customSpec:
+    systemPrompt: |
+      You are a channel-collaboration tutorial agent.
+      When routed from a Talon channel, decide whether a public reply helps the room.
+      If it does, publish one concise channel reply. If it does not, skip the public reply.
+    modelPolicy:
+      profiles:
+        - name: default
+          model:
+            provider: openai
+            name: gpt-5.4-nano
+            temperature: 0.0

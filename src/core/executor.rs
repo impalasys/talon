@@ -235,6 +235,7 @@ pub struct AgentExecutor {
     pub knowledge: Arc<dyn KnowledgeBook>,
     pub namespace: String,
     pub agent_id: String,
+    pub session_id: String,
     pub control_plane: ControlPlane,
     pub agent_spec: crate::gateway::rpc::manifests::AgentSpec,
     pub mcp_tools: HashMap<String, RegisteredMcpTool>,
@@ -259,6 +260,34 @@ impl AgentExecutor {
         agent_spec: crate::gateway::rpc::manifests::AgentSpec,
         mcp_tools: HashMap<String, RegisteredMcpTool>,
     ) -> Self {
+        Self::new_with_session(
+            llm,
+            assembler,
+            registry,
+            config,
+            knowledge,
+            namespace,
+            agent_id,
+            String::new(),
+            control_plane,
+            agent_spec,
+            mcp_tools,
+        )
+    }
+
+    pub fn new_with_session(
+        llm: Arc<dyn LlmProvider>,
+        assembler: ContextAssembler,
+        registry: Arc<tokio::sync::RwLock<ToolRegistry>>,
+        config: Arc<Config>,
+        knowledge: Arc<dyn KnowledgeBook>,
+        namespace: String,
+        agent_id: String,
+        session_id: String,
+        control_plane: ControlPlane,
+        agent_spec: crate::gateway::rpc::manifests::AgentSpec,
+        mcp_tools: HashMap<String, RegisteredMcpTool>,
+    ) -> Self {
         Self {
             llm,
             assembler,
@@ -267,6 +296,7 @@ impl AgentExecutor {
             knowledge,
             namespace,
             agent_id,
+            session_id,
             control_plane,
             agent_spec,
             mcp_tools,
@@ -448,10 +478,11 @@ impl AgentExecutor {
         if let Some(tool) = self.mcp_tools.get(name) {
             return call_tool_for_config(&tool.config, &tool.remote_name, args).await;
         }
-        if let Some(result) = crate::native_tools::execute_tool(
+        if let Some(result) = crate::native_tools::execute_tool_for_session(
             &self.control_plane,
             &self.namespace,
             &self.agent_id,
+            &self.session_id,
             &self.agent_spec,
             name,
             &args,

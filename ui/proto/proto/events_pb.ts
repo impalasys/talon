@@ -4,13 +4,15 @@
 
 import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { ChannelMessage, SessionMessagePart } from "./models_pb";
+import { file_proto_models } from "./models_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file proto/events.proto.
  */
 export const file_proto_events: GenFile = /*@__PURE__*/
-  fileDesc("ChJwcm90by9ldmVudHMucHJvdG8SDHRhbG9uLmV2ZW50cyKAAQoOTGlmZWN5Y2xlRXZlbnQSFQoNcmVzb3VyY2VfdHlwZRgBIAEoCRIMCgRuYW1lGAIgASgJEgoKAm5zGAMgASgJEioKBmFjdGlvbhgEIAEoDjIaLnRhbG9uLmV2ZW50cy5TeXN0ZW1BY3Rpb24SEQoJdGltZXN0YW1wGAUgASgDIq8BChNTZXNzaW9uTWVzc2FnZUV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSEgoKbWVzc2FnZV9pZBgCIAEoCRIxCglkaXJlY3Rpb24YAyABKA4yHi50YWxvbi5ldmVudHMuTWVzc2FnZURpcmVjdGlvbhIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSDwoHbWVzc2FnZRgGIAEoCRIKCgJucxgHIAEoCSLIAQoQU2Vzc2lvblN0ZXBFdmVudBISCgpzZXNzaW9uX2lkGAEgASgJEikKCXN0ZXBfdHlwZRgCIAEoDjIWLnRhbG9uLmV2ZW50cy5TdGVwVHlwZRIPCgdjb250ZW50GAMgASgJEhEKCXRpbWVzdGFtcBgEIAEoAxINCgVhZ2VudBgFIAEoCRIKCgJucxgGIAEoCRISCgptZXNzYWdlX2lkGAcgASgJEgwKBG5hbWUYCCABKAkSFAoMcGF5bG9hZF9qc29uGAkgASgJKrABCgxTeXN0ZW1BY3Rpb24SHQoZU1lTVEVNX0FDVElPTl9VTlNQRUNJRklFRBAAEhgKFFNZU1RFTV9BQ1RJT05fQ1JFQVRFEAESGAoUU1lTVEVNX0FDVElPTl9VUERBVEUQAhIYChRTWVNURU1fQUNUSU9OX0RFTEVURRADEhkKFVNZU1RFTV9BQ1RJT05fU1VTUEVORBAEEhgKFFNZU1RFTV9BQ1RJT05fUkVTVU1FEAUqdAoQTWVzc2FnZURpcmVjdGlvbhIhCh1NRVNTQUdFX0RJUkVDVElPTl9VTlNQRUNJRklFRBAAEh0KGU1FU1NBR0VfRElSRUNUSU9OX0lOQk9VTkQQARIeChpNRVNTQUdFX0RJUkVDVElPTl9PVVRCT1VORBACKpQBCghTdGVwVHlwZRIZChVTVEVQX1RZUEVfVU5TUEVDSUZJRUQQABITCg9TVEVQX1RZUEVfVE9LRU4QARIUChBTVEVQX1RZUEVfQUNUSU9OEAISGQoVU1RFUF9UWVBFX09CU0VSVkFUSU9OEAMSEgoOU1RFUF9UWVBFX0RPTkUQBBITCg9TVEVQX1RZUEVfRVJST1IQBWIGcHJvdG8z");
+  fileDesc("ChJwcm90by9ldmVudHMucHJvdG8SDHRhbG9uLmV2ZW50cyKAAQoOTGlmZWN5Y2xlRXZlbnQSFQoNcmVzb3VyY2VfdHlwZRgBIAEoCRIMCgRuYW1lGAIgASgJEgoKAm5zGAMgASgJEioKBmFjdGlvbhgEIAEoDjIaLnRhbG9uLmV2ZW50cy5TeXN0ZW1BY3Rpb24SEQoJdGltZXN0YW1wGAUgASgDIq8BChNTZXNzaW9uTWVzc2FnZUV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSEgoKbWVzc2FnZV9pZBgCIAEoCRIxCglkaXJlY3Rpb24YAyABKA4yHi50YWxvbi5ldmVudHMuTWVzc2FnZURpcmVjdGlvbhIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSDwoHbWVzc2FnZRgGIAEoCRIKCgJucxgHIAEoCSJnChNTZXNzaW9uQ29udHJvbEV2ZW50EhIKCnNlc3Npb25faWQYASABKAkSDQoFYWdlbnQYAiABKAkSCgoCbnMYAyABKAkSDgoGYWN0aW9uGAQgASgJEhEKCXRpbWVzdGFtcBgFIAEoAyLYAQoXU2Vzc2lvbk1lc3NhZ2VQYXJ0RXZlbnQSEgoKc2Vzc2lvbl9pZBgBIAEoCRI3CgRraW5kGAIgASgOMikudGFsb24uZXZlbnRzLlNlc3Npb25NZXNzYWdlUGFydEV2ZW50S2luZBIuCgRwYXJ0GAMgASgLMiAudGFsb24ubW9kZWxzLlNlc3Npb25NZXNzYWdlUGFydBIRCgl0aW1lc3RhbXAYBCABKAMSDQoFYWdlbnQYBSABKAkSCgoCbnMYBiABKAkSEgoKbWVzc2FnZV9pZBgHIAEoCSLjAQoMQ2hhbm5lbEV2ZW50EgoKAm5zGAEgASgJEg8KB2NoYW5uZWwYAiABKAkSLAoEa2luZBgDIAEoDjIeLnRhbG9uLmV2ZW50cy5DaGFubmVsRXZlbnRLaW5kEi0KB21lc3NhZ2UYBCABKAsyHC50YWxvbi5tb2RlbHMuQ2hhbm5lbE1lc3NhZ2USEgoKc2Vzc2lvbl9pZBgFIAEoCRINCgVhZ2VudBgGIAEoCRIUCgxzdWJzY3JpcHRpb24YByABKAkSDQoFZXJyb3IYCCABKAkSEQoJdGltZXN0YW1wGAkgASgDKrABCgxTeXN0ZW1BY3Rpb24SHQoZU1lTVEVNX0FDVElPTl9VTlNQRUNJRklFRBAAEhgKFFNZU1RFTV9BQ1RJT05fQ1JFQVRFEAESGAoUU1lTVEVNX0FDVElPTl9VUERBVEUQAhIYChRTWVNURU1fQUNUSU9OX0RFTEVURRADEhkKFVNZU1RFTV9BQ1RJT05fU1VTUEVORBAEEhgKFFNZU1RFTV9BQ1RJT05fUkVTVU1FEAUqdAoQTWVzc2FnZURpcmVjdGlvbhIhCh1NRVNTQUdFX0RJUkVDVElPTl9VTlNQRUNJRklFRBAAEh0KGU1FU1NBR0VfRElSRUNUSU9OX0lOQk9VTkQQARIeChpNRVNTQUdFX0RJUkVDVElPTl9PVVRCT1VORBACKs4BChtTZXNzaW9uTWVzc2FnZVBhcnRFdmVudEtpbmQSLworU0VTU0lPTl9NRVNTQUdFX1BBUlRfRVZFTlRfS0lORF9VTlNQRUNJRklFRBAAEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX0VWRU5UX0tJTkRfREVMVEEQARIoCiRTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0RPTkUQAhIpCiVTRVNTSU9OX01FU1NBR0VfUEFSVF9FVkVOVF9LSU5EX0VSUk9SEAMqywEKEENoYW5uZWxFdmVudEtpbmQSIgoeQ0hBTk5FTF9FVkVOVF9LSU5EX1VOU1BFQ0lGSUVEEAASJgoiQ0hBTk5FTF9FVkVOVF9LSU5EX01FU1NBR0VfQ1JFQVRFRBABEiUKIUNIQU5ORUxfRVZFTlRfS0lORF9TRVNTSU9OX1JPVVRFRBACEiYKIkNIQU5ORUxfRVZFTlRfS0lORF9QVUJMSVNIX1NLSVBQRUQQAxIcChhDSEFOTkVMX0VWRU5UX0tJTkRfRVJST1IQBGIGcHJvdG8z", [file_proto_models]);
 
 /**
  * @generated from message talon.events.LifecycleEvent
@@ -97,23 +99,60 @@ export const SessionMessageEventSchema: GenMessage<SessionMessageEvent> = /*@__P
   messageDesc(file_proto_events, 1);
 
 /**
- * @generated from message talon.events.SessionStepEvent
+ * @generated from message talon.events.SessionControlEvent
  */
-export type SessionStepEvent = Message<"talon.events.SessionStepEvent"> & {
+export type SessionControlEvent = Message<"talon.events.SessionControlEvent"> & {
   /**
    * @generated from field: string session_id = 1;
    */
   sessionId: string;
 
   /**
-   * @generated from field: talon.events.StepType step_type = 2;
+   * @generated from field: string agent = 2;
    */
-  stepType: StepType;
+  agent: string;
 
   /**
-   * @generated from field: string content = 3;
+   * @generated from field: string ns = 3;
    */
-  content: string;
+  ns: string;
+
+  /**
+   * @generated from field: string action = 4;
+   */
+  action: string;
+
+  /**
+   * @generated from field: int64 timestamp = 5;
+   */
+  timestamp: bigint;
+};
+
+/**
+ * Describes the message talon.events.SessionControlEvent.
+ * Use `create(SessionControlEventSchema)` to create a new message.
+ */
+export const SessionControlEventSchema: GenMessage<SessionControlEvent> = /*@__PURE__*/
+  messageDesc(file_proto_events, 2);
+
+/**
+ * @generated from message talon.events.SessionMessagePartEvent
+ */
+export type SessionMessagePartEvent = Message<"talon.events.SessionMessagePartEvent"> & {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId: string;
+
+  /**
+   * @generated from field: talon.events.SessionMessagePartEventKind kind = 2;
+   */
+  kind: SessionMessagePartEventKind;
+
+  /**
+   * @generated from field: talon.models.SessionMessagePart part = 3;
+   */
+  part?: SessionMessagePart;
 
   /**
    * @generated from field: int64 timestamp = 4;
@@ -134,24 +173,71 @@ export type SessionStepEvent = Message<"talon.events.SessionStepEvent"> & {
    * @generated from field: string message_id = 7;
    */
   messageId: string;
-
-  /**
-   * @generated from field: string name = 8;
-   */
-  name: string;
-
-  /**
-   * @generated from field: string payload_json = 9;
-   */
-  payloadJson: string;
 };
 
 /**
- * Describes the message talon.events.SessionStepEvent.
- * Use `create(SessionStepEventSchema)` to create a new message.
+ * Describes the message talon.events.SessionMessagePartEvent.
+ * Use `create(SessionMessagePartEventSchema)` to create a new message.
  */
-export const SessionStepEventSchema: GenMessage<SessionStepEvent> = /*@__PURE__*/
-  messageDesc(file_proto_events, 2);
+export const SessionMessagePartEventSchema: GenMessage<SessionMessagePartEvent> = /*@__PURE__*/
+  messageDesc(file_proto_events, 3);
+
+/**
+ * @generated from message talon.events.ChannelEvent
+ */
+export type ChannelEvent = Message<"talon.events.ChannelEvent"> & {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns: string;
+
+  /**
+   * @generated from field: string channel = 2;
+   */
+  channel: string;
+
+  /**
+   * @generated from field: talon.events.ChannelEventKind kind = 3;
+   */
+  kind: ChannelEventKind;
+
+  /**
+   * @generated from field: talon.models.ChannelMessage message = 4;
+   */
+  message?: ChannelMessage;
+
+  /**
+   * @generated from field: string session_id = 5;
+   */
+  sessionId: string;
+
+  /**
+   * @generated from field: string agent = 6;
+   */
+  agent: string;
+
+  /**
+   * @generated from field: string subscription = 7;
+   */
+  subscription: string;
+
+  /**
+   * @generated from field: string error = 8;
+   */
+  error: string;
+
+  /**
+   * @generated from field: int64 timestamp = 9;
+   */
+  timestamp: bigint;
+};
+
+/**
+ * Describes the message talon.events.ChannelEvent.
+ * Use `create(ChannelEventSchema)` to create a new message.
+ */
+export const ChannelEventSchema: GenMessage<ChannelEvent> = /*@__PURE__*/
+  messageDesc(file_proto_events, 4);
 
 /**
  * @generated from enum talon.events.SystemAction
@@ -221,43 +307,69 @@ export const MessageDirectionSchema: GenEnum<MessageDirection> = /*@__PURE__*/
   enumDesc(file_proto_events, 1);
 
 /**
- * @generated from enum talon.events.StepType
+ * @generated from enum talon.events.SessionMessagePartEventKind
  */
-export enum StepType {
+export enum SessionMessagePartEventKind {
   /**
-   * @generated from enum value: STEP_TYPE_UNSPECIFIED = 0;
+   * @generated from enum value: SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFIED = 0;
    */
   UNSPECIFIED = 0,
 
   /**
-   * @generated from enum value: STEP_TYPE_TOKEN = 1;
+   * @generated from enum value: SESSION_MESSAGE_PART_EVENT_KIND_DELTA = 1;
    */
-  TOKEN = 1,
+  DELTA = 1,
 
   /**
-   * @generated from enum value: STEP_TYPE_ACTION = 2;
+   * @generated from enum value: SESSION_MESSAGE_PART_EVENT_KIND_DONE = 2;
    */
-  ACTION = 2,
+  DONE = 2,
 
   /**
-   * @generated from enum value: STEP_TYPE_OBSERVATION = 3;
+   * @generated from enum value: SESSION_MESSAGE_PART_EVENT_KIND_ERROR = 3;
    */
-  OBSERVATION = 3,
-
-  /**
-   * @generated from enum value: STEP_TYPE_DONE = 4;
-   */
-  DONE = 4,
-
-  /**
-   * @generated from enum value: STEP_TYPE_ERROR = 5;
-   */
-  ERROR = 5,
+  ERROR = 3,
 }
 
 /**
- * Describes the enum talon.events.StepType.
+ * Describes the enum talon.events.SessionMessagePartEventKind.
  */
-export const StepTypeSchema: GenEnum<StepType> = /*@__PURE__*/
+export const SessionMessagePartEventKindSchema: GenEnum<SessionMessagePartEventKind> = /*@__PURE__*/
   enumDesc(file_proto_events, 2);
+
+/**
+ * @generated from enum talon.events.ChannelEventKind
+ */
+export enum ChannelEventKind {
+  /**
+   * @generated from enum value: CHANNEL_EVENT_KIND_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: CHANNEL_EVENT_KIND_MESSAGE_CREATED = 1;
+   */
+  MESSAGE_CREATED = 1,
+
+  /**
+   * @generated from enum value: CHANNEL_EVENT_KIND_SESSION_ROUTED = 2;
+   */
+  SESSION_ROUTED = 2,
+
+  /**
+   * @generated from enum value: CHANNEL_EVENT_KIND_PUBLISH_SKIPPED = 3;
+   */
+  PUBLISH_SKIPPED = 3,
+
+  /**
+   * @generated from enum value: CHANNEL_EVENT_KIND_ERROR = 4;
+   */
+  ERROR = 4,
+}
+
+/**
+ * Describes the enum talon.events.ChannelEventKind.
+ */
+export const ChannelEventKindSchema: GenEnum<ChannelEventKind> = /*@__PURE__*/
+  enumDesc(file_proto_events, 3);
 

@@ -1,5 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { TalonCopilot } from '@talonai/copilot';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { TalonChannel, TalonCopilot } from '@talonai/copilot';
 
 function makeJsonResponse(payload: any, ok = true) {
   return {
@@ -46,7 +46,12 @@ describe('TalonCopilot', () => {
             message: {
               id: 'assistant-1',
               role: 'ROLE_ASSISTANT',
-              content: 'Hello from history',
+              parts: [
+                {
+                  partType: 1,
+                  content: 'Hello from history',
+                },
+              ],
               createdAt: String(Date.now() * 1000),
             },
             steps: [],
@@ -297,7 +302,7 @@ describe('TalonCopilot', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          Authorization: 'Basic OnNlY3JldC10b2tlbg==',
+          Authorization: 'Bearer secret-token',
         }),
       }),
     );
@@ -307,7 +312,7 @@ describe('TalonCopilot', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          Authorization: 'Basic OnNlY3JldC10b2tlbg==',
+          Authorization: 'Bearer secret-token',
         }),
       }),
     );
@@ -512,5 +517,677 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Recovered after stream timeout.')).toBeInTheDocument();
     expect(screen.queryByText('recover this')).not.toBeInTheDocument();
     expect(screen.queryByText(/system incident/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('TalonChannel', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  it('renders channel messages without inspector tabs', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: '019e7fa7-2cfe-7670-a661-42e0a70a751d',
+          authorKind: 'user',
+          author: 'sightline',
+          content: '@triage-agent How are you doing?',
+          createdAt: String(Date.now() * 1000),
+        },
+      ],
+    }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel={{ name: 'incident-room', status: 'open' }}
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    expect(await screen.findByText('@triage-agent How are you doing?')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'subscriptions' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open session' })).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=100',
+      expect.anything(),
+    );
+  });
+
+  it('renders channel message markdown', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'channel-md',
+          authorKind: 'agent',
+          author: 'scribe-agent',
+          content: '### Match Update\n\n- Blue guessed `apple`\n- Red is thinking',
+          createdAt: String(Date.now() * 1000),
+        },
+      ],
+    }));
+
+    const { container } = render(
+      <TalonChannel
+        namespace="game"
+        channel="match-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await screen.findByText('Match Update');
+    expect(container.querySelector('h3')).not.toBeNull();
+    expect(container.querySelector('ul')).not.toBeNull();
+    expect(screen.getByText(/Blue guessed/)).toBeInTheDocument();
+    expect(screen.getByText('Red is thinking')).toBeInTheDocument();
+  });
+
+  it('ignores stale channel refresh responses after switching channels', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    let resolveIncidentResponse: (value: any) => void = () => {};
+    const incidentResponse = new Promise((resolve) => {
+      resolveIncidentResponse = resolve;
+    });
+
+    fetchMock.mockImplementation((url: string) => {
+      if (url.includes('/channels/incident-room/messages')) {
+        return incidentResponse;
+      }
+      return Promise.resolve(makeJsonResponse({
+        messages: [
+          {
+            id: 'next-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Message from next room',
+          },
+        ],
+      }));
+    });
+
+    const { rerender } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    rerender(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="next-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    expect(await screen.findByText('Message from next room')).toBeInTheDocument();
+
+    await act(async () => {
+      resolveIncidentResponse(makeJsonResponse({
+        messages: [
+          {
+            id: 'stale-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Stale incident message',
+          },
+        ],
+      }));
+      await incidentResponse;
+    });
+
+    expect(screen.queryByText('Stale incident message')).not.toBeInTheDocument();
+    expect(screen.getByText('Message from next room')).toBeInTheDocument();
+  });
+
+  it('reloads channel messages when auth changes without clearing the current view first', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'initial-message',
+          authorKind: 'user',
+          author: 'sightline',
+          content: 'Initial channel message',
+        },
+      ],
+    }));
+    let resolveReload: (value: any) => void = () => {};
+    const reloadResponse = new Promise((resolve) => {
+      resolveReload = resolve;
+    });
+    fetchMock.mockImplementationOnce(() => reloadResponse as any);
+
+    const { rerender } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        authToken="old-token"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    expect(await screen.findByText('Initial channel message')).toBeInTheDocument();
+
+    rerender(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        authToken="new-token"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('Initial channel message')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=100',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer new-token',
+        }),
+      }),
+    );
+
+    await act(async () => {
+      resolveReload(makeJsonResponse({
+        messages: [
+          {
+            id: 'updated-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Updated channel message',
+          },
+        ],
+      }));
+      await reloadResponse;
+    });
+
+    expect(await screen.findByText('Updated channel message')).toBeInTheDocument();
+    expect(screen.queryByText('Initial channel message')).not.toBeInTheDocument();
+  });
+
+  it('does not block channel refreshes when auth changes during an active refresh', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    let resolveInitialRefresh: (value: any) => void = () => {};
+    const initialRefresh = new Promise((resolve) => {
+      resolveInitialRefresh = resolve;
+    });
+
+    fetchMock
+      .mockImplementationOnce(() => initialRefresh as any)
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'authorized-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Authorized channel message',
+          },
+        ],
+      }));
+
+    const { rerender } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        authToken="old-token"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        authToken="new-token"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=100',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer new-token',
+        }),
+      }),
+    );
+
+    await act(async () => {
+      resolveInitialRefresh(makeJsonResponse({
+        messages: [
+          {
+            id: 'stale-auth-message',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Stale auth message',
+          },
+        ],
+      }));
+      await initialRefresh;
+    });
+
+    expect(await screen.findByText('Authorized channel message')).toBeInTheDocument();
+    expect(screen.queryByText('Stale auth message')).not.toBeInTheDocument();
+  });
+
+  it('renders injected channel message actions', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'agent-message-1',
+          authorKind: 'agent',
+          author: 'triage-agent',
+          content: 'I am checking the incident.',
+          sourceAgent: 'triage-agent',
+          sourceSessionId: 'session-1',
+        },
+      ],
+    }));
+    const openSession = jest.fn();
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+        renderMessageActions={(message) => {
+          const agent = message.sourceAgent || message.source_agent;
+          const sessionId = message.sourceSessionId || message.source_session_id;
+          if (!agent || !sessionId) return null;
+          return <button type="button" onClick={() => openSession(agent, sessionId)}>Open session</button>;
+        }}
+      />,
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Open session' }));
+    expect(openSession).toHaveBeenCalledWith('triage-agent', 'session-1');
+  });
+
+  it('scrolls channel messages to the bottom after loading the newest page', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+
+    const scrollTo = jest.fn();
+    const originalScrollTo = HTMLElement.prototype.scrollTo;
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    });
+
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'channel-message-1',
+          authorKind: 'agent',
+          author: 'triage-agent',
+          content: 'Newest channel message',
+        },
+      ],
+    }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    expect(await screen.findByText('Newest channel message')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(scrollTo).toHaveBeenCalled();
+    });
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: originalScrollTo,
+    });
+  });
+
+  it('does not auto-scroll channel messages while reading older history', async () => {
+    jest.useFakeTimers();
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+
+    const scrollTo = jest.fn();
+    const originalScrollTo = HTMLElement.prototype.scrollTo;
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: scrollTo,
+    });
+
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-message-1',
+            authorKind: 'agent',
+            author: 'triage-agent',
+            content: 'First channel message',
+          },
+        ],
+      }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-message-2',
+            authorKind: 'agent',
+            author: 'triage-agent',
+            content: 'Background channel message',
+          },
+        ],
+      }));
+
+    const { container } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={750}
+      />,
+    );
+
+    expect(await screen.findByText('First channel message')).toBeInTheDocument();
+    await waitFor(() => expect(scrollTo).toHaveBeenCalled());
+    await act(async () => {
+      jest.advanceTimersByTime(32);
+      await Promise.resolve();
+    });
+    scrollTo.mockClear();
+
+    const scrollContainer = container.querySelector('div[aria-label="Channel messages"]') as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, value: 0, writable: true });
+    Object.defineProperty(scrollContainer, 'scrollHeight', { configurable: true, value: 1000 });
+    Object.defineProperty(scrollContainer, 'clientHeight', { configurable: true, value: 200 });
+    fireEvent.scroll(scrollContainer);
+
+    await act(async () => {
+      jest.advanceTimersByTime(750);
+      await Promise.resolve();
+    });
+
+    expect(await screen.findByText('Background channel message')).toBeInTheDocument();
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+      configurable: true,
+      value: originalScrollTo,
+    });
+    jest.useRealTimers();
+  });
+
+  it('posts a channel message through the gateway', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(makeJsonResponse({ message: { id: 'channel-message-1' } }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-message-1',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'hello channel',
+          },
+        ],
+      }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    fireEvent.change(await screen.findByPlaceholderText('Message #incident-room'), {
+      target: { value: 'hello channel' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            ns: 'channel-collaboration',
+            channel: 'incident-room',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'hello channel',
+          }),
+        }),
+      );
+    });
+    expect(await screen.findByText('hello channel')).toBeInTheDocument();
+  });
+
+  it('does not post duplicate channel messages while a submit is in flight', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    let resolvePost: (value: any) => void = () => {};
+    const postResponse = new Promise((resolve) => {
+      resolvePost = resolve;
+    });
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockImplementationOnce(() => postResponse as any)
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    const input = await screen.findByPlaceholderText('Message #incident-room');
+    fireEvent.change(input, {
+      target: { value: 'hello once' },
+    });
+    const sendButton = screen.getByRole('button', { name: /send channel message/i });
+    fireEvent.click(sendButton);
+    fireEvent.click(sendButton);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages',
+      expect.objectContaining({ method: 'POST' }),
+    );
+
+    await act(async () => {
+      resolvePost(makeJsonResponse({ message: { id: 'channel-message-1' } }));
+      await postResponse;
+    });
+  });
+
+  it('keeps the channel draft when posting fails', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({ error: 'nope' }) } as any);
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    const input = await screen.findByPlaceholderText('Message #incident-room');
+    fireEvent.change(input, {
+      target: { value: 'retry me' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
+
+    expect(await screen.findByText('Post HTTP 500')).toBeInTheDocument();
+    expect(input).toHaveValue('retry me');
+  });
+
+  it('clears delayed channel refresh when unmounted after posting', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(makeJsonResponse({ message: { id: 'channel-message-1' } }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-message-1',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'hello channel',
+          },
+        ],
+      }));
+    const clearTimeoutSpy = jest.spyOn(window, 'clearTimeout');
+
+    const { unmount } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    fireEvent.change(await screen.findByPlaceholderText('Message #incident-room'), {
+      target: { value: 'hello channel' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    unmount();
+
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+  });
+
+  it('can render a channel in observer mode without user input', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock.mockResolvedValueOnce(makeJsonResponse({
+      messages: [
+        {
+          id: 'agent-message-1',
+          authorKind: 'agent',
+          author: 'red-agent',
+          content: 'Opening move recorded.',
+        },
+      ],
+    }));
+
+    render(
+      <TalonChannel
+        namespace="game"
+        channel="match-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+        disableUserInput
+      />,
+    );
+
+    expect(await screen.findByText('Opening move recorded.')).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Message #match-room')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /send channel message/i })).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads older channel message pages when scrolled near the top', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: '019f0000-0000-7000-8000-000000000002',
+            authorKind: 'agent',
+            author: 'triage-agent',
+            content: 'Newest channel page',
+            createdAt: '2000',
+          },
+        ],
+        hasMore: true,
+        nextBeforeMessageId: '019f0000-0000-7000-8000-000000000002',
+      }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: '019f0000-0000-7000-8000-000000000001',
+            authorKind: 'user',
+            author: 'sightline',
+            content: 'Older channel page',
+            createdAt: '1000',
+          },
+        ],
+        hasMore: false,
+      }));
+
+    const { container } = render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        messageLimit={1}
+        refreshIntervalMs={false}
+      />,
+    );
+
+    await screen.findByText('Newest channel page');
+
+    const scrollContainer = container.querySelector('div[aria-label="Channel messages"]') as HTMLDivElement;
+    Object.defineProperty(scrollContainer, 'scrollTop', { configurable: true, value: 0, writable: true });
+    Object.defineProperty(scrollContainer, 'scrollHeight', { configurable: true, value: 1000 });
+    fireEvent.scroll(scrollContainer);
+
+    expect(await screen.findByText('Older channel page')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=1',
+      expect.anything(),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages?page_size=1&before_message_id=019f0000-0000-7000-8000-000000000002',
+      expect.anything(),
+    );
   });
 });

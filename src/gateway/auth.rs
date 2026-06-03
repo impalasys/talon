@@ -83,6 +83,8 @@ pub struct Claims {
     pub agent: Option<String>,
     #[serde(rename = "talon:session")]
     pub session: Option<String>,
+    #[serde(rename = "talon:channel")]
+    pub channel: Option<String>,
 }
 
 pub fn verify_jwt(token: &str, secret: &str) -> Result<Claims, Status> {
@@ -127,6 +129,15 @@ fn check_basic_password(auth_header: &str, expected_pass: Option<&String>) -> Re
     ))
 }
 
+fn bearer_token(auth_header: &str) -> Result<&str, Status> {
+    match auth_header.get(..7) {
+        Some(scheme) if auth_header.len() > 7 && scheme.eq_ignore_ascii_case("bearer ") => {
+            Ok(&auth_header[7..])
+        }
+        _ => Err(Status::unauthenticated("Missing bearer token")),
+    }
+}
+
 pub fn check_auth(
     metadata: &MetadataMap,
     auth_config: &AuthConfig,
@@ -142,9 +153,7 @@ pub fn check_auth(
                 .and_then(|v| v.to_str().ok())
                 .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
 
-            let token = auth_header
-                .strip_prefix("Bearer ")
-                .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+            let token = bearer_token(auth_header)?;
 
             if auth_config.tokens.iter().any(|t| t == token) {
                 Ok(())
@@ -162,9 +171,7 @@ pub fn check_auth(
                 return Ok(());
             }
 
-            let token = auth_header
-                .strip_prefix("Bearer ")
-                .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+            let token = bearer_token(auth_header)?;
 
             let secret = auth_config
                 .jwt_secret
@@ -172,42 +179,7 @@ pub fn check_auth(
                 .ok_or_else(|| Status::internal("JWT secret not configured"))?;
             let claims = verify_jwt(token, secret)?;
 
-            // Hierarchical Scope Validation
-            if let Some(allowed_ns) = &claims.ns {
-                if allowed_ns != ns {
-                    return Err(Status::permission_denied(format!(
-                        "Token scope restricted to namespace: {}",
-                        allowed_ns
-                    )));
-                }
-            }
-
-            if let Some(allowed_agent) = &claims.agent {
-                if let Some(target_agent) = agent {
-                    if allowed_agent != target_agent && !allowed_agent.is_empty() {
-                        return Err(Status::permission_denied(format!(
-                            "Token scope restricted to agent: {}",
-                            allowed_agent
-                        )));
-                    }
-                }
-            }
-
-            if let Some(allowed_session) = &claims.session {
-                let target_session = session.ok_or_else(|| {
-                    Status::permission_denied(
-                        "Token restricted to specific session, but none specified in request",
-                    )
-                })?;
-                if allowed_session != target_session && !allowed_session.is_empty() {
-                    return Err(Status::permission_denied(format!(
-                        "Token scope restricted to session: {}",
-                        allowed_session
-                    )));
-                }
-            }
-
-            Ok(())
+            check_claim_scope(&claims, ns, agent, session, None)
         }
         AuthMode::Password => {
             let auth_header = metadata
@@ -226,6 +198,105 @@ pub fn check_auth(
             Err(Status::unauthenticated("Invalid password"))
         }
     }
+}
+
+pub fn check_channel_auth(
+    metadata: &MetadataMap,
+    auth_config: &AuthConfig,
+    ns: &str,
+    channel: &str,
+) -> Result<(), Status> {
+    match auth_config.mode {
+        AuthMode::Jwt => {
+            let auth_header = metadata
+                .get("authorization")
+                .and_then(|v| v.to_str().ok())
+                .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
+
+            if check_basic_password(auth_header, auth_config.jwt_secret.as_ref())? {
+                return Ok(());
+            }
+
+            let token = bearer_token(auth_header)?;
+
+            let secret = auth_config
+                .jwt_secret
+                .as_ref()
+                .ok_or_else(|| Status::internal("JWT secret not configured"))?;
+            let claims = verify_jwt(token, secret)?;
+            check_claim_scope(&claims, ns, None, None, Some(channel))
+        }
+        _ => check_auth(metadata, auth_config, ns, None, None),
+    }
+}
+
+fn check_claim_scope(
+    claims: &Claims,
+    ns: &str,
+    agent: Option<&str>,
+    session: Option<&str>,
+    channel: Option<&str>,
+) -> Result<(), Status> {
+    if let Some(allowed_ns) = &claims.ns {
+        if allowed_ns != ns {
+            return Err(Status::permission_denied(format!(
+                "Token scope restricted to namespace: {}",
+                allowed_ns
+            )));
+        }
+    }
+
+    if let Some(allowed_channel) = &claims.channel {
+        if allowed_channel.is_empty() {
+            return Err(Status::permission_denied(
+                "Token scope restricted to an empty channel",
+            ));
+        }
+        let allowed_ns = claims.ns.as_deref().filter(|value| !value.is_empty());
+        if allowed_ns.is_none() {
+            return Err(Status::permission_denied(
+                "Channel-scoped token must include talon:ns",
+            ));
+        }
+        let target_channel = channel.ok_or_else(|| {
+            Status::permission_denied(
+                "Token restricted to a specific channel, but this request is not a channel message operation",
+            )
+        })?;
+        if allowed_channel != target_channel {
+            return Err(Status::permission_denied(format!(
+                "Token scope restricted to channel: {}",
+                allowed_channel
+            )));
+        }
+    }
+
+    if let Some(allowed_agent) = &claims.agent {
+        if let Some(target_agent) = agent {
+            if allowed_agent != target_agent && !allowed_agent.is_empty() {
+                return Err(Status::permission_denied(format!(
+                    "Token scope restricted to agent: {}",
+                    allowed_agent
+                )));
+            }
+        }
+    }
+
+    if let Some(allowed_session) = &claims.session {
+        let target_session = session.ok_or_else(|| {
+            Status::permission_denied(
+                "Token restricted to specific session, but none specified in request",
+            )
+        })?;
+        if allowed_session != target_session && !allowed_session.is_empty() {
+            return Err(Status::permission_denied(format!(
+                "Token scope restricted to session: {}",
+                allowed_session
+            )));
+        }
+    }
+
+    Ok(())
 }
 
 /// gRPC Interceptor that extracts and verifies JWTs, attaching claims to the request.
@@ -259,9 +330,7 @@ impl tonic::service::Interceptor for TalonAuthInterceptor {
                 Err(Status::unauthenticated("Invalid password"))
             }
             AuthMode::Token => {
-                let token = auth_header
-                    .strip_prefix("Bearer ")
-                    .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+                let token = bearer_token(auth_header)?;
                 if self.config.tokens.iter().any(|t| t == token) {
                     Ok(request)
                 } else {
@@ -273,9 +342,7 @@ impl tonic::service::Interceptor for TalonAuthInterceptor {
                     return Ok(request);
                 }
 
-                let token = auth_header
-                    .strip_prefix("Bearer ")
-                    .ok_or_else(|| Status::unauthenticated("Missing bearer token"))?;
+                let token = bearer_token(auth_header)?;
                 let secret = self
                     .config
                     .jwt_secret
@@ -321,8 +388,7 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
         AuthMode::Token => {
             if let Some(auth_header) = req.headers().get(header::AUTHORIZATION) {
                 if let Ok(auth_str) = auth_header.to_str() {
-                    if auth_str.starts_with("Bearer ") {
-                        let token = &auth_str[7..];
+                    if let Ok(token) = bearer_token(auth_str) {
                         if auth_config.tokens.iter().any(|t| t == token) {
                             return next.run(req).await;
                         }
@@ -344,8 +410,7 @@ pub async fn auth_layer(State(state): State<Arc<Gateway>>, req: Request, next: N
                     ) {
                         return next.run(req).await;
                     }
-                    if auth_str.starts_with("Bearer ") {
-                        let token = &auth_str[7..];
+                    if let Ok(token) = bearer_token(auth_str) {
                         if let Some(secret) = &auth_config.jwt_secret {
                             if verify_jwt(token, secret).is_ok() {
                                 return next.run(req).await;
@@ -423,6 +488,7 @@ mod tests {
             ns: ns.map(|s| s.to_string()),
             agent: agent.map(|s| s.to_string()),
             session: session.map(|s| s.to_string()),
+            channel: None,
         };
         encode(
             &Header::default(),
@@ -519,6 +585,61 @@ mod tests {
         .is_err());
     }
 
+    fn create_channel_token(secret: &str, ns: Option<&str>, channel: Option<&str>) -> String {
+        crate::security::install_jwt_crypto_provider();
+        let claims = Claims {
+            sub: "channel-client".to_string(),
+            aud: "talon".to_string(),
+            exp: 10000000000,
+            ns: ns.map(|s| s.to_string()),
+            agent: None,
+            session: None,
+            channel: channel.map(|s| s.to_string()),
+        };
+        encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(secret.as_ref()),
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn test_channel_scoped_jwt_only_authorizes_matching_channel_operations() {
+        let secret = "test-secret";
+        let config = AuthConfig::jwt(secret.to_string());
+        let mut metadata = MetadataMap::new();
+        let token = create_channel_token(secret, Some("ops"), Some("incident-room"));
+        metadata.insert(
+            "authorization",
+            format!("Bearer {}", token).parse().unwrap(),
+        );
+
+        assert!(check_channel_auth(&metadata, &config, "ops", "incident-room").is_ok());
+        metadata.insert(
+            "authorization",
+            format!("bearer {}", token).parse().unwrap(),
+        );
+        assert!(check_channel_auth(&metadata, &config, "ops", "incident-room").is_ok());
+        assert!(check_channel_auth(&metadata, &config, "ops", "other-room").is_err());
+        assert!(check_channel_auth(&metadata, &config, "other", "incident-room").is_err());
+        assert!(check_auth(&metadata, &config, "ops", None, None).is_err());
+    }
+
+    #[test]
+    fn test_channel_scoped_jwt_requires_namespace() {
+        let secret = "test-secret";
+        let config = AuthConfig::jwt(secret.to_string());
+        let mut metadata = MetadataMap::new();
+        let token = create_channel_token(secret, None, Some("incident-room"));
+        metadata.insert(
+            "authorization",
+            format!("Bearer {}", token).parse().unwrap(),
+        );
+
+        assert!(check_channel_auth(&metadata, &config, "ops", "incident-room").is_err());
+    }
+
     #[test]
     fn test_basic_password_helpers_cover_invalid_and_matching_inputs() {
         let encoded = general_purpose::STANDARD.encode(":secret");
@@ -574,7 +695,7 @@ mod tests {
         let mut token_request = tonic::Request::new(());
         token_request
             .metadata_mut()
-            .insert("authorization", "Bearer good".parse().unwrap());
+            .insert("authorization", "bearer good".parse().unwrap());
         assert!(token_interceptor.call(token_request).is_ok());
 
         let secret = "jwt-secret";

@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/models.proto.
  */
 export const file_proto_models: GenFile = /*@__PURE__*/
-  fileDesc("ChJwcm90by9tb2RlbHMucHJvdG8SDHRhbG9uLm1vZGVscyKCAgoFQWdlbnQSDAoEbmFtZRgBIAEoCRIKCgJucxgCIAEoCRI0CgpkZWZpbml0aW9uGAMgASgLMiAudGFsb24ubWFuaWZlc3RzLkFnZW50RGVmaW5pdGlvbhIyCg5lZmZlY3RpdmVfc3BlYxgEIAEoCzIaLnRhbG9uLm1hbmlmZXN0cy5BZ2VudFNwZWMSFQoNdGVtcGxhdGVfZGVwcxgFIAMoCRIvCgZsYWJlbHMYByADKAsyHy50YWxvbi5tb2RlbHMuQWdlbnQuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASLTAQoOU2Vzc2lvbk1lc3NhZ2USCgoCaWQYASABKAkSJwoEcm9sZRgCIAEoDjIZLnRhbG9uLm1vZGVscy5NZXNzYWdlUm9sZRIPCgdjb250ZW50GAMgASgJEhIKCmNyZWF0ZWRfYXQYBCABKAMSOAoGbGFiZWxzGAUgAygLMigudGFsb24ubW9kZWxzLlNlc3Npb25NZXNzYWdlLkxhYmVsc0VudHJ5Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiswIKB1Nlc3Npb24SCgoCaWQYASABKAkSDQoFYWdlbnQYAiABKAkSCgoCbnMYAyABKAkSDgoGc3RhdHVzGAQgASgJEhIKCmNyZWF0ZWRfYXQYBSABKAMSEwoLbGFzdF9hY3RpdmUYBiABKAMSNQoIbWV0YWRhdGEYByADKAsyIy50YWxvbi5tb2RlbHMuU2Vzc2lvbi5NZXRhZGF0YUVudHJ5EjEKBmxhYmVscxgIIAMoCzIhLnRhbG9uLm1vZGVscy5TZXNzaW9uLkxhYmVsc0VudHJ5Gi8KDU1ldGFkYXRhRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIkkKDlNjaGVkdWxlVGFyZ2V0Eg0KBWFnZW50GAEgASgJEhQKDHNlc3Npb25fbW9kZRgCIAEoCRISCgpzZXNzaW9uX2lkGAMgASgJIrwBCgxTY2hlZHVsZVNwZWMSDAoEa2luZBgBIAEoCRIMCgRjcm9uGAIgASgJEhgKEGludGVydmFsX3NlY29uZHMYAyABKA0SDgoGcnVuX2F0GAQgASgJEhAKCHRpbWV6b25lGAUgASgJEiwKBnRhcmdldBgGIAEoCzIcLnRhbG9uLm1vZGVscy5TY2hlZHVsZVRhcmdldBIVCg1pbnB1dF9tZXNzYWdlGAcgASgJEg8KB2VuYWJsZWQYCCABKAgi+wIKDlNjaGVkdWxlU3RhdHVzEhAKCHJldmlzaW9uGAEgASgEEhgKC25leHRfcnVuX2F0GAIgASgDSACIAQESGwoOYmFja2VuZF9oYW5kbGUYAyABKAlIAYgBARIVCg1iYWNrZW5kX2FybWVkGAQgASgIEhgKC2xhc3RfcnVuX2F0GAUgASgDSAKIAQESHAoPbGFzdF9zZXNzaW9uX2lkGAYgASgJSAOIAQESFwoKbGFzdF9lcnJvchgHIAEoCUgEiAEBEhsKDmNsYWltZWRfcnVuX2F0GAggASgDSAWIAQESHQoQY2xhaW1fZXhwaXJlc19hdBgJIAEoA0gGiAEBQg4KDF9uZXh0X3J1bl9hdEIRCg9fYmFja2VuZF9oYW5kbGVCDgoMX2xhc3RfcnVuX2F0QhIKEF9sYXN0X3Nlc3Npb25faWRCDQoLX2xhc3RfZXJyb3JCEQoPX2NsYWltZWRfcnVuX2F0QhMKEV9jbGFpbV9leHBpcmVzX2F0It8BCghTY2hlZHVsZRIMCgRuYW1lGAEgASgJEgoKAm5zGAIgASgJEigKBHNwZWMYAyABKAsyGi50YWxvbi5tb2RlbHMuU2NoZWR1bGVTcGVjEiwKBnN0YXR1cxgEIAEoCzIcLnRhbG9uLm1vZGVscy5TY2hlZHVsZVN0YXR1cxIyCgZsYWJlbHMYBSADKAsyIi50YWxvbi5tb2RlbHMuU2NoZWR1bGUuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASK1AQoJTmFtZXNwYWNlEgwKBG5hbWUYASABKAkSDgoGcGFyZW50GAIgASgJEhIKCmlzX2RlbGV0ZWQYAyABKAgSEgoKZGVsZXRlZF9hdBgEIAEoAxIzCgZsYWJlbHMYBSADKAsyIy50YWxvbi5tb2RlbHMuTmFtZXNwYWNlLkxhYmVsc0VudHJ5Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiXwoJS25vd2xlZGdlEgwKBHBhdGgYASABKAkSDwoHY29udGVudBgCIAEoCRISCgp1cGRhdGVkX2F0GAMgASgDEhEKCW5hbWVzcGFjZRgEIAEoCRIMCgRuYW1lGAUgASgJImsKFUtub3dsZWRnZVNlYXJjaFJlc3VsdBIMCgRwYXRoGAEgASgJEg8KB3NuaXBwZXQYAiABKAkSDQoFc2NvcmUYAyABKAISEQoJdGltZXN0YW1wGAQgASgDEhEKCW5hbWVzcGFjZRgFIAEoCSpXCgtNZXNzYWdlUm9sZRIUChBST0xFX1VOU1BFQ0lGSUVEEAASDQoJUk9MRV9VU0VSEAESEgoOUk9MRV9BU1NJU1RBTlQQAhIPCgtST0xFX1NZU1RFTRADYgZwcm90bzM", [file_proto_manifests]);
+  fileDesc("ChJwcm90by9tb2RlbHMucHJvdG8SDHRhbG9uLm1vZGVscyKCAgoFQWdlbnQSDAoEbmFtZRgBIAEoCRIKCgJucxgCIAEoCRI0CgpkZWZpbml0aW9uGAMgASgLMiAudGFsb24ubWFuaWZlc3RzLkFnZW50RGVmaW5pdGlvbhIyCg5lZmZlY3RpdmVfc3BlYxgEIAEoCzIaLnRhbG9uLm1hbmlmZXN0cy5BZ2VudFNwZWMSFQoNdGVtcGxhdGVfZGVwcxgFIAMoCRIvCgZsYWJlbHMYByADKAsyHy50YWxvbi5tb2RlbHMuQWdlbnQuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKiAQoSU2Vzc2lvbk1lc3NhZ2VQYXJ0EgoKAmlkGAEgASgJEjcKCXBhcnRfdHlwZRgCIAEoDjIkLnRhbG9uLm1vZGVscy5TZXNzaW9uTWVzc2FnZVBhcnRUeXBlEg8KB2NvbnRlbnQYAyABKAkSDAoEbmFtZRgEIAEoCRIUCgxwYXlsb2FkX2pzb24YBSABKAkSEgoKY3JlYXRlZF9hdBgGIAEoAyL5AQoOU2Vzc2lvbk1lc3NhZ2USCgoCaWQYASABKAkSJwoEcm9sZRgCIAEoDjIZLnRhbG9uLm1vZGVscy5NZXNzYWdlUm9sZRISCgpjcmVhdGVkX2F0GAQgASgDEjgKBmxhYmVscxgFIAMoCzIoLnRhbG9uLm1vZGVscy5TZXNzaW9uTWVzc2FnZS5MYWJlbHNFbnRyeRIvCgVwYXJ0cxgGIAMoCzIgLnRhbG9uLm1vZGVscy5TZXNzaW9uTWVzc2FnZVBhcnQaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUoECAMQBCKzAgoHU2Vzc2lvbhIKCgJpZBgBIAEoCRINCgVhZ2VudBgCIAEoCRIKCgJucxgDIAEoCRIOCgZzdGF0dXMYBCABKAkSEgoKY3JlYXRlZF9hdBgFIAEoAxITCgtsYXN0X2FjdGl2ZRgGIAEoAxI1CghtZXRhZGF0YRgHIAMoCzIjLnRhbG9uLm1vZGVscy5TZXNzaW9uLk1ldGFkYXRhRW50cnkSMQoGbGFiZWxzGAggAygLMiEudGFsb24ubW9kZWxzLlNlc3Npb24uTGFiZWxzRW50cnkaLwoNTWV0YWRhdGFFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEitAIKB0NoYW5uZWwSDAoEbmFtZRgBIAEoCRIKCgJucxgCIAEoCRINCgV0aXRsZRgDIAEoCRIOCgZzdGF0dXMYBCABKAkSEgoKY3JlYXRlZF9hdBgFIAEoAxISCgp1cGRhdGVkX2F0GAYgASgDEjUKCG1ldGFkYXRhGAcgAygLMiMudGFsb24ubW9kZWxzLkNoYW5uZWwuTWV0YWRhdGFFbnRyeRIxCgZsYWJlbHMYCCADKAsyIS50YWxvbi5tb2RlbHMuQ2hhbm5lbC5MYWJlbHNFbnRyeRovCg1NZXRhZGF0YUVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKdAgoOQ2hhbm5lbE1lc3NhZ2USCgoCaWQYASABKAkSCgoCbnMYAiABKAkSDwoHY2hhbm5lbBgDIAEoCRITCgthdXRob3Jfa2luZBgEIAEoCRIOCgZhdXRob3IYBSABKAkSDwoHY29udGVudBgGIAEoCRISCgpjcmVhdGVkX2F0GAcgASgDEhQKDHNvdXJjZV9hZ2VudBgIIAEoCRIZChFzb3VyY2Vfc2Vzc2lvbl9pZBgJIAEoCRI4CgZsYWJlbHMYCiADKAsyKC50YWxvbi5tb2RlbHMuQ2hhbm5lbE1lc3NhZ2UuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASI6ChRDaGFubmVsQ29udGV4dFBvbGljeRIMCgRtb2RlGAEgASgJEhQKDG1heF9tZXNzYWdlcxgCIAEoDSKjAwoTQ2hhbm5lbFN1YnNjcmlwdGlvbhIMCgRuYW1lGAEgASgJEgoKAm5zGAIgASgJEg8KB2NoYW5uZWwYAyABKAkSDQoFYWdlbnQYBCABKAkSDwoHZW5hYmxlZBgFIAEoCBIPCgd0cmlnZ2VyGAYgASgJEjoKDmNvbnRleHRfcG9saWN5GAcgASgLMiIudGFsb24ubW9kZWxzLkNoYW5uZWxDb250ZXh0UG9saWN5EkEKCG1ldGFkYXRhGAggAygLMi8udGFsb24ubW9kZWxzLkNoYW5uZWxTdWJzY3JpcHRpb24uTWV0YWRhdGFFbnRyeRI9CgZsYWJlbHMYCSADKAsyLS50YWxvbi5tb2RlbHMuQ2hhbm5lbFN1YnNjcmlwdGlvbi5MYWJlbHNFbnRyeRISCgpyZXBseV9tb2RlGAogASgJGi8KDU1ldGFkYXRhRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIkkKDlNjaGVkdWxlVGFyZ2V0Eg0KBWFnZW50GAEgASgJEhQKDHNlc3Npb25fbW9kZRgCIAEoCRISCgpzZXNzaW9uX2lkGAMgASgJIrwBCgxTY2hlZHVsZVNwZWMSDAoEa2luZBgBIAEoCRIMCgRjcm9uGAIgASgJEhgKEGludGVydmFsX3NlY29uZHMYAyABKA0SDgoGcnVuX2F0GAQgASgJEhAKCHRpbWV6b25lGAUgASgJEiwKBnRhcmdldBgGIAEoCzIcLnRhbG9uLm1vZGVscy5TY2hlZHVsZVRhcmdldBIVCg1pbnB1dF9tZXNzYWdlGAcgASgJEg8KB2VuYWJsZWQYCCABKAgirwMKDlNjaGVkdWxlU3RhdHVzEhAKCHJldmlzaW9uGAEgASgEEhgKC25leHRfcnVuX2F0GAIgASgDSACIAQESGwoOYmFja2VuZF9oYW5kbGUYAyABKAlIAYgBARIVCg1iYWNrZW5kX2FybWVkGAQgASgIEhgKC2xhc3RfcnVuX2F0GAUgASgDSAKIAQESHAoPbGFzdF9zZXNzaW9uX2lkGAYgASgJSAOIAQESFwoKbGFzdF9lcnJvchgHIAEoCUgEiAEBEhsKDmNsYWltZWRfcnVuX2F0GAggASgDSAWIAQESHQoQY2xhaW1fZXhwaXJlc19hdBgJIAEoA0gGiAEBEjIKDXJlY2VudF9ldmVudHMYCiADKAsyGy50YWxvbi5tb2RlbHMuU2NoZWR1bGVFdmVudEIOCgxfbmV4dF9ydW5fYXRCEQoPX2JhY2tlbmRfaGFuZGxlQg4KDF9sYXN0X3J1bl9hdEISChBfbGFzdF9zZXNzaW9uX2lkQg0KC19sYXN0X2Vycm9yQhEKD19jbGFpbWVkX3J1bl9hdEITChFfY2xhaW1fZXhwaXJlc19hdCJSCg1TY2hlZHVsZUV2ZW50EhEKCXRpbWVzdGFtcBgBIAEoAxINCgVwaGFzZRgCIAEoCRIPCgdvdXRjb21lGAMgASgJEg4KBmRldGFpbBgEIAEoCSLfAQoIU2NoZWR1bGUSDAoEbmFtZRgBIAEoCRIKCgJucxgCIAEoCRIoCgRzcGVjGAMgASgLMhoudGFsb24ubW9kZWxzLlNjaGVkdWxlU3BlYxIsCgZzdGF0dXMYBCABKAsyHC50YWxvbi5tb2RlbHMuU2NoZWR1bGVTdGF0dXMSMgoGbGFiZWxzGAUgAygLMiIudGFsb24ubW9kZWxzLlNjaGVkdWxlLkxhYmVsc0VudHJ5Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEitQEKCU5hbWVzcGFjZRIMCgRuYW1lGAEgASgJEg4KBnBhcmVudBgCIAEoCRISCgppc19kZWxldGVkGAMgASgIEhIKCmRlbGV0ZWRfYXQYBCABKAMSMwoGbGFiZWxzGAUgAygLMiMudGFsb24ubW9kZWxzLk5hbWVzcGFjZS5MYWJlbHNFbnRyeRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIl8KCUtub3dsZWRnZRIMCgRwYXRoGAEgASgJEg8KB2NvbnRlbnQYAiABKAkSEgoKdXBkYXRlZF9hdBgDIAEoAxIRCgluYW1lc3BhY2UYBCABKAkSDAoEbmFtZRgFIAEoCSJrChVLbm93bGVkZ2VTZWFyY2hSZXN1bHQSDAoEcGF0aBgBIAEoCRIPCgdzbmlwcGV0GAIgASgJEg0KBXNjb3JlGAMgASgCEhEKCXRpbWVzdGFtcBgEIAEoAxIRCgluYW1lc3BhY2UYBSABKAkqVwoLTWVzc2FnZVJvbGUSFAoQUk9MRV9VTlNQRUNJRklFRBAAEg0KCVJPTEVfVVNFUhABEhIKDlJPTEVfQVNTSVNUQU5UEAISDwoLUk9MRV9TWVNURU0QAyquAgoWU2Vzc2lvbk1lc3NhZ2VQYXJ0VHlwZRIpCiVTRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASIgoeU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9URVhUEAESJwojU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9SRUFTT05JTkcQAhInCiNTRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1RPT0xfQ0FMTBADEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX1RZUEVfVE9PTF9SRVNVTFQQBBIjCh9TRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1VTQUdFEAUSIwofU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9FUlJPUhAGYgZwcm90bzM", [file_proto_manifests]);
 
 /**
  * @generated from message talon.models.Agent
@@ -57,6 +57,50 @@ export const AgentSchema: GenMessage<Agent> = /*@__PURE__*/
   messageDesc(file_proto_models, 0);
 
 /**
+ * @generated from message talon.models.SessionMessagePart
+ */
+export type SessionMessagePart = Message<"talon.models.SessionMessagePart"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: talon.models.SessionMessagePartType part_type = 2;
+   */
+  partType: SessionMessagePartType;
+
+  /**
+   * @generated from field: string content = 3;
+   */
+  content: string;
+
+  /**
+   * @generated from field: string name = 4;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string payload_json = 5;
+   */
+  payloadJson: string;
+
+  /**
+   * Unix timestamp in microseconds.
+   *
+   * @generated from field: int64 created_at = 6;
+   */
+  createdAt: bigint;
+};
+
+/**
+ * Describes the message talon.models.SessionMessagePart.
+ * Use `create(SessionMessagePartSchema)` to create a new message.
+ */
+export const SessionMessagePartSchema: GenMessage<SessionMessagePart> = /*@__PURE__*/
+  messageDesc(file_proto_models, 1);
+
+/**
  * @generated from message talon.models.SessionMessage
  */
 export type SessionMessage = Message<"talon.models.SessionMessage"> & {
@@ -71,11 +115,6 @@ export type SessionMessage = Message<"talon.models.SessionMessage"> & {
   role: MessageRole;
 
   /**
-   * @generated from field: string content = 3;
-   */
-  content: string;
-
-  /**
    * Unix timestamp in microseconds.
    *
    * @generated from field: int64 created_at = 4;
@@ -86,6 +125,11 @@ export type SessionMessage = Message<"talon.models.SessionMessage"> & {
    * @generated from field: map<string, string> labels = 5;
    */
   labels: { [key: string]: string };
+
+  /**
+   * @generated from field: repeated talon.models.SessionMessagePart parts = 6;
+   */
+  parts: SessionMessagePart[];
 };
 
 /**
@@ -93,7 +137,7 @@ export type SessionMessage = Message<"talon.models.SessionMessage"> & {
  * Use `create(SessionMessageSchema)` to create a new message.
  */
 export const SessionMessageSchema: GenMessage<SessionMessage> = /*@__PURE__*/
-  messageDesc(file_proto_models, 1);
+  messageDesc(file_proto_models, 2);
 
 /**
  * @generated from message talon.models.Session
@@ -149,7 +193,213 @@ export type Session = Message<"talon.models.Session"> & {
  * Use `create(SessionSchema)` to create a new message.
  */
 export const SessionSchema: GenMessage<Session> = /*@__PURE__*/
-  messageDesc(file_proto_models, 2);
+  messageDesc(file_proto_models, 3);
+
+/**
+ * @generated from message talon.models.Channel
+ */
+export type Channel = Message<"talon.models.Channel"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string ns = 2;
+   */
+  ns: string;
+
+  /**
+   * @generated from field: string title = 3;
+   */
+  title: string;
+
+  /**
+   * @generated from field: string status = 4;
+   */
+  status: string;
+
+  /**
+   * Unix timestamp in microseconds.
+   *
+   * @generated from field: int64 created_at = 5;
+   */
+  createdAt: bigint;
+
+  /**
+   * Unix timestamp in microseconds.
+   *
+   * @generated from field: int64 updated_at = 6;
+   */
+  updatedAt: bigint;
+
+  /**
+   * @generated from field: map<string, string> metadata = 7;
+   */
+  metadata: { [key: string]: string };
+
+  /**
+   * @generated from field: map<string, string> labels = 8;
+   */
+  labels: { [key: string]: string };
+};
+
+/**
+ * Describes the message talon.models.Channel.
+ * Use `create(ChannelSchema)` to create a new message.
+ */
+export const ChannelSchema: GenMessage<Channel> = /*@__PURE__*/
+  messageDesc(file_proto_models, 4);
+
+/**
+ * @generated from message talon.models.ChannelMessage
+ */
+export type ChannelMessage = Message<"talon.models.ChannelMessage"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string ns = 2;
+   */
+  ns: string;
+
+  /**
+   * @generated from field: string channel = 3;
+   */
+  channel: string;
+
+  /**
+   * @generated from field: string author_kind = 4;
+   */
+  authorKind: string;
+
+  /**
+   * @generated from field: string author = 5;
+   */
+  author: string;
+
+  /**
+   * @generated from field: string content = 6;
+   */
+  content: string;
+
+  /**
+   * Unix timestamp in microseconds.
+   *
+   * @generated from field: int64 created_at = 7;
+   */
+  createdAt: bigint;
+
+  /**
+   * @generated from field: string source_agent = 8;
+   */
+  sourceAgent: string;
+
+  /**
+   * @generated from field: string source_session_id = 9;
+   */
+  sourceSessionId: string;
+
+  /**
+   * @generated from field: map<string, string> labels = 10;
+   */
+  labels: { [key: string]: string };
+};
+
+/**
+ * Describes the message talon.models.ChannelMessage.
+ * Use `create(ChannelMessageSchema)` to create a new message.
+ */
+export const ChannelMessageSchema: GenMessage<ChannelMessage> = /*@__PURE__*/
+  messageDesc(file_proto_models, 5);
+
+/**
+ * @generated from message talon.models.ChannelContextPolicy
+ */
+export type ChannelContextPolicy = Message<"talon.models.ChannelContextPolicy"> & {
+  /**
+   * @generated from field: string mode = 1;
+   */
+  mode: string;
+
+  /**
+   * @generated from field: uint32 max_messages = 2;
+   */
+  maxMessages: number;
+};
+
+/**
+ * Describes the message talon.models.ChannelContextPolicy.
+ * Use `create(ChannelContextPolicySchema)` to create a new message.
+ */
+export const ChannelContextPolicySchema: GenMessage<ChannelContextPolicy> = /*@__PURE__*/
+  messageDesc(file_proto_models, 6);
+
+/**
+ * @generated from message talon.models.ChannelSubscription
+ */
+export type ChannelSubscription = Message<"talon.models.ChannelSubscription"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string ns = 2;
+   */
+  ns: string;
+
+  /**
+   * @generated from field: string channel = 3;
+   */
+  channel: string;
+
+  /**
+   * @generated from field: string agent = 4;
+   */
+  agent: string;
+
+  /**
+   * @generated from field: bool enabled = 5;
+   */
+  enabled: boolean;
+
+  /**
+   * @generated from field: string trigger = 6;
+   */
+  trigger: string;
+
+  /**
+   * @generated from field: talon.models.ChannelContextPolicy context_policy = 7;
+   */
+  contextPolicy?: ChannelContextPolicy;
+
+  /**
+   * @generated from field: map<string, string> metadata = 8;
+   */
+  metadata: { [key: string]: string };
+
+  /**
+   * @generated from field: map<string, string> labels = 9;
+   */
+  labels: { [key: string]: string };
+
+  /**
+   * Reply behavior for routed sessions. Defaults to "tool"; "none" withholds channel reply tools.
+   *
+   * @generated from field: string reply_mode = 10;
+   */
+  replyMode: string;
+};
+
+/**
+ * Describes the message talon.models.ChannelSubscription.
+ * Use `create(ChannelSubscriptionSchema)` to create a new message.
+ */
+export const ChannelSubscriptionSchema: GenMessage<ChannelSubscription> = /*@__PURE__*/
+  messageDesc(file_proto_models, 7);
 
 /**
  * @generated from message talon.models.ScheduleTarget
@@ -176,7 +426,7 @@ export type ScheduleTarget = Message<"talon.models.ScheduleTarget"> & {
  * Use `create(ScheduleTargetSchema)` to create a new message.
  */
 export const ScheduleTargetSchema: GenMessage<ScheduleTarget> = /*@__PURE__*/
-  messageDesc(file_proto_models, 3);
+  messageDesc(file_proto_models, 8);
 
 /**
  * @generated from message talon.models.ScheduleSpec
@@ -228,7 +478,7 @@ export type ScheduleSpec = Message<"talon.models.ScheduleSpec"> & {
  * Use `create(ScheduleSpecSchema)` to create a new message.
  */
 export const ScheduleSpecSchema: GenMessage<ScheduleSpec> = /*@__PURE__*/
-  messageDesc(file_proto_models, 4);
+  messageDesc(file_proto_models, 9);
 
 /**
  * @generated from message talon.models.ScheduleStatus
@@ -278,6 +528,11 @@ export type ScheduleStatus = Message<"talon.models.ScheduleStatus"> & {
    * @generated from field: optional int64 claim_expires_at = 9;
    */
   claimExpiresAt?: bigint;
+
+  /**
+   * @generated from field: repeated talon.models.ScheduleEvent recent_events = 10;
+   */
+  recentEvents: ScheduleEvent[];
 };
 
 /**
@@ -285,7 +540,39 @@ export type ScheduleStatus = Message<"talon.models.ScheduleStatus"> & {
  * Use `create(ScheduleStatusSchema)` to create a new message.
  */
 export const ScheduleStatusSchema: GenMessage<ScheduleStatus> = /*@__PURE__*/
-  messageDesc(file_proto_models, 5);
+  messageDesc(file_proto_models, 10);
+
+/**
+ * @generated from message talon.models.ScheduleEvent
+ */
+export type ScheduleEvent = Message<"talon.models.ScheduleEvent"> & {
+  /**
+   * @generated from field: int64 timestamp = 1;
+   */
+  timestamp: bigint;
+
+  /**
+   * @generated from field: string phase = 2;
+   */
+  phase: string;
+
+  /**
+   * @generated from field: string outcome = 3;
+   */
+  outcome: string;
+
+  /**
+   * @generated from field: string detail = 4;
+   */
+  detail: string;
+};
+
+/**
+ * Describes the message talon.models.ScheduleEvent.
+ * Use `create(ScheduleEventSchema)` to create a new message.
+ */
+export const ScheduleEventSchema: GenMessage<ScheduleEvent> = /*@__PURE__*/
+  messageDesc(file_proto_models, 11);
 
 /**
  * @generated from message talon.models.Schedule
@@ -322,7 +609,7 @@ export type Schedule = Message<"talon.models.Schedule"> & {
  * Use `create(ScheduleSchema)` to create a new message.
  */
 export const ScheduleSchema: GenMessage<Schedule> = /*@__PURE__*/
-  messageDesc(file_proto_models, 6);
+  messageDesc(file_proto_models, 12);
 
 /**
  * @generated from message talon.models.Namespace
@@ -363,7 +650,7 @@ export type Namespace = Message<"talon.models.Namespace"> & {
  * Use `create(NamespaceSchema)` to create a new message.
  */
 export const NamespaceSchema: GenMessage<Namespace> = /*@__PURE__*/
-  messageDesc(file_proto_models, 7);
+  messageDesc(file_proto_models, 13);
 
 /**
  * @generated from message talon.models.Knowledge
@@ -402,7 +689,7 @@ export type Knowledge = Message<"talon.models.Knowledge"> & {
  * Use `create(KnowledgeSchema)` to create a new message.
  */
 export const KnowledgeSchema: GenMessage<Knowledge> = /*@__PURE__*/
-  messageDesc(file_proto_models, 8);
+  messageDesc(file_proto_models, 14);
 
 /**
  * @generated from message talon.models.KnowledgeSearchResult
@@ -439,7 +726,7 @@ export type KnowledgeSearchResult = Message<"talon.models.KnowledgeSearchResult"
  * Use `create(KnowledgeSearchResultSchema)` to create a new message.
  */
 export const KnowledgeSearchResultSchema: GenMessage<KnowledgeSearchResult> = /*@__PURE__*/
-  messageDesc(file_proto_models, 9);
+  messageDesc(file_proto_models, 15);
 
 /**
  * @generated from enum talon.models.MessageRole
@@ -471,4 +758,50 @@ export enum MessageRole {
  */
 export const MessageRoleSchema: GenEnum<MessageRole> = /*@__PURE__*/
   enumDesc(file_proto_models, 0);
+
+/**
+ * @generated from enum talon.models.SessionMessagePartType
+ */
+export enum SessionMessagePartType {
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_TEXT = 1;
+   */
+  TEXT = 1,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_REASONING = 2;
+   */
+  REASONING = 2,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_TOOL_CALL = 3;
+   */
+  TOOL_CALL = 3,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_TOOL_RESULT = 4;
+   */
+  TOOL_RESULT = 4,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_USAGE = 5;
+   */
+  USAGE = 5,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_ERROR = 6;
+   */
+  ERROR = 6,
+}
+
+/**
+ * Describes the enum talon.models.SessionMessagePartType.
+ */
+export const SessionMessagePartTypeSchema: GenEnum<SessionMessagePartType> = /*@__PURE__*/
+  enumDesc(file_proto_models, 1);
 

@@ -133,6 +133,22 @@ describe("live timeline helpers", () => {
     expect(getMessageAssistantTimeline(messages[0])).toEqual([]);
   });
 
+  it("handles non-array message parts without crashing", () => {
+    const message = {
+      id: "assistant-1",
+      role: "assistant",
+      content: "Legacy fallback",
+      parts: { type: "text", text: "not an array" },
+    };
+
+    expect(getMessageContent(message)).toBe("Legacy fallback");
+    expect(getMessageReasoningContent(message)).toBe("");
+    expect(getMessageUsage(message)).toBeNull();
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      { type: "text", text: "Legacy fallback" },
+    ]);
+  });
+
   it("can append reasoning, usage, and reconcile placeholder ids", () => {
     let messages: any[] = ensureAssistantMessage([], "temp-id");
     messages = appendAssistantText(messages, "temp-id", "Working ");
@@ -228,6 +244,162 @@ describe("fallback readers", () => {
     ]);
   });
 
+  it("reads canonical Talon message parts instead of deprecated message content", () => {
+    const message = {
+      role: "assistant",
+      content: "stale legacy content",
+      parts: [
+        { partType: 1, content: "Hello " },
+        { part_type: "SESSION_MESSAGE_PART_TYPE_TEXT", content: "world" },
+        { partType: 2, content: "reasoning step" },
+        {
+          partType: 3,
+          name: "knowledge_search",
+          payloadJson: JSON.stringify({
+            tool_call_id: "call-1",
+            input: { query: "docs" },
+          }),
+        },
+        {
+          part_type: "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT",
+          name: "knowledge_search",
+          content: "done",
+          payload_json: JSON.stringify({
+            tool_call_id: "call-1",
+            output: "done",
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageContent(message)).toBe("Hello world");
+    expect(getMessageReasoningContent(message)).toBe("reasoning step");
+    expect(getMessageToolInvocations(message)).toEqual([
+      {
+        toolCallId: "call-1",
+        toolName: "knowledge_search",
+        args: { query: "docs" },
+        result: "done",
+      },
+    ]);
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      { type: "text", text: "Hello world" },
+      {
+        type: "tool",
+        toolCallId: "call-1",
+        toolName: "knowledge_search",
+        args: { query: "docs" },
+        result: "done",
+      },
+    ]);
+  });
+
+  it("reads canonical error and usage parts", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        { part_type: "SESSION_MESSAGE_PART_TYPE_ERROR", content: "Provider failed" },
+        {
+          partType: 5,
+          payloadJson: JSON.stringify({
+            input_tokens: 10,
+            output_tokens: 3,
+            reasoning_tokens: 2,
+            total_tokens: 15,
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageContent(message)).toBe("Provider failed");
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      { type: "text", text: "Provider failed" },
+    ]);
+    expect(getMessageUsage(message)).toEqual({
+      inputTokens: 10,
+      outputTokens: 3,
+      reasoningTokens: 2,
+      totalTokens: 15,
+    });
+    expect(getMessageUsage({ parts: [] })).toBeNull();
+  });
+
+  it("reads camelCase tool and usage fields from part payloads", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        {
+          partType: 3,
+          payloadJson: JSON.stringify({
+            toolCallId: "call-camel",
+            input: { query: "ops" },
+          }),
+        },
+        {
+          partType: 4,
+          payloadJson: JSON.stringify({
+            toolCallId: "call-camel",
+            outputPreview: "preview result",
+          }),
+        },
+        {
+          partType: 5,
+          payloadJson: JSON.stringify({
+            inputTokens: 10,
+            outputTokens: 3,
+            reasoningTokens: 2,
+            totalTokens: 15,
+          }),
+        },
+      ],
+    };
+
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      {
+        type: "tool",
+        toolCallId: "call-camel",
+        toolName: "tool",
+        args: { query: "ops" },
+        result: "preview result",
+      },
+    ]);
+    expect(getMessageUsage(message)).toEqual({
+      inputTokens: 10,
+      outputTokens: 3,
+      reasoningTokens: 2,
+      totalTokens: 15,
+    });
+  });
+
+  it("keeps AI SDK tool parts interleaved with text", () => {
+    const message = {
+      role: "assistant",
+      parts: [
+        { type: "text", text: "Before " },
+        {
+          type: "tool-search",
+          toolCallId: "call-2",
+          input: { query: "ops" },
+          state: "output-error",
+          errorText: "denied",
+        },
+        { type: "text", text: "after" },
+      ],
+    };
+
+    expect(getMessageAssistantTimeline(message)).toEqual([
+      { type: "text", text: "Before " },
+      {
+        type: "tool",
+        toolCallId: "call-2",
+        toolName: "search",
+        args: { query: "ops" },
+        result: "denied",
+      },
+      { type: "text", text: "after" },
+    ]);
+  });
+
   it("falls back to text then tools when no timeline exists", () => {
     const message = {
       role: "assistant",
@@ -244,6 +416,36 @@ describe("fallback readers", () => {
         toolCallId: "call-1",
         toolName: "knowledge_search",
         args: { query: "docs" },
+      },
+    ]);
+  });
+
+  it("handles no-op assistant id reconciliation and implicit tool targets", () => {
+    const messages = [
+      { id: "assistant-1", role: "assistant", content: "A" },
+    ];
+
+    expect(reconcileAssistantMessageId(messages, "", "assistant-2")).toBe(messages);
+    expect(reconcileAssistantMessageId(messages, "missing", "assistant-2")).toEqual([
+      ...messages,
+      {
+        id: "assistant-2",
+        role: "assistant",
+        content: "",
+        parts: [{ type: "text", text: "" }],
+        reasoningContent: "",
+        timeline: [],
+      },
+    ]);
+
+    const withTool = applyToolInvocationToMessages(messages, "call-3", "lookup", { id: 1 });
+    expect(getMessageAssistantTimeline(withTool[0])).toEqual([
+      { type: "text", text: "A" },
+      {
+        type: "tool",
+        toolCallId: "call-3",
+        toolName: "lookup",
+        args: { id: 1 },
       },
     ]);
   });
@@ -293,6 +495,59 @@ describe("metadata helpers", () => {
     expect(hydrated[0]).toEqual(messages[0]);
     expect(getMessageReasoningContent(hydrated[1])).toBe("reason one ");
     expect(getMessageUsage(hydrated[1])).toEqual({
+      inputTokens: 4,
+      outputTokens: 5,
+      reasoningTokens: 6,
+      totalTokens: 15,
+    });
+  });
+
+  it("hydrates camelCase tool and usage fields from steps", () => {
+    const messages = [
+      { id: "assistant-1", role: "assistant", content: "" },
+    ];
+    const steps = [
+      {
+        messageId: "assistant-1",
+        stepType: "STEP_TYPE_ACTION",
+        name: "knowledge_search",
+        payloadJson: JSON.stringify({
+          toolCallId: "call-camel",
+          input: { query: "docs" },
+        }),
+      },
+      {
+        messageId: "assistant-1",
+        stepType: "STEP_TYPE_OBSERVATION",
+        name: "knowledge_search",
+        payloadJson: JSON.stringify({
+          toolCallId: "call-camel",
+          outputPreview: "docs found",
+        }),
+      },
+      {
+        messageId: "assistant-1",
+        stepType: "STEP_TYPE_USAGE",
+        payloadJson: JSON.stringify({
+          inputTokens: 4,
+          outputTokens: 5,
+          reasoningTokens: 6,
+          totalTokens: 15,
+        }),
+      },
+    ];
+
+    const hydrated = hydrateMessagesWithSteps(messages, steps);
+    expect(getMessageAssistantTimeline(hydrated[0])).toEqual([
+      {
+        type: "tool",
+        toolCallId: "call-camel",
+        toolName: "knowledge_search",
+        args: { query: "docs" },
+        result: "docs found",
+      },
+    ]);
+    expect(getMessageUsage(hydrated[0])).toEqual({
       inputTokens: 4,
       outputTokens: 5,
       reasoningTokens: 6,

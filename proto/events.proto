@@ -61,3 +61,23 @@ message SessionMessagePartEvent {
     string ns = 6;
     string message_id = 7;
 }
+
+enum ChannelEventKind {
+    CHANNEL_EVENT_KIND_UNSPECIFIED = 0;
+    CHANNEL_EVENT_KIND_MESSAGE_CREATED = 1;
+    CHANNEL_EVENT_KIND_SESSION_ROUTED = 2;
+    CHANNEL_EVENT_KIND_PUBLISH_SKIPPED = 3;
+    CHANNEL_EVENT_KIND_ERROR = 4;
+}
+
+message ChannelEvent {
+    string ns = 1;
+    string channel = 2;
+    ChannelEventKind kind = 3;
+    talon.models.ChannelMessage message = 4;
+    string session_id = 5;
+    string agent = 6;
+    string subscription = 7;
+    string error = 8;
+    int64 timestamp = 9;
+}

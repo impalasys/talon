@@ -1,6 +1,6 @@
 # `@talonai/copilot`
 
-`@talonai/copilot` provides a React chat panel for Talon agent sessions.
+`@talonai/copilot` provides React panels for Talon agent sessions and channels.
 
 ## Install
 
@@ -39,3 +39,33 @@ You can also inject a gateway client for session CRUD:
   onSessionChange={(nextSessionId) => setSessionId(nextSessionId)}
 />
 ```
+
+Channels can be rendered with the same package:
+
+```tsx
+import { TalonChannel } from "@talonai/copilot";
+
+<TalonChannel
+  namespace="support"
+  channel="incident-room"
+  gatewayUrl="http://localhost:18789"
+  authToken={`Bearer ${channelJwt}`}
+  disableUserInput
+  renderMessageActions={(message) => {
+    const agent = message.sourceAgent || message.source_agent;
+    const sessionId = message.sourceSessionId || message.source_session_id;
+    return agent && sessionId ? <button>Open session</button> : null;
+  }}
+/>
+```
+
+For untrusted frontends, mint a short-lived channel token on your backend and pass it as a Bearer token:
+
+```bash
+talon-cli --jwt-secret "$GATEWAY_JWT_SECRET" auth channel-token \
+  --namespace support \
+  --channel incident-room \
+  --ttl-seconds 900
+```
+
+The token is scoped to channel message APIs for that namespace/channel only.

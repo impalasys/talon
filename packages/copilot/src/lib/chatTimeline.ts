@@ -27,7 +27,7 @@ export type CopilotMessage = {
   role: "user" | "assistant" | "system";
   content: string;
   createdAt?: string | number | bigint;
-  parts?: Array<Record<string, unknown>>;
+  parts?: unknown;
   reasoningContent?: string;
   timeline?: AssistantTimelineItem[];
   usage?: UsageSummary;
@@ -65,6 +65,82 @@ function parseJsonObject(payloadJson: unknown): Record<string, unknown> {
   } catch {
     return {};
   }
+}
+
+function parsePartPayload(part: any): Record<string, unknown> {
+  if (!part || typeof part !== "object") return {};
+  const payload = part.payloadJson ?? part.payload_json;
+  if (!payload) return {};
+  if (typeof payload === "string") return parseJsonObject(payload);
+  return parseObjectPayload(payload);
+}
+
+function partType(part: any): unknown {
+  return part?.partType ?? part?.part_type ?? part?.type;
+}
+
+function partContent(part: any): string {
+  if (typeof part?.text === "string") return part.text;
+  if (typeof part?.content === "string") return part.content;
+  return "";
+}
+
+function payloadString(payload: Record<string, unknown>, snakeCase: string, camelCase: string): string | undefined {
+  const snakeValue = payload[snakeCase];
+  if (typeof snakeValue === "string") return snakeValue;
+  const camelValue = payload[camelCase];
+  return typeof camelValue === "string" ? camelValue : undefined;
+}
+
+function payloadNumber(payload: Record<string, unknown>, snakeCase: string, camelCase: string): number | undefined {
+  const snakeValue = payload[snakeCase];
+  if (typeof snakeValue === "number") return snakeValue;
+  const camelValue = payload[camelCase];
+  return typeof camelValue === "number" ? camelValue : undefined;
+}
+
+function toolCallIdFromPart(part: Record<string, unknown>, payload: Record<string, unknown>): string {
+  if (typeof part.toolCallId === "string") return part.toolCallId;
+  if (typeof part.tool_call_id === "string") return part.tool_call_id;
+  return payloadString(payload, "tool_call_id", "toolCallId") ?? "";
+}
+
+function toolResultFromPayload(payload: Record<string, unknown>, fallback: unknown): unknown {
+  return payload.output ?? payload.output_preview ?? payload.outputPreview ?? fallback;
+}
+
+function usageFromPayload(payload: Record<string, unknown>): UsageSummary {
+  return {
+    inputTokens: payloadNumber(payload, "input_tokens", "inputTokens"),
+    outputTokens: payloadNumber(payload, "output_tokens", "outputTokens"),
+    reasoningTokens: payloadNumber(payload, "reasoning_tokens", "reasoningTokens"),
+    totalTokens: payloadNumber(payload, "total_tokens", "totalTokens"),
+  };
+}
+
+function isTextPart(part: Record<string, unknown> | undefined): boolean {
+  const type = partType(part);
+  return type === "text" || type === 1 || type === "SESSION_MESSAGE_PART_TYPE_TEXT";
+}
+
+function isReasoningPart(part: Record<string, unknown> | undefined): boolean {
+  const type = partType(part);
+  return type === "reasoning" || type === 2 || type === "SESSION_MESSAGE_PART_TYPE_REASONING";
+}
+
+function isErrorPart(part: Record<string, unknown> | undefined): boolean {
+  const type = partType(part);
+  return type === 6 || type === "SESSION_MESSAGE_PART_TYPE_ERROR";
+}
+
+function isToolCallPart(part: Record<string, unknown> | undefined): boolean {
+  const type = partType(part);
+  return type === 3 || type === "SESSION_MESSAGE_PART_TYPE_TOOL_CALL";
+}
+
+function isToolResultPart(part: Record<string, unknown> | undefined): boolean {
+  const type = partType(part);
+  return type === 4 || type === "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT";
 }
 
 function appendTextToTimeline(
@@ -121,39 +197,100 @@ function legacyToolInvocationsFromParts(message: CopilotMessage): ToolInvocation
 
   const toolInvocations = new Map<string, ToolInvocationItem>();
   for (const part of message.parts) {
-    if (!part || typeof part !== "object" || typeof part.toolCallId !== "string") continue;
+    if (!part || typeof part !== "object") continue;
+
+    const payload = parsePartPayload(part);
+    const toolCallId = toolCallIdFromPart(part, payload);
+    if (!toolCallId) continue;
 
     const toolName =
       typeof part.toolName === "string"
         ? part.toolName
         : typeof part.type === "string" && part.type.startsWith("tool-")
           ? part.type.slice(5)
-          : "tool";
+          : typeof part.name === "string" && part.name
+            ? part.name
+            : "tool";
 
-    const previous = toolInvocations.get(part.toolCallId);
-    toolInvocations.set(part.toolCallId, {
-      toolCallId: part.toolCallId,
+    const previous = toolInvocations.get(toolCallId);
+    toolInvocations.set(toolCallId, {
+      toolCallId,
       toolName,
-      args: "input" in part ? part.input : previous?.args ?? {},
+      args: part.input ?? payload.input ?? previous?.args ?? {},
       result:
         part.state === "output-available"
           ? part.output
           : part.state === "output-error"
             ? part.errorText
-            : previous?.result,
+            : isToolResultPart(part)
+              ? toolResultFromPayload(payload, partContent(part))
+              : previous?.result,
     });
   }
 
   return Array.from(toolInvocations.values());
 }
 
+function timelineFromParts(message: Partial<CopilotMessage>): AssistantTimelineItem[] {
+  if (!Array.isArray(message?.parts)) return [];
+
+  let timeline: AssistantTimelineItem[] = [];
+  for (const part of message.parts) {
+    if (!part || typeof part !== "object") continue;
+
+    if (isTextPart(part) || isErrorPart(part)) {
+      timeline = appendTextToTimeline(timeline, partContent(part));
+      continue;
+    }
+
+    const payload = parsePartPayload(part);
+    const toolCallId = toolCallIdFromPart(part, payload);
+    const toolName =
+      typeof part.toolName === "string"
+        ? part.toolName
+        : typeof part.type === "string" && part.type.startsWith("tool-")
+          ? part.type.slice(5)
+          : typeof part.name === "string" && part.name
+            ? part.name
+            : "tool";
+
+    if (isToolCallPart(part) || (typeof part.type === "string" && part.type.startsWith("tool-"))) {
+      timeline = upsertToolInTimeline(
+        timeline,
+        toolCallId,
+        toolName,
+        part.input ?? payload.input ?? {},
+        part.state === "output-available"
+          ? part.output
+          : part.state === "output-error"
+            ? part.errorText
+            : undefined,
+      );
+      continue;
+    }
+
+    if (isToolResultPart(part)) {
+      timeline = upsertToolInTimeline(
+        timeline,
+        toolCallId,
+        toolName,
+        undefined,
+        toolResultFromPayload(payload, partContent(part)),
+      );
+    }
+  }
+
+  return timeline;
+}
+
 export function getMessageContent(message: Partial<CopilotMessage>): string {
-  if (typeof message?.content === "string") return message.content;
-  if (!Array.isArray(message?.parts)) return "";
-  return message.parts
-    .filter((part) => part?.type === "text" && typeof part.text === "string")
-    .map((part) => part.text as string)
-    .join("");
+  if (Array.isArray(message?.parts)) {
+    return message.parts
+      .filter((part) => isTextPart(part) || isErrorPart(part))
+      .map(partContent)
+      .join("");
+  }
+  return typeof message?.content === "string" ? message.content : "";
 }
 
 export function getMessageReasoningContent(message: Partial<CopilotMessage>): string {
@@ -163,14 +300,23 @@ export function getMessageReasoningContent(message: Partial<CopilotMessage>): st
 
   if (!Array.isArray(message?.parts)) return "";
   return message.parts
-    .filter((part) => part?.type === "reasoning" && typeof part.text === "string")
-    .map((part) => part.text as string)
+    .filter(isReasoningPart)
+    .map(partContent)
     .join("");
 }
 
 export function getMessageUsage(message: Partial<CopilotMessage>): UsageSummary | null {
   if (message?.usage && typeof message.usage === "object") {
     return message.usage as UsageSummary;
+  }
+  if (Array.isArray(message?.parts)) {
+    const usagePart = message.parts.find(
+      (part) => partType(part) === 5 || partType(part) === "SESSION_MESSAGE_PART_TYPE_USAGE",
+    );
+    if (usagePart) {
+      const payload = parsePartPayload(usagePart);
+      return usageFromPayload(payload);
+    }
   }
   return null;
 }
@@ -179,6 +325,9 @@ export function getMessageAssistantTimeline(message: Partial<CopilotMessage>): A
   if (Array.isArray(message?.timeline) && message.timeline.length > 0) {
     return message.timeline as AssistantTimelineItem[];
   }
+
+  const partTimeline = timelineFromParts(message);
+  if (partTimeline.length > 0) return partTimeline;
 
   const toolInvocations = Array.isArray(message?.toolInvocations)
     ? (message.toolInvocations as ToolInvocationItem[])
@@ -229,12 +378,7 @@ function buildUsageFromSteps(steps: any[] | undefined): Map<string, UsageSummary
     if (!messageId || !isUsageStep(step?.stepType)) continue;
 
     const payload = parseJsonObject(step.payloadJson);
-    byMessage.set(messageId, {
-      inputTokens: typeof payload.input_tokens === "number" ? payload.input_tokens : undefined,
-      outputTokens: typeof payload.output_tokens === "number" ? payload.output_tokens : undefined,
-      reasoningTokens: typeof payload.reasoning_tokens === "number" ? payload.reasoning_tokens : undefined,
-      totalTokens: typeof payload.total_tokens === "number" ? payload.total_tokens : undefined,
-    });
+    byMessage.set(messageId, usageFromPayload(payload));
   }
 
   return byMessage;
@@ -257,7 +401,7 @@ function buildAssistantTimelineFromSteps(steps: any[] | undefined): Map<string, 
 
     if (isActionStep(step?.stepType)) {
       const payload = parseJsonObject(step.payloadJson);
-      const toolCallId = typeof payload.tool_call_id === "string" ? payload.tool_call_id : "";
+      const toolCallId = payloadString(payload, "tool_call_id", "toolCallId") ?? "";
       byMessage.set(
         messageId,
         upsertToolInTimeline(
@@ -272,7 +416,7 @@ function buildAssistantTimelineFromSteps(steps: any[] | undefined): Map<string, 
 
     if (isObservationStep(step?.stepType)) {
       const payload = parseJsonObject(step.payloadJson);
-      const toolCallId = typeof payload.tool_call_id === "string" ? payload.tool_call_id : "";
+      const toolCallId = payloadString(payload, "tool_call_id", "toolCallId") ?? "";
       byMessage.set(
         messageId,
         upsertToolInTimeline(
@@ -280,7 +424,7 @@ function buildAssistantTimelineFromSteps(steps: any[] | undefined): Map<string, 
           toolCallId,
           step.name || "tool",
           undefined,
-          payload.output ?? step.content,
+          toolResultFromPayload(payload, step.content),
         ),
       );
     }

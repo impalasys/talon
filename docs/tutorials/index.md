@@ -27,6 +27,7 @@ These pages teach the basic runtime loop:
 Use these guides when you want a fuller product narrative:
 
 - [Build a ChatGPT-Style App](./chatgpt-app.md)
+- [Build a Channel Collaboration Room](./channel-collaboration.md)
 - [Build a Marketing Agency](./marketing-agency.md)
 - [Build a Customer Retention System](./customer-retention-system.md)
 - [Build an Internal Ops Copilot](./internal-ops-copilot.md)

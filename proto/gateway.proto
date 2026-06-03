@@ -125,6 +125,83 @@ service GatewayService {
     };
   }
 
+  // Channels
+  rpc CreateChannel(CreateChannelRequest) returns (ChannelResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/channels"
+      body: "*"
+    };
+  }
+  rpc GetChannel(GetChannelRequest) returns (ChannelResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/channels/{name}"
+    };
+  }
+  rpc ModifyChannel(ModifyChannelRequest) returns (ChannelResponse) {
+    option (google.api.http) = {
+      put: "/v1/ns/{ns}/channels/{name}"
+      body: "*"
+    };
+  }
+  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/channels"
+    };
+  }
+  rpc DeleteChannel(DeleteChannelRequest) returns (DeleteChannelResponse) {
+    option (google.api.http) = {
+      delete: "/v1/ns/{ns}/channels/{name}"
+    };
+  }
+  rpc PostChannelMessage(PostChannelMessageRequest) returns (PostChannelMessageResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/channels/{channel}/messages"
+      body: "*"
+    };
+  }
+  rpc GetChannelMessage(GetChannelMessageRequest) returns (ChannelMessageResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/channels/{channel}/messages/{message_id}"
+    };
+  }
+  rpc ListChannelMessages(ListChannelMessagesRequest) returns (ListChannelMessagesResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/channels/{channel}/messages"
+    };
+  }
+  rpc CreateChannelSubscription(CreateChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/channels/{channel}/subscriptions"
+      body: "*"
+    };
+  }
+  rpc GetChannelSubscription(GetChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
+    };
+  }
+  rpc ModifyChannelSubscription(ModifyChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
+    option (google.api.http) = {
+      put: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
+      body: "*"
+    };
+  }
+  rpc ListChannelSubscriptions(ListChannelSubscriptionsRequest) returns (ListChannelSubscriptionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/channels/{channel}/subscriptions"
+    };
+  }
+  rpc DeleteChannelSubscription(DeleteChannelSubscriptionRequest) returns (DeleteChannelSubscriptionResponse) {
+    option (google.api.http) = {
+      delete: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
+    };
+  }
+  rpc StreamChannelEvents(StreamChannelEventsRequest) returns (stream talon.events.ChannelEvent) {
+    option (google.api.http) = {
+      get: "/v1/ns/{ns}/channels/{channel}/stream"
+    };
+  }
+
   // Schedules
   rpc CreateSchedule(CreateScheduleRequest) returns (ScheduleResponse) {
     option (google.api.http) = {
@@ -511,6 +588,136 @@ message DeleteSessionRequest {
 
 message DeleteSessionResponse {
   bool success = 1;
+}
+
+message CreateChannelRequest {
+  string ns = 1;
+  talon.models.Channel channel = 2;
+}
+
+message GetChannelRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message ModifyChannelRequest {
+  string ns = 1;
+  string name = 2;
+  talon.models.Channel channel = 3;
+}
+
+message ListChannelsRequest {
+  string ns = 1;
+}
+
+message DeleteChannelRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message ChannelResponse {
+  talon.models.Channel channel = 1;
+}
+
+message ListChannelsResponse {
+  repeated talon.models.Channel channels = 1;
+}
+
+message DeleteChannelResponse {
+  bool success = 1;
+}
+
+message PostChannelMessageRequest {
+  string ns = 1;
+  string channel = 2;
+  string author_kind = 3;
+  string author = 4;
+  string content = 5;
+  repeated string subscription_names = 6;
+  map<string, string> labels = 7;
+}
+
+message RoutedChannelSession {
+  string subscription = 1;
+  string agent = 2;
+  string session_id = 3;
+  string error = 4;
+}
+
+message PostChannelMessageResponse {
+  talon.models.ChannelMessage message = 1;
+  repeated RoutedChannelSession routed_sessions = 2;
+}
+
+message GetChannelMessageRequest {
+  string ns = 1;
+  string channel = 2;
+  string message_id = 3;
+}
+
+message ChannelMessageResponse {
+  talon.models.ChannelMessage message = 1;
+}
+
+message ListChannelMessagesRequest {
+  string ns = 1;
+  string channel = 2;
+  int32 limit = 3;
+  int32 page_size = 4;
+  optional string before_message_id = 5;
+}
+
+message ListChannelMessagesResponse {
+  repeated talon.models.ChannelMessage messages = 1;
+  bool has_more = 2;
+  optional string next_before_message_id = 3;
+}
+
+message CreateChannelSubscriptionRequest {
+  string ns = 1;
+  string channel = 2;
+  talon.models.ChannelSubscription subscription = 3;
+}
+
+message GetChannelSubscriptionRequest {
+  string ns = 1;
+  string channel = 2;
+  string name = 3;
+}
+
+message ModifyChannelSubscriptionRequest {
+  string ns = 1;
+  string channel = 2;
+  string name = 3;
+  talon.models.ChannelSubscription subscription = 4;
+}
+
+message ListChannelSubscriptionsRequest {
+  string ns = 1;
+  string channel = 2;
+}
+
+message DeleteChannelSubscriptionRequest {
+  string ns = 1;
+  string channel = 2;
+  string name = 3;
+}
+
+message ChannelSubscriptionResponse {
+  talon.models.ChannelSubscription subscription = 1;
+}
+
+message ListChannelSubscriptionsResponse {
+  repeated talon.models.ChannelSubscription subscriptions = 1;
+}
+
+message DeleteChannelSubscriptionResponse {
+  bool success = 1;
+}
+
+message StreamChannelEventsRequest {
+  string ns = 1;
+  string channel = 2;
 }
 
 message CreateScheduleRequest {

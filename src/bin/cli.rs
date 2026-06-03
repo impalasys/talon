@@ -16,11 +16,13 @@ use talon::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
 use talon::gateway::rpc::models;
 use talon::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use talon::gateway::rpc::proto::{
-    CreateAgentRequest, CreateAgentTemplateRequest, CreateMcpServerRequest,
-    CreateNamespaceKnowledgeRequest, DeleteAgentTemplateRequest, DeleteMcpServerRequest,
-    DeleteNamespaceKnowledgeRequest, GetAgentTemplateRequest, GetMcpServerRequest,
+    CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest,
+    CreateChannelSubscriptionRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest,
+    DeleteAgentTemplateRequest, DeleteChannelRequest, DeleteChannelSubscriptionRequest,
+    DeleteMcpServerRequest, DeleteNamespaceKnowledgeRequest, GetAgentTemplateRequest,
+    GetChannelRequest, GetChannelSubscriptionRequest, GetMcpServerRequest,
     GetNamespaceKnowledgeRequest, GetScheduleRequest, ListNamespaceKnowledgeRequest,
-    ModifyAgentRequest,
+    ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest,
 };
 use tonic::metadata::MetadataValue;
 use tonic::service::Interceptor;
@@ -63,7 +65,11 @@ struct AuthInterceptor {
 struct CliClaims {
     sub: String,
     aud: String,
-    exp: usize,
+    exp: u64,
+    #[serde(rename = "talon:ns", skip_serializing_if = "Option::is_none")]
+    ns: Option<String>,
+    #[serde(rename = "talon:channel", skip_serializing_if = "Option::is_none")]
+    channel: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -111,14 +117,16 @@ fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
 }
 
 fn mint_gateway_jwt(secret: &str) -> Result<String> {
-    let exp = (std::time::SystemTime::now()
+    let exp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)?
         .as_secs()
-        + 3600) as usize;
+        + 3600;
     let claims = CliClaims {
         sub: "talon-cli".to_string(),
         aud: "talon".to_string(),
         exp,
+        ns: None,
+        channel: None,
     };
     jsonwebtoken::encode(
         &Header::default(),
@@ -126,6 +134,47 @@ fn mint_gateway_jwt(secret: &str) -> Result<String> {
         &EncodingKey::from_secret(secret.as_bytes()),
     )
     .context("Failed to sign Talon CLI JWT")
+}
+
+fn mint_channel_jwt(
+    secret: &str,
+    namespace: &str,
+    channel: &str,
+    subject: &str,
+    ttl_seconds: u64,
+) -> Result<String> {
+    let namespace = namespace.trim();
+    let channel = channel.trim();
+    let subject = subject.trim();
+    if namespace.is_empty() {
+        anyhow::bail!("namespace cannot be empty");
+    }
+    if channel.is_empty() {
+        anyhow::bail!("channel cannot be empty");
+    }
+    if subject.is_empty() {
+        anyhow::bail!("subject cannot be empty");
+    }
+    if ttl_seconds == 0 {
+        anyhow::bail!("ttl-seconds must be greater than zero");
+    }
+    let exp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_secs()
+        + ttl_seconds;
+    let claims = CliClaims {
+        sub: subject.to_string(),
+        aud: "talon".to_string(),
+        exp,
+        ns: Some(namespace.to_string()),
+        channel: Some(channel.to_string()),
+    };
+    jsonwebtoken::encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(secret.as_bytes()),
+    )
+    .context("Failed to sign Talon channel JWT")
 }
 
 fn auth_interceptor(cli: &Cli) -> Result<AuthInterceptor> {
@@ -324,6 +373,27 @@ fn manifest_json_payload(content: &str) -> Result<(String, serde_json::Value)> {
             "knowledge".to_string(),
             json!({ "knowledge": manifest_value }),
         )),
+        "Channel" => {
+            let channel = talon::manifest::parse_channel(content)?;
+            Ok((
+                "channel".to_string(),
+                json!({
+                    "ns": channel.ns,
+                    "channel": channel,
+                }),
+            ))
+        }
+        "ChannelSubscription" => {
+            let subscription = talon::manifest::parse_channel_subscription(content)?;
+            Ok((
+                "subscription".to_string(),
+                json!({
+                    "ns": subscription.ns,
+                    "channel": subscription.channel,
+                    "subscription": subscription,
+                }),
+            ))
+        }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
 }
@@ -411,6 +481,39 @@ fn rest_get_path(
                 "schedule",
             ))
         }
+        "channel" | "channels" => {
+            let ns = namespace
+                .as_ref()
+                .context("Channel get requires --namespace")?;
+            Ok((
+                format!(
+                    "/v1/ns/{}/channels/{}",
+                    urlencoding::encode(ns),
+                    urlencoding::encode(name)
+                ),
+                "channel",
+            ))
+        }
+        "channelsubscription"
+        | "channelsubscriptions"
+        | "channel-subscription"
+        | "channel-subscriptions" => {
+            let ns = namespace
+                .as_ref()
+                .context("ChannelSubscription get requires --namespace")?;
+            let (channel, subscription) = name
+                .split_once('/')
+                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
+            Ok((
+                format!(
+                    "/v1/ns/{}/channels/{}/subscriptions/{}",
+                    urlencoding::encode(ns),
+                    urlencoding::encode(channel),
+                    urlencoding::encode(subscription)
+                ),
+                "subscription",
+            ))
+        }
         other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
     }
 }
@@ -454,6 +557,33 @@ fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Resul
                 urlencoding::encode(name)
             ))
         }
+        "channel" | "channels" => {
+            let ns = namespace
+                .as_ref()
+                .context("Channel delete requires --namespace")?;
+            Ok(format!(
+                "/v1/ns/{}/channels/{}",
+                urlencoding::encode(ns),
+                urlencoding::encode(name)
+            ))
+        }
+        "channelsubscription"
+        | "channelsubscriptions"
+        | "channel-subscription"
+        | "channel-subscriptions" => {
+            let ns = namespace
+                .as_ref()
+                .context("ChannelSubscription delete requires --namespace")?;
+            let (channel, subscription) = name
+                .split_once('/')
+                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
+            Ok(format!(
+                "/v1/ns/{}/channels/{}/subscriptions/{}",
+                urlencoding::encode(ns),
+                urlencoding::encode(channel),
+                urlencoding::encode(subscription)
+            ))
+        }
         other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
     }
 }
@@ -488,6 +618,18 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
             }))
         }
         "Knowledge" => Ok(json!({ "knowledge": manifest_value })),
+        "Channel" => {
+            let channel = talon::manifest::parse_channel(content)?;
+            Ok(json!({ "ns": channel.ns, "channel": channel }))
+        }
+        "ChannelSubscription" => {
+            let subscription = talon::manifest::parse_channel_subscription(content)?;
+            Ok(json!({
+                "ns": subscription.ns,
+                "channel": subscription.channel,
+                "subscription": subscription,
+            }))
+        }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
 }
@@ -548,6 +690,21 @@ fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<
             talon::manifest::render_agent_template_yaml(&template)
         }
         "schedule" => serde_yaml::to_string(&value).context("Failed to serialize Schedule YAML"),
+        "channel" => {
+            let mut value = value;
+            normalize_json_int64_fields(
+                &mut value,
+                &["createdAt", "created_at", "updatedAt", "updated_at"],
+            )?;
+            let channel: models::Channel =
+                serde_json::from_value(value).context("Failed to decode Channel JSON")?;
+            talon::manifest::render_channel_yaml(&channel)
+        }
+        "subscription" => {
+            let subscription: models::ChannelSubscription = serde_json::from_value(value)
+                .context("Failed to decode ChannelSubscription JSON")?;
+            talon::manifest::render_channel_subscription_yaml(&subscription)
+        }
         other => anyhow::bail!("Unsupported REST response resource '{}'", other),
     }
 }
@@ -565,6 +722,27 @@ fn normalize_manifest_metadata_maps(value: &mut serde_json::Value) {
             metadata.insert(key.to_string(), json!({}));
         }
     }
+}
+
+fn normalize_json_int64_fields(value: &mut serde_json::Value, fields: &[&str]) -> Result<()> {
+    let Some(object) = value.as_object_mut() else {
+        return Ok(());
+    };
+
+    for field in fields {
+        let Some(field_value) = object.get_mut(*field) else {
+            continue;
+        };
+        let Some(raw) = field_value.as_str() else {
+            continue;
+        };
+        let parsed = raw
+            .parse::<i64>()
+            .with_context(|| format!("Failed to parse {field} as int64"))?;
+        *field_value = serde_json::Value::Number(parsed.into());
+    }
+
+    Ok(())
 }
 
 fn render_rest_agent_yaml(agent: serde_json::Value) -> Result<String> {
@@ -892,6 +1070,11 @@ async fn sync_knowledge_dir(cli: &Cli, namespace: &str, dir: &str) -> Result<(us
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Mint scoped auth tokens for clients.
+    Auth {
+        #[command(subcommand)]
+        command: AuthCommands,
+    },
     /// Manage namespace knowledge artifacts directly by path.
     Knowledge {
         #[command(subcommand)]
@@ -941,6 +1124,21 @@ enum Commands {
         dir: String,
         #[arg(long, default_value = "client.ts")]
         out: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum AuthCommands {
+    /// Mint a JWT that can only access messages in one channel.
+    ChannelToken {
+        #[arg(short, long)]
+        namespace: String,
+        #[arg(short, long)]
+        channel: String,
+        #[arg(long, default_value = "talon-channel-client")]
+        subject: String,
+        #[arg(long, default_value_t = 3600)]
+        ttl_seconds: u64,
     },
 }
 
@@ -996,18 +1194,56 @@ struct RestApplyPlan {
 
 #[derive(Debug, PartialEq, Eq)]
 enum GrpcGetTarget {
-    AgentTemplate { name: String },
-    Agent { ns: String, name: String },
-    McpServer { name: String },
-    Knowledge { ns: String, name: String },
-    Schedule { ns: String, name: String },
+    AgentTemplate {
+        name: String,
+    },
+    Agent {
+        ns: String,
+        name: String,
+    },
+    McpServer {
+        name: String,
+    },
+    Knowledge {
+        ns: String,
+        name: String,
+    },
+    Schedule {
+        ns: String,
+        name: String,
+    },
+    Channel {
+        ns: String,
+        name: String,
+    },
+    ChannelSubscription {
+        ns: String,
+        channel: String,
+        name: String,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq)]
 enum GrpcDeleteTarget {
-    AgentTemplate { name: String },
-    McpServer { name: String },
-    Knowledge { ns: String, name: String },
+    AgentTemplate {
+        name: String,
+    },
+    McpServer {
+        name: String,
+    },
+    Knowledge {
+        ns: String,
+        name: String,
+    },
+    Channel {
+        ns: String,
+        name: String,
+    },
+    ChannelSubscription {
+        ns: String,
+        channel: String,
+        name: String,
+    },
 }
 
 #[derive(Debug)]
@@ -1030,6 +1266,17 @@ enum GrpcApplyPlan {
         ns: String,
         name: String,
         knowledge: talon::gateway::rpc::manifests::Knowledge,
+    },
+    Channel {
+        ns: String,
+        name: String,
+        channel: models::Channel,
+    },
+    ChannelSubscription {
+        ns: String,
+        channel_name: String,
+        name: String,
+        subscription: models::ChannelSubscription,
     },
 }
 
@@ -1166,6 +1413,32 @@ fn build_rest_apply_plan(
                 success_label: format!("Knowledge '{}/{}'", meta.namespace, meta.name),
             })
         }
+        "Channel" => {
+            let channel = talon::manifest::parse_channel(content)?;
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: format!("/v1/ns/{}/channels", urlencoding::encode(&channel.ns)),
+                payload: json!({ "ns": channel.ns, "channel": channel }),
+                success_label: "Channel".to_string(),
+            })
+        }
+        "ChannelSubscription" => {
+            let subscription = talon::manifest::parse_channel_subscription(content)?;
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: format!(
+                    "/v1/ns/{}/channels/{}/subscriptions",
+                    urlencoding::encode(&subscription.ns),
+                    urlencoding::encode(&subscription.channel)
+                ),
+                payload: json!({
+                    "ns": subscription.ns,
+                    "channel": subscription.channel,
+                    "subscription": subscription,
+                }),
+                success_label: "ChannelSubscription".to_string(),
+            })
+        }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
 }
@@ -1273,6 +1546,31 @@ fn grpc_get_target(kind: &str, name: &str, namespace: Option<&String>) -> Result
                 name: name.to_string(),
             })
         }
+        "channel" | "channels" => {
+            let ns = namespace
+                .cloned()
+                .context("Channel get requires --namespace")?;
+            Ok(GrpcGetTarget::Channel {
+                ns,
+                name: name.to_string(),
+            })
+        }
+        "channelsubscription"
+        | "channelsubscriptions"
+        | "channel-subscription"
+        | "channel-subscriptions" => {
+            let ns = namespace
+                .cloned()
+                .context("ChannelSubscription get requires --namespace")?;
+            let (channel, subscription) = name
+                .split_once('/')
+                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
+            Ok(GrpcGetTarget::ChannelSubscription {
+                ns,
+                channel: channel.to_string(),
+                name: subscription.to_string(),
+            })
+        }
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }
@@ -1296,6 +1594,31 @@ fn grpc_delete_target(
             Ok(GrpcDeleteTarget::Knowledge {
                 ns,
                 name: name.to_string(),
+            })
+        }
+        "channel" | "channels" => {
+            let ns = namespace
+                .cloned()
+                .context("Channel delete requires --namespace")?;
+            Ok(GrpcDeleteTarget::Channel {
+                ns,
+                name: name.to_string(),
+            })
+        }
+        "channelsubscription"
+        | "channelsubscriptions"
+        | "channel-subscription"
+        | "channel-subscriptions" => {
+            let ns = namespace
+                .cloned()
+                .context("ChannelSubscription delete requires --namespace")?;
+            let (channel, subscription) = name
+                .split_once('/')
+                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
+            Ok(GrpcDeleteTarget::ChannelSubscription {
+                ns,
+                channel: channel.to_string(),
+                name: subscription.to_string(),
             })
         }
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
@@ -1355,6 +1678,23 @@ fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
                 ns: meta.namespace.clone(),
                 name: meta.name.clone(),
                 knowledge,
+            })
+        }
+        "Channel" => {
+            let channel = talon::manifest::parse_channel(content)?;
+            Ok(GrpcApplyPlan::Channel {
+                ns: channel.ns.clone(),
+                name: channel.name.clone(),
+                channel,
+            })
+        }
+        "ChannelSubscription" => {
+            let subscription = talon::manifest::parse_channel_subscription(content)?;
+            Ok(GrpcApplyPlan::ChannelSubscription {
+                ns: subscription.ns.clone(),
+                channel_name: subscription.channel.clone(),
+                name: subscription.name.clone(),
+                subscription,
             })
         }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
@@ -1428,6 +1768,37 @@ async fn grpc_get_yaml(
             serde_yaml::to_string(&schedule_json(&schedule))
                 .context("Failed to serialize Schedule YAML")
         }
+        GrpcGetTarget::Channel { ns, name } => {
+            let resp = client
+                .get_channel(GetChannelRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to fetch Channel '{}/{}'", ns, name))?;
+            let channel = resp.into_inner().channel.context("Channel not found.")?;
+            talon::manifest::render_channel_yaml(&channel)
+        }
+        GrpcGetTarget::ChannelSubscription { ns, channel, name } => {
+            let resp = client
+                .get_channel_subscription(GetChannelSubscriptionRequest {
+                    ns: ns.clone(),
+                    channel: channel.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| {
+                    format!(
+                        "Failed to fetch ChannelSubscription '{}/{}/{}'",
+                        ns, channel, name
+                    )
+                })?;
+            let subscription = resp
+                .into_inner()
+                .subscription
+                .context("ChannelSubscription not found.")?;
+            talon::manifest::render_channel_subscription_yaml(&subscription)
+        }
     }
 }
 
@@ -1470,6 +1841,35 @@ async fn grpc_delete_resource(
             Ok(format!(
                 "✓ Knowledge '{}/{}' deleted successfully.",
                 ns, name
+            ))
+        }
+        GrpcDeleteTarget::Channel { ns, name } => {
+            client
+                .delete_channel(DeleteChannelRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to delete Channel '{}/{}'", ns, name))?;
+            Ok(format!("✓ Channel '{}/{}' deleted successfully.", ns, name))
+        }
+        GrpcDeleteTarget::ChannelSubscription { ns, channel, name } => {
+            client
+                .delete_channel_subscription(DeleteChannelSubscriptionRequest {
+                    ns: ns.clone(),
+                    channel: channel.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| {
+                    format!(
+                        "Failed to delete ChannelSubscription '{}/{}/{}'",
+                        ns, channel, name
+                    )
+                })?;
+            Ok(format!(
+                "✓ ChannelSubscription '{}/{}/{}' deleted successfully.",
+                ns, channel, name
             ))
         }
     }
@@ -1559,6 +1959,89 @@ async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
                 ns, name
             ))
         }
+        GrpcApplyPlan::Channel { ns, name, channel } => {
+            let existing = client
+                .get_channel(GetChannelRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await;
+            match existing {
+                Ok(_) => {
+                    client
+                        .modify_channel(ModifyChannelRequest {
+                            ns: ns.clone(),
+                            name: name.clone(),
+                            channel: Some(channel),
+                        })
+                        .await
+                        .with_context(|| format!("Gateway rejected Channel '{}/{}'", ns, name))?;
+                }
+                Err(status) if status.code() == tonic::Code::NotFound => {
+                    client
+                        .create_channel(CreateChannelRequest {
+                            ns: ns.clone(),
+                            channel: Some(channel),
+                        })
+                        .await
+                        .with_context(|| format!("Gateway rejected Channel '{}/{}'", ns, name))?;
+                }
+                Err(status) => return Err(status.into()),
+            }
+            Ok(format!("✓ Channel '{}/{}' applied successfully.", ns, name))
+        }
+        GrpcApplyPlan::ChannelSubscription {
+            ns,
+            channel_name,
+            name,
+            subscription,
+        } => {
+            let existing = client
+                .get_channel_subscription(GetChannelSubscriptionRequest {
+                    ns: ns.clone(),
+                    channel: channel_name.clone(),
+                    name: name.clone(),
+                })
+                .await;
+            match existing {
+                Ok(_) => {
+                    client
+                        .modify_channel_subscription(ModifyChannelSubscriptionRequest {
+                            ns: ns.clone(),
+                            channel: channel_name.clone(),
+                            name: name.clone(),
+                            subscription: Some(subscription),
+                        })
+                        .await
+                        .with_context(|| {
+                            format!(
+                                "Gateway rejected ChannelSubscription '{}/{}/{}'",
+                                ns, channel_name, name
+                            )
+                        })?;
+                }
+                Err(status) if status.code() == tonic::Code::NotFound => {
+                    client
+                        .create_channel_subscription(CreateChannelSubscriptionRequest {
+                            ns: ns.clone(),
+                            channel: channel_name.clone(),
+                            subscription: Some(subscription),
+                        })
+                        .await
+                        .with_context(|| {
+                            format!(
+                                "Gateway rejected ChannelSubscription '{}/{}/{}'",
+                                ns, channel_name, name
+                            )
+                        })?;
+                }
+                Err(status) => return Err(status.into()),
+            }
+            Ok(format!(
+                "✓ ChannelSubscription '{}/{}/{}' applied successfully.",
+                ns, channel_name, name
+            ))
+        }
     }
 }
 
@@ -1588,6 +2071,22 @@ struct RunOutcome {
 
 async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
     match &cli.command {
+        Commands::Auth { command } => match command {
+            AuthCommands::ChannelToken {
+                namespace,
+                channel,
+                subject,
+                ttl_seconds,
+            } => {
+                let secret = resolve_gateway_jwt_secret(cli)
+                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
+                println!(
+                    "{}",
+                    mint_channel_jwt(&secret, namespace, channel, subject, *ttl_seconds)?
+                );
+                return Ok(RunOutcome { exit_code: None });
+            }
+        },
         Commands::Knowledge { command } => match command {
             KnowledgeCommands::Get { namespace, path } => {
                 let knowledge = knowledge_get(&cli, namespace, path).await?;
@@ -1864,7 +2363,7 @@ mod tests {
         build_rest_apply_plan, canonicalize_manifest_path, collect_markdown_files, feature_ts_type,
         grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target,
         grpc_get_yaml, knowledge_delete, knowledge_get, knowledge_list, knowledge_resource_name,
-        knowledge_set, manifest_json_payload, parse_raw_manifest, parse_vars,
+        knowledge_set, manifest_json_payload, mint_channel_jwt, parse_raw_manifest, parse_vars,
         read_knowledge_content, relative_knowledge_path, render_json_payload, render_manifest_file,
         render_manifest_template, render_rest_get_yaml, resolve_authorization_header,
         resolve_manifest_sources, rest_apply_manifest, rest_client, rest_delete_path,
@@ -2159,6 +2658,24 @@ mod tests {
             talon::manifest::parse_namespace(&namespace_yaml).expect("namespace should parse");
         assert_eq!(namespace.name, "conic");
         assert!(namespace.labels.is_empty());
+
+        let channel_yaml = render_rest_get_yaml(
+            "channel",
+            json!({
+                "name": "match",
+                "ns": "codewords:main",
+                "title": "Match",
+                "status": "open",
+                "createdAt": "1780272630893454",
+                "updatedAt": "1780272631893454",
+                "metadata": {},
+                "labels": {},
+            }),
+        )
+        .unwrap();
+        let channel = talon::manifest::parse_channel(&channel_yaml).expect("channel should parse");
+        assert_eq!(channel.name, "match");
+        assert_eq!(channel.ns, "codewords:main");
     }
 
     #[test]
@@ -2197,6 +2714,21 @@ mod tests {
             .unwrap()
             .unwrap()
             .starts_with("Basic "));
+    }
+
+    #[test]
+    fn mint_channel_jwt_scopes_token_to_namespace_and_channel() {
+        let token = mint_channel_jwt("secret", "ops", "incident-room", "web-client", 60).unwrap();
+        let claims = talon::gateway::auth::verify_jwt(&token, "secret").unwrap();
+        assert_eq!(claims.sub, "web-client");
+        assert_eq!(claims.ns.as_deref(), Some("ops"));
+        assert_eq!(claims.channel.as_deref(), Some("incident-room"));
+        assert!(claims.exp > 0);
+
+        assert!(mint_channel_jwt("secret", "", "incident-room", "web-client", 60).is_err());
+        assert!(mint_channel_jwt("secret", "ops", "", "web-client", 60).is_err());
+        assert!(mint_channel_jwt("secret", "ops", "incident-room", "", 60).is_err());
+        assert!(mint_channel_jwt("secret", "ops", "incident-room", "web-client", 0).is_err());
     }
 
     #[test]
