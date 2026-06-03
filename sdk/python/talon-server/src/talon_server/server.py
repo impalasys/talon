@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import base64
 import hashlib
+import hmac
+import json
 import os
 import shutil
 import signal
@@ -34,6 +37,17 @@ class Options:
     env: Mapping[str, str] = field(default_factory=dict)
     startup_timeout_seconds: float = 30.0
     provider: Provider | None = None
+    jwt_secret: str | None = None
+
+
+@dataclass(frozen=True)
+class JwtOptions:
+    subject: str = "talon-sdk"
+    ttl_seconds: int = 3600
+    namespace: str | None = None
+    agent: str | None = None
+    session: str | None = None
+    channel: str | None = None
 
 
 class Server:
@@ -79,6 +93,8 @@ class Server:
                 "RUST_LOG": "info",
             }
         )
+        if options.jwt_secret:
+            env["GATEWAY_JWT_SECRET"] = options.jwt_secret
         env.update(options.env)
         process = subprocess.Popen(
             [str(node_path)],
@@ -135,6 +151,56 @@ class Server:
 
 def start(options: Options | None = None) -> Server:
     return Server.start(options)
+
+
+def mint_jwt(secret: str, options: JwtOptions | None = None) -> str:
+    if not secret:
+        raise ValueError("secret is required")
+    options = options or JwtOptions()
+    if not options.subject.strip():
+        raise ValueError("subject is required")
+    if options.ttl_seconds <= 0:
+        raise ValueError("ttl_seconds must be positive")
+    if options.channel is not None and options.namespace is None:
+        raise ValueError("channel-scoped JWTs require namespace")
+
+    claims: dict[str, str | int] = {
+        "sub": options.subject,
+        "aud": "talon",
+        "exp": int(time.time()) + int(options.ttl_seconds),
+    }
+    _add_jwt_claim(claims, "talon:ns", options.namespace)
+    _add_jwt_claim(claims, "talon:agent", options.agent)
+    _add_jwt_claim(claims, "talon:session", options.session)
+    _add_jwt_claim(claims, "talon:channel", options.channel)
+
+    header = _jwt_segment({"alg": "HS256", "typ": "JWT"})
+    payload = _jwt_segment(claims)
+    message = f"{header}.{payload}"
+    signature = _base64url(hmac.new(secret.encode("utf-8"), message.encode("utf-8"), hashlib.sha256).digest())
+    return f"{message}.{signature}"
+
+
+def authorization_header(token: str) -> str:
+    if not token.strip():
+        raise ValueError("token is required")
+    return f"Bearer {token}"
+
+
+def _add_jwt_claim(claims: dict[str, str | int], key: str, value: str | None) -> None:
+    if value is None:
+        return
+    if not value.strip():
+        raise ValueError(f"{key} must not be empty")
+    claims[key] = value
+
+
+def _jwt_segment(value: object) -> str:
+    return _base64url(json.dumps(value, separators=(",", ":")).encode("utf-8"))
+
+
+def _base64url(value: bytes) -> str:
+    return base64.urlsafe_b64encode(value).decode("ascii").rstrip("=")
 
 
 def _resolve_talon_node(options: Options) -> Path:

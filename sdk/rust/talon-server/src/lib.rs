@@ -1,11 +1,17 @@
 use anyhow::{anyhow, Context, Result};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use hmac::{Hmac, Mac};
+use serde_json::{json, Map, Value};
+use sha2::Sha256;
 use std::collections::HashMap;
 use std::io::Read;
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+
+type HmacSha256 = Hmac<Sha256>;
 
 #[derive(Clone, Debug)]
 pub struct Provider {
@@ -24,6 +30,7 @@ pub struct Options {
     pub env: HashMap<String, String>,
     pub startup_timeout: Duration,
     pub provider: Option<Provider>,
+    pub jwt_secret: Option<String>,
 }
 
 impl Default for Options {
@@ -36,6 +43,30 @@ impl Default for Options {
             env: HashMap::new(),
             startup_timeout: Duration::from_secs(30),
             provider: None,
+            jwt_secret: None,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct JwtOptions {
+    pub subject: String,
+    pub ttl: Duration,
+    pub namespace: Option<String>,
+    pub agent: Option<String>,
+    pub session: Option<String>,
+    pub channel: Option<String>,
+}
+
+impl Default for JwtOptions {
+    fn default() -> Self {
+        Self {
+            subject: "talon-sdk".to_string(),
+            ttl: Duration::from_secs(3600),
+            namespace: None,
+            agent: None,
+            session: None,
+            channel: None,
         }
     }
 }
@@ -69,6 +100,11 @@ impl Server {
             .env("RUST_LOG", "info")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
+        if let Some(secret) = &options.jwt_secret {
+            if !secret.is_empty() {
+                command.env("GATEWAY_JWT_SECRET", secret);
+            }
+        }
         for (key, value) in &options.env {
             command.env(key, value);
         }
@@ -77,8 +113,12 @@ impl Server {
         let logs = Arc::new(Mutex::new(String::new()));
         capture_logs(child.stdout.take(), Arc::clone(&logs));
         capture_logs(child.stderr.take(), Arc::clone(&logs));
-        wait_for_port(grpc_port, options.startup_timeout)
-            .with_context(|| format!("talon-node did not become ready; logs:\n{}", read_logs(&logs)))?;
+        wait_for_port(grpc_port, options.startup_timeout).with_context(|| {
+            format!(
+                "talon-node did not become ready; logs:\n{}",
+                read_logs(&logs)
+            )
+        })?;
 
         let (temp_dir, persisted_temp_dir) = if options.keep_temp_dir {
             #[allow(deprecated)]
@@ -131,6 +171,64 @@ impl Server {
         let _ = self.child.wait();
         Ok(())
     }
+}
+
+pub fn mint_jwt(secret: &str, options: JwtOptions) -> Result<String> {
+    if secret.is_empty() {
+        return Err(anyhow!("secret is required"));
+    }
+    if options.subject.trim().is_empty() {
+        return Err(anyhow!("subject is required"));
+    }
+    if options.ttl.is_zero() {
+        return Err(anyhow!("ttl must be positive"));
+    }
+    if options.channel.is_some() && options.namespace.is_none() {
+        return Err(anyhow!("channel-scoped JWTs require namespace"));
+    }
+
+    let exp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)?
+        .checked_add(options.ttl)
+        .ok_or_else(|| anyhow!("ttl is too large"))?
+        .as_secs();
+    let mut claims = Map::new();
+    claims.insert("sub".to_string(), json!(options.subject));
+    claims.insert("aud".to_string(), json!("talon"));
+    claims.insert("exp".to_string(), json!(exp));
+    add_jwt_claim(&mut claims, "talon:ns", options.namespace)?;
+    add_jwt_claim(&mut claims, "talon:agent", options.agent)?;
+    add_jwt_claim(&mut claims, "talon:session", options.session)?;
+    add_jwt_claim(&mut claims, "talon:channel", options.channel)?;
+
+    let header = jwt_segment(&json!({"alg": "HS256", "typ": "JWT"}))?;
+    let payload = jwt_segment(&Value::Object(claims))?;
+    let message = format!("{header}.{payload}");
+    let mut mac = HmacSha256::new_from_slice(secret.as_bytes())?;
+    mac.update(message.as_bytes());
+    let signature = URL_SAFE_NO_PAD.encode(mac.finalize().into_bytes());
+    Ok(format!("{message}.{signature}"))
+}
+
+pub fn authorization_header(token: &str) -> Result<String> {
+    if token.trim().is_empty() {
+        return Err(anyhow!("token is required"));
+    }
+    Ok(format!("Bearer {token}"))
+}
+
+fn add_jwt_claim(claims: &mut Map<String, Value>, key: &str, value: Option<String>) -> Result<()> {
+    if let Some(value) = value {
+        if value.trim().is_empty() {
+            return Err(anyhow!("{key} must not be empty"));
+        }
+        claims.insert(key.to_string(), json!(value));
+    }
+    Ok(())
+}
+
+fn jwt_segment(value: &Value) -> Result<String> {
+    Ok(URL_SAFE_NO_PAD.encode(serde_json::to_vec(value)?))
 }
 
 impl Drop for Server {
