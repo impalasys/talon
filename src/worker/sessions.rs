@@ -227,7 +227,16 @@ impl WorkerEventHandler {
         let key = crate::control::keys::session(ns, agent_id, session_id);
         if let Ok(Some(mut session)) = self.cp.kv.get_msg::<models::Session>(&key).await {
             session.status = "IDLE".to_string();
-            let _ = self.cp.kv.set_msg(&key, &session).await;
+            if let Err(err) = self.cp.kv.set_msg(&key, &session).await {
+                tracing::error!(
+                    namespace = %ns,
+                    agent = %agent_id,
+                    session = %session_id,
+                    error = %err,
+                    "failed to release session lock"
+                );
+                return;
+            }
             if let Err(err) =
                 crate::workflows::dispatch_workflow_from_session_labels(&self.cp, &session).await
             {

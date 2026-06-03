@@ -1010,6 +1010,19 @@ mod tests {
             .expect("run should return");
         assert_eq!(resumed.status, "SUSPENDED");
 
+        let missing_stream = match handler
+            .stream_workflow_events(tonic::Request::new(proto::StreamWorkflowEventsRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                run_id: "missing-run".to_string(),
+            }))
+            .await
+        {
+            Ok(_) => panic!("missing workflow run stream should fail"),
+            Err(err) => err,
+        };
+        assert_eq!(missing_stream.code(), tonic::Code::NotFound);
+
         let event = models::WorkflowRunEvent {
             id: "event-1".to_string(),
             ns: "customer-retention".to_string(),

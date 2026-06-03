@@ -879,9 +879,15 @@ impl WorkflowStepManifest {
             tool: self.tool,
             input_json: yaml_value_to_json_string(self.input)?,
             workflow: self.workflow,
-            output: self.output.map(WorkflowStepOutputPolicyManifest::into_proto).transpose()?,
+            output: self
+                .output
+                .map(WorkflowStepOutputPolicyManifest::into_proto)
+                .transpose()?,
             resume_schema_json: yaml_value_to_json_string(self.resume_schema)?,
-            retry: self.retry.map(WorkflowStepRetryPolicyManifest::into_proto).transpose()?,
+            retry: self
+                .retry
+                .map(WorkflowStepRetryPolicyManifest::into_proto)
+                .transpose()?,
             timeout: self.timeout,
             wait_duration: self.duration,
             wait_until: self.until,
@@ -2178,7 +2184,7 @@ definition: {}
         let empty =
             CapabilitiesPolicyDeltaManifest::from_proto(&manifests::CapabilitiesPolicyDelta {
                 replace: HashMap::new(),
-        });
+            });
         assert!(empty.replace.is_none());
     }
 
@@ -2247,10 +2253,7 @@ spec:
         assert_eq!(spec.steps[1].after, vec!["review".to_string()]);
         assert_eq!(spec.steps[2].wait_duration, "5m");
         assert_eq!(spec.steps[2].timeout, "1h");
-        assert_eq!(
-            spec.steps[2].retry.as_ref().unwrap().max_attempts,
-            3
-        );
+        assert_eq!(spec.steps[2].retry.as_ref().unwrap().max_attempts, 3);
 
         let rendered = render_workflow_yaml(&workflow).expect("workflow should render");
         assert!(rendered.contains("kind: Workflow"));
@@ -2286,9 +2289,7 @@ spec:
 "#,
         ))
         .unwrap_err();
-        assert!(duplicate
-            .to_string()
-            .contains("duplicate workflow step id"));
+        assert!(duplicate.to_string().contains("duplicate workflow step id"));
 
         let unknown_dep = parse_workflow(&base(
             r#"

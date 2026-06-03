@@ -38,7 +38,7 @@ const STATUS_SKIPPED: &str = "SKIPPED";
 const STATUS_WAITING_CHILD_SESSION: &str = "WAITING_CHILD_SESSION";
 const STATUS_WAITING_CHILD_WORKFLOW: &str = "WAITING_CHILD_WORKFLOW";
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct WorkflowWakeupPayload {
     pub namespace: String,
     pub workflow: String,
@@ -133,7 +133,10 @@ pub fn validate_workflow(workflow: &models::Workflow) -> Result<()> {
         validate_json_object(&format!("step {} when", step.id), &step.when_json)?;
         validate_predicate_json(&format!("step {} when", step.id), &step.when_json)?;
         validate_json_value(&format!("step {} input", step.id), &step.input_json)?;
-        validate_schema_json(&format!("step {} resumeSchema", step.id), &step.resume_schema_json)?;
+        validate_schema_json(
+            &format!("step {} resumeSchema", step.id),
+            &step.resume_schema_json,
+        )?;
         validate_duration_field(&format!("step {} timeout", step.id), &step.timeout)?;
         validate_duration_field(&format!("step {} duration", step.id), &step.wait_duration)?;
         if !step.wait_until.trim().is_empty() {
@@ -144,10 +147,17 @@ pub fn validate_workflow(workflow: &models::Workflow) -> Result<()> {
             validate_retry_policy(&step.id, retry)?;
         }
         if let Some(output) = &step.output {
-            validate_schema_json(&format!("step {} output.schema", step.id), &output.schema_json)?;
+            validate_schema_json(
+                &format!("step {} output.schema", step.id),
+                &output.schema_json,
+            )?;
             match output.format.as_str() {
                 "" | "text" | "json" => {}
-                other => bail!("unsupported output format '{}' for step '{}'", other, step.id),
+                other => bail!(
+                    "unsupported output format '{}' for step '{}'",
+                    other,
+                    step.id
+                ),
             }
         }
         for dep in &step.after {
@@ -159,7 +169,11 @@ pub fn validate_workflow(workflow: &models::Workflow) -> Result<()> {
     for step in &spec.steps {
         for dep in &step.after {
             if !ids.contains(dep) {
-                bail!("workflow step '{}' depends on unknown step '{}'", step.id, dep);
+                bail!(
+                    "workflow step '{}' depends on unknown step '{}'",
+                    step.id,
+                    dep
+                );
             }
         }
     }
@@ -208,8 +222,23 @@ pub async fn create_run(
     cp.kv
         .set_msg(&keys::workflow_run(&run.ns, &run.workflow, &run.id), &run)
         .await?;
-    append_run_event(cp, &run, "", "run_started", "workflow run created", Value::Null).await?;
-    dispatch_workflow(cp.pubsub.as_ref(), &run.ns, &run.workflow, &run.id, "created").await?;
+    append_run_event(
+        cp,
+        &run,
+        "",
+        "run_started",
+        "workflow run created",
+        Value::Null,
+    )
+    .await?;
+    dispatch_workflow(
+        cp.pubsub.as_ref(),
+        &run.ns,
+        &run.workflow,
+        &run.id,
+        "created",
+    )
+    .await?;
     Ok(run)
 }
 
@@ -428,8 +457,15 @@ pub async fn advance_run(cp: &ControlPlane, mut run: models::WorkflowRun) -> Res
                 continue;
             }
 
-            append_run_event(cp, &run, &step.id, "step_started", "step started", Value::Null)
-                .await?;
+            append_run_event(
+                cp,
+                &run,
+                &step.id,
+                "step_started",
+                "step started",
+                Value::Null,
+            )
+            .await?;
             let starter = new_step_run(step, STATUS_STARTING, "", Value::Null)?;
             if !try_insert_step_run(cp, &run, &starter).await? {
                 step_runs = load_step_runs(cp.kv.as_ref(), &run).await?;
@@ -524,7 +560,15 @@ pub async fn advance_run(cp: &ControlPlane, mut run: models::WorkflowRun) -> Res
         validate_basic_json_schema("output", &spec.output_schema_json, &output)?;
         run.output_json = serde_json::to_string(&output)?;
         run.status = STATUS_COMPLETED.to_string();
-        append_run_event(cp, &run, "", "run_completed", "workflow run completed", output).await?;
+        append_run_event(
+            cp,
+            &run,
+            "",
+            "run_completed",
+            "workflow run completed",
+            output,
+        )
+        .await?;
     } else if suspended {
         run.status = STATUS_SUSPENDED.to_string();
     } else if waiting {
@@ -552,7 +596,14 @@ pub async fn advance_run(cp: &ControlPlane, mut run: models::WorkflowRun) -> Res
     }
 
     if made_progress && should_redispatch && has_ready_work(&spec, &step_runs)? {
-        dispatch_workflow(cp.pubsub.as_ref(), &run.ns, &run.workflow, &run.id, "progress").await?;
+        dispatch_workflow(
+            cp.pubsub.as_ref(),
+            &run.ns,
+            &run.workflow,
+            &run.id,
+            "progress",
+        )
+        .await?;
     }
 
     Ok(())
@@ -606,17 +657,12 @@ async fn start_step(
             if step.r#type == "wait" {
                 if let Some(wait_until_at) = compute_wait_until_at(step)? {
                     step_run.wait_until_at = Some(wait_until_at);
-                    let wakeup = schedule_workflow_wakeup(
-                        cp,
-                        run,
-                        step,
-                        attempt,
-                        wait_until_at,
-                        "wait",
-                    )
-                    .await?;
+                    let wakeup =
+                        schedule_workflow_wakeup(cp, run, step, attempt, wait_until_at, "wait")
+                            .await?;
                     step_run.wait_wakeup_handle = wakeup.handle.unwrap_or_default();
-                    let mut suspend = parse_json_or(&step_run.suspend_json, Value::Object(Map::new()))?;
+                    let mut suspend =
+                        parse_json_or(&step_run.suspend_json, Value::Object(Map::new()))?;
                     if let Some(object) = suspend.as_object_mut() {
                         object.insert("until".to_string(), json!(wait_until_at));
                     }
@@ -963,9 +1009,7 @@ pub async fn resume_run(
 
     let mut step_run = cp
         .kv
-        .get_msg::<models::WorkflowStepRun>(&keys::workflow_step_run(
-            ns, workflow, run_id, step_id,
-        ))
+        .get_msg::<models::WorkflowStepRun>(&keys::workflow_step_run(ns, workflow, run_id, step_id))
         .await?
         .ok_or_else(|| anyhow!("workflow step run '{}' not found", step_id))?;
     if step_run.status != STATUS_SUSPENDED {
@@ -974,7 +1018,15 @@ pub async fn resume_run(
     step_run.resume_json = serde_json::to_string(&resume)?;
     step_run.updated_at = Utc::now().timestamp_micros();
     persist_step_run(cp, &run, &step_run).await?;
-    append_run_event(cp, &run, step_id, "run_resumed", "workflow run resumed", resume).await?;
+    append_run_event(
+        cp,
+        &run,
+        step_id,
+        "run_resumed",
+        "workflow run resumed",
+        resume,
+    )
+    .await?;
     dispatch_workflow(cp.pubsub.as_ref(), ns, workflow, run_id, "resumed").await?;
     Ok(run)
 }
@@ -1032,7 +1084,15 @@ pub async fn cancel_run(
             .await?;
         }
     }
-    append_run_event(cp, &run, "", "run_cancelled", "workflow run cancelled", Value::Null).await?;
+    append_run_event(
+        cp,
+        &run,
+        "",
+        "run_cancelled",
+        "workflow run cancelled",
+        Value::Null,
+    )
+    .await?;
     Ok(run)
 }
 
@@ -1060,7 +1120,10 @@ pub async fn load_step_runs(
     Ok(map)
 }
 
-async fn load_run_spec(kv: &dyn KeyValueStore, run: &models::WorkflowRun) -> Result<models::WorkflowSpec> {
+async fn load_run_spec(
+    kv: &dyn KeyValueStore,
+    run: &models::WorkflowRun,
+) -> Result<models::WorkflowSpec> {
     if !run.spec_json.trim().is_empty() {
         return serde_json::from_str(&run.spec_json)
             .map_err(|err| anyhow!("workflow run spec snapshot is invalid: {}", err));
@@ -1105,12 +1168,19 @@ fn active_step_count(step_runs: &HashMap<String, models::WorkflowStepRun>) -> us
         .count()
 }
 
-fn has_ready_work(spec: &models::WorkflowSpec, step_runs: &HashMap<String, models::WorkflowStepRun>) -> Result<bool> {
+fn has_ready_work(
+    spec: &models::WorkflowSpec,
+    step_runs: &HashMap<String, models::WorkflowStepRun>,
+) -> Result<bool> {
     let now = Utc::now().timestamp_micros();
     if step_runs.values().any(|step| {
-        (step.status == STATUS_WAITING_RETRY && step.next_retry_at.is_some_and(|retry_at| retry_at <= now))
+        (step.status == STATUS_WAITING_RETRY
+            && step.next_retry_at.is_some_and(|retry_at| retry_at <= now))
             || (step.status == STATUS_STARTING
-                && step.updated_at.saturating_add(workflow_claim_timeout_micros()) <= now)
+                && step
+                    .updated_at
+                    .saturating_add(workflow_claim_timeout_micros())
+                    <= now)
     }) {
         return Ok(true);
     }
@@ -1165,7 +1235,9 @@ async fn timed_out_step(
     step_run.status = STATUS_FAILED.to_string();
     step_run.error = format!("workflow step '{}' timed out", step.id);
     step_run.updated_at = Utc::now().timestamp_micros();
-    Ok(Some(apply_failed_retry_policy(cp, run, step, step_run).await?))
+    Ok(Some(
+        apply_failed_retry_policy(cp, run, step, step_run).await?,
+    ))
 }
 
 async fn retry_abandoned_starting_step(
@@ -1219,7 +1291,9 @@ async fn try_retry_step(
     let attempt = current.attempt.saturating_add(1);
     let outcome = match start_step(cp, run, step, &view, attempt).await {
         Ok(outcome) => outcome,
-        Err(err) => StepStartOutcome::Completed(failed_step_with_attempt(step, &err.to_string(), attempt)),
+        Err(err) => {
+            StepStartOutcome::Completed(failed_step_with_attempt(step, &err.to_string(), attempt))
+        }
     };
     let mut step_run = match outcome {
         StepStartOutcome::Completed(step_run)
@@ -1257,8 +1331,8 @@ async fn apply_failed_retry_policy(
     step_run.status = STATUS_WAITING_RETRY.to_string();
     step_run.next_retry_at = Some(next_retry_at);
     step_run.updated_at = Utc::now().timestamp_micros();
-    let wakeup = schedule_workflow_wakeup(cp, run, step, step_run.attempt, next_retry_at, "retry")
-        .await?;
+    let wakeup =
+        schedule_workflow_wakeup(cp, run, step, step_run.attempt, next_retry_at, "retry").await?;
     step_run.wait_wakeup_handle = wakeup.handle.unwrap_or_default();
     append_run_event(
         cp,
@@ -1275,7 +1349,11 @@ async fn apply_failed_retry_policy(
 fn retry_backoff_seconds(retry: &models::WorkflowStepRetryPolicy, attempt: u32) -> i64 {
     let initial = retry.initial_backoff_seconds.max(1);
     let max = retry.max_backoff_seconds.max(initial);
-    let multiplier = if retry.multiplier > 0.0 { retry.multiplier } else { 2.0 };
+    let multiplier = if retry.multiplier > 0.0 {
+        retry.multiplier
+    } else {
+        2.0
+    };
     let exponent = attempt.saturating_sub(1) as i32;
     let value = (initial as f64 * multiplier.powi(exponent)).ceil() as i64;
     value.clamp(1, max)
@@ -1306,7 +1384,9 @@ async fn schedule_workflow_wakeup(
             schedule_id: format!("workflow/{}/{}/{}", run.workflow, run.id, step.id),
             revision: attempt as u64,
             fire_at,
-            payload: serde_json::to_vec(&payload)?,
+            payload: serde_json::to_vec(&crate::scheduling::SchedulerFirePayload::Workflow(
+                payload,
+            ))?,
         })
         .await
 }
@@ -1325,7 +1405,10 @@ fn compute_wait_until_at(step: &models::WorkflowStep) -> Result<Option<i64>> {
     ))
 }
 
-pub async fn handle_workflow_wakeup(cp: &ControlPlane, payload: WorkflowWakeupPayload) -> Result<()> {
+pub async fn handle_workflow_wakeup(
+    cp: &ControlPlane,
+    payload: WorkflowWakeupPayload,
+) -> Result<()> {
     let Some(step_run) = cp
         .kv
         .get_msg::<models::WorkflowStepRun>(&keys::workflow_step_run(
@@ -1454,7 +1537,10 @@ fn dependencies_done(
     })
 }
 
-fn all_terminal(spec: &models::WorkflowSpec, step_runs: &HashMap<String, models::WorkflowStepRun>) -> bool {
+fn all_terminal(
+    spec: &models::WorkflowSpec,
+    step_runs: &HashMap<String, models::WorkflowStepRun>,
+) -> bool {
     spec.steps.iter().all(|step| {
         step_runs
             .get(&step.id)
@@ -1479,7 +1565,10 @@ fn is_terminal(status: &str) -> bool {
     matches!(status, STATUS_COMPLETED | STATUS_FAILED | STATUS_CANCELLED)
 }
 
-fn run_view(run: &models::WorkflowRun, step_runs: &HashMap<String, models::WorkflowStepRun>) -> Result<Value> {
+fn run_view(
+    run: &models::WorkflowRun,
+    step_runs: &HashMap<String, models::WorkflowStepRun>,
+) -> Result<Value> {
     let mut steps = Map::new();
     for (step_id, step_run) in step_runs {
         let mut step = Map::new();
@@ -1525,10 +1614,16 @@ fn eval_predicate(predicate: &Value, view: &Value) -> Result<bool> {
         return Ok(true);
     };
     if let Some(all) = object.get("all").and_then(Value::as_array) {
-        return all.iter().map(|p| eval_predicate(p, view)).try_fold(true, |acc, item| Ok(acc && item?));
+        return all
+            .iter()
+            .map(|p| eval_predicate(p, view))
+            .try_fold(true, |acc, item| Ok(acc && item?));
     }
     if let Some(any) = object.get("any").and_then(Value::as_array) {
-        return any.iter().map(|p| eval_predicate(p, view)).try_fold(false, |acc, item| Ok(acc || item?));
+        return any
+            .iter()
+            .map(|p| eval_predicate(p, view))
+            .try_fold(false, |acc, item| Ok(acc || item?));
     }
     if let Some(not) = object.get("not") {
         return Ok(!eval_predicate(not, view)?);
@@ -1562,8 +1657,12 @@ fn eval_predicate(predicate: &Value, view: &Value) -> Result<bool> {
     }
     for key in ["gt", "gte", "lt", "lte"] {
         if let Some(expected) = object.get(key) {
-            let left = current.as_f64().ok_or_else(|| anyhow!("predicate {key} requires numeric path value"))?;
-            let right = expected.as_f64().ok_or_else(|| anyhow!("predicate {key} requires numeric expected value"))?;
+            let left = current
+                .as_f64()
+                .ok_or_else(|| anyhow!("predicate {key} requires numeric path value"))?;
+            let right = expected
+                .as_f64()
+                .ok_or_else(|| anyhow!("predicate {key} requires numeric expected value"))?;
             return Ok(match key {
                 "gt" => left > right,
                 "gte" => left >= right,
@@ -1704,7 +1803,8 @@ fn validate_schema_json(label: &str, value: &str) -> Result<()> {
     if value.trim().is_empty() {
         return Ok(());
     }
-    let parsed: Value = serde_json::from_str(value).with_context(|| format!("{label} must be valid JSON"))?;
+    let parsed: Value =
+        serde_json::from_str(value).with_context(|| format!("{label} must be valid JSON"))?;
     if !parsed.is_object() {
         bail!("{label} must be a JSON object");
     }
@@ -1719,7 +1819,10 @@ fn validate_duration_field(label: &str, value: &str) -> Result<()> {
 
 fn validate_retry_policy(step_id: &str, retry: &models::WorkflowStepRetryPolicy) -> Result<()> {
     if retry.max_attempts == 0 {
-        bail!("retry.maxAttempts for step '{}' must be at least 1", step_id);
+        bail!(
+            "retry.maxAttempts for step '{}' must be at least 1",
+            step_id
+        );
     }
     if retry.initial_backoff_seconds < 0 {
         bail!(
@@ -1734,7 +1837,10 @@ fn validate_retry_policy(step_id: &str, retry: &models::WorkflowStepRetryPolicy)
         );
     }
     if retry.multiplier < 0.0 {
-        bail!("retry.multiplier for step '{}' must be non-negative", step_id);
+        bail!(
+            "retry.multiplier for step '{}' must be non-negative",
+            step_id
+        );
     }
     Ok(())
 }
@@ -1770,7 +1876,8 @@ fn validate_json_object(label: &str, value: &str) -> Result<()> {
     if value.trim().is_empty() {
         return Ok(());
     }
-    let parsed: Value = serde_json::from_str(value).with_context(|| format!("{label} must be valid JSON"))?;
+    let parsed: Value =
+        serde_json::from_str(value).with_context(|| format!("{label} must be valid JSON"))?;
     if !parsed.is_object() {
         bail!("{label} must be a JSON object");
     }
@@ -1781,7 +1888,8 @@ fn validate_json_value(label: &str, value: &str) -> Result<()> {
     if value.trim().is_empty() {
         return Ok(());
     }
-    let _: Value = serde_json::from_str(value).with_context(|| format!("{label} must be valid JSON"))?;
+    let _: Value =
+        serde_json::from_str(value).with_context(|| format!("{label} must be valid JSON"))?;
     Ok(())
 }
 
@@ -1897,7 +2005,12 @@ fn detect_cycle(spec: &models::WorkflowSpec) -> Result<()> {
     let graph = spec
         .steps
         .iter()
-        .map(|step| (step.id.as_str(), step.after.iter().map(String::as_str).collect::<Vec<_>>()))
+        .map(|step| {
+            (
+                step.id.as_str(),
+                step.after.iter().map(String::as_str).collect::<Vec<_>>(),
+            )
+        })
         .collect::<HashMap<_, _>>();
     let mut visiting = HashSet::new();
     let mut visited = HashSet::new();
@@ -1951,7 +2064,9 @@ mod tests {
     use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         events::{MessageDirection, SessionMessageEvent, WorkflowDispatchEvent},
-        scheduler::{NoopSchedulerBackend, ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend},
+        scheduler::{
+            NoopSchedulerBackend, ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend,
+        },
         ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
@@ -1961,10 +2076,10 @@ mod tests {
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
         WorkerEventHandler,
     };
+    use async_trait::async_trait;
     use axum::{routing::post, Router};
     use prost::Message;
     use serde_json::json;
-    use async_trait::async_trait;
     use std::sync::Arc;
     use tokio::net::TcpListener;
 
@@ -1988,10 +2103,7 @@ mod tests {
         }
     }
 
-    fn workflow_handler(
-        kv: Arc<MockKvStore>,
-        pubsub: Arc<RecordingPubSub>,
-    ) -> WorkerEventHandler {
+    fn workflow_handler(kv: Arc<MockKvStore>, pubsub: Arc<RecordingPubSub>) -> WorkerEventHandler {
         WorkerEventHandler {
             cp: Arc::new(ControlPlane {
                 kv,
@@ -2065,10 +2177,7 @@ mod tests {
         .expect("step should exist")
     }
 
-    async fn latest_session_dispatch(
-        pubsub: &RecordingPubSub,
-        agent: &str,
-    ) -> SessionMessageEvent {
+    async fn latest_session_dispatch(pubsub: &RecordingPubSub, agent: &str) -> SessionMessageEvent {
         let published = pubsub.published.lock().await;
         published
             .iter()
@@ -2197,10 +2306,7 @@ mod tests {
         );
         let step = kv
             .get_msg::<models::WorkflowStepRun>(&keys::workflow_step_run(
-                "default",
-                "copy",
-                &run.id,
-                "copy",
+                "default", "copy", &run.id, "copy",
             ))
             .await
             .expect("step should load")
@@ -2251,14 +2357,12 @@ mod tests {
 
         let completed = stored_run(&kv, "default", "search", &run.id).await;
         assert_eq!(completed.status, STATUS_COMPLETED);
-        assert!(
-            serde_json::from_str::<Value>(&completed.output_json)
-                .unwrap()
-                .get("result")
-                .and_then(Value::as_str)
-                .unwrap()
-                .contains("[default:goals.md]")
-        );
+        assert!(serde_json::from_str::<Value>(&completed.output_json)
+            .unwrap()
+            .get("result")
+            .and_then(Value::as_str)
+            .unwrap()
+            .contains("[default:goals.md]"));
 
         let failing = models::Workflow {
             name: "bad-json-output".to_string(),
@@ -2294,9 +2398,9 @@ mod tests {
             Utc::now(),
             "test",
         )
-            .await
-            .unwrap()
-            .unwrap();
+        .await
+        .unwrap()
+        .unwrap();
 
         advance_run(&cp, claimed).await.unwrap();
 
@@ -2418,7 +2522,8 @@ mod tests {
                     input_json: r#"{"value":"${$.input.value}"}"#.to_string(),
                     ..Default::default()
                 }],
-                output_json: r#"{"value":"${$.steps.copy.output.value}","version":"original"}"#.to_string(),
+                output_json: r#"{"value":"${$.steps.copy.output.value}","version":"original"}"#
+                    .to_string(),
                 ..Default::default()
             }),
         };
@@ -2528,14 +2633,13 @@ mod tests {
             stored_step(&kv, &waiting, "first").await.status,
             STATUS_WAITING_CHILD_SESSION
         );
-        assert!(
-            kv.get_msg::<models::WorkflowStepRun>(&keys::workflow_step_run(
+        assert!(kv
+            .get_msg::<models::WorkflowStepRun>(&keys::workflow_step_run(
                 "default", "limited", &run.id, "second"
             ))
             .await
             .unwrap()
-            .is_none()
-        );
+            .is_none());
     }
 
     #[tokio::test]
@@ -2843,7 +2947,9 @@ mod tests {
             .expect("fake LLM should bind");
         let addr = listener.local_addr().expect("fake LLM should have addr");
         let server = tokio::spawn(async move {
-            axum::serve(listener, app).await.expect("fake LLM should serve");
+            axum::serve(listener, app)
+                .await
+                .expect("fake LLM should serve");
         });
         unsafe {
             std::env::set_var("NOVITA_BASE_URL", format!("http://{addr}"));
@@ -3001,26 +3107,42 @@ spec:
             .expect("first workflow dispatch should run until pause");
         let suspended = stored_run(&kv, "customer-retention", "complex-retention", &run.id).await;
         assert_eq!(suspended.status, STATUS_SUSPENDED);
-        assert_eq!(stored_step(&kv, &suspended, "intake").await.status, STATUS_COMPLETED);
-        assert_eq!(stored_step(&kv, &suspended, "profile").await.status, STATUS_COMPLETED);
-        assert_eq!(stored_step(&kv, &suspended, "policy").await.status, STATUS_COMPLETED);
-        assert_eq!(stored_step(&kv, &suspended, "merge").await.status, STATUS_COMPLETED);
-        assert_eq!(stored_step(&kv, &suspended, "lowTouch").await.status, STATUS_SKIPPED);
-        assert_eq!(stored_step(&kv, &suspended, "approval").await.status, STATUS_SUSPENDED);
-        assert!(
-            resume_run(
-                &handler.cp,
-                "customer-retention",
-                "complex-retention",
-                &run.id,
-                "approval",
-                r#"{"approved":"yes"}"#,
-            )
-            .await
-            .expect_err("invalid resume payload should be rejected")
-            .to_string()
-            .contains("resume.approved must be boolean")
+        assert_eq!(
+            stored_step(&kv, &suspended, "intake").await.status,
+            STATUS_COMPLETED
         );
+        assert_eq!(
+            stored_step(&kv, &suspended, "profile").await.status,
+            STATUS_COMPLETED
+        );
+        assert_eq!(
+            stored_step(&kv, &suspended, "policy").await.status,
+            STATUS_COMPLETED
+        );
+        assert_eq!(
+            stored_step(&kv, &suspended, "merge").await.status,
+            STATUS_COMPLETED
+        );
+        assert_eq!(
+            stored_step(&kv, &suspended, "lowTouch").await.status,
+            STATUS_SKIPPED
+        );
+        assert_eq!(
+            stored_step(&kv, &suspended, "approval").await.status,
+            STATUS_SUSPENDED
+        );
+        assert!(resume_run(
+            &handler.cp,
+            "customer-retention",
+            "complex-retention",
+            &run.id,
+            "approval",
+            r#"{"approved":"yes"}"#,
+        )
+        .await
+        .expect_err("invalid resume payload should be rejected")
+        .to_string()
+        .contains("resume.approved must be boolean"));
 
         resume_run(
             &handler.cp,
@@ -3085,7 +3207,9 @@ spec:
         );
         assert_eq!(
             serde_json::from_str::<Value>(
-                &stored_step(&kv, &completed, "draftAction").await.output_json
+                &stored_step(&kv, &completed, "draftAction")
+                    .await
+                    .output_json
             )
             .expect("agent output should decode"),
             json!({ "text": "mock retention action from LLM" })

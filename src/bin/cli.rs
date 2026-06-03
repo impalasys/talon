@@ -4,6 +4,7 @@
 use anyhow::{Context, Result};
 use base64::Engine;
 use clap::{Parser, Subcommand};
+use futures::StreamExt;
 use jsonwebtoken::{EncodingKey, Header};
 use minijinja::{context, Environment, UndefinedBehavior};
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
@@ -16,16 +17,16 @@ use talon::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
 use talon::gateway::rpc::models;
 use talon::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use talon::gateway::rpc::proto::{
-    CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest,
+    CancelWorkflowRunRequest, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest,
     CreateChannelSubscriptionRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest,
-    CreateWorkflowRequest, CreateWorkflowRunRequest,
-    DeleteAgentTemplateRequest, DeleteChannelRequest, DeleteChannelSubscriptionRequest,
-    DeleteMcpServerRequest, DeleteNamespaceKnowledgeRequest, DeleteWorkflowRequest,
-    GetAgentTemplateRequest, GetChannelRequest, GetChannelSubscriptionRequest, GetMcpServerRequest,
-    GetNamespaceKnowledgeRequest, GetScheduleRequest, GetWorkflowRunRequest,
-    ListNamespaceKnowledgeRequest, ListWorkflowRunsRequest, GetWorkflowRequest, ModifyAgentRequest,
+    CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentTemplateRequest,
+    DeleteChannelRequest, DeleteChannelSubscriptionRequest, DeleteMcpServerRequest,
+    DeleteNamespaceKnowledgeRequest, DeleteWorkflowRequest, GetAgentTemplateRequest,
+    GetChannelRequest, GetChannelSubscriptionRequest, GetMcpServerRequest,
+    GetNamespaceKnowledgeRequest, GetScheduleRequest, GetWorkflowRequest, GetWorkflowRunRequest,
+    ListNamespaceKnowledgeRequest, ListWorkflowRunsRequest, ModifyAgentRequest,
     ModifyChannelRequest, ModifyChannelSubscriptionRequest, ResumeWorkflowRunRequest,
-    CancelWorkflowRunRequest, StreamWorkflowEventsRequest,
+    StreamWorkflowEventsRequest,
 };
 use tonic::metadata::MetadataValue;
 use tonic::service::Interceptor;
@@ -342,7 +343,10 @@ fn schedule_json(schedule: &models::Schedule) -> serde_json::Value {
     })
 }
 
-fn workflow_run_json(run: &models::WorkflowRun, steps: &[models::WorkflowStepRun]) -> serde_json::Value {
+fn workflow_run_json(
+    run: &models::WorkflowRun,
+    steps: &[models::WorkflowStepRun],
+) -> serde_json::Value {
     json!({
         "id": run.id,
         "workflow": run.workflow,
@@ -1306,7 +1310,11 @@ async fn workflow_run_get(
     Ok(workflow_run_json(&run, &response.steps))
 }
 
-async fn workflow_run_list(cli: &Cli, namespace: &str, workflow: &str) -> Result<serde_json::Value> {
+async fn workflow_run_list(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+) -> Result<serde_json::Value> {
     if cli.rest {
         return rest_request_json(
             cli,
@@ -1434,19 +1442,7 @@ async fn workflow_run_events(
     run_id: &str,
 ) -> Result<()> {
     if cli.rest {
-        let resp = rest_request_json(
-            cli,
-            reqwest::Method::GET,
-            &format!(
-                "/v1/ns/{}/workflows/{}/runs/{}/stream",
-                urlencoding::encode(namespace),
-                urlencoding::encode(workflow),
-                urlencoding::encode(run_id)
-            ),
-            None,
-        )
-        .await?;
-        println!("{}", serde_json::to_string_pretty(&resp)?);
+        rest_stream_workflow_events(cli, namespace, workflow, run_id).await?;
         return Ok(());
     }
     let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
@@ -1464,8 +1460,80 @@ async fn workflow_run_events(
         .await
         .context("Failed to stream workflow events")?
         .into_inner();
-    while let Some(event) = stream.message().await.context("Failed to read workflow event")? {
+    while let Some(event) = stream
+        .message()
+        .await
+        .context("Failed to read workflow event")?
+    {
         println!("{}", serde_json::to_string(&workflow_event_json(&event))?);
+    }
+    Ok(())
+}
+
+async fn rest_stream_workflow_events(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+) -> Result<()> {
+    let client = rest_client(cli)?;
+    let path = format!(
+        "/v1/ns/{}/workflows/{}/runs/{}/stream",
+        urlencoding::encode(namespace),
+        urlencoding::encode(workflow),
+        urlencoding::encode(run_id)
+    );
+    let url = format!("{}{}", cli.gateway.trim_end_matches('/'), path);
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .with_context(|| format!("Failed to call REST endpoint {}", url))?;
+    let status = response.status();
+    if !status.is_success() {
+        let text = response
+            .text()
+            .await
+            .with_context(|| format!("Failed to read REST response body from {}", url))?;
+        anyhow::bail!(
+            "REST {} {} failed: status={} body={}",
+            path,
+            url,
+            status,
+            text.trim()
+        );
+    }
+
+    let mut stream = response.bytes_stream();
+    let mut buffer = String::new();
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk.with_context(|| format!("Failed to read REST stream from {}", url))?;
+        buffer.push_str(&String::from_utf8_lossy(&chunk));
+        while let Some(newline) = buffer.find('\n') {
+            let line = buffer[..newline].trim_end_matches('\r').to_string();
+            buffer.drain(..=newline);
+            print_stream_event_line(&line)?;
+        }
+    }
+    if !buffer.is_empty() {
+        print_stream_event_line(buffer.trim_end_matches('\r'))?;
+    }
+    Ok(())
+}
+
+fn print_stream_event_line(line: &str) -> Result<()> {
+    let line = line.trim();
+    if line.is_empty() || line.starts_with(':') || line.starts_with("event:") {
+        return Ok(());
+    }
+    let payload = line.strip_prefix("data:").map(str::trim).unwrap_or(line);
+    if payload.is_empty() || payload == "[DONE]" {
+        return Ok(());
+    }
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(payload) {
+        println!("{}", serde_json::to_string(&json)?);
+    } else {
+        println!("{}", payload);
     }
     Ok(())
 }
@@ -2456,7 +2524,10 @@ async fn grpc_delete_resource(
                 })
                 .await
                 .with_context(|| format!("Failed to delete Workflow '{}/{}'", ns, name))?;
-            Ok(format!("✓ Workflow '{}/{}' deleted successfully.", ns, name))
+            Ok(format!(
+                "✓ Workflow '{}/{}' deleted successfully.",
+                ns, name
+            ))
         }
     }
 }
@@ -2636,7 +2707,10 @@ async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
                 })
                 .await
                 .with_context(|| format!("Gateway rejected Workflow '{}/{}'", ns, name))?;
-            Ok(format!("✓ Workflow '{}/{}' applied successfully.", ns, name))
+            Ok(format!(
+                "✓ Workflow '{}/{}' applied successfully.",
+                ns, name
+            ))
         }
     }
 }
@@ -3047,12 +3121,12 @@ mod tests {
         grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target,
         grpc_get_yaml, knowledge_delete, knowledge_get, knowledge_list, knowledge_resource_name,
         knowledge_set, manifest_json_payload, mint_agent_jwt, mint_channel_jwt, mint_root_jwt,
-        mint_session_jwt, parse_raw_manifest, parse_vars, read_knowledge_content,
-        relative_knowledge_path, render_json_payload, render_manifest_file,
-        render_manifest_template, render_rest_get_yaml, resolve_authorization_header,
-        resolve_manifest_sources, rest_apply_manifest, rest_client, rest_delete_path,
-        rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json, run_cli,
-        schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
+        mint_session_jwt, parse_raw_manifest, parse_vars, print_stream_event_line,
+        read_knowledge_content, relative_knowledge_path, render_json_payload,
+        render_manifest_file, render_manifest_template, render_rest_get_yaml,
+        resolve_authorization_header, resolve_manifest_sources, rest_apply_manifest, rest_client,
+        rest_delete_path, rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json,
+        run_cli, schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
         to_camel_case, workflow_run_list, AuthCommands, Cli, Commands, GrpcApplyPlan,
         GrpcDeleteTarget, GrpcGetTarget, KnowledgeCommands, RenderFormat, WorkflowCommands,
     };
@@ -4209,6 +4283,16 @@ mod tests {
         assert_eq!(json["status"]["recentEvents"][0]["phase"], "armed");
     }
 
+    #[test]
+    fn stream_event_line_parser_accepts_sse_and_ndjson_lines() {
+        print_stream_event_line("").unwrap();
+        print_stream_event_line(": keepalive").unwrap();
+        print_stream_event_line("event: workflow").unwrap();
+        print_stream_event_line(r#"data: {"type":"run_completed"}"#).unwrap();
+        print_stream_event_line(r#"{"type":"step_completed"}"#).unwrap();
+        print_stream_event_line("data: [DONE]").unwrap();
+    }
+
     #[tokio::test]
     async fn knowledge_rest_helpers_round_trip_and_handle_missing() {
         #[derive(Clone, Default)]
@@ -4759,9 +4843,10 @@ mod tests {
             .unwrap();
         assert_eq!(parse_raw_manifest(&workflow_yaml).unwrap().kind, "Workflow");
         assert!(workflow_yaml.contains("namespace: conic"));
-        let deleted_workflow = rest_delete_resource(&cli, "workflow", "retention", Some(&namespace))
-            .await
-            .unwrap();
+        let deleted_workflow =
+            rest_delete_resource(&cli, "workflow", "retention", Some(&namespace))
+                .await
+                .unwrap();
         assert!(deleted_workflow.contains("deleted successfully"));
 
         server.abort();

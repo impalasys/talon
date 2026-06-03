@@ -812,29 +812,49 @@ async fn schedule_fire(
         return axum::http::StatusCode::UNAUTHORIZED;
     }
 
-    if let Ok(payload) = serde_json::from_slice::<talon::scheduling::ScheduleWakeupPayload>(&body)
+    let payload = match decode_scheduler_fire_payload(&body) {
+        Ok(payload) => payload,
+        Err(err) => {
+            tracing::warn!(error = %err, "Invalid scheduler wakeup payload");
+            return axum::http::StatusCode::BAD_REQUEST;
+        }
+    };
+
+    match payload {
+        talon::scheduling::SchedulerFirePayload::Schedule(payload) => {
+            match handler.handle_schedule_wakeup(payload).await {
+                Ok(_) => axum::http::StatusCode::OK,
+                Err(err) => {
+                    tracing::error!(error = %err, "Failed to process schedule wakeup");
+                    axum::http::StatusCode::INTERNAL_SERVER_ERROR
+                }
+            }
+        }
+        talon::scheduling::SchedulerFirePayload::Workflow(payload) => {
+            match handler.handle_workflow_wakeup(payload).await {
+                Ok(_) => axum::http::StatusCode::OK,
+                Err(err) => {
+                    tracing::error!(error = %err, "Failed to process workflow wakeup");
+                    axum::http::StatusCode::INTERNAL_SERVER_ERROR
+                }
+            }
+        }
+    }
+}
+
+fn decode_scheduler_fire_payload(body: &[u8]) -> Result<talon::scheduling::SchedulerFirePayload> {
+    let value: serde_json::Value = serde_json::from_slice(body)?;
+    if value.get("kind").is_some() {
+        return serde_json::from_value(value).map_err(Into::into);
+    }
+    if value.get("schedule_id").is_some()
+        && value.get("revision").is_some()
+        && value.get("intended_run_at").is_some()
     {
-        return match handler.handle_schedule_wakeup(payload).await {
-            Ok(_) => axum::http::StatusCode::OK,
-            Err(err) => {
-                tracing::error!(error = %err, "Failed to process schedule wakeup");
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR
-            }
-        };
+        let payload = serde_json::from_value::<talon::scheduling::ScheduleWakeupPayload>(value)?;
+        return Ok(talon::scheduling::SchedulerFirePayload::Schedule(payload));
     }
-
-    if let Ok(payload) = serde_json::from_slice::<talon::workflows::WorkflowWakeupPayload>(&body) {
-        return match handler.handle_workflow_wakeup(payload).await {
-            Ok(_) => axum::http::StatusCode::OK,
-            Err(err) => {
-                tracing::error!(error = %err, "Failed to process workflow wakeup");
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR
-            }
-        };
-    }
-
-    tracing::warn!("Invalid scheduler wakeup payload");
-    axum::http::StatusCode::BAD_REQUEST
+    anyhow::bail!("scheduler wakeup payload requires kind discriminator")
 }
 
 #[tokio::main]
@@ -878,14 +898,15 @@ async fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_worker_handler, fully_qualified_subscription, fully_qualified_topic,
-        handle_pull_message, maybe_spawn_pull_subscriptions, next_pull_error_backoff,
-        next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled, pull_subscription_specs,
-        push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
-        run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
-        serve_worker_http, session_dispatch_concurrency, worker_bind_addr, worker_port,
-        worker_router, LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend,
-        PullSubscriptionBackend, ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
+        build_worker_handler, decode_scheduler_fire_payload, fully_qualified_subscription,
+        fully_qualified_topic, handle_pull_message, maybe_spawn_pull_subscriptions,
+        next_pull_error_backoff, next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled,
+        pull_subscription_specs, push_webhook, resolved_pull_subscription_specs,
+        run_pull_subscription_loop, run_pull_subscription_with_backend, run_worker_main_with,
+        run_worker_with, schedule_fire, serve_worker_http, session_dispatch_concurrency,
+        worker_bind_addr, worker_port, worker_router, LocalSocketMessagePublisher,
+        LocalSocketPullSubscriptionBackend, PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
+        HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
     use axum::body::Bytes;
@@ -1514,6 +1535,51 @@ mod tests {
         .await
         .into_response();
         assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[test]
+    fn scheduler_fire_payload_decoder_uses_kind_and_legacy_schedule_shape() {
+        let workflow = json!({
+            "kind": "workflow",
+            "payload": {
+                "namespace": "default",
+                "workflow": "wf",
+                "run_id": "run",
+                "step_id": "sleep",
+                "attempt": 1,
+                "intended_fire_at": 42,
+                "reason": "wait"
+            }
+        });
+        match decode_scheduler_fire_payload(&serde_json::to_vec(&workflow).unwrap()).unwrap() {
+            talon::scheduling::SchedulerFirePayload::Workflow(payload) => {
+                assert_eq!(payload.workflow, "wf");
+                assert_eq!(payload.reason, "wait");
+            }
+            _ => panic!("expected workflow payload"),
+        }
+
+        let legacy_schedule = json!({
+            "namespace": "default",
+            "schedule_id": "nightly",
+            "revision": 7,
+            "intended_run_at": 123
+        });
+        match decode_scheduler_fire_payload(&serde_json::to_vec(&legacy_schedule).unwrap()).unwrap()
+        {
+            talon::scheduling::SchedulerFirePayload::Schedule(payload) => {
+                assert_eq!(payload.schedule_id, "nightly");
+                assert_eq!(payload.revision, 7);
+            }
+            _ => panic!("expected schedule payload"),
+        }
+
+        let ambiguous = json!({
+            "namespace": "default",
+            "workflow": "wf",
+            "run_id": "run"
+        });
+        assert!(decode_scheduler_fire_payload(&serde_json::to_vec(&ambiguous).unwrap()).is_err());
     }
 
     #[tokio::test]

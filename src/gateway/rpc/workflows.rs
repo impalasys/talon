@@ -79,7 +79,9 @@ impl GrpcGatewayHandler {
                     .map_err(|err| tonic::Status::internal(err.to_string()))?,
             );
         }
-        Ok(tonic::Response::new(proto::ListWorkflowsResponse { workflows }))
+        Ok(tonic::Response::new(proto::ListWorkflowsResponse {
+            workflows,
+        }))
     }
 
     pub async fn handle_delete_workflow(
@@ -111,10 +113,14 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
-        let run =
-            workflows::create_run(&self.gateway.control_plane(), &workflow, req.input_json, req.labels)
-                .await
-                .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+        let run = workflows::create_run(
+            &self.gateway.control_plane(),
+            &workflow,
+            req.input_json,
+            req.labels,
+        )
+        .await
+        .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         Ok(tonic::Response::new(proto::WorkflowRunResponse {
             run: Some(run),
             steps: Vec::new(),
@@ -170,7 +176,9 @@ impl GrpcGatewayHandler {
                     .map_err(|err| tonic::Status::internal(err.to_string()))?,
             );
         }
-        Ok(tonic::Response::new(proto::ListWorkflowRunsResponse { runs }))
+        Ok(tonic::Response::new(proto::ListWorkflowRunsResponse {
+            runs,
+        }))
     }
 
     pub async fn handle_resume_workflow_run(
@@ -223,9 +231,19 @@ impl GrpcGatewayHandler {
             <GrpcGatewayHandler as proto::gateway_service_server::GatewayService>::StreamWorkflowEventsStream,
         >,
         tonic::Status,
-    > {
+    >{
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
+        self.gateway
+            .kv
+            .get_msg::<models::WorkflowRun>(&keys::workflow_run(
+                &req.ns,
+                &req.workflow,
+                &req.run_id,
+            ))
+            .await
+            .map_err(|err| tonic::Status::internal(err.to_string()))?
+            .ok_or_else(|| tonic::Status::not_found("workflow run not found"))?;
         let stream = self
             .gateway
             .pubsub

@@ -76,6 +76,13 @@ pub struct ScheduleWakeupPayload {
     pub intended_run_at: i64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "kind", content = "payload", rename_all = "snake_case")]
+pub enum SchedulerFirePayload {
+    Schedule(ScheduleWakeupPayload),
+    Workflow(crate::workflows::WorkflowWakeupPayload),
+}
+
 pub fn validate_schedule(schedule: &models::Schedule) -> Result<()> {
     if schedule.name.is_empty() {
         return Err(anyhow!("schedule name is required"));
@@ -116,10 +123,14 @@ pub fn validate_schedule(schedule: &models::Schedule) -> Result<()> {
             ));
         }
         if spec.input_message.trim().is_empty() {
-            return Err(anyhow!("schedule input_message is required for agent targets"));
+            return Err(anyhow!(
+                "schedule input_message is required for agent targets"
+            ));
         }
     } else if spec.input_json.trim().is_empty() {
-        return Err(anyhow!("schedule input_json is required for workflow targets"));
+        return Err(anyhow!(
+            "schedule input_json is required for workflow targets"
+        ));
     } else {
         serde_json::from_str::<serde_json::Value>(&spec.input_json)
             .map_err(|err| anyhow!("schedule input_json must be valid JSON: {err}"))?;
@@ -360,7 +371,7 @@ pub async fn arm_schedule(
             schedule_id: schedule.name.clone(),
             revision: status.revision,
             fire_at,
-            payload: serde_json::to_vec(&payload)?,
+            payload: serde_json::to_vec(&SchedulerFirePayload::Schedule(payload))?,
         })
         .await?;
     let backend_armed = wakeup.armed;
@@ -437,8 +448,8 @@ pub async fn dispatch_schedule(
             "talon.impalasys.com/schedule-name".to_string(),
             schedule.name.clone(),
         );
-        let run = crate::workflows::create_run(cp, &workflow, spec.input_json.clone(), labels)
-            .await?;
+        let run =
+            crate::workflows::create_run(cp, &workflow, spec.input_json.clone(), labels).await?;
         return Ok(run.id);
     }
 
