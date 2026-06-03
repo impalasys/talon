@@ -3363,7 +3363,10 @@ spec:
         let failed_step = stored_step(&kv, &failed, "draft").await;
         assert_eq!(failed_step.status, STATUS_FAILED);
         assert!(failed_step.error.contains("child session"));
-        assert_ne!(failed_step.output_json, r#"{"text":"stale output from previous turn"}"#);
+        assert_ne!(
+            failed_step.output_json,
+            r#"{"text":"stale output from previous turn"}"#
+        );
         assert_eq!(failed.status, STATUS_FAILED);
     }
 }

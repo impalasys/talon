@@ -173,11 +173,17 @@ impl WorkerEventHandler {
             .as_ref()
             .map(|(status, _)| *status)
             .unwrap_or(SessionCompletionStatus::Errored);
-        self.release_session_lock(ns, &event.agent, &event.session_id, completion_status)
-            .instrument(tracing::info_span!(
-                "WorkerEventHandler.release_session_lock"
-            ))
-            .await;
+        self.release_session_lock(
+            ns,
+            &event.agent,
+            &event.session_id,
+            event.timestamp,
+            completion_status,
+        )
+        .instrument(tracing::info_span!(
+            "WorkerEventHandler.release_session_lock"
+        ))
+        .await;
 
         if let Ok((status, summary)) = &outcome {
             tracing::info!(
@@ -236,6 +242,7 @@ impl WorkerEventHandler {
         ns: &str,
         agent_id: &str,
         session_id: &str,
+        expected_last_active: i64,
         completion_status: SessionCompletionStatus,
     ) {
         let key = crate::control::keys::session(ns, agent_id, session_id);
@@ -257,6 +264,9 @@ impl WorkerEventHandler {
                     break;
                 }
             };
+            if session.status != "PROCESSING" || session.last_active != expected_last_active {
+                return;
+            }
             session.status = match completion_status {
                 SessionCompletionStatus::Completed => "IDLE",
                 SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => "ERROR",
@@ -624,6 +634,7 @@ mod tests {
                 "conic:test",
                 "assistant",
                 "session-1",
+                123,
                 SessionCompletionStatus::Completed,
             )
             .await;
@@ -638,6 +649,50 @@ mod tests {
             .expect("session should load")
             .expect("session should exist");
         assert_eq!(updated.status, "IDLE");
+    }
+
+    #[tokio::test]
+    async fn release_session_lock_does_not_release_stolen_lock() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        let session = models::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "PROCESSING".to_string(),
+            created_at: 0,
+            last_active: 456,
+            metadata: HashMap::new(),
+            labels: HashMap::new(),
+        };
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &session,
+        )
+        .await
+        .expect("session should persist");
+
+        handler
+            .release_session_lock(
+                "conic:test",
+                "assistant",
+                "session-1",
+                123,
+                SessionCompletionStatus::Completed,
+            )
+            .await;
+
+        let updated = kv
+            .get_msg::<models::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .expect("session should load")
+            .expect("session should exist");
+        assert_eq!(updated.status, "PROCESSING");
+        assert_eq!(updated.last_active, 456);
     }
 
     #[tokio::test]
@@ -732,7 +787,7 @@ mod tests {
                 message_id: "user-1".to_string(),
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
-                timestamp: 1,
+                timestamp: 123,
             })
             .await
             .expect("runtime build errors should be persisted and acked");
@@ -857,7 +912,7 @@ mod tests {
                 message_id: "user-1".to_string(),
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
-                timestamp: 1,
+                timestamp: 123,
             })
             .await
             .unwrap();
