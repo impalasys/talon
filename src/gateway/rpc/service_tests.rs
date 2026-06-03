@@ -919,6 +919,22 @@ mod tests {
             .expect("workflow should fetch");
         assert_eq!(fetched.labels.get("app"), Some(&"retention".to_string()));
 
+        let mut updated_workflow = workflow.clone();
+        updated_workflow
+            .labels
+            .insert("app".to_string(), "retention-v2".to_string());
+        let updated = handler
+            .create_workflow(tonic::Request::new(proto::CreateWorkflowRequest {
+                ns: "customer-retention".to_string(),
+                workflow: Some(updated_workflow),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .workflow
+            .expect("workflow should be upserted");
+        assert_eq!(updated.labels.get("app"), Some(&"retention-v2".to_string()));
+
         let listed = handler
             .list_workflows(tonic::Request::new(proto::ListWorkflowsRequest {
                 ns: "customer-retention".to_string(),
@@ -927,6 +943,10 @@ mod tests {
             .unwrap()
             .into_inner();
         assert_eq!(listed.workflows.len(), 1);
+        assert_eq!(
+            listed.workflows[0].labels.get("app"),
+            Some(&"retention-v2".to_string())
+        );
         kv.set(
             &crate::control::keys::workflow("customer-retention", "corrupt-workflow"),
             b"not a workflow protobuf",
@@ -1079,33 +1099,67 @@ mod tests {
         };
         assert_eq!(missing_stream.code(), tonic::Code::NotFound);
 
-        let event = models::WorkflowRunEvent {
-            id: "event-1".to_string(),
+        let historical_event = models::WorkflowRunEvent {
+            id: "event-0".to_string(),
             ns: "customer-retention".to_string(),
             workflow: "retention-review".to_string(),
             run_id: run.id.clone(),
-            r#type: "run_resumed".to_string(),
+            r#type: "run_started".to_string(),
             step_id: "approval".to_string(),
-            message: "resumed".to_string(),
+            message: "started".to_string(),
             payload_json: "{}".to_string(),
             timestamp: 1,
+        };
+        kv.set_msg(
+            &crate::control::keys::workflow_run_event(
+                "customer-retention",
+                "retention-review",
+                &run.id,
+                "event-0",
+            ),
+            &historical_event,
+        )
+        .await
+        .unwrap();
+        kv.set(
+            &crate::control::keys::workflow_run_event(
+                "customer-retention",
+                "retention-review",
+                &run.id,
+                "corrupt-event",
+            ),
+            b"not a workflow event protobuf",
+        )
+        .await
+        .unwrap();
+        let duplicate_historical_event = models::WorkflowRunEvent {
+            timestamp: 2,
+            ..historical_event.clone()
+        };
+        let event = models::WorkflowRunEvent {
+            id: "event-1".to_string(),
+            r#type: "run_resumed".to_string(),
+            message: "resumed".to_string(),
+            timestamp: 3,
+            ..historical_event.clone()
         };
         let terminal_event = models::WorkflowRunEvent {
             id: "event-2".to_string(),
             r#type: "run_completed".to_string(),
-            timestamp: 2,
+            timestamp: 4,
             ..event.clone()
         };
         let after_terminal_event = models::WorkflowRunEvent {
             id: "event-3".to_string(),
             r#type: "step_completed".to_string(),
-            timestamp: 3,
+            timestamp: 5,
             ..event.clone()
         };
         pubsub.streams.lock().await.insert(
             topics::workflow_events_topic("customer-retention", "retention-review", &run.id),
             vec![
                 b"not a workflow event protobuf".to_vec(),
+                duplicate_historical_event.encode_to_vec(),
                 event.encode_to_vec(),
                 terminal_event.encode_to_vec(),
                 after_terminal_event.encode_to_vec(),
@@ -1120,19 +1174,35 @@ mod tests {
             .await
             .unwrap()
             .into_inner();
-        let streamed = stream
-            .next()
-            .await
-            .expect("stream should yield")
-            .expect("stream item should decode");
-        assert_eq!(streamed.r#type, "run_resumed");
-        let terminal = stream
-            .next()
-            .await
-            .expect("terminal event should yield")
-            .expect("terminal stream item should decode");
-        assert_eq!(terminal.r#type, "run_completed");
+        let mut streamed_ids = Vec::new();
+        while let Some(item) = stream.next().await {
+            let event = item.expect("stream item should decode");
+            streamed_ids.push(event.id.clone());
+            if event.id == "event-2" {
+                break;
+            }
+        }
         assert!(stream.next().await.is_none());
+        assert!(streamed_ids.contains(&"event-0".to_string()));
+        assert!(streamed_ids.contains(&"event-1".to_string()));
+        assert!(streamed_ids.contains(&"event-2".to_string()));
+        assert!(!streamed_ids.contains(&"event-3".to_string()));
+        assert_eq!(
+            streamed_ids
+                .iter()
+                .filter(|event_id| event_id.as_str() == "event-0")
+                .count(),
+            1
+        );
+        let historical_position = streamed_ids
+            .iter()
+            .position(|event_id| event_id == "event-0")
+            .unwrap();
+        let live_position = streamed_ids
+            .iter()
+            .position(|event_id| event_id == "event-1")
+            .unwrap();
+        assert!(historical_position < live_position);
 
         let cancelled = handler
             .cancel_workflow_run(tonic::Request::new(proto::CancelWorkflowRunRequest {

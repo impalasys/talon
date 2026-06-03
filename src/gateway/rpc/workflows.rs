@@ -4,8 +4,9 @@
 use super::{models, proto, GrpcGatewayHandler};
 use crate::control::{keys, topics, KeyValueStore, ProtoKeyValueStoreExt};
 use crate::workflows;
-use futures::StreamExt;
+use futures::{stream, StreamExt};
 use prost::Message;
+use std::collections::HashSet;
 
 impl GrpcGatewayHandler {
     pub async fn handle_create_workflow(
@@ -22,18 +23,28 @@ impl GrpcGatewayHandler {
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         let key = keys::workflow(&req.ns, &workflow.name);
         let payload = workflow.encode_to_vec();
-        let created = self
-            .gateway
-            .kv
-            .compare_and_swap(&key, None, &payload)
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        if !created {
-            return Err(tonic::Status::already_exists("workflow already exists"));
+        for _ in 0..8 {
+            let current = self
+                .gateway
+                .kv
+                .get(&key)
+                .await
+                .map_err(|err| tonic::Status::internal(err.to_string()))?;
+            let updated = self
+                .gateway
+                .kv
+                .compare_and_swap(&key, current.as_deref(), &payload)
+                .await
+                .map_err(|err| tonic::Status::internal(err.to_string()))?;
+            if updated {
+                return Ok(tonic::Response::new(proto::WorkflowResponse {
+                    workflow: Some(workflow),
+                }));
+            }
         }
-        Ok(tonic::Response::new(proto::WorkflowResponse {
-            workflow: Some(workflow),
-        }))
+        Err(tonic::Status::internal(
+            "failed to upsert workflow after concurrent modifications",
+        ))
     }
 
     pub async fn handle_get_workflow(
@@ -271,13 +282,68 @@ impl GrpcGatewayHandler {
             ))
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        let event_stream = stream
-            .scan(false, |terminated, bytes| {
+        let mut entries = self
+            .gateway
+            .kv
+            .list_entries(&keys::workflow_run_event_prefix(
+                &req.ns,
+                &req.workflow,
+                &req.run_id,
+            ))
+            .await
+            .map_err(|err| tonic::Status::internal(err.to_string()))?;
+        entries.sort_by(|left, right| left.0.cmp(&right.0));
+
+        let mut historical = Vec::new();
+        for (key, bytes) in entries {
+            match models::WorkflowRunEvent::decode(bytes.as_slice()) {
+                Ok(event) => historical.push(event),
+                Err(err) => {
+                    tracing::warn!(
+                        event_key = %key,
+                        error = %err,
+                        "failed to decode workflow run event while listing history; skipping entry"
+                    );
+                }
+            }
+        }
+        historical.sort_by(|left, right| {
+            left.timestamp
+                .cmp(&right.timestamp)
+                .then_with(|| left.id.cmp(&right.id))
+        });
+
+        let mut seen = HashSet::new();
+        let mut terminal_seen = false;
+        let mut historical_items = Vec::new();
+        for event in historical {
+            if !seen.insert(event.id.clone()) {
+                continue;
+            }
+            if is_terminal_workflow_event(&event.r#type) {
+                terminal_seen = true;
+            }
+            historical_items.push(Ok(event));
+            if terminal_seen {
+                break;
+            }
+        }
+
+        let historical_stream = stream::iter(historical_items);
+        if terminal_seen {
+            return Ok(tonic::Response::new(Box::pin(historical_stream)));
+        }
+
+        let live_stream = stream
+            .scan((seen, false), |(seen, terminated), bytes| {
                 if *terminated {
                     return futures::future::ready(None);
                 }
                 let item = match models::WorkflowRunEvent::decode(bytes.as_slice()) {
                     Ok(event) => {
+                        if !seen.insert(event.id.clone()) {
+                            return futures::future::ready(Some(None));
+                        }
                         if is_terminal_workflow_event(&event.r#type) {
                             *terminated = true;
                         }
@@ -294,6 +360,7 @@ impl GrpcGatewayHandler {
                 futures::future::ready(Some(item))
             })
             .filter_map(|event| async move { event });
+        let event_stream = historical_stream.chain(live_stream);
         Ok(tonic::Response::new(Box::pin(event_stream)))
     }
 }
