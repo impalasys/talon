@@ -10,9 +10,11 @@ use std::collections::HashSet;
 
 const MAX_WORKFLOW_UPSERT_RETRIES: usize = 8;
 const WORKFLOW_UPSERT_RETRY_BACKOFF_MS: u64 = 10;
+const MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS: u64 = 500;
 const DEFAULT_WORKFLOW_RUNS_PAGE_SIZE: usize = 50;
 const MAX_WORKFLOW_RUNS_PAGE_SIZE: usize = 200;
 const WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE: usize = 512;
+const MAX_WORKFLOW_RUN_LIST_PAGES_SCANNED: usize = 10;
 
 impl GrpcGatewayHandler {
     pub async fn handle_create_workflow(
@@ -49,7 +51,7 @@ impl GrpcGatewayHandler {
             }
             if attempt + 1 < MAX_WORKFLOW_UPSERT_RETRIES {
                 tokio::time::sleep(std::time::Duration::from_millis(
-                    WORKFLOW_UPSERT_RETRY_BACKOFF_MS,
+                    workflow_upsert_retry_backoff_ms(attempt),
                 ))
                 .await;
             }
@@ -203,8 +205,15 @@ impl GrpcGatewayHandler {
             Some(req.before_run_id.clone())
         };
         let mut runs = Vec::with_capacity(target_run_count);
+        let mut pages_scanned = 0;
+        let mut scan_limit_reached = false;
 
         while runs.len() < target_run_count {
+            if pages_scanned >= MAX_WORKFLOW_RUN_LIST_PAGES_SCANNED {
+                scan_limit_reached = true;
+                break;
+            }
+            pages_scanned += 1;
             let entries = self
                 .gateway
                 .kv
@@ -237,15 +246,18 @@ impl GrpcGatewayHandler {
             }
         }
 
-        let has_more = runs.len() > page_size;
-        if has_more {
+        let has_extra_run = runs.len() > page_size;
+        if has_extra_run {
             runs.truncate(page_size);
         }
-        let next_before_run_id = if has_more {
+        let next_before_run_id = if has_extra_run {
             runs.last().map(|run| run.id.clone()).unwrap_or_default()
+        } else if scan_limit_reached {
+            scan_before_name.unwrap_or_default()
         } else {
             String::new()
         };
+        let has_more = has_extra_run || (scan_limit_reached && !next_before_run_id.is_empty());
 
         Ok(tonic::Response::new(proto::ListWorkflowRunsResponse {
             runs,
@@ -446,6 +458,15 @@ fn validated_workflow_runs_page_size(page_size: i32) -> Result<usize, tonic::Sta
         page_size as usize
     };
     Ok(page_size.min(MAX_WORKFLOW_RUNS_PAGE_SIZE))
+}
+
+fn workflow_upsert_retry_backoff_ms(attempt: usize) -> u64 {
+    let shift = attempt.min(5) as u32;
+    let exponential = WORKFLOW_UPSERT_RETRY_BACKOFF_MS
+        .saturating_mul(1_u64 << shift)
+        .min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS);
+    let jitter = (uuid::Uuid::now_v7().as_u128() % WORKFLOW_UPSERT_RETRY_BACKOFF_MS as u128) as u64;
+    (exponential + jitter).min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS)
 }
 
 fn is_terminal_workflow_event(event_type: &str) -> bool {

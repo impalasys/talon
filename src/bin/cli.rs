@@ -32,6 +32,8 @@ use tonic::metadata::MetadataValue;
 use tonic::service::Interceptor;
 use tonic::{Request, Status};
 
+const MAX_REST_STREAM_BUFFER_BYTES: usize = 10 * 1024 * 1024;
+
 #[derive(Parser)]
 #[command(name = "talon-cli")]
 #[command(about = "Administration CLI for the Talon system", long_about = None)]
@@ -1521,6 +1523,7 @@ async fn rest_stream_workflow_events(
     while let Some(chunk) = stream.next().await {
         let chunk = chunk.with_context(|| format!("Failed to read REST stream from {}", url))?;
         buffer.extend_from_slice(&chunk);
+        ensure_rest_stream_buffer_within_limit(buffer.len())?;
         while let Some(newline) = buffer.iter().position(|byte| *byte == b'\n') {
             let line = String::from_utf8_lossy(&buffer[..newline])
                 .trim_end_matches('\r')
@@ -1534,6 +1537,16 @@ async fn rest_stream_workflow_events(
             .trim_end_matches('\r')
             .to_string();
         print_stream_event_line(&line)?;
+    }
+    Ok(())
+}
+
+fn ensure_rest_stream_buffer_within_limit(buffer_len: usize) -> Result<()> {
+    if buffer_len > MAX_REST_STREAM_BUFFER_BYTES {
+        anyhow::bail!(
+            "REST stream exceeded maximum buffer limit of {} bytes without a newline",
+            MAX_REST_STREAM_BUFFER_BYTES
+        );
     }
     Ok(())
 }
@@ -3141,18 +3154,20 @@ fn to_camel_case(s: &str) -> String {
 mod tests {
     use super::{
         agent_lookup_target, auth_interceptor, build_grpc_apply_plan, build_knowledge,
-        build_rest_apply_plan, canonicalize_manifest_path, collect_markdown_files, feature_ts_type,
-        grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target,
-        grpc_get_yaml, knowledge_delete, knowledge_get, knowledge_list, knowledge_resource_name,
-        knowledge_set, manifest_json_payload, mint_agent_jwt, mint_channel_jwt, mint_root_jwt,
-        mint_session_jwt, parse_raw_manifest, parse_vars, print_stream_event_line,
-        read_knowledge_content, relative_knowledge_path, render_json_payload,
-        render_manifest_file, render_manifest_template, render_rest_get_yaml,
-        resolve_authorization_header, resolve_manifest_sources, rest_apply_manifest, rest_client,
-        rest_delete_path, rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json,
-        run_cli, schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
+        build_rest_apply_plan, canonicalize_manifest_path, collect_markdown_files,
+        ensure_rest_stream_buffer_within_limit, feature_ts_type, grpc_apply_manifest,
+        grpc_delete_resource, grpc_delete_target, grpc_get_target, grpc_get_yaml, knowledge_delete,
+        knowledge_get, knowledge_list, knowledge_resource_name, knowledge_set,
+        manifest_json_payload, mint_agent_jwt, mint_channel_jwt, mint_root_jwt, mint_session_jwt,
+        parse_raw_manifest, parse_vars, print_stream_event_line, read_knowledge_content,
+        relative_knowledge_path, render_json_payload, render_manifest_file,
+        render_manifest_template, render_rest_get_yaml, resolve_authorization_header,
+        resolve_manifest_sources, rest_apply_manifest, rest_client, rest_delete_path,
+        rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json, run_cli,
+        schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
         to_camel_case, workflow_run_list, AuthCommands, Cli, Commands, GrpcApplyPlan,
         GrpcDeleteTarget, GrpcGetTarget, KnowledgeCommands, RenderFormat, WorkflowCommands,
+        MAX_REST_STREAM_BUFFER_BYTES,
     };
     use axum::{
         extract::{Path as AxumPath, State},
@@ -4341,6 +4356,14 @@ mod tests {
         print_stream_event_line(r#"data: {"type":"run_completed"}"#).unwrap();
         print_stream_event_line(r#"{"type":"step_completed"}"#).unwrap();
         print_stream_event_line("data: [DONE]").unwrap();
+    }
+
+    #[test]
+    fn rest_stream_buffer_limit_rejects_unbounded_lines() {
+        ensure_rest_stream_buffer_within_limit(MAX_REST_STREAM_BUFFER_BYTES).unwrap();
+        let err = ensure_rest_stream_buffer_within_limit(MAX_REST_STREAM_BUFFER_BYTES + 1)
+            .expect_err("oversized stream buffer should fail");
+        assert!(err.to_string().contains("maximum buffer limit"));
     }
 
     #[tokio::test]
