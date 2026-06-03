@@ -73,6 +73,9 @@ pub fn validate_workflow(workflow: &models::Workflow) -> Result<()> {
     if workflow.name.trim().is_empty() {
         bail!("workflow name is required");
     }
+    if workflow.name.contains('/') {
+        bail!("workflow name cannot contain '/'");
+    }
     if workflow.ns.trim().is_empty() {
         bail!("workflow namespace is required");
     }
@@ -2276,6 +2279,22 @@ mod tests {
 
         let err = validate_workflow(&workflow).expect_err("duplicate ids should be rejected");
         assert!(err.to_string().contains("duplicate workflow step id"));
+
+        let slash_name = models::Workflow {
+            name: "bad/name".to_string(),
+            ns: "default".to_string(),
+            spec: Some(models::WorkflowSpec {
+                steps: vec![models::WorkflowStep {
+                    id: "review".to_string(),
+                    r#type: "transform".to_string(),
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
+            labels: HashMap::new(),
+        };
+        let err = validate_workflow(&slash_name).expect_err("slash names should be rejected");
+        assert!(err.to_string().contains("workflow name cannot contain '/'"));
     }
 
     #[tokio::test]

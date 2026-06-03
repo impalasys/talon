@@ -278,6 +278,8 @@ async fn connect_gateway(
 > {
     let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
         .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect_timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(30))
         .connect()
         .await
         .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;

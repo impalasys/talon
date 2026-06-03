@@ -1039,6 +1039,18 @@ mod tests {
             .unwrap_err();
         assert_eq!(invalid_resume.code(), tonic::Code::InvalidArgument);
 
+        let missing_resume = handler
+            .resume_workflow_run(tonic::Request::new(proto::ResumeWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                run_id: "missing-run".to_string(),
+                step_id: "approval".to_string(),
+                resume_json: r#"{"approved":true}"#.to_string(),
+            }))
+            .await
+            .unwrap_err();
+        assert_eq!(missing_resume.code(), tonic::Code::NotFound);
+
         let resumed = handler
             .resume_workflow_run(tonic::Request::new(proto::ResumeWorkflowRunRequest {
                 ns: "customer-retention".to_string(),
@@ -1078,11 +1090,25 @@ mod tests {
             payload_json: "{}".to_string(),
             timestamp: 1,
         };
+        let terminal_event = models::WorkflowRunEvent {
+            id: "event-2".to_string(),
+            r#type: "run_completed".to_string(),
+            timestamp: 2,
+            ..event.clone()
+        };
+        let after_terminal_event = models::WorkflowRunEvent {
+            id: "event-3".to_string(),
+            r#type: "step_completed".to_string(),
+            timestamp: 3,
+            ..event.clone()
+        };
         pubsub.streams.lock().await.insert(
             topics::workflow_events_topic("customer-retention", "retention-review", &run.id),
             vec![
                 b"not a workflow event protobuf".to_vec(),
                 event.encode_to_vec(),
+                terminal_event.encode_to_vec(),
+                after_terminal_event.encode_to_vec(),
             ],
         );
         let mut stream = handler
@@ -1100,6 +1126,13 @@ mod tests {
             .expect("stream should yield")
             .expect("stream item should decode");
         assert_eq!(streamed.r#type, "run_resumed");
+        let terminal = stream
+            .next()
+            .await
+            .expect("terminal event should yield")
+            .expect("terminal stream item should decode");
+        assert_eq!(terminal.r#type, "run_completed");
+        assert!(stream.next().await.is_none());
 
         let cancelled = handler
             .cancel_workflow_run(tonic::Request::new(proto::CancelWorkflowRunRequest {

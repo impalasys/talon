@@ -211,7 +211,7 @@ impl GrpcGatewayHandler {
             &req.resume_json,
         )
         .await
-        .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+        .map_err(workflow_run_mutation_status)?;
         let steps = load_sorted_workflow_step_runs(self.gateway.kv.as_ref(), &run).await?;
         Ok(tonic::Response::new(proto::WorkflowRunResponse {
             run: Some(run),
@@ -232,7 +232,7 @@ impl GrpcGatewayHandler {
             &req.run_id,
         )
         .await
-        .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
+        .map_err(workflow_run_mutation_status)?;
         let steps = load_sorted_workflow_step_runs(self.gateway.kv.as_ref(), &run).await?;
         Ok(tonic::Response::new(proto::WorkflowRunResponse {
             run: Some(run),
@@ -271,18 +271,29 @@ impl GrpcGatewayHandler {
             ))
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        let event_stream = stream.filter_map(|bytes| async move {
-            match models::WorkflowRunEvent::decode(bytes.as_slice()) {
-                Ok(event) => Some(Ok(event)),
-                Err(err) => {
-                    tracing::warn!(
-                        error = %err,
-                        "failed to decode workflow run event while streaming; skipping entry"
-                    );
-                    None
+        let event_stream = stream
+            .scan(false, |terminated, bytes| {
+                if *terminated {
+                    return futures::future::ready(None);
                 }
-            }
-        });
+                let item = match models::WorkflowRunEvent::decode(bytes.as_slice()) {
+                    Ok(event) => {
+                        if is_terminal_workflow_event(&event.r#type) {
+                            *terminated = true;
+                        }
+                        Some(Ok(event))
+                    }
+                    Err(err) => {
+                        tracing::warn!(
+                            error = %err,
+                            "failed to decode workflow run event while streaming; skipping entry"
+                        );
+                        None
+                    }
+                };
+                futures::future::ready(Some(item))
+            })
+            .filter_map(|event| async move { event });
         Ok(tonic::Response::new(Box::pin(event_stream)))
     }
 }
@@ -296,8 +307,21 @@ async fn load_sorted_workflow_step_runs(
         .map_err(|err| tonic::Status::internal(err.to_string()))?
         .into_values()
         .collect::<Vec<_>>();
-    steps.sort_by(|left, right| left.id.cmp(&right.id));
+    steps.sort_by_key(|step| step.created_at);
     Ok(steps)
+}
+
+fn workflow_run_mutation_status(err: anyhow::Error) -> tonic::Status {
+    let message = err.to_string();
+    if message.contains("not found") {
+        tonic::Status::not_found(message)
+    } else {
+        tonic::Status::invalid_argument(message)
+    }
+}
+
+fn is_terminal_workflow_event(event_type: &str) -> bool {
+    matches!(event_type, "run_completed" | "run_failed" | "run_cancelled")
 }
 
 trait GatewayControlPlaneExt {
