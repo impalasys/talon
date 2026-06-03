@@ -880,6 +880,8 @@ message GetWorkflowRunRequest {
 message ListWorkflowRunsRequest {
   string ns = 1;
   string workflow = 2;
+  int32 page_size = 3;
+  string before_run_id = 4;
 }
 
 message ResumeWorkflowRunRequest {
@@ -909,6 +911,8 @@ message WorkflowRunResponse {
 
 message ListWorkflowRunsResponse {
   repeated talon.models.WorkflowRun runs = 1;
+  bool has_more = 2;
+  string next_before_run_id = 3;
 }
 
 message ScheduleResponse {

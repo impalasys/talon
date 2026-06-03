@@ -8,6 +8,12 @@ use futures::{stream, StreamExt};
 use prost::Message;
 use std::collections::HashSet;
 
+const MAX_WORKFLOW_UPSERT_RETRIES: usize = 8;
+const WORKFLOW_UPSERT_RETRY_BACKOFF_MS: u64 = 10;
+const DEFAULT_WORKFLOW_RUNS_PAGE_SIZE: usize = 50;
+const MAX_WORKFLOW_RUNS_PAGE_SIZE: usize = 200;
+const WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE: usize = 512;
+
 impl GrpcGatewayHandler {
     pub async fn handle_create_workflow(
         &self,
@@ -23,7 +29,7 @@ impl GrpcGatewayHandler {
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         let key = keys::workflow(&req.ns, &workflow.name);
         let payload = workflow.encode_to_vec();
-        for _ in 0..8 {
+        for attempt in 0..MAX_WORKFLOW_UPSERT_RETRIES {
             let current = self
                 .gateway
                 .kv
@@ -40,6 +46,12 @@ impl GrpcGatewayHandler {
                 return Ok(tonic::Response::new(proto::WorkflowResponse {
                     workflow: Some(workflow),
                 }));
+            }
+            if attempt + 1 < MAX_WORKFLOW_UPSERT_RETRIES {
+                tokio::time::sleep(std::time::Duration::from_millis(
+                    WORKFLOW_UPSERT_RETRY_BACKOFF_MS,
+                ))
+                .await;
             }
         }
         Err(tonic::Status::internal(
@@ -182,28 +194,63 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::ListWorkflowRunsResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let mut entries = self
-            .gateway
-            .kv
-            .list_entries(&keys::workflow_run_prefix(&req.ns, &req.workflow))
-            .await
-            .map_err(|err| tonic::Status::internal(err.to_string()))?;
-        entries.sort_by(|left, right| right.0.cmp(&left.0));
-        let mut runs = Vec::new();
-        for (key, bytes) in entries {
-            match models::WorkflowRun::decode(bytes.as_slice()) {
-                Ok(run) => runs.push(run),
-                Err(err) => {
-                    tracing::warn!(
-                        run_key = %key,
-                        error = %err,
-                        "failed to decode workflow run while listing; skipping entry"
-                    );
+        let page_size = validated_workflow_runs_page_size(req.page_size)?;
+        let prefix = keys::workflow_run_prefix(&req.ns, &req.workflow);
+        let target_run_count = page_size + 1;
+        let mut scan_before_name = if req.before_run_id.is_empty() {
+            None
+        } else {
+            Some(req.before_run_id.clone())
+        };
+        let mut runs = Vec::with_capacity(target_run_count);
+
+        while runs.len() < target_run_count {
+            let entries = self
+                .gateway
+                .kv
+                .list_entries_page(
+                    &prefix,
+                    scan_before_name.as_deref(),
+                    WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE,
+                )
+                .await
+                .map_err(|err| tonic::Status::internal(err.to_string()))?;
+            if entries.is_empty() {
+                break;
+            }
+            scan_before_name = entries.last().map(|(key, _)| key.name.clone());
+
+            for (key, bytes) in entries {
+                if runs.len() >= target_run_count {
+                    break;
+                }
+                match models::WorkflowRun::decode(bytes.as_slice()) {
+                    Ok(run) => runs.push(run),
+                    Err(err) => {
+                        tracing::warn!(
+                            run_key = %key,
+                            error = %err,
+                            "failed to decode workflow run while listing; skipping entry"
+                        );
+                    }
                 }
             }
         }
+
+        let has_more = runs.len() > page_size;
+        if has_more {
+            runs.truncate(page_size);
+        }
+        let next_before_run_id = if has_more {
+            runs.last().map(|run| run.id.clone()).unwrap_or_default()
+        } else {
+            String::new()
+        };
+
         Ok(tonic::Response::new(proto::ListWorkflowRunsResponse {
             runs,
+            has_more,
+            next_before_run_id,
         }))
     }
 
@@ -385,6 +432,20 @@ fn workflow_run_mutation_status(err: anyhow::Error) -> tonic::Status {
     } else {
         tonic::Status::invalid_argument(message)
     }
+}
+
+fn validated_workflow_runs_page_size(page_size: i32) -> Result<usize, tonic::Status> {
+    if page_size < 0 {
+        return Err(tonic::Status::invalid_argument(
+            "page_size must be non-negative",
+        ));
+    }
+    let page_size = if page_size == 0 {
+        DEFAULT_WORKFLOW_RUNS_PAGE_SIZE
+    } else {
+        page_size as usize
+    };
+    Ok(page_size.min(MAX_WORKFLOW_RUNS_PAGE_SIZE))
 }
 
 fn is_terminal_workflow_event(event_type: &str) -> bool {

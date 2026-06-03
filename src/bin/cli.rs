@@ -1324,15 +1324,33 @@ async fn workflow_run_list(
     cli: &Cli,
     namespace: &str,
     workflow: &str,
+    page_size: i32,
+    before_run_id: &str,
 ) -> Result<serde_json::Value> {
     if cli.rest {
+        let mut query = Vec::new();
+        if page_size != 0 {
+            query.push(format!("page_size={page_size}"));
+        }
+        if !before_run_id.is_empty() {
+            query.push(format!(
+                "before_run_id={}",
+                urlencoding::encode(before_run_id)
+            ));
+        }
+        let query = if query.is_empty() {
+            String::new()
+        } else {
+            format!("?{}", query.join("&"))
+        };
         return rest_request_json(
             cli,
             reqwest::Method::GET,
             &format!(
-                "/v1/ns/{}/workflows/{}/runs",
+                "/v1/ns/{}/workflows/{}/runs{}",
                 urlencoding::encode(namespace),
-                urlencoding::encode(workflow)
+                urlencoding::encode(workflow),
+                query
             ),
             None,
         )
@@ -1343,12 +1361,16 @@ async fn workflow_run_list(
         .list_workflow_runs(ListWorkflowRunsRequest {
             ns: namespace.to_string(),
             workflow: workflow.to_string(),
+            page_size,
+            before_run_id: before_run_id.to_string(),
         })
         .await
         .context("Failed to list workflow runs")?
         .into_inner();
     Ok(json!({
-        "runs": response.runs.iter().map(|run| workflow_run_json(run, &[])).collect::<Vec<_>>()
+        "runs": response.runs.iter().map(|run| workflow_run_json(run, &[])).collect::<Vec<_>>(),
+        "hasMore": response.has_more,
+        "nextBeforeRunId": response.next_before_run_id,
     }))
 }
 
@@ -1735,6 +1757,10 @@ enum WorkflowCommands {
         #[arg(short, long)]
         namespace: String,
         workflow: String,
+        #[arg(long, default_value_t = 0)]
+        page_size: i32,
+        #[arg(long, default_value = "")]
+        before_run_id: String,
     },
     /// Resume a suspended workflow step.
     RunResume {
@@ -2849,8 +2875,11 @@ async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
             WorkflowCommands::RunList {
                 namespace,
                 workflow,
+                page_size,
+                before_run_id,
             } => {
-                let value = workflow_run_list(cli, namespace, workflow).await?;
+                let value =
+                    workflow_run_list(cli, namespace, workflow, *page_size, before_run_id).await?;
                 println!("{}", serde_json::to_string_pretty(&value)?);
                 return Ok(RunOutcome { exit_code: None });
             }
@@ -3245,6 +3274,32 @@ mod tests {
                 .collect::<Vec<_>>();
             keys.sort();
             Ok(keys)
+        }
+
+        async fn list_keys_page(
+            &self,
+            list: &keys::ResourceList,
+            before_name: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<keys::ResourceKey>> {
+            Ok(talon::control::page_keys_desc(
+                self.list_keys(list).await?,
+                before_name,
+                limit,
+            ))
+        }
+
+        async fn list_entries_page(
+            &self,
+            list: &keys::ResourceList,
+            before_name: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<(keys::ResourceKey, Vec<u8>)>> {
+            Ok(talon::control::page_entries_desc(
+                self.list_entries(list).await?,
+                before_name,
+                limit,
+            ))
         }
     }
 
@@ -5587,6 +5642,8 @@ mod tests {
             },
             "conic",
             "grpc-workflow",
+            0,
+            "",
         )
         .await
         .unwrap();
@@ -5611,6 +5668,8 @@ mod tests {
                 command: WorkflowCommands::RunList {
                     namespace: "conic".to_string(),
                     workflow: "grpc-workflow".to_string(),
+                    page_size: 0,
+                    before_run_id: String::new(),
                 },
             },
             ..cli()

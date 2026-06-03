@@ -1022,11 +1022,65 @@ mod tests {
             .list_workflow_runs(tonic::Request::new(proto::ListWorkflowRunsRequest {
                 ns: "customer-retention".to_string(),
                 workflow: "retention-review".to_string(),
+                page_size: 0,
+                before_run_id: String::new(),
             }))
             .await
             .unwrap()
             .into_inner();
         assert_eq!(listed_runs.runs.len(), 1);
+        assert!(!listed_runs.has_more);
+
+        let second_run = handler
+            .create_workflow_run(tonic::Request::new(proto::CreateWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                input_json: "{}".to_string(),
+                labels: HashMap::from([("source".to_string(), "page-test".to_string())]),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .run
+            .expect("second run should be returned");
+        let newest_run_page = handler
+            .list_workflow_runs(tonic::Request::new(proto::ListWorkflowRunsRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                page_size: 1,
+                before_run_id: String::new(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(newest_run_page.runs.len(), 1);
+        assert!(newest_run_page.has_more);
+        assert_eq!(newest_run_page.runs[0].id, second_run.id);
+        assert_eq!(newest_run_page.next_before_run_id, second_run.id);
+        let older_run_page = handler
+            .list_workflow_runs(tonic::Request::new(proto::ListWorkflowRunsRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                page_size: 1,
+                before_run_id: newest_run_page.next_before_run_id.clone(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+        assert_eq!(older_run_page.runs.len(), 1);
+        assert!(!older_run_page.has_more);
+        assert_eq!(older_run_page.runs[0].id, run.id);
+
+        let invalid_run_page = handler
+            .list_workflow_runs(tonic::Request::new(proto::ListWorkflowRunsRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                page_size: -1,
+                before_run_id: String::new(),
+            }))
+            .await
+            .unwrap_err();
+        assert_eq!(invalid_run_page.code(), tonic::Code::InvalidArgument);
         kv.set(
             &crate::control::keys::workflow_run(
                 "customer-retention",
@@ -1041,11 +1095,13 @@ mod tests {
             .list_workflow_runs(tonic::Request::new(proto::ListWorkflowRunsRequest {
                 ns: "customer-retention".to_string(),
                 workflow: "retention-review".to_string(),
+                page_size: 0,
+                before_run_id: String::new(),
             }))
             .await
             .unwrap()
             .into_inner();
-        assert_eq!(listed_runs_with_corrupt.runs.len(), 1);
+        assert_eq!(listed_runs_with_corrupt.runs.len(), 2);
 
         let invalid_resume = handler
             .resume_workflow_run(tonic::Request::new(proto::ResumeWorkflowRunRequest {
