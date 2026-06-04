@@ -1,4 +1,0 @@
-packages:
-  - "talon-client"
-  - "talon-server"
-  - "talon-node-*"

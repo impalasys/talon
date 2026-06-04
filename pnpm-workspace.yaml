@@ -2,6 +2,7 @@ packages:
   - "ui"
   - "docs-site"
   - "packages/*"
+  - "sdk/js"
   - "sdk/js/*"
 allowBuilds:
   esbuild: true

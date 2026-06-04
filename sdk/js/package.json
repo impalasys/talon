@@ -5,9 +5,9 @@
   "packageManager": "pnpm@10.17.1",
   "scripts": {
     "check:packages": "node ../../scripts/sdk/check_js_packages.mjs",
-    "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
-    "build": "pnpm -r build"
+    "typecheck": "pnpm --filter @impalasys/talon-client --filter @impalasys/talon-server typecheck",
+    "test": "pnpm --filter @impalasys/talon-client --filter @impalasys/talon-server test",
+    "build": "pnpm --filter @impalasys/talon-client --filter @impalasys/talon-server build"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",

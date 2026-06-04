@@ -36,6 +36,15 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  sdk/js:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.12.4
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   sdk/js/talon-client:
     dependencies:
       '@bufbuild/protobuf':

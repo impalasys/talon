@@ -233,8 +233,7 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Verify JS package wiring
-        working-directory: sdk/js
-        run: pnpm check:packages
+        run: pnpm --dir sdk/js check:packages
 
       - name: Download talon-node binaries
         if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
@@ -280,7 +279,6 @@ jobs:
 
       - name: Build JS SDK packages
         if: needs.detect.outputs.js_client_changed == 'true' || needs.detect.outputs.js_server_changed == 'true'
-        working-directory: sdk/js
         run: |
           pnpm install --frozen-lockfile
           pnpm --filter @impalasys/talon-client build
