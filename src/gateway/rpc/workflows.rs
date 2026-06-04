@@ -402,22 +402,23 @@ impl GrpcGatewayHandler {
                 let item = match models::WorkflowRunEvent::decode(bytes.as_slice()) {
                     Ok(event) => {
                         if !seen.insert(event.id.clone()) {
-                            return futures::future::ready(Some(None));
+                            Some(None)
+                        } else {
+                            if is_terminal_workflow_event(&event.r#type) {
+                                *terminated = true;
+                            }
+                            Some(Some(Ok(event)))
                         }
-                        if is_terminal_workflow_event(&event.r#type) {
-                            *terminated = true;
-                        }
-                        Some(Ok(event))
                     }
                     Err(err) => {
                         tracing::warn!(
                             error = %err,
                             "failed to decode workflow run event while streaming; skipping entry"
                         );
-                        None
+                        Some(None)
                     }
                 };
-                futures::future::ready(Some(item))
+                futures::future::ready(item)
             })
             .filter_map(|event| async move { event });
         let event_stream = historical_stream.chain(live_stream);
