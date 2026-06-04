@@ -1273,6 +1273,16 @@ mod tests {
         assert_eq!(cancelled.run.as_ref().unwrap().status, "CANCELLED");
         assert_eq!(cancelled.steps.len(), 1);
 
+        let missing_cancel = handler
+            .cancel_workflow_run(tonic::Request::new(proto::CancelWorkflowRunRequest {
+                ns: "customer-retention".to_string(),
+                workflow: "retention-review".to_string(),
+                run_id: "missing-run".to_string(),
+            }))
+            .await
+            .unwrap_err();
+        assert_eq!(missing_cancel.code(), tonic::Code::NotFound);
+
         let deleted = handler
             .delete_workflow(tonic::Request::new(proto::DeleteWorkflowRequest {
                 ns: "customer-retention".to_string(),

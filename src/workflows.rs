@@ -60,6 +60,27 @@ impl std::fmt::Display for WorkflowClaimInProgressError {
 
 impl std::error::Error for WorkflowClaimInProgressError {}
 
+#[derive(Debug)]
+pub struct WorkflowNotFoundError {
+    message: String,
+}
+
+impl WorkflowNotFoundError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+}
+
+impl std::fmt::Display for WorkflowNotFoundError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl std::error::Error for WorkflowNotFoundError {}
+
 pub fn workflow_claim_timeout_micros() -> i64 {
     std::env::var("TALON_WORKFLOW_CLAIM_TIMEOUT_SECONDS")
         .ok()
@@ -1027,17 +1048,19 @@ pub async fn resume_run(
         .kv
         .get_msg::<models::WorkflowRun>(&keys::workflow_run(ns, workflow, run_id))
         .await?
-        .ok_or_else(|| anyhow!("workflow run not found"))?;
+        .ok_or_else(|| WorkflowNotFoundError::new("workflow run not found"))?;
     let workflow_model = cp
         .kv
         .get_msg::<models::Workflow>(&keys::workflow(ns, workflow))
         .await?
-        .ok_or_else(|| anyhow!("workflow not found"))?;
+        .ok_or_else(|| WorkflowNotFoundError::new("workflow not found"))?;
     let step = workflow_model
         .spec
         .as_ref()
         .and_then(|spec| spec.steps.iter().find(|step| step.id == step_id))
-        .ok_or_else(|| anyhow!("workflow step '{}' not found", step_id))?;
+        .ok_or_else(|| {
+            WorkflowNotFoundError::new(format!("workflow step '{}' not found", step_id))
+        })?;
     let resume = parse_json_or(resume_json, Value::Null)?;
     validate_basic_json_schema("resume", &step.resume_schema_json, &resume)?;
 
@@ -1045,7 +1068,9 @@ pub async fn resume_run(
         .kv
         .get_msg::<models::WorkflowStepRun>(&keys::workflow_step_run(ns, workflow, run_id, step_id))
         .await?
-        .ok_or_else(|| anyhow!("workflow step run '{}' not found", step_id))?;
+        .ok_or_else(|| {
+            WorkflowNotFoundError::new(format!("workflow step run '{}' not found", step_id))
+        })?;
     if step_run.status != STATUS_SUSPENDED {
         bail!("workflow step '{}' is not suspended", step_id);
     }
@@ -1075,7 +1100,7 @@ pub async fn cancel_run(
         .kv
         .get_msg::<models::WorkflowRun>(&keys::workflow_run(ns, workflow, run_id))
         .await?
-        .ok_or_else(|| anyhow!("workflow run not found"))?;
+        .ok_or_else(|| WorkflowNotFoundError::new("workflow run not found"))?;
     let step_runs = load_step_runs(cp.kv.as_ref(), &run).await?;
     let spec = load_run_spec(cp.kv.as_ref(), &run).await.ok();
     run.status = STATUS_CANCELLED.to_string();

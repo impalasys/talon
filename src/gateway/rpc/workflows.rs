@@ -444,7 +444,10 @@ async fn load_sorted_workflow_step_runs(
 
 fn workflow_run_mutation_status(err: anyhow::Error) -> tonic::Status {
     let message = err.to_string();
-    if message.contains("not found") {
+    if err
+        .downcast_ref::<workflows::WorkflowNotFoundError>()
+        .is_some()
+    {
         tonic::Status::not_found(message)
     } else {
         tonic::Status::invalid_argument(message)
