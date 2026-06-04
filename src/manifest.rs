@@ -328,13 +328,44 @@ struct WorkflowStepOutputPolicyManifest {
     schema: serde_yaml::Value,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 struct WorkflowStepRetryPolicyManifest {
+    #[serde(default = "default_workflow_retry_max_attempts")]
     max_attempts: u32,
+    #[serde(default = "default_workflow_retry_initial_backoff_seconds")]
     initial_backoff_seconds: i64,
+    #[serde(default = "default_workflow_retry_max_backoff_seconds")]
     max_backoff_seconds: i64,
+    #[serde(default = "default_workflow_retry_multiplier")]
     multiplier: f64,
+}
+
+fn default_workflow_retry_max_attempts() -> u32 {
+    3
+}
+
+fn default_workflow_retry_initial_backoff_seconds() -> i64 {
+    1
+}
+
+fn default_workflow_retry_max_backoff_seconds() -> i64 {
+    30
+}
+
+fn default_workflow_retry_multiplier() -> f64 {
+    2.0
+}
+
+impl Default for WorkflowStepRetryPolicyManifest {
+    fn default() -> Self {
+        Self {
+            max_attempts: default_workflow_retry_max_attempts(),
+            initial_backoff_seconds: default_workflow_retry_initial_backoff_seconds(),
+            max_backoff_seconds: default_workflow_retry_max_backoff_seconds(),
+            multiplier: default_workflow_retry_multiplier(),
+        }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -2240,6 +2271,11 @@ spec:
         initialBackoffSeconds: 1
         maxBackoffSeconds: 30
         multiplier: 2.0
+    - id: defaultRetry
+      type: wait
+      after: [timedWait]
+      duration: 1s
+      retry: {}
   output:
     summary: ${$.steps.review.output.summary}
 "#,
@@ -2249,11 +2285,16 @@ spec:
         assert_eq!(workflow.name, "retention-review");
         assert_eq!(workflow.ns, "customer-retention");
         let spec = workflow.spec.as_ref().expect("spec should be present");
-        assert_eq!(spec.steps.len(), 3);
+        assert_eq!(spec.steps.len(), 4);
         assert_eq!(spec.steps[1].after, vec!["review".to_string()]);
         assert_eq!(spec.steps[2].wait_duration, "5m");
         assert_eq!(spec.steps[2].timeout, "1h");
         assert_eq!(spec.steps[2].retry.as_ref().unwrap().max_attempts, 3);
+        let default_retry = spec.steps[3].retry.as_ref().unwrap();
+        assert_eq!(default_retry.max_attempts, 3);
+        assert_eq!(default_retry.initial_backoff_seconds, 1);
+        assert_eq!(default_retry.max_backoff_seconds, 30);
+        assert_eq!(default_retry.multiplier, 2.0);
 
         let rendered = render_workflow_yaml(&workflow).expect("workflow should render");
         assert!(rendered.contains("kind: Workflow"));

@@ -6,6 +6,7 @@ use crate::control::{keys, topics, KeyValueStore, ProtoKeyValueStoreExt};
 use crate::workflows;
 use futures::{stream, StreamExt};
 use prost::Message;
+use rand::Rng;
 use std::collections::HashSet;
 
 const MAX_WORKFLOW_UPSERT_RETRIES: usize = 8;
@@ -140,7 +141,7 @@ impl GrpcGatewayHandler {
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
         let input = if req.input_json.trim().is_empty() {
-            serde_json::Value::Null
+            serde_json::json!({})
         } else {
             serde_json::from_str(&req.input_json)
                 .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?
@@ -465,7 +466,7 @@ fn workflow_upsert_retry_backoff_ms(attempt: usize) -> u64 {
     let exponential = WORKFLOW_UPSERT_RETRY_BACKOFF_MS
         .saturating_mul(1_u64 << shift)
         .min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS);
-    let jitter = (uuid::Uuid::now_v7().as_u128() % (exponential as u128 / 2 + 1)) as u64;
+    let jitter = rand::thread_rng().gen_range(0..=(exponential / 2));
     (exponential + jitter).min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS)
 }
 

@@ -977,7 +977,7 @@ mod tests {
             .create_workflow_run(tonic::Request::new(proto::CreateWorkflowRunRequest {
                 ns: "customer-retention".to_string(),
                 workflow: "retention-review".to_string(),
-                input_json: "{}".to_string(),
+                input_json: String::new(),
                 labels: HashMap::from([("source".to_string(), "test".to_string())]),
             }))
             .await
@@ -987,6 +987,7 @@ mod tests {
             .expect("run should be returned");
         assert_eq!(run.status, "QUEUED");
         assert_eq!(run.labels.get("source"), Some(&"test".to_string()));
+        assert_eq!(run.input_json, "{}");
 
         let cp = ControlPlane {
             kv: kv.clone(),
