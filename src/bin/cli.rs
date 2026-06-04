@@ -1524,12 +1524,17 @@ async fn rest_stream_workflow_events(
         let chunk = chunk.with_context(|| format!("Failed to read REST stream from {}", url))?;
         buffer.extend_from_slice(&chunk);
         ensure_rest_stream_buffer_within_limit(buffer.len())?;
-        while let Some(newline) = buffer.iter().position(|byte| *byte == b'\n') {
-            let line = String::from_utf8_lossy(&buffer[..newline])
+        let mut last_index = 0;
+        while let Some(newline) = buffer[last_index..].iter().position(|byte| *byte == b'\n') {
+            let absolute_newline = last_index + newline;
+            let line = String::from_utf8_lossy(&buffer[last_index..absolute_newline])
                 .trim_end_matches('\r')
                 .to_string();
-            buffer.drain(..=newline);
             print_stream_event_line(&line)?;
+            last_index = absolute_newline + 1;
+        }
+        if last_index > 0 {
+            buffer.drain(..last_index);
         }
     }
     if !buffer.is_empty() {

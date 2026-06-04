@@ -284,8 +284,9 @@ impl WorkerEventHandler {
                     break;
                 }
                 Ok(false) => {
+                    let jitter = rand::random::<u64>() % (SESSION_RELEASE_CAS_BACKOFF_MS / 2 + 1);
                     tokio::time::sleep(std::time::Duration::from_millis(
-                        SESSION_RELEASE_CAS_BACKOFF_MS,
+                        SESSION_RELEASE_CAS_BACKOFF_MS + jitter,
                     ))
                     .await;
                     continue;

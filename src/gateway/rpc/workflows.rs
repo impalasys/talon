@@ -434,7 +434,11 @@ async fn load_sorted_workflow_step_runs(
         .map_err(|err| tonic::Status::internal(err.to_string()))?
         .into_values()
         .collect::<Vec<_>>();
-    steps.sort_by_key(|step| step.created_at);
+    steps.sort_by(|left, right| {
+        left.created_at
+            .cmp(&right.created_at)
+            .then_with(|| left.id.cmp(&right.id))
+    });
     Ok(steps)
 }
 
