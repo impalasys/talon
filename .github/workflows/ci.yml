@@ -207,6 +207,7 @@ jobs:
         working-directory: sdk/js
         run: |
           pnpm install --frozen-lockfile
+          pnpm check:packages
           pnpm typecheck
           pnpm test
 

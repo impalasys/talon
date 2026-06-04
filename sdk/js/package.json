@@ -4,6 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@10.17.1",
   "scripts": {
+    "check:packages": "node ../../scripts/sdk/check_js_packages.mjs",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "build": "pnpm -r build"
