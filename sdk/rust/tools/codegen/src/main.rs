@@ -3,6 +3,8 @@
 
 use std::path::PathBuf;
 
+const SOURCE_HEADER: &str = "// Copyright (C) 2026 Impala Systems, Inc.\n// SPDX-License-Identifier: AGPL-3.0-only\n\n";
+
 fn main() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .ancestors()
@@ -33,4 +35,16 @@ fn main() {
             &[root.clone(), root.join("third_party/googleapis")],
         )
         .expect("generate rust SDK");
+
+    for entry in std::fs::read_dir(&out_dir).expect("read generated dir") {
+        let path = entry.expect("generated entry").path();
+        if !path.extension().is_some_and(|ext| ext == "rs") {
+            continue;
+        }
+        let source = std::fs::read_to_string(&path).expect("read generated source");
+        if source.starts_with(SOURCE_HEADER) {
+            continue;
+        }
+        std::fs::write(&path, format!("{SOURCE_HEADER}{source}")).expect("write generated source");
+    }
 }
