@@ -60,7 +60,7 @@ jobs:
         run: python3 scripts/sdk/detect_version_changes.py
 
   build-node-binaries:
-    name: Cross-compile talon-node SDK Binary
+    name: Build talon-node SDK Binary
     if: needs.detect.outputs.needs_node_binaries == 'true'
     needs: detect
     strategy:
@@ -68,37 +68,39 @@ jobs:
       matrix:
         include:
           - platform: linux-x64
-            target: x86_64-unknown-linux-gnu
+            runner: ubuntu-latest
           - platform: darwin-arm64
-            target: aarch64-apple-darwin
-    runs-on: ubuntu-latest
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v5
 
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
 
-      - name: Install cross-compilation tools
+      - name: Install Linux build tools
+        if: runner.os == 'Linux'
         run: |
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler
-          python3 -m pip install --user ziglang
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          cargo install cargo-zigbuild --locked
+
+      - name: Install macOS build tools
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          brew install protobuf
 
       - name: Build talon-node
-        run: cargo zigbuild --locked --release --bin talon-node --target "${{ matrix.target }}"
+        run: cargo build --locked --release --bin talon-node
 
       - name: Package talon-node
         run: |
           set -euo pipefail
           mkdir -p "dist/talon-node-${{ matrix.platform }}"
-          cp "target/${{ matrix.target }}/release/talon-node" "dist/talon-node-${{ matrix.platform }}/"
+          cp "target/release/talon-node" "dist/talon-node-${{ matrix.platform }}/"
           tar -C dist -czf "dist/talon-node-${{ matrix.platform }}.tar.gz" "talon-node-${{ matrix.platform }}"
-          sha256sum "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
+          python3 -c 'import hashlib, pathlib, sys; p = pathlib.Path(sys.argv[1]); print(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p}")' "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
 
       - name: Upload talon-node binary
         uses: actions/upload-artifact@v4
