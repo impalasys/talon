@@ -78,6 +78,9 @@ jobs:
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
       - name: Install Linux build tools
         if: runner.os == 'Linux'
         run: |
@@ -172,6 +175,9 @@ jobs:
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
       - name: Download talon-node binaries
         if: needs.detect.outputs.rust_server_changed == 'true'
         uses: actions/download-artifact@v4
@@ -227,7 +233,10 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
-          package-manager-cache: false
+          cache: "pnpm"
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            sdk/js/pnpm-lock.yaml
 
       - name: Ensure npm supports trusted publishing
         run: npm install -g npm@latest
@@ -318,6 +327,10 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.13"
+          cache: "pip"
+          cache-dependency-path: |
+            sdk/python/talon-client/pyproject.toml
+            sdk/python/talon-server/pyproject.toml
 
       - name: Build changed Python packages
         env:
