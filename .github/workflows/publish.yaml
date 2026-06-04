@@ -248,11 +248,13 @@ jobs:
             mkdir -p sdk/js/talon-node-linux-x64/bin
             tar -xzf dist/talon-node-linux-x64.tar.gz -C /tmp
             cp /tmp/talon-node-linux-x64/talon-node sdk/js/talon-node-linux-x64/bin/talon-node
+            chmod 755 sdk/js/talon-node-linux-x64/bin/talon-node
           fi
           if [ "${{ needs.detect.outputs.js_node_darwin_changed }}" = "true" ]; then
             mkdir -p sdk/js/talon-node-darwin-arm64/bin
             tar -xzf dist/talon-node-darwin-arm64.tar.gz -C /tmp
             cp /tmp/talon-node-darwin-arm64/talon-node sdk/js/talon-node-darwin-arm64/bin/talon-node
+            chmod 755 sdk/js/talon-node-darwin-arm64/bin/talon-node
           fi
 
       - name: Build Talon chat package

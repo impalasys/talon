@@ -11,7 +11,10 @@
   },
   "os": ["linux"],
   "cpu": ["x64"],
-  "files": ["bin", "index.js"],
+  "files": ["bin", "chmod-bin.js", "index.js"],
+  "scripts": {
+    "postinstall": "node ./chmod-bin.js"
+  },
   "publishConfig": {
     "access": "public"
   },
