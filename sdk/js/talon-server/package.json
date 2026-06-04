@@ -1,9 +1,14 @@
 {
   "name": "@impalasys/talon-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local Talon node helper for tests and development",
   "type": "module",
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/impalasys/talon.git",
+    "directory": "sdk/js/talon-server"
+  },
   "files": [
     "dist",
     "src"
@@ -19,9 +24,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsc -p tsconfig.json && node --test dist/index.test.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "optionalDependencies": {
-    "@impalasys/talon-node-darwin-arm64": "workspace:0.1.0",
-    "@impalasys/talon-node-linux-x64": "workspace:0.1.0"
+    "@impalasys/talon-node-darwin-arm64": "workspace:0.1.1",
+    "@impalasys/talon-node-linux-x64": "workspace:0.1.1"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",

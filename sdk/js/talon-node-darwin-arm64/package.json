@@ -1,14 +1,21 @@
 {
   "name": "@impalasys/talon-node-darwin-arm64",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "macOS arm64 talon-node binary",
   "type": "module",
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/impalasys/talon.git",
+    "directory": "sdk/js/talon-node-darwin-arm64"
+  },
   "os": ["darwin"],
   "cpu": ["arm64"],
   "files": ["bin", "index.js"],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./index.js"
   }
 }
-

@@ -42,10 +42,10 @@ importers:
         version: 6.0.3
     optionalDependencies:
       '@impalasys/talon-node-darwin-arm64':
-        specifier: workspace:0.1.0
+        specifier: workspace:0.1.1
         version: link:../talon-node-darwin-arm64
       '@impalasys/talon-node-linux-x64':
-        specifier: workspace:0.1.0
+        specifier: workspace:0.1.1
         version: link:../talon-node-linux-x64
 
 packages:

@@ -77,6 +77,7 @@ def main() -> int:
         "js_server": ("sdk/js/talon-server/package.json", package_json_version),
         "js_node_linux": ("sdk/js/talon-node-linux-x64/package.json", package_json_version),
         "js_node_darwin": ("sdk/js/talon-node-darwin-arm64/package.json", package_json_version),
+        "js_chat": ("packages/talon-chat/package.json", package_json_version),
         "java_client": ("sdk/java/build.gradle.kts", gradle_version),
         "java_server": ("sdk/java/build.gradle.kts", gradle_version),
     }
@@ -96,7 +97,10 @@ def main() -> int:
         outputs["python_client_changed"] == "true" or outputs["python_server_changed"] == "true"
     ).lower()
     outputs["js_changed"] = str(
-        any(outputs[f"{key}_changed"] == "true" for key in ["js_client", "js_server", "js_node_linux", "js_node_darwin"])
+        any(
+            outputs[f"{key}_changed"] == "true"
+            for key in ["js_client", "js_server", "js_node_linux", "js_node_darwin", "js_chat"]
+        )
     ).lower()
     outputs["java_changed"] = str(
         outputs["java_client_changed"] == "true" or outputs["java_server_changed"] == "true"

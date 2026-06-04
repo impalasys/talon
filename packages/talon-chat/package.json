@@ -1,9 +1,9 @@
 {
   "name": "@impalasys/talon-chat",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "React chat panels for Talon agent sessions and channels",
   "type": "module",
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/impalasys/talon.git",

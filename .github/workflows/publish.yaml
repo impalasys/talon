@@ -1,4 +1,4 @@
-name: Publish SDKs
+name: Publish Packages
 
 on:
   push:
@@ -6,9 +6,11 @@ on:
       - main
     paths:
       - "sdk/**"
+      - "packages/talon-chat/**"
       - "proto/**"
       - "scripts/sdk/**"
       - "buf.gen.sdk.yaml"
+      - "pnpm-lock.yaml"
   workflow_dispatch:
 
 permissions:
@@ -42,6 +44,8 @@ jobs:
       js_node_linux_version: ${{ steps.detect.outputs.js_node_linux_version }}
       js_node_darwin_changed: ${{ steps.detect.outputs.js_node_darwin_changed }}
       js_node_darwin_version: ${{ steps.detect.outputs.js_node_darwin_version }}
+      js_chat_changed: ${{ steps.detect.outputs.js_chat_changed }}
+      js_chat_version: ${{ steps.detect.outputs.js_chat_version }}
       java_changed: ${{ steps.detect.outputs.java_changed }}
       needs_node_binaries: ${{ steps.detect.outputs.needs_node_binaries }}
     steps:
@@ -63,30 +67,40 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux-x64
-          - os: macos-14
-            platform: darwin-arm64
-    runs-on: ${{ matrix.os }}
+          - platform: linux-x64
+            runner: ubuntu-latest
+          - platform: darwin-arm64
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v5
 
       - name: Set up Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install Linux build tools
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: Install macOS build tools
+        if: runner.os == 'macOS'
+        run: |
+          set -euo pipefail
+          brew install protobuf
+
       - name: Build talon-node
         run: cargo build --locked --release --bin talon-node
 
       - name: Package talon-node
         run: |
+          set -euo pipefail
           mkdir -p "dist/talon-node-${{ matrix.platform }}"
-          cp target/release/talon-node "dist/talon-node-${{ matrix.platform }}/"
+          cp "target/release/talon-node" "dist/talon-node-${{ matrix.platform }}/"
           tar -C dist -czf "dist/talon-node-${{ matrix.platform }}.tar.gz" "talon-node-${{ matrix.platform }}"
-          if [ "${RUNNER_OS}" = "macOS" ]; then
-            shasum -a 256 "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
-          else
-            sha256sum "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
-          fi
+          python3 -c 'import hashlib, pathlib, sys; p = pathlib.Path(sys.argv[1]); print(f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p}")' "dist/talon-node-${{ matrix.platform }}.tar.gz" > "dist/talon-node-${{ matrix.platform }}.tar.gz.sha256"
 
       - name: Upload talon-node binary
         uses: actions/upload-artifact@v4
@@ -193,8 +207,6 @@ jobs:
       - detect
       - build-node-binaries
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v5
 
@@ -206,10 +218,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
-          cache: "pnpm"
-          cache-dependency-path: sdk/js/pnpm-lock.yaml
+          package-manager-cache: false
+
+      - name: Ensure npm supports trusted publishing
+        run: npm install -g npm@latest
 
       - name: Download talon-node binaries
         if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
@@ -234,7 +248,14 @@ jobs:
             cp /tmp/talon-node-darwin-arm64/talon-node sdk/js/talon-node-darwin-arm64/bin/talon-node
           fi
 
+      - name: Build Talon chat package
+        if: needs.detect.outputs.js_chat_changed == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @impalasys/talon-chat build
+
       - name: Build JS SDK packages
+        if: needs.detect.outputs.js_client_changed == 'true' || needs.detect.outputs.js_server_changed == 'true'
         working-directory: sdk/js
         run: |
           pnpm install --frozen-lockfile
@@ -251,17 +272,15 @@ jobs:
           JS_NODE_LINUX_VERSION: ${{ needs.detect.outputs.js_node_linux_version }}
           JS_NODE_DARWIN_CHANGED: ${{ needs.detect.outputs.js_node_darwin_changed }}
           JS_NODE_DARWIN_VERSION: ${{ needs.detect.outputs.js_node_darwin_version }}
+          JS_CHAT_CHANGED: ${{ needs.detect.outputs.js_chat_changed }}
+          JS_CHAT_VERSION: ${{ needs.detect.outputs.js_chat_version }}
         run: |
           set -euo pipefail
-          if [ -z "${NODE_AUTH_TOKEN}" ]; then
-            echo "NPM_TOKEN is required"
-            exit 1
-          fi
           publish_if_changed() {
             local changed="$1"
             local package="$2"
             local version="$3"
-            local path="$4"
+            local package_path="$4"
             if [ "$changed" != "true" ]; then
               return 0
             fi
@@ -269,8 +288,12 @@ jobs:
               echo "${package}@${version} already exists; skipping"
               return 0
             fi
-            pnpm publish "$path" --access public --no-git-checks
+            local pack_dir
+            pack_dir="$(mktemp -d)"
+            pnpm --dir "$package_path" pack --pack-destination "$pack_dir"
+            npm publish "$pack_dir"/*.tgz --access public
           }
+          publish_if_changed "$JS_CHAT_CHANGED" "@impalasys/talon-chat" "$JS_CHAT_VERSION" "packages/talon-chat"
           publish_if_changed "$JS_NODE_LINUX_CHANGED" "@impalasys/talon-node-linux-x64" "$JS_NODE_LINUX_VERSION" "sdk/js/talon-node-linux-x64"
           publish_if_changed "$JS_NODE_DARWIN_CHANGED" "@impalasys/talon-node-darwin-arm64" "$JS_NODE_DARWIN_VERSION" "sdk/js/talon-node-darwin-arm64"
           publish_if_changed "$JS_CLIENT_CHANGED" "@impalasys/talon-client" "$JS_CLIENT_VERSION" "sdk/js/talon-client"
