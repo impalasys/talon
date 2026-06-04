@@ -5,7 +5,7 @@ __pycache__/
 *.py[cod]
 bench/results*/
 node_modules/
-packages/copilot/dist/
+packages/*/dist/
 sdk/js/*/dist/
 sdk/examples/js/dist/
 sdk/java/.gradle/
