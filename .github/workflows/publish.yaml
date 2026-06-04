@@ -319,25 +319,31 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Build changed Python packages
-        env:
-          PYTHON_CLIENT_CHANGED: ${{ needs.detect.outputs.python_client_changed }}
-          PYTHON_SERVER_CHANGED: ${{ needs.detect.outputs.python_server_changed }}
+      - name: Install Python build dependencies
         run: |
           set -euo pipefail
           python -m pip install build
-          mkdir -p sdk/python/dist
-          if [ "$PYTHON_CLIENT_CHANGED" = "true" ]; then
-            python -m build sdk/python/talon-client --outdir sdk/python/dist
-          fi
-          if [ "$PYTHON_SERVER_CHANGED" = "true" ]; then
-            python -m build sdk/python/talon-server --outdir sdk/python/dist
-          fi
 
-      - name: Publish to PyPI
+      - name: Build Python client package
+        if: needs.detect.outputs.python_client_changed == 'true'
+        run: python -m build sdk/python/talon-client --outdir sdk/python/dist/client
+
+      - name: Publish Python client to PyPI
+        if: needs.detect.outputs.python_client_changed == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: sdk/python/dist
+          packages-dir: sdk/python/dist/client
+          skip-existing: true
+
+      - name: Build Python server package
+        if: needs.detect.outputs.python_server_changed == 'true'
+        run: python -m build sdk/python/talon-server --outdir sdk/python/dist/server
+
+      - name: Publish Python server to PyPI
+        if: needs.detect.outputs.python_server_changed == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: sdk/python/dist/server
           skip-existing: true
 
   publish-java:

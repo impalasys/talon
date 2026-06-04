@@ -3,8 +3,8 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "impalasys-talon-server"
-version = "0.1.0"
+name = "talon-server"
+version = "0.1.1"
 description = "Local Talon node helper for tests and development"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -15,4 +15,3 @@ test = ["pytest>=8,<9"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/talon_server"]
-

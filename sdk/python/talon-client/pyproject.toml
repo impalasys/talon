@@ -3,8 +3,8 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "impalasys-talon-client"
-version = "0.1.0"
+name = "talon-client"
+version = "0.1.1"
 description = "Generated Talon protobuf and gRPC client bindings"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -16,4 +16,3 @@ dependencies = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/talon_client"]
-
