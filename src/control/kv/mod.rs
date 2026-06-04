@@ -3,11 +3,13 @@
 
 mod legacy;
 mod postgres;
+#[cfg(feature = "rocksdb")]
 mod rocksdb;
 mod shared;
 mod sqlite;
 
 pub use postgres::PostgresKvStore;
+#[cfg(feature = "rocksdb")]
 pub use rocksdb::RocksDbKvStore;
 pub use shared::sqlite_url_for_path;
 pub(crate) use shared::validate_identifier;

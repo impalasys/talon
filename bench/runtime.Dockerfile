@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/talon
-ARG CARGO_FEATURES=""
+ARG CARGO_FEATURES="rocksdb"
 
 COPY Cargo.toml Cargo.lock build.rs ./
 COPY third_party ./third_party

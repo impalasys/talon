@@ -13,6 +13,7 @@ heap-profile = [
     "tikv-jemalloc-ctl/profiling",
     "tikv-jemalloc-ctl/stats",
 ]
+rocksdb = ["dep:rocksdb"]
 
 [dependencies]
 aead = "0.5"
@@ -34,7 +35,7 @@ pprof = { version = "0.15", features = ["flamegraph"], optional = true }
 tikv-jemallocator = { version = "0.7", optional = true }
 tikv-jemalloc-ctl = { version = "0.7", optional = true }
 redb = "1.0"
-rocksdb = "0.24"
+rocksdb = { version = "0.24", default-features = false, optional = true }
 reqwest = { version = "0.11", features = ["json", "stream"] }
 rmcp = { version = "1.4", features = ["client", "server", "macros", "transport-child-process", "transport-streamable-http-client-reqwest", "transport-streamable-http-server"] }
 prost = "0.13"

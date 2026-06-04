@@ -30,7 +30,7 @@ FROM chef AS builder
 COPY --from=planner /usr/src/talon/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo chef cook --release --recipe-path recipe.json
+    cargo chef cook --release --features rocksdb --recipe-path recipe.json
 
 COPY Cargo.toml Cargo.lock build.rs ./
 COPY third_party ./third_party
@@ -39,7 +39,7 @@ COPY src ./src
 COPY talon.yaml ./talon.yaml
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
-    cargo build --release --locked --bins && \
+    cargo build --release --locked --bins --features rocksdb && \
     mkdir -p /usr/src/talon/dist && \
     cp /usr/src/talon/target/release/talon-server /usr/src/talon/dist/talon-server && \
     cp /usr/src/talon/target/release/talon-worker /usr/src/talon/dist/talon-worker && \

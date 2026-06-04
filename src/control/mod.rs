@@ -239,6 +239,7 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             kv = std::sync::Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
             scheduler_database_url = Some(sqlite_url);
         }
+        #[cfg(feature = "rocksdb")]
         "rocksdb" => {
             let rocksdb_path = rocksdb_database_path(db_config).await?;
             println!(
@@ -247,6 +248,12 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             );
             kv = std::sync::Arc::new(kv::RocksDbKvStore::new(&rocksdb_path)?);
             scheduler_database_url = None;
+        }
+        #[cfg(not(feature = "rocksdb"))]
+        "rocksdb" => {
+            return Err(anyhow::anyhow!(
+                "RocksDB database driver is not enabled in this build"
+            ));
         }
         other => {
             return Err(anyhow::anyhow!("Unsupported database driver: {}", other));
@@ -413,6 +420,7 @@ async fn sqlite_database_url(
     Ok(kv::sqlite_url_for_path(&db_path))
 }
 
+#[cfg(feature = "rocksdb")]
 async fn rocksdb_database_path(
     db_config: &crate::config::proto::DatabaseConfig,
 ) -> anyhow::Result<PathBuf> {
@@ -486,9 +494,11 @@ fn configured_scheduler_callback_auth_from_env(
 mod tests {
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
-        ensure_builtin_namespaces, message_broker_config, rocksdb_database_path,
-        sqlite_database_url, KeyValueStore, ProtoKeyValueStoreExt,
+        ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
+        ProtoKeyValueStoreExt,
     };
+    #[cfg(feature = "rocksdb")]
+    use super::rocksdb_database_path;
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
     use crate::control::keys;
@@ -905,6 +915,7 @@ mod tests {
             .contains("SQLite database requires either control_plane.database.url or control_plane.database.data_dir"));
     }
 
+    #[cfg(feature = "rocksdb")]
     #[tokio::test]
     async fn rocksdb_database_path_uses_data_dir_or_explicit_url() {
         let dir = tempdir().unwrap();
@@ -931,6 +942,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "rocksdb")]
     #[tokio::test]
     async fn rocksdb_database_path_requires_path_or_url() {
         let cfg = proto::DatabaseConfig {
