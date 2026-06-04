@@ -91,6 +91,13 @@ jobs:
           set -euo pipefail
           brew install protobuf
 
+      - name: Configure protoc
+        run: |
+          set -euo pipefail
+          protoc_path="$(command -v protoc)"
+          echo "PROTOC=${protoc_path}" >> "$GITHUB_ENV"
+          "${protoc_path}" --version
+
       - name: Build talon-node
         run: cargo build --locked --release --bin talon-node
 
