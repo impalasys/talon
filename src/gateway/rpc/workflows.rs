@@ -474,12 +474,12 @@ fn validated_workflow_runs_page_size(page_size: i32) -> Result<usize, tonic::Sta
 }
 
 fn workflow_upsert_retry_backoff_ms(attempt: usize) -> u64 {
-    let shift = attempt.min(5) as u32;
+    let shift = attempt.min(6) as u32;
     let exponential = WORKFLOW_UPSERT_RETRY_BACKOFF_MS
         .saturating_mul(1_u64 << shift)
         .min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS);
     let jitter = rand::thread_rng().gen_range(0..=(exponential / 2));
-    (exponential + jitter).min(MAX_WORKFLOW_UPSERT_RETRY_BACKOFF_MS)
+    exponential + jitter
 }
 
 fn is_terminal_workflow_event(event_type: &str) -> bool {
@@ -508,5 +508,19 @@ mod tests {
     fn workflow_run_mutation_status_maps_unknown_errors_to_internal() {
         let status = workflow_run_mutation_status(anyhow::anyhow!("kv unavailable"));
         assert_eq!(status.code(), tonic::Code::Internal);
+    }
+
+    #[test]
+    fn workflow_upsert_retry_backoff_reaches_max_base_and_keeps_jitter() {
+        for _ in 0..100 {
+            let first = workflow_upsert_retry_backoff_ms(0);
+            assert!((10..=15).contains(&first));
+
+            let capped = workflow_upsert_retry_backoff_ms(6);
+            assert!((500..=750).contains(&capped));
+
+            let saturated = workflow_upsert_retry_backoff_ms(usize::MAX);
+            assert!((500..=750).contains(&saturated));
+        }
     }
 }
