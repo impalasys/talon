@@ -36,6 +36,15 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  sdk/js:
+    devDependencies:
+      '@types/node':
+        specifier: ^24.9.1
+        version: 24.12.4
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   sdk/js/talon-client:
     dependencies:
       '@bufbuild/protobuf':
@@ -63,10 +72,10 @@ importers:
         version: 6.0.3
     optionalDependencies:
       '@impalasys/talon-node-darwin-arm64':
-        specifier: workspace:0.1.1
+        specifier: workspace:0.1.3
         version: link:../talon-node-darwin-arm64
       '@impalasys/talon-node-linux-x64':
-        specifier: workspace:0.1.1
+        specifier: workspace:0.1.3
         version: link:../talon-node-linux-x64
 
   ui:

@@ -1,4 +1,4 @@
-# impalasys-talon-client
+# talon-client
 
 Generated Python protobuf and gRPC bindings for the Talon gateway.
 
@@ -10,4 +10,3 @@ channel = grpc.insecure_channel("127.0.0.1:50051")
 client = gateway_pb2_grpc.GatewayServiceStub(channel)
 client.ListNamespaces(gateway_pb2.ListNamespacesRequest())
 ```
-

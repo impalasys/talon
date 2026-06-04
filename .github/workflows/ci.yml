@@ -105,7 +105,7 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
-          cache-dependency-path: ui/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install UI dependencies
         working-directory: ui
@@ -152,7 +152,7 @@ jobs:
         with:
           node-version: "22"
           cache: "pnpm"
-          cache-dependency-path: sdk/js/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -204,11 +204,11 @@ jobs:
           pytest -q sdk/python/talon-client/tests sdk/python/talon-server/tests
 
       - name: Test JS SDKs
-        working-directory: sdk/js
         run: |
           pnpm install --frozen-lockfile
-          pnpm typecheck
-          pnpm test
+          pnpm --dir sdk/js check:packages
+          pnpm --dir sdk/js typecheck
+          pnpm --dir sdk/js test
 
   binary_artifacts:
     name: Binary Artifacts

@@ -1,4 +1,4 @@
-# impalasys-talon-server
+# talon-server
 
 Starts `talon-node` as a local subprocess with a temporary SQLite database and
 `local_socket` broker for tests and development.
