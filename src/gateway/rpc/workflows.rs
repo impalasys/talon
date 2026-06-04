@@ -449,8 +449,13 @@ fn workflow_run_mutation_status(err: anyhow::Error) -> tonic::Status {
         .is_some()
     {
         tonic::Status::not_found(message)
-    } else {
+    } else if err
+        .downcast_ref::<workflows::WorkflowInvalidArgumentError>()
+        .is_some()
+    {
         tonic::Status::invalid_argument(message)
+    } else {
+        tonic::Status::internal(message)
     }
 }
 
@@ -492,5 +497,16 @@ impl GatewayControlPlaneExt for crate::gateway::server::Gateway {
             pubsub: self.pubsub.clone(),
             scheduler: self.scheduler.clone(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn workflow_run_mutation_status_maps_unknown_errors_to_internal() {
+        let status = workflow_run_mutation_status(anyhow::anyhow!("kv unavailable"));
+        assert_eq!(status.code(), tonic::Code::Internal);
     }
 }

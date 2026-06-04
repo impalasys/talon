@@ -1250,8 +1250,8 @@ fn read_json_arg(value: &Option<String>, file: &Option<String>) -> Result<String
         value.clone().unwrap_or_else(|| "{}".to_string())
     };
     let parsed: serde_json::Value =
-        serde_json::from_str(&raw).context("Workflow run JSON must be valid JSON")?;
-    serde_json::to_string(&parsed).context("Failed to normalize workflow run JSON")
+        serde_json::from_str(&raw).context("Argument must be valid JSON")?;
+    serde_json::to_string(&parsed).context("Failed to normalize JSON argument")
 }
 
 async fn workflow_run_create(
@@ -3164,12 +3164,12 @@ mod tests {
         grpc_delete_resource, grpc_delete_target, grpc_get_target, grpc_get_yaml, knowledge_delete,
         knowledge_get, knowledge_list, knowledge_resource_name, knowledge_set,
         manifest_json_payload, mint_agent_jwt, mint_channel_jwt, mint_root_jwt, mint_session_jwt,
-        parse_raw_manifest, parse_vars, print_stream_event_line, read_knowledge_content,
-        relative_knowledge_path, render_json_payload, render_manifest_file,
-        render_manifest_template, render_rest_get_yaml, resolve_authorization_header,
-        resolve_manifest_sources, rest_apply_manifest, rest_client, rest_delete_path,
-        rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json, run_cli,
-        schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
+        parse_raw_manifest, parse_vars, print_stream_event_line, read_json_arg,
+        read_knowledge_content, relative_knowledge_path, render_json_payload,
+        render_manifest_file, render_manifest_template, render_rest_get_yaml,
+        resolve_authorization_header, resolve_manifest_sources, rest_apply_manifest, rest_client,
+        rest_delete_path, rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json,
+        run_cli, schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
         to_camel_case, workflow_run_list, AuthCommands, Cli, Commands, GrpcApplyPlan,
         GrpcDeleteTarget, GrpcGetTarget, KnowledgeCommands, RenderFormat, WorkflowCommands,
         MAX_REST_STREAM_BUFFER_BYTES,
@@ -3402,6 +3402,15 @@ mod tests {
     fn parse_vars_rejects_empty_key() {
         let err = parse_vars(&["=value".to_string()]).expect_err("empty key should fail");
         assert!(err.to_string().contains("key cannot be empty"));
+    }
+
+    #[test]
+    fn read_json_arg_normalizes_json_and_uses_generic_errors() {
+        let normalized = read_json_arg(&Some(r#"{ "ok": true }"#.to_string()), &None).unwrap();
+        assert_eq!(normalized, r#"{"ok":true}"#);
+
+        let err = read_json_arg(&Some("{".to_string()), &None).expect_err("invalid JSON fails");
+        assert!(format!("{err:#}").contains("Argument must be valid JSON"));
     }
 
     #[test]

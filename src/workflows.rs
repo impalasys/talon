@@ -61,6 +61,27 @@ impl std::fmt::Display for WorkflowClaimInProgressError {
 impl std::error::Error for WorkflowClaimInProgressError {}
 
 #[derive(Debug)]
+pub struct WorkflowInvalidArgumentError {
+    message: String,
+}
+
+impl WorkflowInvalidArgumentError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+}
+
+impl std::fmt::Display for WorkflowInvalidArgumentError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl std::error::Error for WorkflowInvalidArgumentError {}
+
+#[derive(Debug)]
 pub struct WorkflowNotFoundError {
     message: String,
 }
@@ -1061,8 +1082,11 @@ pub async fn resume_run(
         .ok_or_else(|| {
             WorkflowNotFoundError::new(format!("workflow step '{}' not found", step_id))
         })?;
-    let resume = parse_json_or(resume_json, Value::Null)?;
-    validate_basic_json_schema("resume", &step.resume_schema_json, &resume)?;
+    let resume = parse_json_or(resume_json, Value::Null).map_err(|err| {
+        WorkflowInvalidArgumentError::new(format!("resume must be valid JSON: {err}"))
+    })?;
+    validate_basic_json_schema("resume", &step.resume_schema_json, &resume)
+        .map_err(|err| WorkflowInvalidArgumentError::new(err.to_string()))?;
 
     let mut step_run = cp
         .kv
@@ -1072,7 +1096,11 @@ pub async fn resume_run(
             WorkflowNotFoundError::new(format!("workflow step run '{}' not found", step_id))
         })?;
     if step_run.status != STATUS_SUSPENDED {
-        bail!("workflow step '{}' is not suspended", step_id);
+        return Err(WorkflowInvalidArgumentError::new(format!(
+            "workflow step '{}' is not suspended",
+            step_id
+        ))
+        .into());
     }
     step_run.resume_json = serde_json::to_string(&resume)?;
     step_run.updated_at = Utc::now().timestamp_micros();
