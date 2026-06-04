@@ -1,4 +1,4 @@
-name: Publish SDKs
+name: Publish Packages
 
 on:
   push:
@@ -6,9 +6,11 @@ on:
       - main
     paths:
       - "sdk/**"
+      - "packages/talon-chat/**"
       - "proto/**"
       - "scripts/sdk/**"
       - "buf.gen.sdk.yaml"
+      - "pnpm-lock.yaml"
   workflow_dispatch:
 
 permissions:
@@ -42,6 +44,8 @@ jobs:
       js_node_linux_version: ${{ steps.detect.outputs.js_node_linux_version }}
       js_node_darwin_changed: ${{ steps.detect.outputs.js_node_darwin_changed }}
       js_node_darwin_version: ${{ steps.detect.outputs.js_node_darwin_version }}
+      js_chat_changed: ${{ steps.detect.outputs.js_chat_changed }}
+      js_chat_version: ${{ steps.detect.outputs.js_chat_version }}
       java_changed: ${{ steps.detect.outputs.java_changed }}
       needs_node_binaries: ${{ steps.detect.outputs.needs_node_binaries }}
     steps:
@@ -242,7 +246,14 @@ jobs:
             cp /tmp/talon-node-darwin-arm64/talon-node sdk/js/talon-node-darwin-arm64/bin/talon-node
           fi
 
+      - name: Build Talon chat package
+        if: needs.detect.outputs.js_chat_changed == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @impalasys/talon-chat build
+
       - name: Build JS SDK packages
+        if: needs.detect.outputs.js_client_changed == 'true' || needs.detect.outputs.js_server_changed == 'true'
         working-directory: sdk/js
         run: |
           pnpm install --frozen-lockfile
@@ -259,6 +270,8 @@ jobs:
           JS_NODE_LINUX_VERSION: ${{ needs.detect.outputs.js_node_linux_version }}
           JS_NODE_DARWIN_CHANGED: ${{ needs.detect.outputs.js_node_darwin_changed }}
           JS_NODE_DARWIN_VERSION: ${{ needs.detect.outputs.js_node_darwin_version }}
+          JS_CHAT_CHANGED: ${{ needs.detect.outputs.js_chat_changed }}
+          JS_CHAT_VERSION: ${{ needs.detect.outputs.js_chat_version }}
         run: |
           set -euo pipefail
           publish_if_changed() {
@@ -278,6 +291,7 @@ jobs:
             pnpm --dir "$package_path" pack --pack-destination "$pack_dir"
             npm publish "$pack_dir"/*.tgz --access public
           }
+          publish_if_changed "$JS_CHAT_CHANGED" "@impalasys/talon-chat" "$JS_CHAT_VERSION" "packages/talon-chat"
           publish_if_changed "$JS_NODE_LINUX_CHANGED" "@impalasys/talon-node-linux-x64" "$JS_NODE_LINUX_VERSION" "sdk/js/talon-node-linux-x64"
           publish_if_changed "$JS_NODE_DARWIN_CHANGED" "@impalasys/talon-node-darwin-arm64" "$JS_NODE_DARWIN_VERSION" "sdk/js/talon-node-darwin-arm64"
           publish_if_changed "$JS_CLIENT_CHANGED" "@impalasys/talon-client" "$JS_CLIENT_VERSION" "sdk/js/talon-client"
