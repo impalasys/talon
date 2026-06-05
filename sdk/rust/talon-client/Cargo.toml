@@ -1,6 +1,6 @@
 [package]
 name = "talon-client"
-version = "0.1.0"
+version = "0.1.15"
 edition = "2021"
 license = "AGPL-3.0-only"
 description = "Generated Talon protobuf and gRPC client bindings"
@@ -9,4 +9,3 @@ description = "Generated Talon protobuf and gRPC client bindings"
 prost = "0.13"
 prost-types = "0.13"
 tonic = "0.12.3"
-

@@ -278,6 +278,24 @@ jobs:
             test -x sdk/js/talon-node-darwin-arm64/bin/talon-node
           fi
 
+      - name: Verify npm binary package tarball executables
+        if: needs.detect.outputs.js_node_linux_changed == 'true' || needs.detect.outputs.js_node_darwin_changed == 'true'
+        run: |
+          set -euo pipefail
+          verify_packed_binary() {
+            local package_path="$1"
+            local pack_dir
+            pack_dir="$(mktemp -d)"
+            pnpm --dir "$package_path" pack --pack-destination "$pack_dir"
+            tar -tvf "$pack_dir"/*.tgz | grep -E '^-rwxr-xr-x .*package/bin/talon-node$'
+          }
+          if [ "${{ needs.detect.outputs.js_node_linux_changed }}" = "true" ]; then
+            verify_packed_binary sdk/js/talon-node-linux-x64
+          fi
+          if [ "${{ needs.detect.outputs.js_node_darwin_changed }}" = "true" ]; then
+            verify_packed_binary sdk/js/talon-node-darwin-arm64
+          fi
+
       - name: Build Talon chat package
         if: needs.detect.outputs.js_chat_changed == 'true'
         run: |

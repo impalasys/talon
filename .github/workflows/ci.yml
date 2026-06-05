@@ -183,6 +183,9 @@ jobs:
       - name: Regenerate SDK clients
         run: scripts/sdk/generate.sh
 
+      - name: Verify SDK package versions
+        run: python3 scripts/sdk/check_versions.py
+
       - name: Verify generated SDK clients are checked in
         run: git diff --exit-code -- sdk scripts buf.gen.sdk.yaml
 
