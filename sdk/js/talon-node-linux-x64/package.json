@@ -1,6 +1,6 @@
 {
   "name": "@impalasys/talon-node-linux-x64",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Linux x86_64 talon-node binary",
   "type": "module",
   "license": "AGPL-3.0-only",
@@ -11,10 +11,7 @@
   },
   "os": ["linux"],
   "cpu": ["x64"],
-  "files": ["bin", "chmod-bin.js", "index.js"],
-  "scripts": {
-    "postinstall": "node ./chmod-bin.js"
-  },
+  "files": ["bin", "index.js"],
   "publishConfig": {
     "access": "public"
   },
