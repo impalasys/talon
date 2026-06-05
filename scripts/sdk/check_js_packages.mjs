@@ -33,11 +33,11 @@ for (const platformPackage of platformPackages) {
     fail(`${server.name} optional dependency ${platformPackage.name} is ${actual}, expected ${expected}`);
   }
 
-  if (!pkg.files?.includes("bin") || !pkg.files?.includes("chmod-bin.js")) {
-    fail(`${platformPackage.name} must publish both bin and chmod-bin.js`);
+  if (!pkg.files?.includes("bin") || !pkg.files?.includes("index.js")) {
+    fail(`${platformPackage.name} must publish both bin and index.js`);
   }
 
-  if (pkg.scripts?.postinstall !== "node ./chmod-bin.js") {
-    fail(`${platformPackage.name} must run chmod-bin.js in postinstall`);
+  if (pkg.scripts?.postinstall) {
+    fail(`${platformPackage.name} must not require a postinstall script`);
   }
 }
