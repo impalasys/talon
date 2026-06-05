@@ -1,6 +1,6 @@
 {
   "name": "@impalasys/talon-server",
-  "version": "0.1.4",
+  "version": "0.1.15",
   "description": "Local Talon node helper for tests and development",
   "type": "module",
   "license": "AGPL-3.0-only",
@@ -28,8 +28,8 @@
     "access": "public"
   },
   "optionalDependencies": {
-    "@impalasys/talon-node-darwin-arm64": "workspace:0.1.4",
-    "@impalasys/talon-node-linux-x64": "workspace:0.1.4"
+    "@impalasys/talon-node-darwin-arm64": "workspace:0.1.15",
+    "@impalasys/talon-node-linux-x64": "workspace:0.1.15"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",
