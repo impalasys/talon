@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import re
 import sys
-import tomllib
 from pathlib import Path
 
 
@@ -16,12 +15,20 @@ def version_file(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8").strip()
 
 
+def assignment_version(path: str, label: str = "version") -> str:
+    text = (ROOT / path).read_text(encoding="utf-8")
+    match = re.search(rf'^\s*{label}\s*=\s*"([^"]+)"', text, re.MULTILINE)
+    if not match:
+        raise ValueError(f"{label} assignment not found in {path}")
+    return match.group(1)
+
+
 def cargo_version(path: str) -> str:
-    return tomllib.loads((ROOT / path).read_text(encoding="utf-8"))["package"]["version"]
+    return assignment_version(path)
 
 
 def pyproject_version(path: str) -> str:
-    return tomllib.loads((ROOT / path).read_text(encoding="utf-8"))["project"]["version"]
+    return assignment_version(path)
 
 
 def package_json_version(path: str) -> str:
@@ -29,11 +36,7 @@ def package_json_version(path: str) -> str:
 
 
 def gradle_version(path: str) -> str:
-    text = (ROOT / path).read_text(encoding="utf-8")
-    match = re.search(r'^\s*version\s*=\s*"([^"]+)"', text, re.MULTILINE)
-    if not match:
-        raise ValueError(f"Gradle version assignment not found in {path}")
-    return match.group(1)
+    return assignment_version(path)
 
 
 PACKAGES = {
@@ -54,9 +57,13 @@ PACKAGES = {
 def main() -> int:
     ok = True
     for path, parser in PACKAGES.items():
-        version = parser(path)
-        if version != SDK_VERSION:
-            print(f"{path} has version {version}, expected sdk/VERSION {SDK_VERSION}", file=sys.stderr)
+        try:
+            version = parser(path)
+            if version != SDK_VERSION:
+                print(f"{path} has version {version}, expected sdk/VERSION {SDK_VERSION}", file=sys.stderr)
+                ok = False
+        except Exception as error:
+            print(f"error parsing {path}: {error}", file=sys.stderr)
             ok = False
     return 0 if ok else 1
 
