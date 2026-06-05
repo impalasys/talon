@@ -7,6 +7,7 @@ use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
 use axum::{routing::post, Router};
 use std::sync::Arc;
+use tower_http::cors::{Any, CorsLayer};
 
 #[derive(Clone)]
 pub struct Gateway {
@@ -53,6 +54,7 @@ impl Gateway {
                     .delete(crate::gateway::ui::delete_chat),
             )
             .with_state(Arc::new(self.clone_internal()))
+            .layer(permissive_cors_layer())
     }
 
     pub async fn start_rpc_server(&self, addr: &str) -> Result<()> {
@@ -80,15 +82,9 @@ impl Gateway {
         let svc = crate::gateway::rpc::proto::gateway_service_server::GatewayServiceServer::with_interceptor(handler, interceptor);
         let svc = tonic_web::enable(svc);
 
-        let cors = tower_http::cors::CorsLayer::new()
-            .allow_origin(tower_http::cors::Any)
-            .allow_headers(tower_http::cors::Any)
-            .allow_methods(tower_http::cors::Any)
-            .expose_headers(tower_http::cors::Any);
-
         Server::builder()
             .accept_http1(true)
-            .layer(cors)
+            .layer(permissive_cors_layer())
             .add_service(svc)
             .serve_with_shutdown(addr, shutdown)
             .await
@@ -116,6 +112,14 @@ impl Gateway {
     }
 }
 
+fn permissive_cors_layer() -> CorsLayer {
+    CorsLayer::new()
+        .allow_origin(Any)
+        .allow_headers(Any)
+        .allow_methods(Any)
+        .expose_headers(Any)
+}
+
 #[cfg(test)]
 mod tests {
     use super::Gateway;
@@ -126,7 +130,7 @@ mod tests {
     };
     use crate::gateway::auth::AuthConfig;
     use axum::body::Body;
-    use axum::http::{Method, Request, StatusCode};
+    use axum::http::{header, Method, Request, StatusCode};
     use futures::stream;
     use std::collections::HashMap;
     use std::net::SocketAddr;
@@ -275,6 +279,33 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(put.status(), StatusCode::METHOD_NOT_ALLOWED);
+    }
+
+    #[tokio::test]
+    async fn http_ui_router_allows_browser_preflight() {
+        let response = gateway()
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::OPTIONS)
+                    .uri("/v1/ui/ns/default/agents/agent/sessions/session-1")
+                    .header(header::ORIGIN, "http://127.0.0.1:3000")
+                    .header(header::ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                    .header(
+                        header::ACCESS_CONTROL_REQUEST_HEADERS,
+                        "authorization,content-type",
+                    )
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert!(response.status().is_success());
+        assert_eq!(
+            response.headers().get(header::ACCESS_CONTROL_ALLOW_ORIGIN),
+            Some(&"*".parse().unwrap())
+        );
     }
 
     #[tokio::test]
