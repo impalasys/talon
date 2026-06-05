@@ -6,7 +6,7 @@
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
 import { AgentDefinition, AgentTemplate, Knowledge as Knowledge$1, McpServer, McpServerBinding } from "./manifests_pb.js";
-import { Agent, Channel, ChannelMessage, ChannelSubscription, Knowledge, KnowledgeSearchResult, Schedule, SessionMessage } from "./models_pb.js";
+import { Agent, Channel, ChannelMessage, ChannelSubscription, Knowledge, KnowledgeSearchResult, Schedule, SessionMessage, Workflow, WorkflowRun, WorkflowStepRun } from "./models_pb.js";
 
 /**
  * @generated from message talon.gateway.CreateAgentTemplateRequest
@@ -3572,6 +3572,693 @@ export class DeleteScheduleResponse extends Message<DeleteScheduleResponse> {
 
   static equals(a: DeleteScheduleResponse | PlainMessage<DeleteScheduleResponse> | undefined, b: DeleteScheduleResponse | PlainMessage<DeleteScheduleResponse> | undefined): boolean {
     return proto3.util.equals(DeleteScheduleResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.CreateWorkflowRequest
+ */
+export class CreateWorkflowRequest extends Message<CreateWorkflowRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: talon.models.Workflow workflow = 2;
+   */
+  workflow?: Workflow;
+
+  constructor(data?: PartialMessage<CreateWorkflowRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.CreateWorkflowRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "message", T: Workflow },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateWorkflowRequest {
+    return new CreateWorkflowRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateWorkflowRequest {
+    return new CreateWorkflowRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateWorkflowRequest {
+    return new CreateWorkflowRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateWorkflowRequest | PlainMessage<CreateWorkflowRequest> | undefined, b: CreateWorkflowRequest | PlainMessage<CreateWorkflowRequest> | undefined): boolean {
+    return proto3.util.equals(CreateWorkflowRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.GetWorkflowRequest
+ */
+export class GetWorkflowRequest extends Message<GetWorkflowRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  constructor(data?: PartialMessage<GetWorkflowRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.GetWorkflowRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWorkflowRequest {
+    return new GetWorkflowRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetWorkflowRequest {
+    return new GetWorkflowRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetWorkflowRequest {
+    return new GetWorkflowRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetWorkflowRequest | PlainMessage<GetWorkflowRequest> | undefined, b: GetWorkflowRequest | PlainMessage<GetWorkflowRequest> | undefined): boolean {
+    return proto3.util.equals(GetWorkflowRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ListWorkflowsRequest
+ */
+export class ListWorkflowsRequest extends Message<ListWorkflowsRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  constructor(data?: PartialMessage<ListWorkflowsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListWorkflowsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWorkflowsRequest {
+    return new ListWorkflowsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListWorkflowsRequest {
+    return new ListWorkflowsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListWorkflowsRequest {
+    return new ListWorkflowsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListWorkflowsRequest | PlainMessage<ListWorkflowsRequest> | undefined, b: ListWorkflowsRequest | PlainMessage<ListWorkflowsRequest> | undefined): boolean {
+    return proto3.util.equals(ListWorkflowsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.DeleteWorkflowRequest
+ */
+export class DeleteWorkflowRequest extends Message<DeleteWorkflowRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  constructor(data?: PartialMessage<DeleteWorkflowRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.DeleteWorkflowRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteWorkflowRequest {
+    return new DeleteWorkflowRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteWorkflowRequest {
+    return new DeleteWorkflowRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteWorkflowRequest {
+    return new DeleteWorkflowRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeleteWorkflowRequest | PlainMessage<DeleteWorkflowRequest> | undefined, b: DeleteWorkflowRequest | PlainMessage<DeleteWorkflowRequest> | undefined): boolean {
+    return proto3.util.equals(DeleteWorkflowRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.WorkflowResponse
+ */
+export class WorkflowResponse extends Message<WorkflowResponse> {
+  /**
+   * @generated from field: talon.models.Workflow workflow = 1;
+   */
+  workflow?: Workflow;
+
+  constructor(data?: PartialMessage<WorkflowResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.WorkflowResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "workflow", kind: "message", T: Workflow },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowResponse {
+    return new WorkflowResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowResponse {
+    return new WorkflowResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowResponse {
+    return new WorkflowResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowResponse | PlainMessage<WorkflowResponse> | undefined, b: WorkflowResponse | PlainMessage<WorkflowResponse> | undefined): boolean {
+    return proto3.util.equals(WorkflowResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ListWorkflowsResponse
+ */
+export class ListWorkflowsResponse extends Message<ListWorkflowsResponse> {
+  /**
+   * @generated from field: repeated talon.models.Workflow workflows = 1;
+   */
+  workflows: Workflow[] = [];
+
+  constructor(data?: PartialMessage<ListWorkflowsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListWorkflowsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "workflows", kind: "message", T: Workflow, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWorkflowsResponse {
+    return new ListWorkflowsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListWorkflowsResponse {
+    return new ListWorkflowsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListWorkflowsResponse {
+    return new ListWorkflowsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListWorkflowsResponse | PlainMessage<ListWorkflowsResponse> | undefined, b: ListWorkflowsResponse | PlainMessage<ListWorkflowsResponse> | undefined): boolean {
+    return proto3.util.equals(ListWorkflowsResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.DeleteWorkflowResponse
+ */
+export class DeleteWorkflowResponse extends Message<DeleteWorkflowResponse> {
+  /**
+   * @generated from field: bool success = 1;
+   */
+  success = false;
+
+  constructor(data?: PartialMessage<DeleteWorkflowResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.DeleteWorkflowResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteWorkflowResponse {
+    return new DeleteWorkflowResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteWorkflowResponse {
+    return new DeleteWorkflowResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteWorkflowResponse {
+    return new DeleteWorkflowResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeleteWorkflowResponse | PlainMessage<DeleteWorkflowResponse> | undefined, b: DeleteWorkflowResponse | PlainMessage<DeleteWorkflowResponse> | undefined): boolean {
+    return proto3.util.equals(DeleteWorkflowResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.CreateWorkflowRunRequest
+ */
+export class CreateWorkflowRunRequest extends Message<CreateWorkflowRunRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string input_json = 3;
+   */
+  inputJson = "";
+
+  /**
+   * @generated from field: map<string, string> labels = 4;
+   */
+  labels: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<CreateWorkflowRunRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.CreateWorkflowRunRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "input_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateWorkflowRunRequest {
+    return new CreateWorkflowRunRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateWorkflowRunRequest {
+    return new CreateWorkflowRunRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateWorkflowRunRequest {
+    return new CreateWorkflowRunRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateWorkflowRunRequest | PlainMessage<CreateWorkflowRunRequest> | undefined, b: CreateWorkflowRunRequest | PlainMessage<CreateWorkflowRunRequest> | undefined): boolean {
+    return proto3.util.equals(CreateWorkflowRunRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.GetWorkflowRunRequest
+ */
+export class GetWorkflowRunRequest extends Message<GetWorkflowRunRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string run_id = 3;
+   */
+  runId = "";
+
+  constructor(data?: PartialMessage<GetWorkflowRunRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.GetWorkflowRunRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetWorkflowRunRequest {
+    return new GetWorkflowRunRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetWorkflowRunRequest {
+    return new GetWorkflowRunRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetWorkflowRunRequest {
+    return new GetWorkflowRunRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetWorkflowRunRequest | PlainMessage<GetWorkflowRunRequest> | undefined, b: GetWorkflowRunRequest | PlainMessage<GetWorkflowRunRequest> | undefined): boolean {
+    return proto3.util.equals(GetWorkflowRunRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ListWorkflowRunsRequest
+ */
+export class ListWorkflowRunsRequest extends Message<ListWorkflowRunsRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: int32 page_size = 3;
+   */
+  pageSize = 0;
+
+  /**
+   * @generated from field: string before_run_id = 4;
+   */
+  beforeRunId = "";
+
+  constructor(data?: PartialMessage<ListWorkflowRunsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListWorkflowRunsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "page_size", kind: "scalar", T: 5 /* ScalarType.INT32 */ },
+    { no: 4, name: "before_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWorkflowRunsRequest {
+    return new ListWorkflowRunsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListWorkflowRunsRequest {
+    return new ListWorkflowRunsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListWorkflowRunsRequest {
+    return new ListWorkflowRunsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListWorkflowRunsRequest | PlainMessage<ListWorkflowRunsRequest> | undefined, b: ListWorkflowRunsRequest | PlainMessage<ListWorkflowRunsRequest> | undefined): boolean {
+    return proto3.util.equals(ListWorkflowRunsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ResumeWorkflowRunRequest
+ */
+export class ResumeWorkflowRunRequest extends Message<ResumeWorkflowRunRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string run_id = 3;
+   */
+  runId = "";
+
+  /**
+   * @generated from field: string step_id = 4;
+   */
+  stepId = "";
+
+  /**
+   * @generated from field: string resume_json = 5;
+   */
+  resumeJson = "";
+
+  constructor(data?: PartialMessage<ResumeWorkflowRunRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ResumeWorkflowRunRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "step_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "resume_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResumeWorkflowRunRequest {
+    return new ResumeWorkflowRunRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResumeWorkflowRunRequest {
+    return new ResumeWorkflowRunRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResumeWorkflowRunRequest {
+    return new ResumeWorkflowRunRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResumeWorkflowRunRequest | PlainMessage<ResumeWorkflowRunRequest> | undefined, b: ResumeWorkflowRunRequest | PlainMessage<ResumeWorkflowRunRequest> | undefined): boolean {
+    return proto3.util.equals(ResumeWorkflowRunRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.CancelWorkflowRunRequest
+ */
+export class CancelWorkflowRunRequest extends Message<CancelWorkflowRunRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string run_id = 3;
+   */
+  runId = "";
+
+  constructor(data?: PartialMessage<CancelWorkflowRunRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.CancelWorkflowRunRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CancelWorkflowRunRequest {
+    return new CancelWorkflowRunRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CancelWorkflowRunRequest {
+    return new CancelWorkflowRunRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CancelWorkflowRunRequest {
+    return new CancelWorkflowRunRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CancelWorkflowRunRequest | PlainMessage<CancelWorkflowRunRequest> | undefined, b: CancelWorkflowRunRequest | PlainMessage<CancelWorkflowRunRequest> | undefined): boolean {
+    return proto3.util.equals(CancelWorkflowRunRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.StreamWorkflowEventsRequest
+ */
+export class StreamWorkflowEventsRequest extends Message<StreamWorkflowEventsRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string run_id = 3;
+   */
+  runId = "";
+
+  constructor(data?: PartialMessage<StreamWorkflowEventsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.StreamWorkflowEventsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): StreamWorkflowEventsRequest {
+    return new StreamWorkflowEventsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): StreamWorkflowEventsRequest {
+    return new StreamWorkflowEventsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): StreamWorkflowEventsRequest {
+    return new StreamWorkflowEventsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: StreamWorkflowEventsRequest | PlainMessage<StreamWorkflowEventsRequest> | undefined, b: StreamWorkflowEventsRequest | PlainMessage<StreamWorkflowEventsRequest> | undefined): boolean {
+    return proto3.util.equals(StreamWorkflowEventsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.WorkflowRunResponse
+ */
+export class WorkflowRunResponse extends Message<WorkflowRunResponse> {
+  /**
+   * @generated from field: talon.models.WorkflowRun run = 1;
+   */
+  run?: WorkflowRun;
+
+  /**
+   * @generated from field: repeated talon.models.WorkflowStepRun steps = 2;
+   */
+  steps: WorkflowStepRun[] = [];
+
+  constructor(data?: PartialMessage<WorkflowRunResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.WorkflowRunResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "run", kind: "message", T: WorkflowRun },
+    { no: 2, name: "steps", kind: "message", T: WorkflowStepRun, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowRunResponse {
+    return new WorkflowRunResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowRunResponse {
+    return new WorkflowRunResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowRunResponse {
+    return new WorkflowRunResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowRunResponse | PlainMessage<WorkflowRunResponse> | undefined, b: WorkflowRunResponse | PlainMessage<WorkflowRunResponse> | undefined): boolean {
+    return proto3.util.equals(WorkflowRunResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ListWorkflowRunsResponse
+ */
+export class ListWorkflowRunsResponse extends Message<ListWorkflowRunsResponse> {
+  /**
+   * @generated from field: repeated talon.models.WorkflowRun runs = 1;
+   */
+  runs: WorkflowRun[] = [];
+
+  /**
+   * @generated from field: bool has_more = 2;
+   */
+  hasMore = false;
+
+  /**
+   * @generated from field: string next_before_run_id = 3;
+   */
+  nextBeforeRunId = "";
+
+  constructor(data?: PartialMessage<ListWorkflowRunsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListWorkflowRunsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "runs", kind: "message", T: WorkflowRun, repeated: true },
+    { no: 2, name: "has_more", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "next_before_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListWorkflowRunsResponse {
+    return new ListWorkflowRunsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListWorkflowRunsResponse {
+    return new ListWorkflowRunsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListWorkflowRunsResponse {
+    return new ListWorkflowRunsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListWorkflowRunsResponse | PlainMessage<ListWorkflowRunsResponse> | undefined, b: ListWorkflowRunsResponse | PlainMessage<ListWorkflowRunsResponse> | undefined): boolean {
+    return proto3.util.equals(ListWorkflowRunsResponse, a, b);
   }
 }
 

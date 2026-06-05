@@ -799,6 +799,11 @@ export class ScheduleTarget extends Message<ScheduleTarget> {
    */
   sessionId = "";
 
+  /**
+   * @generated from field: string workflow = 4;
+   */
+  workflow = "";
+
   constructor(data?: PartialMessage<ScheduleTarget>) {
     super();
     proto3.util.initPartial(data, this);
@@ -810,6 +815,7 @@ export class ScheduleTarget extends Message<ScheduleTarget> {
     { no: 1, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "session_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ScheduleTarget {
@@ -873,6 +879,11 @@ export class ScheduleSpec extends Message<ScheduleSpec> {
    */
   enabled = false;
 
+  /**
+   * @generated from field: string input_json = 9;
+   */
+  inputJson = "";
+
   constructor(data?: PartialMessage<ScheduleSpec>) {
     super();
     proto3.util.initPartial(data, this);
@@ -889,6 +900,7 @@ export class ScheduleSpec extends Message<ScheduleSpec> {
     { no: 6, name: "target", kind: "message", T: ScheduleTarget },
     { no: 7, name: "input_message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 8, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 9, name: "input_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ScheduleSpec {
@@ -1301,6 +1313,698 @@ export class KnowledgeSearchResult extends Message<KnowledgeSearchResult> {
 
   static equals(a: KnowledgeSearchResult | PlainMessage<KnowledgeSearchResult> | undefined, b: KnowledgeSearchResult | PlainMessage<KnowledgeSearchResult> | undefined): boolean {
     return proto3.util.equals(KnowledgeSearchResult, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.models.WorkflowStepOutputPolicy
+ */
+export class WorkflowStepOutputPolicy extends Message<WorkflowStepOutputPolicy> {
+  /**
+   * @generated from field: string format = 1;
+   */
+  format = "";
+
+  /**
+   * @generated from field: string schema_json = 2;
+   */
+  schemaJson = "";
+
+  constructor(data?: PartialMessage<WorkflowStepOutputPolicy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.WorkflowStepOutputPolicy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "format", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "schema_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowStepOutputPolicy {
+    return new WorkflowStepOutputPolicy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowStepOutputPolicy {
+    return new WorkflowStepOutputPolicy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowStepOutputPolicy {
+    return new WorkflowStepOutputPolicy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowStepOutputPolicy | PlainMessage<WorkflowStepOutputPolicy> | undefined, b: WorkflowStepOutputPolicy | PlainMessage<WorkflowStepOutputPolicy> | undefined): boolean {
+    return proto3.util.equals(WorkflowStepOutputPolicy, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.models.WorkflowStepRetryPolicy
+ */
+export class WorkflowStepRetryPolicy extends Message<WorkflowStepRetryPolicy> {
+  /**
+   * @generated from field: uint32 max_attempts = 1;
+   */
+  maxAttempts = 0;
+
+  /**
+   * @generated from field: int64 initial_backoff_seconds = 2;
+   */
+  initialBackoffSeconds = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 max_backoff_seconds = 3;
+   */
+  maxBackoffSeconds = protoInt64.zero;
+
+  /**
+   * @generated from field: double multiplier = 4;
+   */
+  multiplier = 0;
+
+  constructor(data?: PartialMessage<WorkflowStepRetryPolicy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.WorkflowStepRetryPolicy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "max_attempts", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 2, name: "initial_backoff_seconds", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 3, name: "max_backoff_seconds", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 4, name: "multiplier", kind: "scalar", T: 1 /* ScalarType.DOUBLE */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowStepRetryPolicy {
+    return new WorkflowStepRetryPolicy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowStepRetryPolicy {
+    return new WorkflowStepRetryPolicy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowStepRetryPolicy {
+    return new WorkflowStepRetryPolicy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowStepRetryPolicy | PlainMessage<WorkflowStepRetryPolicy> | undefined, b: WorkflowStepRetryPolicy | PlainMessage<WorkflowStepRetryPolicy> | undefined): boolean {
+    return proto3.util.equals(WorkflowStepRetryPolicy, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.models.WorkflowStep
+ */
+export class WorkflowStep extends Message<WorkflowStep> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string type = 2;
+   */
+  type = "";
+
+  /**
+   * @generated from field: repeated string after = 3;
+   */
+  after: string[] = [];
+
+  /**
+   * @generated from field: string when_json = 4;
+   */
+  whenJson = "";
+
+  /**
+   * @generated from field: string agent = 5;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string prompt = 6;
+   */
+  prompt = "";
+
+  /**
+   * @generated from field: string tool = 7;
+   */
+  tool = "";
+
+  /**
+   * @generated from field: string input_json = 8;
+   */
+  inputJson = "";
+
+  /**
+   * @generated from field: string workflow = 9;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: talon.models.WorkflowStepOutputPolicy output = 10;
+   */
+  output?: WorkflowStepOutputPolicy;
+
+  /**
+   * @generated from field: string resume_schema_json = 11;
+   */
+  resumeSchemaJson = "";
+
+  /**
+   * @generated from field: talon.models.WorkflowStepRetryPolicy retry = 12;
+   */
+  retry?: WorkflowStepRetryPolicy;
+
+  /**
+   * @generated from field: string timeout = 13;
+   */
+  timeout = "";
+
+  /**
+   * @generated from field: string wait_duration = 14;
+   */
+  waitDuration = "";
+
+  /**
+   * @generated from field: string wait_until = 15;
+   */
+  waitUntil = "";
+
+  constructor(data?: PartialMessage<WorkflowStep>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.WorkflowStep";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "after", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 4, name: "when_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "prompt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "tool", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "input_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "output", kind: "message", T: WorkflowStepOutputPolicy },
+    { no: 11, name: "resume_schema_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "retry", kind: "message", T: WorkflowStepRetryPolicy },
+    { no: 13, name: "timeout", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 14, name: "wait_duration", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 15, name: "wait_until", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowStep {
+    return new WorkflowStep().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowStep {
+    return new WorkflowStep().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowStep {
+    return new WorkflowStep().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowStep | PlainMessage<WorkflowStep> | undefined, b: WorkflowStep | PlainMessage<WorkflowStep> | undefined): boolean {
+    return proto3.util.equals(WorkflowStep, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.models.WorkflowSpec
+ */
+export class WorkflowSpec extends Message<WorkflowSpec> {
+  /**
+   * @generated from field: string description = 1;
+   */
+  description = "";
+
+  /**
+   * @generated from field: string input_schema_json = 2;
+   */
+  inputSchemaJson = "";
+
+  /**
+   * @generated from field: string output_schema_json = 3;
+   */
+  outputSchemaJson = "";
+
+  /**
+   * @generated from field: repeated talon.models.WorkflowStep steps = 4;
+   */
+  steps: WorkflowStep[] = [];
+
+  /**
+   * @generated from field: string output_json = 5;
+   */
+  outputJson = "";
+
+  /**
+   * @generated from field: uint32 concurrency = 6;
+   */
+  concurrency = 0;
+
+  constructor(data?: PartialMessage<WorkflowSpec>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.WorkflowSpec";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "input_schema_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "output_schema_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "steps", kind: "message", T: WorkflowStep, repeated: true },
+    { no: 5, name: "output_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "concurrency", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowSpec {
+    return new WorkflowSpec().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowSpec {
+    return new WorkflowSpec().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowSpec {
+    return new WorkflowSpec().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowSpec | PlainMessage<WorkflowSpec> | undefined, b: WorkflowSpec | PlainMessage<WorkflowSpec> | undefined): boolean {
+    return proto3.util.equals(WorkflowSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.models.Workflow
+ */
+export class Workflow extends Message<Workflow> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string ns = 2;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: talon.models.WorkflowSpec spec = 3;
+   */
+  spec?: WorkflowSpec;
+
+  /**
+   * @generated from field: map<string, string> labels = 4;
+   */
+  labels: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<Workflow>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.Workflow";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "spec", kind: "message", T: WorkflowSpec },
+    { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Workflow {
+    return new Workflow().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Workflow {
+    return new Workflow().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Workflow {
+    return new Workflow().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Workflow | PlainMessage<Workflow> | undefined, b: Workflow | PlainMessage<Workflow> | undefined): boolean {
+    return proto3.util.equals(Workflow, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.models.WorkflowRun
+ */
+export class WorkflowRun extends Message<WorkflowRun> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string status = 4;
+   */
+  status = "";
+
+  /**
+   * @generated from field: string input_json = 5;
+   */
+  inputJson = "";
+
+  /**
+   * @generated from field: string state_json = 6;
+   */
+  stateJson = "";
+
+  /**
+   * @generated from field: string output_json = 7;
+   */
+  outputJson = "";
+
+  /**
+   * @generated from field: int64 created_at = 8;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 updated_at = 9;
+   */
+  updatedAt = protoInt64.zero;
+
+  /**
+   * @generated from field: map<string, string> labels = 10;
+   */
+  labels: { [key: string]: string } = {};
+
+  /**
+   * @generated from field: optional int64 claim_expires_at = 11;
+   */
+  claimExpiresAt?: bigint;
+
+  /**
+   * @generated from field: string error = 12;
+   */
+  error = "";
+
+  /**
+   * @generated from field: string spec_json = 13;
+   */
+  specJson = "";
+
+  /**
+   * @generated from field: uint64 workflow_revision = 14;
+   */
+  workflowRevision = protoInt64.zero;
+
+  /**
+   * @generated from field: string claim_owner = 15;
+   */
+  claimOwner = "";
+
+  /**
+   * @generated from field: uint32 claim_attempt = 16;
+   */
+  claimAttempt = 0;
+
+  /**
+   * @generated from field: string last_dispatch_reason = 17;
+   */
+  lastDispatchReason = "";
+
+  constructor(data?: PartialMessage<WorkflowRun>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.WorkflowRun";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "status", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "input_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "state_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "output_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 9, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 10, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 11, name: "claim_expires_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 12, name: "error", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 13, name: "spec_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 14, name: "workflow_revision", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 15, name: "claim_owner", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 16, name: "claim_attempt", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 17, name: "last_dispatch_reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowRun {
+    return new WorkflowRun().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowRun {
+    return new WorkflowRun().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowRun {
+    return new WorkflowRun().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowRun | PlainMessage<WorkflowRun> | undefined, b: WorkflowRun | PlainMessage<WorkflowRun> | undefined): boolean {
+    return proto3.util.equals(WorkflowRun, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.models.WorkflowStepRun
+ */
+export class WorkflowStepRun extends Message<WorkflowStepRun> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string step_id = 2;
+   */
+  stepId = "";
+
+  /**
+   * @generated from field: uint32 attempt = 3;
+   */
+  attempt = 0;
+
+  /**
+   * @generated from field: string status = 4;
+   */
+  status = "";
+
+  /**
+   * @generated from field: string input_json = 5;
+   */
+  inputJson = "";
+
+  /**
+   * @generated from field: string output_json = 6;
+   */
+  outputJson = "";
+
+  /**
+   * @generated from field: string error = 7;
+   */
+  error = "";
+
+  /**
+   * @generated from field: string child_session_id = 8;
+   */
+  childSessionId = "";
+
+  /**
+   * @generated from field: string child_workflow_run_id = 9;
+   */
+  childWorkflowRunId = "";
+
+  /**
+   * @generated from field: string resume_json = 10;
+   */
+  resumeJson = "";
+
+  /**
+   * @generated from field: string suspend_json = 11;
+   */
+  suspendJson = "";
+
+  /**
+   * @generated from field: int64 created_at = 12;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 updated_at = 13;
+   */
+  updatedAt = protoInt64.zero;
+
+  /**
+   * @generated from field: optional int64 next_retry_at = 14;
+   */
+  nextRetryAt?: bigint;
+
+  /**
+   * @generated from field: optional int64 timeout_at = 15;
+   */
+  timeoutAt?: bigint;
+
+  /**
+   * @generated from field: string wait_wakeup_handle = 16;
+   */
+  waitWakeupHandle = "";
+
+  /**
+   * @generated from field: optional int64 wait_until_at = 17;
+   */
+  waitUntilAt?: bigint;
+
+  constructor(data?: PartialMessage<WorkflowStepRun>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.WorkflowStepRun";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "step_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "attempt", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 4, name: "status", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "input_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "output_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "error", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "child_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "child_workflow_run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 10, name: "resume_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 11, name: "suspend_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 12, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 13, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 14, name: "next_retry_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 15, name: "timeout_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+    { no: 16, name: "wait_wakeup_handle", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 17, name: "wait_until_at", kind: "scalar", T: 3 /* ScalarType.INT64 */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowStepRun {
+    return new WorkflowStepRun().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowStepRun {
+    return new WorkflowStepRun().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowStepRun {
+    return new WorkflowStepRun().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowStepRun | PlainMessage<WorkflowStepRun> | undefined, b: WorkflowStepRun | PlainMessage<WorkflowStepRun> | undefined): boolean {
+    return proto3.util.equals(WorkflowStepRun, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.models.WorkflowRunEvent
+ */
+export class WorkflowRunEvent extends Message<WorkflowRunEvent> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string ns = 2;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string workflow = 3;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string run_id = 4;
+   */
+  runId = "";
+
+  /**
+   * @generated from field: string type = 5;
+   */
+  type = "";
+
+  /**
+   * @generated from field: string step_id = 6;
+   */
+  stepId = "";
+
+  /**
+   * @generated from field: string message = 7;
+   */
+  message = "";
+
+  /**
+   * @generated from field: string payload_json = 8;
+   */
+  payloadJson = "";
+
+  /**
+   * @generated from field: int64 timestamp = 9;
+   */
+  timestamp = protoInt64.zero;
+
+  constructor(data?: PartialMessage<WorkflowRunEvent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.WorkflowRunEvent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "step_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "message", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 8, name: "payload_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 9, name: "timestamp", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowRunEvent {
+    return new WorkflowRunEvent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowRunEvent {
+    return new WorkflowRunEvent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowRunEvent {
+    return new WorkflowRunEvent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowRunEvent | PlainMessage<WorkflowRunEvent> | undefined, b: WorkflowRunEvent | PlainMessage<WorkflowRunEvent> | undefined): boolean {
+    return proto3.util.equals(WorkflowRunEvent, a, b);
   }
 }
 

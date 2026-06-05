@@ -603,6 +603,128 @@ pub struct DeleteScheduleResponse {
     pub success: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateWorkflowRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub workflow: ::core::option::Option<super::models::Workflow>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetWorkflowRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListWorkflowsRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteWorkflowRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowResponse {
+    #[prost(message, optional, tag = "1")]
+    pub workflow: ::core::option::Option<super::models::Workflow>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListWorkflowsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub workflows: ::prost::alloc::vec::Vec<super::models::Workflow>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DeleteWorkflowResponse {
+    #[prost(bool, tag = "1")]
+    pub success: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateWorkflowRunRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub input_json: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "4")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetWorkflowRunRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub run_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListWorkflowRunsRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(int32, tag = "3")]
+    pub page_size: i32,
+    #[prost(string, tag = "4")]
+    pub before_run_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResumeWorkflowRunRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub run_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub step_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub resume_json: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CancelWorkflowRunRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub run_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct StreamWorkflowEventsRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub run_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowRunResponse {
+    #[prost(message, optional, tag = "1")]
+    pub run: ::core::option::Option<super::models::WorkflowRun>,
+    #[prost(message, repeated, tag = "2")]
+    pub steps: ::prost::alloc::vec::Vec<super::models::WorkflowStepRun>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListWorkflowRunsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub runs: ::prost::alloc::vec::Vec<super::models::WorkflowRun>,
+    #[prost(bool, tag = "2")]
+    pub has_more: bool,
+    #[prost(string, tag = "3")]
+    pub next_before_run_id: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ScheduleResponse {
     #[prost(message, optional, tag = "1")]
     pub schedule: ::core::option::Option<super::models::Schedule>,
@@ -1881,6 +2003,270 @@ pub mod gateway_service_client {
                     GrpcMethod::new("talon.gateway.GatewayService", "DeleteSchedule"),
                 );
             self.inner.unary(req, path, codec).await
+        }
+        /// Workflows
+        pub async fn create_workflow(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateWorkflowRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::WorkflowResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/CreateWorkflow",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "CreateWorkflow"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_workflow(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetWorkflowRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::WorkflowResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/GetWorkflow",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.gateway.GatewayService", "GetWorkflow"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn list_workflows(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListWorkflowsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListWorkflowsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/ListWorkflows",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "ListWorkflows"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn delete_workflow(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteWorkflowRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DeleteWorkflowResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/DeleteWorkflow",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "DeleteWorkflow"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn create_workflow_run(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateWorkflowRunRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::WorkflowRunResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/CreateWorkflowRun",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "CreateWorkflowRun"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_workflow_run(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetWorkflowRunRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::WorkflowRunResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/GetWorkflowRun",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "GetWorkflowRun"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn list_workflow_runs(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListWorkflowRunsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListWorkflowRunsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/ListWorkflowRuns",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "ListWorkflowRuns"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn resume_workflow_run(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ResumeWorkflowRunRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::WorkflowRunResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/ResumeWorkflowRun",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "ResumeWorkflowRun"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn cancel_workflow_run(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CancelWorkflowRunRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::WorkflowRunResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/CancelWorkflowRun",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "CancelWorkflowRun"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn stream_workflow_events(
+            &mut self,
+            request: impl tonic::IntoRequest<super::StreamWorkflowEventsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<
+                tonic::codec::Streaming<super::super::models::WorkflowRunEvent>,
+            >,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/StreamWorkflowEvents",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "talon.gateway.GatewayService",
+                        "StreamWorkflowEvents",
+                    ),
+                );
+            self.inner.server_streaming(req, path, codec).await
         }
         /// Namespaces
         pub async fn create_namespace(

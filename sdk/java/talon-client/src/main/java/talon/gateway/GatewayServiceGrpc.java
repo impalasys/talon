@@ -1252,6 +1252,316 @@ public final class GatewayServiceGrpc {
     return getDeleteScheduleMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRequest,
+      talon.gateway.Gateway.WorkflowResponse> getCreateWorkflowMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CreateWorkflow",
+      requestType = talon.gateway.Gateway.CreateWorkflowRequest.class,
+      responseType = talon.gateway.Gateway.WorkflowResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRequest,
+      talon.gateway.Gateway.WorkflowResponse> getCreateWorkflowMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRequest, talon.gateway.Gateway.WorkflowResponse> getCreateWorkflowMethod;
+    if ((getCreateWorkflowMethod = GatewayServiceGrpc.getCreateWorkflowMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getCreateWorkflowMethod = GatewayServiceGrpc.getCreateWorkflowMethod) == null) {
+          GatewayServiceGrpc.getCreateWorkflowMethod = getCreateWorkflowMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateWorkflowRequest, talon.gateway.Gateway.WorkflowResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateWorkflow"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.CreateWorkflowRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.WorkflowResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateWorkflow"))
+              .build();
+        }
+      }
+    }
+    return getCreateWorkflowMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRequest,
+      talon.gateway.Gateway.WorkflowResponse> getGetWorkflowMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetWorkflow",
+      requestType = talon.gateway.Gateway.GetWorkflowRequest.class,
+      responseType = talon.gateway.Gateway.WorkflowResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRequest,
+      talon.gateway.Gateway.WorkflowResponse> getGetWorkflowMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRequest, talon.gateway.Gateway.WorkflowResponse> getGetWorkflowMethod;
+    if ((getGetWorkflowMethod = GatewayServiceGrpc.getGetWorkflowMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getGetWorkflowMethod = GatewayServiceGrpc.getGetWorkflowMethod) == null) {
+          GatewayServiceGrpc.getGetWorkflowMethod = getGetWorkflowMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetWorkflowRequest, talon.gateway.Gateway.WorkflowResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetWorkflow"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.GetWorkflowRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.WorkflowResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetWorkflow"))
+              .build();
+        }
+      }
+    }
+    return getGetWorkflowMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowsRequest,
+      talon.gateway.Gateway.ListWorkflowsResponse> getListWorkflowsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ListWorkflows",
+      requestType = talon.gateway.Gateway.ListWorkflowsRequest.class,
+      responseType = talon.gateway.Gateway.ListWorkflowsResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowsRequest,
+      talon.gateway.Gateway.ListWorkflowsResponse> getListWorkflowsMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowsRequest, talon.gateway.Gateway.ListWorkflowsResponse> getListWorkflowsMethod;
+    if ((getListWorkflowsMethod = GatewayServiceGrpc.getListWorkflowsMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getListWorkflowsMethod = GatewayServiceGrpc.getListWorkflowsMethod) == null) {
+          GatewayServiceGrpc.getListWorkflowsMethod = getListWorkflowsMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListWorkflowsRequest, talon.gateway.Gateway.ListWorkflowsResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListWorkflows"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ListWorkflowsRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ListWorkflowsResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListWorkflows"))
+              .build();
+        }
+      }
+    }
+    return getListWorkflowsMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteWorkflowRequest,
+      talon.gateway.Gateway.DeleteWorkflowResponse> getDeleteWorkflowMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "DeleteWorkflow",
+      requestType = talon.gateway.Gateway.DeleteWorkflowRequest.class,
+      responseType = talon.gateway.Gateway.DeleteWorkflowResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteWorkflowRequest,
+      talon.gateway.Gateway.DeleteWorkflowResponse> getDeleteWorkflowMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteWorkflowRequest, talon.gateway.Gateway.DeleteWorkflowResponse> getDeleteWorkflowMethod;
+    if ((getDeleteWorkflowMethod = GatewayServiceGrpc.getDeleteWorkflowMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getDeleteWorkflowMethod = GatewayServiceGrpc.getDeleteWorkflowMethod) == null) {
+          GatewayServiceGrpc.getDeleteWorkflowMethod = getDeleteWorkflowMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteWorkflowRequest, talon.gateway.Gateway.DeleteWorkflowResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteWorkflow"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.DeleteWorkflowRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.DeleteWorkflowResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteWorkflow"))
+              .build();
+        }
+      }
+    }
+    return getDeleteWorkflowMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRunRequest,
+      talon.gateway.Gateway.WorkflowRunResponse> getCreateWorkflowRunMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CreateWorkflowRun",
+      requestType = talon.gateway.Gateway.CreateWorkflowRunRequest.class,
+      responseType = talon.gateway.Gateway.WorkflowRunResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRunRequest,
+      talon.gateway.Gateway.WorkflowRunResponse> getCreateWorkflowRunMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateWorkflowRunRequest, talon.gateway.Gateway.WorkflowRunResponse> getCreateWorkflowRunMethod;
+    if ((getCreateWorkflowRunMethod = GatewayServiceGrpc.getCreateWorkflowRunMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getCreateWorkflowRunMethod = GatewayServiceGrpc.getCreateWorkflowRunMethod) == null) {
+          GatewayServiceGrpc.getCreateWorkflowRunMethod = getCreateWorkflowRunMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateWorkflowRunRequest, talon.gateway.Gateway.WorkflowRunResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateWorkflowRun"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.CreateWorkflowRunRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.WorkflowRunResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateWorkflowRun"))
+              .build();
+        }
+      }
+    }
+    return getCreateWorkflowRunMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRunRequest,
+      talon.gateway.Gateway.WorkflowRunResponse> getGetWorkflowRunMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetWorkflowRun",
+      requestType = talon.gateway.Gateway.GetWorkflowRunRequest.class,
+      responseType = talon.gateway.Gateway.WorkflowRunResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRunRequest,
+      talon.gateway.Gateway.WorkflowRunResponse> getGetWorkflowRunMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetWorkflowRunRequest, talon.gateway.Gateway.WorkflowRunResponse> getGetWorkflowRunMethod;
+    if ((getGetWorkflowRunMethod = GatewayServiceGrpc.getGetWorkflowRunMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getGetWorkflowRunMethod = GatewayServiceGrpc.getGetWorkflowRunMethod) == null) {
+          GatewayServiceGrpc.getGetWorkflowRunMethod = getGetWorkflowRunMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetWorkflowRunRequest, talon.gateway.Gateway.WorkflowRunResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetWorkflowRun"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.GetWorkflowRunRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.WorkflowRunResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetWorkflowRun"))
+              .build();
+        }
+      }
+    }
+    return getGetWorkflowRunMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowRunsRequest,
+      talon.gateway.Gateway.ListWorkflowRunsResponse> getListWorkflowRunsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ListWorkflowRuns",
+      requestType = talon.gateway.Gateway.ListWorkflowRunsRequest.class,
+      responseType = talon.gateway.Gateway.ListWorkflowRunsResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowRunsRequest,
+      talon.gateway.Gateway.ListWorkflowRunsResponse> getListWorkflowRunsMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListWorkflowRunsRequest, talon.gateway.Gateway.ListWorkflowRunsResponse> getListWorkflowRunsMethod;
+    if ((getListWorkflowRunsMethod = GatewayServiceGrpc.getListWorkflowRunsMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getListWorkflowRunsMethod = GatewayServiceGrpc.getListWorkflowRunsMethod) == null) {
+          GatewayServiceGrpc.getListWorkflowRunsMethod = getListWorkflowRunsMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListWorkflowRunsRequest, talon.gateway.Gateway.ListWorkflowRunsResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListWorkflowRuns"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ListWorkflowRunsRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ListWorkflowRunsResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListWorkflowRuns"))
+              .build();
+        }
+      }
+    }
+    return getListWorkflowRunsMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ResumeWorkflowRunRequest,
+      talon.gateway.Gateway.WorkflowRunResponse> getResumeWorkflowRunMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ResumeWorkflowRun",
+      requestType = talon.gateway.Gateway.ResumeWorkflowRunRequest.class,
+      responseType = talon.gateway.Gateway.WorkflowRunResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ResumeWorkflowRunRequest,
+      talon.gateway.Gateway.WorkflowRunResponse> getResumeWorkflowRunMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.ResumeWorkflowRunRequest, talon.gateway.Gateway.WorkflowRunResponse> getResumeWorkflowRunMethod;
+    if ((getResumeWorkflowRunMethod = GatewayServiceGrpc.getResumeWorkflowRunMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getResumeWorkflowRunMethod = GatewayServiceGrpc.getResumeWorkflowRunMethod) == null) {
+          GatewayServiceGrpc.getResumeWorkflowRunMethod = getResumeWorkflowRunMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ResumeWorkflowRunRequest, talon.gateway.Gateway.WorkflowRunResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ResumeWorkflowRun"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ResumeWorkflowRunRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.WorkflowRunResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ResumeWorkflowRun"))
+              .build();
+        }
+      }
+    }
+    return getResumeWorkflowRunMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CancelWorkflowRunRequest,
+      talon.gateway.Gateway.WorkflowRunResponse> getCancelWorkflowRunMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CancelWorkflowRun",
+      requestType = talon.gateway.Gateway.CancelWorkflowRunRequest.class,
+      responseType = talon.gateway.Gateway.WorkflowRunResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CancelWorkflowRunRequest,
+      talon.gateway.Gateway.WorkflowRunResponse> getCancelWorkflowRunMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.CancelWorkflowRunRequest, talon.gateway.Gateway.WorkflowRunResponse> getCancelWorkflowRunMethod;
+    if ((getCancelWorkflowRunMethod = GatewayServiceGrpc.getCancelWorkflowRunMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getCancelWorkflowRunMethod = GatewayServiceGrpc.getCancelWorkflowRunMethod) == null) {
+          GatewayServiceGrpc.getCancelWorkflowRunMethod = getCancelWorkflowRunMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CancelWorkflowRunRequest, talon.gateway.Gateway.WorkflowRunResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CancelWorkflowRun"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.CancelWorkflowRunRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.WorkflowRunResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CancelWorkflowRun"))
+              .build();
+        }
+      }
+    }
+    return getCancelWorkflowRunMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.StreamWorkflowEventsRequest,
+      talon.models.Models.WorkflowRunEvent> getStreamWorkflowEventsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "StreamWorkflowEvents",
+      requestType = talon.gateway.Gateway.StreamWorkflowEventsRequest.class,
+      responseType = talon.models.Models.WorkflowRunEvent.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.StreamWorkflowEventsRequest,
+      talon.models.Models.WorkflowRunEvent> getStreamWorkflowEventsMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.StreamWorkflowEventsRequest, talon.models.Models.WorkflowRunEvent> getStreamWorkflowEventsMethod;
+    if ((getStreamWorkflowEventsMethod = GatewayServiceGrpc.getStreamWorkflowEventsMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getStreamWorkflowEventsMethod = GatewayServiceGrpc.getStreamWorkflowEventsMethod) == null) {
+          GatewayServiceGrpc.getStreamWorkflowEventsMethod = getStreamWorkflowEventsMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.StreamWorkflowEventsRequest, talon.models.Models.WorkflowRunEvent>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.SERVER_STREAMING)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "StreamWorkflowEvents"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.StreamWorkflowEventsRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.models.Models.WorkflowRunEvent.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("StreamWorkflowEvents"))
+              .build();
+        }
+      }
+    }
+    return getStreamWorkflowEventsMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceRequest,
       talon.gateway.Gateway.NamespaceResponse> getCreateNamespaceMethod;
 
@@ -2111,6 +2421,79 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
+     * Workflows
+     * </pre>
+     */
+    default void createWorkflow(talon.gateway.Gateway.CreateWorkflowRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateWorkflowMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void getWorkflow(talon.gateway.Gateway.GetWorkflowRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetWorkflowMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void listWorkflows(talon.gateway.Gateway.ListWorkflowsRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowsResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListWorkflowsMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void deleteWorkflow(talon.gateway.Gateway.DeleteWorkflowRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteWorkflowResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteWorkflowMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void createWorkflowRun(talon.gateway.Gateway.CreateWorkflowRunRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateWorkflowRunMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void getWorkflowRun(talon.gateway.Gateway.GetWorkflowRunRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetWorkflowRunMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void listWorkflowRuns(talon.gateway.Gateway.ListWorkflowRunsRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowRunsResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListWorkflowRunsMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void resumeWorkflowRun(talon.gateway.Gateway.ResumeWorkflowRunRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getResumeWorkflowRunMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void cancelWorkflowRun(talon.gateway.Gateway.CancelWorkflowRunRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCancelWorkflowRunMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void streamWorkflowEvents(talon.gateway.Gateway.StreamWorkflowEventsRequest request,
+        io.grpc.stub.StreamObserver<talon.models.Models.WorkflowRunEvent> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStreamWorkflowEventsMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
      * Namespaces
      * </pre>
      */
@@ -2598,6 +2981,89 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
+     * Workflows
+     * </pre>
+     */
+    public void createWorkflow(talon.gateway.Gateway.CreateWorkflowRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCreateWorkflowMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void getWorkflow(talon.gateway.Gateway.GetWorkflowRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getGetWorkflowMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void listWorkflows(talon.gateway.Gateway.ListWorkflowsRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowsResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getListWorkflowsMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void deleteWorkflow(talon.gateway.Gateway.DeleteWorkflowRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteWorkflowResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getDeleteWorkflowMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void createWorkflowRun(talon.gateway.Gateway.CreateWorkflowRunRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCreateWorkflowRunMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void getWorkflowRun(talon.gateway.Gateway.GetWorkflowRunRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getGetWorkflowRunMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void listWorkflowRuns(talon.gateway.Gateway.ListWorkflowRunsRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowRunsResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getListWorkflowRunsMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void resumeWorkflowRun(talon.gateway.Gateway.ResumeWorkflowRunRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getResumeWorkflowRunMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void cancelWorkflowRun(talon.gateway.Gateway.CancelWorkflowRunRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCancelWorkflowRunMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void streamWorkflowEvents(talon.gateway.Gateway.StreamWorkflowEventsRequest request,
+        io.grpc.stub.StreamObserver<talon.models.Models.WorkflowRunEvent> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncServerStreamingCall(
+          getChannel().newCall(getStreamWorkflowEventsMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     * <pre>
      * Namespaces
      * </pre>
      */
@@ -3056,6 +3522,81 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
+     * Workflows
+     * </pre>
+     */
+    public talon.gateway.Gateway.WorkflowResponse createWorkflow(talon.gateway.Gateway.CreateWorkflowRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getCreateWorkflowMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowResponse getWorkflow(talon.gateway.Gateway.GetWorkflowRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getGetWorkflowMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.ListWorkflowsResponse listWorkflows(talon.gateway.Gateway.ListWorkflowsRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getListWorkflowsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.DeleteWorkflowResponse deleteWorkflow(talon.gateway.Gateway.DeleteWorkflowRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getDeleteWorkflowMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowRunResponse createWorkflowRun(talon.gateway.Gateway.CreateWorkflowRunRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getCreateWorkflowRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowRunResponse getWorkflowRun(talon.gateway.Gateway.GetWorkflowRunRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getGetWorkflowRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.ListWorkflowRunsResponse listWorkflowRuns(talon.gateway.Gateway.ListWorkflowRunsRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getListWorkflowRunsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowRunResponse resumeWorkflowRun(talon.gateway.Gateway.ResumeWorkflowRunRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getResumeWorkflowRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowRunResponse cancelWorkflowRun(talon.gateway.Gateway.CancelWorkflowRunRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getCancelWorkflowRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    @io.grpc.ExperimentalApi("https://github.com/grpc/grpc-java/issues/10918")
+    public io.grpc.stub.BlockingClientCall<?, talon.models.Models.WorkflowRunEvent>
+        streamWorkflowEvents(talon.gateway.Gateway.StreamWorkflowEventsRequest request) {
+      return io.grpc.stub.ClientCalls.blockingV2ServerStreamingCall(
+          getChannel(), getStreamWorkflowEventsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
      * Namespaces
      * </pre>
      */
@@ -3491,6 +4032,80 @@ public final class GatewayServiceGrpc {
     public talon.gateway.Gateway.DeleteScheduleResponse deleteSchedule(talon.gateway.Gateway.DeleteScheduleRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getDeleteScheduleMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * Workflows
+     * </pre>
+     */
+    public talon.gateway.Gateway.WorkflowResponse createWorkflow(talon.gateway.Gateway.CreateWorkflowRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCreateWorkflowMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowResponse getWorkflow(talon.gateway.Gateway.GetWorkflowRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getGetWorkflowMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.ListWorkflowsResponse listWorkflows(talon.gateway.Gateway.ListWorkflowsRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getListWorkflowsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.DeleteWorkflowResponse deleteWorkflow(talon.gateway.Gateway.DeleteWorkflowRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getDeleteWorkflowMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowRunResponse createWorkflowRun(talon.gateway.Gateway.CreateWorkflowRunRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCreateWorkflowRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowRunResponse getWorkflowRun(talon.gateway.Gateway.GetWorkflowRunRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getGetWorkflowRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.ListWorkflowRunsResponse listWorkflowRuns(talon.gateway.Gateway.ListWorkflowRunsRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getListWorkflowRunsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowRunResponse resumeWorkflowRun(talon.gateway.Gateway.ResumeWorkflowRunRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getResumeWorkflowRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.WorkflowRunResponse cancelWorkflowRun(talon.gateway.Gateway.CancelWorkflowRunRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCancelWorkflowRunMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public java.util.Iterator<talon.models.Models.WorkflowRunEvent> streamWorkflowEvents(
+        talon.gateway.Gateway.StreamWorkflowEventsRequest request) {
+      return io.grpc.stub.ClientCalls.blockingServerStreamingCall(
+          getChannel(), getStreamWorkflowEventsMethod(), getCallOptions(), request);
     }
 
     /**
@@ -3947,6 +4562,81 @@ public final class GatewayServiceGrpc {
 
     /**
      * <pre>
+     * Workflows
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowResponse> createWorkflow(
+        talon.gateway.Gateway.CreateWorkflowRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCreateWorkflowMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowResponse> getWorkflow(
+        talon.gateway.Gateway.GetWorkflowRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getGetWorkflowMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListWorkflowsResponse> listWorkflows(
+        talon.gateway.Gateway.ListWorkflowsRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getListWorkflowsMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteWorkflowResponse> deleteWorkflow(
+        talon.gateway.Gateway.DeleteWorkflowRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getDeleteWorkflowMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowRunResponse> createWorkflowRun(
+        talon.gateway.Gateway.CreateWorkflowRunRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCreateWorkflowRunMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowRunResponse> getWorkflowRun(
+        talon.gateway.Gateway.GetWorkflowRunRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getGetWorkflowRunMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListWorkflowRunsResponse> listWorkflowRuns(
+        talon.gateway.Gateway.ListWorkflowRunsRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getListWorkflowRunsMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowRunResponse> resumeWorkflowRun(
+        talon.gateway.Gateway.ResumeWorkflowRunRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getResumeWorkflowRunMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.WorkflowRunResponse> cancelWorkflowRun(
+        talon.gateway.Gateway.CancelWorkflowRunRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCancelWorkflowRunMethod(), getCallOptions()), request);
+    }
+
+    /**
+     * <pre>
      * Namespaces
      * </pre>
      */
@@ -4123,22 +4813,32 @@ public final class GatewayServiceGrpc {
   private static final int METHODID_MODIFY_SCHEDULE = 37;
   private static final int METHODID_LIST_SCHEDULES = 38;
   private static final int METHODID_DELETE_SCHEDULE = 39;
-  private static final int METHODID_CREATE_NAMESPACE = 40;
-  private static final int METHODID_GET_NAMESPACE = 41;
-  private static final int METHODID_DELETE_NAMESPACE = 42;
-  private static final int METHODID_LIST_NAMESPACES = 43;
-  private static final int METHODID_CREATE_AGENT_TEMPLATE = 44;
-  private static final int METHODID_GET_AGENT_TEMPLATE = 45;
-  private static final int METHODID_LIST_AGENT_TEMPLATES = 46;
-  private static final int METHODID_DELETE_AGENT_TEMPLATE = 47;
-  private static final int METHODID_CREATE_MCP_SERVER = 48;
-  private static final int METHODID_GET_MCP_SERVER = 49;
-  private static final int METHODID_LIST_MCP_SERVERS = 50;
-  private static final int METHODID_DELETE_MCP_SERVER = 51;
-  private static final int METHODID_CREATE_MCP_SERVER_BINDING = 52;
-  private static final int METHODID_GET_MCP_SERVER_BINDING = 53;
-  private static final int METHODID_LIST_MCP_SERVER_BINDINGS = 54;
-  private static final int METHODID_DELETE_MCP_SERVER_BINDING = 55;
+  private static final int METHODID_CREATE_WORKFLOW = 40;
+  private static final int METHODID_GET_WORKFLOW = 41;
+  private static final int METHODID_LIST_WORKFLOWS = 42;
+  private static final int METHODID_DELETE_WORKFLOW = 43;
+  private static final int METHODID_CREATE_WORKFLOW_RUN = 44;
+  private static final int METHODID_GET_WORKFLOW_RUN = 45;
+  private static final int METHODID_LIST_WORKFLOW_RUNS = 46;
+  private static final int METHODID_RESUME_WORKFLOW_RUN = 47;
+  private static final int METHODID_CANCEL_WORKFLOW_RUN = 48;
+  private static final int METHODID_STREAM_WORKFLOW_EVENTS = 49;
+  private static final int METHODID_CREATE_NAMESPACE = 50;
+  private static final int METHODID_GET_NAMESPACE = 51;
+  private static final int METHODID_DELETE_NAMESPACE = 52;
+  private static final int METHODID_LIST_NAMESPACES = 53;
+  private static final int METHODID_CREATE_AGENT_TEMPLATE = 54;
+  private static final int METHODID_GET_AGENT_TEMPLATE = 55;
+  private static final int METHODID_LIST_AGENT_TEMPLATES = 56;
+  private static final int METHODID_DELETE_AGENT_TEMPLATE = 57;
+  private static final int METHODID_CREATE_MCP_SERVER = 58;
+  private static final int METHODID_GET_MCP_SERVER = 59;
+  private static final int METHODID_LIST_MCP_SERVERS = 60;
+  private static final int METHODID_DELETE_MCP_SERVER = 61;
+  private static final int METHODID_CREATE_MCP_SERVER_BINDING = 62;
+  private static final int METHODID_GET_MCP_SERVER_BINDING = 63;
+  private static final int METHODID_LIST_MCP_SERVER_BINDINGS = 64;
+  private static final int METHODID_DELETE_MCP_SERVER_BINDING = 65;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -4316,6 +5016,46 @@ public final class GatewayServiceGrpc {
         case METHODID_DELETE_SCHEDULE:
           serviceImpl.deleteSchedule((talon.gateway.Gateway.DeleteScheduleRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteScheduleResponse>) responseObserver);
+          break;
+        case METHODID_CREATE_WORKFLOW:
+          serviceImpl.createWorkflow((talon.gateway.Gateway.CreateWorkflowRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse>) responseObserver);
+          break;
+        case METHODID_GET_WORKFLOW:
+          serviceImpl.getWorkflow((talon.gateway.Gateway.GetWorkflowRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowResponse>) responseObserver);
+          break;
+        case METHODID_LIST_WORKFLOWS:
+          serviceImpl.listWorkflows((talon.gateway.Gateway.ListWorkflowsRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowsResponse>) responseObserver);
+          break;
+        case METHODID_DELETE_WORKFLOW:
+          serviceImpl.deleteWorkflow((talon.gateway.Gateway.DeleteWorkflowRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteWorkflowResponse>) responseObserver);
+          break;
+        case METHODID_CREATE_WORKFLOW_RUN:
+          serviceImpl.createWorkflowRun((talon.gateway.Gateway.CreateWorkflowRunRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse>) responseObserver);
+          break;
+        case METHODID_GET_WORKFLOW_RUN:
+          serviceImpl.getWorkflowRun((talon.gateway.Gateway.GetWorkflowRunRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse>) responseObserver);
+          break;
+        case METHODID_LIST_WORKFLOW_RUNS:
+          serviceImpl.listWorkflowRuns((talon.gateway.Gateway.ListWorkflowRunsRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListWorkflowRunsResponse>) responseObserver);
+          break;
+        case METHODID_RESUME_WORKFLOW_RUN:
+          serviceImpl.resumeWorkflowRun((talon.gateway.Gateway.ResumeWorkflowRunRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse>) responseObserver);
+          break;
+        case METHODID_CANCEL_WORKFLOW_RUN:
+          serviceImpl.cancelWorkflowRun((talon.gateway.Gateway.CancelWorkflowRunRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.WorkflowRunResponse>) responseObserver);
+          break;
+        case METHODID_STREAM_WORKFLOW_EVENTS:
+          serviceImpl.streamWorkflowEvents((talon.gateway.Gateway.StreamWorkflowEventsRequest) request,
+              (io.grpc.stub.StreamObserver<talon.models.Models.WorkflowRunEvent>) responseObserver);
           break;
         case METHODID_CREATE_NAMESPACE:
           serviceImpl.createNamespace((talon.gateway.Gateway.CreateNamespaceRequest) request,
@@ -4680,6 +5420,76 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.DeleteScheduleResponse>(
                 service, METHODID_DELETE_SCHEDULE)))
         .addMethod(
+          getCreateWorkflowMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.CreateWorkflowRequest,
+              talon.gateway.Gateway.WorkflowResponse>(
+                service, METHODID_CREATE_WORKFLOW)))
+        .addMethod(
+          getGetWorkflowMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.GetWorkflowRequest,
+              talon.gateway.Gateway.WorkflowResponse>(
+                service, METHODID_GET_WORKFLOW)))
+        .addMethod(
+          getListWorkflowsMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.ListWorkflowsRequest,
+              talon.gateway.Gateway.ListWorkflowsResponse>(
+                service, METHODID_LIST_WORKFLOWS)))
+        .addMethod(
+          getDeleteWorkflowMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.DeleteWorkflowRequest,
+              talon.gateway.Gateway.DeleteWorkflowResponse>(
+                service, METHODID_DELETE_WORKFLOW)))
+        .addMethod(
+          getCreateWorkflowRunMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.CreateWorkflowRunRequest,
+              talon.gateway.Gateway.WorkflowRunResponse>(
+                service, METHODID_CREATE_WORKFLOW_RUN)))
+        .addMethod(
+          getGetWorkflowRunMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.GetWorkflowRunRequest,
+              talon.gateway.Gateway.WorkflowRunResponse>(
+                service, METHODID_GET_WORKFLOW_RUN)))
+        .addMethod(
+          getListWorkflowRunsMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.ListWorkflowRunsRequest,
+              talon.gateway.Gateway.ListWorkflowRunsResponse>(
+                service, METHODID_LIST_WORKFLOW_RUNS)))
+        .addMethod(
+          getResumeWorkflowRunMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.ResumeWorkflowRunRequest,
+              talon.gateway.Gateway.WorkflowRunResponse>(
+                service, METHODID_RESUME_WORKFLOW_RUN)))
+        .addMethod(
+          getCancelWorkflowRunMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.CancelWorkflowRunRequest,
+              talon.gateway.Gateway.WorkflowRunResponse>(
+                service, METHODID_CANCEL_WORKFLOW_RUN)))
+        .addMethod(
+          getStreamWorkflowEventsMethod(),
+          io.grpc.stub.ServerCalls.asyncServerStreamingCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.StreamWorkflowEventsRequest,
+              talon.models.Models.WorkflowRunEvent>(
+                service, METHODID_STREAM_WORKFLOW_EVENTS)))
+        .addMethod(
           getCreateNamespaceMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
             new MethodHandlers<
@@ -4879,6 +5689,16 @@ public final class GatewayServiceGrpc {
               .addMethod(getModifyScheduleMethod())
               .addMethod(getListSchedulesMethod())
               .addMethod(getDeleteScheduleMethod())
+              .addMethod(getCreateWorkflowMethod())
+              .addMethod(getGetWorkflowMethod())
+              .addMethod(getListWorkflowsMethod())
+              .addMethod(getDeleteWorkflowMethod())
+              .addMethod(getCreateWorkflowRunMethod())
+              .addMethod(getGetWorkflowRunMethod())
+              .addMethod(getListWorkflowRunsMethod())
+              .addMethod(getResumeWorkflowRunMethod())
+              .addMethod(getCancelWorkflowRunMethod())
+              .addMethod(getStreamWorkflowEventsMethod())
               .addMethod(getCreateNamespaceMethod())
               .addMethod(getGetNamespaceMethod())
               .addMethod(getDeleteNamespaceMethod())

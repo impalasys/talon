@@ -980,6 +980,7 @@ type ScheduleTarget struct {
 	Agent         string                 `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
 	SessionMode   string                 `protobuf:"bytes,2,opt,name=session_mode,json=sessionMode,proto3" json:"session_mode,omitempty"`
 	SessionId     string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Workflow      string                 `protobuf:"bytes,4,opt,name=workflow,proto3" json:"workflow,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1035,6 +1036,13 @@ func (x *ScheduleTarget) GetSessionId() string {
 	return ""
 }
 
+func (x *ScheduleTarget) GetWorkflow() string {
+	if x != nil {
+		return x.Workflow
+	}
+	return ""
+}
+
 type ScheduleSpec struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Kind            string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
@@ -1045,6 +1053,7 @@ type ScheduleSpec struct {
 	Target          *ScheduleTarget        `protobuf:"bytes,6,opt,name=target,proto3" json:"target,omitempty"`
 	InputMessage    string                 `protobuf:"bytes,7,opt,name=input_message,json=inputMessage,proto3" json:"input_message,omitempty"`
 	Enabled         bool                   `protobuf:"varint,8,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	InputJson       string                 `protobuf:"bytes,9,opt,name=input_json,json=inputJson,proto3" json:"input_json,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1133,6 +1142,13 @@ func (x *ScheduleSpec) GetEnabled() bool {
 		return x.Enabled
 	}
 	return false
+}
+
+func (x *ScheduleSpec) GetInputJson() string {
+	if x != nil {
+		return x.InputJson
+	}
+	return ""
 }
 
 type ScheduleStatus struct {
@@ -1623,6 +1639,886 @@ func (x *KnowledgeSearchResult) GetNamespace() string {
 	return ""
 }
 
+type WorkflowStepOutputPolicy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Format        string                 `protobuf:"bytes,1,opt,name=format,proto3" json:"format,omitempty"`
+	SchemaJson    string                 `protobuf:"bytes,2,opt,name=schema_json,json=schemaJson,proto3" json:"schema_json,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkflowStepOutputPolicy) Reset() {
+	*x = WorkflowStepOutputPolicy{}
+	mi := &file_proto_models_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowStepOutputPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowStepOutputPolicy) ProtoMessage() {}
+
+func (x *WorkflowStepOutputPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowStepOutputPolicy.ProtoReflect.Descriptor instead.
+func (*WorkflowStepOutputPolicy) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *WorkflowStepOutputPolicy) GetFormat() string {
+	if x != nil {
+		return x.Format
+	}
+	return ""
+}
+
+func (x *WorkflowStepOutputPolicy) GetSchemaJson() string {
+	if x != nil {
+		return x.SchemaJson
+	}
+	return ""
+}
+
+type WorkflowStepRetryPolicy struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	MaxAttempts           uint32                 `protobuf:"varint,1,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
+	InitialBackoffSeconds int64                  `protobuf:"varint,2,opt,name=initial_backoff_seconds,json=initialBackoffSeconds,proto3" json:"initial_backoff_seconds,omitempty"`
+	MaxBackoffSeconds     int64                  `protobuf:"varint,3,opt,name=max_backoff_seconds,json=maxBackoffSeconds,proto3" json:"max_backoff_seconds,omitempty"`
+	Multiplier            float64                `protobuf:"fixed64,4,opt,name=multiplier,proto3" json:"multiplier,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *WorkflowStepRetryPolicy) Reset() {
+	*x = WorkflowStepRetryPolicy{}
+	mi := &file_proto_models_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowStepRetryPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowStepRetryPolicy) ProtoMessage() {}
+
+func (x *WorkflowStepRetryPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowStepRetryPolicy.ProtoReflect.Descriptor instead.
+func (*WorkflowStepRetryPolicy) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *WorkflowStepRetryPolicy) GetMaxAttempts() uint32 {
+	if x != nil {
+		return x.MaxAttempts
+	}
+	return 0
+}
+
+func (x *WorkflowStepRetryPolicy) GetInitialBackoffSeconds() int64 {
+	if x != nil {
+		return x.InitialBackoffSeconds
+	}
+	return 0
+}
+
+func (x *WorkflowStepRetryPolicy) GetMaxBackoffSeconds() int64 {
+	if x != nil {
+		return x.MaxBackoffSeconds
+	}
+	return 0
+}
+
+func (x *WorkflowStepRetryPolicy) GetMultiplier() float64 {
+	if x != nil {
+		return x.Multiplier
+	}
+	return 0
+}
+
+type WorkflowStep struct {
+	state            protoimpl.MessageState    `protogen:"open.v1"`
+	Id               string                    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type             string                    `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	After            []string                  `protobuf:"bytes,3,rep,name=after,proto3" json:"after,omitempty"`
+	WhenJson         string                    `protobuf:"bytes,4,opt,name=when_json,json=whenJson,proto3" json:"when_json,omitempty"`
+	Agent            string                    `protobuf:"bytes,5,opt,name=agent,proto3" json:"agent,omitempty"`
+	Prompt           string                    `protobuf:"bytes,6,opt,name=prompt,proto3" json:"prompt,omitempty"`
+	Tool             string                    `protobuf:"bytes,7,opt,name=tool,proto3" json:"tool,omitempty"`
+	InputJson        string                    `protobuf:"bytes,8,opt,name=input_json,json=inputJson,proto3" json:"input_json,omitempty"`
+	Workflow         string                    `protobuf:"bytes,9,opt,name=workflow,proto3" json:"workflow,omitempty"`
+	Output           *WorkflowStepOutputPolicy `protobuf:"bytes,10,opt,name=output,proto3" json:"output,omitempty"`
+	ResumeSchemaJson string                    `protobuf:"bytes,11,opt,name=resume_schema_json,json=resumeSchemaJson,proto3" json:"resume_schema_json,omitempty"`
+	Retry            *WorkflowStepRetryPolicy  `protobuf:"bytes,12,opt,name=retry,proto3" json:"retry,omitempty"`
+	Timeout          string                    `protobuf:"bytes,13,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	WaitDuration     string                    `protobuf:"bytes,14,opt,name=wait_duration,json=waitDuration,proto3" json:"wait_duration,omitempty"`
+	WaitUntil        string                    `protobuf:"bytes,15,opt,name=wait_until,json=waitUntil,proto3" json:"wait_until,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *WorkflowStep) Reset() {
+	*x = WorkflowStep{}
+	mi := &file_proto_models_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowStep) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowStep) ProtoMessage() {}
+
+func (x *WorkflowStep) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowStep.ProtoReflect.Descriptor instead.
+func (*WorkflowStep) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *WorkflowStep) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetAfter() []string {
+	if x != nil {
+		return x.After
+	}
+	return nil
+}
+
+func (x *WorkflowStep) GetWhenJson() string {
+	if x != nil {
+		return x.WhenJson
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetPrompt() string {
+	if x != nil {
+		return x.Prompt
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetTool() string {
+	if x != nil {
+		return x.Tool
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetInputJson() string {
+	if x != nil {
+		return x.InputJson
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetWorkflow() string {
+	if x != nil {
+		return x.Workflow
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetOutput() *WorkflowStepOutputPolicy {
+	if x != nil {
+		return x.Output
+	}
+	return nil
+}
+
+func (x *WorkflowStep) GetResumeSchemaJson() string {
+	if x != nil {
+		return x.ResumeSchemaJson
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetRetry() *WorkflowStepRetryPolicy {
+	if x != nil {
+		return x.Retry
+	}
+	return nil
+}
+
+func (x *WorkflowStep) GetTimeout() string {
+	if x != nil {
+		return x.Timeout
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetWaitDuration() string {
+	if x != nil {
+		return x.WaitDuration
+	}
+	return ""
+}
+
+func (x *WorkflowStep) GetWaitUntil() string {
+	if x != nil {
+		return x.WaitUntil
+	}
+	return ""
+}
+
+type WorkflowSpec struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Description      string                 `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
+	InputSchemaJson  string                 `protobuf:"bytes,2,opt,name=input_schema_json,json=inputSchemaJson,proto3" json:"input_schema_json,omitempty"`
+	OutputSchemaJson string                 `protobuf:"bytes,3,opt,name=output_schema_json,json=outputSchemaJson,proto3" json:"output_schema_json,omitempty"`
+	Steps            []*WorkflowStep        `protobuf:"bytes,4,rep,name=steps,proto3" json:"steps,omitempty"`
+	OutputJson       string                 `protobuf:"bytes,5,opt,name=output_json,json=outputJson,proto3" json:"output_json,omitempty"`
+	Concurrency      uint32                 `protobuf:"varint,6,opt,name=concurrency,proto3" json:"concurrency,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *WorkflowSpec) Reset() {
+	*x = WorkflowSpec{}
+	mi := &file_proto_models_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowSpec) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowSpec) ProtoMessage() {}
+
+func (x *WorkflowSpec) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowSpec.ProtoReflect.Descriptor instead.
+func (*WorkflowSpec) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *WorkflowSpec) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *WorkflowSpec) GetInputSchemaJson() string {
+	if x != nil {
+		return x.InputSchemaJson
+	}
+	return ""
+}
+
+func (x *WorkflowSpec) GetOutputSchemaJson() string {
+	if x != nil {
+		return x.OutputSchemaJson
+	}
+	return ""
+}
+
+func (x *WorkflowSpec) GetSteps() []*WorkflowStep {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
+func (x *WorkflowSpec) GetOutputJson() string {
+	if x != nil {
+		return x.OutputJson
+	}
+	return ""
+}
+
+func (x *WorkflowSpec) GetConcurrency() uint32 {
+	if x != nil {
+		return x.Concurrency
+	}
+	return 0
+}
+
+type Workflow struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Ns            string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
+	Spec          *WorkflowSpec          `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
+	Labels        map[string]string      `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Workflow) Reset() {
+	*x = Workflow{}
+	mi := &file_proto_models_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Workflow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Workflow) ProtoMessage() {}
+
+func (x *Workflow) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Workflow.ProtoReflect.Descriptor instead.
+func (*Workflow) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *Workflow) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Workflow) GetNs() string {
+	if x != nil {
+		return x.Ns
+	}
+	return ""
+}
+
+func (x *Workflow) GetSpec() *WorkflowSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *Workflow) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+type WorkflowRun struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Workflow           string                 `protobuf:"bytes,2,opt,name=workflow,proto3" json:"workflow,omitempty"`
+	Ns                 string                 `protobuf:"bytes,3,opt,name=ns,proto3" json:"ns,omitempty"`
+	Status             string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	InputJson          string                 `protobuf:"bytes,5,opt,name=input_json,json=inputJson,proto3" json:"input_json,omitempty"`
+	StateJson          string                 `protobuf:"bytes,6,opt,name=state_json,json=stateJson,proto3" json:"state_json,omitempty"`
+	OutputJson         string                 `protobuf:"bytes,7,opt,name=output_json,json=outputJson,proto3" json:"output_json,omitempty"`
+	CreatedAt          int64                  `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          int64                  `protobuf:"varint,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Labels             map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ClaimExpiresAt     *int64                 `protobuf:"varint,11,opt,name=claim_expires_at,json=claimExpiresAt,proto3,oneof" json:"claim_expires_at,omitempty"`
+	Error              string                 `protobuf:"bytes,12,opt,name=error,proto3" json:"error,omitempty"`
+	SpecJson           string                 `protobuf:"bytes,13,opt,name=spec_json,json=specJson,proto3" json:"spec_json,omitempty"`
+	WorkflowRevision   uint64                 `protobuf:"varint,14,opt,name=workflow_revision,json=workflowRevision,proto3" json:"workflow_revision,omitempty"`
+	ClaimOwner         string                 `protobuf:"bytes,15,opt,name=claim_owner,json=claimOwner,proto3" json:"claim_owner,omitempty"`
+	ClaimAttempt       uint32                 `protobuf:"varint,16,opt,name=claim_attempt,json=claimAttempt,proto3" json:"claim_attempt,omitempty"`
+	LastDispatchReason string                 `protobuf:"bytes,17,opt,name=last_dispatch_reason,json=lastDispatchReason,proto3" json:"last_dispatch_reason,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *WorkflowRun) Reset() {
+	*x = WorkflowRun{}
+	mi := &file_proto_models_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowRun) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowRun) ProtoMessage() {}
+
+func (x *WorkflowRun) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowRun.ProtoReflect.Descriptor instead.
+func (*WorkflowRun) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *WorkflowRun) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetWorkflow() string {
+	if x != nil {
+		return x.Workflow
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetNs() string {
+	if x != nil {
+		return x.Ns
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetInputJson() string {
+	if x != nil {
+		return x.InputJson
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetStateJson() string {
+	if x != nil {
+		return x.StateJson
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetOutputJson() string {
+	if x != nil {
+		return x.OutputJson
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *WorkflowRun) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *WorkflowRun) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *WorkflowRun) GetClaimExpiresAt() int64 {
+	if x != nil && x.ClaimExpiresAt != nil {
+		return *x.ClaimExpiresAt
+	}
+	return 0
+}
+
+func (x *WorkflowRun) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetSpecJson() string {
+	if x != nil {
+		return x.SpecJson
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetWorkflowRevision() uint64 {
+	if x != nil {
+		return x.WorkflowRevision
+	}
+	return 0
+}
+
+func (x *WorkflowRun) GetClaimOwner() string {
+	if x != nil {
+		return x.ClaimOwner
+	}
+	return ""
+}
+
+func (x *WorkflowRun) GetClaimAttempt() uint32 {
+	if x != nil {
+		return x.ClaimAttempt
+	}
+	return 0
+}
+
+func (x *WorkflowRun) GetLastDispatchReason() string {
+	if x != nil {
+		return x.LastDispatchReason
+	}
+	return ""
+}
+
+type WorkflowStepRun struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	StepId             string                 `protobuf:"bytes,2,opt,name=step_id,json=stepId,proto3" json:"step_id,omitempty"`
+	Attempt            uint32                 `protobuf:"varint,3,opt,name=attempt,proto3" json:"attempt,omitempty"`
+	Status             string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	InputJson          string                 `protobuf:"bytes,5,opt,name=input_json,json=inputJson,proto3" json:"input_json,omitempty"`
+	OutputJson         string                 `protobuf:"bytes,6,opt,name=output_json,json=outputJson,proto3" json:"output_json,omitempty"`
+	Error              string                 `protobuf:"bytes,7,opt,name=error,proto3" json:"error,omitempty"`
+	ChildSessionId     string                 `protobuf:"bytes,8,opt,name=child_session_id,json=childSessionId,proto3" json:"child_session_id,omitempty"`
+	ChildWorkflowRunId string                 `protobuf:"bytes,9,opt,name=child_workflow_run_id,json=childWorkflowRunId,proto3" json:"child_workflow_run_id,omitempty"`
+	ResumeJson         string                 `protobuf:"bytes,10,opt,name=resume_json,json=resumeJson,proto3" json:"resume_json,omitempty"`
+	SuspendJson        string                 `protobuf:"bytes,11,opt,name=suspend_json,json=suspendJson,proto3" json:"suspend_json,omitempty"`
+	CreatedAt          int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          int64                  `protobuf:"varint,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	NextRetryAt        *int64                 `protobuf:"varint,14,opt,name=next_retry_at,json=nextRetryAt,proto3,oneof" json:"next_retry_at,omitempty"`
+	TimeoutAt          *int64                 `protobuf:"varint,15,opt,name=timeout_at,json=timeoutAt,proto3,oneof" json:"timeout_at,omitempty"`
+	WaitWakeupHandle   string                 `protobuf:"bytes,16,opt,name=wait_wakeup_handle,json=waitWakeupHandle,proto3" json:"wait_wakeup_handle,omitempty"`
+	WaitUntilAt        *int64                 `protobuf:"varint,17,opt,name=wait_until_at,json=waitUntilAt,proto3,oneof" json:"wait_until_at,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *WorkflowStepRun) Reset() {
+	*x = WorkflowStepRun{}
+	mi := &file_proto_models_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowStepRun) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowStepRun) ProtoMessage() {}
+
+func (x *WorkflowStepRun) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowStepRun.ProtoReflect.Descriptor instead.
+func (*WorkflowStepRun) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *WorkflowStepRun) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetStepId() string {
+	if x != nil {
+		return x.StepId
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetAttempt() uint32 {
+	if x != nil {
+		return x.Attempt
+	}
+	return 0
+}
+
+func (x *WorkflowStepRun) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetInputJson() string {
+	if x != nil {
+		return x.InputJson
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetOutputJson() string {
+	if x != nil {
+		return x.OutputJson
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetChildSessionId() string {
+	if x != nil {
+		return x.ChildSessionId
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetChildWorkflowRunId() string {
+	if x != nil {
+		return x.ChildWorkflowRunId
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetResumeJson() string {
+	if x != nil {
+		return x.ResumeJson
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetSuspendJson() string {
+	if x != nil {
+		return x.SuspendJson
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *WorkflowStepRun) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
+func (x *WorkflowStepRun) GetNextRetryAt() int64 {
+	if x != nil && x.NextRetryAt != nil {
+		return *x.NextRetryAt
+	}
+	return 0
+}
+
+func (x *WorkflowStepRun) GetTimeoutAt() int64 {
+	if x != nil && x.TimeoutAt != nil {
+		return *x.TimeoutAt
+	}
+	return 0
+}
+
+func (x *WorkflowStepRun) GetWaitWakeupHandle() string {
+	if x != nil {
+		return x.WaitWakeupHandle
+	}
+	return ""
+}
+
+func (x *WorkflowStepRun) GetWaitUntilAt() int64 {
+	if x != nil && x.WaitUntilAt != nil {
+		return *x.WaitUntilAt
+	}
+	return 0
+}
+
+type WorkflowRunEvent struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Ns            string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
+	Workflow      string                 `protobuf:"bytes,3,opt,name=workflow,proto3" json:"workflow,omitempty"`
+	RunId         string                 `protobuf:"bytes,4,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	Type          string                 `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	StepId        string                 `protobuf:"bytes,6,opt,name=step_id,json=stepId,proto3" json:"step_id,omitempty"`
+	Message       string                 `protobuf:"bytes,7,opt,name=message,proto3" json:"message,omitempty"`
+	PayloadJson   string                 `protobuf:"bytes,8,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,9,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WorkflowRunEvent) Reset() {
+	*x = WorkflowRunEvent{}
+	mi := &file_proto_models_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowRunEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowRunEvent) ProtoMessage() {}
+
+func (x *WorkflowRunEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowRunEvent.ProtoReflect.Descriptor instead.
+func (*WorkflowRunEvent) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *WorkflowRunEvent) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *WorkflowRunEvent) GetNs() string {
+	if x != nil {
+		return x.Ns
+	}
+	return ""
+}
+
+func (x *WorkflowRunEvent) GetWorkflow() string {
+	if x != nil {
+		return x.Workflow
+	}
+	return ""
+}
+
+func (x *WorkflowRunEvent) GetRunId() string {
+	if x != nil {
+		return x.RunId
+	}
+	return ""
+}
+
+func (x *WorkflowRunEvent) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *WorkflowRunEvent) GetStepId() string {
+	if x != nil {
+		return x.StepId
+	}
+	return ""
+}
+
+func (x *WorkflowRunEvent) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *WorkflowRunEvent) GetPayloadJson() string {
+	if x != nil {
+		return x.PayloadJson
+	}
+	return ""
+}
+
+func (x *WorkflowRunEvent) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
 var File_proto_models_proto protoreflect.FileDescriptor
 
 const file_proto_models_proto_rawDesc = "" +
@@ -1743,12 +2639,13 @@ const file_proto_models_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"h\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x84\x01\n" +
 	"\x0eScheduleTarget\x12\x14\n" +
 	"\x05agent\x18\x01 \x01(\tR\x05agent\x12!\n" +
 	"\fsession_mode\x18\x02 \x01(\tR\vsessionMode\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x03 \x01(\tR\tsessionId\"\x89\x02\n" +
+	"session_id\x18\x03 \x01(\tR\tsessionId\x12\x1a\n" +
+	"\bworkflow\x18\x04 \x01(\tR\bworkflow\"\xa8\x02\n" +
 	"\fScheduleSpec\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x12\n" +
 	"\x04cron\x18\x02 \x01(\tR\x04cron\x12)\n" +
@@ -1757,7 +2654,9 @@ const file_proto_models_proto_rawDesc = "" +
 	"\btimezone\x18\x05 \x01(\tR\btimezone\x124\n" +
 	"\x06target\x18\x06 \x01(\v2\x1c.talon.models.ScheduleTargetR\x06target\x12#\n" +
 	"\rinput_message\x18\a \x01(\tR\finputMessage\x12\x18\n" +
-	"\aenabled\x18\b \x01(\bR\aenabled\"\xb2\x04\n" +
+	"\aenabled\x18\b \x01(\bR\aenabled\x12\x1d\n" +
+	"\n" +
+	"input_json\x18\t \x01(\tR\tinputJson\"\xb2\x04\n" +
 	"\x0eScheduleStatus\x12\x1a\n" +
 	"\brevision\x18\x01 \x01(\x04R\brevision\x12#\n" +
 	"\vnext_run_at\x18\x02 \x01(\x03H\x00R\tnextRunAt\x88\x01\x01\x12*\n" +
@@ -1815,7 +2714,120 @@ const file_proto_models_proto_rawDesc = "" +
 	"\asnippet\x18\x02 \x01(\tR\asnippet\x12\x14\n" +
 	"\x05score\x18\x03 \x01(\x02R\x05score\x12\x1c\n" +
 	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp\x12\x1c\n" +
-	"\tnamespace\x18\x05 \x01(\tR\tnamespace*W\n" +
+	"\tnamespace\x18\x05 \x01(\tR\tnamespace\"S\n" +
+	"\x18WorkflowStepOutputPolicy\x12\x16\n" +
+	"\x06format\x18\x01 \x01(\tR\x06format\x12\x1f\n" +
+	"\vschema_json\x18\x02 \x01(\tR\n" +
+	"schemaJson\"\xc4\x01\n" +
+	"\x17WorkflowStepRetryPolicy\x12!\n" +
+	"\fmax_attempts\x18\x01 \x01(\rR\vmaxAttempts\x126\n" +
+	"\x17initial_backoff_seconds\x18\x02 \x01(\x03R\x15initialBackoffSeconds\x12.\n" +
+	"\x13max_backoff_seconds\x18\x03 \x01(\x03R\x11maxBackoffSeconds\x12\x1e\n" +
+	"\n" +
+	"multiplier\x18\x04 \x01(\x01R\n" +
+	"multiplier\"\xeb\x03\n" +
+	"\fWorkflowStep\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04type\x18\x02 \x01(\tR\x04type\x12\x14\n" +
+	"\x05after\x18\x03 \x03(\tR\x05after\x12\x1b\n" +
+	"\twhen_json\x18\x04 \x01(\tR\bwhenJson\x12\x14\n" +
+	"\x05agent\x18\x05 \x01(\tR\x05agent\x12\x16\n" +
+	"\x06prompt\x18\x06 \x01(\tR\x06prompt\x12\x12\n" +
+	"\x04tool\x18\a \x01(\tR\x04tool\x12\x1d\n" +
+	"\n" +
+	"input_json\x18\b \x01(\tR\tinputJson\x12\x1a\n" +
+	"\bworkflow\x18\t \x01(\tR\bworkflow\x12>\n" +
+	"\x06output\x18\n" +
+	" \x01(\v2&.talon.models.WorkflowStepOutputPolicyR\x06output\x12,\n" +
+	"\x12resume_schema_json\x18\v \x01(\tR\x10resumeSchemaJson\x12;\n" +
+	"\x05retry\x18\f \x01(\v2%.talon.models.WorkflowStepRetryPolicyR\x05retry\x12\x18\n" +
+	"\atimeout\x18\r \x01(\tR\atimeout\x12#\n" +
+	"\rwait_duration\x18\x0e \x01(\tR\fwaitDuration\x12\x1d\n" +
+	"\n" +
+	"wait_until\x18\x0f \x01(\tR\twaitUntil\"\xff\x01\n" +
+	"\fWorkflowSpec\x12 \n" +
+	"\vdescription\x18\x01 \x01(\tR\vdescription\x12*\n" +
+	"\x11input_schema_json\x18\x02 \x01(\tR\x0finputSchemaJson\x12,\n" +
+	"\x12output_schema_json\x18\x03 \x01(\tR\x10outputSchemaJson\x120\n" +
+	"\x05steps\x18\x04 \x03(\v2\x1a.talon.models.WorkflowStepR\x05steps\x12\x1f\n" +
+	"\voutput_json\x18\x05 \x01(\tR\n" +
+	"outputJson\x12 \n" +
+	"\vconcurrency\x18\x06 \x01(\rR\vconcurrency\"\xd5\x01\n" +
+	"\bWorkflow\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x0e\n" +
+	"\x02ns\x18\x02 \x01(\tR\x02ns\x12.\n" +
+	"\x04spec\x18\x03 \x01(\v2\x1a.talon.models.WorkflowSpecR\x04spec\x12:\n" +
+	"\x06labels\x18\x04 \x03(\v2\".talon.models.Workflow.LabelsEntryR\x06labels\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x94\x05\n" +
+	"\vWorkflowRun\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bworkflow\x18\x02 \x01(\tR\bworkflow\x12\x0e\n" +
+	"\x02ns\x18\x03 \x01(\tR\x02ns\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"input_json\x18\x05 \x01(\tR\tinputJson\x12\x1d\n" +
+	"\n" +
+	"state_json\x18\x06 \x01(\tR\tstateJson\x12\x1f\n" +
+	"\voutput_json\x18\a \x01(\tR\n" +
+	"outputJson\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\t \x01(\x03R\tupdatedAt\x12=\n" +
+	"\x06labels\x18\n" +
+	" \x03(\v2%.talon.models.WorkflowRun.LabelsEntryR\x06labels\x12-\n" +
+	"\x10claim_expires_at\x18\v \x01(\x03H\x00R\x0eclaimExpiresAt\x88\x01\x01\x12\x14\n" +
+	"\x05error\x18\f \x01(\tR\x05error\x12\x1b\n" +
+	"\tspec_json\x18\r \x01(\tR\bspecJson\x12+\n" +
+	"\x11workflow_revision\x18\x0e \x01(\x04R\x10workflowRevision\x12\x1f\n" +
+	"\vclaim_owner\x18\x0f \x01(\tR\n" +
+	"claimOwner\x12#\n" +
+	"\rclaim_attempt\x18\x10 \x01(\rR\fclaimAttempt\x120\n" +
+	"\x14last_dispatch_reason\x18\x11 \x01(\tR\x12lastDispatchReason\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x13\n" +
+	"\x11_claim_expires_at\"\xf8\x04\n" +
+	"\x0fWorkflowStepRun\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
+	"\astep_id\x18\x02 \x01(\tR\x06stepId\x12\x18\n" +
+	"\aattempt\x18\x03 \x01(\rR\aattempt\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"input_json\x18\x05 \x01(\tR\tinputJson\x12\x1f\n" +
+	"\voutput_json\x18\x06 \x01(\tR\n" +
+	"outputJson\x12\x14\n" +
+	"\x05error\x18\a \x01(\tR\x05error\x12(\n" +
+	"\x10child_session_id\x18\b \x01(\tR\x0echildSessionId\x121\n" +
+	"\x15child_workflow_run_id\x18\t \x01(\tR\x12childWorkflowRunId\x12\x1f\n" +
+	"\vresume_json\x18\n" +
+	" \x01(\tR\n" +
+	"resumeJson\x12!\n" +
+	"\fsuspend_json\x18\v \x01(\tR\vsuspendJson\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\f \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\r \x01(\x03R\tupdatedAt\x12'\n" +
+	"\rnext_retry_at\x18\x0e \x01(\x03H\x00R\vnextRetryAt\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"timeout_at\x18\x0f \x01(\x03H\x01R\ttimeoutAt\x88\x01\x01\x12,\n" +
+	"\x12wait_wakeup_handle\x18\x10 \x01(\tR\x10waitWakeupHandle\x12'\n" +
+	"\rwait_until_at\x18\x11 \x01(\x03H\x02R\vwaitUntilAt\x88\x01\x01B\x10\n" +
+	"\x0e_next_retry_atB\r\n" +
+	"\v_timeout_atB\x10\n" +
+	"\x0e_wait_until_at\"\xed\x01\n" +
+	"\x10WorkflowRunEvent\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x0e\n" +
+	"\x02ns\x18\x02 \x01(\tR\x02ns\x12\x1a\n" +
+	"\bworkflow\x18\x03 \x01(\tR\bworkflow\x12\x15\n" +
+	"\x06run_id\x18\x04 \x01(\tR\x05runId\x12\x12\n" +
+	"\x04type\x18\x05 \x01(\tR\x04type\x12\x17\n" +
+	"\astep_id\x18\x06 \x01(\tR\x06stepId\x12\x18\n" +
+	"\amessage\x18\a \x01(\tR\amessage\x12!\n" +
+	"\fpayload_json\x18\b \x01(\tR\vpayloadJson\x12\x1c\n" +
+	"\ttimestamp\x18\t \x01(\x03R\ttimestamp*W\n" +
 	"\vMessageRole\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tROLE_USER\x10\x01\x12\x12\n" +
@@ -1848,7 +2860,7 @@ func file_proto_models_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_models_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_models_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_proto_models_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
 var file_proto_models_proto_goTypes = []any{
 	(MessageRole)(0),                  // 0: talon.models.MessageRole
 	(SessionMessagePartType)(0),       // 1: talon.models.SessionMessagePartType
@@ -1869,50 +2881,66 @@ var file_proto_models_proto_goTypes = []any{
 	(*Namespace)(nil),                 // 16: talon.models.Namespace
 	(*Knowledge)(nil),                 // 17: talon.models.Knowledge
 	(*KnowledgeSearchResult)(nil),     // 18: talon.models.KnowledgeSearchResult
-	nil,                               // 19: talon.models.Agent.LabelsEntry
-	nil,                               // 20: talon.models.ObjectRef.MetadataEntry
-	nil,                               // 21: talon.models.SessionMessage.LabelsEntry
-	nil,                               // 22: talon.models.Session.MetadataEntry
-	nil,                               // 23: talon.models.Session.LabelsEntry
-	nil,                               // 24: talon.models.Channel.MetadataEntry
-	nil,                               // 25: talon.models.Channel.LabelsEntry
-	nil,                               // 26: talon.models.ChannelMessage.LabelsEntry
-	nil,                               // 27: talon.models.ChannelSubscription.MetadataEntry
-	nil,                               // 28: talon.models.ChannelSubscription.LabelsEntry
-	nil,                               // 29: talon.models.Schedule.LabelsEntry
-	nil,                               // 30: talon.models.Namespace.LabelsEntry
-	(*manifests.AgentDefinition)(nil), // 31: talon.manifests.AgentDefinition
-	(*manifests.AgentSpec)(nil),       // 32: talon.manifests.AgentSpec
+	(*WorkflowStepOutputPolicy)(nil),  // 19: talon.models.WorkflowStepOutputPolicy
+	(*WorkflowStepRetryPolicy)(nil),   // 20: talon.models.WorkflowStepRetryPolicy
+	(*WorkflowStep)(nil),              // 21: talon.models.WorkflowStep
+	(*WorkflowSpec)(nil),              // 22: talon.models.WorkflowSpec
+	(*Workflow)(nil),                  // 23: talon.models.Workflow
+	(*WorkflowRun)(nil),               // 24: talon.models.WorkflowRun
+	(*WorkflowStepRun)(nil),           // 25: talon.models.WorkflowStepRun
+	(*WorkflowRunEvent)(nil),          // 26: talon.models.WorkflowRunEvent
+	nil,                               // 27: talon.models.Agent.LabelsEntry
+	nil,                               // 28: talon.models.ObjectRef.MetadataEntry
+	nil,                               // 29: talon.models.SessionMessage.LabelsEntry
+	nil,                               // 30: talon.models.Session.MetadataEntry
+	nil,                               // 31: talon.models.Session.LabelsEntry
+	nil,                               // 32: talon.models.Channel.MetadataEntry
+	nil,                               // 33: talon.models.Channel.LabelsEntry
+	nil,                               // 34: talon.models.ChannelMessage.LabelsEntry
+	nil,                               // 35: talon.models.ChannelSubscription.MetadataEntry
+	nil,                               // 36: talon.models.ChannelSubscription.LabelsEntry
+	nil,                               // 37: talon.models.Schedule.LabelsEntry
+	nil,                               // 38: talon.models.Namespace.LabelsEntry
+	nil,                               // 39: talon.models.Workflow.LabelsEntry
+	nil,                               // 40: talon.models.WorkflowRun.LabelsEntry
+	(*manifests.AgentDefinition)(nil), // 41: talon.manifests.AgentDefinition
+	(*manifests.AgentSpec)(nil),       // 42: talon.manifests.AgentSpec
 }
 var file_proto_models_proto_depIdxs = []int32{
-	31, // 0: talon.models.Agent.definition:type_name -> talon.manifests.AgentDefinition
-	32, // 1: talon.models.Agent.effective_spec:type_name -> talon.manifests.AgentSpec
-	19, // 2: talon.models.Agent.labels:type_name -> talon.models.Agent.LabelsEntry
-	20, // 3: talon.models.ObjectRef.metadata:type_name -> talon.models.ObjectRef.MetadataEntry
+	41, // 0: talon.models.Agent.definition:type_name -> talon.manifests.AgentDefinition
+	42, // 1: talon.models.Agent.effective_spec:type_name -> talon.manifests.AgentSpec
+	27, // 2: talon.models.Agent.labels:type_name -> talon.models.Agent.LabelsEntry
+	28, // 3: talon.models.ObjectRef.metadata:type_name -> talon.models.ObjectRef.MetadataEntry
 	1,  // 4: talon.models.SessionMessagePart.part_type:type_name -> talon.models.SessionMessagePartType
 	3,  // 5: talon.models.SessionMessagePart.object:type_name -> talon.models.ObjectRef
 	0,  // 6: talon.models.SessionMessage.role:type_name -> talon.models.MessageRole
-	21, // 7: talon.models.SessionMessage.labels:type_name -> talon.models.SessionMessage.LabelsEntry
+	29, // 7: talon.models.SessionMessage.labels:type_name -> talon.models.SessionMessage.LabelsEntry
 	4,  // 8: talon.models.SessionMessage.parts:type_name -> talon.models.SessionMessagePart
-	22, // 9: talon.models.Session.metadata:type_name -> talon.models.Session.MetadataEntry
-	23, // 10: talon.models.Session.labels:type_name -> talon.models.Session.LabelsEntry
-	24, // 11: talon.models.Channel.metadata:type_name -> talon.models.Channel.MetadataEntry
-	25, // 12: talon.models.Channel.labels:type_name -> talon.models.Channel.LabelsEntry
-	26, // 13: talon.models.ChannelMessage.labels:type_name -> talon.models.ChannelMessage.LabelsEntry
+	30, // 9: talon.models.Session.metadata:type_name -> talon.models.Session.MetadataEntry
+	31, // 10: talon.models.Session.labels:type_name -> talon.models.Session.LabelsEntry
+	32, // 11: talon.models.Channel.metadata:type_name -> talon.models.Channel.MetadataEntry
+	33, // 12: talon.models.Channel.labels:type_name -> talon.models.Channel.LabelsEntry
+	34, // 13: talon.models.ChannelMessage.labels:type_name -> talon.models.ChannelMessage.LabelsEntry
 	9,  // 14: talon.models.ChannelSubscription.context_policy:type_name -> talon.models.ChannelContextPolicy
-	27, // 15: talon.models.ChannelSubscription.metadata:type_name -> talon.models.ChannelSubscription.MetadataEntry
-	28, // 16: talon.models.ChannelSubscription.labels:type_name -> talon.models.ChannelSubscription.LabelsEntry
+	35, // 15: talon.models.ChannelSubscription.metadata:type_name -> talon.models.ChannelSubscription.MetadataEntry
+	36, // 16: talon.models.ChannelSubscription.labels:type_name -> talon.models.ChannelSubscription.LabelsEntry
 	11, // 17: talon.models.ScheduleSpec.target:type_name -> talon.models.ScheduleTarget
 	14, // 18: talon.models.ScheduleStatus.recent_events:type_name -> talon.models.ScheduleEvent
 	12, // 19: talon.models.Schedule.spec:type_name -> talon.models.ScheduleSpec
 	13, // 20: talon.models.Schedule.status:type_name -> talon.models.ScheduleStatus
-	29, // 21: talon.models.Schedule.labels:type_name -> talon.models.Schedule.LabelsEntry
-	30, // 22: talon.models.Namespace.labels:type_name -> talon.models.Namespace.LabelsEntry
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	37, // 21: talon.models.Schedule.labels:type_name -> talon.models.Schedule.LabelsEntry
+	38, // 22: talon.models.Namespace.labels:type_name -> talon.models.Namespace.LabelsEntry
+	19, // 23: talon.models.WorkflowStep.output:type_name -> talon.models.WorkflowStepOutputPolicy
+	20, // 24: talon.models.WorkflowStep.retry:type_name -> talon.models.WorkflowStepRetryPolicy
+	21, // 25: talon.models.WorkflowSpec.steps:type_name -> talon.models.WorkflowStep
+	22, // 26: talon.models.Workflow.spec:type_name -> talon.models.WorkflowSpec
+	39, // 27: talon.models.Workflow.labels:type_name -> talon.models.Workflow.LabelsEntry
+	40, // 28: talon.models.WorkflowRun.labels:type_name -> talon.models.WorkflowRun.LabelsEntry
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_proto_models_proto_init() }
@@ -1921,13 +2949,15 @@ func file_proto_models_proto_init() {
 		return
 	}
 	file_proto_models_proto_msgTypes[11].OneofWrappers = []any{}
+	file_proto_models_proto_msgTypes[22].OneofWrappers = []any{}
+	file_proto_models_proto_msgTypes[23].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_models_proto_rawDesc), len(file_proto_models_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   29,
+			NumMessages:   39,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

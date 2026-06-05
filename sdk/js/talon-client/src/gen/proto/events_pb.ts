@@ -500,3 +500,76 @@ export class ChannelEvent extends Message<ChannelEvent> {
   }
 }
 
+/**
+ * @generated from message talon.events.WorkflowDispatchEvent
+ */
+export class WorkflowDispatchEvent extends Message<WorkflowDispatchEvent> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string workflow = 2;
+   */
+  workflow = "";
+
+  /**
+   * @generated from field: string run_id = 3;
+   */
+  runId = "";
+
+  /**
+   * @generated from field: string reason = 4;
+   */
+  reason = "";
+
+  /**
+   * @generated from field: string step_id = 5;
+   */
+  stepId = "";
+
+  /**
+   * @generated from field: string child_session_id = 6;
+   */
+  childSessionId = "";
+
+  /**
+   * @generated from field: int64 timestamp = 7;
+   */
+  timestamp = protoInt64.zero;
+
+  constructor(data?: PartialMessage<WorkflowDispatchEvent>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.events.WorkflowDispatchEvent";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "workflow", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "run_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "reason", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "step_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "child_session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "timestamp", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): WorkflowDispatchEvent {
+    return new WorkflowDispatchEvent().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): WorkflowDispatchEvent {
+    return new WorkflowDispatchEvent().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): WorkflowDispatchEvent {
+    return new WorkflowDispatchEvent().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: WorkflowDispatchEvent | PlainMessage<WorkflowDispatchEvent> | undefined, b: WorkflowDispatchEvent | PlainMessage<WorkflowDispatchEvent> | undefined): boolean {
+    return proto3.util.equals(WorkflowDispatchEvent, a, b);
+  }
+}
+
