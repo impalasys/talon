@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "talon-client"
-version = "0.1.15"
+version = "0.1.16"
 description = "Generated Talon protobuf and gRPC client bindings"
 readme = "README.md"
 requires-python = ">=3.10"

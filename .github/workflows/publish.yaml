@@ -22,6 +22,7 @@ jobs:
     name: Detect Version Changes
     runs-on: ubuntu-latest
     outputs:
+      sdk_version: ${{ steps.detect.outputs.sdk_version }}
       go_changed: ${{ steps.detect.outputs.go_changed }}
       go_client_changed: ${{ steps.detect.outputs.go_client_changed }}
       go_client_version: ${{ steps.detect.outputs.go_client_version }}
@@ -121,10 +122,53 @@ jobs:
             dist/talon-node-${{ matrix.platform }}.tar.gz.sha256
           if-no-files-found: error
 
+  publish-node-release:
+    name: Publish talon-node Release Assets
+    if: always() && needs.detect.outputs.needs_node_binaries == 'true' && needs.build-node-binaries.result == 'success'
+    needs:
+      - detect
+      - build-node-binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download talon-node binaries
+        uses: actions/download-artifact@v4
+        with:
+          pattern: talon-node-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SDK_VERSION: ${{ needs.detect.outputs.sdk_version }}
+        run: |
+          set -euo pipefail
+          tag="v${SDK_VERSION}"
+          title="Talon SDK ${tag}"
+          notes="Talon SDK ${tag} release assets."
+          assets=(
+            dist/talon-node-linux-x64.tar.gz
+            dist/talon-node-linux-x64.tar.gz.sha256
+            dist/talon-node-darwin-arm64.tar.gz
+            dist/talon-node-darwin-arm64.tar.gz.sha256
+          )
+          for asset in "${assets[@]}"; do
+            test -s "$asset"
+          done
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "${assets[@]}" --clobber
+            gh release edit "$tag" --title "$title" --notes "$notes" --latest
+          else
+            gh release create "$tag" "${assets[@]}" --title "$title" --notes "$notes" --latest --target "$GITHUB_SHA"
+          fi
+
   publish-go:
     name: Publish Go Module Tags
-    if: needs.detect.outputs.go_changed == 'true'
-    needs: detect
+    if: always() && needs.detect.outputs.go_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
+    needs:
+      - detect
+      - publish-node-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -162,10 +206,10 @@ jobs:
 
   publish-rust:
     name: Publish Rust Crates
-    if: always() && needs.detect.outputs.rust_changed == 'true' && (needs.detect.outputs.rust_server_changed != 'true' || needs.build-node-binaries.result == 'success')
+    if: always() && needs.detect.outputs.rust_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
     needs:
       - detect
-      - build-node-binaries
+      - publish-node-release
     runs-on: ubuntu-latest
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -215,10 +259,10 @@ jobs:
 
   publish-npm:
     name: Publish npm Packages
-    if: always() && needs.detect.outputs.js_changed == 'true' && ((needs.detect.outputs.js_node_linux_changed != 'true' && needs.detect.outputs.js_node_darwin_changed != 'true') || needs.build-node-binaries.result == 'success')
+    if: always() && needs.detect.outputs.js_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
     needs:
       - detect
-      - build-node-binaries
+      - publish-node-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -348,8 +392,10 @@ jobs:
 
   publish-python:
     name: Publish Python Packages
-    if: needs.detect.outputs.python_changed == 'true'
-    needs: detect
+    if: always() && needs.detect.outputs.python_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
+    needs:
+      - detect
+      - publish-node-release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -392,8 +438,10 @@ jobs:
 
   publish-java:
     name: Publish Java Packages
-    if: needs.detect.outputs.java_changed == 'true'
-    needs: detect
+    if: always() && needs.detect.outputs.java_changed == 'true' && (needs.detect.outputs.needs_node_binaries != 'true' || needs.publish-node-release.result == 'success')
+    needs:
+      - detect
+      - publish-node-release
     runs-on: ubuntu-latest
     env:
       MAVEN_PUBLISH_URL: ${{ secrets.MAVEN_PUBLISH_URL }}
