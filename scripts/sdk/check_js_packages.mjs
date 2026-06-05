@@ -40,4 +40,8 @@ for (const platformPackage of platformPackages) {
   if (pkg.scripts?.postinstall) {
     fail(`${platformPackage.name} must not require a postinstall script`);
   }
+
+  if (!pkg.publishConfig?.executableFiles?.includes("bin/talon-node")) {
+    fail(`${platformPackage.name} must mark bin/talon-node as a pnpm executable file`);
+  }
 }
