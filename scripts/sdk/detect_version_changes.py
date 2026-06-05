@@ -111,6 +111,7 @@ def main() -> int:
         or outputs["rust_server_changed"] == "true"
         or outputs["python_server_changed"] == "true"
         or outputs["java_server_changed"] == "true"
+        or outputs["js_server_changed"] == "true"
         or outputs["js_node_linux_changed"] == "true"
         or outputs["js_node_darwin_changed"] == "true"
     ).lower()
