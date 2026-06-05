@@ -82,6 +82,7 @@ def main() -> int:
         "java_server": ("sdk/java/build.gradle.kts", gradle_version),
     }
     outputs: dict[str, str] = {}
+    outputs["sdk_version"] = version_file(current_text("sdk/VERSION") or "")
     for key, (path, parser) in packages.items():
         did_change, version = changed(path, parser, base)
         outputs[f"{key}_changed"] = "true" if did_change else "false"
@@ -106,7 +107,11 @@ def main() -> int:
         outputs["java_client_changed"] == "true" or outputs["java_server_changed"] == "true"
     ).lower()
     outputs["needs_node_binaries"] = str(
-        outputs["rust_server_changed"] == "true"
+        outputs["go_server_changed"] == "true"
+        or outputs["rust_server_changed"] == "true"
+        or outputs["python_server_changed"] == "true"
+        or outputs["java_server_changed"] == "true"
+        or outputs["js_server_changed"] == "true"
         or outputs["js_node_linux_changed"] == "true"
         or outputs["js_node_darwin_changed"] == "true"
     ).lower()

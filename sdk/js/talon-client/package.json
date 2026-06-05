@@ -1,6 +1,6 @@
 {
   "name": "@impalasys/talon-client",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Generated Talon protobuf and RPC client bindings",
   "type": "module",
   "license": "AGPL-3.0-only",
