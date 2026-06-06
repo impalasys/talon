@@ -3,6 +3,7 @@ package systems.impala.talon.server;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +12,8 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,13 +40,36 @@ public final class TalonServer implements AutoCloseable {
     }
 
     public static TalonServer start(Options options) throws IOException, InterruptedException {
+        if (options.configPath() != null && (options.config() != null || options.dataDir() != null || options.provider() != null)) {
+            throw new IllegalArgumentException(
+                "configPath cannot be combined with config, dataDir, or provider; put those settings in the config file"
+            );
+        }
+        if (options.config() != null && options.provider() != null) {
+            throw new IllegalArgumentException("config cannot be combined with provider; put providers in the config object");
+        }
         Path node = resolveTalonNode(options.talonNodePath());
         int grpcPort = options.grpcPort() == null ? freePort() : options.grpcPort();
         int uiPort = options.uiPort() == null ? freePort() : options.uiPort();
         Path tempDir = Files.createTempDirectory("talon-server-");
-        Files.createDirectories(tempDir.resolve("data"));
-        Path configPath = tempDir.resolve("talon.yaml");
-        Files.writeString(configPath, configYaml(options.provider()), StandardCharsets.UTF_8);
+        Path configPath;
+        if (options.configPath() != null) {
+            configPath = options.configPath().toAbsolutePath().normalize();
+        } else {
+            Path dataDir = options.dataDir() == null ? null : options.dataDir().toAbsolutePath().normalize();
+            Map<String, Object> config = options.config() == null
+                ? defaultConfig(options.provider(), dataDir == null ? tempDir.resolve("data") : dataDir)
+                : configWithDataDir(options.config(), dataDir);
+            Path configDataDir = controlPlaneDataDir(config);
+            if (configDataDir != null) {
+                if (!configDataDir.isAbsolute()) {
+                    configDataDir = tempDir.resolve(configDataDir);
+                }
+                Files.createDirectories(configDataDir);
+            }
+            configPath = tempDir.resolve("talon.json");
+            Files.writeString(configPath, toJson(config) + "\n", StandardCharsets.UTF_8);
+        }
 
         List<String> command = new ArrayList<>();
         command.add(node.toString());
@@ -174,24 +200,141 @@ public final class TalonServer implements AutoCloseable {
         }
     }
 
-    private static String configYaml(Provider provider) {
-        StringBuilder yaml = new StringBuilder();
+    static Map<String, Object> defaultConfig(Provider provider, Path dataDir) {
+        Map<String, Object> database = new LinkedHashMap<>();
+        database.put("driver", "sqlite");
+        database.put("data_dir", dataDir.toString());
+        Map<String, Object> messageBroker = new LinkedHashMap<>();
+        messageBroker.put("driver", "local_socket");
+        Map<String, Object> controlPlane = new LinkedHashMap<>();
+        controlPlane.put("database", database);
+        controlPlane.put("message_broker", messageBroker);
+        Map<String, Object> config = new LinkedHashMap<>();
+        config.put("control_plane", controlPlane);
         if (provider != null) {
             String name = provider.name() == null || provider.name().isBlank() ? "mock" : provider.name();
-            yaml.append("providers:\n  ").append(name).append(":\n")
-                .append("    type: openai_compatible\n")
-                .append("    base_url: \"").append(provider.baseUrl()).append("\"\n")
-                .append("    model: \"").append(provider.model()).append("\"\n")
-                .append("    api_key: \"").append(provider.apiKey()).append("\"\n")
-                .append("default_provider: \"").append(name).append("\"\n");
+            Map<String, Object> providerConfig = new LinkedHashMap<>();
+            providerConfig.put("type", "openai_compatible");
+            providerConfig.put("base_url", provider.baseUrl());
+            providerConfig.put("model", provider.model());
+            providerConfig.put("api_key", provider.apiKey());
+            config.put("providers", Map.of(name, providerConfig));
+            config.put("default_provider", name);
         }
-        yaml.append("control_plane:\n")
-            .append("  database:\n")
-            .append("    driver: sqlite\n")
-            .append("    data_dir: ./data\n")
-            .append("  message_broker:\n")
-            .append("    driver: local_socket\n");
-        return yaml.toString();
+        return config;
+    }
+
+    static Map<String, Object> configWithDataDir(Map<String, Object> config, Path dataDir) {
+        Map<String, Object> copy = deepCopyMap(config);
+        if (dataDir == null) return copy;
+        Map<String, Object> controlPlane = ensureMap(copy, "control_plane");
+        Map<String, Object> database = ensureMap(controlPlane, "database");
+        database.put("data_dir", dataDir.toString());
+        return copy;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> ensureMap(Map<String, Object> target, String key) {
+        Object current = target.get(key);
+        if (current instanceof Map<?, ?> currentMap) {
+            return (Map<String, Object>) currentMap;
+        }
+        Map<String, Object> value = new LinkedHashMap<>();
+        target.put(key, value);
+        return value;
+    }
+
+    private static Path controlPlaneDataDir(Map<String, Object> config) {
+        Object controlPlane = config.get("control_plane");
+        if (!(controlPlane instanceof Map<?, ?> controlPlaneMap)) return null;
+        Object database = controlPlaneMap.get("database");
+        if (!(database instanceof Map<?, ?> databaseMap)) return null;
+        Object dataDir = databaseMap.get("data_dir");
+        if (!(dataDir instanceof String value) || value.isBlank()) return null;
+        return Path.of(value);
+    }
+
+    private static Map<String, Object> deepCopyMap(Map<String, Object> input) {
+        Map<String, Object> copy = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : input.entrySet()) {
+            copy.put(entry.getKey(), deepCopyValue(entry.getValue()));
+        }
+        return copy;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object deepCopyValue(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            Map<String, Object> copy = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                copy.put(String.valueOf(entry.getKey()), deepCopyValue(entry.getValue()));
+            }
+            return copy;
+        }
+        if (value instanceof List<?> list) {
+            return list.stream().map(TalonServer::deepCopyValue).toList();
+        }
+        return value;
+    }
+
+    static String toJson(Object value) {
+        if (value == null) return "null";
+        if (value instanceof String string) return jsonQuoted(string);
+        if (value instanceof Number || value instanceof Boolean) return value.toString();
+        if (value instanceof Map<?, ?> map) {
+            StringBuilder json = new StringBuilder("{");
+            boolean first = true;
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                if (!first) json.append(",");
+                first = false;
+                json.append(jsonQuoted(String.valueOf(entry.getKey()))).append(":").append(toJson(entry.getValue()));
+            }
+            return json.append("}").toString();
+        }
+        if (value instanceof Collection<?> collection) {
+            StringBuilder json = new StringBuilder("[");
+            boolean first = true;
+            for (Object entry : collection) {
+                if (!first) json.append(",");
+                first = false;
+                json.append(toJson(entry));
+            }
+            return json.append("]").toString();
+        }
+        if (value.getClass().isArray()) {
+            StringBuilder json = new StringBuilder("[");
+            int length = Array.getLength(value);
+            for (int index = 0; index < length; index++) {
+                if (index > 0) json.append(",");
+                json.append(toJson(Array.get(value, index)));
+            }
+            return json.append("]").toString();
+        }
+        return jsonQuoted(String.valueOf(value));
+    }
+
+    private static String jsonQuoted(String value) {
+        StringBuilder quoted = new StringBuilder("\"");
+        for (int index = 0; index < value.length(); index++) {
+            char ch = value.charAt(index);
+            switch (ch) {
+                case '\\' -> quoted.append("\\\\");
+                case '"' -> quoted.append("\\\"");
+                case '\n' -> quoted.append("\\n");
+                case '\r' -> quoted.append("\\r");
+                case '\t' -> quoted.append("\\t");
+                case '\b' -> quoted.append("\\b");
+                case '\f' -> quoted.append("\\f");
+                default -> {
+                    if (ch < 0x20) {
+                        quoted.append(String.format("\\u%04x", (int) ch));
+                    } else {
+                        quoted.append(ch);
+                    }
+                }
+            }
+        }
+        return quoted.append("\"").toString();
     }
 
     private static void deleteRecursively(Path path) throws IOException {

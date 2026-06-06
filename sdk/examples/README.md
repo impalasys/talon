@@ -24,4 +24,12 @@ cd sdk/examples/js && pnpm install && pnpm start
 cd sdk/examples/python && python3 -m venv .venv && . .venv/bin/activate && pip install -e ../../python/talon-client -e ../../python/talon-server . && python main.py
 ```
 
-Each example uses SQLite and the `local_socket` broker through the `talon-server` defaults, so it is suitable for local development and tests rather than production hosting.
+Each example uses SQLite and the `local_socket` broker through the `talon-server` defaults, so it is suitable for local development and tests rather than production hosting. The server helpers also accept a full Talon config object, a caller-owned Talon config path, or a persistent SQLite data directory while still generating the local default config:
+
+- JavaScript: `start({ config: { workspace_dir: ".", control_plane: { database: { driver: "sqlite", data_dir: ".talon-data" }, message_broker: { driver: "local_socket" } } } })`
+- Python: `start(Options(config={"workspace_dir": ".", "control_plane": {"database": {"driver": "sqlite", "data_dir": ".talon-data"}, "message_broker": {"driver": "local_socket"}}}))`
+- Go: `talonserver.Start(ctx, talonserver.Options{Config: map[string]any{"workspace_dir": "."}})`
+- Rust: `Options { config: Some(serde_json::json!({"workspace_dir": "."})), ..Options::default() }`
+- Java: `new Options(null, null, Map.of("workspace_dir", "."), null, null, null, false, Map.of(), Duration.ofSeconds(30), null, null)`
+- Convenience persistence: `dataDir` / `data_dir` / `DataDir`
+- Caller-owned config file: `configPath` / `config_path` / `ConfigPath`

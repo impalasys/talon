@@ -35,6 +35,9 @@ type Provider struct {
 
 type Options struct {
 	TalonNodePath  string
+	ConfigPath     string
+	Config         map[string]any
+	DataDir        string
 	Version        string
 	GrpcPort       int
 	UIPort         int
@@ -83,6 +86,12 @@ func (b *lockedBuffer) String() string {
 }
 
 func Start(ctx context.Context, opts Options) (*Server, error) {
+	if opts.ConfigPath != "" && (opts.Config != nil || opts.DataDir != "" || opts.Provider != nil) {
+		return nil, errors.New("config_path cannot be combined with config, data_dir, or provider; put those settings in the config file")
+	}
+	if opts.Config != nil && opts.Provider != nil {
+		return nil, errors.New("config cannot be combined with provider; put providers in the config object")
+	}
 	if opts.StartupTimeout == 0 {
 		opts.StartupTimeout = 30 * time.Second
 	}
@@ -111,12 +120,50 @@ func Start(ctx context.Context, opts Options) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	configPath := filepath.Join(tempDir, "talon.yaml")
-	if err := os.MkdirAll(filepath.Join(tempDir, "data"), 0o755); err != nil {
-		_ = os.RemoveAll(tempDir)
-		return nil, err
-	}
-	if err := os.WriteFile(configPath, []byte(configYAML(opts.Provider)), 0o600); err != nil {
+	configPath := opts.ConfigPath
+	if configPath == "" {
+		dataDir := opts.DataDir
+		if dataDir != "" {
+			dataDir, err = filepath.Abs(dataDir)
+		}
+		if err != nil {
+			_ = os.RemoveAll(tempDir)
+			return nil, err
+		}
+		var config map[string]any
+		if opts.Config != nil {
+			config, err = configWithDataDir(opts.Config, dataDir)
+		} else {
+			if dataDir == "" {
+				dataDir = filepath.Join(tempDir, "data")
+			}
+			config = defaultConfig(opts.Provider, dataDir)
+		}
+		if err != nil {
+			_ = os.RemoveAll(tempDir)
+			return nil, err
+		}
+		if configDataDir := controlPlaneDataDir(config); configDataDir != "" {
+			if !filepath.IsAbs(configDataDir) {
+				configDataDir = filepath.Join(tempDir, configDataDir)
+			}
+			if err := os.MkdirAll(configDataDir, 0o755); err != nil {
+				_ = os.RemoveAll(tempDir)
+				return nil, err
+			}
+		}
+		data, err := json.MarshalIndent(config, "", "  ")
+		if err != nil {
+			_ = os.RemoveAll(tempDir)
+			return nil, err
+		}
+		data = append(data, '\n')
+		configPath = filepath.Join(tempDir, "talon.json")
+		if err := os.WriteFile(configPath, data, 0o600); err != nil {
+			_ = os.RemoveAll(tempDir)
+			return nil, err
+		}
+	} else if configPath, err = filepath.Abs(configPath); err != nil {
 		_ = os.RemoveAll(tempDir)
 		return nil, err
 	}
@@ -417,27 +464,75 @@ func waitForPort(ctx context.Context, host string, port int, timeout time.Durati
 	return errors.New("timeout")
 }
 
-func configYAML(provider *Provider) string {
-	var providers string
+func defaultConfig(provider *Provider, dataDir string) map[string]any {
+	config := map[string]any{
+		"control_plane": map[string]any{
+			"database": map[string]any{
+				"driver":   "sqlite",
+				"data_dir": dataDir,
+			},
+			"message_broker": map[string]any{
+				"driver": "local_socket",
+			},
+		},
+	}
 	if provider != nil {
 		name := provider.Name
 		if name == "" {
 			name = "mock"
 		}
-		providers = fmt.Sprintf(`providers:
-  %s:
-    type: openai_compatible
-    base_url: %q
-    model: %q
-    api_key: %q
-default_provider: %q
-`, name, provider.BaseURL, provider.Model, provider.APIKey, name)
+		config["providers"] = map[string]any{
+			name: map[string]any{
+				"type":     "openai_compatible",
+				"base_url": provider.BaseURL,
+				"model":    provider.Model,
+				"api_key":  provider.APIKey,
+			},
+		}
+		config["default_provider"] = name
 	}
-	return providers + `control_plane:
-  database:
-    driver: sqlite
-    data_dir: ./data
-  message_broker:
-    driver: local_socket
-`
+	return config
+}
+
+func configWithDataDir(config map[string]any, dataDir string) (map[string]any, error) {
+	data, err := json.Marshal(config)
+	if err != nil {
+		return nil, err
+	}
+	var copy map[string]any
+	if err := json.Unmarshal(data, &copy); err != nil {
+		return nil, err
+	}
+	if dataDir == "" {
+		return copy, nil
+	}
+	controlPlane := ensureMap(copy, "control_plane")
+	database := ensureMap(controlPlane, "database")
+	database["data_dir"] = dataDir
+	return copy, nil
+}
+
+func ensureMap(target map[string]any, key string) map[string]any {
+	if value, ok := target[key].(map[string]any); ok {
+		return value
+	}
+	value := map[string]any{}
+	target[key] = value
+	return value
+}
+
+func controlPlaneDataDir(config map[string]any) string {
+	controlPlane, ok := config["control_plane"].(map[string]any)
+	if !ok {
+		return ""
+	}
+	database, ok := controlPlane["database"].(map[string]any)
+	if !ok {
+		return ""
+	}
+	dataDir, ok := database["data_dir"].(string)
+	if !ok || strings.TrimSpace(dataDir) == "" {
+		return ""
+	}
+	return dataDir
 }

@@ -6,6 +6,9 @@ import java.util.Map;
 
 public record Options(
     Path talonNodePath,
+    Path configPath,
+    Map<String, Object> config,
+    Path dataDir,
     Integer grpcPort,
     Integer uiPort,
     boolean keepTempDir,
@@ -15,6 +18,6 @@ public record Options(
     String jwtSecret
 ) {
     public static Options defaults() {
-        return new Options(null, null, null, false, Map.of(), Duration.ofSeconds(30), null, null);
+        return new Options(null, null, null, null, null, null, false, Map.of(), Duration.ofSeconds(30), null, null);
     }
 }
