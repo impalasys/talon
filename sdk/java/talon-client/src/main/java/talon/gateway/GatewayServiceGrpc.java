@@ -508,6 +508,37 @@ public final class GatewayServiceGrpc {
     return getSendMessageMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.AppendSessionMessageRequest,
+      talon.gateway.Gateway.AppendSessionMessageResponse> getAppendSessionMessageMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "AppendSessionMessage",
+      requestType = talon.gateway.Gateway.AppendSessionMessageRequest.class,
+      responseType = talon.gateway.Gateway.AppendSessionMessageResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.AppendSessionMessageRequest,
+      talon.gateway.Gateway.AppendSessionMessageResponse> getAppendSessionMessageMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.AppendSessionMessageRequest, talon.gateway.Gateway.AppendSessionMessageResponse> getAppendSessionMessageMethod;
+    if ((getAppendSessionMessageMethod = GatewayServiceGrpc.getAppendSessionMessageMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getAppendSessionMessageMethod = GatewayServiceGrpc.getAppendSessionMessageMethod) == null) {
+          GatewayServiceGrpc.getAppendSessionMessageMethod = getAppendSessionMessageMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.AppendSessionMessageRequest, talon.gateway.Gateway.AppendSessionMessageResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "AppendSessionMessage"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.AppendSessionMessageRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.AppendSessionMessageResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("AppendSessionMessage"))
+              .build();
+        }
+      }
+    }
+    return getAppendSessionMessageMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.StopSessionGenerationRequest,
       talon.gateway.Gateway.StopSessionGenerationResponse> getStopSessionGenerationMethod;
 
@@ -1875,6 +1906,13 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    default void appendSessionMessage(talon.gateway.Gateway.AppendSessionMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AppendSessionMessageResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getAppendSessionMessageMethod(), responseObserver);
+    }
+
+    /**
+     */
     default void stopSessionGeneration(talon.gateway.Gateway.StopSessionGenerationRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.StopSessionGenerationResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getStopSessionGenerationMethod(), responseObserver);
@@ -2320,6 +2358,14 @@ public final class GatewayServiceGrpc {
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.SendMessageResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getSendMessageMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void appendSessionMessage(talon.gateway.Gateway.AppendSessionMessageRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AppendSessionMessageResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getAppendSessionMessageMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -2784,6 +2830,13 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    public talon.gateway.Gateway.AppendSessionMessageResponse appendSessionMessage(talon.gateway.Gateway.AppendSessionMessageRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getAppendSessionMessageMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
     public talon.gateway.Gateway.StopSessionGenerationResponse stopSessionGeneration(talon.gateway.Gateway.StopSessionGenerationRequest request) throws io.grpc.StatusException {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getStopSessionGenerationMethod(), getCallOptions(), request);
@@ -3208,6 +3261,13 @@ public final class GatewayServiceGrpc {
     public talon.gateway.Gateway.SendMessageResponse sendMessage(talon.gateway.Gateway.SendMessageRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getSendMessageMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.AppendSessionMessageResponse appendSessionMessage(talon.gateway.Gateway.AppendSessionMessageRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getAppendSessionMessageMethod(), getCallOptions(), request);
     }
 
     /**
@@ -3653,6 +3713,14 @@ public final class GatewayServiceGrpc {
 
     /**
      */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AppendSessionMessageResponse> appendSessionMessage(
+        talon.gateway.Gateway.AppendSessionMessageRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getAppendSessionMessageMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
     public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.StopSessionGenerationResponse> stopSessionGeneration(
         talon.gateway.Gateway.StopSessionGenerationRequest request) {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
@@ -3963,44 +4031,45 @@ public final class GatewayServiceGrpc {
   private static final int METHODID_LIST_SESSIONS = 13;
   private static final int METHODID_DELETE_SESSION = 14;
   private static final int METHODID_SEND_MESSAGE = 15;
-  private static final int METHODID_STOP_SESSION_GENERATION = 16;
-  private static final int METHODID_STREAM_SESSION_PARTS = 17;
-  private static final int METHODID_STREAM_SESSION_PARTS_BATCH = 18;
-  private static final int METHODID_CREATE_CHANNEL = 19;
-  private static final int METHODID_GET_CHANNEL = 20;
-  private static final int METHODID_MODIFY_CHANNEL = 21;
-  private static final int METHODID_LIST_CHANNELS = 22;
-  private static final int METHODID_DELETE_CHANNEL = 23;
-  private static final int METHODID_POST_CHANNEL_MESSAGE = 24;
-  private static final int METHODID_GET_CHANNEL_MESSAGE = 25;
-  private static final int METHODID_LIST_CHANNEL_MESSAGES = 26;
-  private static final int METHODID_CREATE_CHANNEL_SUBSCRIPTION = 27;
-  private static final int METHODID_GET_CHANNEL_SUBSCRIPTION = 28;
-  private static final int METHODID_MODIFY_CHANNEL_SUBSCRIPTION = 29;
-  private static final int METHODID_LIST_CHANNEL_SUBSCRIPTIONS = 30;
-  private static final int METHODID_DELETE_CHANNEL_SUBSCRIPTION = 31;
-  private static final int METHODID_STREAM_CHANNEL_EVENTS = 32;
-  private static final int METHODID_CREATE_SCHEDULE = 33;
-  private static final int METHODID_GET_SCHEDULE = 34;
-  private static final int METHODID_MODIFY_SCHEDULE = 35;
-  private static final int METHODID_LIST_SCHEDULES = 36;
-  private static final int METHODID_DELETE_SCHEDULE = 37;
-  private static final int METHODID_CREATE_NAMESPACE = 38;
-  private static final int METHODID_GET_NAMESPACE = 39;
-  private static final int METHODID_DELETE_NAMESPACE = 40;
-  private static final int METHODID_LIST_NAMESPACES = 41;
-  private static final int METHODID_CREATE_AGENT_TEMPLATE = 42;
-  private static final int METHODID_GET_AGENT_TEMPLATE = 43;
-  private static final int METHODID_LIST_AGENT_TEMPLATES = 44;
-  private static final int METHODID_DELETE_AGENT_TEMPLATE = 45;
-  private static final int METHODID_CREATE_MCP_SERVER = 46;
-  private static final int METHODID_GET_MCP_SERVER = 47;
-  private static final int METHODID_LIST_MCP_SERVERS = 48;
-  private static final int METHODID_DELETE_MCP_SERVER = 49;
-  private static final int METHODID_CREATE_MCP_SERVER_BINDING = 50;
-  private static final int METHODID_GET_MCP_SERVER_BINDING = 51;
-  private static final int METHODID_LIST_MCP_SERVER_BINDINGS = 52;
-  private static final int METHODID_DELETE_MCP_SERVER_BINDING = 53;
+  private static final int METHODID_APPEND_SESSION_MESSAGE = 16;
+  private static final int METHODID_STOP_SESSION_GENERATION = 17;
+  private static final int METHODID_STREAM_SESSION_PARTS = 18;
+  private static final int METHODID_STREAM_SESSION_PARTS_BATCH = 19;
+  private static final int METHODID_CREATE_CHANNEL = 20;
+  private static final int METHODID_GET_CHANNEL = 21;
+  private static final int METHODID_MODIFY_CHANNEL = 22;
+  private static final int METHODID_LIST_CHANNELS = 23;
+  private static final int METHODID_DELETE_CHANNEL = 24;
+  private static final int METHODID_POST_CHANNEL_MESSAGE = 25;
+  private static final int METHODID_GET_CHANNEL_MESSAGE = 26;
+  private static final int METHODID_LIST_CHANNEL_MESSAGES = 27;
+  private static final int METHODID_CREATE_CHANNEL_SUBSCRIPTION = 28;
+  private static final int METHODID_GET_CHANNEL_SUBSCRIPTION = 29;
+  private static final int METHODID_MODIFY_CHANNEL_SUBSCRIPTION = 30;
+  private static final int METHODID_LIST_CHANNEL_SUBSCRIPTIONS = 31;
+  private static final int METHODID_DELETE_CHANNEL_SUBSCRIPTION = 32;
+  private static final int METHODID_STREAM_CHANNEL_EVENTS = 33;
+  private static final int METHODID_CREATE_SCHEDULE = 34;
+  private static final int METHODID_GET_SCHEDULE = 35;
+  private static final int METHODID_MODIFY_SCHEDULE = 36;
+  private static final int METHODID_LIST_SCHEDULES = 37;
+  private static final int METHODID_DELETE_SCHEDULE = 38;
+  private static final int METHODID_CREATE_NAMESPACE = 39;
+  private static final int METHODID_GET_NAMESPACE = 40;
+  private static final int METHODID_DELETE_NAMESPACE = 41;
+  private static final int METHODID_LIST_NAMESPACES = 42;
+  private static final int METHODID_CREATE_AGENT_TEMPLATE = 43;
+  private static final int METHODID_GET_AGENT_TEMPLATE = 44;
+  private static final int METHODID_LIST_AGENT_TEMPLATES = 45;
+  private static final int METHODID_DELETE_AGENT_TEMPLATE = 46;
+  private static final int METHODID_CREATE_MCP_SERVER = 47;
+  private static final int METHODID_GET_MCP_SERVER = 48;
+  private static final int METHODID_LIST_MCP_SERVERS = 49;
+  private static final int METHODID_DELETE_MCP_SERVER = 50;
+  private static final int METHODID_CREATE_MCP_SERVER_BINDING = 51;
+  private static final int METHODID_GET_MCP_SERVER_BINDING = 52;
+  private static final int METHODID_LIST_MCP_SERVER_BINDINGS = 53;
+  private static final int METHODID_DELETE_MCP_SERVER_BINDING = 54;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -4082,6 +4151,10 @@ public final class GatewayServiceGrpc {
         case METHODID_SEND_MESSAGE:
           serviceImpl.sendMessage((talon.gateway.Gateway.SendMessageRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.SendMessageResponse>) responseObserver);
+          break;
+        case METHODID_APPEND_SESSION_MESSAGE:
+          serviceImpl.appendSessionMessage((talon.gateway.Gateway.AppendSessionMessageRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AppendSessionMessageResponse>) responseObserver);
           break;
         case METHODID_STOP_SESSION_GENERATION:
           serviceImpl.stopSessionGeneration((talon.gateway.Gateway.StopSessionGenerationRequest) request,
@@ -4365,6 +4438,13 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.SendMessageRequest,
               talon.gateway.Gateway.SendMessageResponse>(
                 service, METHODID_SEND_MESSAGE)))
+        .addMethod(
+          getAppendSessionMessageMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.AppendSessionMessageRequest,
+              talon.gateway.Gateway.AppendSessionMessageResponse>(
+                service, METHODID_APPEND_SESSION_MESSAGE)))
         .addMethod(
           getStopSessionGenerationMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -4695,6 +4775,7 @@ public final class GatewayServiceGrpc {
               .addMethod(getListSessionsMethod())
               .addMethod(getDeleteSessionMethod())
               .addMethod(getSendMessageMethod())
+              .addMethod(getAppendSessionMessageMethod())
               .addMethod(getStopSessionGenerationMethod())
               .addMethod(getStreamSessionPartsMethod())
               .addMethod(getStreamSessionPartsBatchMethod())

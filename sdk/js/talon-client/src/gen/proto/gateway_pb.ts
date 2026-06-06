@@ -3631,6 +3631,104 @@ export class SendMessageResponse extends Message<SendMessageResponse> {
 }
 
 /**
+ * @generated from message talon.gateway.AppendSessionMessageRequest
+ */
+export class AppendSessionMessageRequest extends Message<AppendSessionMessageRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: talon.models.SessionMessage message = 4;
+   */
+  message?: SessionMessage;
+
+  constructor(data?: PartialMessage<AppendSessionMessageRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.AppendSessionMessageRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "message", kind: "message", T: SessionMessage },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AppendSessionMessageRequest {
+    return new AppendSessionMessageRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AppendSessionMessageRequest {
+    return new AppendSessionMessageRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AppendSessionMessageRequest {
+    return new AppendSessionMessageRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AppendSessionMessageRequest | PlainMessage<AppendSessionMessageRequest> | undefined, b: AppendSessionMessageRequest | PlainMessage<AppendSessionMessageRequest> | undefined): boolean {
+    return proto3.util.equals(AppendSessionMessageRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.AppendSessionMessageResponse
+ */
+export class AppendSessionMessageResponse extends Message<AppendSessionMessageResponse> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: talon.models.SessionMessage message = 2;
+   */
+  message?: SessionMessage;
+
+  constructor(data?: PartialMessage<AppendSessionMessageResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.AppendSessionMessageResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "message", kind: "message", T: SessionMessage },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AppendSessionMessageResponse {
+    return new AppendSessionMessageResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AppendSessionMessageResponse {
+    return new AppendSessionMessageResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AppendSessionMessageResponse {
+    return new AppendSessionMessageResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AppendSessionMessageResponse | PlainMessage<AppendSessionMessageResponse> | undefined, b: AppendSessionMessageResponse | PlainMessage<AppendSessionMessageResponse> | undefined): boolean {
+    return proto3.util.equals(AppendSessionMessageResponse, a, b);
+  }
+}
+
+/**
  * @generated from message talon.gateway.StopSessionGenerationRequest
  */
 export class StopSessionGenerationRequest extends Message<StopSessionGenerationRequest> {

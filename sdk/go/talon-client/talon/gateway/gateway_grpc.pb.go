@@ -36,6 +36,7 @@ const (
 	GatewayService_ListSessions_FullMethodName              = "/talon.gateway.GatewayService/ListSessions"
 	GatewayService_DeleteSession_FullMethodName             = "/talon.gateway.GatewayService/DeleteSession"
 	GatewayService_SendMessage_FullMethodName               = "/talon.gateway.GatewayService/SendMessage"
+	GatewayService_AppendSessionMessage_FullMethodName      = "/talon.gateway.GatewayService/AppendSessionMessage"
 	GatewayService_StopSessionGeneration_FullMethodName     = "/talon.gateway.GatewayService/StopSessionGeneration"
 	GatewayService_StreamSessionParts_FullMethodName        = "/talon.gateway.GatewayService/StreamSessionParts"
 	GatewayService_StreamSessionPartsBatch_FullMethodName   = "/talon.gateway.GatewayService/StreamSessionPartsBatch"
@@ -100,6 +101,7 @@ type GatewayServiceClient interface {
 	DeleteSession(ctx context.Context, in *DeleteSessionRequest, opts ...grpc.CallOption) (*DeleteSessionResponse, error)
 	// Interactive Comm
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
+	AppendSessionMessage(ctx context.Context, in *AppendSessionMessageRequest, opts ...grpc.CallOption) (*AppendSessionMessageResponse, error)
 	StopSessionGeneration(ctx context.Context, in *StopSessionGenerationRequest, opts ...grpc.CallOption) (*StopSessionGenerationResponse, error)
 	StreamSessionParts(ctx context.Context, in *StreamSessionPartsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
 	StreamSessionPartsBatch(ctx context.Context, in *StreamSessionPartsBatchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
@@ -307,6 +309,16 @@ func (c *gatewayServiceClient) SendMessage(ctx context.Context, in *SendMessageR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SendMessageResponse)
 	err := c.cc.Invoke(ctx, GatewayService_SendMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) AppendSessionMessage(ctx context.Context, in *AppendSessionMessageRequest, opts ...grpc.CallOption) (*AppendSessionMessageResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AppendSessionMessageResponse)
+	err := c.cc.Invoke(ctx, GatewayService_AppendSessionMessage_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -744,6 +756,7 @@ type GatewayServiceServer interface {
 	DeleteSession(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error)
 	// Interactive Comm
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
+	AppendSessionMessage(context.Context, *AppendSessionMessageRequest) (*AppendSessionMessageResponse, error)
 	StopSessionGeneration(context.Context, *StopSessionGenerationRequest) (*StopSessionGenerationResponse, error)
 	StreamSessionParts(*StreamSessionPartsRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
 	StreamSessionPartsBatch(*StreamSessionPartsBatchRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
@@ -844,6 +857,9 @@ func (UnimplementedGatewayServiceServer) DeleteSession(context.Context, *DeleteS
 }
 func (UnimplementedGatewayServiceServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
+}
+func (UnimplementedGatewayServiceServer) AppendSessionMessage(context.Context, *AppendSessionMessageRequest) (*AppendSessionMessageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AppendSessionMessage not implemented")
 }
 func (UnimplementedGatewayServiceServer) StopSessionGeneration(context.Context, *StopSessionGenerationRequest) (*StopSessionGenerationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopSessionGeneration not implemented")
@@ -1264,6 +1280,24 @@ func _GatewayService_SendMessage_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GatewayServiceServer).SendMessage(ctx, req.(*SendMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_AppendSessionMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AppendSessionMessageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).AppendSessionMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_AppendSessionMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).AppendSessionMessage(ctx, req.(*AppendSessionMessageRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2001,6 +2035,10 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendMessage",
 			Handler:    _GatewayService_SendMessage_Handler,
+		},
+		{
+			MethodName: "AppendSessionMessage",
+			Handler:    _GatewayService_AppendSessionMessage_Handler,
 		},
 		{
 			MethodName: "StopSessionGeneration",

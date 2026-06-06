@@ -63,6 +63,30 @@ fn stream_session_batch_max() -> usize {
     })
 }
 
+fn normalize_appended_session_message(
+    mut message: models::SessionMessage,
+) -> models::SessionMessage {
+    let now_micros = chrono::Utc::now().timestamp_micros();
+    if message.id.is_empty() {
+        message.id = uuid::Uuid::now_v7().to_string();
+    }
+    if message.role == models::MessageRole::RoleUnspecified as i32 {
+        message.role = models::MessageRole::RoleUser as i32;
+    }
+    if message.created_at == 0 {
+        message.created_at = now_micros;
+    }
+    for (index, part) in message.parts.iter_mut().enumerate() {
+        if part.id.is_empty() {
+            part.id = format!("{index:06}");
+        }
+        if part.created_at == 0 {
+            part.created_at = message.created_at;
+        }
+    }
+    message
+}
+
 fn parse_session_stream_target(
     name: &str,
 ) -> std::result::Result<SessionStreamTarget, tonic::Status> {
@@ -614,6 +638,66 @@ impl GrpcGatewayHandler {
         Ok(tonic::Response::new(proto::SendMessageResponse {
             reply: "".to_string(), // In async design, reply is polled or streamed later
             session_id: req.session_id,
+        }))
+    }
+
+    pub async fn handle_append_session_message(
+        &self,
+        req: tonic::Request<proto::AppendSessionMessageRequest>,
+    ) -> std::result::Result<tonic::Response<proto::AppendSessionMessageResponse>, tonic::Status>
+    {
+        crate::require_auth!(
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+
+        let session_db_key = keys::session(&req.ns, &req.agent, &req.session_id);
+        let mut session = self
+            .gateway
+            .kv
+            .get_msg::<models::Session>(&session_db_key)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?;
+        let session = session
+            .as_mut()
+            .ok_or_else(|| tonic::Status::not_found("Session not found"))?;
+
+        let message = normalize_appended_session_message(
+            req.message
+                .ok_or_else(|| tonic::Status::invalid_argument("message is required"))?,
+        );
+        if message.parts.is_empty() {
+            return Err(tonic::Status::invalid_argument(
+                "message must contain at least one part",
+            ));
+        }
+        let message_key = keys::session_message(&req.ns, &req.agent, &req.session_id, &message.id);
+        let inserted = self
+            .gateway
+            .kv
+            .compare_and_swap(&message_key, None, &message.encode_to_vec())
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to append message: {}", e)))?;
+        if !inserted {
+            return Err(tonic::Status::already_exists(
+                "Session message already exists",
+            ));
+        }
+
+        session.last_active = message.created_at;
+        self.gateway
+            .kv
+            .set_msg(&session_db_key, session)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to update session: {}", e)))?;
+
+        Ok(tonic::Response::new(proto::AppendSessionMessageResponse {
+            session_id: req.session_id,
+            message: Some(message),
         }))
     }
 

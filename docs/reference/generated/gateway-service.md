@@ -9,7 +9,7 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 
 - Service: `talon.gateway.GatewayService`
 - Transport modes: gRPC, gRPC-web, REST via `google.api.http` annotations, and the browser-oriented `/v1/ui/... ` stream path documented separately in the hand-written guides
-- Total RPC methods: **38**
+- Total RPC methods: **55**
 
 ## Agents
 
@@ -94,6 +94,12 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Response: `SessionResponse`
 - REST mapping: `GET /v1/ns/{ns}/agents/{agent}/sessions/{session_id}`
 
+### `ListSessionMessages`
+
+- Request: `ListSessionMessagesRequest`
+- Response: `ListSessionMessagesResponse`
+- REST mapping: `GET /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages`
+
 ### `ListSessions`
 
 - Request: `ListSessionsRequest`
@@ -113,6 +119,13 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/message`
 - REST body: `*`
 
+### `AppendSessionMessage`
+
+- Request: `AppendSessionMessageRequest`
+- Response: `AppendSessionMessageResponse`
+- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages:append`
+- REST body: `*`
+
 ### `StopSessionGeneration`
 
 - Request: `StopSessionGenerationRequest`
@@ -120,10 +133,10 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}:stop`
 - REST body: `*`
 
-### `StreamSessionSteps`
+### `StreamSessionParts`
 
-- Request: `StreamSessionStepsRequest`
-- Response: `talon.events.SessionStepEvent` (server stream)
+- Request: `StreamSessionPartsRequest`
+- Response: `talon.events.SessionMessagePartEvent` (server stream)
 - REST mapping: `GET /v1/ns/{ns}/agents/{agent}/sessions/{session_id}/stream`
 
 ## Schedules
@@ -265,3 +278,103 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Request: `DeleteMcpServerBindingRequest`
 - Response: `DeleteMcpServerBindingResponse`
 - REST mapping: `DELETE /v1/namespaces/{ns}/mcp-bindings/{name}`
+
+## Other
+
+### `StreamSessionPartsBatch`
+
+- Request: `StreamSessionPartsBatchRequest`
+- Response: `talon.events.SessionMessagePartEvent` (server stream)
+- REST mapping: `POST /v1/session-streams:batch`
+- REST body: `*`
+
+### `CreateChannel`
+
+Channels
+
+- Request: `CreateChannelRequest`
+- Response: `ChannelResponse`
+- REST mapping: `POST /v1/ns/{ns}/channels`
+- REST body: `*`
+
+### `GetChannel`
+
+- Request: `GetChannelRequest`
+- Response: `ChannelResponse`
+- REST mapping: `GET /v1/ns/{ns}/channels/{name}`
+
+### `ModifyChannel`
+
+- Request: `ModifyChannelRequest`
+- Response: `ChannelResponse`
+- REST mapping: `PUT /v1/ns/{ns}/channels/{name}`
+- REST body: `*`
+
+### `ListChannels`
+
+- Request: `ListChannelsRequest`
+- Response: `ListChannelsResponse`
+- REST mapping: `GET /v1/ns/{ns}/channels`
+
+### `DeleteChannel`
+
+- Request: `DeleteChannelRequest`
+- Response: `DeleteChannelResponse`
+- REST mapping: `DELETE /v1/ns/{ns}/channels/{name}`
+
+### `PostChannelMessage`
+
+- Request: `PostChannelMessageRequest`
+- Response: `PostChannelMessageResponse`
+- REST mapping: `POST /v1/ns/{ns}/channels/{channel}/messages`
+- REST body: `*`
+
+### `GetChannelMessage`
+
+- Request: `GetChannelMessageRequest`
+- Response: `ChannelMessageResponse`
+- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/messages/{message_id}`
+
+### `ListChannelMessages`
+
+- Request: `ListChannelMessagesRequest`
+- Response: `ListChannelMessagesResponse`
+- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/messages`
+
+### `CreateChannelSubscription`
+
+- Request: `CreateChannelSubscriptionRequest`
+- Response: `ChannelSubscriptionResponse`
+- REST mapping: `POST /v1/ns/{ns}/channels/{channel}/subscriptions`
+- REST body: `*`
+
+### `GetChannelSubscription`
+
+- Request: `GetChannelSubscriptionRequest`
+- Response: `ChannelSubscriptionResponse`
+- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/subscriptions/{name}`
+
+### `ModifyChannelSubscription`
+
+- Request: `ModifyChannelSubscriptionRequest`
+- Response: `ChannelSubscriptionResponse`
+- REST mapping: `PUT /v1/ns/{ns}/channels/{channel}/subscriptions/{name}`
+- REST body: `*`
+
+### `ListChannelSubscriptions`
+
+- Request: `ListChannelSubscriptionsRequest`
+- Response: `ListChannelSubscriptionsResponse`
+- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/subscriptions`
+
+### `DeleteChannelSubscription`
+
+- Request: `DeleteChannelSubscriptionRequest`
+- Response: `DeleteChannelSubscriptionResponse`
+- REST mapping: `DELETE /v1/ns/{ns}/channels/{channel}/subscriptions/{name}`
+
+### `StreamChannelEvents`
+
+- Request: `StreamChannelEventsRequest`
+- Response: `talon.events.ChannelEvent` (server stream)
+- REST mapping: `GET /v1/ns/{ns}/channels/{channel}/stream`
