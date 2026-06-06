@@ -1,0 +1,7 @@
+{
+  "$schema": "https://www.chromatic.com/config-file.schema.json",
+  "buildScriptName": "build-storybook",
+  "storybookBaseDir": "packages/talon-chat",
+  "onlyChanged": true,
+  "exitZeroOnChanges": true
+}

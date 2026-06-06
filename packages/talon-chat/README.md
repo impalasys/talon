@@ -13,11 +13,11 @@ pnpm add @impalasys/talon-chat
 ## Usage
 
 ```tsx
-import { TalonCopilot } from "@impalasys/talon-chat";
+import { TalonSession } from "@impalasys/talon-chat";
 
 export function App() {
   return (
-    <TalonCopilot
+    <TalonSession
       namespace="support"
       agent="docs"
       gatewayUrl="http://localhost:18789"
@@ -30,7 +30,7 @@ export function App() {
 You can also inject a gateway client for session CRUD:
 
 ```tsx
-<TalonCopilot
+<TalonSession
   namespace="support"
   agent="docs"
   gatewayUrl="http://localhost:18789"
@@ -39,6 +39,8 @@ You can also inject a gateway client for session CRUD:
   onSessionChange={(nextSessionId) => setSessionId(nextSessionId)}
 />
 ```
+
+`TalonCopilot` is still exported as an alias for existing integrations.
 
 Channels can be rendered with the same package:
 
@@ -69,3 +71,25 @@ talon-cli --jwt-secret "$GATEWAY_JWT_SECRET" auth channel-token \
 ```
 
 The token is scoped to channel message APIs for that namespace/channel only.
+
+## Storybook and Chromatic
+
+Run the component preview locally:
+
+```bash
+pnpm --filter @impalasys/talon-chat storybook
+```
+
+Build the static Storybook:
+
+```bash
+pnpm --filter @impalasys/talon-chat build-storybook
+```
+
+Publish visual snapshots to Chromatic:
+
+```bash
+CHROMATIC_PROJECT_TOKEN=chpt_... pnpm --filter @impalasys/talon-chat chromatic
+```
+
+GitHub Actions also publishes Chromatic builds for `packages/talon-chat` changes. Configure the repository secret `CHROMATIC_PROJECT_TOKEN` before enabling that check.
