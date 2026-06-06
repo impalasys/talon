@@ -653,6 +653,35 @@ mod tests {
                 .session_id,
             session_id
         );
+        assert_eq!(
+            handler
+                .append_session_message(tonic::Request::new(proto::AppendSessionMessageRequest {
+                    session_id: session_id.clone(),
+                    agent: "agent-1".to_string(),
+                    ns: "acme".to_string(),
+                    message: Some(models::SessionMessage {
+                        id: "manual-message".to_string(),
+                        role: models::MessageRole::RoleSystem as i32,
+                        created_at: 0,
+                        labels: HashMap::new(),
+                        parts: vec![models::SessionMessagePart {
+                            id: String::new(),
+                            part_type: models::SessionMessagePartType::Text as i32,
+                            content: "manual note".to_string(),
+                            name: String::new(),
+                            payload_json: String::new(),
+                            created_at: 0,
+                        }],
+                    }),
+                }))
+                .await
+                .unwrap()
+                .into_inner()
+                .message
+                .and_then(|message| message.parts.into_iter().next())
+                .map(|part| part.content),
+            Some("manual note".to_string())
+        );
         assert!(
             handler
                 .stop_session_generation(tonic::Request::new(proto::StopSessionGenerationRequest {

@@ -105,6 +105,13 @@ service GatewayService {
     };
   }
 
+  rpc AppendSessionMessage(AppendSessionMessageRequest) returns (AppendSessionMessageResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}/messages:append"
+      body: "*"
+    };
+  }
+
   rpc StopSessionGeneration(StopSessionGenerationRequest) returns (StopSessionGenerationResponse) {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}:stop"
@@ -772,6 +779,18 @@ message SendMessageRequest {
 message SendMessageResponse {
   string reply = 1;
   string session_id = 4;
+}
+
+message AppendSessionMessageRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+  talon.models.SessionMessage message = 4;
+}
+
+message AppendSessionMessageResponse {
+  string session_id = 1;
+  talon.models.SessionMessage message = 2;
 }
 
 message StopSessionGenerationRequest {

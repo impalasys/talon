@@ -104,6 +104,15 @@ Metadata for finding and grouping manifests
 | `provider` | `string` | - |
 | `name` | `string` | - |
 | `temperature` | `float` | - |
+| `thinking` | `ThinkingConfig` | - |
+
+## `ThinkingConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `enabled` | `bool` | - |
+| `budget_tokens` | `uint32` | optional |
+| `effort` | `string` | - |
 
 ## `ModelProfile`
 

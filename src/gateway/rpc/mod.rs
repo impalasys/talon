@@ -292,6 +292,13 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::SendMessageResponse>, tonic::Status> {
         self.handle_send_message(req).await
     }
+    async fn append_session_message(
+        &self,
+        req: tonic::Request<proto::AppendSessionMessageRequest>,
+    ) -> std::result::Result<tonic::Response<proto::AppendSessionMessageResponse>, tonic::Status>
+    {
+        self.handle_append_session_message(req).await
+    }
     async fn stop_session_generation(
         &self,
         req: tonic::Request<proto::StopSessionGenerationRequest>,

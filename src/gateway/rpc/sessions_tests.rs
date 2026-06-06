@@ -911,6 +911,131 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_append_session_message_persists_without_dispatching_agent() {
+        let kv = Arc::new(MockKvStore::default());
+        let pubsub = Arc::new(RecordingPubSub::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), pubsub.clone());
+
+        kv.set_msg(
+            &keys::session("default", "test-agent", "busy-session"),
+            &models::Session {
+                id: "busy-session".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 100,
+                last_active: chrono::Utc::now().timestamp_micros(),
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_append_session_message(tonic::Request::new(
+                proto::AppendSessionMessageRequest {
+                    session_id: "busy-session".to_string(),
+                    agent: "test-agent".to_string(),
+                    ns: "default".to_string(),
+                    message: Some(models::SessionMessage {
+                        id: "manual-message".to_string(),
+                        role: models::MessageRole::RoleAssistant as i32,
+                        created_at: 0,
+                        labels: HashMap::from([("source".to_string(), "test".to_string())]),
+                        parts: vec![text_part("manual note")],
+                    }),
+                },
+            ))
+            .await
+            .unwrap()
+            .into_inner();
+
+        let message = response
+            .message
+            .expect("appended message should be returned");
+        assert_eq!(response.session_id, "busy-session");
+        assert_eq!(message.id, "manual-message");
+        assert_eq!(message_text(&message), "manual note");
+        assert!(message.created_at > 0);
+        assert!(message.parts[0].created_at > 0);
+
+        let stored = kv
+            .get_msg::<models::SessionMessage>(&keys::session_message(
+                "default",
+                "test-agent",
+                "busy-session",
+                "manual-message",
+            ))
+            .await
+            .unwrap()
+            .expect("message should be stored");
+        assert_eq!(message_text(&stored), "manual note");
+
+        let stored_session = kv
+            .get_msg::<models::Session>(&keys::session("default", "test-agent", "busy-session"))
+            .await
+            .unwrap()
+            .expect("session should exist");
+        assert_eq!(stored_session.last_active, message.created_at);
+
+        let published = pubsub.published.lock().await;
+        assert!(published.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_append_session_message_rejects_empty_parts() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+
+        kv.set_msg(
+            &keys::session("default", "test-agent", "session-1"),
+            &models::Session {
+                id: "session-1".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+                status: "IDLE".to_string(),
+                created_at: 100,
+                last_active: 200,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let err = handler
+            .handle_append_session_message(tonic::Request::new(
+                proto::AppendSessionMessageRequest {
+                    session_id: "session-1".to_string(),
+                    agent: "test-agent".to_string(),
+                    ns: "default".to_string(),
+                    message: Some(models::SessionMessage {
+                        id: "empty-message".to_string(),
+                        role: models::MessageRole::RoleUser as i32,
+                        created_at: 0,
+                        labels: HashMap::new(),
+                        parts: Vec::new(),
+                    }),
+                },
+            ))
+            .await
+            .expect_err("empty message parts should fail");
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
+
+        let stored = kv
+            .get_msg::<models::SessionMessage>(&keys::session_message(
+                "default",
+                "test-agent",
+                "session-1",
+                "empty-message",
+            ))
+            .await
+            .unwrap();
+        assert!(stored.is_none());
+    }
+
+    #[tokio::test]
     async fn test_stream_session_parts() {
         let pubsub = Arc::new(RecordingPubSub::default());
 

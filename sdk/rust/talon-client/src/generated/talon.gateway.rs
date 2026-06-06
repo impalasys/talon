@@ -617,6 +617,24 @@ pub struct SendMessageResponse {
     pub session_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AppendSessionMessageRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "4")]
+    pub message: ::core::option::Option<super::models::SessionMessage>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AppendSessionMessageResponse {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub message: ::core::option::Option<super::models::SessionMessage>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StopSessionGenerationRequest {
     #[prost(string, tag = "1")]
     pub session_id: ::prost::alloc::string::String,
@@ -1196,6 +1214,35 @@ pub mod gateway_service_client {
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(GrpcMethod::new("talon.gateway.GatewayService", "SendMessage"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn append_session_message(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AppendSessionMessageRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AppendSessionMessageResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/AppendSessionMessage",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "talon.gateway.GatewayService",
+                        "AppendSessionMessage",
+                    ),
+                );
             self.inner.unary(req, path, codec).await
         }
         pub async fn stop_session_generation(
