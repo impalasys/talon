@@ -256,6 +256,12 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::DeleteSessionResponse>, tonic::Status> {
         self.handle_delete_session(req).await
     }
+    async fn clear_session(
+        &self,
+        req: tonic::Request<proto::ClearSessionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ClearSessionResponse>, tonic::Status> {
+        self.handle_clear_session(req).await
+    }
     async fn create_schedule(
         &self,
         req: tonic::Request<proto::CreateScheduleRequest>,

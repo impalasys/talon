@@ -110,6 +110,11 @@ class GatewayServiceStub(object):
                 request_serializer=proto_dot_gateway__pb2.DeleteSessionRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.DeleteSessionResponse.FromString,
                 _registered_method=True)
+        self.ClearSession = channel.unary_unary(
+                '/talon.gateway.GatewayService/ClearSession',
+                request_serializer=proto_dot_gateway__pb2.ClearSessionRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ClearSessionResponse.FromString,
+                _registered_method=True)
         self.SendMessage = channel.unary_unary(
                 '/talon.gateway.GatewayService/SendMessage',
                 request_serializer=proto_dot_gateway__pb2.SendMessageRequest.SerializeToString,
@@ -403,6 +408,12 @@ class GatewayServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def DeleteSession(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ClearSession(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -731,6 +742,11 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     servicer.DeleteSession,
                     request_deserializer=proto_dot_gateway__pb2.DeleteSessionRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.DeleteSessionResponse.SerializeToString,
+            ),
+            'ClearSession': grpc.unary_unary_rpc_method_handler(
+                    servicer.ClearSession,
+                    request_deserializer=proto_dot_gateway__pb2.ClearSessionRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ClearSessionResponse.SerializeToString,
             ),
             'SendMessage': grpc.unary_unary_rpc_method_handler(
                     servicer.SendMessage,
@@ -1338,6 +1354,33 @@ class GatewayService(object):
             '/talon.gateway.GatewayService/DeleteSession',
             proto_dot_gateway__pb2.DeleteSessionRequest.SerializeToString,
             proto_dot_gateway__pb2.DeleteSessionResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ClearSession(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/ClearSession',
+            proto_dot_gateway__pb2.ClearSessionRequest.SerializeToString,
+            proto_dot_gateway__pb2.ClearSessionResponse.FromString,
             options,
             channel_credentials,
             insecure,

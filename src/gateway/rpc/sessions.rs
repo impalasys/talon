@@ -15,6 +15,7 @@ const DEFAULT_SESSION_MESSAGES_PAGE_SIZE: usize = 50;
 const MAX_SESSION_MESSAGES_PAGE_SIZE: usize = 200;
 const SESSION_MESSAGE_KEY_SCAN_BATCH_SIZE: usize = 512;
 const DEFAULT_SESSION_STREAM_BATCH_MAX: usize = 10_000;
+const CLEAR_SESSION_CAS_RETRIES: usize = 8;
 
 async fn delete_descendants(kv: &dyn KeyValueStore, parent: ResourceParent) -> anyhow::Result<()> {
     let mut stack = vec![parent];
@@ -113,6 +114,91 @@ fn parse_session_stream_target(
         key.namespace,
         parent_segments[0].name.clone(),
         key.name,
+    ))
+}
+
+async fn acquire_clear_session_lock(
+    kv: &dyn KeyValueStore,
+    key: &keys::ResourceKey,
+    now_micros: i64,
+) -> std::result::Result<(), tonic::Status> {
+    for _ in 0..CLEAR_SESSION_CAS_RETRIES {
+        let current = kv
+            .get(key)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?;
+        let Some(current_bytes) = current.as_ref() else {
+            return Err(tonic::Status::not_found("Session not found"));
+        };
+        let mut session = models::Session::decode(current_bytes.as_slice())
+            .map_err(|e| tonic::Status::internal(format!("Failed to decode session: {}", e)))?;
+
+        if session.status == "PROCESSING"
+            && now_micros.saturating_sub(session.last_active)
+                <= scheduling::session_processing_timeout_micros()
+        {
+            return Err(tonic::Status::resource_exhausted(
+                "Session is currently generating a response.",
+            ));
+        }
+
+        session.status = "PROCESSING".to_string();
+        session.last_active = now_micros;
+        let updated = session.encode_to_vec();
+        if kv
+            .compare_and_swap(key, Some(current_bytes.as_slice()), &updated)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to acquire session lock: {}", e))
+            })?
+        {
+            return Ok(());
+        }
+    }
+
+    Err(tonic::Status::internal(
+        "Failed to atomically acquire session lock",
+    ))
+}
+
+async fn release_clear_session_lock(
+    kv: &dyn KeyValueStore,
+    key: &keys::ResourceKey,
+    expected_last_active: i64,
+) -> std::result::Result<(), tonic::Status> {
+    for _ in 0..CLEAR_SESSION_CAS_RETRIES {
+        let current = kv
+            .get(key)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?;
+        let Some(current_bytes) = current.as_ref() else {
+            return Err(tonic::Status::not_found("Session not found"));
+        };
+        let mut session = models::Session::decode(current_bytes.as_slice())
+            .map_err(|e| tonic::Status::internal(format!("Failed to decode session: {}", e)))?;
+
+        if session.status != "PROCESSING" || session.last_active != expected_last_active {
+            return Err(tonic::Status::internal(
+                "Session changed while clearing context",
+            ));
+        }
+
+        session.status = "IDLE".to_string();
+        session.last_active = expected_last_active;
+        let updated = session.encode_to_vec();
+        if kv
+            .compare_and_swap(key, Some(current_bytes.as_slice()), &updated)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to release session lock: {}", e))
+            })?
+        {
+            return Ok(());
+        }
+    }
+
+    Err(tonic::Status::internal(
+        "Failed to atomically release session lock",
     ))
 }
 
@@ -585,6 +671,52 @@ impl GrpcGatewayHandler {
             .map_err(|e| tonic::Status::internal(format!("Failed to publish event: {}", e)))?;
 
         Ok(tonic::Response::new(proto::DeleteSessionResponse {
+            success: true,
+        }))
+    }
+
+    pub async fn handle_clear_session(
+        &self,
+        req: tonic::Request<proto::ClearSessionRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ClearSessionResponse>, tonic::Status> {
+        crate::require_auth!(
+            self,
+            req,
+            &req.get_ref().ns,
+            &req.get_ref().agent,
+            &req.get_ref().session_id
+        );
+        let req = req.into_inner();
+
+        let session_db_key = keys::session(&req.ns, &req.agent, &req.session_id);
+        let now_micros = chrono::Utc::now().timestamp_micros();
+        acquire_clear_session_lock(self.gateway.kv.as_ref(), &session_db_key, now_micros).await?;
+
+        if let Err(e) = delete_descendants(
+            self.gateway.kv.as_ref(),
+            keys::session_parent(&req.ns, &req.agent, &req.session_id),
+        )
+        .await
+        {
+            if let Err(release_err) =
+                release_clear_session_lock(self.gateway.kv.as_ref(), &session_db_key, now_micros)
+                    .await
+            {
+                tracing::warn!(
+                    key = %session_db_key,
+                    error = %release_err,
+                    "failed to release session lock after clear_session error"
+                );
+            }
+            return Err(tonic::Status::internal(format!(
+                "Failed to clear session descendants: {}",
+                e
+            )));
+        }
+
+        release_clear_session_lock(self.gateway.kv.as_ref(), &session_db_key, now_micros).await?;
+
+        Ok(tonic::Response::new(proto::ClearSessionResponse {
             success: true,
         }))
     }

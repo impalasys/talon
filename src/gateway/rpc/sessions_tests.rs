@@ -1485,6 +1485,252 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_clear_session_removes_messages_but_keeps_session() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+
+        let ns = "default";
+        let agent = "test-agent";
+        let session_id = "session-1";
+        let message_id = "msg-1";
+        let labels = HashMap::from([("topic".to_string(), "support".to_string())]);
+        let session = models::Session {
+            id: session_id.to_string(),
+            agent: agent.to_string(),
+            ns: ns.to_string(),
+            status: "IDLE".to_string(),
+            created_at: 100,
+            last_active: 200,
+            metadata: HashMap::new(),
+            labels: labels.clone(),
+        };
+        let message = models::SessionMessage {
+            id: message_id.to_string(),
+            role: 1,
+            created_at: 300,
+            labels: HashMap::new(),
+            parts: vec![text_part("hello")],
+        };
+        kv.set_msg(&keys::session(ns, agent, session_id), &session)
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::session_message(ns, agent, session_id, message_id),
+            &message,
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_clear_session(tonic::Request::new(proto::ClearSessionRequest {
+                session_id: session_id.to_string(),
+                agent: agent.to_string(),
+                ns: ns.to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert!(response.success);
+        let session = kv
+            .get_msg::<models::Session>(&keys::session(ns, agent, session_id))
+            .await
+            .unwrap()
+            .expect("session should remain after clearing");
+        assert_eq!(session.status, "IDLE");
+        assert_eq!(session.labels, labels);
+        assert!(session.last_active > 200);
+        assert!(kv
+            .list_keys(&keys::session_message_prefix(ns, agent, session_id))
+            .await
+            .unwrap()
+            .is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_clear_session_requires_existing_idle_session() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+
+        let missing = handler
+            .handle_clear_session(tonic::Request::new(proto::ClearSessionRequest {
+                session_id: "missing".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+            }))
+            .await
+            .expect_err("missing session should fail");
+        assert_eq!(missing.code(), tonic::Code::NotFound);
+
+        kv.set_msg(
+            &keys::session("default", "test-agent", "busy-session"),
+            &models::Session {
+                id: "busy-session".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 100,
+                last_active: chrono::Utc::now().timestamp_micros(),
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::session_message("default", "test-agent", "busy-session", "msg-1"),
+            &models::SessionMessage {
+                id: "msg-1".to_string(),
+                role: 1,
+                created_at: 300,
+                labels: HashMap::new(),
+                parts: vec![text_part("keep me")],
+            },
+        )
+        .await
+        .unwrap();
+
+        let busy = handler
+            .handle_clear_session(tonic::Request::new(proto::ClearSessionRequest {
+                session_id: "busy-session".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+            }))
+            .await
+            .expect_err("processing session should fail");
+        assert_eq!(busy.code(), tonic::Code::ResourceExhausted);
+        assert!(kv
+            .get_msg::<models::SessionMessage>(&keys::session_message(
+                "default",
+                "test-agent",
+                "busy-session",
+                "msg-1",
+            ))
+            .await
+            .unwrap()
+            .is_some());
+    }
+
+    #[tokio::test]
+    async fn test_clear_session_allows_stale_processing_session() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = setup_mock_gateway_handler(kv.clone(), Arc::new(RecordingPubSub::default()));
+
+        kv.set_msg(
+            &keys::session("default", "test-agent", "stale-session"),
+            &models::Session {
+                id: "stale-session".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+                status: "PROCESSING".to_string(),
+                created_at: 100,
+                last_active: 0,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::session_message("default", "test-agent", "stale-session", "msg-1"),
+            &models::SessionMessage {
+                id: "msg-1".to_string(),
+                role: 1,
+                created_at: 300,
+                labels: HashMap::new(),
+                parts: vec![text_part("old context")],
+            },
+        )
+        .await
+        .unwrap();
+
+        let response = handler
+            .handle_clear_session(tonic::Request::new(proto::ClearSessionRequest {
+                session_id: "stale-session".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+            }))
+            .await
+            .unwrap()
+            .into_inner();
+
+        assert!(response.success);
+        let session = kv
+            .get_msg::<models::Session>(&keys::session("default", "test-agent", "stale-session"))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.status, "IDLE");
+        assert!(session.last_active > 0);
+        assert!(kv
+            .list_keys(&keys::session_message_prefix(
+                "default",
+                "test-agent",
+                "stale-session",
+            ))
+            .await
+            .unwrap()
+            .is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_clear_session_releases_lock_after_descendant_delete_failure() {
+        let session_key = keys::session("default", "test-agent", "session-1");
+        let kv = Arc::new(FailingKvStore {
+            data: Mutex::new(HashMap::new()),
+            fail_list_prefix: Some(
+                keys::session_parent("default", "test-agent", "session-1").list(None),
+            ),
+            fail_get_key: None,
+            fail_set_prefix: None,
+            fail_delete_key: None,
+            extra_list_keys: Vec::new(),
+        });
+        kv.set_msg(
+            &session_key,
+            &models::Session {
+                id: "session-1".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+                status: "IDLE".to_string(),
+                created_at: 100,
+                last_active: 200,
+                metadata: HashMap::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        let handler = setup_gateway_handler_with(
+            kv.clone(),
+            Arc::new(FailingPubSub {
+                fail_publish: false,
+                fail_subscribe: false,
+            }),
+        );
+
+        let err = handler
+            .handle_clear_session(tonic::Request::new(proto::ClearSessionRequest {
+                session_id: "session-1".to_string(),
+                agent: "test-agent".to_string(),
+                ns: "default".to_string(),
+            }))
+            .await
+            .expect_err("descendant delete failure should surface");
+        assert_eq!(err.code(), tonic::Code::Internal);
+        assert!(err
+            .message()
+            .contains("Failed to clear session descendants"));
+
+        let session = kv
+            .get_msg::<models::Session>(&session_key)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(session.status, "IDLE");
+    }
+
+    #[tokio::test]
     async fn test_stop_session_generation_publishes_session_control_event() {
         let kv = Arc::new(MockKvStore::default());
         let pubsub = Arc::new(RecordingPubSub::default());

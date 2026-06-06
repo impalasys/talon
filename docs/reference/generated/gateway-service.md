@@ -9,7 +9,7 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 
 - Service: `talon.gateway.GatewayService`
 - Transport modes: gRPC, gRPC-web, REST via `google.api.http` annotations, and the browser-oriented `/v1/ui/... ` stream path documented separately in the hand-written guides
-- Total RPC methods: **55**
+- Total RPC methods: **56**
 
 ## Agents
 
@@ -111,6 +111,13 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Request: `DeleteSessionRequest`
 - Response: `DeleteSessionResponse`
 - REST mapping: `DELETE /v1/ns/{ns}/agents/{agent}/sessions/{session_id}`
+
+### `ClearSession`
+
+- Request: `ClearSessionRequest`
+- Response: `ClearSessionResponse`
+- REST mapping: `POST /v1/ns/{ns}/agents/{agent}/sessions/{session_id}:clear`
+- REST body: `*`
 
 ### `SendMessage`
 
