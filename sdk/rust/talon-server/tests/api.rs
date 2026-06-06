@@ -3,12 +3,34 @@
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use serde_json::Value;
+use std::path::PathBuf;
 use std::time::Duration;
-use talon_server::{authorization_header, mint_jwt, JwtOptions, Options};
+use talon_server::{authorization_header, mint_jwt, JwtOptions, Options, Server};
 
 #[test]
 fn options_default_has_startup_timeout() {
     assert!(Options::default().startup_timeout.as_secs() > 0);
+}
+
+#[test]
+fn options_default_has_generated_config() {
+    let options = Options::default();
+    assert!(options.config_path.is_none());
+    assert!(options.config.is_none());
+    assert!(options.data_dir.is_none());
+}
+
+#[test]
+fn start_rejects_ambiguous_config_options() {
+    let result = Server::start(Options {
+        config_path: Some(PathBuf::from("talon.yaml")),
+        config: Some(serde_json::json!({"workspace_dir": "."})),
+        ..Options::default()
+    });
+    match result {
+        Ok(_) => panic!("expected config validation error"),
+        Err(err) => assert!(err.to_string().contains("config_path cannot be combined")),
+    }
 }
 
 #[test]

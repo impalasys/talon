@@ -14,9 +14,10 @@ import tempfile
 import threading
 import time
 import urllib.request
+from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Mapping
+from typing import Any, Mapping
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,9 @@ class Provider:
 @dataclass(frozen=True)
 class Options:
     talon_node_path: str | Path | None = None
+    config_path: str | Path | None = None
+    config: Mapping[str, Any] | None = None
+    data_dir: str | Path | None = None
     version: str = "latest"
     grpc_port: int | None = None
     ui_port: int | None = None
@@ -75,14 +79,32 @@ class Server:
     @classmethod
     def start(cls, options: Options | None = None) -> "Server":
         options = options or Options()
+        if options.config_path is not None and (
+            options.config is not None or options.data_dir is not None or options.provider is not None
+        ):
+            raise ValueError("config_path cannot be combined with config, data_dir, or provider; put those settings in the config file")
+        if options.config is not None and options.provider is not None:
+            raise ValueError("config cannot be combined with provider; put providers in the config object")
         node_path = _resolve_talon_node(options)
         grpc_port = options.grpc_port or _free_port()
         ui_port = options.ui_port or _free_port()
         temp_dir = Path(tempfile.mkdtemp(prefix="talon-server-"))
-        data_dir = temp_dir / "data"
-        data_dir.mkdir(parents=True, exist_ok=True)
-        config_path = temp_dir / "talon.yaml"
-        config_path.write_text(_config_yaml(options.provider), encoding="utf-8")
+        if options.config_path is not None:
+            config_path = Path(options.config_path).expanduser().resolve()
+        else:
+            data_dir = Path(options.data_dir).expanduser().resolve() if options.data_dir is not None else None
+            config = (
+                _config_with_data_dir(options.config, data_dir)
+                if options.config is not None
+                else _default_config(options.provider, data_dir or temp_dir / "data")
+            )
+            config_data_dir = _control_plane_data_dir(config)
+            if config_data_dir is not None:
+                if not config_data_dir.is_absolute():
+                    config_data_dir = temp_dir / config_data_dir
+                config_data_dir.mkdir(parents=True, exist_ok=True)
+            config_path = temp_dir / "talon.json"
+            config_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
 
         env = os.environ.copy()
         env.update(
@@ -266,25 +288,56 @@ def _wait_for_port(port: int, timeout_seconds: float) -> None:
     raise TimeoutError(f"timeout waiting for 127.0.0.1:{port}")
 
 
-def _config_yaml(provider: Provider | None) -> str:
-    prefix = ""
+def _default_config(provider: Provider | None, data_dir: str | Path) -> dict[str, Any]:
+    config: dict[str, Any] = {
+        "control_plane": {
+            "database": {
+                "driver": "sqlite",
+                "data_dir": str(data_dir),
+            },
+            "message_broker": {
+                "driver": "local_socket",
+            },
+        }
+    }
     if provider is not None:
         name = provider.name or "mock"
-        prefix = (
-            "providers:\n"
-            f"  {name}:\n"
-            "    type: openai_compatible\n"
-            f"    base_url: {provider.base_url!r}\n"
-            f"    model: {provider.model!r}\n"
-            f"    api_key: {provider.api_key!r}\n"
-            f"default_provider: {name!r}\n"
-        )
-    return (
-        prefix
-        + "control_plane:\n"
-        + "  database:\n"
-        + "    driver: sqlite\n"
-        + "    data_dir: ./data\n"
-        + "  message_broker:\n"
-        + "    driver: local_socket\n"
-    )
+        config["providers"] = {
+            name: {
+                "type": "openai_compatible",
+                "base_url": provider.base_url,
+                "model": provider.model,
+                "api_key": provider.api_key,
+            }
+        }
+        config["default_provider"] = name
+    return config
+
+
+def _config_with_data_dir(config: Mapping[str, Any], data_dir: Path | None) -> dict[str, Any]:
+    copy = deepcopy(dict(config))
+    if data_dir is None:
+        return copy
+    control_plane = copy.setdefault("control_plane", {})
+    if not isinstance(control_plane, dict):
+        control_plane = {}
+        copy["control_plane"] = control_plane
+    database = control_plane.setdefault("database", {})
+    if not isinstance(database, dict):
+        database = {}
+        control_plane["database"] = database
+    database["data_dir"] = str(data_dir)
+    return copy
+
+
+def _control_plane_data_dir(config: Mapping[str, Any]) -> Path | None:
+    control_plane = config.get("control_plane")
+    if not isinstance(control_plane, Mapping):
+        return None
+    database = control_plane.get("database")
+    if not isinstance(database, Mapping):
+        return None
+    data_dir = database.get("data_dir")
+    if not isinstance(data_dir, str) or not data_dir.strip():
+        return None
+    return Path(data_dir)

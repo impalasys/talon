@@ -2,7 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createHmac } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
 import net from "node:net";
 
 export type Provider = {
@@ -12,8 +12,13 @@ export type Provider = {
   apiKey: string;
 };
 
+export type TalonConfig = Record<string, unknown>;
+
 export type StartOptions = {
   talonNodePath?: string;
+  configPath?: string;
+  config?: TalonConfig;
+  dataDir?: string;
   grpcPort?: number;
   uiPort?: number;
   keepTempDir?: boolean;
@@ -44,13 +49,27 @@ export class TalonServer {
   ) {}
 
   static async start(options: StartOptions = {}): Promise<TalonServer> {
+    if (options.configPath && (options.config || options.dataDir || options.provider)) {
+      throw new Error("configPath cannot be combined with config, dataDir, or provider; put those settings in the config file");
+    }
+    if (options.config && options.provider) {
+      throw new Error("config cannot be combined with provider; put providers in the config object");
+    }
     const nodePath = await resolveTalonNode(options.talonNodePath);
     const grpcPort = options.grpcPort ?? await freePort();
     const uiPort = options.uiPort ?? await freePort();
     const tempDir = await mkdtemp(join(tmpdir(), "talon-server-"));
-    await mkdir(join(tempDir, "data"), { recursive: true });
-    const configPath = join(tempDir, "talon.yaml");
-    await writeFile(configPath, configYaml(options.provider), "utf8");
+    let configPath = options.configPath ? resolve(options.configPath) : "";
+    if (!configPath) {
+      const dataDir = options.dataDir ? resolve(options.dataDir) : undefined;
+      const config = options.config
+        ? configWithDataDir(options.config, dataDir)
+        : defaultConfig(options.provider, dataDir ?? join(tempDir, "data"));
+      const configDataDir = controlPlaneDataDir(config);
+      if (configDataDir) await mkdir(resolveConfigRelativePath(tempDir, configDataDir), { recursive: true });
+      configPath = join(tempDir, "talon.json");
+      await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8");
+    }
     const child = spawn(nodePath, [], {
       env: {
         ...process.env,
@@ -216,12 +235,61 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function configYaml(provider?: Provider): string {
-  let yaml = "";
+function defaultConfig(provider: Provider | undefined, dataDir: string): TalonConfig {
+  const config: TalonConfig = {
+    control_plane: {
+      database: {
+        driver: "sqlite",
+        data_dir: dataDir,
+      },
+      message_broker: {
+        driver: "local_socket",
+      },
+    },
+  };
   if (provider) {
     const name = provider.name || "mock";
-    yaml += `providers:\n  ${name}:\n    type: openai_compatible\n    base_url: ${JSON.stringify(provider.baseUrl)}\n    model: ${JSON.stringify(provider.model)}\n    api_key: ${JSON.stringify(provider.apiKey)}\ndefault_provider: ${JSON.stringify(name)}\n`;
+    config.providers = {
+      [name]: {
+        type: "openai_compatible",
+        base_url: provider.baseUrl,
+        model: provider.model,
+        api_key: provider.apiKey,
+      },
+    };
+    config.default_provider = name;
   }
-  yaml += "control_plane:\n  database:\n    driver: sqlite\n    data_dir: ./data\n  message_broker:\n    driver: local_socket\n";
-  return yaml;
+  return config;
+}
+
+function configWithDataDir(config: TalonConfig, dataDir: string | undefined): TalonConfig {
+  const copy = JSON.parse(JSON.stringify(config)) as TalonConfig;
+  if (!dataDir) return copy;
+  const controlPlane = ensureRecord(copy, "control_plane");
+  const database = ensureRecord(controlPlane, "database");
+  database.data_dir = dataDir;
+  return copy;
+}
+
+function ensureRecord(target: Record<string, unknown>, key: string): Record<string, unknown> {
+  const current = target[key];
+  if (current && typeof current === "object" && !Array.isArray(current)) {
+    return current as Record<string, unknown>;
+  }
+  const value: Record<string, unknown> = {};
+  target[key] = value;
+  return value;
+}
+
+function controlPlaneDataDir(config: TalonConfig): string | undefined {
+  const controlPlane = config.control_plane;
+  if (!controlPlane || typeof controlPlane !== "object" || Array.isArray(controlPlane)) return undefined;
+  const database = (controlPlane as Record<string, unknown>).database;
+  if (!database || typeof database !== "object" || Array.isArray(database)) return undefined;
+  const dataDir = (database as Record<string, unknown>).data_dir;
+  return typeof dataDir === "string" && dataDir.trim() ? dataDir : undefined;
+}
+
+function resolveConfigRelativePath(configDir: string, path: string): string {
+  return isAbsolute(path) ? path : join(configDir, path);
 }

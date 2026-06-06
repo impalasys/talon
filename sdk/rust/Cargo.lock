@@ -885,7 +885,7 @@ checksum = "0bf256ce5efdfa370213c1dabab5935a12e49f2c58d15e9eac2870d3b4f27263"
 
 [[package]]
 name = "talon-client"
-version = "0.1.16"
+version = "0.1.17"
 dependencies = [
  "prost",
  "prost-types",
@@ -901,7 +901,7 @@ dependencies = [
 
 [[package]]
 name = "talon-server"
-version = "0.1.16"
+version = "0.1.17"
 dependencies = [
  "anyhow",
  "base64",
