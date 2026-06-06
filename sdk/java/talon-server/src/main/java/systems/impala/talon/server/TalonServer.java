@@ -3,6 +3,7 @@ package systems.impala.talon.server;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -276,7 +277,7 @@ public final class TalonServer implements AutoCloseable {
         return value;
     }
 
-    private static String toJson(Object value) {
+    static String toJson(Object value) {
         if (value == null) return "null";
         if (value instanceof String string) return jsonQuoted(string);
         if (value instanceof Number || value instanceof Boolean) return value.toString();
@@ -300,6 +301,15 @@ public final class TalonServer implements AutoCloseable {
             }
             return json.append("]").toString();
         }
+        if (value.getClass().isArray()) {
+            StringBuilder json = new StringBuilder("[");
+            int length = Array.getLength(value);
+            for (int index = 0; index < length; index++) {
+                if (index > 0) json.append(",");
+                json.append(toJson(Array.get(value, index)));
+            }
+            return json.append("]").toString();
+        }
         return jsonQuoted(String.valueOf(value));
     }
 
@@ -313,7 +323,15 @@ public final class TalonServer implements AutoCloseable {
                 case '\n' -> quoted.append("\\n");
                 case '\r' -> quoted.append("\\r");
                 case '\t' -> quoted.append("\\t");
-                default -> quoted.append(ch);
+                case '\b' -> quoted.append("\\b");
+                case '\f' -> quoted.append("\\f");
+                default -> {
+                    if (ch < 0x20) {
+                        quoted.append(String.format("\\u%04x", (int) ch));
+                    } else {
+                        quoted.append(ch);
+                    }
+                }
             }
         }
         return quoted.append("\"").toString();

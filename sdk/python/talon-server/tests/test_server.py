@@ -1,5 +1,6 @@
 import base64
 import json
+from types import MappingProxyType
 
 from talon_server import JwtOptions, Options, Server, authorization_header, mint_jwt
 from talon_server.server import _config_with_data_dir, _default_config
@@ -26,6 +27,25 @@ def test_config_can_specify_general_talon_settings() -> None:
     )
     assert config["workspace_dir"] == "/tmp/workspace"
     assert config["default_provider"] == "openai"
+
+
+def test_config_with_data_dir_preserves_custom_mapping_values() -> None:
+    config = _config_with_data_dir(
+        MappingProxyType(
+            {
+                "control_plane": MappingProxyType(
+                    {
+                        "database": MappingProxyType({"driver": "sqlite"}),
+                        "message_broker": MappingProxyType({"driver": "local_socket"}),
+                    }
+                )
+            }
+        ),
+        None,
+    )
+    assert config["control_plane"]["database"]["driver"] == "sqlite"
+    assert isinstance(config["control_plane"], dict)
+    assert isinstance(config["control_plane"]["database"], dict)
 
 
 def test_config_path_rejects_generated_config_options() -> None:

@@ -41,6 +41,13 @@ final class TalonJwtTest {
     }
 
     @Test
+    void jsonSerializerHandlesArraysAndControlCharacters() {
+        assertEquals("[\"a\",\"b\"]", TalonServer.toJson(new String[] {"a", "b"}));
+        assertEquals("[1,2,3]", TalonServer.toJson(new int[] {1, 2, 3}));
+        assertEquals("\"line\\nback\\bform\\fzero\\u0000\"", TalonServer.toJson("line\nback\bform\fzero\u0000"));
+    }
+
+    @Test
     void rejectsAmbiguousConfigOptions() {
         assertThrows(
             IllegalArgumentException.class,

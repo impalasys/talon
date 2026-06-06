@@ -14,10 +14,9 @@ import tempfile
 import threading
 import time
 import urllib.request
-from copy import deepcopy
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, Sequence
 
 
 @dataclass(frozen=True)
@@ -315,19 +314,31 @@ def _default_config(provider: Provider | None, data_dir: str | Path) -> dict[str
 
 
 def _config_with_data_dir(config: Mapping[str, Any], data_dir: Path | None) -> dict[str, Any]:
-    copy = deepcopy(dict(config))
+    copy = _mutable_config_copy(config)
     if data_dir is None:
         return copy
     control_plane = copy.setdefault("control_plane", {})
     if not isinstance(control_plane, dict):
-        control_plane = {}
+        control_plane = dict(control_plane) if isinstance(control_plane, Mapping) else {}
         copy["control_plane"] = control_plane
     database = control_plane.setdefault("database", {})
     if not isinstance(database, dict):
-        database = {}
+        database = dict(database) if isinstance(database, Mapping) else {}
         control_plane["database"] = database
     database["data_dir"] = str(data_dir)
     return copy
+
+
+def _mutable_config_copy(value: Mapping[str, Any]) -> dict[str, Any]:
+    return {str(key): _mutable_config_value(item) for key, item in value.items()}
+
+
+def _mutable_config_value(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return _mutable_config_copy(value)
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return [_mutable_config_value(item) for item in value]
+    return value
 
 
 def _control_plane_data_dir(config: Mapping[str, Any]) -> Path | None:
