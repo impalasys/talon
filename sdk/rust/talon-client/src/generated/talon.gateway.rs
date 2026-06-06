@@ -353,6 +353,20 @@ pub struct DeleteSessionResponse {
     pub success: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ClearSessionRequest {
+    #[prost(string, tag = "1")]
+    pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ClearSessionResponse {
+    #[prost(bool, tag = "1")]
+    pub success: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateChannelRequest {
     #[prost(string, tag = "1")]
     pub ns: ::prost::alloc::string::String,
@@ -1189,6 +1203,30 @@ pub mod gateway_service_client {
                 .insert(
                     GrpcMethod::new("talon.gateway.GatewayService", "DeleteSession"),
                 );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn clear_session(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ClearSessionRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ClearSessionResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/ClearSession",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.gateway.GatewayService", "ClearSession"));
             self.inner.unary(req, path, codec).await
         }
         /// Interactive Comm

@@ -2109,6 +2109,92 @@ export class DeleteSessionResponse extends Message<DeleteSessionResponse> {
 }
 
 /**
+ * @generated from message talon.gateway.ClearSessionRequest
+ */
+export class ClearSessionRequest extends Message<ClearSessionRequest> {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  /**
+   * @generated from field: string ns = 3;
+   */
+  ns = "";
+
+  constructor(data?: PartialMessage<ClearSessionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ClearSessionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "session_id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ClearSessionRequest {
+    return new ClearSessionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ClearSessionRequest {
+    return new ClearSessionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ClearSessionRequest {
+    return new ClearSessionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ClearSessionRequest | PlainMessage<ClearSessionRequest> | undefined, b: ClearSessionRequest | PlainMessage<ClearSessionRequest> | undefined): boolean {
+    return proto3.util.equals(ClearSessionRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ClearSessionResponse
+ */
+export class ClearSessionResponse extends Message<ClearSessionResponse> {
+  /**
+   * @generated from field: bool success = 1;
+   */
+  success = false;
+
+  constructor(data?: PartialMessage<ClearSessionResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ClearSessionResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ClearSessionResponse {
+    return new ClearSessionResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ClearSessionResponse {
+    return new ClearSessionResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ClearSessionResponse {
+    return new ClearSessionResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ClearSessionResponse | PlainMessage<ClearSessionResponse> | undefined, b: ClearSessionResponse | PlainMessage<ClearSessionResponse> | undefined): boolean {
+    return proto3.util.equals(ClearSessionResponse, a, b);
+  }
+}
+
+/**
  * @generated from message talon.gateway.CreateChannelRequest
  */
 export class CreateChannelRequest extends Message<CreateChannelRequest> {

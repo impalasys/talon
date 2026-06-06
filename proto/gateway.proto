@@ -97,6 +97,13 @@ service GatewayService {
     };
   }
 
+  rpc ClearSession(ClearSessionRequest) returns (ClearSessionResponse) {
+    option (google.api.http) = {
+      post: "/v1/ns/{ns}/agents/{agent}/sessions/{session_id}:clear"
+      body: "*"
+    };
+  }
+
   // Interactive Comm
   rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {
     option (google.api.http) = {
@@ -594,6 +601,16 @@ message DeleteSessionRequest {
 }
 
 message DeleteSessionResponse {
+  bool success = 1;
+}
+
+message ClearSessionRequest {
+  string session_id = 1;
+  string agent = 2;
+  string ns = 3;
+}
+
+message ClearSessionResponse {
   bool success = 1;
 }
 

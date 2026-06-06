@@ -35,6 +35,7 @@ const (
 	GatewayService_ListSessionMessages_FullMethodName       = "/talon.gateway.GatewayService/ListSessionMessages"
 	GatewayService_ListSessions_FullMethodName              = "/talon.gateway.GatewayService/ListSessions"
 	GatewayService_DeleteSession_FullMethodName             = "/talon.gateway.GatewayService/DeleteSession"
+	GatewayService_ClearSession_FullMethodName              = "/talon.gateway.GatewayService/ClearSession"
 	GatewayService_SendMessage_FullMethodName               = "/talon.gateway.GatewayService/SendMessage"
 	GatewayService_AppendSessionMessage_FullMethodName      = "/talon.gateway.GatewayService/AppendSessionMessage"
 	GatewayService_StopSessionGeneration_FullMethodName     = "/talon.gateway.GatewayService/StopSessionGeneration"
@@ -99,6 +100,7 @@ type GatewayServiceClient interface {
 	ListSessionMessages(ctx context.Context, in *ListSessionMessagesRequest, opts ...grpc.CallOption) (*ListSessionMessagesResponse, error)
 	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 	DeleteSession(ctx context.Context, in *DeleteSessionRequest, opts ...grpc.CallOption) (*DeleteSessionResponse, error)
+	ClearSession(ctx context.Context, in *ClearSessionRequest, opts ...grpc.CallOption) (*ClearSessionResponse, error)
 	// Interactive Comm
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*SendMessageResponse, error)
 	AppendSessionMessage(ctx context.Context, in *AppendSessionMessageRequest, opts ...grpc.CallOption) (*AppendSessionMessageResponse, error)
@@ -299,6 +301,16 @@ func (c *gatewayServiceClient) DeleteSession(ctx context.Context, in *DeleteSess
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteSessionResponse)
 	err := c.cc.Invoke(ctx, GatewayService_DeleteSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) ClearSession(ctx context.Context, in *ClearSessionRequest, opts ...grpc.CallOption) (*ClearSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ClearSessionResponse)
+	err := c.cc.Invoke(ctx, GatewayService_ClearSession_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -754,6 +766,7 @@ type GatewayServiceServer interface {
 	ListSessionMessages(context.Context, *ListSessionMessagesRequest) (*ListSessionMessagesResponse, error)
 	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	DeleteSession(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error)
+	ClearSession(context.Context, *ClearSessionRequest) (*ClearSessionResponse, error)
 	// Interactive Comm
 	SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error)
 	AppendSessionMessage(context.Context, *AppendSessionMessageRequest) (*AppendSessionMessageResponse, error)
@@ -854,6 +867,9 @@ func (UnimplementedGatewayServiceServer) ListSessions(context.Context, *ListSess
 }
 func (UnimplementedGatewayServiceServer) DeleteSession(context.Context, *DeleteSessionRequest) (*DeleteSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSession not implemented")
+}
+func (UnimplementedGatewayServiceServer) ClearSession(context.Context, *ClearSessionRequest) (*ClearSessionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClearSession not implemented")
 }
 func (UnimplementedGatewayServiceServer) SendMessage(context.Context, *SendMessageRequest) (*SendMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
@@ -1262,6 +1278,24 @@ func _GatewayService_DeleteSession_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GatewayServiceServer).DeleteSession(ctx, req.(*DeleteSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_ClearSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClearSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).ClearSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_ClearSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).ClearSession(ctx, req.(*ClearSessionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2031,6 +2065,10 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteSession",
 			Handler:    _GatewayService_DeleteSession_Handler,
+		},
+		{
+			MethodName: "ClearSession",
+			Handler:    _GatewayService_ClearSession_Handler,
 		},
 		{
 			MethodName: "SendMessage",
