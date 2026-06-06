@@ -68,6 +68,10 @@ struct CliClaims {
     exp: u64,
     #[serde(rename = "talon:ns", skip_serializing_if = "Option::is_none")]
     ns: Option<String>,
+    #[serde(rename = "talon:agent", skip_serializing_if = "Option::is_none")]
+    agent: Option<String>,
+    #[serde(rename = "talon:session", skip_serializing_if = "Option::is_none")]
+    session: Option<String>,
     #[serde(rename = "talon:channel", skip_serializing_if = "Option::is_none")]
     channel: Option<String>,
 }
@@ -117,41 +121,19 @@ fn resolve_gateway_jwt_secret(cli: &Cli) -> Option<String> {
 }
 
 fn mint_gateway_jwt(secret: &str) -> Result<String> {
-    let exp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)?
-        .as_secs()
-        + 3600;
-    let claims = CliClaims {
-        sub: "talon-cli".to_string(),
-        aud: "talon".to_string(),
-        exp,
-        ns: None,
-        channel: None,
-    };
-    jsonwebtoken::encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .context("Failed to sign Talon CLI JWT")
+    mint_root_jwt(secret, "talon-cli", 3600)
 }
 
-fn mint_channel_jwt(
+fn mint_scoped_jwt(
     secret: &str,
-    namespace: &str,
-    channel: &str,
     subject: &str,
     ttl_seconds: u64,
+    ns: Option<&str>,
+    agent: Option<&str>,
+    session: Option<&str>,
+    channel: Option<&str>,
 ) -> Result<String> {
-    let namespace = namespace.trim();
-    let channel = channel.trim();
     let subject = subject.trim();
-    if namespace.is_empty() {
-        anyhow::bail!("namespace cannot be empty");
-    }
-    if channel.is_empty() {
-        anyhow::bail!("channel cannot be empty");
-    }
     if subject.is_empty() {
         anyhow::bail!("subject cannot be empty");
     }
@@ -166,13 +148,93 @@ fn mint_channel_jwt(
         sub: subject.to_string(),
         aud: "talon".to_string(),
         exp,
-        ns: Some(namespace.to_string()),
-        channel: Some(channel.to_string()),
+        ns: ns.map(str::to_string),
+        agent: agent.map(str::to_string),
+        session: session.map(str::to_string),
+        channel: channel.map(str::to_string),
     };
     jsonwebtoken::encode(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
+    )
+    .context("Failed to sign Talon JWT")
+}
+
+fn mint_root_jwt(secret: &str, subject: &str, ttl_seconds: u64) -> Result<String> {
+    mint_scoped_jwt(secret, subject, ttl_seconds, None, None, None, None)
+        .context("Failed to sign Talon root JWT")
+}
+
+fn validate_token_part<'a>(value: &'a str, name: &str) -> Result<&'a str> {
+    let value = value.trim();
+    if value.is_empty() {
+        anyhow::bail!("{name} cannot be empty");
+    }
+    Ok(value)
+}
+
+fn mint_agent_jwt(
+    secret: &str,
+    namespace: &str,
+    agent: &str,
+    subject: &str,
+    ttl_seconds: u64,
+) -> Result<String> {
+    let namespace = validate_token_part(namespace, "namespace")?;
+    let agent = validate_token_part(agent, "agent")?;
+    mint_scoped_jwt(
+        secret,
+        subject,
+        ttl_seconds,
+        Some(namespace),
+        Some(agent),
+        None,
+        None,
+    )
+    .context("Failed to sign Talon agent JWT")
+}
+
+fn mint_session_jwt(
+    secret: &str,
+    namespace: &str,
+    agent: &str,
+    session: &str,
+    subject: &str,
+    ttl_seconds: u64,
+) -> Result<String> {
+    let namespace = validate_token_part(namespace, "namespace")?;
+    let agent = validate_token_part(agent, "agent")?;
+    let session = validate_token_part(session, "session")?;
+    mint_scoped_jwt(
+        secret,
+        subject,
+        ttl_seconds,
+        Some(namespace),
+        Some(agent),
+        Some(session),
+        None,
+    )
+    .context("Failed to sign Talon session JWT")
+}
+
+fn mint_channel_jwt(
+    secret: &str,
+    namespace: &str,
+    channel: &str,
+    subject: &str,
+    ttl_seconds: u64,
+) -> Result<String> {
+    let namespace = validate_token_part(namespace, "namespace")?;
+    let channel = validate_token_part(channel, "channel")?;
+    mint_scoped_jwt(
+        secret,
+        subject,
+        ttl_seconds,
+        Some(namespace),
+        None,
+        None,
+        Some(channel),
     )
     .context("Failed to sign Talon channel JWT")
 }
@@ -1129,6 +1191,37 @@ enum Commands {
 
 #[derive(Subcommand)]
 enum AuthCommands {
+    /// Mint a root JWT with unrestricted gateway scope.
+    RootToken {
+        #[arg(long, default_value = "talon-root-client")]
+        subject: String,
+        #[arg(long, default_value_t = 3600)]
+        ttl_seconds: u64,
+    },
+    /// Mint a JWT that can only access one agent in a namespace.
+    AgentToken {
+        #[arg(short, long)]
+        namespace: String,
+        #[arg(short, long)]
+        agent: String,
+        #[arg(long, default_value = "talon-agent-client")]
+        subject: String,
+        #[arg(long, default_value_t = 3600)]
+        ttl_seconds: u64,
+    },
+    /// Mint a JWT that can only access one session for one agent.
+    SessionToken {
+        #[arg(short, long)]
+        namespace: String,
+        #[arg(short, long)]
+        agent: String,
+        #[arg(short, long)]
+        session: String,
+        #[arg(long, default_value = "talon-session-client")]
+        subject: String,
+        #[arg(long, default_value_t = 3600)]
+        ttl_seconds: u64,
+    },
     /// Mint a JWT that can only access messages in one channel.
     ChannelToken {
         #[arg(short, long)]
@@ -2072,6 +2165,44 @@ struct RunOutcome {
 async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
     match &cli.command {
         Commands::Auth { command } => match command {
+            AuthCommands::RootToken {
+                subject,
+                ttl_seconds,
+            } => {
+                let secret = resolve_gateway_jwt_secret(cli)
+                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
+                println!("{}", mint_root_jwt(&secret, subject, *ttl_seconds)?);
+                return Ok(RunOutcome { exit_code: None });
+            }
+            AuthCommands::AgentToken {
+                namespace,
+                agent,
+                subject,
+                ttl_seconds,
+            } => {
+                let secret = resolve_gateway_jwt_secret(cli)
+                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
+                println!(
+                    "{}",
+                    mint_agent_jwt(&secret, namespace, agent, subject, *ttl_seconds)?
+                );
+                return Ok(RunOutcome { exit_code: None });
+            }
+            AuthCommands::SessionToken {
+                namespace,
+                agent,
+                session,
+                subject,
+                ttl_seconds,
+            } => {
+                let secret = resolve_gateway_jwt_secret(cli)
+                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
+                println!(
+                    "{}",
+                    mint_session_jwt(&secret, namespace, agent, session, subject, *ttl_seconds)?
+                );
+                return Ok(RunOutcome { exit_code: None });
+            }
             AuthCommands::ChannelToken {
                 namespace,
                 channel,
@@ -2363,13 +2494,14 @@ mod tests {
         build_rest_apply_plan, canonicalize_manifest_path, collect_markdown_files, feature_ts_type,
         grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target,
         grpc_get_yaml, knowledge_delete, knowledge_get, knowledge_list, knowledge_resource_name,
-        knowledge_set, manifest_json_payload, mint_channel_jwt, parse_raw_manifest, parse_vars,
-        read_knowledge_content, relative_knowledge_path, render_json_payload, render_manifest_file,
+        knowledge_set, manifest_json_payload, mint_agent_jwt, mint_channel_jwt, mint_root_jwt,
+        mint_session_jwt, parse_raw_manifest, parse_vars, read_knowledge_content,
+        relative_knowledge_path, render_json_payload, render_manifest_file,
         render_manifest_template, render_rest_get_yaml, resolve_authorization_header,
         resolve_manifest_sources, rest_apply_manifest, rest_client, rest_delete_path,
         rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json, run_cli,
         schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
-        to_camel_case, Cli, Commands, GrpcApplyPlan, GrpcDeleteTarget, GrpcGetTarget,
+        to_camel_case, AuthCommands, Cli, Commands, GrpcApplyPlan, GrpcDeleteTarget, GrpcGetTarget,
         KnowledgeCommands, RenderFormat,
     };
     use axum::{
@@ -2722,6 +2854,8 @@ mod tests {
         let claims = talon::gateway::auth::verify_jwt(&token, "secret").unwrap();
         assert_eq!(claims.sub, "web-client");
         assert_eq!(claims.ns.as_deref(), Some("ops"));
+        assert_eq!(claims.agent.as_deref(), None);
+        assert_eq!(claims.session.as_deref(), None);
         assert_eq!(claims.channel.as_deref(), Some("incident-room"));
         assert!(claims.exp > 0);
 
@@ -2729,6 +2863,56 @@ mod tests {
         assert!(mint_channel_jwt("secret", "ops", "", "web-client", 60).is_err());
         assert!(mint_channel_jwt("secret", "ops", "incident-room", "", 60).is_err());
         assert!(mint_channel_jwt("secret", "ops", "incident-room", "web-client", 0).is_err());
+    }
+
+    #[test]
+    fn mint_root_jwt_has_no_resource_scope() {
+        let token = mint_root_jwt("secret", "operator", 60).unwrap();
+        let claims = talon::gateway::auth::verify_jwt(&token, "secret").unwrap();
+        assert_eq!(claims.sub, "operator");
+        assert_eq!(claims.ns.as_deref(), None);
+        assert_eq!(claims.agent.as_deref(), None);
+        assert_eq!(claims.session.as_deref(), None);
+        assert_eq!(claims.channel.as_deref(), None);
+
+        assert!(mint_root_jwt("secret", "", 60).is_err());
+        assert!(mint_root_jwt("secret", "operator", 0).is_err());
+    }
+
+    #[test]
+    fn mint_agent_jwt_scopes_token_to_namespace_and_agent() {
+        let token = mint_agent_jwt("secret", "ops", "triage", "agent-client", 60).unwrap();
+        let claims = talon::gateway::auth::verify_jwt(&token, "secret").unwrap();
+        assert_eq!(claims.sub, "agent-client");
+        assert_eq!(claims.ns.as_deref(), Some("ops"));
+        assert_eq!(claims.agent.as_deref(), Some("triage"));
+        assert_eq!(claims.session.as_deref(), None);
+        assert_eq!(claims.channel.as_deref(), None);
+
+        assert!(mint_agent_jwt("secret", "", "triage", "agent-client", 60).is_err());
+        assert!(mint_agent_jwt("secret", "ops", "", "agent-client", 60).is_err());
+        assert!(mint_agent_jwt("secret", "ops", "triage", "", 60).is_err());
+        assert!(mint_agent_jwt("secret", "ops", "triage", "agent-client", 0).is_err());
+    }
+
+    #[test]
+    fn mint_session_jwt_scopes_token_to_namespace_agent_and_session() {
+        let token =
+            mint_session_jwt("secret", "ops", "triage", "sess-1", "session-client", 60).unwrap();
+        let claims = talon::gateway::auth::verify_jwt(&token, "secret").unwrap();
+        assert_eq!(claims.sub, "session-client");
+        assert_eq!(claims.ns.as_deref(), Some("ops"));
+        assert_eq!(claims.agent.as_deref(), Some("triage"));
+        assert_eq!(claims.session.as_deref(), Some("sess-1"));
+        assert_eq!(claims.channel.as_deref(), None);
+
+        assert!(mint_session_jwt("secret", "", "triage", "sess-1", "session-client", 60).is_err());
+        assert!(mint_session_jwt("secret", "ops", "", "sess-1", "session-client", 60).is_err());
+        assert!(mint_session_jwt("secret", "ops", "triage", "", "session-client", 60).is_err());
+        assert!(mint_session_jwt("secret", "ops", "triage", "sess-1", "", 60).is_err());
+        assert!(
+            mint_session_jwt("secret", "ops", "triage", "sess-1", "session-client", 0).is_err()
+        );
     }
 
     #[test]
@@ -2780,6 +2964,64 @@ mod tests {
             .to_str()
             .unwrap()
             .starts_with("Basic "));
+    }
+
+    #[tokio::test]
+    async fn run_cli_dispatches_auth_token_commands() {
+        let root = Cli {
+            jwt_secret: Some("secret".to_string()),
+            command: Commands::Auth {
+                command: AuthCommands::RootToken {
+                    subject: "operator".to_string(),
+                    ttl_seconds: 60,
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&root).await.unwrap().exit_code.is_none());
+
+        let agent = Cli {
+            jwt_secret: Some("secret".to_string()),
+            command: Commands::Auth {
+                command: AuthCommands::AgentToken {
+                    namespace: "ops".to_string(),
+                    agent: "triage".to_string(),
+                    subject: "agent-client".to_string(),
+                    ttl_seconds: 60,
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&agent).await.unwrap().exit_code.is_none());
+
+        let session = Cli {
+            jwt_secret: Some("secret".to_string()),
+            command: Commands::Auth {
+                command: AuthCommands::SessionToken {
+                    namespace: "ops".to_string(),
+                    agent: "triage".to_string(),
+                    session: "sess-1".to_string(),
+                    subject: "session-client".to_string(),
+                    ttl_seconds: 60,
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&session).await.unwrap().exit_code.is_none());
+
+        let channel = Cli {
+            jwt_secret: Some("secret".to_string()),
+            command: Commands::Auth {
+                command: AuthCommands::ChannelToken {
+                    namespace: "ops".to_string(),
+                    channel: "incident-room".to_string(),
+                    subject: "channel-client".to_string(),
+                    ttl_seconds: 60,
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&channel).await.unwrap().exit_code.is_none());
     }
 
     #[test]

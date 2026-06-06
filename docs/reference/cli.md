@@ -15,6 +15,17 @@ sidebar_position: 2
 
 ## Commands
 
+### `auth`
+
+Mint JWTs for clients when the gateway is running with `GATEWAY_JWT_SECRET`.
+
+- `auth root-token`: unrestricted root token
+- `auth agent-token --namespace <ns> --agent <agent>`: namespace and agent scoped token
+- `auth session-token --namespace <ns> --agent <agent> --session <session-id>`: namespace, agent, and session scoped token
+- `auth channel-token --namespace <ns> --channel <channel>`: namespace and channel scoped token
+
+All token commands accept `--subject` and `--ttl-seconds`.
+
 ### `knowledge`
 
 Manage namespace knowledge artifacts directly by path.
