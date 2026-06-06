@@ -512,6 +512,15 @@ export function TalonChannel({
   }, []);
 
   const canPost = Boolean(draft.trim()) && !isPosting && !isUserInputDisabled;
+  const inputRows = useMemo(() => {
+    let rowCount = 1;
+    for (let index = 0; index < draft.length; index += 1) {
+      if (draft.charCodeAt(index) === 10) {
+        rowCount += 1;
+      }
+    }
+    return Math.min(rowCount, 8);
+  }, [draft]);
 
   useEffect(() => {
     isNearBottomRef.current = true;
@@ -627,7 +636,7 @@ export function TalonChannel({
               onValueChange={setDraft}
               onSubmit={(content) => void submitChannelMessage(content)}
               placeholder={`Message #${channelName}`}
-              rows={1}
+              rows={inputRows}
               disabled={isUserInputDisabled}
               canSubmit={canPost}
               textareaMinHeight={40}

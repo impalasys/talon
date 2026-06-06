@@ -495,9 +495,15 @@ export function TalonSession({
       const isStreamingAssistantMessage = isLoading && isLatestMessage && message.role === "assistant" && !content;
       const hasExpandedWorkDetails = Boolean(reasoningContent) || toolTimelineItems.length > 0 || Boolean(usageSummary);
       const hasWorkDetails = message.role === "assistant" && (hasExpandedWorkDetails || isStreamingAssistantMessage);
-      const previousUserMessage = message.role === "assistant"
-        ? messages.slice(0, messageIndex).reverse().find((previousMessage) => previousMessage.role === "user")
-        : undefined;
+      let previousUserMessage: CopilotMessage | undefined;
+      if (message.role === "assistant") {
+        for (let index = messageIndex - 1; index >= 0; index -= 1) {
+          if (messages[index].role === "user") {
+            previousUserMessage = messages[index];
+            break;
+          }
+        }
+      }
       const workLabel = isStreamingAssistantMessage
         ? formatWorkingDuration(loadingStartedAt, loadingNow)
         : formatWorkDuration(previousUserMessage?.createdAt, message.createdAt);
