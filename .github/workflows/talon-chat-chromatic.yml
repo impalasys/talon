@@ -1,0 +1,56 @@
+name: Talon Chat Chromatic
+
+on:
+  pull_request:
+    paths:
+      - "packages/talon-chat/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/talon-chat-chromatic.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/talon-chat/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/talon-chat-chromatic.yml"
+
+concurrency:
+  group: talon-chat-chromatic-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromatic:
+    name: Publish Storybook
+    runs-on: ubuntu-latest
+    env:
+      CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Skip Chromatic without project token
+        if: env.CHROMATIC_PROJECT_TOKEN == ''
+        run: echo "CHROMATIC_PROJECT_TOKEN is not configured; skipping Chromatic."
+
+      - name: Run Chromatic
+        if: env.CHROMATIC_PROJECT_TOKEN != ''
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ env.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: packages/talon-chat

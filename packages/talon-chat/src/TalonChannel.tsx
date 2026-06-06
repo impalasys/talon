@@ -1,16 +1,18 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Hash, Send } from "lucide-react";
+import { Hash } from "lucide-react";
 import { buildGatewayHeaders, normalizeGatewayUrl } from "./lib/grpc";
+import { ChatInputBox } from "./lib/ChatInputBox";
 import { MarkdownMessage } from "./lib/MarkdownMessage";
 
 function border(color: string) {
   return `1px solid ${color}`;
 }
 
-const activeControlBackground = "var(--copilot-control-bg, var(--foreground, #020617))";
-const activeControlColor = "var(--copilot-control-fg, var(--background, #ffffff))";
+const talonChatFontFamily =
+  'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+
 const CHANNEL_SCROLL_LOAD_THRESHOLD_PX = 64;
 const CHANNEL_SCROLL_BOTTOM_THRESHOLD_PX = 96;
 
@@ -510,6 +512,15 @@ export function TalonChannel({
   }, []);
 
   const canPost = Boolean(draft.trim()) && !isPosting && !isUserInputDisabled;
+  const inputRows = useMemo(() => {
+    let rowCount = 1;
+    for (let index = 0; index < draft.length; index += 1) {
+      if (draft.charCodeAt(index) === 10) {
+        rowCount += 1;
+      }
+    }
+    return Math.min(rowCount, 8);
+  }, [draft]);
 
   useEffect(() => {
     isNearBottomRef.current = true;
@@ -545,9 +556,8 @@ export function TalonChannel({
     });
   }, [hasMoreMessages, isLoadingOlderMessages, loadOlderMessages]);
 
-  const handleSubmit = useCallback(async (event: React.FormEvent) => {
-    event.preventDefault();
-    const content = draft.trim();
+  const submitChannelMessage = useCallback(async (submittedContent: string) => {
+    const content = submittedContent.trim();
     if (!content || isPostingRef.current || isUserInputDisabled) return;
     isPostingRef.current = true;
     setIsPosting(true);
@@ -560,7 +570,7 @@ export function TalonChannel({
       isPostingRef.current = false;
       setIsPosting(false);
     }
-  }, [author, authorKind, draft, isUserInputDisabled, postMessage]);
+  }, [author, authorKind, isUserInputDisabled, postMessage]);
 
   return (
     <div
@@ -574,6 +584,7 @@ export function TalonChannel({
         overflow: "hidden",
         background: "transparent",
         color: "inherit",
+        fontFamily: talonChatFontFamily,
         ...style,
       }}
     >
@@ -619,57 +630,19 @@ export function TalonChannel({
         </div>
 
         {disableUserInput ? null : (
-          <form onSubmit={handleSubmit} style={{ display: "flex", alignItems: "flex-end", gap: 8, borderTop: border("rgba(148,163,184,0.2)"), background: "var(--copilot-channel-input-bg, rgba(255,255,255,0.72))", padding: "0.75rem" }}>
-            <textarea
+          <div style={{ borderTop: border("rgba(148,163,184,0.2)"), background: "var(--copilot-channel-input-bg, rgba(255,255,255,0.72))", padding: "0.75rem" }}>
+            <ChatInputBox
               value={draft}
-              onChange={(event) => setDraft(event.target.value)}
+              onValueChange={setDraft}
+              onSubmit={(content) => void submitChannelMessage(content)}
               placeholder={`Message #${channelName}`}
-              rows={1}
+              rows={inputRows}
               disabled={isUserInputDisabled}
-              style={{
-                flex: 1,
-                minHeight: 40,
-                maxHeight: 128,
-                resize: "none",
-                borderRadius: 10,
-                border: border("rgba(148,163,184,0.28)"),
-                background: "rgba(255,255,255,0.9)",
-                padding: "0.55rem 0.7rem",
-                fontSize: 14,
-                color: "inherit",
-                outline: "none",
-              }}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  if (canPost) {
-                    event.currentTarget.form?.requestSubmit();
-                  }
-                }
-              }}
+              canSubmit={canPost}
+              textareaMinHeight={40}
+              textareaMaxHeight={128}
             />
-            <button
-              type="submit"
-              disabled={!canPost}
-              aria-label="Send channel message"
-              style={{
-                width: 40,
-                height: 40,
-                flexShrink: 0,
-                borderRadius: 12,
-                border: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: canPost ? "pointer" : "not-allowed",
-                opacity: canPost ? 1 : 0.5,
-                background: activeControlBackground,
-                color: activeControlColor,
-              }}
-            >
-              <Send size="16" strokeWidth={2} />
-            </button>
-          </form>
+          </div>
         )}
       </div>
     </div>

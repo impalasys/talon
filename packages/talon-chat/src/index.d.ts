@@ -48,7 +48,7 @@ export type CopilotMessage = {
   toolInvocations?: ToolInvocationItem[];
 };
 
-export type TalonCopilotProps = {
+export type TalonSessionProps = {
   namespace: string;
   agent: string;
   gatewayUrl: string;
@@ -61,13 +61,12 @@ export type TalonCopilotProps = {
   placeholder?: string;
   autoFocus?: boolean;
   disabled?: boolean;
-  talonIcon?: React.ReactNode;
-  timestampLocale?: Intl.LocalesArgument;
-  formatTimestamp?: (message: CopilotMessage) => string;
   historyPageSize?: number;
   historyMessageLimit?: number;
   historyStepLimit?: number;
 };
+
+export type TalonCopilotProps = TalonSessionProps;
 
 export type ChannelMessage = {
   id?: string;
@@ -140,7 +139,8 @@ export type UseTalonChannelMessagesResult = {
   postMessage: (options: { author: string; authorKind: string; content: string }) => Promise<void>;
 };
 
-export function TalonCopilot(props: TalonCopilotProps): React.JSX.Element;
+export function TalonSession(props: TalonSessionProps): React.JSX.Element;
+export const TalonCopilot: typeof TalonSession;
 export function TalonChannel(props: TalonChannelProps): React.JSX.Element;
 export function useTalonChannelMessages(
   options: UseTalonChannelMessagesOptions,

@@ -1,4 +1,10 @@
-export { TalonCopilot, type GatewayClientLike, type TalonCopilotProps } from "./TalonCopilot";
+export {
+  TalonSession,
+  TalonCopilot,
+  type GatewayClientLike,
+  type TalonSessionProps,
+  type TalonCopilotProps,
+} from "./TalonSession";
 export {
   TalonChannel,
   useTalonChannelMessages,

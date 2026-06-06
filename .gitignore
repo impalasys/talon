@@ -6,6 +6,8 @@ __pycache__/
 bench/results*/
 node_modules/
 packages/*/dist/
+packages/*/storybook-static/
+packages/*/storybook-screenshots/
 sdk/js/*/dist/
 sdk/examples/js/dist/
 sdk/java/.gradle/
@@ -23,3 +25,7 @@ ui/node_modules/
 ui/playwright-report/
 ui/test-results/
 ui/tsconfig.tsbuildinfo
+build-storybook.log
+chromatic.log
+chromatic-build-*.xml
+chromatic-diagnostics.json

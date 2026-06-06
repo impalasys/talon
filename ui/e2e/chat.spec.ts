@@ -187,16 +187,15 @@ test.describe('Chat Streaming', () => {
     await page.reload();
     await expect(page.getByText('Hello! I am a mock LLM. How can I assist you today?', { exact: true })).toBeVisible({ timeout: 30000 });
 
-    const thinkingToggle = page.getByRole('button', { name: /Thinking/ }).last();
-    await expect(thinkingToggle).toBeVisible({ timeout: 30000 });
-    await expect(thinkingToggle).toContainText('6 reasoning');
+    const workToggle = page.getByRole('button', { name: /Worked for \d+s/ }).last();
+    await expect(workToggle).toBeVisible({ timeout: 30000 });
     if (process.env.CAPTURE_THINKING_UI === 'true') {
       const outputDir = path.resolve(__dirname, '../../docs/pr');
       await fs.mkdir(outputDir, { recursive: true });
       await page.screenshot({ path: path.join(outputDir, 'thinking-collapsed.png'), fullPage: true });
     }
 
-    await thinkingToggle.click();
+    await workToggle.click();
     await expect(page.getByText('Inspecting the request.', { exact: false })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('Planning a concise answer.', { exact: false })).toBeVisible({ timeout: 10000 });
     if (process.env.CAPTURE_THINKING_UI === 'true') {
@@ -205,9 +204,9 @@ test.describe('Chat Streaming', () => {
     }
 
     await page.reload();
-    const replayedThinkingToggle = page.getByRole('button', { name: /Thinking/ }).last();
-    await expect(replayedThinkingToggle).toBeVisible({ timeout: 30000 });
-    await replayedThinkingToggle.click();
+    const replayedWorkToggle = page.getByRole('button', { name: /Worked for \d+s/ }).last();
+    await expect(replayedWorkToggle).toBeVisible({ timeout: 30000 });
+    await replayedWorkToggle.click();
     await expect(page.getByText('Inspecting the request.', { exact: false })).toBeVisible({ timeout: 10000 });
   });
 
@@ -221,16 +220,17 @@ test.describe('Chat Streaming', () => {
 
     await expect(page.getByText('lookup docs.example.com', { exact: true })).toBeVisible({ timeout: 5000 });
     await expect(page.getByText('Let me check that.', { exact: false })).toBeVisible({ timeout: 30000 });
-    await expect(page.getByText('Tool', { exact: true })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText('knowledge_search', { exact: true })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText('I checked knowledge_search for docs.example.com.', { exact: true })).toBeVisible({ timeout: 30000 });
 
+    const workToggle = page.getByRole('button', { name: /Worked for \d+s/ }).last();
+    await expect(workToggle).toBeVisible({ timeout: 10000 });
+    await workToggle.click();
+    await expect(page.getByText(/Called\s+knowledge_search/)).toBeVisible({ timeout: 10000 });
+
     const transcript = (await page.locator('body').textContent()) || '';
-    expect(transcript.indexOf('Let me check that.')).toBeGreaterThan(-1);
-    expect(transcript.indexOf('knowledge_search')).toBeGreaterThan(transcript.indexOf('Let me check that.'));
-    expect(transcript.indexOf('I checked knowledge_search for docs.example.com.')).toBeGreaterThan(
-      transcript.indexOf('knowledge_search'),
-    );
+    expect(transcript).toContain('Let me check that.');
+    expect(transcript).toContain('Called knowledge_search');
+    expect(transcript).toContain('I checked knowledge_search for docs.example.com.');
   });
 });
 

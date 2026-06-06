@@ -1,0 +1,102 @@
+name: Talon Chat Screenshots
+
+on:
+  pull_request:
+    paths:
+      - "packages/talon-chat/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/talon-chat-screenshots.yml"
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: talon-chat-screenshots-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshots:
+    name: Capture Storybook Screenshots
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter @impalasys/talon-chat exec playwright install --with-deps chromium
+
+      - name: Build Storybook
+        run: pnpm --filter @impalasys/talon-chat build-storybook
+
+      - name: Capture screenshots
+        run: pnpm --filter @impalasys/talon-chat screenshots
+
+      - name: Upload screenshots
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: talon-chat-storybook-screenshots
+          path: packages/talon-chat/storybook-screenshots/*.png
+          if-no-files-found: error
+
+      - name: Comment artifact link
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const marker = "<!-- talon-chat-screenshots -->";
+            const artifactUrl = "${{ steps.upload.outputs.artifact-url }}";
+            const body = [
+              marker,
+              "## Talon Chat screenshots",
+              "",
+              "Storybook screenshots were captured for this PR.",
+              "",
+              `[Download the screenshot artifact](${artifactUrl})`,
+              "",
+              "The artifact includes light and dark captures for TalonSession and TalonChannel component stories.",
+            ].join("\n");
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((comment) =>
+              comment.user?.type === "Bot" && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }

@@ -33,8 +33,12 @@
   },
   "scripts": {
     "build": "tsup --config tsup.config.ts",
+    "build-storybook": "storybook build",
+    "chromatic": "chromatic --config-file chromatic.config.json",
     "clean": "rm -rf dist",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm run build",
+    "screenshots": "node scripts/capture-storybook-screenshots.mjs",
+    "storybook": "storybook dev -p 6006"
   },
   "publishConfig": {
     "access": "public"
@@ -48,9 +52,15 @@
     "streamdown": "^2.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@storybook/addon-docs": "^10.4.2",
+    "@storybook/react-vite": "^10.4.2",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "chromatic": "^17.2.0",
+    "storybook": "^10.4.2",
     "tsup": "^8.5.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16"
   }
 }
