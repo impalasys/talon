@@ -93,6 +93,38 @@ fi
   google/api/http.proto \
   google/api/annotations.proto
 
+python3 - <<'PY'
+from pathlib import Path
+
+path = Path("sdk/java/talon-client/src/main/java/talon/gateway/Gateway.java")
+text = path.read_text()
+
+
+def strip_region(source: str, start_marker: str, end_marker: str) -> str:
+    start = source.index(start_marker)
+    end = source.index(end_marker, start)
+    region = source[start:end]
+    stripped = "\n".join(line.rstrip() for line in region.splitlines())
+    if region.endswith("\n"):
+        stripped += "\n"
+    return source[:start] + stripped + source[end:]
+
+
+text = strip_region(
+    text,
+    "  public static final class ClearSessionRequest",
+    "  public interface CreateChannelRequestOrBuilder",
+)
+text = strip_region(
+    text,
+    "  private static final com.google.protobuf.Descriptors.Descriptor\n"
+    "    internal_static_talon_gateway_ClearSessionRequest_descriptor;",
+    "  private static final com.google.protobuf.Descriptors.Descriptor\n"
+    "    internal_static_talon_gateway_CreateChannelRequest_descriptor;",
+)
+path.write_text(text)
+PY
+
 NPM_BIN="$ROOT/.tools/npm-bin"
 mkdir -p "$NPM_BIN"
 cat > "$NPM_BIN/protoc-gen-es" <<'EOF'
