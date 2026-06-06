@@ -937,7 +937,7 @@ export function TalonSession({
       };
 
       setMessages((prev) => [...prev, userMessage]);
-      setLoadingStartedAt(userMessage.createdAt ?? Date.now());
+      setLoadingStartedAt(normalizeEpochToMilliseconds(userMessage.createdAt) ?? Date.now());
       setLoadingNow(Date.now());
       setIsLoading(true);
 
