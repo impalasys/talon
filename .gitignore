@@ -7,6 +7,7 @@ bench/results*/
 node_modules/
 packages/*/dist/
 packages/*/storybook-static/
+packages/*/storybook-screenshots/
 sdk/js/*/dist/
 sdk/examples/js/dist/
 sdk/java/.gradle/

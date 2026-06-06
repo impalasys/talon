@@ -37,6 +37,7 @@
     "chromatic": "chromatic --config-file chromatic.config.json",
     "clean": "rm -rf dist",
     "prepack": "pnpm run build",
+    "screenshots": "node scripts/capture-storybook-screenshots.mjs",
     "storybook": "storybook dev -p 6006"
   },
   "publishConfig": {
@@ -51,6 +52,7 @@
     "streamdown": "^2.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@storybook/addon-docs": "^10.4.2",
     "@storybook/react-vite": "^10.4.2",
     "@types/react": "^19.2.2",
