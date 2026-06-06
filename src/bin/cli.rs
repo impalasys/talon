@@ -2164,60 +2164,37 @@ struct RunOutcome {
 
 async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
     match &cli.command {
-        Commands::Auth { command } => match command {
-            AuthCommands::RootToken {
-                subject,
-                ttl_seconds,
-            } => {
-                let secret = resolve_gateway_jwt_secret(cli)
-                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
-                println!("{}", mint_root_jwt(&secret, subject, *ttl_seconds)?);
-                return Ok(RunOutcome { exit_code: None });
-            }
-            AuthCommands::AgentToken {
-                namespace,
-                agent,
-                subject,
-                ttl_seconds,
-            } => {
-                let secret = resolve_gateway_jwt_secret(cli)
-                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
-                println!(
-                    "{}",
-                    mint_agent_jwt(&secret, namespace, agent, subject, *ttl_seconds)?
-                );
-                return Ok(RunOutcome { exit_code: None });
-            }
-            AuthCommands::SessionToken {
-                namespace,
-                agent,
-                session,
-                subject,
-                ttl_seconds,
-            } => {
-                let secret = resolve_gateway_jwt_secret(cli)
-                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
-                println!(
-                    "{}",
-                    mint_session_jwt(&secret, namespace, agent, session, subject, *ttl_seconds)?
-                );
-                return Ok(RunOutcome { exit_code: None });
-            }
-            AuthCommands::ChannelToken {
-                namespace,
-                channel,
-                subject,
-                ttl_seconds,
-            } => {
-                let secret = resolve_gateway_jwt_secret(cli)
-                    .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
-                println!(
-                    "{}",
-                    mint_channel_jwt(&secret, namespace, channel, subject, *ttl_seconds)?
-                );
-                return Ok(RunOutcome { exit_code: None });
-            }
-        },
+        Commands::Auth { command } => {
+            let secret = resolve_gateway_jwt_secret(cli)
+                .context("TALON_JWT_SECRET or GATEWAY_JWT_SECRET is required")?;
+            let token = match command {
+                AuthCommands::RootToken {
+                    subject,
+                    ttl_seconds,
+                } => mint_root_jwt(&secret, subject, *ttl_seconds)?,
+                AuthCommands::AgentToken {
+                    namespace,
+                    agent,
+                    subject,
+                    ttl_seconds,
+                } => mint_agent_jwt(&secret, namespace, agent, subject, *ttl_seconds)?,
+                AuthCommands::SessionToken {
+                    namespace,
+                    agent,
+                    session,
+                    subject,
+                    ttl_seconds,
+                } => mint_session_jwt(&secret, namespace, agent, session, subject, *ttl_seconds)?,
+                AuthCommands::ChannelToken {
+                    namespace,
+                    channel,
+                    subject,
+                    ttl_seconds,
+                } => mint_channel_jwt(&secret, namespace, channel, subject, *ttl_seconds)?,
+            };
+            println!("{}", token);
+            return Ok(RunOutcome { exit_code: None });
+        }
         Commands::Knowledge { command } => match command {
             KnowledgeCommands::Get { namespace, path } => {
                 let knowledge = knowledge_get(&cli, namespace, path).await?;
