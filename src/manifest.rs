@@ -568,6 +568,9 @@ pub fn parse_agent_card(yaml: &str) -> Result<manifests::AgentCard> {
     if card.metadata.namespace.trim().is_empty() {
         bail!("AgentCard metadata.namespace is required");
     }
+    if card.metadata.name.trim().is_empty() {
+        bail!("AgentCard metadata.name is required");
+    }
     if card.spec.agent_ref.trim().is_empty() {
         bail!("AgentCard spec.agentRef is required");
     }
@@ -1974,6 +1977,22 @@ spec:
             reparsed.spec.as_ref().map(|spec| spec.hostname.as_str()),
             Some("support.example.com")
         );
+
+        let err = parse_agent_card(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: AgentCard
+metadata:
+  name: ""
+  namespace: support
+spec:
+  agentRef: support-docs
+  hostname: support.example.com
+"#,
+        )
+        .unwrap_err()
+        .to_string();
+        assert!(err.contains("AgentCard metadata.name is required"));
     }
 
     #[test]

@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Host, State},
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     Json,
 };
@@ -49,11 +49,12 @@ struct AgentCardSkillJson {
 
 pub async fn get_well_known_agent_card(
     State(gateway): State<Arc<Gateway>>,
+    headers: HeaderMap,
     Host(host): Host,
 ) -> Response {
     let handler = GrpcGatewayHandler { gateway };
     match handler.find_agent_card_by_hostname(&host).await {
-        Ok(Some(card)) => match agent_card_json(&card) {
+        Ok(Some(card)) => match agent_card_json(&card, scheme_from_headers(&headers)) {
             Ok(payload) => Json(payload).into_response(),
             Err(response) => response,
         },
@@ -69,7 +70,21 @@ pub async fn get_well_known_agent_card(
     }
 }
 
-fn agent_card_json(card: &manifests::AgentCard) -> Result<AgentCardJson, Response> {
+fn scheme_from_headers(headers: &HeaderMap) -> &'static str {
+    headers
+        .get("x-forwarded-proto")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.split(',').next())
+        .map(str::trim)
+        .and_then(|value| match value {
+            "http" => Some("http"),
+            "https" => Some("https"),
+            _ => None,
+        })
+        .unwrap_or("https")
+}
+
+fn agent_card_json(card: &manifests::AgentCard, scheme: &str) -> Result<AgentCardJson, Response> {
     let spec = card.spec.as_ref().ok_or_else(|| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -82,7 +97,7 @@ fn agent_card_json(card: &manifests::AgentCard) -> Result<AgentCardJson, Respons
         name: spec.name.clone(),
         description: spec.description.clone(),
         version: spec.version.clone(),
-        url: format!("https://{}", spec.hostname),
+        url: format!("{}://{}", scheme, spec.hostname),
         capabilities: AgentCardCapabilitiesJson {
             streaming: capabilities.map(|value| value.streaming).unwrap_or(false),
             push_notifications: capabilities

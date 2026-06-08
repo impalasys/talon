@@ -390,6 +390,7 @@ mod tests {
                     .method(Method::GET)
                     .uri("/.well-known/agent-card.json")
                     .header(header::HOST, "support.example.com")
+                    .header("x-forwarded-proto", "http")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -402,6 +403,7 @@ mod tests {
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(value["name"], "Support Agent");
+        assert_eq!(value["url"], "http://support.example.com");
         assert_eq!(value["capabilities"]["streaming"], true);
         assert_eq!(value["skills"][0]["id"], "answer_support_question");
     }
