@@ -182,6 +182,18 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
             .and_then(|old| old.spec.map(|spec| spec.hostname));
+        self.gateway
+            .kv
+            .set_msg(&keys::agent_card_hostname(&new_hostname), &card)
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to index AgentCard hostname: {err}"))
+            })?;
+        self.gateway
+            .kv
+            .set_msg(&key, &card)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
         if let Some(old_hostname) = old_hostname {
             let old_hostname = normalize_hostname(&old_hostname)?;
             if old_hostname != new_hostname {
@@ -196,18 +208,6 @@ impl GrpcGatewayHandler {
                     })?;
             }
         }
-        self.gateway
-            .kv
-            .set_msg(&keys::agent_card_hostname(&new_hostname), &card)
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to index AgentCard hostname: {err}"))
-            })?;
-        self.gateway
-            .kv
-            .set_msg(&key, &card)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
 
         Ok(tonic::Response::new(proto::AgentCardResponse {
             card: Some(card),
@@ -278,6 +278,11 @@ impl GrpcGatewayHandler {
             .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
             .ok_or_else(|| tonic::Status::not_found("AgentCard not found"))?;
         let old_hostname = card.spec.map(|spec| spec.hostname);
+        self.gateway
+            .kv
+            .delete(&key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to delete AgentCard: {err}")))?;
         if let Some(old_hostname) = old_hostname {
             let old_hostname = normalize_hostname(&old_hostname)?;
             self.gateway
@@ -290,11 +295,6 @@ impl GrpcGatewayHandler {
                     ))
                 })?;
         }
-        self.gateway
-            .kv
-            .delete(&key)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to delete AgentCard: {err}")))?;
         Ok(tonic::Response::new(proto::DeleteAgentCardResponse {
             success: true,
         }))
@@ -305,11 +305,36 @@ impl GrpcGatewayHandler {
         host: &str,
     ) -> Result<Option<manifests::AgentCard>, tonic::Status> {
         let hostname = request_host_to_hostname(host)?;
-        self.gateway
+        let Some(indexed) = self
+            .gateway
             .kv
             .get_msg::<manifests::AgentCard>(&keys::agent_card_hostname(&hostname))
             .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))
+            .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
+        else {
+            return Ok(None);
+        };
+        let card = self
+            .gateway
+            .kv
+            .get_msg::<manifests::AgentCard>(&keys::agent_card(
+                &card_namespace(&indexed),
+                &card_name(&indexed),
+            ))
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?;
+        let Some(card) = card else {
+            return Ok(None);
+        };
+        if card
+            .spec
+            .as_ref()
+            .is_some_and(|spec| spec.hostname == hostname)
+        {
+            Ok(Some(card))
+        } else {
+            Ok(None)
+        }
     }
 }
 

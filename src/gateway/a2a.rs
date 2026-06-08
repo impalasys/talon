@@ -61,9 +61,9 @@ pub async fn get_well_known_agent_card(
         Err(status) if status.code() == tonic::Code::InvalidArgument => {
             (StatusCode::BAD_REQUEST, status.message().to_string()).into_response()
         }
-        Err(status) => (
+        Err(_status) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("failed to load AgentCard: {}", status.message()),
+            "failed to load AgentCard",
         )
             .into_response(),
     }

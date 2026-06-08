@@ -407,6 +407,56 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn http_ui_router_ignores_stale_agent_card_hostname_index() {
+        let gateway = gateway();
+        let stale_card = crate::gateway::rpc::manifests::AgentCard {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "AgentCard".to_string(),
+            metadata: Some(crate::gateway::rpc::manifests::ObjectMeta {
+                name: "stale-public".to_string(),
+                namespace: "support".to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+            }),
+            spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
+                agent_ref: "support-docs".to_string(),
+                hostname: "stale.example.com".to_string(),
+                name: "Stale Agent".to_string(),
+                description: String::new(),
+                version: String::new(),
+                capabilities: None,
+                default_input_modes: Vec::new(),
+                default_output_modes: Vec::new(),
+                skills: Vec::new(),
+                auth: None,
+            }),
+        };
+        gateway
+            .kv
+            .set(
+                &crate::control::keys::agent_card_hostname("stale.example.com"),
+                &stale_card.encode_to_vec(),
+            )
+            .await
+            .unwrap();
+
+        let response = gateway
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/.well-known/agent-card.json")
+                    .header(header::HOST, "stale.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
     async fn http_ui_router_allows_browser_preflight() {
         let response = gateway()
             .http_ui_router()
