@@ -43,6 +43,7 @@ mod tests {
                 name: name.into(),
                 payload_json: payload_json.into(),
                 created_at: timestamp,
+                object: None,
             }),
             timestamp,
             agent: agent.to_string(),
@@ -90,6 +91,7 @@ mod tests {
             kv.clone(),
             pubsub.clone(),
             scheduler.clone(),
+            crate::control::object_store::default_object_store(),
         ));
         (GrpcGatewayHandler { gateway }, kv, scheduler, pubsub)
     }
@@ -671,6 +673,7 @@ mod tests {
                             name: String::new(),
                             payload_json: String::new(),
                             created_at: 0,
+                            object: None,
                         }],
                     }),
                 }))

@@ -369,6 +369,7 @@ mod tests {
                 kv,
                 pubsub,
                 scheduler: Arc::new(NoopSchedulerBackend),
+                objects: crate::control::object_store::default_object_store(),
             }),
             config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),

@@ -579,6 +579,7 @@ pub async fn send_message(
             name: String::new(),
             payload_json: String::new(),
             created_at: now.timestamp_micros(),
+            object: None,
         }],
     };
     if let Err(err) = kv
@@ -1117,6 +1118,7 @@ mod tests {
             kv: kv.clone(),
             pubsub,
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         };
 
         let session = models::Session {
@@ -1370,6 +1372,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         };
 
         let agent = models::Agent {

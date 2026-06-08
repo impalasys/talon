@@ -246,6 +246,7 @@ mod tests {
             kv,
             pubsub: Arc::new(MockPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         }
     }
 

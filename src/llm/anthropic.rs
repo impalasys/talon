@@ -3,7 +3,8 @@
 
 use crate::gateway::rpc::manifests;
 use crate::llm::provider::{
-    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
+    ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent,
+    ChatUsage, LlmProvider,
 };
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -74,6 +75,51 @@ impl AnthropicProvider {
             })
             .filter(|content| !content.is_empty())
     }
+
+    fn serialize_message(message: &ChatMessage) -> serde_json::Value {
+        json!({
+            "role": message.role,
+            "content": if message.content_parts.is_empty() {
+                serde_json::Value::String(message.content.clone())
+            } else {
+                serde_json::Value::Array(
+                    message
+                        .effective_content_parts()
+                        .into_iter()
+                        .map(anthropic_content_part)
+                        .collect()
+                )
+            }
+        })
+    }
+}
+
+fn anthropic_content_part(part: ChatContentPart) -> serde_json::Value {
+    match part {
+        ChatContentPart::Text { text } => json!({
+            "type": "text",
+            "text": text,
+        }),
+        ChatContentPart::ImageUrl { url, .. } => json!({
+            "type": "image",
+            "source": {
+                "type": "url",
+                "url": url,
+            }
+        }),
+        ChatContentPart::ImageData {
+            media_type,
+            data_base64,
+            ..
+        } => json!({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": media_type,
+                "data": data_base64,
+            }
+        }),
+    }
 }
 
 #[async_trait]
@@ -92,12 +138,7 @@ impl LlmProvider for AnthropicProvider {
         let mut payload = json!({
             "model": self.model,
             "max_tokens": max_tokens,
-            "messages": request.messages.iter().map(|m| {
-                json!({
-                    "role": m.role,
-                    "content": m.content
-                })
-            }).collect::<Vec<_>>(),
+            "messages": request.messages.iter().map(Self::serialize_message).collect::<Vec<_>>(),
         });
         if let Some(thinking_payload) = thinking_payload {
             payload["thinking"] = thinking_payload;
@@ -137,12 +178,7 @@ impl LlmProvider for AnthropicProvider {
         let mut payload = json!({
             "model": self.model,
             "max_tokens": max_tokens,
-            "messages": request.messages.iter().map(|m| {
-                json!({
-                    "role": m.role,
-                    "content": m.content
-                })
-            }).collect::<Vec<_>>(),
+            "messages": request.messages.iter().map(Self::serialize_message).collect::<Vec<_>>(),
             "stream": true,
         });
         if let Some(thinking_payload) = thinking_payload {
@@ -239,6 +275,7 @@ impl LlmProvider for AnthropicProvider {
             messages: vec![ChatMessage {
                 role: "user".to_string(),
                 content: prompt.to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             }],
@@ -505,6 +542,7 @@ mod tests {
         let messages = vec![ChatMessage {
             role: "user".to_string(),
             content: "hello".to_string(),
+            content_parts: Vec::new(),
             tool_calls: None,
             tool_call_id: None,
         }];
@@ -584,6 +622,7 @@ mod tests {
         let messages = vec![ChatMessage {
             role: "user".to_string(),
             content: "stream".to_string(),
+            content_parts: Vec::new(),
             tool_calls: None,
             tool_call_id: None,
         }];

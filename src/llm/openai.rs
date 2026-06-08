@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::llm::provider::{
-    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
-    ToolCallDelta,
+    ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent,
+    ChatUsage, LlmProvider, ToolCallDelta,
 };
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -18,6 +18,41 @@ use std::{
 
 const DEFAULT_THINKING_BUDGET_TOKENS: u32 = 1024;
 const THINKING_COMPLETION_BUFFER_TOKENS: u32 = 4096;
+
+fn openai_content_part(part: ChatContentPart) -> serde_json::Value {
+    match part {
+        ChatContentPart::Text { text } => serde_json::json!({
+            "type": "text",
+            "text": text,
+        }),
+        ChatContentPart::ImageUrl { url, detail } => {
+            let mut image_url = serde_json::json!({ "url": url });
+            if let Some(detail) = detail {
+                image_url["detail"] = serde_json::Value::String(detail);
+            }
+            serde_json::json!({
+                "type": "image_url",
+                "image_url": image_url,
+            })
+        }
+        ChatContentPart::ImageData {
+            media_type,
+            data_base64,
+            detail,
+        } => {
+            let mut image_url = serde_json::json!({
+                "url": format!("data:{media_type};base64,{data_base64}"),
+            });
+            if let Some(detail) = detail {
+                image_url["detail"] = serde_json::Value::String(detail);
+            }
+            serde_json::json!({
+                "type": "image_url",
+                "image_url": image_url,
+            })
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 struct RequestDebugStats {
@@ -49,9 +84,20 @@ impl OpenAiCompatibleProvider {
         messages
             .into_iter()
             .map(|message| {
+                let content = if message.content_parts.is_empty() {
+                    serde_json::Value::String(message.content)
+                } else {
+                    serde_json::Value::Array(
+                        message
+                            .content_parts
+                            .into_iter()
+                            .map(openai_content_part)
+                            .collect(),
+                    )
+                };
                 let mut json = serde_json::json!({
                     "role": message.role,
-                    "content": message.content,
+                    "content": content,
                 });
 
                 if let Some(tool_calls) = message.tool_calls {
@@ -644,6 +690,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
             messages: vec![ChatMessage {
                 role: "user".to_string(),
                 content: prompt.to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             }],
@@ -763,6 +810,7 @@ mod tests {
             ChatMessage {
                 role: "assistant".to_string(),
                 content: "".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: Some(vec![crate::llm::provider::ToolCall {
                     id: "call_1".to_string(),
                     name: "mcp_conic_create_github_pr".to_string(),
@@ -773,6 +821,7 @@ mod tests {
             ChatMessage {
                 role: "tool".to_string(),
                 content: "{\"url\":\"https://github.com/example/repo/pull/2\"}".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: Some("call_1".to_string()),
             },
@@ -788,6 +837,35 @@ mod tests {
     }
 
     #[test]
+    fn serialize_messages_emits_multimodal_content_parts() {
+        let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
+            role: "user".to_string(),
+            content: "fallback text".to_string(),
+            content_parts: vec![
+                ChatContentPart::Text {
+                    text: "look at this".to_string(),
+                },
+                ChatContentPart::ImageData {
+                    media_type: "image/png".to_string(),
+                    data_base64: "cG5nLWJ5dGVz".to_string(),
+                    detail: Some("low".to_string()),
+                },
+            ],
+            tool_calls: None,
+            tool_call_id: None,
+        }]);
+
+        assert_eq!(serialized[0]["content"][0]["type"], "text");
+        assert_eq!(serialized[0]["content"][0]["text"], "look at this");
+        assert_eq!(serialized[0]["content"][1]["type"], "image_url");
+        assert_eq!(
+            serialized[0]["content"][1]["image_url"]["url"],
+            "data:image/png;base64,cG5nLWJ5dGVz"
+        );
+        assert_eq!(serialized[0]["content"][1]["image_url"]["detail"], "low");
+    }
+
+    #[test]
     fn supports_tool_retry_without_tools_requires_novita_internal_server_error_and_tool_history() {
         let provider = OpenAiCompatibleProvider::new(
             "key".to_string(),
@@ -798,6 +876,7 @@ mod tests {
             ChatMessage {
                 role: "assistant".to_string(),
                 content: "".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: Some(vec![crate::llm::provider::ToolCall {
                     id: "call_1".to_string(),
                     name: "mcp_conic_create_github_pr".to_string(),
@@ -808,6 +887,7 @@ mod tests {
             ChatMessage {
                 role: "tool".to_string(),
                 content: "{\"url\":\"https://github.com/example/repo/pull/2\"}".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: Some("call_1".to_string()),
             },
@@ -868,6 +948,7 @@ mod tests {
         let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
             role: "user".to_string(),
             content: "hello".to_string(),
+            content_parts: Vec::new(),
             tool_calls: None,
             tool_call_id: None,
         }]);
@@ -962,6 +1043,7 @@ mod tests {
             ChatMessage {
                 role: "assistant".to_string(),
                 content: "".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: Some(vec![crate::llm::provider::ToolCall {
                     id: "call_1".to_string(),
                     name: "search".to_string(),
@@ -972,6 +1054,7 @@ mod tests {
             ChatMessage {
                 role: "tool".to_string(),
                 content: "{\"ok\":true}".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: Some("call_1".to_string()),
             },
@@ -1069,6 +1152,7 @@ mod tests {
                 messages: vec![ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
+                    content_parts: Vec::new(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],
@@ -1119,6 +1203,7 @@ mod tests {
                 messages: vec![ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
+                    content_parts: Vec::new(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],
@@ -1173,6 +1258,7 @@ mod tests {
                 messages: vec![ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
+                    content_parts: Vec::new(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],
@@ -1221,6 +1307,7 @@ mod tests {
                     messages: vec![ChatMessage {
                         role: "user".to_string(),
                         content: "hi".to_string(),
+                        content_parts: Vec::new(),
                         tool_calls: None,
                         tool_call_id: None,
                     }],
@@ -1295,6 +1382,7 @@ mod tests {
                     messages: vec![ChatMessage {
                         role: "user".to_string(),
                         content: "hi".to_string(),
+                        content_parts: Vec::new(),
                         tool_calls: None,
                         tool_call_id: None,
                     }],
@@ -1362,6 +1450,7 @@ mod tests {
                         ChatMessage {
                             role: "assistant".to_string(),
                             content: "".to_string(),
+                            content_parts: Vec::new(),
                             tool_calls: Some(vec![crate::llm::provider::ToolCall {
                                 id: "call_1".to_string(),
                                 name: "search".to_string(),
@@ -1372,6 +1461,7 @@ mod tests {
                         ChatMessage {
                             role: "tool".to_string(),
                             content: "{\"ok\":true}".to_string(),
+                            content_parts: Vec::new(),
                             tool_calls: None,
                             tool_call_id: Some("call_1".to_string()),
                         },
@@ -1439,6 +1529,7 @@ mod tests {
                 messages: vec![ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
+                    content_parts: Vec::new(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],
@@ -1503,6 +1594,7 @@ mod tests {
                 messages: vec![ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
+                    content_parts: Vec::new(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],

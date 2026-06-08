@@ -54,6 +54,7 @@ mod tests {
                 messages: vec![crate::llm::ChatMessage {
                     role: "user".to_string(),
                     content: "hi".to_string(),
+                    content_parts: Vec::new(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],
@@ -71,6 +72,7 @@ mod tests {
                 messages: vec![crate::llm::ChatMessage {
                     role: "user".to_string(),
                     content: "stream".to_string(),
+                    content_parts: Vec::new(),
                     tool_calls: None,
                     tool_call_id: None,
                 }],

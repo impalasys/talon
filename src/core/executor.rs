@@ -7,7 +7,9 @@ use crate::control::ControlPlane;
 use crate::core::context_budget::{compact_history_for_llm, tool_result_preview};
 use crate::knowledge::KnowledgeBook;
 use crate::llm::resolver::resolve_model_profile;
-use crate::llm::{ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall};
+use crate::llm::{
+    ChatContentPart, ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall,
+};
 use crate::skills::registry::ToolRegistry;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -35,6 +37,8 @@ fn tool_error_result(name: &str, error: &anyhow::Error) -> String {
 pub struct LoopMessage {
     pub role: String,
     pub content: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub content_parts: Vec<ChatContentPart>,
     pub tool_calls: Option<Vec<ToolCall>>,
     pub tool_call_id: Option<String>,
 }
@@ -323,6 +327,7 @@ impl AgentExecutor {
             context.push(LoopMessage {
                 role: "system".to_string(),
                 content: soul,
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             });
@@ -331,6 +336,7 @@ impl AgentExecutor {
         context.push(LoopMessage {
             role: "user".to_string(),
             content: task.to_string(),
+            content_parts: Vec::new(),
             tool_calls: None,
             tool_call_id: None,
         });
@@ -349,6 +355,7 @@ impl AgentExecutor {
                 .map(|m| ChatMessage {
                     role: m.role.clone(),
                     content: m.content.clone(),
+                    content_parts: m.content_parts.clone(),
                     tool_calls: m.tool_calls.clone(),
                     tool_call_id: m.tool_call_id.clone(),
                 })
@@ -380,6 +387,7 @@ impl AgentExecutor {
                             context.push(LoopMessage {
                                 role: "assistant".to_string(),
                                 content: final_reply.clone(),
+                    content_parts: Vec::new(),
                                 tool_calls: None,
                                 tool_call_id: None,
                             });
@@ -439,6 +447,7 @@ impl AgentExecutor {
             context.push(LoopMessage {
                 role: "assistant".to_string(),
                 content: final_reply.clone(),
+                content_parts: Vec::new(),
                 tool_calls: if tool_calls.is_empty() {
                     None
                 } else {
@@ -461,6 +470,7 @@ impl AgentExecutor {
                     context.push(LoopMessage {
                         role: "tool".to_string(),
                         content: preview,
+                        content_parts: Vec::new(),
                         tool_calls: None,
                         tool_call_id: Some(tool.id.clone()),
                     });
@@ -790,6 +800,7 @@ mod tests {
                 kv: Arc::new(NoopKv),
                 pubsub: Arc::new(NoopPubSub),
                 scheduler: Arc::new(NoopScheduler),
+                objects: crate::control::object_store::default_object_store(),
             },
             manifests::AgentSpec::default(),
             HashMap::new(),
@@ -802,6 +813,7 @@ mod tests {
         let mut history = vec![LoopMessage {
             role: "system".to_string(),
             content: "You are Conic.".to_string(),
+            content_parts: Vec::new(),
             tool_calls: None,
             tool_call_id: None,
         }];
@@ -809,12 +821,14 @@ mod tests {
             history.push(LoopMessage {
                 role: "user".to_string(),
                 content: format!("Earlier question #{index}: {}", "q".repeat(8_000)),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             });
             history.push(LoopMessage {
                 role: "assistant".to_string(),
                 content: format!("Earlier answer #{index}: {}", "a".repeat(8_000)),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             });
@@ -822,6 +836,7 @@ mod tests {
         history.push(LoopMessage {
             role: "assistant".to_string(),
             content: "Investigating repo.".to_string(),
+            content_parts: Vec::new(),
             tool_calls: Some(vec![crate::llm::ToolCall {
                 id: "tool-1".to_string(),
                 name: "mcp_github_search_code".to_string(),
@@ -832,6 +847,7 @@ mod tests {
         history.push(LoopMessage {
             role: "tool".to_string(),
             content: huge_tool_result,
+            content_parts: Vec::new(),
             tool_calls: None,
             tool_call_id: Some("tool-1".to_string()),
         });
@@ -909,6 +925,7 @@ mod tests {
                 kv: Arc::new(NoopKv),
                 pubsub: Arc::new(NoopPubSub),
                 scheduler: Arc::new(NoopScheduler),
+                objects: crate::control::object_store::default_object_store(),
             },
             spec.clone(),
             HashMap::new(),
@@ -991,6 +1008,7 @@ mod tests {
                 kv: Arc::new(NoopKv),
                 pubsub: Arc::new(NoopPubSub),
                 scheduler: Arc::new(NoopScheduler),
+                objects: crate::control::object_store::default_object_store(),
             },
             manifests::AgentSpec::default(),
             HashMap::new(),
@@ -1080,6 +1098,7 @@ mod tests {
                 kv: Arc::new(NoopKv),
                 pubsub: Arc::new(NoopPubSub),
                 scheduler: Arc::new(NoopScheduler),
+                objects: crate::control::object_store::default_object_store(),
             },
             manifests::AgentSpec::default(),
             HashMap::new(),

@@ -412,6 +412,7 @@ mod tests {
             kv: Arc::new(MockKvStore::new()),
             pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
             session_streams: Arc::new(SessionStreamHub::new(pubsub)),
         });
         GrpcGatewayHandler { gateway }

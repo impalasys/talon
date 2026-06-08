@@ -453,6 +453,7 @@ mod tests {
             Arc::new(MockKvStore::default()),
             Arc::new(EmptyPubSub),
             Arc::new(NoopSchedulerBackend),
+            crate::control::object_store::default_object_store(),
         ))
     }
 

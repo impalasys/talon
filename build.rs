@@ -33,6 +33,7 @@ fn main() -> std::io::Result<()> {
         ".talon.models.Session",
         ".talon.models.SessionMessage",
         ".talon.models.SessionMessagePart",
+        ".talon.models.ObjectRef",
         ".talon.models.Channel",
         ".talon.models.ChannelMessage",
         ".talon.models.ChannelContextPolicy",

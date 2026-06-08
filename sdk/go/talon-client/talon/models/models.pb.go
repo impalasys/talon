@@ -84,18 +84,26 @@ const (
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_TOOL_RESULT SessionMessagePartType = 4
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_USAGE       SessionMessagePartType = 5
 	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_ERROR       SessionMessagePartType = 6
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_IMAGE       SessionMessagePartType = 7
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_AUDIO       SessionMessagePartType = 8
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_VIDEO       SessionMessagePartType = 9
+	SessionMessagePartType_SESSION_MESSAGE_PART_TYPE_FILE        SessionMessagePartType = 10
 )
 
 // Enum value maps for SessionMessagePartType.
 var (
 	SessionMessagePartType_name = map[int32]string{
-		0: "SESSION_MESSAGE_PART_TYPE_UNSPECIFIED",
-		1: "SESSION_MESSAGE_PART_TYPE_TEXT",
-		2: "SESSION_MESSAGE_PART_TYPE_REASONING",
-		3: "SESSION_MESSAGE_PART_TYPE_TOOL_CALL",
-		4: "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT",
-		5: "SESSION_MESSAGE_PART_TYPE_USAGE",
-		6: "SESSION_MESSAGE_PART_TYPE_ERROR",
+		0:  "SESSION_MESSAGE_PART_TYPE_UNSPECIFIED",
+		1:  "SESSION_MESSAGE_PART_TYPE_TEXT",
+		2:  "SESSION_MESSAGE_PART_TYPE_REASONING",
+		3:  "SESSION_MESSAGE_PART_TYPE_TOOL_CALL",
+		4:  "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT",
+		5:  "SESSION_MESSAGE_PART_TYPE_USAGE",
+		6:  "SESSION_MESSAGE_PART_TYPE_ERROR",
+		7:  "SESSION_MESSAGE_PART_TYPE_IMAGE",
+		8:  "SESSION_MESSAGE_PART_TYPE_AUDIO",
+		9:  "SESSION_MESSAGE_PART_TYPE_VIDEO",
+		10: "SESSION_MESSAGE_PART_TYPE_FILE",
 	}
 	SessionMessagePartType_value = map[string]int32{
 		"SESSION_MESSAGE_PART_TYPE_UNSPECIFIED": 0,
@@ -105,6 +113,10 @@ var (
 		"SESSION_MESSAGE_PART_TYPE_TOOL_RESULT": 4,
 		"SESSION_MESSAGE_PART_TYPE_USAGE":       5,
 		"SESSION_MESSAGE_PART_TYPE_ERROR":       6,
+		"SESSION_MESSAGE_PART_TYPE_IMAGE":       7,
+		"SESSION_MESSAGE_PART_TYPE_AUDIO":       8,
+		"SESSION_MESSAGE_PART_TYPE_VIDEO":       9,
+		"SESSION_MESSAGE_PART_TYPE_FILE":        10,
 	}
 )
 
@@ -219,6 +231,90 @@ func (x *Agent) GetLabels() map[string]string {
 	return nil
 }
 
+type ObjectRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	MediaType     string                 `protobuf:"bytes,2,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	SizeBytes     uint64                 `protobuf:"varint,3,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	Sha256        string                 `protobuf:"bytes,4,opt,name=sha256,proto3" json:"sha256,omitempty"`
+	Filename      string                 `protobuf:"bytes,5,opt,name=filename,proto3" json:"filename,omitempty"`
+	Metadata      map[string]string      `protobuf:"bytes,6,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ObjectRef) Reset() {
+	*x = ObjectRef{}
+	mi := &file_proto_models_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ObjectRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ObjectRef) ProtoMessage() {}
+
+func (x *ObjectRef) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_models_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ObjectRef.ProtoReflect.Descriptor instead.
+func (*ObjectRef) Descriptor() ([]byte, []int) {
+	return file_proto_models_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ObjectRef) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ObjectRef) GetMediaType() string {
+	if x != nil {
+		return x.MediaType
+	}
+	return ""
+}
+
+func (x *ObjectRef) GetSizeBytes() uint64 {
+	if x != nil {
+		return x.SizeBytes
+	}
+	return 0
+}
+
+func (x *ObjectRef) GetSha256() string {
+	if x != nil {
+		return x.Sha256
+	}
+	return ""
+}
+
+func (x *ObjectRef) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
+func (x *ObjectRef) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 type SessionMessagePart struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -227,14 +323,15 @@ type SessionMessagePart struct {
 	Name        string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	PayloadJson string                 `protobuf:"bytes,5,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
 	// Unix timestamp in microseconds.
-	CreatedAt     int64 `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedAt     int64      `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Object        *ObjectRef `protobuf:"bytes,7,opt,name=object,proto3" json:"object,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SessionMessagePart) Reset() {
 	*x = SessionMessagePart{}
-	mi := &file_proto_models_proto_msgTypes[1]
+	mi := &file_proto_models_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -246,7 +343,7 @@ func (x *SessionMessagePart) String() string {
 func (*SessionMessagePart) ProtoMessage() {}
 
 func (x *SessionMessagePart) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[1]
+	mi := &file_proto_models_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -259,7 +356,7 @@ func (x *SessionMessagePart) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessagePart.ProtoReflect.Descriptor instead.
 func (*SessionMessagePart) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{1}
+	return file_proto_models_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SessionMessagePart) GetId() string {
@@ -304,6 +401,13 @@ func (x *SessionMessagePart) GetCreatedAt() int64 {
 	return 0
 }
 
+func (x *SessionMessagePart) GetObject() *ObjectRef {
+	if x != nil {
+		return x.Object
+	}
+	return nil
+}
+
 type SessionMessage struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -318,7 +422,7 @@ type SessionMessage struct {
 
 func (x *SessionMessage) Reset() {
 	*x = SessionMessage{}
-	mi := &file_proto_models_proto_msgTypes[2]
+	mi := &file_proto_models_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -330,7 +434,7 @@ func (x *SessionMessage) String() string {
 func (*SessionMessage) ProtoMessage() {}
 
 func (x *SessionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[2]
+	mi := &file_proto_models_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -343,7 +447,7 @@ func (x *SessionMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionMessage.ProtoReflect.Descriptor instead.
 func (*SessionMessage) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{2}
+	return file_proto_models_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SessionMessage) GetId() string {
@@ -399,7 +503,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_models_proto_msgTypes[3]
+	mi := &file_proto_models_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -411,7 +515,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[3]
+	mi := &file_proto_models_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -424,7 +528,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{3}
+	return file_proto_models_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Session) GetId() string {
@@ -501,7 +605,7 @@ type Channel struct {
 
 func (x *Channel) Reset() {
 	*x = Channel{}
-	mi := &file_proto_models_proto_msgTypes[4]
+	mi := &file_proto_models_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -513,7 +617,7 @@ func (x *Channel) String() string {
 func (*Channel) ProtoMessage() {}
 
 func (x *Channel) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[4]
+	mi := &file_proto_models_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -526,7 +630,7 @@ func (x *Channel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Channel.ProtoReflect.Descriptor instead.
 func (*Channel) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{4}
+	return file_proto_models_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Channel) GetName() string {
@@ -604,7 +708,7 @@ type ChannelMessage struct {
 
 func (x *ChannelMessage) Reset() {
 	*x = ChannelMessage{}
-	mi := &file_proto_models_proto_msgTypes[5]
+	mi := &file_proto_models_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -616,7 +720,7 @@ func (x *ChannelMessage) String() string {
 func (*ChannelMessage) ProtoMessage() {}
 
 func (x *ChannelMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[5]
+	mi := &file_proto_models_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -629,7 +733,7 @@ func (x *ChannelMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelMessage.ProtoReflect.Descriptor instead.
 func (*ChannelMessage) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{5}
+	return file_proto_models_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ChannelMessage) GetId() string {
@@ -712,7 +816,7 @@ type ChannelContextPolicy struct {
 
 func (x *ChannelContextPolicy) Reset() {
 	*x = ChannelContextPolicy{}
-	mi := &file_proto_models_proto_msgTypes[6]
+	mi := &file_proto_models_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -724,7 +828,7 @@ func (x *ChannelContextPolicy) String() string {
 func (*ChannelContextPolicy) ProtoMessage() {}
 
 func (x *ChannelContextPolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[6]
+	mi := &file_proto_models_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -737,7 +841,7 @@ func (x *ChannelContextPolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelContextPolicy.ProtoReflect.Descriptor instead.
 func (*ChannelContextPolicy) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{6}
+	return file_proto_models_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ChannelContextPolicy) GetMode() string {
@@ -773,7 +877,7 @@ type ChannelSubscription struct {
 
 func (x *ChannelSubscription) Reset() {
 	*x = ChannelSubscription{}
-	mi := &file_proto_models_proto_msgTypes[7]
+	mi := &file_proto_models_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -785,7 +889,7 @@ func (x *ChannelSubscription) String() string {
 func (*ChannelSubscription) ProtoMessage() {}
 
 func (x *ChannelSubscription) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[7]
+	mi := &file_proto_models_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -798,7 +902,7 @@ func (x *ChannelSubscription) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelSubscription.ProtoReflect.Descriptor instead.
 func (*ChannelSubscription) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{7}
+	return file_proto_models_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ChannelSubscription) GetName() string {
@@ -882,7 +986,7 @@ type ScheduleTarget struct {
 
 func (x *ScheduleTarget) Reset() {
 	*x = ScheduleTarget{}
-	mi := &file_proto_models_proto_msgTypes[8]
+	mi := &file_proto_models_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -894,7 +998,7 @@ func (x *ScheduleTarget) String() string {
 func (*ScheduleTarget) ProtoMessage() {}
 
 func (x *ScheduleTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[8]
+	mi := &file_proto_models_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -907,7 +1011,7 @@ func (x *ScheduleTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduleTarget.ProtoReflect.Descriptor instead.
 func (*ScheduleTarget) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{8}
+	return file_proto_models_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ScheduleTarget) GetAgent() string {
@@ -947,7 +1051,7 @@ type ScheduleSpec struct {
 
 func (x *ScheduleSpec) Reset() {
 	*x = ScheduleSpec{}
-	mi := &file_proto_models_proto_msgTypes[9]
+	mi := &file_proto_models_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -959,7 +1063,7 @@ func (x *ScheduleSpec) String() string {
 func (*ScheduleSpec) ProtoMessage() {}
 
 func (x *ScheduleSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[9]
+	mi := &file_proto_models_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -972,7 +1076,7 @@ func (x *ScheduleSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduleSpec.ProtoReflect.Descriptor instead.
 func (*ScheduleSpec) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{9}
+	return file_proto_models_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ScheduleSpec) GetKind() string {
@@ -1049,7 +1153,7 @@ type ScheduleStatus struct {
 
 func (x *ScheduleStatus) Reset() {
 	*x = ScheduleStatus{}
-	mi := &file_proto_models_proto_msgTypes[10]
+	mi := &file_proto_models_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1061,7 +1165,7 @@ func (x *ScheduleStatus) String() string {
 func (*ScheduleStatus) ProtoMessage() {}
 
 func (x *ScheduleStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[10]
+	mi := &file_proto_models_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1074,7 +1178,7 @@ func (x *ScheduleStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduleStatus.ProtoReflect.Descriptor instead.
 func (*ScheduleStatus) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{10}
+	return file_proto_models_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ScheduleStatus) GetRevision() uint64 {
@@ -1159,7 +1263,7 @@ type ScheduleEvent struct {
 
 func (x *ScheduleEvent) Reset() {
 	*x = ScheduleEvent{}
-	mi := &file_proto_models_proto_msgTypes[11]
+	mi := &file_proto_models_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1171,7 +1275,7 @@ func (x *ScheduleEvent) String() string {
 func (*ScheduleEvent) ProtoMessage() {}
 
 func (x *ScheduleEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[11]
+	mi := &file_proto_models_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1184,7 +1288,7 @@ func (x *ScheduleEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduleEvent.ProtoReflect.Descriptor instead.
 func (*ScheduleEvent) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{11}
+	return file_proto_models_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ScheduleEvent) GetTimestamp() int64 {
@@ -1228,7 +1332,7 @@ type Schedule struct {
 
 func (x *Schedule) Reset() {
 	*x = Schedule{}
-	mi := &file_proto_models_proto_msgTypes[12]
+	mi := &file_proto_models_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1240,7 +1344,7 @@ func (x *Schedule) String() string {
 func (*Schedule) ProtoMessage() {}
 
 func (x *Schedule) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[12]
+	mi := &file_proto_models_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1253,7 +1357,7 @@ func (x *Schedule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Schedule.ProtoReflect.Descriptor instead.
 func (*Schedule) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{12}
+	return file_proto_models_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Schedule) GetName() string {
@@ -1304,7 +1408,7 @@ type Namespace struct {
 
 func (x *Namespace) Reset() {
 	*x = Namespace{}
-	mi := &file_proto_models_proto_msgTypes[13]
+	mi := &file_proto_models_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1316,7 +1420,7 @@ func (x *Namespace) String() string {
 func (*Namespace) ProtoMessage() {}
 
 func (x *Namespace) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[13]
+	mi := &file_proto_models_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1329,7 +1433,7 @@ func (x *Namespace) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Namespace.ProtoReflect.Descriptor instead.
 func (*Namespace) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{13}
+	return file_proto_models_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *Namespace) GetName() string {
@@ -1380,7 +1484,7 @@ type Knowledge struct {
 
 func (x *Knowledge) Reset() {
 	*x = Knowledge{}
-	mi := &file_proto_models_proto_msgTypes[14]
+	mi := &file_proto_models_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1392,7 +1496,7 @@ func (x *Knowledge) String() string {
 func (*Knowledge) ProtoMessage() {}
 
 func (x *Knowledge) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[14]
+	mi := &file_proto_models_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1405,7 +1509,7 @@ func (x *Knowledge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Knowledge.ProtoReflect.Descriptor instead.
 func (*Knowledge) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{14}
+	return file_proto_models_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *Knowledge) GetPath() string {
@@ -1456,7 +1560,7 @@ type KnowledgeSearchResult struct {
 
 func (x *KnowledgeSearchResult) Reset() {
 	*x = KnowledgeSearchResult{}
-	mi := &file_proto_models_proto_msgTypes[15]
+	mi := &file_proto_models_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1468,7 +1572,7 @@ func (x *KnowledgeSearchResult) String() string {
 func (*KnowledgeSearchResult) ProtoMessage() {}
 
 func (x *KnowledgeSearchResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_models_proto_msgTypes[15]
+	mi := &file_proto_models_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1481,7 +1585,7 @@ func (x *KnowledgeSearchResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KnowledgeSearchResult.ProtoReflect.Descriptor instead.
 func (*KnowledgeSearchResult) Descriptor() ([]byte, []int) {
-	return file_proto_models_proto_rawDescGZIP(), []int{15}
+	return file_proto_models_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *KnowledgeSearchResult) GetPath() string {
@@ -1535,7 +1639,19 @@ const file_proto_models_proto_rawDesc = "" +
 	"\x06labels\x18\a \x03(\v2\x1f.talon.models.Agent.LabelsEntryR\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xd7\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x8f\x02\n" +
+	"\tObjectRef\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1d\n" +
+	"\n" +
+	"media_type\x18\x02 \x01(\tR\tmediaType\x12\x1d\n" +
+	"\n" +
+	"size_bytes\x18\x03 \x01(\x04R\tsizeBytes\x12\x16\n" +
+	"\x06sha256\x18\x04 \x01(\tR\x06sha256\x12\x1a\n" +
+	"\bfilename\x18\x05 \x01(\tR\bfilename\x12A\n" +
+	"\bmetadata\x18\x06 \x03(\v2%.talon.models.ObjectRef.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x88\x02\n" +
 	"\x12SessionMessagePart\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12A\n" +
 	"\tpart_type\x18\x02 \x01(\x0e2$.talon.models.SessionMessagePartTypeR\bpartType\x12\x18\n" +
@@ -1543,7 +1659,8 @@ const file_proto_models_proto_rawDesc = "" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12!\n" +
 	"\fpayload_json\x18\x05 \x01(\tR\vpayloadJson\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\x03R\tcreatedAt\"\xa9\x02\n" +
+	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12/\n" +
+	"\x06object\x18\a \x01(\v2\x17.talon.models.ObjectRefR\x06object\"\xa9\x02\n" +
 	"\x0eSessionMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12-\n" +
 	"\x04role\x18\x02 \x01(\x0e2\x19.talon.models.MessageRoleR\x04role\x12\x1d\n" +
@@ -1703,7 +1820,7 @@ const file_proto_models_proto_rawDesc = "" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tROLE_USER\x10\x01\x12\x12\n" +
 	"\x0eROLE_ASSISTANT\x10\x02\x12\x0f\n" +
-	"\vROLE_SYSTEM\x10\x03*\xae\x02\n" +
+	"\vROLE_SYSTEM\x10\x03*\xc1\x03\n" +
 	"\x16SessionMessagePartType\x12)\n" +
 	"%SESSION_MESSAGE_PART_TYPE_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eSESSION_MESSAGE_PART_TYPE_TEXT\x10\x01\x12'\n" +
@@ -1711,7 +1828,12 @@ const file_proto_models_proto_rawDesc = "" +
 	"#SESSION_MESSAGE_PART_TYPE_TOOL_CALL\x10\x03\x12)\n" +
 	"%SESSION_MESSAGE_PART_TYPE_TOOL_RESULT\x10\x04\x12#\n" +
 	"\x1fSESSION_MESSAGE_PART_TYPE_USAGE\x10\x05\x12#\n" +
-	"\x1fSESSION_MESSAGE_PART_TYPE_ERROR\x10\x06b\x06proto3"
+	"\x1fSESSION_MESSAGE_PART_TYPE_ERROR\x10\x06\x12#\n" +
+	"\x1fSESSION_MESSAGE_PART_TYPE_IMAGE\x10\a\x12#\n" +
+	"\x1fSESSION_MESSAGE_PART_TYPE_AUDIO\x10\b\x12#\n" +
+	"\x1fSESSION_MESSAGE_PART_TYPE_VIDEO\x10\t\x12\"\n" +
+	"\x1eSESSION_MESSAGE_PART_TYPE_FILE\x10\n" +
+	"b\x06proto3"
 
 var (
 	file_proto_models_proto_rawDescOnce sync.Once
@@ -1726,67 +1848,71 @@ func file_proto_models_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_models_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proto_models_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_proto_models_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_proto_models_proto_goTypes = []any{
 	(MessageRole)(0),                  // 0: talon.models.MessageRole
 	(SessionMessagePartType)(0),       // 1: talon.models.SessionMessagePartType
 	(*Agent)(nil),                     // 2: talon.models.Agent
-	(*SessionMessagePart)(nil),        // 3: talon.models.SessionMessagePart
-	(*SessionMessage)(nil),            // 4: talon.models.SessionMessage
-	(*Session)(nil),                   // 5: talon.models.Session
-	(*Channel)(nil),                   // 6: talon.models.Channel
-	(*ChannelMessage)(nil),            // 7: talon.models.ChannelMessage
-	(*ChannelContextPolicy)(nil),      // 8: talon.models.ChannelContextPolicy
-	(*ChannelSubscription)(nil),       // 9: talon.models.ChannelSubscription
-	(*ScheduleTarget)(nil),            // 10: talon.models.ScheduleTarget
-	(*ScheduleSpec)(nil),              // 11: talon.models.ScheduleSpec
-	(*ScheduleStatus)(nil),            // 12: talon.models.ScheduleStatus
-	(*ScheduleEvent)(nil),             // 13: talon.models.ScheduleEvent
-	(*Schedule)(nil),                  // 14: talon.models.Schedule
-	(*Namespace)(nil),                 // 15: talon.models.Namespace
-	(*Knowledge)(nil),                 // 16: talon.models.Knowledge
-	(*KnowledgeSearchResult)(nil),     // 17: talon.models.KnowledgeSearchResult
-	nil,                               // 18: talon.models.Agent.LabelsEntry
-	nil,                               // 19: talon.models.SessionMessage.LabelsEntry
-	nil,                               // 20: talon.models.Session.MetadataEntry
-	nil,                               // 21: talon.models.Session.LabelsEntry
-	nil,                               // 22: talon.models.Channel.MetadataEntry
-	nil,                               // 23: talon.models.Channel.LabelsEntry
-	nil,                               // 24: talon.models.ChannelMessage.LabelsEntry
-	nil,                               // 25: talon.models.ChannelSubscription.MetadataEntry
-	nil,                               // 26: talon.models.ChannelSubscription.LabelsEntry
-	nil,                               // 27: talon.models.Schedule.LabelsEntry
-	nil,                               // 28: talon.models.Namespace.LabelsEntry
-	(*manifests.AgentDefinition)(nil), // 29: talon.manifests.AgentDefinition
-	(*manifests.AgentSpec)(nil),       // 30: talon.manifests.AgentSpec
+	(*ObjectRef)(nil),                 // 3: talon.models.ObjectRef
+	(*SessionMessagePart)(nil),        // 4: talon.models.SessionMessagePart
+	(*SessionMessage)(nil),            // 5: talon.models.SessionMessage
+	(*Session)(nil),                   // 6: talon.models.Session
+	(*Channel)(nil),                   // 7: talon.models.Channel
+	(*ChannelMessage)(nil),            // 8: talon.models.ChannelMessage
+	(*ChannelContextPolicy)(nil),      // 9: talon.models.ChannelContextPolicy
+	(*ChannelSubscription)(nil),       // 10: talon.models.ChannelSubscription
+	(*ScheduleTarget)(nil),            // 11: talon.models.ScheduleTarget
+	(*ScheduleSpec)(nil),              // 12: talon.models.ScheduleSpec
+	(*ScheduleStatus)(nil),            // 13: talon.models.ScheduleStatus
+	(*ScheduleEvent)(nil),             // 14: talon.models.ScheduleEvent
+	(*Schedule)(nil),                  // 15: talon.models.Schedule
+	(*Namespace)(nil),                 // 16: talon.models.Namespace
+	(*Knowledge)(nil),                 // 17: talon.models.Knowledge
+	(*KnowledgeSearchResult)(nil),     // 18: talon.models.KnowledgeSearchResult
+	nil,                               // 19: talon.models.Agent.LabelsEntry
+	nil,                               // 20: talon.models.ObjectRef.MetadataEntry
+	nil,                               // 21: talon.models.SessionMessage.LabelsEntry
+	nil,                               // 22: talon.models.Session.MetadataEntry
+	nil,                               // 23: talon.models.Session.LabelsEntry
+	nil,                               // 24: talon.models.Channel.MetadataEntry
+	nil,                               // 25: talon.models.Channel.LabelsEntry
+	nil,                               // 26: talon.models.ChannelMessage.LabelsEntry
+	nil,                               // 27: talon.models.ChannelSubscription.MetadataEntry
+	nil,                               // 28: talon.models.ChannelSubscription.LabelsEntry
+	nil,                               // 29: talon.models.Schedule.LabelsEntry
+	nil,                               // 30: talon.models.Namespace.LabelsEntry
+	(*manifests.AgentDefinition)(nil), // 31: talon.manifests.AgentDefinition
+	(*manifests.AgentSpec)(nil),       // 32: talon.manifests.AgentSpec
 }
 var file_proto_models_proto_depIdxs = []int32{
-	29, // 0: talon.models.Agent.definition:type_name -> talon.manifests.AgentDefinition
-	30, // 1: talon.models.Agent.effective_spec:type_name -> talon.manifests.AgentSpec
-	18, // 2: talon.models.Agent.labels:type_name -> talon.models.Agent.LabelsEntry
-	1,  // 3: talon.models.SessionMessagePart.part_type:type_name -> talon.models.SessionMessagePartType
-	0,  // 4: talon.models.SessionMessage.role:type_name -> talon.models.MessageRole
-	19, // 5: talon.models.SessionMessage.labels:type_name -> talon.models.SessionMessage.LabelsEntry
-	3,  // 6: talon.models.SessionMessage.parts:type_name -> talon.models.SessionMessagePart
-	20, // 7: talon.models.Session.metadata:type_name -> talon.models.Session.MetadataEntry
-	21, // 8: talon.models.Session.labels:type_name -> talon.models.Session.LabelsEntry
-	22, // 9: talon.models.Channel.metadata:type_name -> talon.models.Channel.MetadataEntry
-	23, // 10: talon.models.Channel.labels:type_name -> talon.models.Channel.LabelsEntry
-	24, // 11: talon.models.ChannelMessage.labels:type_name -> talon.models.ChannelMessage.LabelsEntry
-	8,  // 12: talon.models.ChannelSubscription.context_policy:type_name -> talon.models.ChannelContextPolicy
-	25, // 13: talon.models.ChannelSubscription.metadata:type_name -> talon.models.ChannelSubscription.MetadataEntry
-	26, // 14: talon.models.ChannelSubscription.labels:type_name -> talon.models.ChannelSubscription.LabelsEntry
-	10, // 15: talon.models.ScheduleSpec.target:type_name -> talon.models.ScheduleTarget
-	13, // 16: talon.models.ScheduleStatus.recent_events:type_name -> talon.models.ScheduleEvent
-	11, // 17: talon.models.Schedule.spec:type_name -> talon.models.ScheduleSpec
-	12, // 18: talon.models.Schedule.status:type_name -> talon.models.ScheduleStatus
-	27, // 19: talon.models.Schedule.labels:type_name -> talon.models.Schedule.LabelsEntry
-	28, // 20: talon.models.Namespace.labels:type_name -> talon.models.Namespace.LabelsEntry
-	21, // [21:21] is the sub-list for method output_type
-	21, // [21:21] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	31, // 0: talon.models.Agent.definition:type_name -> talon.manifests.AgentDefinition
+	32, // 1: talon.models.Agent.effective_spec:type_name -> talon.manifests.AgentSpec
+	19, // 2: talon.models.Agent.labels:type_name -> talon.models.Agent.LabelsEntry
+	20, // 3: talon.models.ObjectRef.metadata:type_name -> talon.models.ObjectRef.MetadataEntry
+	1,  // 4: talon.models.SessionMessagePart.part_type:type_name -> talon.models.SessionMessagePartType
+	3,  // 5: talon.models.SessionMessagePart.object:type_name -> talon.models.ObjectRef
+	0,  // 6: talon.models.SessionMessage.role:type_name -> talon.models.MessageRole
+	21, // 7: talon.models.SessionMessage.labels:type_name -> talon.models.SessionMessage.LabelsEntry
+	4,  // 8: talon.models.SessionMessage.parts:type_name -> talon.models.SessionMessagePart
+	22, // 9: talon.models.Session.metadata:type_name -> talon.models.Session.MetadataEntry
+	23, // 10: talon.models.Session.labels:type_name -> talon.models.Session.LabelsEntry
+	24, // 11: talon.models.Channel.metadata:type_name -> talon.models.Channel.MetadataEntry
+	25, // 12: talon.models.Channel.labels:type_name -> talon.models.Channel.LabelsEntry
+	26, // 13: talon.models.ChannelMessage.labels:type_name -> talon.models.ChannelMessage.LabelsEntry
+	9,  // 14: talon.models.ChannelSubscription.context_policy:type_name -> talon.models.ChannelContextPolicy
+	27, // 15: talon.models.ChannelSubscription.metadata:type_name -> talon.models.ChannelSubscription.MetadataEntry
+	28, // 16: talon.models.ChannelSubscription.labels:type_name -> talon.models.ChannelSubscription.LabelsEntry
+	11, // 17: talon.models.ScheduleSpec.target:type_name -> talon.models.ScheduleTarget
+	14, // 18: talon.models.ScheduleStatus.recent_events:type_name -> talon.models.ScheduleEvent
+	12, // 19: talon.models.Schedule.spec:type_name -> talon.models.ScheduleSpec
+	13, // 20: talon.models.Schedule.status:type_name -> talon.models.ScheduleStatus
+	29, // 21: talon.models.Schedule.labels:type_name -> talon.models.Schedule.LabelsEntry
+	30, // 22: talon.models.Namespace.labels:type_name -> talon.models.Namespace.LabelsEntry
+	23, // [23:23] is the sub-list for method output_type
+	23, // [23:23] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_proto_models_proto_init() }
@@ -1794,14 +1920,14 @@ func file_proto_models_proto_init() {
 	if File_proto_models_proto != nil {
 		return
 	}
-	file_proto_models_proto_msgTypes[10].OneofWrappers = []any{}
+	file_proto_models_proto_msgTypes[11].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_models_proto_rawDesc), len(file_proto_models_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   27,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

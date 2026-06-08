@@ -137,6 +137,7 @@ pub fn compact_history_for_llm_with_budget(
                 "[{} earlier messages omitted to stay within Talon context budget.]",
                 omitted
             ),
+            content_parts: Vec::new(),
             tool_calls: None,
             tool_call_id: None,
         });
@@ -177,6 +178,7 @@ fn normalize_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopM
     LoopMessage {
         role: message.role.clone(),
         content,
+        content_parts: message.content_parts.clone(),
         tool_calls,
         tool_call_id: message.tool_call_id.clone(),
     }
@@ -340,6 +342,7 @@ fn tool_segment_summary(
             .map(|message| message.role.clone())
             .unwrap_or_else(|| "assistant".to_string()),
         content,
+        content_parts: Vec::new(),
         tool_calls: None,
         tool_call_id: None,
     }
@@ -557,6 +560,7 @@ mod tests {
             .map(|message| LoopMessage {
                 role: message.role,
                 content: message.content,
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             })
@@ -584,24 +588,28 @@ mod tests {
             LoopMessage {
                 role: "system".to_string(),
                 content: "sys".repeat(40),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             },
             LoopMessage {
                 role: "assistant".to_string(),
                 content: "A".repeat(500),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             },
             LoopMessage {
                 role: "tool".to_string(),
                 content: format!(r#"{{"payload":"{}"}}"#, "B".repeat(500)),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: Some("tool-1".to_string()),
             },
             LoopMessage {
                 role: "user".to_string(),
                 content: "latest question".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             },
@@ -621,12 +629,14 @@ mod tests {
             LoopMessage {
                 role: "user".to_string(),
                 content: "Inspect the footer.".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             },
             LoopMessage {
                 role: "assistant".to_string(),
                 content: String::new(),
+                content_parts: Vec::new(),
                 tool_calls: Some(vec![ToolCall {
                     id: "tool-1".to_string(),
                     name: "mcp_github_get_file_contents".to_string(),
@@ -637,12 +647,14 @@ mod tests {
             LoopMessage {
                 role: "tool".to_string(),
                 content: "{\"content\":\"export function Footer() {}\"}".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: Some("tool-1".to_string()),
             },
             LoopMessage {
                 role: "user".to_string(),
                 content: "Continue".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             },
@@ -668,6 +680,7 @@ mod tests {
             LoopMessage {
                 role: "assistant".to_string(),
                 content: String::new(),
+                content_parts: Vec::new(),
                 tool_calls: Some(vec![ToolCall {
                     id: "tool-1".to_string(),
                     name: "mcp_github_search_code".to_string(),
@@ -678,12 +691,14 @@ mod tests {
             LoopMessage {
                 role: "tool".to_string(),
                 content: format!("{{\"items\":[{{\"content\":\"{}\"}}]}}", "y".repeat(4_000)),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: Some("tool-1".to_string()),
             },
             LoopMessage {
                 role: "user".to_string(),
                 content: "Continue".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             },
@@ -719,12 +734,14 @@ mod tests {
             LoopMessage {
                 role: "tool".to_string(),
                 content: "{\"content\":\"orphan\"}".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: Some("tool-orphan".to_string()),
             },
             LoopMessage {
                 role: "user".to_string(),
                 content: "Continue".to_string(),
+                content_parts: Vec::new(),
                 tool_calls: None,
                 tool_call_id: None,
             },

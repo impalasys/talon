@@ -722,6 +722,7 @@ mod tests {
             kv,
             pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
             session_streams: Arc::new(SessionStreamHub::new(pubsub)),
         })
     }
@@ -739,6 +740,7 @@ mod tests {
             name: name.into(),
             payload_json: payload_json.into(),
             created_at: 0,
+            object: None,
         }
     }
 
@@ -977,6 +979,7 @@ mod tests {
                         name: String::new(),
                         payload_json: String::new(),
                         created_at: 3,
+                        object: None,
                     }],
                 },
             ],

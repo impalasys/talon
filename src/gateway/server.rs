@@ -1,7 +1,9 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::control::{scheduler::SchedulerBackend, KeyValueStore, MessagePublisher};
+use crate::control::{
+    object_store::ObjectStore, scheduler::SchedulerBackend, KeyValueStore, MessagePublisher,
+};
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
@@ -15,6 +17,7 @@ pub struct Gateway {
     pub kv: Arc<dyn KeyValueStore + Send + Sync>,
     pub pubsub: Arc<dyn MessagePublisher + Send + Sync>,
     pub scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
+    pub objects: Arc<dyn ObjectStore + Send + Sync>,
     pub session_streams: Arc<SessionStreamHub>,
 }
 
@@ -24,6 +27,7 @@ impl Gateway {
         kv: Arc<dyn KeyValueStore + Send + Sync>,
         pubsub: Arc<dyn MessagePublisher + Send + Sync>,
         scheduler: Arc<dyn SchedulerBackend + Send + Sync>,
+        objects: Arc<dyn ObjectStore + Send + Sync>,
     ) -> Self {
         let session_streams = Arc::new(SessionStreamHub::new(pubsub.clone()));
         Self {
@@ -31,6 +35,7 @@ impl Gateway {
             kv,
             pubsub,
             scheduler,
+            objects,
             session_streams,
         }
     }
@@ -41,6 +46,7 @@ impl Gateway {
             kv: self.kv.clone(),
             pubsub: self.pubsub.clone(),
             scheduler: self.scheduler.clone(),
+            objects: self.objects.clone(),
             session_streams: self.session_streams.clone(),
         }
     }
@@ -216,6 +222,7 @@ mod tests {
             Arc::new(MockKvStore::default()),
             Arc::new(MockPubSub),
             Arc::new(NoopSchedulerBackend),
+            crate::control::object_store::default_object_store(),
         )
     }
 
@@ -226,6 +233,7 @@ mod tests {
             Arc::new(MockKvStore::default()),
             Arc::new(MockPubSub),
             Arc::new(NoopSchedulerBackend),
+            crate::control::object_store::default_object_store(),
         );
 
         assert!(matches!(

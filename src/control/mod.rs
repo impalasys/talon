@@ -6,6 +6,7 @@ pub mod events;
 pub mod keys;
 pub mod kv;
 pub mod ns;
+pub mod object_store;
 pub mod pubsub;
 pub mod scheduler;
 pub mod topics;
@@ -163,6 +164,7 @@ pub struct ControlPlane {
     pub kv: std::sync::Arc<dyn KeyValueStore + Send + Sync>,
     pub pubsub: std::sync::Arc<dyn MessagePublisher + Send + Sync>,
     pub scheduler: std::sync::Arc<dyn scheduler::SchedulerBackend + Send + Sync>,
+    pub objects: std::sync::Arc<dyn object_store::ObjectStore + Send + Sync>,
 }
 
 async fn ensure_builtin_namespaces(kv: &(dyn KeyValueStore + Send + Sync)) -> anyhow::Result<()> {
@@ -356,10 +358,16 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             },
         };
 
+    let object_root = PathBuf::from(&config.workspace_dir)
+        .join(".talon")
+        .join("objects");
+    let objects = std::sync::Arc::new(object_store::LocalObjectStore::new(object_root));
+
     Ok(ControlPlane {
         kv,
         pubsub,
         scheduler,
+        objects,
     })
 }
 
@@ -492,13 +500,13 @@ fn configured_scheduler_callback_auth_from_env(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "rocksdb")]
+    use super::rocksdb_database_path;
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
         ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
         ProtoKeyValueStoreExt,
     };
-    #[cfg(feature = "rocksdb")]
-    use super::rocksdb_database_path;
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
     use crate::control::keys;
