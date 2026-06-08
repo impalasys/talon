@@ -72,7 +72,7 @@ message MessageBrokerConfig {
   string driver = 1;
 }
 
-message LocalFsObjectStoreConfig {
+message LocalObjectStoreConfig {
   string path = 1;
 }
 
@@ -92,7 +92,7 @@ message S3ObjectStoreConfig {
 
 message ObjectStoreConfig {
   oneof backend {
-    LocalFsObjectStoreConfig local_fs = 1;
+    LocalObjectStoreConfig local = 1;
     GcsObjectStoreConfig gcs = 2;
     S3ObjectStoreConfig s3 = 3;
   }

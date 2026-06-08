@@ -9306,8 +9306,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
 
   }
 
-  public interface LocalFsObjectStoreConfigOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.config.LocalFsObjectStoreConfig)
+  public interface LocalObjectStoreConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.LocalObjectStoreConfig)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -9323,12 +9323,12 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getPathBytes();
   }
   /**
-   * Protobuf type {@code talon.config.LocalFsObjectStoreConfig}
+   * Protobuf type {@code talon.config.LocalObjectStoreConfig}
    */
-  public static final class LocalFsObjectStoreConfig extends
+  public static final class LocalObjectStoreConfig extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.config.LocalFsObjectStoreConfig)
-      LocalFsObjectStoreConfigOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.config.LocalObjectStoreConfig)
+      LocalObjectStoreConfigOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -9337,32 +9337,32 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "LocalFsObjectStoreConfig");
+        "LocalObjectStoreConfig");
     }
-    // Use LocalFsObjectStoreConfig.newBuilder() to construct.
-    private LocalFsObjectStoreConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use LocalObjectStoreConfig.newBuilder() to construct.
+    private LocalObjectStoreConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private LocalFsObjectStoreConfig() {
+    private LocalObjectStoreConfig() {
       path_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.config.Config.internal_static_talon_config_LocalFsObjectStoreConfig_descriptor;
+      return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.config.Config.internal_static_talon_config_LocalFsObjectStoreConfig_descriptor;
+      return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.config.Config.internal_static_talon_config_LocalFsObjectStoreConfig_fieldAccessorTable
+      return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.config.Config.LocalFsObjectStoreConfig.class, talon.config.Config.LocalFsObjectStoreConfig.Builder.class);
+              talon.config.Config.LocalObjectStoreConfig.class, talon.config.Config.LocalObjectStoreConfig.Builder.class);
     }
 
     public static final int PATH_FIELD_NUMBER = 1;
@@ -9443,10 +9443,10 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.config.Config.LocalFsObjectStoreConfig)) {
+      if (!(obj instanceof talon.config.Config.LocalObjectStoreConfig)) {
         return super.equals(obj);
       }
-      talon.config.Config.LocalFsObjectStoreConfig other = (talon.config.Config.LocalFsObjectStoreConfig) obj;
+      talon.config.Config.LocalObjectStoreConfig other = (talon.config.Config.LocalObjectStoreConfig) obj;
 
       if (!getPath()
           .equals(other.getPath())) return false;
@@ -9468,44 +9468,44 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       return hash;
     }
 
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(byte[] data)
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(java.io.InputStream input)
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -9513,26 +9513,26 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.config.Config.LocalFsObjectStoreConfig parseDelimitedFrom(java.io.InputStream input)
+    public static talon.config.Config.LocalObjectStoreConfig parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.config.Config.LocalFsObjectStoreConfig parseDelimitedFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.config.Config.LocalFsObjectStoreConfig parseFrom(
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -9545,7 +9545,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.config.Config.LocalFsObjectStoreConfig prototype) {
+    public static Builder newBuilder(talon.config.Config.LocalObjectStoreConfig prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -9561,26 +9561,26 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.config.LocalFsObjectStoreConfig}
+     * Protobuf type {@code talon.config.LocalObjectStoreConfig}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.config.LocalFsObjectStoreConfig)
-        talon.config.Config.LocalFsObjectStoreConfigOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.config.LocalObjectStoreConfig)
+        talon.config.Config.LocalObjectStoreConfigOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.config.Config.internal_static_talon_config_LocalFsObjectStoreConfig_descriptor;
+        return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.config.Config.internal_static_talon_config_LocalFsObjectStoreConfig_fieldAccessorTable
+        return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.config.Config.LocalFsObjectStoreConfig.class, talon.config.Config.LocalFsObjectStoreConfig.Builder.class);
+                talon.config.Config.LocalObjectStoreConfig.class, talon.config.Config.LocalObjectStoreConfig.Builder.class);
       }
 
-      // Construct using talon.config.Config.LocalFsObjectStoreConfig.newBuilder()
+      // Construct using talon.config.Config.LocalObjectStoreConfig.newBuilder()
       private Builder() {
 
       }
@@ -9601,17 +9601,17 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.config.Config.internal_static_talon_config_LocalFsObjectStoreConfig_descriptor;
+        return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_descriptor;
       }
 
       @java.lang.Override
-      public talon.config.Config.LocalFsObjectStoreConfig getDefaultInstanceForType() {
-        return talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance();
+      public talon.config.Config.LocalObjectStoreConfig getDefaultInstanceForType() {
+        return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.config.Config.LocalFsObjectStoreConfig build() {
-        talon.config.Config.LocalFsObjectStoreConfig result = buildPartial();
+      public talon.config.Config.LocalObjectStoreConfig build() {
+        talon.config.Config.LocalObjectStoreConfig result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -9619,14 +9619,14 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       }
 
       @java.lang.Override
-      public talon.config.Config.LocalFsObjectStoreConfig buildPartial() {
-        talon.config.Config.LocalFsObjectStoreConfig result = new talon.config.Config.LocalFsObjectStoreConfig(this);
+      public talon.config.Config.LocalObjectStoreConfig buildPartial() {
+        talon.config.Config.LocalObjectStoreConfig result = new talon.config.Config.LocalObjectStoreConfig(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.config.Config.LocalFsObjectStoreConfig result) {
+      private void buildPartial0(talon.config.Config.LocalObjectStoreConfig result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.path_ = path_;
@@ -9635,16 +9635,16 @@ talon.config.Config.LlmProviderConfig defaultValue) {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.config.Config.LocalFsObjectStoreConfig) {
-          return mergeFrom((talon.config.Config.LocalFsObjectStoreConfig)other);
+        if (other instanceof talon.config.Config.LocalObjectStoreConfig) {
+          return mergeFrom((talon.config.Config.LocalObjectStoreConfig)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.config.Config.LocalFsObjectStoreConfig other) {
-        if (other == talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.config.Config.LocalObjectStoreConfig other) {
+        if (other == talon.config.Config.LocalObjectStoreConfig.getDefaultInstance()) return this;
         if (!other.getPath().isEmpty()) {
           path_ = other.path_;
           bitField0_ |= 0x00000001;
@@ -9770,23 +9770,23 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.config.LocalFsObjectStoreConfig)
+      // @@protoc_insertion_point(builder_scope:talon.config.LocalObjectStoreConfig)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.config.LocalFsObjectStoreConfig)
-    private static final talon.config.Config.LocalFsObjectStoreConfig DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.config.LocalObjectStoreConfig)
+    private static final talon.config.Config.LocalObjectStoreConfig DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.config.Config.LocalFsObjectStoreConfig();
+      DEFAULT_INSTANCE = new talon.config.Config.LocalObjectStoreConfig();
     }
 
-    public static talon.config.Config.LocalFsObjectStoreConfig getDefaultInstance() {
+    public static talon.config.Config.LocalObjectStoreConfig getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<LocalFsObjectStoreConfig>
-        PARSER = new com.google.protobuf.AbstractParser<LocalFsObjectStoreConfig>() {
+    private static final com.google.protobuf.Parser<LocalObjectStoreConfig>
+        PARSER = new com.google.protobuf.AbstractParser<LocalObjectStoreConfig>() {
       @java.lang.Override
-      public LocalFsObjectStoreConfig parsePartialFrom(
+      public LocalObjectStoreConfig parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -9805,17 +9805,17 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<LocalFsObjectStoreConfig> parser() {
+    public static com.google.protobuf.Parser<LocalObjectStoreConfig> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<LocalFsObjectStoreConfig> getParserForType() {
+    public com.google.protobuf.Parser<LocalObjectStoreConfig> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.config.Config.LocalFsObjectStoreConfig getDefaultInstanceForType() {
+    public talon.config.Config.LocalObjectStoreConfig getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -11669,19 +11669,19 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
-     * @return Whether the localFs field is set.
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     * @return Whether the local field is set.
      */
-    boolean hasLocalFs();
+    boolean hasLocal();
     /**
-     * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
-     * @return The localFs.
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     * @return The local.
      */
-    talon.config.Config.LocalFsObjectStoreConfig getLocalFs();
+    talon.config.Config.LocalObjectStoreConfig getLocal();
     /**
-     * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
      */
-    talon.config.Config.LocalFsObjectStoreConfigOrBuilder getLocalFsOrBuilder();
+    talon.config.Config.LocalObjectStoreConfigOrBuilder getLocalOrBuilder();
 
     /**
      * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
@@ -11763,7 +11763,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
     public enum BackendCase
         implements com.google.protobuf.Internal.EnumLite,
             com.google.protobuf.AbstractMessage.InternalOneOfEnum {
-      LOCAL_FS(1),
+      LOCAL(1),
       GCS(2),
       S3(3),
       BACKEND_NOT_SET(0);
@@ -11783,7 +11783,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
 
       public static BackendCase forNumber(int value) {
         switch (value) {
-          case 1: return LOCAL_FS;
+          case 1: return LOCAL;
           case 2: return GCS;
           case 3: return S3;
           case 0: return BACKEND_NOT_SET;
@@ -11801,35 +11801,35 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           backendCase_);
     }
 
-    public static final int LOCAL_FS_FIELD_NUMBER = 1;
+    public static final int LOCAL_FIELD_NUMBER = 1;
     /**
-     * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
-     * @return Whether the localFs field is set.
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     * @return Whether the local field is set.
      */
     @java.lang.Override
-    public boolean hasLocalFs() {
+    public boolean hasLocal() {
       return backendCase_ == 1;
     }
     /**
-     * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
-     * @return The localFs.
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     * @return The local.
      */
     @java.lang.Override
-    public talon.config.Config.LocalFsObjectStoreConfig getLocalFs() {
+    public talon.config.Config.LocalObjectStoreConfig getLocal() {
       if (backendCase_ == 1) {
-         return (talon.config.Config.LocalFsObjectStoreConfig) backend_;
+         return (talon.config.Config.LocalObjectStoreConfig) backend_;
       }
-      return talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance();
+      return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
     }
     /**
-     * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
      */
     @java.lang.Override
-    public talon.config.Config.LocalFsObjectStoreConfigOrBuilder getLocalFsOrBuilder() {
+    public talon.config.Config.LocalObjectStoreConfigOrBuilder getLocalOrBuilder() {
       if (backendCase_ == 1) {
-         return (talon.config.Config.LocalFsObjectStoreConfig) backend_;
+         return (talon.config.Config.LocalObjectStoreConfig) backend_;
       }
-      return talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance();
+      return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
     }
 
     public static final int GCS_FIELD_NUMBER = 2;
@@ -11909,7 +11909,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (backendCase_ == 1) {
-        output.writeMessage(1, (talon.config.Config.LocalFsObjectStoreConfig) backend_);
+        output.writeMessage(1, (talon.config.Config.LocalObjectStoreConfig) backend_);
       }
       if (backendCase_ == 2) {
         output.writeMessage(2, (talon.config.Config.GcsObjectStoreConfig) backend_);
@@ -11928,7 +11928,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       size = 0;
       if (backendCase_ == 1) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, (talon.config.Config.LocalFsObjectStoreConfig) backend_);
+          .computeMessageSize(1, (talon.config.Config.LocalObjectStoreConfig) backend_);
       }
       if (backendCase_ == 2) {
         size += com.google.protobuf.CodedOutputStream
@@ -11956,8 +11956,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (!getBackendCase().equals(other.getBackendCase())) return false;
       switch (backendCase_) {
         case 1:
-          if (!getLocalFs()
-              .equals(other.getLocalFs())) return false;
+          if (!getLocal()
+              .equals(other.getLocal())) return false;
           break;
         case 2:
           if (!getGcs()
@@ -11983,8 +11983,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       hash = (19 * hash) + getDescriptor().hashCode();
       switch (backendCase_) {
         case 1:
-          hash = (37 * hash) + LOCAL_FS_FIELD_NUMBER;
-          hash = (53 * hash) + getLocalFs().hashCode();
+          hash = (37 * hash) + LOCAL_FIELD_NUMBER;
+          hash = (53 * hash) + getLocal().hashCode();
           break;
         case 2:
           hash = (37 * hash) + GCS_FIELD_NUMBER;
@@ -12128,8 +12128,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        if (localFsBuilder_ != null) {
-          localFsBuilder_.clear();
+        if (localBuilder_ != null) {
+          localBuilder_.clear();
         }
         if (gcsBuilder_ != null) {
           gcsBuilder_.clear();
@@ -12179,8 +12179,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         result.backendCase_ = backendCase_;
         result.backend_ = this.backend_;
         if (backendCase_ == 1 &&
-            localFsBuilder_ != null) {
-          result.backend_ = localFsBuilder_.build();
+            localBuilder_ != null) {
+          result.backend_ = localBuilder_.build();
         }
         if (backendCase_ == 2 &&
             gcsBuilder_ != null) {
@@ -12205,8 +12205,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       public Builder mergeFrom(talon.config.Config.ObjectStoreConfig other) {
         if (other == talon.config.Config.ObjectStoreConfig.getDefaultInstance()) return this;
         switch (other.getBackendCase()) {
-          case LOCAL_FS: {
-            mergeLocalFs(other.getLocalFs());
+          case LOCAL: {
+            mergeLocal(other.getLocal());
             break;
           }
           case GCS: {
@@ -12249,7 +12249,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
                 break;
               case 10: {
                 input.readMessage(
-                    internalGetLocalFsFieldBuilder().getBuilder(),
+                    internalGetLocalFieldBuilder().getBuilder(),
                     extensionRegistry);
                 backendCase_ = 1;
                 break;
@@ -12301,71 +12301,71 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       private int bitField0_;
 
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.LocalFsObjectStoreConfig, talon.config.Config.LocalFsObjectStoreConfig.Builder, talon.config.Config.LocalFsObjectStoreConfigOrBuilder> localFsBuilder_;
+          talon.config.Config.LocalObjectStoreConfig, talon.config.Config.LocalObjectStoreConfig.Builder, talon.config.Config.LocalObjectStoreConfigOrBuilder> localBuilder_;
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
-       * @return Whether the localFs field is set.
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       * @return Whether the local field is set.
        */
       @java.lang.Override
-      public boolean hasLocalFs() {
+      public boolean hasLocal() {
         return backendCase_ == 1;
       }
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
-       * @return The localFs.
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       * @return The local.
        */
       @java.lang.Override
-      public talon.config.Config.LocalFsObjectStoreConfig getLocalFs() {
-        if (localFsBuilder_ == null) {
+      public talon.config.Config.LocalObjectStoreConfig getLocal() {
+        if (localBuilder_ == null) {
           if (backendCase_ == 1) {
-            return (talon.config.Config.LocalFsObjectStoreConfig) backend_;
+            return (talon.config.Config.LocalObjectStoreConfig) backend_;
           }
-          return talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance();
+          return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
         } else {
           if (backendCase_ == 1) {
-            return localFsBuilder_.getMessage();
+            return localBuilder_.getMessage();
           }
-          return talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance();
+          return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
        */
-      public Builder setLocalFs(talon.config.Config.LocalFsObjectStoreConfig value) {
-        if (localFsBuilder_ == null) {
+      public Builder setLocal(talon.config.Config.LocalObjectStoreConfig value) {
+        if (localBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
           backend_ = value;
           onChanged();
         } else {
-          localFsBuilder_.setMessage(value);
+          localBuilder_.setMessage(value);
         }
         backendCase_ = 1;
         return this;
       }
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
        */
-      public Builder setLocalFs(
-          talon.config.Config.LocalFsObjectStoreConfig.Builder builderForValue) {
-        if (localFsBuilder_ == null) {
+      public Builder setLocal(
+          talon.config.Config.LocalObjectStoreConfig.Builder builderForValue) {
+        if (localBuilder_ == null) {
           backend_ = builderForValue.build();
           onChanged();
         } else {
-          localFsBuilder_.setMessage(builderForValue.build());
+          localBuilder_.setMessage(builderForValue.build());
         }
         backendCase_ = 1;
         return this;
       }
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
        */
-      public Builder mergeLocalFs(talon.config.Config.LocalFsObjectStoreConfig value) {
-        if (localFsBuilder_ == null) {
+      public Builder mergeLocal(talon.config.Config.LocalObjectStoreConfig value) {
+        if (localBuilder_ == null) {
           if (backendCase_ == 1 &&
-              backend_ != talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance()) {
-            backend_ = talon.config.Config.LocalFsObjectStoreConfig.newBuilder((talon.config.Config.LocalFsObjectStoreConfig) backend_)
+              backend_ != talon.config.Config.LocalObjectStoreConfig.getDefaultInstance()) {
+            backend_ = talon.config.Config.LocalObjectStoreConfig.newBuilder((talon.config.Config.LocalObjectStoreConfig) backend_)
                 .mergeFrom(value).buildPartial();
           } else {
             backend_ = value;
@@ -12373,19 +12373,19 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           onChanged();
         } else {
           if (backendCase_ == 1) {
-            localFsBuilder_.mergeFrom(value);
+            localBuilder_.mergeFrom(value);
           } else {
-            localFsBuilder_.setMessage(value);
+            localBuilder_.setMessage(value);
           }
         }
         backendCase_ = 1;
         return this;
       }
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
        */
-      public Builder clearLocalFs() {
-        if (localFsBuilder_ == null) {
+      public Builder clearLocal() {
+        if (localBuilder_ == null) {
           if (backendCase_ == 1) {
             backendCase_ = 0;
             backend_ = null;
@@ -12396,50 +12396,50 @@ talon.config.Config.LlmProviderConfig defaultValue) {
             backendCase_ = 0;
             backend_ = null;
           }
-          localFsBuilder_.clear();
+          localBuilder_.clear();
         }
         return this;
       }
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
        */
-      public talon.config.Config.LocalFsObjectStoreConfig.Builder getLocalFsBuilder() {
-        return internalGetLocalFsFieldBuilder().getBuilder();
+      public talon.config.Config.LocalObjectStoreConfig.Builder getLocalBuilder() {
+        return internalGetLocalFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
        */
       @java.lang.Override
-      public talon.config.Config.LocalFsObjectStoreConfigOrBuilder getLocalFsOrBuilder() {
-        if ((backendCase_ == 1) && (localFsBuilder_ != null)) {
-          return localFsBuilder_.getMessageOrBuilder();
+      public talon.config.Config.LocalObjectStoreConfigOrBuilder getLocalOrBuilder() {
+        if ((backendCase_ == 1) && (localBuilder_ != null)) {
+          return localBuilder_.getMessageOrBuilder();
         } else {
           if (backendCase_ == 1) {
-            return (talon.config.Config.LocalFsObjectStoreConfig) backend_;
+            return (talon.config.Config.LocalObjectStoreConfig) backend_;
           }
-          return talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance();
+          return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.config.LocalFsObjectStoreConfig local_fs = 1;</code>
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.LocalFsObjectStoreConfig, talon.config.Config.LocalFsObjectStoreConfig.Builder, talon.config.Config.LocalFsObjectStoreConfigOrBuilder>
-          internalGetLocalFsFieldBuilder() {
-        if (localFsBuilder_ == null) {
+          talon.config.Config.LocalObjectStoreConfig, talon.config.Config.LocalObjectStoreConfig.Builder, talon.config.Config.LocalObjectStoreConfigOrBuilder>
+          internalGetLocalFieldBuilder() {
+        if (localBuilder_ == null) {
           if (!(backendCase_ == 1)) {
-            backend_ = talon.config.Config.LocalFsObjectStoreConfig.getDefaultInstance();
+            backend_ = talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
           }
-          localFsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.config.Config.LocalFsObjectStoreConfig, talon.config.Config.LocalFsObjectStoreConfig.Builder, talon.config.Config.LocalFsObjectStoreConfigOrBuilder>(
-                  (talon.config.Config.LocalFsObjectStoreConfig) backend_,
+          localBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.LocalObjectStoreConfig, talon.config.Config.LocalObjectStoreConfig.Builder, talon.config.Config.LocalObjectStoreConfigOrBuilder>(
+                  (talon.config.Config.LocalObjectStoreConfig) backend_,
                   getParentForChildren(),
                   isClean());
           backend_ = null;
         }
         backendCase_ = 1;
         onChanged();
-        return localFsBuilder_;
+        return localBuilder_;
       }
 
       private com.google.protobuf.SingleFieldBuilder<
@@ -17982,10 +17982,10 @@ talon.config.Config.LlmProviderConfig defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_MessageBrokerConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_config_LocalFsObjectStoreConfig_descriptor;
+    internal_static_talon_config_LocalObjectStoreConfig_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_config_LocalFsObjectStoreConfig_fieldAccessorTable;
+      internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_GcsObjectStoreConfig_descriptor;
   private static final
@@ -18072,37 +18072,37 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       "\003\022\t\n\005AZURE\020\004\"U\n\016DatabaseConfig\022\020\n\010data_d" +
       "ir\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t\022!\n\003url\030\003 \001(\0132\024." +
       "talon.config.Secret\"%\n\023MessageBrokerConf" +
-      "ig\022\016\n\006driver\030\001 \001(\t\"(\n\030LocalFsObjectStore" +
-      "Config\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObjectStoreCo" +
-      "nfig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014" +
-      "api_base_url\030\003 \001(\t\"u\n\023S3ObjectStoreConfi" +
-      "g\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006reg" +
-      "ion\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(\t\022\030\n\020force" +
-      "_path_style\030\005 \001(\010\"\276\001\n\021ObjectStoreConfig\022" +
-      ":\n\010local_fs\030\001 \001(\0132&.talon.config.LocalFs" +
-      "ObjectStoreConfigH\000\0221\n\003gcs\030\002 \001(\0132\".talon" +
-      ".config.GcsObjectStoreConfigH\000\022/\n\002s3\030\003 \001" +
-      "(\0132!.talon.config.S3ObjectStoreConfigH\000B" +
-      "\t\n\007backend\"\217\001\n\033SchedulerCallbackAuthConf" +
-      "ig\022-\n\rshared_secret\030\001 \001(\0132\024.talon.config" +
-      ".SecretH\000\0229\n\013google_oidc\030\002 \001(\0132\".talon.c" +
-      "onfig.GoogleOidcAuthConfigH\000B\006\n\004auth\"G\n\024" +
-      "GoogleOidcAuthConfig\022\020\n\010audience\030\001 \001(\t\022\035" +
-      "\n\025service_account_email\030\002 \001(\t\"\246\001\n\031CloudT" +
-      "asksSchedulerConfig\022\022\n\nproject_id\030\001 \001(\t\022" +
-      "\020\n\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarg" +
-      "et_url\030\004 \001(\t\022@\n\rcallback_auth\030\005 \001(\0132).ta" +
-      "lon.config.SchedulerCallbackAuthConfig\"\\" +
-      "\n\017SchedulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'" +
-      ".talon.config.CloudTasksSchedulerConfigH" +
-      "\000B\t\n\007backend\"\350\001\n\022ControlPlaneConfig\022.\n\010d" +
-      "atabase\030\001 \001(\0132\034.talon.config.DatabaseCon" +
-      "fig\0229\n\016message_broker\030\002 \001(\0132!.talon.conf" +
-      "ig.MessageBrokerConfig\0220\n\tscheduler\030\003 \001(" +
-      "\0132\035.talon.config.SchedulerConfig\0225\n\014obje" +
-      "ct_store\030\004 \001(\0132\037.talon.config.ObjectStor" +
-      "eConfig\"*\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n" +
-      "\004port\030\002 \001(\rb\006proto3"
+      "ig\022\016\n\006driver\030\001 \001(\t\"&\n\026LocalObjectStoreCo" +
+      "nfig\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObjectStoreConf" +
+      "ig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014ap" +
+      "i_base_url\030\003 \001(\t\"u\n\023S3ObjectStoreConfig\022" +
+      "\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006regio" +
+      "n\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(\t\022\030\n\020force_p" +
+      "ath_style\030\005 \001(\010\"\271\001\n\021ObjectStoreConfig\0225\n" +
+      "\005local\030\001 \001(\0132$.talon.config.LocalObjectS" +
+      "toreConfigH\000\0221\n\003gcs\030\002 \001(\0132\".talon.config" +
+      ".GcsObjectStoreConfigH\000\022/\n\002s3\030\003 \001(\0132!.ta" +
+      "lon.config.S3ObjectStoreConfigH\000B\t\n\007back" +
+      "end\"\217\001\n\033SchedulerCallbackAuthConfig\022-\n\rs" +
+      "hared_secret\030\001 \001(\0132\024.talon.config.Secret" +
+      "H\000\0229\n\013google_oidc\030\002 \001(\0132\".talon.config.G" +
+      "oogleOidcAuthConfigH\000B\006\n\004auth\"G\n\024GoogleO" +
+      "idcAuthConfig\022\020\n\010audience\030\001 \001(\t\022\035\n\025servi" +
+      "ce_account_email\030\002 \001(\t\"\246\001\n\031CloudTasksSch" +
+      "edulerConfig\022\022\n\nproject_id\030\001 \001(\t\022\020\n\010loca" +
+      "tion\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarget_url\030" +
+      "\004 \001(\t\022@\n\rcallback_auth\030\005 \001(\0132).talon.con" +
+      "fig.SchedulerCallbackAuthConfig\"\\\n\017Sched" +
+      "ulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'.talon." +
+      "config.CloudTasksSchedulerConfigH\000B\t\n\007ba" +
+      "ckend\"\350\001\n\022ControlPlaneConfig\022.\n\010database" +
+      "\030\001 \001(\0132\034.talon.config.DatabaseConfig\0229\n\016" +
+      "message_broker\030\002 \001(\0132!.talon.config.Mess" +
+      "ageBrokerConfig\0220\n\tscheduler\030\003 \001(\0132\035.tal" +
+      "on.config.SchedulerConfig\0225\n\014object_stor" +
+      "e\030\004 \001(\0132\037.talon.config.ObjectStoreConfig" +
+      "\"*\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002" +
+      " \001(\rb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -18174,11 +18174,11 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_MessageBrokerConfig_descriptor,
         new java.lang.String[] { "Driver", });
-    internal_static_talon_config_LocalFsObjectStoreConfig_descriptor =
+    internal_static_talon_config_LocalObjectStoreConfig_descriptor =
       getDescriptor().getMessageType(10);
-    internal_static_talon_config_LocalFsObjectStoreConfig_fieldAccessorTable = new
+    internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_config_LocalFsObjectStoreConfig_descriptor,
+        internal_static_talon_config_LocalObjectStoreConfig_descriptor,
         new java.lang.String[] { "Path", });
     internal_static_talon_config_GcsObjectStoreConfig_descriptor =
       getDescriptor().getMessageType(11);
@@ -18197,7 +18197,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
     internal_static_talon_config_ObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ObjectStoreConfig_descriptor,
-        new java.lang.String[] { "LocalFs", "Gcs", "S3", "Backend", });
+        new java.lang.String[] { "Local", "Gcs", "S3", "Backend", });
     internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor =
       getDescriptor().getMessageType(14);
     internal_static_talon_config_SchedulerCallbackAuthConfig_fieldAccessorTable = new

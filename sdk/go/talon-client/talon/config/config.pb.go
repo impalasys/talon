@@ -744,27 +744,27 @@ func (x *MessageBrokerConfig) GetDriver() string {
 	return ""
 }
 
-type LocalFsObjectStoreConfig struct {
+type LocalObjectStoreConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *LocalFsObjectStoreConfig) Reset() {
-	*x = LocalFsObjectStoreConfig{}
+func (x *LocalObjectStoreConfig) Reset() {
+	*x = LocalObjectStoreConfig{}
 	mi := &file_proto_config_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *LocalFsObjectStoreConfig) String() string {
+func (x *LocalObjectStoreConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*LocalFsObjectStoreConfig) ProtoMessage() {}
+func (*LocalObjectStoreConfig) ProtoMessage() {}
 
-func (x *LocalFsObjectStoreConfig) ProtoReflect() protoreflect.Message {
+func (x *LocalObjectStoreConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_config_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -776,12 +776,12 @@ func (x *LocalFsObjectStoreConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use LocalFsObjectStoreConfig.ProtoReflect.Descriptor instead.
-func (*LocalFsObjectStoreConfig) Descriptor() ([]byte, []int) {
+// Deprecated: Use LocalObjectStoreConfig.ProtoReflect.Descriptor instead.
+func (*LocalObjectStoreConfig) Descriptor() ([]byte, []int) {
 	return file_proto_config_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *LocalFsObjectStoreConfig) GetPath() string {
+func (x *LocalObjectStoreConfig) GetPath() string {
 	if x != nil {
 		return x.Path
 	}
@@ -928,7 +928,7 @@ type ObjectStoreConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Backend:
 	//
-	//	*ObjectStoreConfig_LocalFs
+	//	*ObjectStoreConfig_Local
 	//	*ObjectStoreConfig_Gcs
 	//	*ObjectStoreConfig_S3
 	Backend       isObjectStoreConfig_Backend `protobuf_oneof:"backend"`
@@ -973,10 +973,10 @@ func (x *ObjectStoreConfig) GetBackend() isObjectStoreConfig_Backend {
 	return nil
 }
 
-func (x *ObjectStoreConfig) GetLocalFs() *LocalFsObjectStoreConfig {
+func (x *ObjectStoreConfig) GetLocal() *LocalObjectStoreConfig {
 	if x != nil {
-		if x, ok := x.Backend.(*ObjectStoreConfig_LocalFs); ok {
-			return x.LocalFs
+		if x, ok := x.Backend.(*ObjectStoreConfig_Local); ok {
+			return x.Local
 		}
 	}
 	return nil
@@ -1004,8 +1004,8 @@ type isObjectStoreConfig_Backend interface {
 	isObjectStoreConfig_Backend()
 }
 
-type ObjectStoreConfig_LocalFs struct {
-	LocalFs *LocalFsObjectStoreConfig `protobuf:"bytes,1,opt,name=local_fs,json=localFs,proto3,oneof"`
+type ObjectStoreConfig_Local struct {
+	Local *LocalObjectStoreConfig `protobuf:"bytes,1,opt,name=local,proto3,oneof"`
 }
 
 type ObjectStoreConfig_Gcs struct {
@@ -1016,7 +1016,7 @@ type ObjectStoreConfig_S3 struct {
 	S3 *S3ObjectStoreConfig `protobuf:"bytes,3,opt,name=s3,proto3,oneof"`
 }
 
-func (*ObjectStoreConfig_LocalFs) isObjectStoreConfig_Backend() {}
+func (*ObjectStoreConfig_Local) isObjectStoreConfig_Backend() {}
 
 func (*ObjectStoreConfig_Gcs) isObjectStoreConfig_Backend() {}
 
@@ -1472,8 +1472,8 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x06driver\x18\x02 \x01(\tR\x06driver\x12&\n" +
 	"\x03url\x18\x03 \x01(\v2\x14.talon.config.SecretR\x03url\"-\n" +
 	"\x13MessageBrokerConfig\x12\x16\n" +
-	"\x06driver\x18\x01 \x01(\tR\x06driver\".\n" +
-	"\x18LocalFsObjectStoreConfig\x12\x12\n" +
+	"\x06driver\x18\x01 \x01(\tR\x06driver\",\n" +
+	"\x16LocalObjectStoreConfig\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\"h\n" +
 	"\x14GcsObjectStoreConfig\x12\x16\n" +
 	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x16\n" +
@@ -1485,9 +1485,9 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12\x16\n" +
 	"\x06region\x18\x03 \x01(\tR\x06region\x12!\n" +
 	"\fendpoint_url\x18\x04 \x01(\tR\vendpointUrl\x12(\n" +
-	"\x10force_path_style\x18\x05 \x01(\bR\x0eforcePathStyle\"\xd0\x01\n" +
-	"\x11ObjectStoreConfig\x12C\n" +
-	"\blocal_fs\x18\x01 \x01(\v2&.talon.config.LocalFsObjectStoreConfigH\x00R\alocalFs\x126\n" +
+	"\x10force_path_style\x18\x05 \x01(\bR\x0eforcePathStyle\"\xc9\x01\n" +
+	"\x11ObjectStoreConfig\x12<\n" +
+	"\x05local\x18\x01 \x01(\v2$.talon.config.LocalObjectStoreConfigH\x00R\x05local\x126\n" +
 	"\x03gcs\x18\x02 \x01(\v2\".talon.config.GcsObjectStoreConfigH\x00R\x03gcs\x123\n" +
 	"\x02s3\x18\x03 \x01(\v2!.talon.config.S3ObjectStoreConfigH\x00R\x02s3B\t\n" +
 	"\abackend\"\xa9\x01\n" +
@@ -1546,7 +1546,7 @@ var file_proto_config_proto_goTypes = []any{
 	(*SecretRef)(nil),                   // 8: talon.config.SecretRef
 	(*DatabaseConfig)(nil),              // 9: talon.config.DatabaseConfig
 	(*MessageBrokerConfig)(nil),         // 10: talon.config.MessageBrokerConfig
-	(*LocalFsObjectStoreConfig)(nil),    // 11: talon.config.LocalFsObjectStoreConfig
+	(*LocalObjectStoreConfig)(nil),      // 11: talon.config.LocalObjectStoreConfig
 	(*GcsObjectStoreConfig)(nil),        // 12: talon.config.GcsObjectStoreConfig
 	(*S3ObjectStoreConfig)(nil),         // 13: talon.config.S3ObjectStoreConfig
 	(*ObjectStoreConfig)(nil),           // 14: talon.config.ObjectStoreConfig
@@ -1574,7 +1574,7 @@ var file_proto_config_proto_depIdxs = []int32{
 	8,  // 12: talon.config.Secret.ref:type_name -> talon.config.SecretRef
 	0,  // 13: talon.config.SecretRef.source:type_name -> talon.config.SecretRef.Source
 	7,  // 14: talon.config.DatabaseConfig.url:type_name -> talon.config.Secret
-	11, // 15: talon.config.ObjectStoreConfig.local_fs:type_name -> talon.config.LocalFsObjectStoreConfig
+	11, // 15: talon.config.ObjectStoreConfig.local:type_name -> talon.config.LocalObjectStoreConfig
 	12, // 16: talon.config.ObjectStoreConfig.gcs:type_name -> talon.config.GcsObjectStoreConfig
 	13, // 17: talon.config.ObjectStoreConfig.s3:type_name -> talon.config.S3ObjectStoreConfig
 	7,  // 18: talon.config.SchedulerCallbackAuthConfig.shared_secret:type_name -> talon.config.Secret
@@ -1609,7 +1609,7 @@ func file_proto_config_proto_init() {
 		(*Secret_Ref)(nil),
 	}
 	file_proto_config_proto_msgTypes[13].OneofWrappers = []any{
-		(*ObjectStoreConfig_LocalFs)(nil),
+		(*ObjectStoreConfig_Local)(nil),
 		(*ObjectStoreConfig_Gcs)(nil),
 		(*ObjectStoreConfig_S3)(nil),
 	}

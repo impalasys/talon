@@ -101,11 +101,8 @@ fn anthropic_content_part(part: ChatContentPart) -> serde_json::Value {
             "text": text,
         }),
         ChatContentPart::ImageUrl { url, .. } => json!({
-            "type": "image",
-            "source": {
-                "type": "url",
-                "url": url,
-            }
+            "type": "text",
+            "text": format!("[Image URL: {url}]"),
         }),
         ChatContentPart::ImageData {
             media_type,
@@ -378,6 +375,39 @@ mod tests {
         assert_eq!(
             AnthropicProvider::extract_text_content(&response),
             Some("hello world".to_string())
+        );
+    }
+
+    #[test]
+    fn anthropic_content_part_falls_back_to_text_for_image_urls() {
+        assert_eq!(
+            anthropic_content_part(ChatContentPart::ImageUrl {
+                url: "https://example.com/image.png".to_string(),
+                detail: Some("high".to_string()),
+            }),
+            json!({
+                "type": "text",
+                "text": "[Image URL: https://example.com/image.png]",
+            })
+        );
+    }
+
+    #[test]
+    fn anthropic_content_part_serializes_image_data_as_base64() {
+        assert_eq!(
+            anthropic_content_part(ChatContentPart::ImageData {
+                media_type: "image/png".to_string(),
+                data_base64: "cG5n".to_string(),
+                detail: None,
+            }),
+            json!({
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/png",
+                    "data": "cG5n",
+                }
+            })
         );
     }
 

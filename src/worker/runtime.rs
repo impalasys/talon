@@ -413,13 +413,16 @@ async fn message_content_parts(
                 object.key
             )
         })?;
-        let media_type = if object.media_type.is_empty() {
-            stored.metadata.media_type
+        let media_type = if object.media_type.trim().is_empty() {
+            stored.metadata.media_type.trim()
         } else {
-            object.media_type.clone()
+            object.media_type.trim()
         };
+        if media_type.is_empty() {
+            return Err(anyhow!("missing media type for object '{}'", object.key));
+        }
         content_parts.push(ChatContentPart::ImageData {
-            media_type,
+            media_type: media_type.to_string(),
             data_base64: general_purpose::STANDARD.encode(stored.bytes),
             detail,
         });
@@ -1141,5 +1144,74 @@ mod tests {
                 },
             ]
         );
+    }
+
+    #[tokio::test]
+    async fn agent_runtime_build_rejects_image_parts_without_media_type() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+        };
+
+        kv.set_msg(
+            &crate::control::keys::agent("conic", "writer"),
+            &models::Agent {
+                name: "writer".to_string(),
+                ns: "conic".to_string(),
+                definition: None,
+                effective_spec: Some(spec),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let object = cp
+            .objects
+            .put(
+                "sessions/session-1/screenshot.png",
+                b"png-bytes",
+                crate::control::object_store::ObjectMetadata::default(),
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
+            &models::SessionMessage {
+                id: "msg-1".to_string(),
+                role: models::MessageRole::RoleUser as i32,
+                created_at: 2,
+                labels: HashMap::new(),
+                parts: vec![models::SessionMessagePart {
+                    id: "000001".to_string(),
+                    part_type: models::SessionMessagePartType::Image as i32,
+                    content: String::new(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: 2,
+                    object: Some(object),
+                }],
+            },
+        )
+        .await
+        .unwrap();
+
+        let err = match AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+            .await
+        {
+            Ok(_) => panic!("expected missing media type error"),
+            Err(err) => err,
+        };
+        assert!(err
+            .to_string()
+            .contains("missing media type for object 'sessions/session-1/screenshot.png'"));
     }
 }

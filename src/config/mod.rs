@@ -118,7 +118,7 @@ pub enum SchedulerConfigWrapper {
 #[derive(Debug, Deserialize, Clone)]
 #[serde(tag = "driver", rename_all = "snake_case")]
 pub enum ObjectStoreConfigWrapper {
-    LocalFs {
+    Local {
         path: Option<String>,
     },
     Gcs {
@@ -301,7 +301,7 @@ fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
 
     if let Some(control_plane) = config.control_plane.as_mut() {
         resolve_config_relative_data_dir(path, &mut control_plane.database.data_dir);
-        if let Some(ObjectStoreConfigWrapper::LocalFs { path: object_path }) =
+        if let Some(ObjectStoreConfigWrapper::Local { path: object_path }) =
             control_plane.object_store.as_mut()
         {
             resolve_config_relative_string_path(path, object_path);
@@ -338,9 +338,9 @@ impl From<SchedulerConfigWrapper> for proto::SchedulerConfig {
 impl From<ObjectStoreConfigWrapper> for proto::ObjectStoreConfig {
     fn from(s: ObjectStoreConfigWrapper) -> Self {
         match s {
-            ObjectStoreConfigWrapper::LocalFs { path } => Self {
-                backend: Some(proto::object_store_config::Backend::LocalFs(
-                    proto::LocalFsObjectStoreConfig {
+            ObjectStoreConfigWrapper::Local { path } => Self {
+                backend: Some(proto::object_store_config::Backend::Local(
+                    proto::LocalObjectStoreConfig {
                         path: path.unwrap_or_default(),
                     },
                 )),

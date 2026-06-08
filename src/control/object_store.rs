@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::config::proto::{
-    object_store_config, GcsObjectStoreConfig, LocalFsObjectStoreConfig, ObjectStoreConfig,
+    object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
     S3ObjectStoreConfig,
 };
 use crate::gateway::rpc::models;
@@ -59,7 +59,7 @@ pub async fn object_store_from_config(
     };
 
     match cfg {
-        object_store_config::Backend::LocalFs(local) => Ok(Arc::new(
+        object_store_config::Backend::Local(local) => Ok(Arc::new(
             LocalFsObjectStore::from_config(local, default_path),
         )),
         object_store_config::Backend::Gcs(gcs) => Ok(Arc::new(GcsObjectStore::new(gcs).await?)),
@@ -115,7 +115,7 @@ impl LocalFsObjectStore {
         Self { root: root.into() }
     }
 
-    fn from_config(cfg: &LocalFsObjectStoreConfig, default_path: PathBuf) -> Self {
+    fn from_config(cfg: &LocalObjectStoreConfig, default_path: PathBuf) -> Self {
         let path = non_empty(&cfg.path)
             .map(PathBuf::from)
             .unwrap_or(default_path);
@@ -576,7 +576,7 @@ mod tests {
         ObjectStore, S3ObjectStore,
     };
     use crate::config::proto::{
-        object_store_config, GcsObjectStoreConfig, LocalFsObjectStoreConfig, ObjectStoreConfig,
+        object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
         S3ObjectStoreConfig,
     };
 
@@ -623,13 +623,13 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn object_store_from_config_uses_configured_local_fs_path() {
+    async fn object_store_from_config_uses_configured_local_path() {
         let dir = tempfile::tempdir().unwrap();
         let object_dir = dir.path().join("objects");
         let store = object_store_from_config(
             Some(&ObjectStoreConfig {
-                backend: Some(object_store_config::Backend::LocalFs(
-                    LocalFsObjectStoreConfig {
+                backend: Some(object_store_config::Backend::Local(
+                    LocalObjectStoreConfig {
                         path: object_dir.display().to_string(),
                     },
                 )),

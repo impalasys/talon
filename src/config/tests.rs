@@ -263,7 +263,7 @@ control_plane:
   message_broker:
     driver: local_socket
   object_store:
-    driver: local_fs
+    driver: local
     path: ./objects
 "#,
         )
@@ -286,7 +286,7 @@ control_plane:
                 .display()
                 .to_string()
         );
-        let Some(proto::object_store_config::Backend::LocalFs(local_fs)) = config
+        let Some(proto::object_store_config::Backend::Local(local)) = config
             .control_plane
             .as_ref()
             .unwrap()
@@ -296,10 +296,10 @@ control_plane:
             .backend
             .as_ref()
         else {
-            panic!("expected local_fs object store");
+            panic!("expected local object store");
         };
         assert_eq!(
-            local_fs.path,
+            local.path,
             config_path
                 .parent()
                 .unwrap()

@@ -545,39 +545,39 @@ export class MessageBrokerConfig extends Message<MessageBrokerConfig> {
 }
 
 /**
- * @generated from message talon.config.LocalFsObjectStoreConfig
+ * @generated from message talon.config.LocalObjectStoreConfig
  */
-export class LocalFsObjectStoreConfig extends Message<LocalFsObjectStoreConfig> {
+export class LocalObjectStoreConfig extends Message<LocalObjectStoreConfig> {
   /**
    * @generated from field: string path = 1;
    */
   path = "";
 
-  constructor(data?: PartialMessage<LocalFsObjectStoreConfig>) {
+  constructor(data?: PartialMessage<LocalObjectStoreConfig>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.config.LocalFsObjectStoreConfig";
+  static readonly typeName = "talon.config.LocalObjectStoreConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LocalFsObjectStoreConfig {
-    return new LocalFsObjectStoreConfig().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LocalObjectStoreConfig {
+    return new LocalObjectStoreConfig().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LocalFsObjectStoreConfig {
-    return new LocalFsObjectStoreConfig().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LocalObjectStoreConfig {
+    return new LocalObjectStoreConfig().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LocalFsObjectStoreConfig {
-    return new LocalFsObjectStoreConfig().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LocalObjectStoreConfig {
+    return new LocalObjectStoreConfig().fromJsonString(jsonString, options);
   }
 
-  static equals(a: LocalFsObjectStoreConfig | PlainMessage<LocalFsObjectStoreConfig> | undefined, b: LocalFsObjectStoreConfig | PlainMessage<LocalFsObjectStoreConfig> | undefined): boolean {
-    return proto3.util.equals(LocalFsObjectStoreConfig, a, b);
+  static equals(a: LocalObjectStoreConfig | PlainMessage<LocalObjectStoreConfig> | undefined, b: LocalObjectStoreConfig | PlainMessage<LocalObjectStoreConfig> | undefined): boolean {
+    return proto3.util.equals(LocalObjectStoreConfig, a, b);
   }
 }
 
@@ -700,10 +700,10 @@ export class ObjectStoreConfig extends Message<ObjectStoreConfig> {
    */
   backend: {
     /**
-     * @generated from field: talon.config.LocalFsObjectStoreConfig local_fs = 1;
+     * @generated from field: talon.config.LocalObjectStoreConfig local = 1;
      */
-    value: LocalFsObjectStoreConfig;
-    case: "localFs";
+    value: LocalObjectStoreConfig;
+    case: "local";
   } | {
     /**
      * @generated from field: talon.config.GcsObjectStoreConfig gcs = 2;
@@ -726,7 +726,7 @@ export class ObjectStoreConfig extends Message<ObjectStoreConfig> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.config.ObjectStoreConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "local_fs", kind: "message", T: LocalFsObjectStoreConfig, oneof: "backend" },
+    { no: 1, name: "local", kind: "message", T: LocalObjectStoreConfig, oneof: "backend" },
     { no: 2, name: "gcs", kind: "message", T: GcsObjectStoreConfig, oneof: "backend" },
     { no: 3, name: "s3", kind: "message", T: S3ObjectStoreConfig, oneof: "backend" },
   ]);

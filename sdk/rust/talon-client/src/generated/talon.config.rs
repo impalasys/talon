@@ -158,7 +158,7 @@ pub struct MessageBrokerConfig {
     pub driver: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct LocalFsObjectStoreConfig {
+pub struct LocalObjectStoreConfig {
     #[prost(string, tag = "1")]
     pub path: ::prost::alloc::string::String,
 }
@@ -194,7 +194,7 @@ pub mod object_store_config {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Backend {
         #[prost(message, tag = "1")]
-        LocalFs(super::LocalFsObjectStoreConfig),
+        Local(super::LocalObjectStoreConfig),
         #[prost(message, tag = "2")]
         Gcs(super::GcsObjectStoreConfig),
         #[prost(message, tag = "3")]
