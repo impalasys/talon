@@ -25,6 +25,69 @@ fn card_spec(card: &manifests::AgentCard) -> Result<&manifests::AgentCardSpec, t
         .ok_or_else(|| tonic::Status::invalid_argument("AgentCard missing spec"))
 }
 
+fn normalize_hostname(hostname: &str) -> Result<String, tonic::Status> {
+    let hostname = hostname.trim().trim_end_matches('.').to_ascii_lowercase();
+    if hostname.is_empty() {
+        return Err(tonic::Status::invalid_argument(
+            "AgentCard spec.hostname is required",
+        ));
+    }
+    if hostname.contains("://")
+        || hostname.contains('/')
+        || hostname.contains('\\')
+        || hostname.contains(':')
+        || hostname.chars().any(char::is_whitespace)
+    {
+        return Err(tonic::Status::invalid_argument(
+            "AgentCard spec.hostname must be a hostname without scheme, port, path, or whitespace",
+        ));
+    }
+    if hostname.len() > 253 {
+        return Err(tonic::Status::invalid_argument(
+            "AgentCard spec.hostname cannot exceed 253 characters",
+        ));
+    }
+    for label in hostname.split('.') {
+        if label.is_empty() {
+            return Err(tonic::Status::invalid_argument(
+                "AgentCard spec.hostname contains an empty label",
+            ));
+        }
+        if label.len() > 63 {
+            return Err(tonic::Status::invalid_argument(
+                "AgentCard spec.hostname label cannot exceed 63 characters",
+            ));
+        }
+        let valid_chars = label
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || ch == '-');
+        if !valid_chars || label.starts_with('-') || label.ends_with('-') {
+            return Err(tonic::Status::invalid_argument(
+                "AgentCard spec.hostname must contain valid DNS labels",
+            ));
+        }
+    }
+    Ok(hostname)
+}
+
+fn request_host_to_hostname(host: &str) -> Result<String, tonic::Status> {
+    let host = host.trim();
+    let host = if let Some(stripped) = host.strip_prefix('[') {
+        let Some((inside, _rest)) = stripped.split_once(']') else {
+            return Err(tonic::Status::invalid_argument("invalid Host header"));
+        };
+        inside
+    } else {
+        host.rsplit_once(':')
+            .and_then(|(candidate, port)| {
+                (!candidate.contains(':') && port.chars().all(|ch| ch.is_ascii_digit()))
+                    .then_some(candidate)
+            })
+            .unwrap_or(host)
+    };
+    normalize_hostname(host)
+}
+
 async fn validate_agent_card(
     handler: &GrpcGatewayHandler,
     ns: &str,
@@ -50,11 +113,7 @@ async fn validate_agent_card(
             "AgentCard spec.agentRef is required",
         ));
     }
-    if spec.hostname.trim().is_empty() {
-        return Err(tonic::Status::invalid_argument(
-            "AgentCard spec.hostname is required",
-        ));
-    }
+    let hostname = normalize_hostname(&spec.hostname)?;
 
     handler
         .gateway
@@ -69,13 +128,13 @@ async fn validate_agent_card(
             ))
         })?;
 
-    if let Some(existing) = handler.find_agent_card_by_hostname(&spec.hostname).await? {
+    if let Some(existing) = handler.find_agent_card_by_hostname(&hostname).await? {
         let existing_name = card_name(&existing);
         let existing_ns = card_namespace(&existing);
         if existing_ns != ns || existing_name != name {
             return Err(tonic::Status::already_exists(format!(
                 "AgentCard hostname '{}' is already claimed by {}/{}",
-                spec.hostname, existing_ns, existing_name
+                hostname, existing_ns, existing_name
             )));
         }
     }
@@ -105,14 +164,47 @@ impl GrpcGatewayHandler {
                 metadata.namespace = req.ns.clone();
             }
         }
+        if let Some(spec) = card.spec.as_mut() {
+            spec.hostname = normalize_hostname(&spec.hostname)?;
+        }
 
         validate_agent_card(self, &req.ns, &card).await?;
         let name = card_name(&card);
+        let new_hostname = card_spec(&card)?.hostname.clone();
+        let key = keys::agent_card(&req.ns, &name);
+        let old_hostname = self
+            .gateway
+            .kv
+            .get_msg::<manifests::AgentCard>(&key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
+            .and_then(|old| old.spec.map(|spec| spec.hostname));
         self.gateway
             .kv
-            .set_msg(&keys::agent_card(&req.ns, &name), &card)
+            .set_msg(&key, &card)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
+        self.gateway
+            .kv
+            .set_msg(&keys::agent_card_hostname(&new_hostname), &card)
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to index AgentCard hostname: {err}"))
+            })?;
+        if let Some(old_hostname) = old_hostname {
+            let old_hostname = normalize_hostname(&old_hostname)?;
+            if old_hostname != new_hostname {
+                self.gateway
+                    .kv
+                    .delete(&keys::agent_card_hostname(&old_hostname))
+                    .await
+                    .map_err(|err| {
+                        tonic::Status::internal(format!(
+                            "Failed to delete old AgentCard hostname index: {err}"
+                        ))
+                    })?;
+            }
+        }
 
         Ok(tonic::Response::new(proto::AgentCardResponse {
             card: Some(card),
@@ -187,11 +279,30 @@ impl GrpcGatewayHandler {
         if !exists {
             return Err(tonic::Status::not_found("AgentCard not found"));
         }
+        let old_hostname = self
+            .gateway
+            .kv
+            .get_msg::<manifests::AgentCard>(&key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
+            .and_then(|card| card.spec.map(|spec| spec.hostname));
         self.gateway
             .kv
             .delete(&key)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to delete AgentCard: {err}")))?;
+        if let Some(old_hostname) = old_hostname {
+            let old_hostname = normalize_hostname(&old_hostname)?;
+            self.gateway
+                .kv
+                .delete(&keys::agent_card_hostname(&old_hostname))
+                .await
+                .map_err(|err| {
+                    tonic::Status::internal(format!(
+                        "Failed to delete AgentCard hostname index: {err}"
+                    ))
+                })?;
+        }
         Ok(tonic::Response::new(proto::DeleteAgentCardResponse {
             success: true,
         }))
@@ -199,52 +310,39 @@ impl GrpcGatewayHandler {
 
     pub async fn find_agent_card_by_hostname(
         &self,
-        hostname: &str,
+        host: &str,
     ) -> Result<Option<manifests::AgentCard>, tonic::Status> {
-        let hostname = hostname
-            .trim()
-            .trim_end_matches('.')
-            .split_once(':')
-            .map(|(host, _)| host)
-            .unwrap_or_else(|| hostname.trim().trim_end_matches('.'));
-        let namespace_keys = self
-            .gateway
+        let hostname = request_host_to_hostname(host)?;
+        self.gateway
             .kv
-            .list_keys(&keys::namespace_metadata_prefix())
+            .get_msg::<manifests::AgentCard>(&keys::agent_card_hostname(&hostname))
             .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to list namespaces: {err}")))?;
+            .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))
+    }
+}
 
-        for namespace_key in namespace_keys {
-            let ns = namespace_key.name;
-            let card_keys = self
-                .gateway
-                .kv
-                .list_keys(&keys::agent_card_prefix(&ns))
-                .await
-                .map_err(|err| {
-                    tonic::Status::internal(format!("Failed to list AgentCards: {err}"))
-                })?;
-            for card_key in card_keys {
-                let Some(card) = self
-                    .gateway
-                    .kv
-                    .get_msg::<manifests::AgentCard>(&card_key)
-                    .await
-                    .map_err(|err| {
-                        tonic::Status::internal(format!("Failed to fetch AgentCard: {err}"))
-                    })?
-                else {
-                    continue;
-                };
-                let Some(spec) = card.spec.as_ref() else {
-                    continue;
-                };
-                if spec.hostname.trim().trim_end_matches('.') == hostname {
-                    return Ok(Some(card));
-                }
-            }
-        }
+#[cfg(test)]
+mod tests {
+    use super::{normalize_hostname, request_host_to_hostname};
 
-        Ok(None)
+    #[test]
+    fn normalize_hostname_rejects_scheme_port_path_and_bad_labels() {
+        assert_eq!(
+            normalize_hostname("Support.Example.COM.").unwrap(),
+            "support.example.com"
+        );
+        assert!(normalize_hostname("https://support.example.com").is_err());
+        assert!(normalize_hostname("support.example.com/path").is_err());
+        assert!(normalize_hostname("support.example.com:443").is_err());
+        assert!(normalize_hostname("-support.example.com").is_err());
+        assert!(normalize_hostname("support..example.com").is_err());
+    }
+
+    #[test]
+    fn request_host_to_hostname_accepts_request_port() {
+        assert_eq!(
+            request_host_to_hostname("support.example.com:443").unwrap(),
+            "support.example.com"
+        );
     }
 }

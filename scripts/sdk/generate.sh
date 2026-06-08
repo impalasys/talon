@@ -124,6 +124,13 @@ text = strip_region(
     "    internal_static_talon_gateway_CreateChannelRequest_descriptor;",
 )
 path.write_text(text)
+
+for java_path in Path("sdk/java/talon-client/src/main/java/talon").rglob("*.java"):
+    source = java_path.read_text()
+    stripped = "\n".join(line.rstrip() for line in source.splitlines())
+    if source.endswith("\n"):
+        stripped += "\n"
+    java_path.write_text(stripped)
 PY
 
 python3 - <<'PY'

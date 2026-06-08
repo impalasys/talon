@@ -4,8 +4,8 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::State,
-    http::{header, HeaderMap, StatusCode},
+    extract::{Host, State},
+    http::StatusCode,
     response::{IntoResponse, Response},
     Json,
 };
@@ -49,23 +49,18 @@ struct AgentCardSkillJson {
 
 pub async fn get_well_known_agent_card(
     State(gateway): State<Arc<Gateway>>,
-    headers: HeaderMap,
+    Host(host): Host,
 ) -> Response {
-    let Some(host) = headers
-        .get(header::HOST)
-        .and_then(|host| host.to_str().ok())
-        .filter(|host| !host.trim().is_empty())
-    else {
-        return (StatusCode::BAD_REQUEST, "missing Host header").into_response();
-    };
-
     let handler = GrpcGatewayHandler { gateway };
-    match handler.find_agent_card_by_hostname(host).await {
+    match handler.find_agent_card_by_hostname(&host).await {
         Ok(Some(card)) => match agent_card_json(&card) {
             Ok(payload) => Json(payload).into_response(),
             Err(response) => response,
         },
         Ok(None) => (StatusCode::NOT_FOUND, "AgentCard not found for host").into_response(),
+        Err(status) if status.code() == tonic::Code::InvalidArgument => {
+            (StatusCode::BAD_REQUEST, status.message().to_string()).into_response()
+        }
         Err(status) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("failed to load AgentCard: {}", status.message()),

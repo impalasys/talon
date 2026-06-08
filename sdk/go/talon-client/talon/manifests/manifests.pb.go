@@ -166,6 +166,7 @@ type AgentSpec struct {
 	SystemPrompt  string                         `protobuf:"bytes,3,opt,name=system_prompt,json=systemPrompt,proto3" json:"system_prompt,omitempty"`
 	McpServerRefs []string                       `protobuf:"bytes,4,rep,name=mcp_server_refs,json=mcpServerRefs,proto3" json:"mcp_server_refs,omitempty"`
 	Capabilities  map[string]*structpb.ListValue `protobuf:"bytes,6,rep,name=capabilities,proto3" json:"capabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	A2A           *A2ASpec                       `protobuf:"bytes,7,opt,name=a2a,proto3" json:"a2a,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -231,6 +232,13 @@ func (x *AgentSpec) GetMcpServerRefs() []string {
 func (x *AgentSpec) GetCapabilities() map[string]*structpb.ListValue {
 	if x != nil {
 		return x.Capabilities
+	}
+	return nil
+}
+
+func (x *AgentSpec) GetA2A() *A2ASpec {
+	if x != nil {
+		return x.A2A
 	}
 	return nil
 }
@@ -1323,6 +1331,768 @@ func (x *McpServerBindingSpec) GetAllowedToolNames() []string {
 	return nil
 }
 
+type A2ASpec struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Connections   []*A2AConnection       `protobuf:"bytes,1,rep,name=connections,proto3" json:"connections,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *A2ASpec) Reset() {
+	*x = A2ASpec{}
+	mi := &file_proto_manifests_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *A2ASpec) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*A2ASpec) ProtoMessage() {}
+
+func (x *A2ASpec) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use A2ASpec.ProtoReflect.Descriptor instead.
+func (*A2ASpec) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *A2ASpec) GetConnections() []*A2AConnection {
+	if x != nil {
+		return x.Connections
+	}
+	return nil
+}
+
+type A2AConnection struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Description    string                 `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	Target         *A2ATarget             `protobuf:"bytes,3,opt,name=target,proto3" json:"target,omitempty"`
+	InputModes     []string               `protobuf:"bytes,4,rep,name=input_modes,json=inputModes,proto3" json:"input_modes,omitempty"`
+	OutputModes    []string               `protobuf:"bytes,5,rep,name=output_modes,json=outputModes,proto3" json:"output_modes,omitempty"`
+	TimeoutSeconds uint32                 `protobuf:"varint,6,opt,name=timeout_seconds,json=timeoutSeconds,proto3" json:"timeout_seconds,omitempty"`
+	MaxDepth       uint32                 `protobuf:"varint,7,opt,name=max_depth,json=maxDepth,proto3" json:"max_depth,omitempty"`
+	Auth           *A2AConnectionAuth     `protobuf:"bytes,8,opt,name=auth,proto3" json:"auth,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *A2AConnection) Reset() {
+	*x = A2AConnection{}
+	mi := &file_proto_manifests_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *A2AConnection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*A2AConnection) ProtoMessage() {}
+
+func (x *A2AConnection) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use A2AConnection.ProtoReflect.Descriptor instead.
+func (*A2AConnection) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *A2AConnection) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *A2AConnection) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *A2AConnection) GetTarget() *A2ATarget {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *A2AConnection) GetInputModes() []string {
+	if x != nil {
+		return x.InputModes
+	}
+	return nil
+}
+
+func (x *A2AConnection) GetOutputModes() []string {
+	if x != nil {
+		return x.OutputModes
+	}
+	return nil
+}
+
+func (x *A2AConnection) GetTimeoutSeconds() uint32 {
+	if x != nil {
+		return x.TimeoutSeconds
+	}
+	return 0
+}
+
+func (x *A2AConnection) GetMaxDepth() uint32 {
+	if x != nil {
+		return x.MaxDepth
+	}
+	return 0
+}
+
+func (x *A2AConnection) GetAuth() *A2AConnectionAuth {
+	if x != nil {
+		return x.Auth
+	}
+	return nil
+}
+
+type A2ATarget struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Target:
+	//
+	//	*A2ATarget_Internal
+	//	*A2ATarget_External
+	Target        isA2ATarget_Target `protobuf_oneof:"target"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *A2ATarget) Reset() {
+	*x = A2ATarget{}
+	mi := &file_proto_manifests_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *A2ATarget) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*A2ATarget) ProtoMessage() {}
+
+func (x *A2ATarget) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use A2ATarget.ProtoReflect.Descriptor instead.
+func (*A2ATarget) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *A2ATarget) GetTarget() isA2ATarget_Target {
+	if x != nil {
+		return x.Target
+	}
+	return nil
+}
+
+func (x *A2ATarget) GetInternal() *A2AInternalTarget {
+	if x != nil {
+		if x, ok := x.Target.(*A2ATarget_Internal); ok {
+			return x.Internal
+		}
+	}
+	return nil
+}
+
+func (x *A2ATarget) GetExternal() *A2AExternalTarget {
+	if x != nil {
+		if x, ok := x.Target.(*A2ATarget_External); ok {
+			return x.External
+		}
+	}
+	return nil
+}
+
+type isA2ATarget_Target interface {
+	isA2ATarget_Target()
+}
+
+type A2ATarget_Internal struct {
+	Internal *A2AInternalTarget `protobuf:"bytes,1,opt,name=internal,proto3,oneof"`
+}
+
+type A2ATarget_External struct {
+	External *A2AExternalTarget `protobuf:"bytes,2,opt,name=external,proto3,oneof"`
+}
+
+func (*A2ATarget_Internal) isA2ATarget_Target() {}
+
+func (*A2ATarget_External) isA2ATarget_Target() {}
+
+type A2AInternalTarget struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Namespace     string                 `protobuf:"bytes,1,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *A2AInternalTarget) Reset() {
+	*x = A2AInternalTarget{}
+	mi := &file_proto_manifests_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *A2AInternalTarget) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*A2AInternalTarget) ProtoMessage() {}
+
+func (x *A2AInternalTarget) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use A2AInternalTarget.ProtoReflect.Descriptor instead.
+func (*A2AInternalTarget) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *A2AInternalTarget) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *A2AInternalTarget) GetAgent() string {
+	if x != nil {
+		return x.Agent
+	}
+	return ""
+}
+
+type A2AExternalTarget struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AgentCardUrl  string                 `protobuf:"bytes,1,opt,name=agent_card_url,json=agentCardUrl,proto3" json:"agent_card_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *A2AExternalTarget) Reset() {
+	*x = A2AExternalTarget{}
+	mi := &file_proto_manifests_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *A2AExternalTarget) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*A2AExternalTarget) ProtoMessage() {}
+
+func (x *A2AExternalTarget) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use A2AExternalTarget.ProtoReflect.Descriptor instead.
+func (*A2AExternalTarget) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *A2AExternalTarget) GetAgentCardUrl() string {
+	if x != nil {
+		return x.AgentCardUrl
+	}
+	return ""
+}
+
+type A2AConnectionAuth struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	SecretRef     string                 `protobuf:"bytes,2,opt,name=secret_ref,json=secretRef,proto3" json:"secret_ref,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *A2AConnectionAuth) Reset() {
+	*x = A2AConnectionAuth{}
+	mi := &file_proto_manifests_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *A2AConnectionAuth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*A2AConnectionAuth) ProtoMessage() {}
+
+func (x *A2AConnectionAuth) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use A2AConnectionAuth.ProtoReflect.Descriptor instead.
+func (*A2AConnectionAuth) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *A2AConnectionAuth) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *A2AConnectionAuth) GetSecretRef() string {
+	if x != nil {
+		return x.SecretRef
+	}
+	return ""
+}
+
+type AgentCard struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiVersion    string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
+	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	Metadata      *ObjectMeta            `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *AgentCardSpec         `protobuf:"bytes,4,opt,name=spec,proto3" json:"spec,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentCard) Reset() {
+	*x = AgentCard{}
+	mi := &file_proto_manifests_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentCard) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentCard) ProtoMessage() {}
+
+func (x *AgentCard) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentCard.ProtoReflect.Descriptor instead.
+func (*AgentCard) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *AgentCard) GetApiVersion() string {
+	if x != nil {
+		return x.ApiVersion
+	}
+	return ""
+}
+
+func (x *AgentCard) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *AgentCard) GetMetadata() *ObjectMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *AgentCard) GetSpec() *AgentCardSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+type AgentCardSpec struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	AgentRef           string                 `protobuf:"bytes,1,opt,name=agent_ref,json=agentRef,proto3" json:"agent_ref,omitempty"`
+	Hostname           string                 `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	Name               string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description        string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	Version            string                 `protobuf:"bytes,5,opt,name=version,proto3" json:"version,omitempty"`
+	Capabilities       *AgentCardCapabilities `protobuf:"bytes,6,opt,name=capabilities,proto3" json:"capabilities,omitempty"`
+	DefaultInputModes  []string               `protobuf:"bytes,7,rep,name=default_input_modes,json=defaultInputModes,proto3" json:"default_input_modes,omitempty"`
+	DefaultOutputModes []string               `protobuf:"bytes,8,rep,name=default_output_modes,json=defaultOutputModes,proto3" json:"default_output_modes,omitempty"`
+	Skills             []*AgentCardSkill      `protobuf:"bytes,9,rep,name=skills,proto3" json:"skills,omitempty"`
+	Auth               *AgentCardAuth         `protobuf:"bytes,10,opt,name=auth,proto3" json:"auth,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *AgentCardSpec) Reset() {
+	*x = AgentCardSpec{}
+	mi := &file_proto_manifests_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentCardSpec) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentCardSpec) ProtoMessage() {}
+
+func (x *AgentCardSpec) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentCardSpec.ProtoReflect.Descriptor instead.
+func (*AgentCardSpec) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *AgentCardSpec) GetAgentRef() string {
+	if x != nil {
+		return x.AgentRef
+	}
+	return ""
+}
+
+func (x *AgentCardSpec) GetHostname() string {
+	if x != nil {
+		return x.Hostname
+	}
+	return ""
+}
+
+func (x *AgentCardSpec) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AgentCardSpec) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *AgentCardSpec) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+func (x *AgentCardSpec) GetCapabilities() *AgentCardCapabilities {
+	if x != nil {
+		return x.Capabilities
+	}
+	return nil
+}
+
+func (x *AgentCardSpec) GetDefaultInputModes() []string {
+	if x != nil {
+		return x.DefaultInputModes
+	}
+	return nil
+}
+
+func (x *AgentCardSpec) GetDefaultOutputModes() []string {
+	if x != nil {
+		return x.DefaultOutputModes
+	}
+	return nil
+}
+
+func (x *AgentCardSpec) GetSkills() []*AgentCardSkill {
+	if x != nil {
+		return x.Skills
+	}
+	return nil
+}
+
+func (x *AgentCardSpec) GetAuth() *AgentCardAuth {
+	if x != nil {
+		return x.Auth
+	}
+	return nil
+}
+
+type AgentCardCapabilities struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Streaming         bool                   `protobuf:"varint,1,opt,name=streaming,proto3" json:"streaming,omitempty"`
+	PushNotifications bool                   `protobuf:"varint,2,opt,name=push_notifications,json=pushNotifications,proto3" json:"push_notifications,omitempty"`
+	ExtendedAgentCard bool                   `protobuf:"varint,3,opt,name=extended_agent_card,json=extendedAgentCard,proto3" json:"extended_agent_card,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *AgentCardCapabilities) Reset() {
+	*x = AgentCardCapabilities{}
+	mi := &file_proto_manifests_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentCardCapabilities) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentCardCapabilities) ProtoMessage() {}
+
+func (x *AgentCardCapabilities) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentCardCapabilities.ProtoReflect.Descriptor instead.
+func (*AgentCardCapabilities) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *AgentCardCapabilities) GetStreaming() bool {
+	if x != nil {
+		return x.Streaming
+	}
+	return false
+}
+
+func (x *AgentCardCapabilities) GetPushNotifications() bool {
+	if x != nil {
+		return x.PushNotifications
+	}
+	return false
+}
+
+func (x *AgentCardCapabilities) GetExtendedAgentCard() bool {
+	if x != nil {
+		return x.ExtendedAgentCard
+	}
+	return false
+}
+
+type AgentCardSkill struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Tags          []string               `protobuf:"bytes,4,rep,name=tags,proto3" json:"tags,omitempty"`
+	Examples      []string               `protobuf:"bytes,5,rep,name=examples,proto3" json:"examples,omitempty"`
+	InputModes    []string               `protobuf:"bytes,6,rep,name=input_modes,json=inputModes,proto3" json:"input_modes,omitempty"`
+	OutputModes   []string               `protobuf:"bytes,7,rep,name=output_modes,json=outputModes,proto3" json:"output_modes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentCardSkill) Reset() {
+	*x = AgentCardSkill{}
+	mi := &file_proto_manifests_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentCardSkill) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentCardSkill) ProtoMessage() {}
+
+func (x *AgentCardSkill) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentCardSkill.ProtoReflect.Descriptor instead.
+func (*AgentCardSkill) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *AgentCardSkill) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AgentCardSkill) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AgentCardSkill) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *AgentCardSkill) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *AgentCardSkill) GetExamples() []string {
+	if x != nil {
+		return x.Examples
+	}
+	return nil
+}
+
+func (x *AgentCardSkill) GetInputModes() []string {
+	if x != nil {
+		return x.InputModes
+	}
+	return nil
+}
+
+func (x *AgentCardSkill) GetOutputModes() []string {
+	if x != nil {
+		return x.OutputModes
+	}
+	return nil
+}
+
+type AgentCardAuth struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Discovery     string                 `protobuf:"bytes,1,opt,name=discovery,proto3" json:"discovery,omitempty"`
+	Operations    string                 `protobuf:"bytes,2,opt,name=operations,proto3" json:"operations,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AgentCardAuth) Reset() {
+	*x = AgentCardAuth{}
+	mi := &file_proto_manifests_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AgentCardAuth) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AgentCardAuth) ProtoMessage() {}
+
+func (x *AgentCardAuth) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_manifests_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AgentCardAuth.ProtoReflect.Descriptor instead.
+func (*AgentCardAuth) Descriptor() ([]byte, []int) {
+	return file_proto_manifests_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *AgentCardAuth) GetDiscovery() string {
+	if x != nil {
+		return x.Discovery
+	}
+	return ""
+}
+
+func (x *AgentCardAuth) GetOperations() string {
+	if x != nil {
+		return x.Operations
+	}
+	return ""
+}
+
 type McpAuthBrokerSpec struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Kind            string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
@@ -1335,7 +2105,7 @@ type McpAuthBrokerSpec struct {
 
 func (x *McpAuthBrokerSpec) Reset() {
 	*x = McpAuthBrokerSpec{}
-	mi := &file_proto_manifests_proto_msgTypes[20]
+	mi := &file_proto_manifests_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1347,7 +2117,7 @@ func (x *McpAuthBrokerSpec) String() string {
 func (*McpAuthBrokerSpec) ProtoMessage() {}
 
 func (x *McpAuthBrokerSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[20]
+	mi := &file_proto_manifests_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1360,7 +2130,7 @@ func (x *McpAuthBrokerSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use McpAuthBrokerSpec.ProtoReflect.Descriptor instead.
 func (*McpAuthBrokerSpec) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{20}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *McpAuthBrokerSpec) GetKind() string {
@@ -1403,7 +2173,7 @@ type Knowledge struct {
 
 func (x *Knowledge) Reset() {
 	*x = Knowledge{}
-	mi := &file_proto_manifests_proto_msgTypes[21]
+	mi := &file_proto_manifests_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1415,7 +2185,7 @@ func (x *Knowledge) String() string {
 func (*Knowledge) ProtoMessage() {}
 
 func (x *Knowledge) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[21]
+	mi := &file_proto_manifests_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1428,7 +2198,7 @@ func (x *Knowledge) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Knowledge.ProtoReflect.Descriptor instead.
 func (*Knowledge) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{21}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *Knowledge) GetApiVersion() string {
@@ -1469,7 +2239,7 @@ type KnowledgeSpec struct {
 
 func (x *KnowledgeSpec) Reset() {
 	*x = KnowledgeSpec{}
-	mi := &file_proto_manifests_proto_msgTypes[22]
+	mi := &file_proto_manifests_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1481,7 +2251,7 @@ func (x *KnowledgeSpec) String() string {
 func (*KnowledgeSpec) ProtoMessage() {}
 
 func (x *KnowledgeSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[22]
+	mi := &file_proto_manifests_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1494,7 +2264,7 @@ func (x *KnowledgeSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KnowledgeSpec.ProtoReflect.Descriptor instead.
 func (*KnowledgeSpec) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{22}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *KnowledgeSpec) GetPath() string {
@@ -1523,7 +2293,7 @@ type MemoryProvider struct {
 
 func (x *MemoryProvider) Reset() {
 	*x = MemoryProvider{}
-	mi := &file_proto_manifests_proto_msgTypes[23]
+	mi := &file_proto_manifests_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1535,7 +2305,7 @@ func (x *MemoryProvider) String() string {
 func (*MemoryProvider) ProtoMessage() {}
 
 func (x *MemoryProvider) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[23]
+	mi := &file_proto_manifests_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1548,7 +2318,7 @@ func (x *MemoryProvider) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryProvider.ProtoReflect.Descriptor instead.
 func (*MemoryProvider) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{23}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *MemoryProvider) GetApiVersion() string {
@@ -1590,7 +2360,7 @@ type MemoryProviderSpec struct {
 
 func (x *MemoryProviderSpec) Reset() {
 	*x = MemoryProviderSpec{}
-	mi := &file_proto_manifests_proto_msgTypes[24]
+	mi := &file_proto_manifests_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1602,7 +2372,7 @@ func (x *MemoryProviderSpec) String() string {
 func (*MemoryProviderSpec) ProtoMessage() {}
 
 func (x *MemoryProviderSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[24]
+	mi := &file_proto_manifests_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1615,7 +2385,7 @@ func (x *MemoryProviderSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryProviderSpec.ProtoReflect.Descriptor instead.
 func (*MemoryProviderSpec) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{24}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *MemoryProviderSpec) GetDriver() string {
@@ -1649,7 +2419,7 @@ type ConnectionConfig struct {
 
 func (x *ConnectionConfig) Reset() {
 	*x = ConnectionConfig{}
-	mi := &file_proto_manifests_proto_msgTypes[25]
+	mi := &file_proto_manifests_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1661,7 +2431,7 @@ func (x *ConnectionConfig) String() string {
 func (*ConnectionConfig) ProtoMessage() {}
 
 func (x *ConnectionConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[25]
+	mi := &file_proto_manifests_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1674,7 +2444,7 @@ func (x *ConnectionConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionConfig.ProtoReflect.Descriptor instead.
 func (*ConnectionConfig) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{25}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ConnectionConfig) GetUrl() *EnvSecret {
@@ -1701,7 +2471,7 @@ type EnvSecret struct {
 
 func (x *EnvSecret) Reset() {
 	*x = EnvSecret{}
-	mi := &file_proto_manifests_proto_msgTypes[26]
+	mi := &file_proto_manifests_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1713,7 +2483,7 @@ func (x *EnvSecret) String() string {
 func (*EnvSecret) ProtoMessage() {}
 
 func (x *EnvSecret) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[26]
+	mi := &file_proto_manifests_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1726,7 +2496,7 @@ func (x *EnvSecret) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnvSecret.ProtoReflect.Descriptor instead.
 func (*EnvSecret) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{26}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *EnvSecret) GetSource() string {
@@ -1754,7 +2524,7 @@ type PoolConfig struct {
 
 func (x *PoolConfig) Reset() {
 	*x = PoolConfig{}
-	mi := &file_proto_manifests_proto_msgTypes[27]
+	mi := &file_proto_manifests_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1766,7 +2536,7 @@ func (x *PoolConfig) String() string {
 func (*PoolConfig) ProtoMessage() {}
 
 func (x *PoolConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[27]
+	mi := &file_proto_manifests_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1779,7 +2549,7 @@ func (x *PoolConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PoolConfig.ProtoReflect.Descriptor instead.
 func (*PoolConfig) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{27}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *PoolConfig) GetMaxConnections() int32 {
@@ -1812,7 +2582,7 @@ type SchemaConfig struct {
 
 func (x *SchemaConfig) Reset() {
 	*x = SchemaConfig{}
-	mi := &file_proto_manifests_proto_msgTypes[28]
+	mi := &file_proto_manifests_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1824,7 +2594,7 @@ func (x *SchemaConfig) String() string {
 func (*SchemaConfig) ProtoMessage() {}
 
 func (x *SchemaConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_manifests_proto_msgTypes[28]
+	mi := &file_proto_manifests_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1837,7 +2607,7 @@ func (x *SchemaConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchemaConfig.ProtoReflect.Descriptor instead.
 func (*SchemaConfig) Descriptor() ([]byte, []int) {
-	return file_proto_manifests_proto_rawDescGZIP(), []int{28}
+	return file_proto_manifests_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SchemaConfig) GetName() string {
@@ -1871,13 +2641,14 @@ const file_proto_manifests_proto_rawDesc = "" +
 	"\bmetadata\x18\x03 \x01(\v2\x1b.talon.manifests.ObjectMetaR\bmetadata\x12@\n" +
 	"\n" +
 	"definition\x18\x04 \x01(\v2 .talon.manifests.AgentDefinitionR\n" +
-	"definition\"\xfe\x02\n" +
+	"definition\"\xaa\x03\n" +
 	"\tAgentSpec\x124\n" +
 	"\bfeatures\x18\x01 \x03(\v2\x18.talon.manifests.FeatureR\bfeatures\x12?\n" +
 	"\fmodel_policy\x18\x02 \x01(\v2\x1c.talon.manifests.ModelPolicyR\vmodelPolicy\x12#\n" +
 	"\rsystem_prompt\x18\x03 \x01(\tR\fsystemPrompt\x12&\n" +
 	"\x0fmcp_server_refs\x18\x04 \x03(\tR\rmcpServerRefs\x12P\n" +
-	"\fcapabilities\x18\x06 \x03(\v2,.talon.manifests.AgentSpec.CapabilitiesEntryR\fcapabilities\x1a[\n" +
+	"\fcapabilities\x18\x06 \x03(\v2,.talon.manifests.AgentSpec.CapabilitiesEntryR\fcapabilities\x12*\n" +
+	"\x03a2a\x18\a \x01(\v2\x18.talon.manifests.A2aSpecR\x03a2a\x1a[\n" +
 	"\x11CapabilitiesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
 	"\x05value\x18\x02 \x01(\v2\x1a.google.protobuf.ListValueR\x05value:\x028\x01\"\x9f\x01\n" +
@@ -1965,7 +2736,68 @@ const file_proto_manifests_proto_rawDesc = "" +
 	"\x12allowed_tool_names\x18\x06 \x03(\tR\x10allowedToolNames\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x81\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"K\n" +
+	"\aA2aSpec\x12@\n" +
+	"\vconnections\x18\x01 \x03(\v2\x1e.talon.manifests.A2aConnectionR\vconnections\"\xbb\x02\n" +
+	"\rA2aConnection\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x122\n" +
+	"\x06target\x18\x03 \x01(\v2\x1a.talon.manifests.A2aTargetR\x06target\x12\x1f\n" +
+	"\vinput_modes\x18\x04 \x03(\tR\n" +
+	"inputModes\x12!\n" +
+	"\foutput_modes\x18\x05 \x03(\tR\voutputModes\x12'\n" +
+	"\x0ftimeout_seconds\x18\x06 \x01(\rR\x0etimeoutSeconds\x12\x1b\n" +
+	"\tmax_depth\x18\a \x01(\rR\bmaxDepth\x126\n" +
+	"\x04auth\x18\b \x01(\v2\".talon.manifests.A2aConnectionAuthR\x04auth\"\x99\x01\n" +
+	"\tA2aTarget\x12@\n" +
+	"\binternal\x18\x01 \x01(\v2\".talon.manifests.A2aInternalTargetH\x00R\binternal\x12@\n" +
+	"\bexternal\x18\x02 \x01(\v2\".talon.manifests.A2aExternalTargetH\x00R\bexternalB\b\n" +
+	"\x06target\"G\n" +
+	"\x11A2aInternalTarget\x12\x1c\n" +
+	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12\x14\n" +
+	"\x05agent\x18\x02 \x01(\tR\x05agent\"9\n" +
+	"\x11A2aExternalTarget\x12$\n" +
+	"\x0eagent_card_url\x18\x01 \x01(\tR\fagentCardUrl\"F\n" +
+	"\x11A2aConnectionAuth\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x1d\n" +
+	"\n" +
+	"secret_ref\x18\x02 \x01(\tR\tsecretRef\"\xad\x01\n" +
+	"\tAgentCard\x12\x1f\n" +
+	"\vapi_version\x18\x01 \x01(\tR\n" +
+	"apiVersion\x12\x12\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\x127\n" +
+	"\bmetadata\x18\x03 \x01(\v2\x1b.talon.manifests.ObjectMetaR\bmetadata\x122\n" +
+	"\x04spec\x18\x04 \x01(\v2\x1e.talon.manifests.AgentCardSpecR\x04spec\"\xb3\x03\n" +
+	"\rAgentCardSpec\x12\x1b\n" +
+	"\tagent_ref\x18\x01 \x01(\tR\bagentRef\x12\x1a\n" +
+	"\bhostname\x18\x02 \x01(\tR\bhostname\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x18\n" +
+	"\aversion\x18\x05 \x01(\tR\aversion\x12J\n" +
+	"\fcapabilities\x18\x06 \x01(\v2&.talon.manifests.AgentCardCapabilitiesR\fcapabilities\x12.\n" +
+	"\x13default_input_modes\x18\a \x03(\tR\x11defaultInputModes\x120\n" +
+	"\x14default_output_modes\x18\b \x03(\tR\x12defaultOutputModes\x127\n" +
+	"\x06skills\x18\t \x03(\v2\x1f.talon.manifests.AgentCardSkillR\x06skills\x122\n" +
+	"\x04auth\x18\n" +
+	" \x01(\v2\x1e.talon.manifests.AgentCardAuthR\x04auth\"\x94\x01\n" +
+	"\x15AgentCardCapabilities\x12\x1c\n" +
+	"\tstreaming\x18\x01 \x01(\bR\tstreaming\x12-\n" +
+	"\x12push_notifications\x18\x02 \x01(\bR\x11pushNotifications\x12.\n" +
+	"\x13extended_agent_card\x18\x03 \x01(\bR\x11extendedAgentCard\"\xca\x01\n" +
+	"\x0eAgentCardSkill\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x12\n" +
+	"\x04tags\x18\x04 \x03(\tR\x04tags\x12\x1a\n" +
+	"\bexamples\x18\x05 \x03(\tR\bexamples\x12\x1f\n" +
+	"\vinput_modes\x18\x06 \x03(\tR\n" +
+	"inputModes\x12!\n" +
+	"\foutput_modes\x18\a \x03(\tR\voutputModes\"M\n" +
+	"\rAgentCardAuth\x12\x1c\n" +
+	"\tdiscovery\x18\x01 \x01(\tR\tdiscovery\x12\x1e\n" +
+	"\n" +
+	"operations\x18\x02 \x01(\tR\n" +
+	"operations\"\x81\x01\n" +
 	"\x11McpAuthBrokerSpec\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12*\n" +
@@ -2018,7 +2850,7 @@ func file_proto_manifests_proto_rawDescGZIP() []byte {
 	return file_proto_manifests_proto_rawDescData
 }
 
-var file_proto_manifests_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_proto_manifests_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_proto_manifests_proto_goTypes = []any{
 	(*ObjectMeta)(nil),              // 0: talon.manifests.ObjectMeta
 	(*AgentTemplate)(nil),           // 1: talon.manifests.AgentTemplate
@@ -2040,67 +2872,89 @@ var file_proto_manifests_proto_goTypes = []any{
 	(*McpServerSpec)(nil),           // 17: talon.manifests.McpServerSpec
 	(*McpServerBinding)(nil),        // 18: talon.manifests.McpServerBinding
 	(*McpServerBindingSpec)(nil),    // 19: talon.manifests.McpServerBindingSpec
-	(*McpAuthBrokerSpec)(nil),       // 20: talon.manifests.McpAuthBrokerSpec
-	(*Knowledge)(nil),               // 21: talon.manifests.Knowledge
-	(*KnowledgeSpec)(nil),           // 22: talon.manifests.KnowledgeSpec
-	(*MemoryProvider)(nil),          // 23: talon.manifests.MemoryProvider
-	(*MemoryProviderSpec)(nil),      // 24: talon.manifests.MemoryProviderSpec
-	(*ConnectionConfig)(nil),        // 25: talon.manifests.ConnectionConfig
-	(*EnvSecret)(nil),               // 26: talon.manifests.EnvSecret
-	(*PoolConfig)(nil),              // 27: talon.manifests.PoolConfig
-	(*SchemaConfig)(nil),            // 28: talon.manifests.SchemaConfig
-	nil,                             // 29: talon.manifests.ObjectMeta.LabelsEntry
-	nil,                             // 30: talon.manifests.ObjectMeta.AnnotationsEntry
-	nil,                             // 31: talon.manifests.AgentSpec.CapabilitiesEntry
-	nil,                             // 32: talon.manifests.CapabilitiesPolicyDelta.ReplaceEntry
-	nil,                             // 33: talon.manifests.McpServerSpec.HeadersEntry
-	nil,                             // 34: talon.manifests.McpServerBindingSpec.HeadersEntry
-	(*structpb.ListValue)(nil),      // 35: google.protobuf.ListValue
+	(*A2ASpec)(nil),                 // 20: talon.manifests.A2aSpec
+	(*A2AConnection)(nil),           // 21: talon.manifests.A2aConnection
+	(*A2ATarget)(nil),               // 22: talon.manifests.A2aTarget
+	(*A2AInternalTarget)(nil),       // 23: talon.manifests.A2aInternalTarget
+	(*A2AExternalTarget)(nil),       // 24: talon.manifests.A2aExternalTarget
+	(*A2AConnectionAuth)(nil),       // 25: talon.manifests.A2aConnectionAuth
+	(*AgentCard)(nil),               // 26: talon.manifests.AgentCard
+	(*AgentCardSpec)(nil),           // 27: talon.manifests.AgentCardSpec
+	(*AgentCardCapabilities)(nil),   // 28: talon.manifests.AgentCardCapabilities
+	(*AgentCardSkill)(nil),          // 29: talon.manifests.AgentCardSkill
+	(*AgentCardAuth)(nil),           // 30: talon.manifests.AgentCardAuth
+	(*McpAuthBrokerSpec)(nil),       // 31: talon.manifests.McpAuthBrokerSpec
+	(*Knowledge)(nil),               // 32: talon.manifests.Knowledge
+	(*KnowledgeSpec)(nil),           // 33: talon.manifests.KnowledgeSpec
+	(*MemoryProvider)(nil),          // 34: talon.manifests.MemoryProvider
+	(*MemoryProviderSpec)(nil),      // 35: talon.manifests.MemoryProviderSpec
+	(*ConnectionConfig)(nil),        // 36: talon.manifests.ConnectionConfig
+	(*EnvSecret)(nil),               // 37: talon.manifests.EnvSecret
+	(*PoolConfig)(nil),              // 38: talon.manifests.PoolConfig
+	(*SchemaConfig)(nil),            // 39: talon.manifests.SchemaConfig
+	nil,                             // 40: talon.manifests.ObjectMeta.LabelsEntry
+	nil,                             // 41: talon.manifests.ObjectMeta.AnnotationsEntry
+	nil,                             // 42: talon.manifests.AgentSpec.CapabilitiesEntry
+	nil,                             // 43: talon.manifests.CapabilitiesPolicyDelta.ReplaceEntry
+	nil,                             // 44: talon.manifests.McpServerSpec.HeadersEntry
+	nil,                             // 45: talon.manifests.McpServerBindingSpec.HeadersEntry
+	(*structpb.ListValue)(nil),      // 46: google.protobuf.ListValue
 }
 var file_proto_manifests_proto_depIdxs = []int32{
-	29, // 0: talon.manifests.ObjectMeta.labels:type_name -> talon.manifests.ObjectMeta.LabelsEntry
-	30, // 1: talon.manifests.ObjectMeta.annotations:type_name -> talon.manifests.ObjectMeta.AnnotationsEntry
+	40, // 0: talon.manifests.ObjectMeta.labels:type_name -> talon.manifests.ObjectMeta.LabelsEntry
+	41, // 1: talon.manifests.ObjectMeta.annotations:type_name -> talon.manifests.ObjectMeta.AnnotationsEntry
 	0,  // 2: talon.manifests.AgentTemplate.metadata:type_name -> talon.manifests.ObjectMeta
 	3,  // 3: talon.manifests.AgentTemplate.definition:type_name -> talon.manifests.AgentDefinition
 	10, // 4: talon.manifests.AgentSpec.features:type_name -> talon.manifests.Feature
 	14, // 5: talon.manifests.AgentSpec.model_policy:type_name -> talon.manifests.ModelPolicy
-	31, // 6: talon.manifests.AgentSpec.capabilities:type_name -> talon.manifests.AgentSpec.CapabilitiesEntry
-	2,  // 7: talon.manifests.AgentDefinition.custom_spec:type_name -> talon.manifests.AgentSpec
-	4,  // 8: talon.manifests.AgentDefinition.templated:type_name -> talon.manifests.TemplatedAgentSpec
-	5,  // 9: talon.manifests.TemplatedAgentSpec.delta:type_name -> talon.manifests.AgentSpecDelta
-	15, // 10: talon.manifests.AgentSpecDelta.model_policy:type_name -> talon.manifests.ModelPolicyDelta
-	6,  // 11: talon.manifests.AgentSpecDelta.system_prompt:type_name -> talon.manifests.PromptDelta
-	7,  // 12: talon.manifests.AgentSpecDelta.features:type_name -> talon.manifests.FeatureSetDelta
-	8,  // 13: talon.manifests.AgentSpecDelta.mcp_server_refs:type_name -> talon.manifests.StringListDelta
-	9,  // 14: talon.manifests.AgentSpecDelta.capabilities:type_name -> talon.manifests.CapabilitiesPolicyDelta
-	10, // 15: talon.manifests.FeatureSetDelta.upsert:type_name -> talon.manifests.Feature
-	32, // 16: talon.manifests.CapabilitiesPolicyDelta.replace:type_name -> talon.manifests.CapabilitiesPolicyDelta.ReplaceEntry
-	12, // 17: talon.manifests.Model.thinking:type_name -> talon.manifests.ThinkingConfig
-	11, // 18: talon.manifests.ModelProfile.model:type_name -> talon.manifests.Model
-	13, // 19: talon.manifests.ModelPolicy.profiles:type_name -> talon.manifests.ModelProfile
-	13, // 20: talon.manifests.ModelPolicyDelta.upsert:type_name -> talon.manifests.ModelProfile
-	0,  // 21: talon.manifests.McpServer.metadata:type_name -> talon.manifests.ObjectMeta
-	17, // 22: talon.manifests.McpServer.spec:type_name -> talon.manifests.McpServerSpec
-	33, // 23: talon.manifests.McpServerSpec.headers:type_name -> talon.manifests.McpServerSpec.HeadersEntry
-	0,  // 24: talon.manifests.McpServerBinding.metadata:type_name -> talon.manifests.ObjectMeta
-	19, // 25: talon.manifests.McpServerBinding.spec:type_name -> talon.manifests.McpServerBindingSpec
-	34, // 26: talon.manifests.McpServerBindingSpec.headers:type_name -> talon.manifests.McpServerBindingSpec.HeadersEntry
-	20, // 27: talon.manifests.McpServerBindingSpec.auth_broker:type_name -> talon.manifests.McpAuthBrokerSpec
-	0,  // 28: talon.manifests.Knowledge.metadata:type_name -> talon.manifests.ObjectMeta
-	22, // 29: talon.manifests.Knowledge.spec:type_name -> talon.manifests.KnowledgeSpec
-	0,  // 30: talon.manifests.MemoryProvider.metadata:type_name -> talon.manifests.ObjectMeta
-	24, // 31: talon.manifests.MemoryProvider.spec:type_name -> talon.manifests.MemoryProviderSpec
-	25, // 32: talon.manifests.MemoryProviderSpec.connection:type_name -> talon.manifests.ConnectionConfig
-	28, // 33: talon.manifests.MemoryProviderSpec.schema:type_name -> talon.manifests.SchemaConfig
-	26, // 34: talon.manifests.ConnectionConfig.url:type_name -> talon.manifests.EnvSecret
-	27, // 35: talon.manifests.ConnectionConfig.pool:type_name -> talon.manifests.PoolConfig
-	35, // 36: talon.manifests.AgentSpec.CapabilitiesEntry.value:type_name -> google.protobuf.ListValue
-	35, // 37: talon.manifests.CapabilitiesPolicyDelta.ReplaceEntry.value:type_name -> google.protobuf.ListValue
-	38, // [38:38] is the sub-list for method output_type
-	38, // [38:38] is the sub-list for method input_type
-	38, // [38:38] is the sub-list for extension type_name
-	38, // [38:38] is the sub-list for extension extendee
-	0,  // [0:38] is the sub-list for field type_name
+	42, // 6: talon.manifests.AgentSpec.capabilities:type_name -> talon.manifests.AgentSpec.CapabilitiesEntry
+	20, // 7: talon.manifests.AgentSpec.a2a:type_name -> talon.manifests.A2aSpec
+	2,  // 8: talon.manifests.AgentDefinition.custom_spec:type_name -> talon.manifests.AgentSpec
+	4,  // 9: talon.manifests.AgentDefinition.templated:type_name -> talon.manifests.TemplatedAgentSpec
+	5,  // 10: talon.manifests.TemplatedAgentSpec.delta:type_name -> talon.manifests.AgentSpecDelta
+	15, // 11: talon.manifests.AgentSpecDelta.model_policy:type_name -> talon.manifests.ModelPolicyDelta
+	6,  // 12: talon.manifests.AgentSpecDelta.system_prompt:type_name -> talon.manifests.PromptDelta
+	7,  // 13: talon.manifests.AgentSpecDelta.features:type_name -> talon.manifests.FeatureSetDelta
+	8,  // 14: talon.manifests.AgentSpecDelta.mcp_server_refs:type_name -> talon.manifests.StringListDelta
+	9,  // 15: talon.manifests.AgentSpecDelta.capabilities:type_name -> talon.manifests.CapabilitiesPolicyDelta
+	10, // 16: talon.manifests.FeatureSetDelta.upsert:type_name -> talon.manifests.Feature
+	43, // 17: talon.manifests.CapabilitiesPolicyDelta.replace:type_name -> talon.manifests.CapabilitiesPolicyDelta.ReplaceEntry
+	12, // 18: talon.manifests.Model.thinking:type_name -> talon.manifests.ThinkingConfig
+	11, // 19: talon.manifests.ModelProfile.model:type_name -> talon.manifests.Model
+	13, // 20: talon.manifests.ModelPolicy.profiles:type_name -> talon.manifests.ModelProfile
+	13, // 21: talon.manifests.ModelPolicyDelta.upsert:type_name -> talon.manifests.ModelProfile
+	0,  // 22: talon.manifests.McpServer.metadata:type_name -> talon.manifests.ObjectMeta
+	17, // 23: talon.manifests.McpServer.spec:type_name -> talon.manifests.McpServerSpec
+	44, // 24: talon.manifests.McpServerSpec.headers:type_name -> talon.manifests.McpServerSpec.HeadersEntry
+	0,  // 25: talon.manifests.McpServerBinding.metadata:type_name -> talon.manifests.ObjectMeta
+	19, // 26: talon.manifests.McpServerBinding.spec:type_name -> talon.manifests.McpServerBindingSpec
+	45, // 27: talon.manifests.McpServerBindingSpec.headers:type_name -> talon.manifests.McpServerBindingSpec.HeadersEntry
+	31, // 28: talon.manifests.McpServerBindingSpec.auth_broker:type_name -> talon.manifests.McpAuthBrokerSpec
+	21, // 29: talon.manifests.A2aSpec.connections:type_name -> talon.manifests.A2aConnection
+	22, // 30: talon.manifests.A2aConnection.target:type_name -> talon.manifests.A2aTarget
+	25, // 31: talon.manifests.A2aConnection.auth:type_name -> talon.manifests.A2aConnectionAuth
+	23, // 32: talon.manifests.A2aTarget.internal:type_name -> talon.manifests.A2aInternalTarget
+	24, // 33: talon.manifests.A2aTarget.external:type_name -> talon.manifests.A2aExternalTarget
+	0,  // 34: talon.manifests.AgentCard.metadata:type_name -> talon.manifests.ObjectMeta
+	27, // 35: talon.manifests.AgentCard.spec:type_name -> talon.manifests.AgentCardSpec
+	28, // 36: talon.manifests.AgentCardSpec.capabilities:type_name -> talon.manifests.AgentCardCapabilities
+	29, // 37: talon.manifests.AgentCardSpec.skills:type_name -> talon.manifests.AgentCardSkill
+	30, // 38: talon.manifests.AgentCardSpec.auth:type_name -> talon.manifests.AgentCardAuth
+	0,  // 39: talon.manifests.Knowledge.metadata:type_name -> talon.manifests.ObjectMeta
+	33, // 40: talon.manifests.Knowledge.spec:type_name -> talon.manifests.KnowledgeSpec
+	0,  // 41: talon.manifests.MemoryProvider.metadata:type_name -> talon.manifests.ObjectMeta
+	35, // 42: talon.manifests.MemoryProvider.spec:type_name -> talon.manifests.MemoryProviderSpec
+	36, // 43: talon.manifests.MemoryProviderSpec.connection:type_name -> talon.manifests.ConnectionConfig
+	39, // 44: talon.manifests.MemoryProviderSpec.schema:type_name -> talon.manifests.SchemaConfig
+	37, // 45: talon.manifests.ConnectionConfig.url:type_name -> talon.manifests.EnvSecret
+	38, // 46: talon.manifests.ConnectionConfig.pool:type_name -> talon.manifests.PoolConfig
+	46, // 47: talon.manifests.AgentSpec.CapabilitiesEntry.value:type_name -> google.protobuf.ListValue
+	46, // 48: talon.manifests.CapabilitiesPolicyDelta.ReplaceEntry.value:type_name -> google.protobuf.ListValue
+	49, // [49:49] is the sub-list for method output_type
+	49, // [49:49] is the sub-list for method input_type
+	49, // [49:49] is the sub-list for extension type_name
+	49, // [49:49] is the sub-list for extension extendee
+	0,  // [0:49] is the sub-list for field type_name
 }
 
 func init() { file_proto_manifests_proto_init() }
@@ -2118,13 +2972,17 @@ func file_proto_manifests_proto_init() {
 		(*PromptDelta_Append)(nil),
 	}
 	file_proto_manifests_proto_msgTypes[12].OneofWrappers = []any{}
+	file_proto_manifests_proto_msgTypes[22].OneofWrappers = []any{
+		(*A2ATarget_Internal)(nil),
+		(*A2ATarget_External)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_manifests_proto_rawDesc), len(file_proto_manifests_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   35,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

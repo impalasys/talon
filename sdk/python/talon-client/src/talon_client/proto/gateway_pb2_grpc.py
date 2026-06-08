@@ -366,6 +366,26 @@ class GatewayServiceStub(object):
                 request_serializer=proto_dot_gateway__pb2.DeleteMcpServerBindingRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.DeleteMcpServerBindingResponse.FromString,
                 _registered_method=True)
+        self.CreateAgentCard = channel.unary_unary(
+                '/talon.gateway.GatewayService/CreateAgentCard',
+                request_serializer=proto_dot_gateway__pb2.CreateAgentCardRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.AgentCardResponse.FromString,
+                _registered_method=True)
+        self.GetAgentCard = channel.unary_unary(
+                '/talon.gateway.GatewayService/GetAgentCard',
+                request_serializer=proto_dot_gateway__pb2.GetAgentCardRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.AgentCardResponse.FromString,
+                _registered_method=True)
+        self.ListAgentCards = channel.unary_unary(
+                '/talon.gateway.GatewayService/ListAgentCards',
+                request_serializer=proto_dot_gateway__pb2.ListAgentCardsRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ListAgentCardsResponse.FromString,
+                _registered_method=True)
+        self.DeleteAgentCard = channel.unary_unary(
+                '/talon.gateway.GatewayService/DeleteAgentCard',
+                request_serializer=proto_dot_gateway__pb2.DeleteAgentCardRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.DeleteAgentCardResponse.FromString,
+                _registered_method=True)
 
 
 class GatewayServiceServicer(object):
@@ -777,6 +797,31 @@ class GatewayServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateAgentCard(self, request, context):
+        """A2A Agent Cards
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetAgentCard(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListAgentCards(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteAgentCard(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_GatewayServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -1109,6 +1154,26 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     servicer.DeleteMcpServerBinding,
                     request_deserializer=proto_dot_gateway__pb2.DeleteMcpServerBindingRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.DeleteMcpServerBindingResponse.SerializeToString,
+            ),
+            'CreateAgentCard': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateAgentCard,
+                    request_deserializer=proto_dot_gateway__pb2.CreateAgentCardRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.AgentCardResponse.SerializeToString,
+            ),
+            'GetAgentCard': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAgentCard,
+                    request_deserializer=proto_dot_gateway__pb2.GetAgentCardRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.AgentCardResponse.SerializeToString,
+            ),
+            'ListAgentCards': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListAgentCards,
+                    request_deserializer=proto_dot_gateway__pb2.ListAgentCardsRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ListAgentCardsResponse.SerializeToString,
+            ),
+            'DeleteAgentCard': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteAgentCard,
+                    request_deserializer=proto_dot_gateway__pb2.DeleteAgentCardRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.DeleteAgentCardResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -2893,6 +2958,114 @@ class GatewayService(object):
             '/talon.gateway.GatewayService/DeleteMcpServerBinding',
             proto_dot_gateway__pb2.DeleteMcpServerBindingRequest.SerializeToString,
             proto_dot_gateway__pb2.DeleteMcpServerBindingResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateAgentCard(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/CreateAgentCard',
+            proto_dot_gateway__pb2.CreateAgentCardRequest.SerializeToString,
+            proto_dot_gateway__pb2.AgentCardResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetAgentCard(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/GetAgentCard',
+            proto_dot_gateway__pb2.GetAgentCardRequest.SerializeToString,
+            proto_dot_gateway__pb2.AgentCardResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListAgentCards(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/ListAgentCards',
+            proto_dot_gateway__pb2.ListAgentCardsRequest.SerializeToString,
+            proto_dot_gateway__pb2.ListAgentCardsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteAgentCard(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/DeleteAgentCard',
+            proto_dot_gateway__pb2.DeleteAgentCardRequest.SerializeToString,
+            proto_dot_gateway__pb2.DeleteAgentCardResponse.FromString,
             options,
             channel_credentials,
             insecure,

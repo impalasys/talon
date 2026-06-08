@@ -282,6 +282,10 @@ pub fn agent_card_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("AgentCard"))
 }
 
+pub fn agent_card_hostname(hostname: &str) -> ResourceKey {
+    resource_key(ns::TALON_SYSTEM, &[], "AgentCardHostname", hostname)
+}
+
 pub fn session(namespace: &str, agent: &str, session_id: &str) -> ResourceKey {
     resource_key(namespace, &[("Agent", agent)], "Session", session_id)
 }

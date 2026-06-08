@@ -315,45 +315,73 @@ mod tests {
         gateway
             .kv
             .set(
-                &crate::control::keys::agent_card("support", "support-public"),
-                &crate::gateway::rpc::manifests::AgentCard {
-                    api_version: "talon.impalasys.com/v1".to_string(),
-                    kind: "AgentCard".to_string(),
-                    metadata: Some(crate::gateway::rpc::manifests::ObjectMeta {
-                        name: "support-public".to_string(),
-                        namespace: "support".to_string(),
-                        labels: HashMap::new(),
-                        annotations: HashMap::new(),
-                    }),
-                    spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
-                        agent_ref: "support-docs".to_string(),
-                        hostname: "support.example.com".to_string(),
-                        name: "Support Agent".to_string(),
-                        description: "Answers support questions.".to_string(),
-                        version: "1.0.0".to_string(),
-                        capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
-                            streaming: true,
-                            push_notifications: false,
-                            extended_agent_card: false,
-                        }),
-                        default_input_modes: vec!["text/plain".to_string()],
-                        default_output_modes: vec!["text/plain".to_string()],
-                        skills: vec![crate::gateway::rpc::manifests::AgentCardSkill {
-                            id: "answer_support_question".to_string(),
-                            name: "Answer support question".to_string(),
-                            description: "Answers using docs.".to_string(),
-                            tags: vec!["support".to_string()],
-                            examples: Vec::new(),
-                            input_modes: Vec::new(),
-                            output_modes: Vec::new(),
-                        }],
-                        auth: None,
-                    }),
+                &crate::control::keys::agent("support", "support-docs"),
+                &crate::gateway::rpc::models::Agent {
+                    name: "support-docs".to_string(),
+                    ns: "support".to_string(),
+                    definition: None,
+                    effective_spec: None,
+                    template_deps: Vec::new(),
+                    labels: HashMap::new(),
                 }
                 .encode_to_vec(),
             )
             .await
             .unwrap();
+        let card = crate::gateway::rpc::manifests::AgentCard {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "AgentCard".to_string(),
+            metadata: Some(crate::gateway::rpc::manifests::ObjectMeta {
+                name: "support-public".to_string(),
+                namespace: "support".to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+            }),
+            spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
+                agent_ref: "support-docs".to_string(),
+                hostname: "support.example.com".to_string(),
+                name: "Support Agent".to_string(),
+                description: "Answers support questions.".to_string(),
+                version: "1.0.0".to_string(),
+                capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
+                    streaming: true,
+                    push_notifications: false,
+                    extended_agent_card: false,
+                }),
+                default_input_modes: vec!["text/plain".to_string()],
+                default_output_modes: vec!["text/plain".to_string()],
+                skills: vec![crate::gateway::rpc::manifests::AgentCardSkill {
+                    id: "answer_support_question".to_string(),
+                    name: "Answer support question".to_string(),
+                    description: "Answers using docs.".to_string(),
+                    tags: vec!["support".to_string()],
+                    examples: Vec::new(),
+                    input_modes: Vec::new(),
+                    output_modes: Vec::new(),
+                }],
+                auth: None,
+            }),
+        };
+        crate::gateway::rpc::GrpcGatewayHandler {
+            gateway: Arc::new(gateway.clone()),
+        }
+        .handle_create_agent_card(tonic::Request::new(
+            crate::gateway::rpc::proto::CreateAgentCardRequest {
+                ns: "support".to_string(),
+                card: Some(card),
+            },
+        ))
+        .await
+        .unwrap();
+
+        assert!(gateway
+            .kv
+            .get(&crate::control::keys::agent_card_hostname(
+                "support.example.com"
+            ))
+            .await
+            .unwrap()
+            .is_some());
 
         let response = gateway
             .http_ui_router()

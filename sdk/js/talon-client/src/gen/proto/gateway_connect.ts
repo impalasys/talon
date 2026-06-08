@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AgentResponse, AgentTemplateResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ChannelResponse, ChannelSubscriptionResponse, ClearSessionRequest, ClearSessionResponse, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest, CreateChannelSubscriptionRequest, CreateMcpServerBindingRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateNamespaceRequest, CreateScheduleRequest, CreateSessionRequest, CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentTemplateRequest, DeleteAgentTemplateResponse, DeleteChannelRequest, DeleteChannelResponse, DeleteChannelSubscriptionRequest, DeleteChannelSubscriptionResponse, DeleteMcpServerBindingRequest, DeleteMcpServerBindingResponse, DeleteMcpServerRequest, DeleteMcpServerResponse, DeleteNamespaceKnowledgeRequest, DeleteNamespaceKnowledgeResponse, DeleteNamespaceRequest, DeleteScheduleRequest, DeleteScheduleResponse, DeleteSessionRequest, DeleteSessionResponse, DeleteWorkflowRequest, DeleteWorkflowResponse, GetAgentRequest, GetAgentResponse, GetAgentTemplateRequest, GetChannelMessageRequest, GetChannelRequest, GetChannelSubscriptionRequest, GetKnowledgeRequest, GetMcpServerBindingRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetNamespaceRequest, GetScheduleRequest, GetSessionRequest, GetWorkflowRequest, GetWorkflowRunRequest, KnowledgeResponse, ListAgentsRequest, ListAgentsResponse, ListAgentTemplatesRequest, ListAgentTemplatesResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelSubscriptionsRequest, ListChannelSubscriptionsResponse, ListMcpServerBindingsRequest, ListMcpServerBindingsResponse, ListMcpServersRequest, ListMcpServersResponse, ListNamespaceKnowledgeRequest, ListNamespaceKnowledgeResponse, ListNamespacesRequest, ListNamespacesResponse, ListSchedulesRequest, ListSchedulesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, ListWorkflowsRequest, ListWorkflowsResponse, McpServerBindingResponse, McpServerResponse, ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest, ModifyScheduleRequest, NamespaceKnowledgeResponse, NamespaceResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResumeWorkflowRunRequest, ScheduleResponse, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowResponse, WorkflowRunResponse } from "./gateway_pb.js";
+import { AgentCardResponse, AgentResponse, AgentTemplateResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ChannelResponse, ChannelSubscriptionResponse, ClearSessionRequest, ClearSessionResponse, CreateAgentCardRequest, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest, CreateChannelSubscriptionRequest, CreateMcpServerBindingRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateNamespaceRequest, CreateScheduleRequest, CreateSessionRequest, CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentCardRequest, DeleteAgentCardResponse, DeleteAgentTemplateRequest, DeleteAgentTemplateResponse, DeleteChannelRequest, DeleteChannelResponse, DeleteChannelSubscriptionRequest, DeleteChannelSubscriptionResponse, DeleteMcpServerBindingRequest, DeleteMcpServerBindingResponse, DeleteMcpServerRequest, DeleteMcpServerResponse, DeleteNamespaceKnowledgeRequest, DeleteNamespaceKnowledgeResponse, DeleteNamespaceRequest, DeleteScheduleRequest, DeleteScheduleResponse, DeleteSessionRequest, DeleteSessionResponse, DeleteWorkflowRequest, DeleteWorkflowResponse, GetAgentCardRequest, GetAgentRequest, GetAgentResponse, GetAgentTemplateRequest, GetChannelMessageRequest, GetChannelRequest, GetChannelSubscriptionRequest, GetKnowledgeRequest, GetMcpServerBindingRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetNamespaceRequest, GetScheduleRequest, GetSessionRequest, GetWorkflowRequest, GetWorkflowRunRequest, KnowledgeResponse, ListAgentCardsRequest, ListAgentCardsResponse, ListAgentsRequest, ListAgentsResponse, ListAgentTemplatesRequest, ListAgentTemplatesResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelSubscriptionsRequest, ListChannelSubscriptionsResponse, ListMcpServerBindingsRequest, ListMcpServerBindingsResponse, ListMcpServersRequest, ListMcpServersResponse, ListNamespaceKnowledgeRequest, ListNamespaceKnowledgeResponse, ListNamespacesRequest, ListNamespacesResponse, ListSchedulesRequest, ListSchedulesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, ListWorkflowsRequest, ListWorkflowsResponse, McpServerBindingResponse, McpServerResponse, ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest, ModifyScheduleRequest, NamespaceKnowledgeResponse, NamespaceResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResumeWorkflowRunRequest, ScheduleResponse, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowResponse, WorkflowRunResponse } from "./gateway_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { ChannelEvent, SessionMessagePartEvent } from "./events_pb.js";
 import { WorkflowRunEvent } from "./models_pb.js";
@@ -626,6 +626,44 @@ export const GatewayService = {
       name: "DeleteMcpServerBinding",
       I: DeleteMcpServerBindingRequest,
       O: DeleteMcpServerBindingResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * A2A Agent Cards
+     *
+     * @generated from rpc talon.gateway.GatewayService.CreateAgentCard
+     */
+    createAgentCard: {
+      name: "CreateAgentCard",
+      I: CreateAgentCardRequest,
+      O: AgentCardResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.GetAgentCard
+     */
+    getAgentCard: {
+      name: "GetAgentCard",
+      I: GetAgentCardRequest,
+      O: AgentCardResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.ListAgentCards
+     */
+    listAgentCards: {
+      name: "ListAgentCards",
+      I: ListAgentCardsRequest,
+      O: ListAgentCardsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.DeleteAgentCard
+     */
+    deleteAgentCard: {
+      name: "DeleteAgentCard",
+      I: DeleteAgentCardRequest,
+      O: DeleteAgentCardResponse,
       kind: MethodKind.Unary,
     },
   }

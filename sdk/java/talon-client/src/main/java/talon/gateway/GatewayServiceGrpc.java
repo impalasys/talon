@@ -2058,6 +2058,130 @@ public final class GatewayServiceGrpc {
     return getDeleteMcpServerBindingMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentCardRequest,
+      talon.gateway.Gateway.AgentCardResponse> getCreateAgentCardMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CreateAgentCard",
+      requestType = talon.gateway.Gateway.CreateAgentCardRequest.class,
+      responseType = talon.gateway.Gateway.AgentCardResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentCardRequest,
+      talon.gateway.Gateway.AgentCardResponse> getCreateAgentCardMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateAgentCardRequest, talon.gateway.Gateway.AgentCardResponse> getCreateAgentCardMethod;
+    if ((getCreateAgentCardMethod = GatewayServiceGrpc.getCreateAgentCardMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getCreateAgentCardMethod = GatewayServiceGrpc.getCreateAgentCardMethod) == null) {
+          GatewayServiceGrpc.getCreateAgentCardMethod = getCreateAgentCardMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateAgentCardRequest, talon.gateway.Gateway.AgentCardResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateAgentCard"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.CreateAgentCardRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.AgentCardResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateAgentCard"))
+              .build();
+        }
+      }
+    }
+    return getCreateAgentCardMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentCardRequest,
+      talon.gateway.Gateway.AgentCardResponse> getGetAgentCardMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetAgentCard",
+      requestType = talon.gateway.Gateway.GetAgentCardRequest.class,
+      responseType = talon.gateway.Gateway.AgentCardResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentCardRequest,
+      talon.gateway.Gateway.AgentCardResponse> getGetAgentCardMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetAgentCardRequest, talon.gateway.Gateway.AgentCardResponse> getGetAgentCardMethod;
+    if ((getGetAgentCardMethod = GatewayServiceGrpc.getGetAgentCardMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getGetAgentCardMethod = GatewayServiceGrpc.getGetAgentCardMethod) == null) {
+          GatewayServiceGrpc.getGetAgentCardMethod = getGetAgentCardMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetAgentCardRequest, talon.gateway.Gateway.AgentCardResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetAgentCard"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.GetAgentCardRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.AgentCardResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetAgentCard"))
+              .build();
+        }
+      }
+    }
+    return getGetAgentCardMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentCardsRequest,
+      talon.gateway.Gateway.ListAgentCardsResponse> getListAgentCardsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ListAgentCards",
+      requestType = talon.gateway.Gateway.ListAgentCardsRequest.class,
+      responseType = talon.gateway.Gateway.ListAgentCardsResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentCardsRequest,
+      talon.gateway.Gateway.ListAgentCardsResponse> getListAgentCardsMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListAgentCardsRequest, talon.gateway.Gateway.ListAgentCardsResponse> getListAgentCardsMethod;
+    if ((getListAgentCardsMethod = GatewayServiceGrpc.getListAgentCardsMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getListAgentCardsMethod = GatewayServiceGrpc.getListAgentCardsMethod) == null) {
+          GatewayServiceGrpc.getListAgentCardsMethod = getListAgentCardsMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListAgentCardsRequest, talon.gateway.Gateway.ListAgentCardsResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListAgentCards"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ListAgentCardsRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ListAgentCardsResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListAgentCards"))
+              .build();
+        }
+      }
+    }
+    return getListAgentCardsMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteAgentCardRequest,
+      talon.gateway.Gateway.DeleteAgentCardResponse> getDeleteAgentCardMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "DeleteAgentCard",
+      requestType = talon.gateway.Gateway.DeleteAgentCardRequest.class,
+      responseType = talon.gateway.Gateway.DeleteAgentCardResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteAgentCardRequest,
+      talon.gateway.Gateway.DeleteAgentCardResponse> getDeleteAgentCardMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteAgentCardRequest, talon.gateway.Gateway.DeleteAgentCardResponse> getDeleteAgentCardMethod;
+    if ((getDeleteAgentCardMethod = GatewayServiceGrpc.getDeleteAgentCardMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getDeleteAgentCardMethod = GatewayServiceGrpc.getDeleteAgentCardMethod) == null) {
+          GatewayServiceGrpc.getDeleteAgentCardMethod = getDeleteAgentCardMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteAgentCardRequest, talon.gateway.Gateway.DeleteAgentCardResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteAgentCard"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.DeleteAgentCardRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.DeleteAgentCardResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteAgentCard"))
+              .build();
+        }
+      }
+    }
+    return getDeleteAgentCardMethod;
+  }
+
   /**
    * Creates a new async stub that supports all call types for the service
    */
@@ -2611,6 +2735,37 @@ public final class GatewayServiceGrpc {
     default void deleteMcpServerBinding(talon.gateway.Gateway.DeleteMcpServerBindingRequest request,
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteMcpServerBindingResponse> responseObserver) {
       io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteMcpServerBindingMethod(), responseObserver);
+    }
+
+    /**
+     * <pre>
+     * A2A Agent Cards
+     * </pre>
+     */
+    default void createAgentCard(talon.gateway.Gateway.CreateAgentCardRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentCardResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateAgentCardMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void getAgentCard(talon.gateway.Gateway.GetAgentCardRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentCardResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetAgentCardMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void listAgentCards(talon.gateway.Gateway.ListAgentCardsRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentCardsResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListAgentCardsMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void deleteAgentCard(talon.gateway.Gateway.DeleteAgentCardRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteAgentCardResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteAgentCardMethod(), responseObserver);
     }
   }
 
@@ -3198,6 +3353,41 @@ public final class GatewayServiceGrpc {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getDeleteMcpServerBindingMethod(), getCallOptions()), request, responseObserver);
     }
+
+    /**
+     * <pre>
+     * A2A Agent Cards
+     * </pre>
+     */
+    public void createAgentCard(talon.gateway.Gateway.CreateAgentCardRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentCardResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCreateAgentCardMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void getAgentCard(talon.gateway.Gateway.GetAgentCardRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentCardResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getGetAgentCardMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void listAgentCards(talon.gateway.Gateway.ListAgentCardsRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentCardsResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getListAgentCardsMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void deleteAgentCard(talon.gateway.Gateway.DeleteAgentCardRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteAgentCardResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getDeleteAgentCardMethod(), getCallOptions()), request, responseObserver);
+    }
   }
 
   /**
@@ -3715,6 +3905,37 @@ public final class GatewayServiceGrpc {
       return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
           getChannel(), getDeleteMcpServerBindingMethod(), getCallOptions(), request);
     }
+
+    /**
+     * <pre>
+     * A2A Agent Cards
+     * </pre>
+     */
+    public talon.gateway.Gateway.AgentCardResponse createAgentCard(talon.gateway.Gateway.CreateAgentCardRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getCreateAgentCardMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.AgentCardResponse getAgentCard(talon.gateway.Gateway.GetAgentCardRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getGetAgentCardMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.ListAgentCardsResponse listAgentCards(talon.gateway.Gateway.ListAgentCardsRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getListAgentCardsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.DeleteAgentCardResponse deleteAgentCard(talon.gateway.Gateway.DeleteAgentCardRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getDeleteAgentCardMethod(), getCallOptions(), request);
+    }
   }
 
   /**
@@ -4227,6 +4448,37 @@ public final class GatewayServiceGrpc {
     public talon.gateway.Gateway.DeleteMcpServerBindingResponse deleteMcpServerBinding(talon.gateway.Gateway.DeleteMcpServerBindingRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getDeleteMcpServerBindingMethod(), getCallOptions(), request);
+    }
+
+    /**
+     * <pre>
+     * A2A Agent Cards
+     * </pre>
+     */
+    public talon.gateway.Gateway.AgentCardResponse createAgentCard(talon.gateway.Gateway.CreateAgentCardRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCreateAgentCardMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.AgentCardResponse getAgentCard(talon.gateway.Gateway.GetAgentCardRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getGetAgentCardMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.ListAgentCardsResponse listAgentCards(talon.gateway.Gateway.ListAgentCardsRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getListAgentCardsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.DeleteAgentCardResponse deleteAgentCard(talon.gateway.Gateway.DeleteAgentCardRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getDeleteAgentCardMethod(), getCallOptions(), request);
     }
   }
 
@@ -4771,6 +5023,41 @@ public final class GatewayServiceGrpc {
       return io.grpc.stub.ClientCalls.futureUnaryCall(
           getChannel().newCall(getDeleteMcpServerBindingMethod(), getCallOptions()), request);
     }
+
+    /**
+     * <pre>
+     * A2A Agent Cards
+     * </pre>
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AgentCardResponse> createAgentCard(
+        talon.gateway.Gateway.CreateAgentCardRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCreateAgentCardMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.AgentCardResponse> getAgentCard(
+        talon.gateway.Gateway.GetAgentCardRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getGetAgentCardMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListAgentCardsResponse> listAgentCards(
+        talon.gateway.Gateway.ListAgentCardsRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getListAgentCardsMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteAgentCardResponse> deleteAgentCard(
+        talon.gateway.Gateway.DeleteAgentCardRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getDeleteAgentCardMethod(), getCallOptions()), request);
+    }
   }
 
   private static final int METHODID_CREATE_AGENT = 0;
@@ -4839,6 +5126,10 @@ public final class GatewayServiceGrpc {
   private static final int METHODID_GET_MCP_SERVER_BINDING = 63;
   private static final int METHODID_LIST_MCP_SERVER_BINDINGS = 64;
   private static final int METHODID_DELETE_MCP_SERVER_BINDING = 65;
+  private static final int METHODID_CREATE_AGENT_CARD = 66;
+  private static final int METHODID_GET_AGENT_CARD = 67;
+  private static final int METHODID_LIST_AGENT_CARDS = 68;
+  private static final int METHODID_DELETE_AGENT_CARD = 69;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -5120,6 +5411,22 @@ public final class GatewayServiceGrpc {
         case METHODID_DELETE_MCP_SERVER_BINDING:
           serviceImpl.deleteMcpServerBinding((talon.gateway.Gateway.DeleteMcpServerBindingRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteMcpServerBindingResponse>) responseObserver);
+          break;
+        case METHODID_CREATE_AGENT_CARD:
+          serviceImpl.createAgentCard((talon.gateway.Gateway.CreateAgentCardRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentCardResponse>) responseObserver);
+          break;
+        case METHODID_GET_AGENT_CARD:
+          serviceImpl.getAgentCard((talon.gateway.Gateway.GetAgentCardRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.AgentCardResponse>) responseObserver);
+          break;
+        case METHODID_LIST_AGENT_CARDS:
+          serviceImpl.listAgentCards((talon.gateway.Gateway.ListAgentCardsRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListAgentCardsResponse>) responseObserver);
+          break;
+        case METHODID_DELETE_AGENT_CARD:
+          serviceImpl.deleteAgentCard((talon.gateway.Gateway.DeleteAgentCardRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteAgentCardResponse>) responseObserver);
           break;
         default:
           throw new AssertionError();
@@ -5601,6 +5908,34 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.DeleteMcpServerBindingRequest,
               talon.gateway.Gateway.DeleteMcpServerBindingResponse>(
                 service, METHODID_DELETE_MCP_SERVER_BINDING)))
+        .addMethod(
+          getCreateAgentCardMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.CreateAgentCardRequest,
+              talon.gateway.Gateway.AgentCardResponse>(
+                service, METHODID_CREATE_AGENT_CARD)))
+        .addMethod(
+          getGetAgentCardMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.GetAgentCardRequest,
+              talon.gateway.Gateway.AgentCardResponse>(
+                service, METHODID_GET_AGENT_CARD)))
+        .addMethod(
+          getListAgentCardsMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.ListAgentCardsRequest,
+              talon.gateway.Gateway.ListAgentCardsResponse>(
+                service, METHODID_LIST_AGENT_CARDS)))
+        .addMethod(
+          getDeleteAgentCardMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.DeleteAgentCardRequest,
+              talon.gateway.Gateway.DeleteAgentCardResponse>(
+                service, METHODID_DELETE_AGENT_CARD)))
         .build();
   }
 
@@ -5715,6 +6050,10 @@ public final class GatewayServiceGrpc {
               .addMethod(getGetMcpServerBindingMethod())
               .addMethod(getListMcpServerBindingsMethod())
               .addMethod(getDeleteMcpServerBindingMethod())
+              .addMethod(getCreateAgentCardMethod())
+              .addMethod(getGetAgentCardMethod())
+              .addMethod(getListAgentCardsMethod())
+              .addMethod(getDeleteAgentCardMethod())
               .build();
         }
       }

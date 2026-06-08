@@ -108,6 +108,47 @@ pub struct ListMcpServerBindingsResponse {
     pub bindings: ::prost::alloc::vec::Vec<super::manifests::McpServerBinding>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateAgentCardRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub card: ::core::option::Option<super::manifests::AgentCard>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetAgentCardRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListAgentCardsRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteAgentCardRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DeleteAgentCardResponse {
+    #[prost(bool, tag = "1")]
+    pub success: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AgentCardResponse {
+    #[prost(message, optional, tag = "1")]
+    pub card: ::core::option::Option<super::manifests::AgentCard>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListAgentCardsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub cards: ::prost::alloc::vec::Vec<super::manifests::AgentCard>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetAgentResponse {
     #[prost(message, optional, tag = "1")]
     pub agent: ::core::option::Option<super::models::Agent>,
@@ -2698,6 +2739,109 @@ pub mod gateway_service_client {
                         "talon.gateway.GatewayService",
                         "DeleteMcpServerBinding",
                     ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        /// A2A Agent Cards
+        pub async fn create_agent_card(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateAgentCardRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AgentCardResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/CreateAgentCard",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "CreateAgentCard"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_agent_card(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetAgentCardRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::AgentCardResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/GetAgentCard",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("talon.gateway.GatewayService", "GetAgentCard"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn list_agent_cards(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListAgentCardsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListAgentCardsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/ListAgentCards",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "ListAgentCards"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn delete_agent_card(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteAgentCardRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DeleteAgentCardResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/DeleteAgentCard",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "DeleteAgentCard"),
                 );
             self.inner.unary(req, path, codec).await
         }
