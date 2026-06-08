@@ -14,6 +14,12 @@ import {
   type CopilotMessage,
 } from "./lib/chatTimeline";
 import { ChatInputBox } from "./lib/ChatInputBox";
+import {
+  findTalonChatCommand,
+  parseTalonChatCommandInput,
+  type TalonBuiltInCommandName,
+  type TalonChatCommand,
+} from "./lib/commands";
 import { buildGatewayHeaders, normalizeGatewayUrl } from "./lib/grpc";
 import { MarkdownMessage } from "./lib/MarkdownMessage";
 import { streamSessionResume, streamUiSubmission, type StreamEventItem } from "./lib/uiStream";
@@ -22,6 +28,7 @@ const useSafeLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : us
 
 export type GatewayClientLike = {
   createSession(request: { ns: string; agent: string }): Promise<{ sessionId: string }>;
+  clearSession?(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
   listSessionMessages?(request: {
     ns: string;
     agent: string;
@@ -31,6 +38,15 @@ export type GatewayClientLike = {
   }): Promise<any>;
   getSession(request: { ns: string; agent: string; sessionId: string; messageLimit?: number; stepLimit?: number }): Promise<any>;
 };
+
+export type TalonSessionCommandTarget = {
+  type: "session";
+  namespace: string;
+  agent: string;
+  sessionId: string | null;
+};
+
+export type TalonSessionCommand = TalonChatCommand<TalonSessionCommandTarget, CopilotMessage>;
 
 export type TalonSessionProps = {
   namespace: string;
@@ -48,6 +64,8 @@ export type TalonSessionProps = {
   historyPageSize?: number;
   historyMessageLimit?: number;
   historyStepLimit?: number;
+  commands?: TalonSessionCommand[];
+  enabledBuiltInCommands?: TalonBuiltInCommandName[];
 };
 
 export type TalonCopilotProps = TalonSessionProps;
@@ -78,6 +96,10 @@ function buildGatewaySessionMessagesUrl(
     url.searchParams.set("before_message_id", beforeMessageId);
   }
   return url.toString();
+}
+
+function buildGatewayClearSessionUrl(gatewayUrl: string, ns: string, agent: string, sessionId: string) {
+  return `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}:clear`;
 }
 
 function border(color: string) {
@@ -327,6 +349,8 @@ export function TalonSession({
   historyPageSize = DEFAULT_HISTORY_PAGE_SIZE,
   historyMessageLimit = DEFAULT_HISTORY_MESSAGE_LIMIT,
   historyStepLimit = DEFAULT_HISTORY_STEP_LIMIT,
+  commands,
+  enabledBuiltInCommands,
 }: TalonSessionProps) {
   const [messages, setMessages] = useState<CopilotMessage[]>(emptyMessages);
   const [input, setInput] = useState("");
@@ -912,9 +936,82 @@ export function TalonSession({
     [getSessionMessagesPage, refreshNewestSessionPage],
   );
 
+  const clearLocalSession = useCallback(() => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setMessages(emptyMessages);
+    messagesRef.current = emptyMessages;
+    setStreamEvents([]);
+    setError(null);
+    setHasMoreHistory(false);
+    setNextBeforeMessageId(null);
+    setIsLoading(false);
+    setLoadingStartedAt(null);
+    setExpandedThinkingMessages({});
+    setExpandedToolItems({});
+  }, []);
+
+  const clearSession = useCallback(async () => {
+    const session = currentSessionRef.current;
+    if (session) {
+      if (gatewayClient?.clearSession) {
+        await gatewayClient.clearSession(session);
+      } else {
+        const response = await fetch(buildGatewayClearSessionUrl(gatewayUrl, session.ns, session.agent, session.sessionId), {
+          method: "POST",
+          headers: jsonHeaders,
+          body: JSON.stringify(session),
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to clear session: ${response.status}`);
+        }
+      }
+    }
+    clearLocalSession();
+  }, [clearLocalSession, gatewayClient, gatewayUrl, jsonHeaders]);
+
+  const resolvedCommands = useMemo<Array<TalonSessionCommand>>(() => {
+    const builtInCommands: TalonSessionCommand[] = [];
+    if (enabledBuiltInCommands?.includes("clear")) {
+      builtInCommands.push({
+        name: "clear",
+        description: "Clear the current session history.",
+        run: ({ clear }) => clear(),
+      });
+    }
+    return [...(commands ?? []), ...builtInCommands];
+  }, [clearSession, commands, enabledBuiltInCommands]);
+
   const submitMessage = useCallback(async (submittedText: string) => {
     const text = submittedText.trim();
     if (!text || isLoading || disabled) return;
+
+    const parsedCommand = parseTalonChatCommandInput(text);
+    const command = findTalonChatCommand(resolvedCommands, parsedCommand);
+    if (command && parsedCommand) {
+      setInput("");
+      setError(null);
+      setStreamEvents([]);
+      try {
+        await command.run({
+          name: parsedCommand.name,
+          input: text,
+          args: parsedCommand.args,
+          argv: parsedCommand.argv,
+          target: {
+            type: "session",
+            namespace,
+            agent,
+            sessionId: currentSessionRef.current?.sessionId ?? sessionId ?? null,
+          },
+          messages: messagesRef.current,
+          clear: clearSession,
+        });
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+      }
+      return;
+    }
 
     setInput("");
     setError(null);
@@ -992,7 +1089,7 @@ export function TalonSession({
       setIsLoading(false);
       setLoadingStartedAt(null);
     }
-  }, [agent, createSession, disabled, gatewayUrl, isLoading, jsonHeaders, namespace, onSessionChange, refreshNewestSessionPage, resolvedHistoryPageSize, waitForCanonicalAssistantUpdate]);
+  }, [agent, clearSession, createSession, disabled, gatewayUrl, isLoading, jsonHeaders, namespace, onSessionChange, refreshNewestSessionPage, resolvedCommands, resolvedHistoryPageSize, sessionId, waitForCanonicalAssistantUpdate]);
 
   const stopGeneration = useCallback(async () => {
     if (!currentSessionRef.current || !isLoading) return;

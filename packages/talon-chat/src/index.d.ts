@@ -2,6 +2,7 @@ import type React from "react";
 
 export type GatewayClientLike = {
   createSession(request: { ns: string; agent: string }): Promise<{ sessionId: string }>;
+  clearSession?(request: { ns: string; agent: string; sessionId: string }): Promise<any>;
   listSessionMessages?(request: {
     ns: string;
     agent: string;
@@ -48,6 +49,34 @@ export type CopilotMessage = {
   toolInvocations?: ToolInvocationItem[];
 };
 
+export type TalonBuiltInCommandName = "clear";
+
+export type TalonChatCommandContext<TTarget, TMessage> = {
+  name: string;
+  input: string;
+  args: string;
+  argv: string[];
+  target: TTarget;
+  messages: TMessage[];
+  clear: () => void | Promise<void>;
+};
+
+export type TalonChatCommand<TTarget = unknown, TMessage = unknown> = {
+  name: string;
+  aliases?: string[];
+  description?: string;
+  run: (context: TalonChatCommandContext<TTarget, TMessage>) => void | Promise<void>;
+};
+
+export type TalonSessionCommandTarget = {
+  type: "session";
+  namespace: string;
+  agent: string;
+  sessionId: string | null;
+};
+
+export type TalonSessionCommand = TalonChatCommand<TalonSessionCommandTarget, CopilotMessage>;
+
 export type TalonSessionProps = {
   namespace: string;
   agent: string;
@@ -64,6 +93,8 @@ export type TalonSessionProps = {
   historyPageSize?: number;
   historyMessageLimit?: number;
   historyStepLimit?: number;
+  commands?: TalonSessionCommand[];
+  enabledBuiltInCommands?: TalonBuiltInCommandName[];
 };
 
 export type TalonCopilotProps = TalonSessionProps;
@@ -83,6 +114,15 @@ export type ChannelMessage = {
   sourceSessionId?: string;
   source_session_id?: string;
 };
+
+export type TalonChannelCommandTarget = {
+  type: "channel";
+  namespace: string;
+  channel: string;
+  status: string;
+};
+
+export type TalonChannelCommand = TalonChatCommand<TalonChannelCommandTarget, ChannelMessage>;
 
 export type TalonChannelProps = {
   namespace: string;
@@ -107,6 +147,8 @@ export type TalonChannelProps = {
   timestampLocale?: Intl.LocalesArgument;
   formatTimestamp?: (message: ChannelMessage) => string;
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
+  commands?: TalonChannelCommand[];
+  enabledBuiltInCommands?: TalonBuiltInCommandName[];
 };
 
 export type UseTalonChannelMessagesOptions = {
@@ -137,6 +179,7 @@ export type UseTalonChannelMessagesResult = {
   refresh: (options?: { silent?: boolean; replace?: boolean }) => Promise<void>;
   loadOlderMessages: () => Promise<void>;
   postMessage: (options: { author: string; authorKind: string; content: string }) => Promise<void>;
+  clearMessages: () => void;
 };
 
 export function TalonSession(props: TalonSessionProps): React.JSX.Element;
