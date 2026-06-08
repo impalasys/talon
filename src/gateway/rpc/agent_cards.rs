@@ -72,6 +72,9 @@ fn normalize_hostname(hostname: &str) -> Result<String, tonic::Status> {
 
 fn request_host_to_hostname(host: &str) -> Result<String, tonic::Status> {
     let host = host.trim();
+    if host.is_empty() {
+        return Err(tonic::Status::invalid_argument("Host header is required"));
+    }
     let host = if let Some(stripped) = host.strip_prefix('[') {
         let Some((inside, _rest)) = stripped.split_once(']') else {
             return Err(tonic::Status::invalid_argument("invalid Host header"));
@@ -179,18 +182,6 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
             .and_then(|old| old.spec.map(|spec| spec.hostname));
-        self.gateway
-            .kv
-            .set_msg(&key, &card)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
-        self.gateway
-            .kv
-            .set_msg(&keys::agent_card_hostname(&new_hostname), &card)
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to index AgentCard hostname: {err}"))
-            })?;
         if let Some(old_hostname) = old_hostname {
             let old_hostname = normalize_hostname(&old_hostname)?;
             if old_hostname != new_hostname {
@@ -205,6 +196,18 @@ impl GrpcGatewayHandler {
                     })?;
             }
         }
+        self.gateway
+            .kv
+            .set_msg(&keys::agent_card_hostname(&new_hostname), &card)
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to index AgentCard hostname: {err}"))
+            })?;
+        self.gateway
+            .kv
+            .set_msg(&key, &card)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
 
         Ok(tonic::Response::new(proto::AgentCardResponse {
             card: Some(card),
@@ -275,11 +278,6 @@ impl GrpcGatewayHandler {
             .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
             .ok_or_else(|| tonic::Status::not_found("AgentCard not found"))?;
         let old_hostname = card.spec.map(|spec| spec.hostname);
-        self.gateway
-            .kv
-            .delete(&key)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to delete AgentCard: {err}")))?;
         if let Some(old_hostname) = old_hostname {
             let old_hostname = normalize_hostname(&old_hostname)?;
             self.gateway
@@ -292,6 +290,11 @@ impl GrpcGatewayHandler {
                     ))
                 })?;
         }
+        self.gateway
+            .kv
+            .delete(&key)
+            .await
+            .map_err(|err| tonic::Status::internal(format!("Failed to delete AgentCard: {err}")))?;
         Ok(tonic::Response::new(proto::DeleteAgentCardResponse {
             success: true,
         }))
@@ -332,6 +335,10 @@ mod tests {
         assert_eq!(
             request_host_to_hostname("support.example.com:443").unwrap(),
             "support.example.com"
+        );
+        assert_eq!(
+            request_host_to_hostname("").unwrap_err().message(),
+            "Host header is required"
         );
     }
 }
