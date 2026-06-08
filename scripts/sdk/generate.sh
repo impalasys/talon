@@ -125,6 +125,18 @@ text = strip_region(
 path.write_text(text)
 PY
 
+python3 - <<'PY'
+from pathlib import Path
+
+root = Path("sdk/java/talon-client/src/main/java")
+for path in root.rglob("*.java"):
+    text = path.read_text()
+    stripped = "\n".join(line.rstrip() for line in text.splitlines())
+    if text.endswith("\n"):
+        stripped += "\n"
+    path.write_text(stripped)
+PY
+
 NPM_BIN="$ROOT/.tools/npm-bin"
 mkdir -p "$NPM_BIN"
 cat > "$NPM_BIN/protoc-gen-es" <<'EOF'

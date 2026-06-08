@@ -537,8 +537,16 @@ fn metadata_from_s3_response(
     }
 }
 
-fn is_s3_not_found(err: &impl std::fmt::Display) -> bool {
-    err.to_string().contains("NoSuchKey") || err.to_string().contains("NotFound")
+fn is_s3_not_found(
+    err: &aws_sdk_s3::error::SdkError<aws_sdk_s3::operation::get_object::GetObjectError>,
+) -> bool {
+    err.as_service_error()
+        .map(|err| err.is_no_such_key())
+        .unwrap_or(false)
+        || err
+            .raw_response()
+            .map(|response| response.status().as_u16() == 404)
+            .unwrap_or(false)
 }
 
 fn validate_key(key: &str) -> Result<()> {
@@ -696,5 +704,37 @@ mod tests {
             Err(err) => err,
         };
         assert!(s3.to_string().contains("requires bucket"));
+    }
+
+    #[test]
+    fn s3_not_found_detection_uses_structured_errors() {
+        let no_such_key = aws_sdk_s3::error::SdkError::service_error(
+            aws_sdk_s3::operation::get_object::GetObjectError::NoSuchKey(
+                aws_sdk_s3::types::error::NoSuchKey::builder().build(),
+            ),
+            aws_smithy_runtime_api::client::orchestrator::HttpResponse::new(
+                aws_smithy_runtime_api::http::StatusCode::try_from(404).unwrap(),
+                aws_smithy_types::body::SdkBody::empty(),
+            ),
+        );
+        assert!(super::is_s3_not_found(&no_such_key));
+
+        let http_not_found = aws_sdk_s3::error::SdkError::service_error(
+            aws_sdk_s3::operation::get_object::GetObjectError::unhandled("missing"),
+            aws_smithy_runtime_api::client::orchestrator::HttpResponse::new(
+                aws_smithy_runtime_api::http::StatusCode::try_from(404).unwrap(),
+                aws_smithy_types::body::SdkBody::empty(),
+            ),
+        );
+        assert!(super::is_s3_not_found(&http_not_found));
+
+        let internal_error = aws_sdk_s3::error::SdkError::service_error(
+            aws_sdk_s3::operation::get_object::GetObjectError::unhandled("server error"),
+            aws_smithy_runtime_api::client::orchestrator::HttpResponse::new(
+                aws_smithy_runtime_api::http::StatusCode::try_from(500).unwrap(),
+                aws_smithy_types::body::SdkBody::empty(),
+            ),
+        );
+        assert!(!super::is_s3_not_found(&internal_error));
     }
 }

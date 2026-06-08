@@ -5387,6 +5387,8 @@ dependencies = [
  "aws-config",
  "aws-sdk-s3",
  "aws-sdk-secretsmanager",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
  "axum 0.7.9",
  "azure_identity",
  "azure_security_keyvault_secrets",

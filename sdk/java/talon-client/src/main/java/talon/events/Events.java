@@ -700,7 +700,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         resourceType_ = s;
@@ -716,7 +716,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getResourceTypeBytes() {
       java.lang.Object ref = resourceType_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         resourceType_ = b;
@@ -739,7 +739,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -755,7 +755,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -778,7 +778,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -794,7 +794,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -1246,7 +1246,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getResourceTypeBytes() {
         java.lang.Object ref = resourceType_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           resourceType_ = b;
@@ -1318,7 +1318,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -1390,7 +1390,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -1714,7 +1714,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -1730,7 +1730,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -1753,7 +1753,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         messageId_ = s;
@@ -1769,7 +1769,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getMessageIdBytes() {
       java.lang.Object ref = messageId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         messageId_ = b;
@@ -1821,7 +1821,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -1837,7 +1837,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -1860,7 +1860,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         message_ = s;
@@ -1876,7 +1876,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getMessageBytes() {
       java.lang.Object ref = message_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         message_ = b;
@@ -1899,7 +1899,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -1915,7 +1915,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -2386,7 +2386,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -2458,7 +2458,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getMessageIdBytes() {
         java.lang.Object ref = messageId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           messageId_ = b;
@@ -2614,7 +2614,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -2686,7 +2686,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getMessageBytes() {
         java.lang.Object ref = message_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           message_ = b;
@@ -2758,7 +2758,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -2973,7 +2973,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -2989,7 +2989,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -3012,7 +3012,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -3028,7 +3028,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -3051,7 +3051,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -3067,7 +3067,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -3090,7 +3090,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         action_ = s;
@@ -3106,7 +3106,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getActionBytes() {
       java.lang.Object ref = action_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         action_ = b;
@@ -3542,7 +3542,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -3614,7 +3614,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -3686,7 +3686,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -3758,7 +3758,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getActionBytes() {
         java.lang.Object ref = action_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           action_ = b;
@@ -4033,7 +4033,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -4049,7 +4049,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -4127,7 +4127,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -4143,7 +4143,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -4166,7 +4166,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -4182,7 +4182,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -4205,7 +4205,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         messageId_ = s;
@@ -4221,7 +4221,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getMessageIdBytes() {
       java.lang.Object ref = messageId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         messageId_ = b;
@@ -4713,7 +4713,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -4920,7 +4920,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
        * <code>.talon.models.SessionMessagePart part = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessagePart, talon.models.Models.SessionMessagePart.Builder, talon.models.Models.SessionMessagePartOrBuilder> 
+          talon.models.Models.SessionMessagePart, talon.models.Models.SessionMessagePart.Builder, talon.models.Models.SessionMessagePartOrBuilder>
           internalGetPartFieldBuilder() {
         if (partBuilder_ == null) {
           partBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -4990,7 +4990,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -5062,7 +5062,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -5134,7 +5134,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getMessageIdBytes() {
         java.lang.Object ref = messageId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           messageId_ = b;
@@ -5403,7 +5403,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -5419,7 +5419,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -5442,7 +5442,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -5458,7 +5458,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -5525,7 +5525,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -5541,7 +5541,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -5564,7 +5564,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -5580,7 +5580,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -5603,7 +5603,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         subscription_ = s;
@@ -5619,7 +5619,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getSubscriptionBytes() {
       java.lang.Object ref = subscription_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         subscription_ = b;
@@ -5642,7 +5642,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         error_ = s;
@@ -5658,7 +5658,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         getErrorBytes() {
       java.lang.Object ref = error_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         error_ = b;
@@ -6209,7 +6209,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -6281,7 +6281,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -6488,7 +6488,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
        * <code>.talon.models.ChannelMessage message = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder> 
+          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -6526,7 +6526,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -6598,7 +6598,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -6670,7 +6670,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getSubscriptionBytes() {
         java.lang.Object ref = subscription_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           subscription_ = b;
@@ -6742,7 +6742,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
           getErrorBytes() {
         java.lang.Object ref = error_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           error_ = b;
@@ -6874,27 +6874,27 @@ public final class Events extends com.google.protobuf.GeneratedFile {
 
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_LifecycleEvent_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_LifecycleEvent_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_SessionMessageEvent_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_SessionMessageEvent_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_SessionControlEvent_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_SessionControlEvent_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_SessionMessagePartEvent_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_SessionMessagePartEvent_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_ChannelEvent_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_ChannelEvent_fieldAccessorTable;
 
