@@ -390,7 +390,7 @@ mod tests {
                     .method(Method::GET)
                     .uri("/.well-known/agent-card.json")
                     .header(header::HOST, "support.example.com")
-                    .header("x-forwarded-proto", "http")
+                    .header("x-forwarded-proto", "HTTP")
                     .body(Body::empty())
                     .unwrap(),
             )

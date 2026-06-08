@@ -641,14 +641,16 @@ fn rest_get_path(
             let ns = namespace
                 .as_ref()
                 .context("AgentCard get requires --namespace")?;
-            Ok((
+            let path = if name.is_empty() {
+                format!("/v1/namespaces/{}/agent-cards", urlencoding::encode(ns))
+            } else {
                 format!(
                     "/v1/namespaces/{}/agent-cards/{}",
                     urlencoding::encode(ns),
                     urlencoding::encode(name)
-                ),
-                "card",
-            ))
+                )
+            };
+            Ok((path, "card"))
         }
         "namespace" | "namespaces" => Ok((
             format!("/v1/namespaces/{}", urlencoding::encode(name)),
@@ -4038,6 +4040,17 @@ mod tests {
             (
                 "/v1/ns/team-a/schedules/nightly%20sync".to_string(),
                 "schedule"
+            )
+        );
+        assert_eq!(
+            rest_get_path("agent-cards", "", Some(&team)).unwrap(),
+            ("/v1/namespaces/team-a/agent-cards".to_string(), "card")
+        );
+        assert_eq!(
+            rest_get_path("agent-card", "support public", Some(&team)).unwrap(),
+            (
+                "/v1/namespaces/team-a/agent-cards/support%20public".to_string(),
+                "card"
             )
         );
         assert_eq!(

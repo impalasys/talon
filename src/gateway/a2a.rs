@@ -75,8 +75,8 @@ fn scheme_from_headers(headers: &HeaderMap) -> &'static str {
         .get("x-forwarded-proto")
         .and_then(|value| value.to_str().ok())
         .and_then(|value| value.split(',').next())
-        .map(str::trim)
-        .and_then(|value| match value {
+        .map(|value| value.trim().to_ascii_lowercase())
+        .and_then(|value| match value.as_str() {
             "http" => Some("http"),
             "https" => Some("https"),
             _ => None,
