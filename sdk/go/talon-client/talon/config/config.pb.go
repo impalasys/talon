@@ -744,6 +744,284 @@ func (x *MessageBrokerConfig) GetDriver() string {
 	return ""
 }
 
+type LocalFsObjectStoreConfig struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LocalFsObjectStoreConfig) Reset() {
+	*x = LocalFsObjectStoreConfig{}
+	mi := &file_proto_config_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LocalFsObjectStoreConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LocalFsObjectStoreConfig) ProtoMessage() {}
+
+func (x *LocalFsObjectStoreConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_config_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LocalFsObjectStoreConfig.ProtoReflect.Descriptor instead.
+func (*LocalFsObjectStoreConfig) Descriptor() ([]byte, []int) {
+	return file_proto_config_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *LocalFsObjectStoreConfig) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+type GcsObjectStoreConfig struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bucket        string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Prefix        string                 `protobuf:"bytes,2,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	ApiBaseUrl    string                 `protobuf:"bytes,3,opt,name=api_base_url,json=apiBaseUrl,proto3" json:"api_base_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GcsObjectStoreConfig) Reset() {
+	*x = GcsObjectStoreConfig{}
+	mi := &file_proto_config_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GcsObjectStoreConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GcsObjectStoreConfig) ProtoMessage() {}
+
+func (x *GcsObjectStoreConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_config_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GcsObjectStoreConfig.ProtoReflect.Descriptor instead.
+func (*GcsObjectStoreConfig) Descriptor() ([]byte, []int) {
+	return file_proto_config_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GcsObjectStoreConfig) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *GcsObjectStoreConfig) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *GcsObjectStoreConfig) GetApiBaseUrl() string {
+	if x != nil {
+		return x.ApiBaseUrl
+	}
+	return ""
+}
+
+type S3ObjectStoreConfig struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Bucket         string                 `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Prefix         string                 `protobuf:"bytes,2,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	Region         string                 `protobuf:"bytes,3,opt,name=region,proto3" json:"region,omitempty"`
+	EndpointUrl    string                 `protobuf:"bytes,4,opt,name=endpoint_url,json=endpointUrl,proto3" json:"endpoint_url,omitempty"`
+	ForcePathStyle bool                   `protobuf:"varint,5,opt,name=force_path_style,json=forcePathStyle,proto3" json:"force_path_style,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *S3ObjectStoreConfig) Reset() {
+	*x = S3ObjectStoreConfig{}
+	mi := &file_proto_config_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *S3ObjectStoreConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*S3ObjectStoreConfig) ProtoMessage() {}
+
+func (x *S3ObjectStoreConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_config_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use S3ObjectStoreConfig.ProtoReflect.Descriptor instead.
+func (*S3ObjectStoreConfig) Descriptor() ([]byte, []int) {
+	return file_proto_config_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *S3ObjectStoreConfig) GetBucket() string {
+	if x != nil {
+		return x.Bucket
+	}
+	return ""
+}
+
+func (x *S3ObjectStoreConfig) GetPrefix() string {
+	if x != nil {
+		return x.Prefix
+	}
+	return ""
+}
+
+func (x *S3ObjectStoreConfig) GetRegion() string {
+	if x != nil {
+		return x.Region
+	}
+	return ""
+}
+
+func (x *S3ObjectStoreConfig) GetEndpointUrl() string {
+	if x != nil {
+		return x.EndpointUrl
+	}
+	return ""
+}
+
+func (x *S3ObjectStoreConfig) GetForcePathStyle() bool {
+	if x != nil {
+		return x.ForcePathStyle
+	}
+	return false
+}
+
+type ObjectStoreConfig struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Backend:
+	//
+	//	*ObjectStoreConfig_LocalFs
+	//	*ObjectStoreConfig_Gcs
+	//	*ObjectStoreConfig_S3
+	Backend       isObjectStoreConfig_Backend `protobuf_oneof:"backend"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ObjectStoreConfig) Reset() {
+	*x = ObjectStoreConfig{}
+	mi := &file_proto_config_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ObjectStoreConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ObjectStoreConfig) ProtoMessage() {}
+
+func (x *ObjectStoreConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_config_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ObjectStoreConfig.ProtoReflect.Descriptor instead.
+func (*ObjectStoreConfig) Descriptor() ([]byte, []int) {
+	return file_proto_config_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ObjectStoreConfig) GetBackend() isObjectStoreConfig_Backend {
+	if x != nil {
+		return x.Backend
+	}
+	return nil
+}
+
+func (x *ObjectStoreConfig) GetLocalFs() *LocalFsObjectStoreConfig {
+	if x != nil {
+		if x, ok := x.Backend.(*ObjectStoreConfig_LocalFs); ok {
+			return x.LocalFs
+		}
+	}
+	return nil
+}
+
+func (x *ObjectStoreConfig) GetGcs() *GcsObjectStoreConfig {
+	if x != nil {
+		if x, ok := x.Backend.(*ObjectStoreConfig_Gcs); ok {
+			return x.Gcs
+		}
+	}
+	return nil
+}
+
+func (x *ObjectStoreConfig) GetS3() *S3ObjectStoreConfig {
+	if x != nil {
+		if x, ok := x.Backend.(*ObjectStoreConfig_S3); ok {
+			return x.S3
+		}
+	}
+	return nil
+}
+
+type isObjectStoreConfig_Backend interface {
+	isObjectStoreConfig_Backend()
+}
+
+type ObjectStoreConfig_LocalFs struct {
+	LocalFs *LocalFsObjectStoreConfig `protobuf:"bytes,1,opt,name=local_fs,json=localFs,proto3,oneof"`
+}
+
+type ObjectStoreConfig_Gcs struct {
+	Gcs *GcsObjectStoreConfig `protobuf:"bytes,2,opt,name=gcs,proto3,oneof"`
+}
+
+type ObjectStoreConfig_S3 struct {
+	S3 *S3ObjectStoreConfig `protobuf:"bytes,3,opt,name=s3,proto3,oneof"`
+}
+
+func (*ObjectStoreConfig_LocalFs) isObjectStoreConfig_Backend() {}
+
+func (*ObjectStoreConfig_Gcs) isObjectStoreConfig_Backend() {}
+
+func (*ObjectStoreConfig_S3) isObjectStoreConfig_Backend() {}
+
 type SchedulerCallbackAuthConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Auth:
@@ -757,7 +1035,7 @@ type SchedulerCallbackAuthConfig struct {
 
 func (x *SchedulerCallbackAuthConfig) Reset() {
 	*x = SchedulerCallbackAuthConfig{}
-	mi := &file_proto_config_proto_msgTypes[10]
+	mi := &file_proto_config_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -769,7 +1047,7 @@ func (x *SchedulerCallbackAuthConfig) String() string {
 func (*SchedulerCallbackAuthConfig) ProtoMessage() {}
 
 func (x *SchedulerCallbackAuthConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[10]
+	mi := &file_proto_config_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -782,7 +1060,7 @@ func (x *SchedulerCallbackAuthConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchedulerCallbackAuthConfig.ProtoReflect.Descriptor instead.
 func (*SchedulerCallbackAuthConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{10}
+	return file_proto_config_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *SchedulerCallbackAuthConfig) GetAuth() isSchedulerCallbackAuthConfig_Auth {
@@ -836,7 +1114,7 @@ type GoogleOidcAuthConfig struct {
 
 func (x *GoogleOidcAuthConfig) Reset() {
 	*x = GoogleOidcAuthConfig{}
-	mi := &file_proto_config_proto_msgTypes[11]
+	mi := &file_proto_config_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -848,7 +1126,7 @@ func (x *GoogleOidcAuthConfig) String() string {
 func (*GoogleOidcAuthConfig) ProtoMessage() {}
 
 func (x *GoogleOidcAuthConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[11]
+	mi := &file_proto_config_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -861,7 +1139,7 @@ func (x *GoogleOidcAuthConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoogleOidcAuthConfig.ProtoReflect.Descriptor instead.
 func (*GoogleOidcAuthConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{11}
+	return file_proto_config_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GoogleOidcAuthConfig) GetAudience() string {
@@ -891,7 +1169,7 @@ type CloudTasksSchedulerConfig struct {
 
 func (x *CloudTasksSchedulerConfig) Reset() {
 	*x = CloudTasksSchedulerConfig{}
-	mi := &file_proto_config_proto_msgTypes[12]
+	mi := &file_proto_config_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +1181,7 @@ func (x *CloudTasksSchedulerConfig) String() string {
 func (*CloudTasksSchedulerConfig) ProtoMessage() {}
 
 func (x *CloudTasksSchedulerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[12]
+	mi := &file_proto_config_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -916,7 +1194,7 @@ func (x *CloudTasksSchedulerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloudTasksSchedulerConfig.ProtoReflect.Descriptor instead.
 func (*CloudTasksSchedulerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{12}
+	return file_proto_config_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CloudTasksSchedulerConfig) GetProjectId() string {
@@ -966,7 +1244,7 @@ type SchedulerConfig struct {
 
 func (x *SchedulerConfig) Reset() {
 	*x = SchedulerConfig{}
-	mi := &file_proto_config_proto_msgTypes[13]
+	mi := &file_proto_config_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -978,7 +1256,7 @@ func (x *SchedulerConfig) String() string {
 func (*SchedulerConfig) ProtoMessage() {}
 
 func (x *SchedulerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[13]
+	mi := &file_proto_config_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -991,7 +1269,7 @@ func (x *SchedulerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SchedulerConfig.ProtoReflect.Descriptor instead.
 func (*SchedulerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{13}
+	return file_proto_config_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *SchedulerConfig) GetBackend() isSchedulerConfig_Backend {
@@ -1025,13 +1303,14 @@ type ControlPlaneConfig struct {
 	Database      *DatabaseConfig        `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
 	MessageBroker *MessageBrokerConfig   `protobuf:"bytes,2,opt,name=message_broker,json=messageBroker,proto3" json:"message_broker,omitempty"`
 	Scheduler     *SchedulerConfig       `protobuf:"bytes,3,opt,name=scheduler,proto3" json:"scheduler,omitempty"`
+	ObjectStore   *ObjectStoreConfig     `protobuf:"bytes,4,opt,name=object_store,json=objectStore,proto3" json:"object_store,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ControlPlaneConfig) Reset() {
 	*x = ControlPlaneConfig{}
-	mi := &file_proto_config_proto_msgTypes[14]
+	mi := &file_proto_config_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1043,7 +1322,7 @@ func (x *ControlPlaneConfig) String() string {
 func (*ControlPlaneConfig) ProtoMessage() {}
 
 func (x *ControlPlaneConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[14]
+	mi := &file_proto_config_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1056,7 +1335,7 @@ func (x *ControlPlaneConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControlPlaneConfig.ProtoReflect.Descriptor instead.
 func (*ControlPlaneConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{14}
+	return file_proto_config_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ControlPlaneConfig) GetDatabase() *DatabaseConfig {
@@ -1080,6 +1359,13 @@ func (x *ControlPlaneConfig) GetScheduler() *SchedulerConfig {
 	return nil
 }
 
+func (x *ControlPlaneConfig) GetObjectStore() *ObjectStoreConfig {
+	if x != nil {
+		return x.ObjectStore
+	}
+	return nil
+}
+
 type ServerConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Host          string                 `protobuf:"bytes,1,opt,name=host,proto3" json:"host,omitempty"`
@@ -1090,7 +1376,7 @@ type ServerConfig struct {
 
 func (x *ServerConfig) Reset() {
 	*x = ServerConfig{}
-	mi := &file_proto_config_proto_msgTypes[15]
+	mi := &file_proto_config_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1102,7 +1388,7 @@ func (x *ServerConfig) String() string {
 func (*ServerConfig) ProtoMessage() {}
 
 func (x *ServerConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_config_proto_msgTypes[15]
+	mi := &file_proto_config_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1115,7 +1401,7 @@ func (x *ServerConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerConfig.ProtoReflect.Descriptor instead.
 func (*ServerConfig) Descriptor() ([]byte, []int) {
-	return file_proto_config_proto_rawDescGZIP(), []int{15}
+	return file_proto_config_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ServerConfig) GetHost() string {
@@ -1186,7 +1472,25 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x06driver\x18\x02 \x01(\tR\x06driver\x12&\n" +
 	"\x03url\x18\x03 \x01(\v2\x14.talon.config.SecretR\x03url\"-\n" +
 	"\x13MessageBrokerConfig\x12\x16\n" +
-	"\x06driver\x18\x01 \x01(\tR\x06driver\"\xa9\x01\n" +
+	"\x06driver\x18\x01 \x01(\tR\x06driver\".\n" +
+	"\x18LocalFsObjectStoreConfig\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\"h\n" +
+	"\x14GcsObjectStoreConfig\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x16\n" +
+	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12 \n" +
+	"\fapi_base_url\x18\x03 \x01(\tR\n" +
+	"apiBaseUrl\"\xaa\x01\n" +
+	"\x13S3ObjectStoreConfig\x12\x16\n" +
+	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x16\n" +
+	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12\x16\n" +
+	"\x06region\x18\x03 \x01(\tR\x06region\x12!\n" +
+	"\fendpoint_url\x18\x04 \x01(\tR\vendpointUrl\x12(\n" +
+	"\x10force_path_style\x18\x05 \x01(\bR\x0eforcePathStyle\"\xd0\x01\n" +
+	"\x11ObjectStoreConfig\x12C\n" +
+	"\blocal_fs\x18\x01 \x01(\v2&.talon.config.LocalFsObjectStoreConfigH\x00R\alocalFs\x126\n" +
+	"\x03gcs\x18\x02 \x01(\v2\".talon.config.GcsObjectStoreConfigH\x00R\x03gcs\x123\n" +
+	"\x02s3\x18\x03 \x01(\v2!.talon.config.S3ObjectStoreConfigH\x00R\x02s3B\t\n" +
+	"\abackend\"\xa9\x01\n" +
 	"\x1bSchedulerCallbackAuthConfig\x12;\n" +
 	"\rshared_secret\x18\x01 \x01(\v2\x14.talon.config.SecretH\x00R\fsharedSecret\x12E\n" +
 	"\vgoogle_oidc\x18\x02 \x01(\v2\".talon.config.GoogleOidcAuthConfigH\x00R\n" +
@@ -1206,11 +1510,12 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x0fSchedulerConfig\x12J\n" +
 	"\vcloud_tasks\x18\x01 \x01(\v2'.talon.config.CloudTasksSchedulerConfigH\x00R\n" +
 	"cloudTasksB\t\n" +
-	"\abackend\"\xd5\x01\n" +
+	"\abackend\"\x99\x02\n" +
 	"\x12ControlPlaneConfig\x128\n" +
 	"\bdatabase\x18\x01 \x01(\v2\x1c.talon.config.DatabaseConfigR\bdatabase\x12H\n" +
 	"\x0emessage_broker\x18\x02 \x01(\v2!.talon.config.MessageBrokerConfigR\rmessageBroker\x12;\n" +
-	"\tscheduler\x18\x03 \x01(\v2\x1d.talon.config.SchedulerConfigR\tscheduler\"6\n" +
+	"\tscheduler\x18\x03 \x01(\v2\x1d.talon.config.SchedulerConfigR\tscheduler\x12B\n" +
+	"\fobject_store\x18\x04 \x01(\v2\x1f.talon.config.ObjectStoreConfigR\vobjectStore\"6\n" +
 	"\fServerConfig\x12\x12\n" +
 	"\x04host\x18\x01 \x01(\tR\x04host\x12\x12\n" +
 	"\x04port\x18\x02 \x01(\rR\x04portb\x06proto3"
@@ -1228,7 +1533,7 @@ func file_proto_config_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_config_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_config_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_proto_config_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_proto_config_proto_goTypes = []any{
 	(SecretRef_Source)(0),               // 0: talon.config.SecretRef.Source
 	(*TalonConfig)(nil),                 // 1: talon.config.TalonConfig
@@ -1241,19 +1546,23 @@ var file_proto_config_proto_goTypes = []any{
 	(*SecretRef)(nil),                   // 8: talon.config.SecretRef
 	(*DatabaseConfig)(nil),              // 9: talon.config.DatabaseConfig
 	(*MessageBrokerConfig)(nil),         // 10: talon.config.MessageBrokerConfig
-	(*SchedulerCallbackAuthConfig)(nil), // 11: talon.config.SchedulerCallbackAuthConfig
-	(*GoogleOidcAuthConfig)(nil),        // 12: talon.config.GoogleOidcAuthConfig
-	(*CloudTasksSchedulerConfig)(nil),   // 13: talon.config.CloudTasksSchedulerConfig
-	(*SchedulerConfig)(nil),             // 14: talon.config.SchedulerConfig
-	(*ControlPlaneConfig)(nil),          // 15: talon.config.ControlPlaneConfig
-	(*ServerConfig)(nil),                // 16: talon.config.ServerConfig
-	nil,                                 // 17: talon.config.TalonConfig.ProvidersEntry
+	(*LocalFsObjectStoreConfig)(nil),    // 11: talon.config.LocalFsObjectStoreConfig
+	(*GcsObjectStoreConfig)(nil),        // 12: talon.config.GcsObjectStoreConfig
+	(*S3ObjectStoreConfig)(nil),         // 13: talon.config.S3ObjectStoreConfig
+	(*ObjectStoreConfig)(nil),           // 14: talon.config.ObjectStoreConfig
+	(*SchedulerCallbackAuthConfig)(nil), // 15: talon.config.SchedulerCallbackAuthConfig
+	(*GoogleOidcAuthConfig)(nil),        // 16: talon.config.GoogleOidcAuthConfig
+	(*CloudTasksSchedulerConfig)(nil),   // 17: talon.config.CloudTasksSchedulerConfig
+	(*SchedulerConfig)(nil),             // 18: talon.config.SchedulerConfig
+	(*ControlPlaneConfig)(nil),          // 19: talon.config.ControlPlaneConfig
+	(*ServerConfig)(nil),                // 20: talon.config.ServerConfig
+	nil,                                 // 21: talon.config.TalonConfig.ProvidersEntry
 }
 var file_proto_config_proto_depIdxs = []int32{
-	17, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
+	21, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
 	9,  // 1: talon.config.TalonConfig.database:type_name -> talon.config.DatabaseConfig
-	16, // 2: talon.config.TalonConfig.server:type_name -> talon.config.ServerConfig
-	15, // 3: talon.config.TalonConfig.control_plane:type_name -> talon.config.ControlPlaneConfig
+	20, // 2: talon.config.TalonConfig.server:type_name -> talon.config.ServerConfig
+	19, // 3: talon.config.TalonConfig.control_plane:type_name -> talon.config.ControlPlaneConfig
 	3,  // 4: talon.config.LlmProviderConfig.openai:type_name -> talon.config.OpenAiConfig
 	4,  // 5: talon.config.LlmProviderConfig.anthropic:type_name -> talon.config.AnthropicConfig
 	5,  // 6: talon.config.LlmProviderConfig.google:type_name -> talon.config.GoogleConfig
@@ -1265,19 +1574,23 @@ var file_proto_config_proto_depIdxs = []int32{
 	8,  // 12: talon.config.Secret.ref:type_name -> talon.config.SecretRef
 	0,  // 13: talon.config.SecretRef.source:type_name -> talon.config.SecretRef.Source
 	7,  // 14: talon.config.DatabaseConfig.url:type_name -> talon.config.Secret
-	7,  // 15: talon.config.SchedulerCallbackAuthConfig.shared_secret:type_name -> talon.config.Secret
-	12, // 16: talon.config.SchedulerCallbackAuthConfig.google_oidc:type_name -> talon.config.GoogleOidcAuthConfig
-	11, // 17: talon.config.CloudTasksSchedulerConfig.callback_auth:type_name -> talon.config.SchedulerCallbackAuthConfig
-	13, // 18: talon.config.SchedulerConfig.cloud_tasks:type_name -> talon.config.CloudTasksSchedulerConfig
-	9,  // 19: talon.config.ControlPlaneConfig.database:type_name -> talon.config.DatabaseConfig
-	10, // 20: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
-	14, // 21: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
-	2,  // 22: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	11, // 15: talon.config.ObjectStoreConfig.local_fs:type_name -> talon.config.LocalFsObjectStoreConfig
+	12, // 16: talon.config.ObjectStoreConfig.gcs:type_name -> talon.config.GcsObjectStoreConfig
+	13, // 17: talon.config.ObjectStoreConfig.s3:type_name -> talon.config.S3ObjectStoreConfig
+	7,  // 18: talon.config.SchedulerCallbackAuthConfig.shared_secret:type_name -> talon.config.Secret
+	16, // 19: talon.config.SchedulerCallbackAuthConfig.google_oidc:type_name -> talon.config.GoogleOidcAuthConfig
+	15, // 20: talon.config.CloudTasksSchedulerConfig.callback_auth:type_name -> talon.config.SchedulerCallbackAuthConfig
+	17, // 21: talon.config.SchedulerConfig.cloud_tasks:type_name -> talon.config.CloudTasksSchedulerConfig
+	9,  // 22: talon.config.ControlPlaneConfig.database:type_name -> talon.config.DatabaseConfig
+	10, // 23: talon.config.ControlPlaneConfig.message_broker:type_name -> talon.config.MessageBrokerConfig
+	18, // 24: talon.config.ControlPlaneConfig.scheduler:type_name -> talon.config.SchedulerConfig
+	14, // 25: talon.config.ControlPlaneConfig.object_store:type_name -> talon.config.ObjectStoreConfig
+	2,  // 26: talon.config.TalonConfig.ProvidersEntry.value:type_name -> talon.config.LlmProviderConfig
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_proto_config_proto_init() }
@@ -1295,11 +1608,16 @@ func file_proto_config_proto_init() {
 		(*Secret_Plain)(nil),
 		(*Secret_Ref)(nil),
 	}
-	file_proto_config_proto_msgTypes[10].OneofWrappers = []any{
+	file_proto_config_proto_msgTypes[13].OneofWrappers = []any{
+		(*ObjectStoreConfig_LocalFs)(nil),
+		(*ObjectStoreConfig_Gcs)(nil),
+		(*ObjectStoreConfig_S3)(nil),
+	}
+	file_proto_config_proto_msgTypes[14].OneofWrappers = []any{
 		(*SchedulerCallbackAuthConfig_SharedSecret)(nil),
 		(*SchedulerCallbackAuthConfig_GoogleOidc)(nil),
 	}
-	file_proto_config_proto_msgTypes[13].OneofWrappers = []any{
+	file_proto_config_proto_msgTypes[17].OneofWrappers = []any{
 		(*SchedulerConfig_CloudTasks)(nil),
 	}
 	type x struct{}
@@ -1308,7 +1626,7 @@ func file_proto_config_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_config_proto_rawDesc), len(file_proto_config_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   17,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

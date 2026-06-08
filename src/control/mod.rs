@@ -358,10 +358,9 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             },
         };
 
-    let object_root = PathBuf::from(&config.workspace_dir)
-        .join(".talon")
-        .join("objects");
-    let objects = std::sync::Arc::new(object_store::LocalObjectStore::new(object_root));
+    let objects =
+        object_store::object_store_from_config(cp.object_store.as_ref(), &config.workspace_dir)
+            .await?;
 
     Ok(ControlPlane {
         kv,
@@ -783,6 +782,7 @@ mod tests {
                     driver: "gcp_pubsub".to_string(),
                 }),
                 scheduler: None,
+                object_store: None,
             }),
             ..Default::default()
         };
@@ -802,6 +802,7 @@ mod tests {
             database: None,
             message_broker: None,
             scheduler: None,
+            object_store: None,
         };
         let err = match message_broker_config(&cp) {
             Ok(_) => panic!("expected missing message broker error"),
@@ -825,6 +826,7 @@ mod tests {
                     driver: "gcp_pubsub".to_string(),
                 }),
                 scheduler: None,
+                object_store: None,
             }),
             ..Default::default()
         };
@@ -848,6 +850,7 @@ mod tests {
                     driver: "gcp_pubsub".to_string(),
                 }),
                 scheduler: None,
+                object_store: None,
             }),
             ..Default::default()
         };
@@ -864,6 +867,7 @@ mod tests {
                 driver: "kafka".to_string(),
             }),
             scheduler: None,
+            object_store: None,
         };
 
         let err = match message_broker_config(&unsupported_message_broker) {
@@ -880,6 +884,7 @@ mod tests {
                 driver: "local_socket".to_string(),
             }),
             scheduler: None,
+            object_store: None,
         };
         assert!(message_broker_config(&local_socket_message_broker).is_ok());
     }

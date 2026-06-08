@@ -1235,6 +1235,7 @@ mod tests {
                 driver: "local_socket".to_string(),
             }),
             scheduler: None,
+            object_store: None,
         });
         let handler = WorkerEventHandler {
             cp: Arc::new(ControlPlane {

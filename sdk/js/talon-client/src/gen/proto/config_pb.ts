@@ -545,6 +545,210 @@ export class MessageBrokerConfig extends Message<MessageBrokerConfig> {
 }
 
 /**
+ * @generated from message talon.config.LocalFsObjectStoreConfig
+ */
+export class LocalFsObjectStoreConfig extends Message<LocalFsObjectStoreConfig> {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path = "";
+
+  constructor(data?: PartialMessage<LocalFsObjectStoreConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.LocalFsObjectStoreConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "path", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): LocalFsObjectStoreConfig {
+    return new LocalFsObjectStoreConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): LocalFsObjectStoreConfig {
+    return new LocalFsObjectStoreConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): LocalFsObjectStoreConfig {
+    return new LocalFsObjectStoreConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: LocalFsObjectStoreConfig | PlainMessage<LocalFsObjectStoreConfig> | undefined, b: LocalFsObjectStoreConfig | PlainMessage<LocalFsObjectStoreConfig> | undefined): boolean {
+    return proto3.util.equals(LocalFsObjectStoreConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.GcsObjectStoreConfig
+ */
+export class GcsObjectStoreConfig extends Message<GcsObjectStoreConfig> {
+  /**
+   * @generated from field: string bucket = 1;
+   */
+  bucket = "";
+
+  /**
+   * @generated from field: string prefix = 2;
+   */
+  prefix = "";
+
+  /**
+   * @generated from field: string api_base_url = 3;
+   */
+  apiBaseUrl = "";
+
+  constructor(data?: PartialMessage<GcsObjectStoreConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.GcsObjectStoreConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "bucket", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "prefix", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "api_base_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GcsObjectStoreConfig {
+    return new GcsObjectStoreConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GcsObjectStoreConfig {
+    return new GcsObjectStoreConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GcsObjectStoreConfig {
+    return new GcsObjectStoreConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GcsObjectStoreConfig | PlainMessage<GcsObjectStoreConfig> | undefined, b: GcsObjectStoreConfig | PlainMessage<GcsObjectStoreConfig> | undefined): boolean {
+    return proto3.util.equals(GcsObjectStoreConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.S3ObjectStoreConfig
+ */
+export class S3ObjectStoreConfig extends Message<S3ObjectStoreConfig> {
+  /**
+   * @generated from field: string bucket = 1;
+   */
+  bucket = "";
+
+  /**
+   * @generated from field: string prefix = 2;
+   */
+  prefix = "";
+
+  /**
+   * @generated from field: string region = 3;
+   */
+  region = "";
+
+  /**
+   * @generated from field: string endpoint_url = 4;
+   */
+  endpointUrl = "";
+
+  /**
+   * @generated from field: bool force_path_style = 5;
+   */
+  forcePathStyle = false;
+
+  constructor(data?: PartialMessage<S3ObjectStoreConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.S3ObjectStoreConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "bucket", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "prefix", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "region", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "endpoint_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "force_path_style", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): S3ObjectStoreConfig {
+    return new S3ObjectStoreConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): S3ObjectStoreConfig {
+    return new S3ObjectStoreConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): S3ObjectStoreConfig {
+    return new S3ObjectStoreConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: S3ObjectStoreConfig | PlainMessage<S3ObjectStoreConfig> | undefined, b: S3ObjectStoreConfig | PlainMessage<S3ObjectStoreConfig> | undefined): boolean {
+    return proto3.util.equals(S3ObjectStoreConfig, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.config.ObjectStoreConfig
+ */
+export class ObjectStoreConfig extends Message<ObjectStoreConfig> {
+  /**
+   * @generated from oneof talon.config.ObjectStoreConfig.backend
+   */
+  backend: {
+    /**
+     * @generated from field: talon.config.LocalFsObjectStoreConfig local_fs = 1;
+     */
+    value: LocalFsObjectStoreConfig;
+    case: "localFs";
+  } | {
+    /**
+     * @generated from field: talon.config.GcsObjectStoreConfig gcs = 2;
+     */
+    value: GcsObjectStoreConfig;
+    case: "gcs";
+  } | {
+    /**
+     * @generated from field: talon.config.S3ObjectStoreConfig s3 = 3;
+     */
+    value: S3ObjectStoreConfig;
+    case: "s3";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<ObjectStoreConfig>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.config.ObjectStoreConfig";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "local_fs", kind: "message", T: LocalFsObjectStoreConfig, oneof: "backend" },
+    { no: 2, name: "gcs", kind: "message", T: GcsObjectStoreConfig, oneof: "backend" },
+    { no: 3, name: "s3", kind: "message", T: S3ObjectStoreConfig, oneof: "backend" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ObjectStoreConfig {
+    return new ObjectStoreConfig().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ObjectStoreConfig {
+    return new ObjectStoreConfig().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ObjectStoreConfig {
+    return new ObjectStoreConfig().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ObjectStoreConfig | PlainMessage<ObjectStoreConfig> | undefined, b: ObjectStoreConfig | PlainMessage<ObjectStoreConfig> | undefined): boolean {
+    return proto3.util.equals(ObjectStoreConfig, a, b);
+  }
+}
+
+/**
  * @generated from message talon.config.SchedulerCallbackAuthConfig
  */
 export class SchedulerCallbackAuthConfig extends Message<SchedulerCallbackAuthConfig> {
@@ -760,6 +964,11 @@ export class ControlPlaneConfig extends Message<ControlPlaneConfig> {
    */
   scheduler?: SchedulerConfig;
 
+  /**
+   * @generated from field: talon.config.ObjectStoreConfig object_store = 4;
+   */
+  objectStore?: ObjectStoreConfig;
+
   constructor(data?: PartialMessage<ControlPlaneConfig>) {
     super();
     proto3.util.initPartial(data, this);
@@ -771,6 +980,7 @@ export class ControlPlaneConfig extends Message<ControlPlaneConfig> {
     { no: 1, name: "database", kind: "message", T: DatabaseConfig },
     { no: 2, name: "message_broker", kind: "message", T: MessageBrokerConfig },
     { no: 3, name: "scheduler", kind: "message", T: SchedulerConfig },
+    { no: 4, name: "object_store", kind: "message", T: ObjectStoreConfig },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ControlPlaneConfig {
