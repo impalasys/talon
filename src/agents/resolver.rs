@@ -465,6 +465,7 @@ mod tests {
             system_prompt: "Base".to_string(),
             mcp_server_refs: vec!["conic-api".to_string()],
             capabilities: std::collections::HashMap::new(),
+            a2a: None,
         };
 
         let mut templates = HashMap::new();
@@ -570,6 +571,7 @@ mod tests {
                         system_prompt: "Base".to_string(),
                         mcp_server_refs: vec!["conic-api".to_string()],
                         capabilities: std::collections::HashMap::new(),
+                        a2a: None,
                     }),
                 ),
             )]),
@@ -641,6 +643,7 @@ mod tests {
             system_prompt: "Base".to_string(),
             mcp_server_refs: vec!["conic-api".to_string()],
             capabilities: std::collections::HashMap::new(),
+            a2a: None,
         };
 
         let err = apply_agent_spec_delta(
@@ -674,6 +677,7 @@ mod tests {
                 system_prompt: "Base".to_string(),
                 mcp_server_refs: vec![],
                 capabilities: std::collections::HashMap::new(),
+                a2a: None,
             }),
         )
         .await
@@ -729,6 +733,7 @@ mod tests {
                 system_prompt: "Base".to_string(),
                 mcp_server_refs: vec![],
                 capabilities: std::collections::HashMap::new(),
+                a2a: None,
             }),
         )
         .await
@@ -792,6 +797,7 @@ mod tests {
                     system_prompt: "Base".to_string(),
                     mcp_server_refs: vec![],
                     capabilities: HashMap::new(),
+                    a2a: None,
                 })
             } else {
                 templated_definition(
@@ -824,6 +830,7 @@ mod tests {
                     values: vec![protobuf_string("inspect")],
                 },
             )]),
+            a2a: None,
         };
 
         apply_agent_spec_delta(
@@ -907,6 +914,7 @@ mod tests {
             system_prompt: "Base".to_string(),
             mcp_server_refs: vec![],
             capabilities: HashMap::new(),
+            a2a: None,
         })
         .unwrap_err();
         assert!(duplicate_feature.to_string().contains("Duplicate feature"));
@@ -917,6 +925,7 @@ mod tests {
             system_prompt: "Base".to_string(),
             mcp_server_refs: vec![" ".to_string()],
             capabilities: HashMap::new(),
+            a2a: None,
         })
         .unwrap_err();
         assert!(blank_mcp_ref.to_string().contains("must be non-empty"));
@@ -927,6 +936,7 @@ mod tests {
             system_prompt: "Base".to_string(),
             mcp_server_refs: vec!["github".to_string(), "github".to_string()],
             capabilities: HashMap::new(),
+            a2a: None,
         })
         .unwrap_err();
         assert!(duplicate_mcp_ref
@@ -1039,6 +1049,7 @@ mod tests {
             system_prompt: "Base".to_string(),
             mcp_server_refs: vec![],
             capabilities: HashMap::new(),
+            a2a: None,
         };
 
         let empty_profile_name = apply_agent_spec_delta(

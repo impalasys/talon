@@ -106,6 +106,7 @@ struct AgentSpecManifest {
     system_prompt: String,
     mcp_server_refs: Vec<String>,
     capabilities: Option<CapabilitiesPolicyManifest>,
+    a2a: Option<A2ASpecManifest>,
 }
 
 type CapabilitiesPolicyManifest = HashMap<String, Vec<String>>;
@@ -199,6 +200,103 @@ struct McpServerBindingSpecManifest {
     disabled: bool,
     auth_broker: Option<McpAuthBrokerSpecManifest>,
     allowed_tool_names: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct A2ASpecManifest {
+    connections: Vec<A2AConnectionManifest>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct A2AConnectionManifest {
+    name: String,
+    description: String,
+    target: A2ATargetManifest,
+    input_modes: Vec<String>,
+    output_modes: Vec<String>,
+    timeout_seconds: u32,
+    max_depth: u32,
+    auth: Option<A2AConnectionAuthManifest>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct A2ATargetManifest {
+    internal: Option<A2AInternalTargetManifest>,
+    external: Option<A2AExternalTargetManifest>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct A2AInternalTargetManifest {
+    namespace: String,
+    agent: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct A2AExternalTargetManifest {
+    agent_card_url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct A2AConnectionAuthManifest {
+    kind: String,
+    secret_ref: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct AgentCardManifest {
+    api_version: String,
+    kind: String,
+    metadata: ObjectMetaManifest,
+    spec: AgentCardSpecManifest,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct AgentCardSpecManifest {
+    agent_ref: String,
+    hostname: String,
+    name: String,
+    description: String,
+    version: String,
+    capabilities: Option<AgentCardCapabilitiesManifest>,
+    default_input_modes: Vec<String>,
+    default_output_modes: Vec<String>,
+    skills: Vec<AgentCardSkillManifest>,
+    auth: Option<AgentCardAuthManifest>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct AgentCardCapabilitiesManifest {
+    streaming: bool,
+    push_notifications: bool,
+    extended_agent_card: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct AgentCardSkillManifest {
+    id: String,
+    name: String,
+    description: String,
+    tags: Vec<String>,
+    examples: Vec<String>,
+    input_modes: Vec<String>,
+    output_modes: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct AgentCardAuthManifest {
+    discovery: String,
+    operations: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -460,6 +558,31 @@ pub fn parse_mcp_server_binding(yaml: &str) -> Result<manifests::McpServerBindin
     })
 }
 
+pub fn parse_agent_card(yaml: &str) -> Result<manifests::AgentCard> {
+    let card: AgentCardManifest =
+        serde_yaml::from_str(yaml).context("Failed to parse AgentCard YAML")?;
+
+    if card.kind != "AgentCard" {
+        bail!("Expected kind 'AgentCard', got '{}'", card.kind);
+    }
+    if card.metadata.namespace.trim().is_empty() {
+        bail!("AgentCard metadata.namespace is required");
+    }
+    if card.spec.agent_ref.trim().is_empty() {
+        bail!("AgentCard spec.agentRef is required");
+    }
+    if card.spec.hostname.trim().is_empty() {
+        bail!("AgentCard spec.hostname is required");
+    }
+
+    Ok(manifests::AgentCard {
+        api_version: card.api_version,
+        kind: card.kind,
+        metadata: Some(card.metadata.into_proto()),
+        spec: Some(card.spec.into_proto()),
+    })
+}
+
 pub fn parse_namespace(yaml: &str) -> Result<models::Namespace> {
     let namespace: NamespaceManifest =
         serde_yaml::from_str(yaml).context("Failed to parse Namespace YAML")?;
@@ -661,6 +784,26 @@ pub fn render_mcp_server_binding_yaml(binding: &manifests::McpServerBinding) -> 
     serde_yaml::to_string(&yaml_binding).context("Failed to serialize McpServerBinding to YAML")
 }
 
+pub fn render_agent_card_yaml(card: &manifests::AgentCard) -> Result<String> {
+    let metadata = card
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("AgentCard missing metadata"))?;
+    let spec = card
+        .spec
+        .as_ref()
+        .ok_or_else(|| anyhow!("AgentCard missing spec"))?;
+
+    let yaml_card = AgentCardManifest {
+        api_version: card.api_version.clone(),
+        kind: card.kind.clone(),
+        metadata: ObjectMetaManifest::from_proto(metadata),
+        spec: AgentCardSpecManifest::from_proto(spec),
+    };
+
+    serde_yaml::to_string(&yaml_card).context("Failed to serialize AgentCard to YAML")
+}
+
 pub fn render_namespace_yaml(namespace: &models::Namespace) -> Result<String> {
     let yaml_namespace = NamespaceManifest {
         api_version: "talon.impalasys.com/v1".to_string(),
@@ -854,6 +997,237 @@ impl McpServerBindingSpecManifest {
     }
 }
 
+impl A2ASpecManifest {
+    fn into_proto(self) -> Result<manifests::A2aSpec> {
+        Ok(manifests::A2aSpec {
+            connections: self
+                .connections
+                .into_iter()
+                .map(A2AConnectionManifest::into_proto)
+                .collect::<Result<Vec<_>>>()?,
+        })
+    }
+
+    fn from_proto(spec: &manifests::A2aSpec) -> Self {
+        Self {
+            connections: spec
+                .connections
+                .iter()
+                .map(A2AConnectionManifest::from_proto)
+                .collect(),
+        }
+    }
+}
+
+impl A2AConnectionManifest {
+    fn into_proto(self) -> Result<manifests::A2aConnection> {
+        if self.name.trim().is_empty() {
+            bail!("A2A connection name is required");
+        }
+        Ok(manifests::A2aConnection {
+            name: self.name,
+            description: self.description,
+            target: Some(self.target.into_proto()?),
+            input_modes: self.input_modes,
+            output_modes: self.output_modes,
+            timeout_seconds: self.timeout_seconds,
+            max_depth: self.max_depth,
+            auth: self.auth.map(A2AConnectionAuthManifest::into_proto),
+        })
+    }
+
+    fn from_proto(connection: &manifests::A2aConnection) -> Self {
+        Self {
+            name: connection.name.clone(),
+            description: connection.description.clone(),
+            target: connection
+                .target
+                .as_ref()
+                .map(A2ATargetManifest::from_proto)
+                .unwrap_or_default(),
+            input_modes: connection.input_modes.clone(),
+            output_modes: connection.output_modes.clone(),
+            timeout_seconds: connection.timeout_seconds,
+            max_depth: connection.max_depth,
+            auth: connection
+                .auth
+                .as_ref()
+                .map(A2AConnectionAuthManifest::from_proto),
+        }
+    }
+}
+
+impl A2ATargetManifest {
+    fn into_proto(self) -> Result<manifests::A2aTarget> {
+        let target = match (self.internal, self.external) {
+            (Some(internal), None) => {
+                if internal.namespace.trim().is_empty() || internal.agent.trim().is_empty() {
+                    bail!("A2A internal target requires namespace and agent");
+                }
+                Some(manifests::a2a_target::Target::Internal(
+                    manifests::A2aInternalTarget {
+                        namespace: internal.namespace,
+                        agent: internal.agent,
+                    },
+                ))
+            }
+            (None, Some(external)) => {
+                if external.agent_card_url.trim().is_empty() {
+                    bail!("A2A external target requires agentCardUrl");
+                }
+                Some(manifests::a2a_target::Target::External(
+                    manifests::A2aExternalTarget {
+                        agent_card_url: external.agent_card_url,
+                    },
+                ))
+            }
+            (Some(_), Some(_)) => bail!("A2A target must set only one of internal or external"),
+            (None, None) => bail!("A2A target must set one of internal or external"),
+        };
+        Ok(manifests::A2aTarget { target })
+    }
+
+    fn from_proto(target: &manifests::A2aTarget) -> Self {
+        match target.target.as_ref() {
+            Some(manifests::a2a_target::Target::Internal(internal)) => Self {
+                internal: Some(A2AInternalTargetManifest {
+                    namespace: internal.namespace.clone(),
+                    agent: internal.agent.clone(),
+                }),
+                external: None,
+            },
+            Some(manifests::a2a_target::Target::External(external)) => Self {
+                internal: None,
+                external: Some(A2AExternalTargetManifest {
+                    agent_card_url: external.agent_card_url.clone(),
+                }),
+            },
+            None => Self::default(),
+        }
+    }
+}
+
+impl A2AConnectionAuthManifest {
+    fn into_proto(self) -> manifests::A2aConnectionAuth {
+        manifests::A2aConnectionAuth {
+            kind: self.kind,
+            secret_ref: self.secret_ref,
+        }
+    }
+
+    fn from_proto(auth: &manifests::A2aConnectionAuth) -> Self {
+        Self {
+            kind: auth.kind.clone(),
+            secret_ref: auth.secret_ref.clone(),
+        }
+    }
+}
+
+impl AgentCardSpecManifest {
+    fn into_proto(self) -> manifests::AgentCardSpec {
+        manifests::AgentCardSpec {
+            agent_ref: self.agent_ref,
+            hostname: self.hostname,
+            name: self.name,
+            description: self.description,
+            version: self.version,
+            capabilities: self
+                .capabilities
+                .map(AgentCardCapabilitiesManifest::into_proto),
+            default_input_modes: self.default_input_modes,
+            default_output_modes: self.default_output_modes,
+            skills: self
+                .skills
+                .into_iter()
+                .map(AgentCardSkillManifest::into_proto)
+                .collect(),
+            auth: self.auth.map(AgentCardAuthManifest::into_proto),
+        }
+    }
+
+    fn from_proto(spec: &manifests::AgentCardSpec) -> Self {
+        Self {
+            agent_ref: spec.agent_ref.clone(),
+            hostname: spec.hostname.clone(),
+            name: spec.name.clone(),
+            description: spec.description.clone(),
+            version: spec.version.clone(),
+            capabilities: spec
+                .capabilities
+                .as_ref()
+                .map(AgentCardCapabilitiesManifest::from_proto),
+            default_input_modes: spec.default_input_modes.clone(),
+            default_output_modes: spec.default_output_modes.clone(),
+            skills: spec
+                .skills
+                .iter()
+                .map(AgentCardSkillManifest::from_proto)
+                .collect(),
+            auth: spec.auth.as_ref().map(AgentCardAuthManifest::from_proto),
+        }
+    }
+}
+
+impl AgentCardCapabilitiesManifest {
+    fn into_proto(self) -> manifests::AgentCardCapabilities {
+        manifests::AgentCardCapabilities {
+            streaming: self.streaming,
+            push_notifications: self.push_notifications,
+            extended_agent_card: self.extended_agent_card,
+        }
+    }
+
+    fn from_proto(capabilities: &manifests::AgentCardCapabilities) -> Self {
+        Self {
+            streaming: capabilities.streaming,
+            push_notifications: capabilities.push_notifications,
+            extended_agent_card: capabilities.extended_agent_card,
+        }
+    }
+}
+
+impl AgentCardSkillManifest {
+    fn into_proto(self) -> manifests::AgentCardSkill {
+        manifests::AgentCardSkill {
+            id: self.id,
+            name: self.name,
+            description: self.description,
+            tags: self.tags,
+            examples: self.examples,
+            input_modes: self.input_modes,
+            output_modes: self.output_modes,
+        }
+    }
+
+    fn from_proto(skill: &manifests::AgentCardSkill) -> Self {
+        Self {
+            id: skill.id.clone(),
+            name: skill.name.clone(),
+            description: skill.description.clone(),
+            tags: skill.tags.clone(),
+            examples: skill.examples.clone(),
+            input_modes: skill.input_modes.clone(),
+            output_modes: skill.output_modes.clone(),
+        }
+    }
+}
+
+impl AgentCardAuthManifest {
+    fn into_proto(self) -> manifests::AgentCardAuth {
+        manifests::AgentCardAuth {
+            discovery: self.discovery,
+            operations: self.operations,
+        }
+    }
+
+    fn from_proto(auth: &manifests::AgentCardAuth) -> Self {
+        Self {
+            discovery: auth.discovery.clone(),
+            operations: auth.operations.clone(),
+        }
+    }
+}
+
 impl McpServerSpecManifest {
     fn from_proto(spec: &manifests::McpServerSpec) -> Self {
         Self {
@@ -1011,7 +1385,7 @@ impl AgentDefinitionManifest {
         match (self.custom_spec, self.templated) {
             (Some(spec), None) => Ok(manifests::AgentDefinition {
                 source: Some(manifests::agent_definition::Source::CustomSpec(
-                    spec.into_proto(),
+                    spec.into_proto()?,
                 )),
             }),
             (None, Some(templated)) => Ok(manifests::AgentDefinition {
@@ -1251,8 +1625,8 @@ impl CapabilitiesPolicyDeltaManifest {
 }
 
 impl AgentSpecManifest {
-    fn into_proto(self) -> manifests::AgentSpec {
-        manifests::AgentSpec {
+    fn into_proto(self) -> Result<manifests::AgentSpec> {
+        Ok(manifests::AgentSpec {
             features: self
                 .features
                 .into_iter()
@@ -1265,7 +1639,8 @@ impl AgentSpecManifest {
                 .capabilities
                 .map(capabilities_policy_into_proto)
                 .unwrap_or_default(),
-        }
+            a2a: self.a2a.map(A2ASpecManifest::into_proto).transpose()?,
+        })
     }
 
     fn from_proto(spec: &manifests::AgentSpec) -> Self {
@@ -1283,6 +1658,7 @@ impl AgentSpecManifest {
             mcp_server_refs: spec.mcp_server_refs.clone(),
             capabilities: (!spec.capabilities.is_empty())
                 .then(|| capabilities_policy_from_proto(&spec.capabilities)),
+            a2a: spec.a2a.as_ref().map(A2ASpecManifest::from_proto),
         }
     }
 }
@@ -1470,6 +1846,134 @@ definition:
             }
             _ => panic!("expected customSpec"),
         }
+    }
+
+    #[test]
+    fn parse_agent_manifest_supports_a2a_connections() {
+        let agent = parse_agent(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: ctl
+  namespace: conic
+definition:
+  customSpec:
+    systemPrompt: test
+    a2a:
+      connections:
+        - name: billing_investigator
+          description: Investigates billing issues.
+          target:
+            internal:
+              namespace: billing
+              agent: invoice-agent
+          inputModes:
+            - text/plain
+          outputModes:
+            - text/plain
+          timeoutSeconds: 120
+          maxDepth: 3
+        - name: policy_researcher
+          description: Researches policy questions.
+          target:
+            external:
+              agentCardUrl: https://policy.example.com/.well-known/agent-card.json
+          auth:
+            kind: bearer
+            secretRef: policy-token
+"#,
+        )
+        .expect("agent manifest should parse");
+
+        let definition = agent.definition.expect("agent definition should exist");
+        match definition
+            .source
+            .expect("agent definition source should exist")
+        {
+            crate::gateway::rpc::manifests::agent_definition::Source::CustomSpec(spec) => {
+                let a2a = spec.a2a.expect("a2a spec should exist");
+                assert_eq!(a2a.connections.len(), 2);
+                assert_eq!(a2a.connections[0].name, "billing_investigator");
+                assert_eq!(a2a.connections[0].input_modes, vec!["text/plain"]);
+                assert_eq!(a2a.connections[0].max_depth, 3);
+                match a2a.connections[0]
+                    .target
+                    .as_ref()
+                    .and_then(|target| target.target.as_ref())
+                {
+                    Some(manifests::a2a_target::Target::Internal(target)) => {
+                        assert_eq!(target.namespace, "billing");
+                        assert_eq!(target.agent, "invoice-agent");
+                    }
+                    other => panic!("expected internal target, got {other:?}"),
+                }
+                match a2a.connections[1]
+                    .target
+                    .as_ref()
+                    .and_then(|target| target.target.as_ref())
+                {
+                    Some(manifests::a2a_target::Target::External(target)) => {
+                        assert_eq!(
+                            target.agent_card_url,
+                            "https://policy.example.com/.well-known/agent-card.json"
+                        );
+                    }
+                    other => panic!("expected external target, got {other:?}"),
+                }
+            }
+            other => panic!("expected customSpec, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_and_render_agent_card_manifest() {
+        let card = parse_agent_card(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: AgentCard
+metadata:
+  name: support-public
+  namespace: support
+spec:
+  agentRef: support-docs
+  hostname: support.example.com
+  name: Support Agent
+  description: Answers support questions.
+  version: 1.0.0
+  capabilities:
+    streaming: true
+    pushNotifications: false
+    extendedAgentCard: false
+  defaultInputModes:
+    - text/plain
+  defaultOutputModes:
+    - text/plain
+  skills:
+    - id: answer_support_question
+      name: Answer support question
+      description: Answers using docs.
+      tags:
+        - support
+"#,
+        )
+        .expect("AgentCard manifest should parse");
+
+        let spec = card.spec.as_ref().expect("spec should exist");
+        assert_eq!(spec.agent_ref, "support-docs");
+        assert_eq!(spec.hostname, "support.example.com");
+        assert!(spec
+            .capabilities
+            .as_ref()
+            .is_some_and(|caps| caps.streaming));
+        assert_eq!(spec.skills[0].id, "answer_support_question");
+
+        let rendered = render_agent_card_yaml(&card).expect("AgentCard yaml should render");
+        let reparsed = parse_agent_card(&rendered).expect("rendered card should parse");
+        assert_eq!(
+            reparsed.spec.as_ref().map(|spec| spec.hostname.as_str()),
+            Some("support.example.com")
+        );
     }
 
     #[test]
@@ -1750,6 +2254,7 @@ spec:
                         system_prompt: "be useful".to_string(),
                         mcp_server_refs: vec!["talon-ops".to_string()],
                         capabilities: std::collections::HashMap::new(),
+                        a2a: None,
                     },
                 )),
             }),
@@ -1820,6 +2325,7 @@ spec:
                         }],
                     },
                 )]),
+                a2a: None,
             }),
             template_deps: vec!["assistant".to_string()],
             labels: std::collections::HashMap::from([(
@@ -2064,8 +2570,10 @@ definition: {}
                 "sessions".to_string(),
                 vec!["inspect".to_string()],
             )])),
+            a2a: None,
         };
-        let round_trip = AgentSpecManifest::from_proto(&spec.into_proto());
+        let proto = spec.into_proto().expect("spec should convert");
+        let round_trip = AgentSpecManifest::from_proto(&proto);
         assert_eq!(
             round_trip
                 .capabilities
@@ -2162,6 +2670,7 @@ definition: {}
             system_prompt: "prompt".to_string(),
             mcp_server_refs: vec!["server".to_string()],
             capabilities: HashMap::new(),
+            a2a: None,
         });
         assert!(spec.capabilities.is_none());
         assert_eq!(spec.system_prompt, "prompt");

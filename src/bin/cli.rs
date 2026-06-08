@@ -17,16 +17,17 @@ use talon::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
 use talon::gateway::rpc::models;
 use talon::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use talon::gateway::rpc::proto::{
-    CancelWorkflowRunRequest, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest,
-    CreateChannelSubscriptionRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest,
-    CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentTemplateRequest,
+    CancelWorkflowRunRequest, CreateAgentCardRequest, CreateAgentRequest,
+    CreateAgentTemplateRequest, CreateChannelRequest, CreateChannelSubscriptionRequest,
+    CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateWorkflowRequest,
+    CreateWorkflowRunRequest, DeleteAgentCardRequest, DeleteAgentTemplateRequest,
     DeleteChannelRequest, DeleteChannelSubscriptionRequest, DeleteMcpServerRequest,
-    DeleteNamespaceKnowledgeRequest, DeleteWorkflowRequest, GetAgentTemplateRequest,
-    GetChannelRequest, GetChannelSubscriptionRequest, GetMcpServerRequest,
-    GetNamespaceKnowledgeRequest, GetScheduleRequest, GetWorkflowRequest, GetWorkflowRunRequest,
-    ListNamespaceKnowledgeRequest, ListWorkflowRunsRequest, ModifyAgentRequest,
-    ModifyChannelRequest, ModifyChannelSubscriptionRequest, ResumeWorkflowRunRequest,
-    StreamWorkflowEventsRequest,
+    DeleteNamespaceKnowledgeRequest, DeleteWorkflowRequest, GetAgentCardRequest,
+    GetAgentTemplateRequest, GetChannelRequest, GetChannelSubscriptionRequest,
+    GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetScheduleRequest, GetWorkflowRequest,
+    GetWorkflowRunRequest, ListNamespaceKnowledgeRequest, ListWorkflowRunsRequest,
+    ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest,
+    ResumeWorkflowRunRequest, StreamWorkflowEventsRequest,
 };
 use tonic::metadata::MetadataValue;
 use tonic::service::Interceptor;
@@ -517,6 +518,22 @@ fn manifest_json_payload(content: &str) -> Result<(String, serde_json::Value)> {
                 }),
             ))
         }
+        "AgentCard" => {
+            let card = talon::manifest::parse_agent_card(content)?;
+            let namespace = card
+                .metadata
+                .as_ref()
+                .map(|meta| meta.namespace.clone())
+                .filter(|namespace| !namespace.is_empty())
+                .context("AgentCard missing metadata.namespace")?;
+            Ok((
+                "card".to_string(),
+                json!({
+                    "ns": namespace,
+                    "card": card,
+                }),
+            ))
+        }
         "Namespace" => {
             let namespace = talon::manifest::parse_namespace(content)?;
             Ok((
@@ -618,6 +635,19 @@ fn rest_get_path(
                     urlencoding::encode(name)
                 ),
                 "binding",
+            ))
+        }
+        "agentcard" | "agentcards" | "agent-card" | "agent-cards" => {
+            let ns = namespace
+                .as_ref()
+                .context("AgentCard get requires --namespace")?;
+            Ok((
+                format!(
+                    "/v1/namespaces/{}/agent-cards/{}",
+                    urlencoding::encode(ns),
+                    urlencoding::encode(name)
+                ),
+                "card",
             ))
         }
         "namespace" | "namespaces" => Ok((
@@ -728,6 +758,16 @@ fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Resul
                 urlencoding::encode(name)
             ))
         }
+        "agentcard" | "agentcards" | "agent-card" | "agent-cards" => {
+            let ns = namespace
+                .as_ref()
+                .context("AgentCard delete requires --namespace")?;
+            Ok(format!(
+                "/v1/namespaces/{}/agent-cards/{}",
+                urlencoding::encode(ns),
+                urlencoding::encode(name)
+            ))
+        }
         "namespace" | "namespaces" => Ok(format!("/v1/namespaces/{}", urlencoding::encode(name))),
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             let ns = namespace
@@ -801,6 +841,19 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
                 "binding": binding,
             }))
         }
+        "AgentCard" => {
+            let card = talon::manifest::parse_agent_card(content)?;
+            let namespace = card
+                .metadata
+                .as_ref()
+                .map(|meta| meta.namespace.clone())
+                .filter(|namespace| !namespace.is_empty())
+                .context("AgentCard missing metadata.namespace")?;
+            Ok(json!({
+                "ns": namespace,
+                "card": card,
+            }))
+        }
         "Namespace" => {
             let namespace = talon::manifest::parse_namespace(content)?;
             Ok(json!({
@@ -868,6 +921,13 @@ fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<
             let binding: talon::gateway::rpc::manifests::McpServerBinding =
                 serde_json::from_value(value).context("Failed to decode McpServerBinding JSON")?;
             talon::manifest::render_mcp_server_binding_yaml(&binding)
+        }
+        "card" => {
+            let mut value = value;
+            normalize_manifest_metadata_maps(&mut value);
+            let card: talon::gateway::rpc::manifests::AgentCard =
+                serde_json::from_value(value).context("Failed to decode AgentCard JSON")?;
+            talon::manifest::render_agent_card_yaml(&card)
         }
         "knowledge" => {
             let mut value = value;
@@ -1824,6 +1884,10 @@ enum GrpcGetTarget {
     McpServer {
         name: String,
     },
+    AgentCard {
+        ns: String,
+        name: String,
+    },
     Knowledge {
         ns: String,
         name: String,
@@ -1853,6 +1917,10 @@ enum GrpcDeleteTarget {
         name: String,
     },
     McpServer {
+        name: String,
+    },
+    AgentCard {
+        ns: String,
         name: String,
     },
     Knowledge {
@@ -1889,6 +1957,11 @@ enum GrpcApplyPlan {
     McpServer {
         name: String,
         server: talon::gateway::rpc::manifests::McpServer,
+    },
+    AgentCard {
+        ns: String,
+        name: String,
+        card: talon::gateway::rpc::manifests::AgentCard,
     },
     Knowledge {
         ns: String,
@@ -2011,6 +2084,22 @@ fn build_rest_apply_plan(
                 ),
                 payload: json!({ "ns": meta.namespace, "binding": binding }),
                 success_label: format!("McpServerBinding '{}/{}'", meta.namespace, meta.name),
+            })
+        }
+        "AgentCard" => {
+            let card = talon::manifest::parse_agent_card(content)?;
+            let meta = card
+                .metadata
+                .as_ref()
+                .context("AgentCard missing metadata")?;
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: format!(
+                    "/v1/namespaces/{}/agent-cards",
+                    urlencoding::encode(&meta.namespace)
+                ),
+                payload: json!({ "ns": meta.namespace, "card": card }),
+                success_label: format!("AgentCard '{}/{}'", meta.namespace, meta.name),
             })
         }
         "Namespace" => {
@@ -2170,6 +2259,15 @@ fn grpc_get_target(kind: &str, name: &str, namespace: Option<&String>) -> Result
         "mcpserver" | "mcpservers" | "mcp" => Ok(GrpcGetTarget::McpServer {
             name: name.to_string(),
         }),
+        "agentcard" | "agentcards" | "agent-card" | "agent-cards" => {
+            let ns = namespace
+                .cloned()
+                .context("AgentCard get requires --namespace")?;
+            Ok(GrpcGetTarget::AgentCard {
+                ns,
+                name: name.to_string(),
+            })
+        }
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             let ns = namespace
                 .cloned()
@@ -2238,6 +2336,15 @@ fn grpc_delete_target(
         "mcpserver" | "mcpservers" | "mcp" => Ok(GrpcDeleteTarget::McpServer {
             name: name.to_string(),
         }),
+        "agentcard" | "agentcards" | "agent-card" | "agent-cards" => {
+            let ns = namespace
+                .cloned()
+                .context("AgentCard delete requires --namespace")?;
+            Ok(GrpcDeleteTarget::AgentCard {
+                ns,
+                name: name.to_string(),
+            })
+        }
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             let ns = namespace
                 .cloned()
@@ -2325,6 +2432,18 @@ fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
                 server,
             })
         }
+        "AgentCard" => {
+            let card = talon::manifest::parse_agent_card(content)?;
+            let meta = card
+                .metadata
+                .as_ref()
+                .context("AgentCard missing metadata")?;
+            Ok(GrpcApplyPlan::AgentCard {
+                ns: meta.namespace.clone(),
+                name: meta.name.clone(),
+                card,
+            })
+        }
         "Knowledge" => {
             let knowledge = talon::manifest::parse_knowledge(content)?;
             let meta = knowledge
@@ -2409,6 +2528,17 @@ async fn grpc_get_yaml(
                 .with_context(|| format!("Failed to fetch MCPServer '{}'", name))?;
             let server = resp.into_inner().server.context("Resource not found.")?;
             talon::manifest::render_mcp_server_yaml(&server)
+        }
+        GrpcGetTarget::AgentCard { ns, name } => {
+            let resp = client
+                .get_agent_card(GetAgentCardRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to fetch AgentCard '{}/{}'", ns, name))?;
+            let card = resp.into_inner().card.context("AgentCard not found.")?;
+            talon::manifest::render_agent_card_yaml(&card)
         }
         GrpcGetTarget::Knowledge { ns, name } => {
             let resp = client
@@ -2508,6 +2638,19 @@ async fn grpc_delete_resource(
                 .await
                 .with_context(|| format!("Failed to delete MCPServer '{}'", name))?;
             Ok(format!("✓ MCPServer '{}' deleted successfully.", name))
+        }
+        GrpcDeleteTarget::AgentCard { ns, name } => {
+            client
+                .delete_agent_card(DeleteAgentCardRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to delete AgentCard '{}/{}'", ns, name))?;
+            Ok(format!(
+                "✓ AgentCard '{}/{}' deleted successfully.",
+                ns, name
+            ))
         }
         GrpcDeleteTarget::Knowledge { ns, name } => {
             client
@@ -2633,6 +2776,19 @@ async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
                 .await
                 .context("Gateway rejected MCPServer")?;
             Ok(format!("✓ MCPServer '{}' applied successfully.", name))
+        }
+        GrpcApplyPlan::AgentCard { ns, name, card } => {
+            client
+                .create_agent_card(CreateAgentCardRequest {
+                    ns: ns.clone(),
+                    card: Some(card),
+                })
+                .await
+                .with_context(|| format!("Gateway rejected AgentCard '{}/{}'", ns, name))?;
+            Ok(format!(
+                "✓ AgentCard '{}/{}' applied successfully.",
+                ns, name
+            ))
         }
         GrpcApplyPlan::Knowledge {
             ns,

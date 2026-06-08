@@ -7,7 +7,7 @@ use crate::control::{
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
-use axum::{routing::post, Router};
+use axum::{routing::get, routing::post, Router};
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -53,6 +53,10 @@ impl Gateway {
 
     pub fn http_ui_router(&self) -> Router {
         Router::new()
+            .route(
+                "/.well-known/agent-card.json",
+                get(crate::gateway::a2a::get_well_known_agent_card),
+            )
             .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
                 post(crate::gateway::ui::post_chat)
@@ -138,6 +142,7 @@ mod tests {
     use axum::body::Body;
     use axum::http::{header, Method, Request, StatusCode};
     use futures::stream;
+    use prost::Message;
     use std::collections::HashMap;
     use std::net::SocketAddr;
     use std::pin::Pin;
@@ -287,6 +292,90 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(put.status(), StatusCode::METHOD_NOT_ALLOWED);
+    }
+
+    #[tokio::test]
+    async fn http_ui_router_serves_agent_card_by_host() {
+        let gateway = gateway();
+        gateway
+            .kv
+            .set(
+                &crate::control::keys::namespace_metadata("support"),
+                &crate::gateway::rpc::models::Namespace {
+                    name: "support".to_string(),
+                    parent: String::new(),
+                    is_deleted: false,
+                    deleted_at: 0,
+                    labels: HashMap::new(),
+                }
+                .encode_to_vec(),
+            )
+            .await
+            .unwrap();
+        gateway
+            .kv
+            .set(
+                &crate::control::keys::agent_card("support", "support-public"),
+                &crate::gateway::rpc::manifests::AgentCard {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "AgentCard".to_string(),
+                    metadata: Some(crate::gateway::rpc::manifests::ObjectMeta {
+                        name: "support-public".to_string(),
+                        namespace: "support".to_string(),
+                        labels: HashMap::new(),
+                        annotations: HashMap::new(),
+                    }),
+                    spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
+                        agent_ref: "support-docs".to_string(),
+                        hostname: "support.example.com".to_string(),
+                        name: "Support Agent".to_string(),
+                        description: "Answers support questions.".to_string(),
+                        version: "1.0.0".to_string(),
+                        capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
+                            streaming: true,
+                            push_notifications: false,
+                            extended_agent_card: false,
+                        }),
+                        default_input_modes: vec!["text/plain".to_string()],
+                        default_output_modes: vec!["text/plain".to_string()],
+                        skills: vec![crate::gateway::rpc::manifests::AgentCardSkill {
+                            id: "answer_support_question".to_string(),
+                            name: "Answer support question".to_string(),
+                            description: "Answers using docs.".to_string(),
+                            tags: vec!["support".to_string()],
+                            examples: Vec::new(),
+                            input_modes: Vec::new(),
+                            output_modes: Vec::new(),
+                        }],
+                        auth: None,
+                    }),
+                }
+                .encode_to_vec(),
+            )
+            .await
+            .unwrap();
+
+        let response = gateway
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/.well-known/agent-card.json")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["name"], "Support Agent");
+        assert_eq!(value["capabilities"]["streaming"], true);
+        assert_eq!(value["skills"][0]["id"], "answer_support_question");
     }
 
     #[tokio::test]

@@ -274,6 +274,14 @@ pub fn agent_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("Agent"))
 }
 
+pub fn agent_card(namespace: &str, name: &str) -> ResourceKey {
+    resource_key(namespace, &[], "AgentCard", name)
+}
+
+pub fn agent_card_prefix(namespace: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[], Some("AgentCard"))
+}
+
 pub fn session(namespace: &str, agent: &str, session_id: &str) -> ResourceKey {
     resource_key(namespace, &[("Agent", agent)], "Session", session_id)
 }

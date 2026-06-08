@@ -724,6 +724,7 @@ mod tests {
             system_prompt: "assist".to_string(),
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::new(),
+            a2a: None,
         };
 
         kv.set_msg(
@@ -874,6 +875,7 @@ mod tests {
             system_prompt: "assist".to_string(),
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::new(),
+            a2a: None,
         };
 
         kv.set_msg(

@@ -16,6 +16,10 @@ static_resources:
             - name: local_service
               domains: ["*"]
               routes:
+              - match: { path: "/.well-known/agent-card.json" }
+                route:
+                  cluster: talon_ui_http_service
+                  timeout: 60s
               - match: { prefix: "/v1/ui/" }
                 route:
                   cluster: talon_ui_http_service

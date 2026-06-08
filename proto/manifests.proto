@@ -29,6 +29,7 @@ message AgentSpec {
   string system_prompt = 3;
   repeated string mcp_server_refs = 4;
   map<string, google.protobuf.ListValue> capabilities = 6;
+  A2aSpec a2a = 7;
 }
 
 message AgentDefinition {
@@ -135,6 +136,83 @@ message McpServerBindingSpec {
   bool disabled = 4;
   McpAuthBrokerSpec auth_broker = 5;
   repeated string allowed_tool_names = 6;
+}
+
+message A2aSpec {
+  repeated A2aConnection connections = 1;
+}
+
+message A2aConnection {
+  string name = 1;
+  string description = 2;
+  A2aTarget target = 3;
+  repeated string input_modes = 4;
+  repeated string output_modes = 5;
+  uint32 timeout_seconds = 6;
+  uint32 max_depth = 7;
+  A2aConnectionAuth auth = 8;
+}
+
+message A2aTarget {
+  oneof target {
+    A2aInternalTarget internal = 1;
+    A2aExternalTarget external = 2;
+  }
+}
+
+message A2aInternalTarget {
+  string namespace = 1;
+  string agent = 2;
+}
+
+message A2aExternalTarget {
+  string agent_card_url = 1;
+}
+
+message A2aConnectionAuth {
+  string kind = 1;
+  string secret_ref = 2;
+}
+
+message AgentCard {
+  string api_version = 1;
+  string kind = 2;
+  ObjectMeta metadata = 3;
+  AgentCardSpec spec = 4;
+}
+
+message AgentCardSpec {
+  string agent_ref = 1;
+  string hostname = 2;
+  string name = 3;
+  string description = 4;
+  string version = 5;
+  AgentCardCapabilities capabilities = 6;
+  repeated string default_input_modes = 7;
+  repeated string default_output_modes = 8;
+  repeated AgentCardSkill skills = 9;
+  AgentCardAuth auth = 10;
+}
+
+message AgentCardCapabilities {
+  bool streaming = 1;
+  bool push_notifications = 2;
+  bool extended_agent_card = 3;
+}
+
+message AgentCardSkill {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string tags = 4;
+  repeated string examples = 5;
+  repeated string input_modes = 6;
+  repeated string output_modes = 7;
+}
+
+message AgentCardAuth {
+  string discovery = 1;
+  string operations = 2;
 }
 
 message McpAuthBrokerSpec {
