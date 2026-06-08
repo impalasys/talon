@@ -359,7 +359,10 @@ mod tests {
                     input_modes: Vec::new(),
                     output_modes: Vec::new(),
                 }],
-                auth: None,
+                auth: Some(crate::gateway::rpc::manifests::AgentCardAuth {
+                    discovery: "public".to_string(),
+                    operations: "bearer".to_string(),
+                }),
             }),
         };
         crate::gateway::rpc::GrpcGatewayHandler {
@@ -406,6 +409,8 @@ mod tests {
         assert_eq!(value["url"], "http://support.example.com");
         assert_eq!(value["capabilities"]["streaming"], true);
         assert_eq!(value["skills"][0]["id"], "answer_support_question");
+        assert_eq!(value["auth"]["discovery"], "public");
+        assert_eq!(value["auth"]["operations"], "bearer");
     }
 
     #[tokio::test]
