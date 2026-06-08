@@ -10,6 +10,7 @@ export {
 export {
   TalonChannel,
   useTalonChannelMessages,
+  type ChannelGatewayClientLike,
   type ChannelMessage,
   type TalonChannelCommand,
   type TalonChannelCommandTarget,

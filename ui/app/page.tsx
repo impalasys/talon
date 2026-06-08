@@ -30,14 +30,23 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { TalonChannel, TalonCopilot } from '@impalasys/talon-chat';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
-import { updateGatewayClient, getGatewayClient, buildGatewayHeaders, normalizeGatewayUrl } from '../lib/grpc';
+import { updateGatewayClient, getGatewayClient } from '../lib/grpc';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-function buildGatewayChatUiUrl(gatewayUrl: string, ns: string, agent: string, sessionId: string) {
-  return `${normalizeGatewayUrl(gatewayUrl)}/v1/ui/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}`;
+function yamlSafeValue(value: any): any {
+  if (typeof value === 'bigint') return value.toString();
+  if (Array.isArray(value)) return value.map(yamlSafeValue);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, entryValue]) => typeof entryValue !== 'undefined')
+        .map(([key, entryValue]) => [key, yamlSafeValue(entryValue)]),
+    );
+  }
+  return value;
 }
 
 function areSelectionsEqual(left: Selection | null, right: Selection | null) {
@@ -515,10 +524,6 @@ function ChannelInspector({
     currentChannelRef.current = { ns, channelName };
   }, [ns, channelName]);
 
-  const headers = useCallback(() => ({
-    ...(buildGatewayHeaders(authToken) || {}),
-  }), [authToken]);
-
   const refresh = useCallback(async () => {
     if (!ns || !channelName) return;
     const requestNs = ns;
@@ -526,10 +531,10 @@ function ChannelInspector({
     setIsLoading(true);
     setError(null);
     try {
-      const baseUrl = normalizeGatewayUrl(gatewayUrl);
-      const subscriptionsResponse = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(requestNs)}/channels/${encodeURIComponent(requestChannelName)}/subscriptions`, { headers: headers() });
-      if (!subscriptionsResponse.ok) throw new Error(`Subscriptions HTTP ${subscriptionsResponse.status}`);
-      const subscriptionsPayload = await subscriptionsResponse.json();
+      const subscriptionsPayload = await getGatewayClient().listChannelSubscriptions({
+        ns: requestNs,
+        channel: requestChannelName,
+      });
       if (
         requestNs !== currentChannelRef.current.ns ||
         requestChannelName !== currentChannelRef.current.channelName
@@ -552,7 +557,7 @@ function ChannelInspector({
         setIsLoading(false);
       }
     }
-  }, [channelName, gatewayUrl, headers, ns]);
+  }, [channelName, ns]);
 
   useEffect(() => {
     setSubscriptions([]);
@@ -626,6 +631,7 @@ function ChannelInspector({
           className="min-h-0 flex-1"
           gatewayUrl={gatewayUrl}
           authToken={authToken}
+          gatewayClient={getGatewayClient()}
           namespace={ns}
           channel={channel}
           renderMessageActions={(message) => {
@@ -671,7 +677,7 @@ function extractStreamEvents(data: unknown): StreamEventItem[] {
   });
 }
 
-function KnowledgeExplorer({ gatewayUrl, isConnected, selection }: { gatewayUrl: string, isConnected: boolean, selection: Selection | null }) {
+function KnowledgeExplorer({ isConnected, selection }: { isConnected: boolean, selection: Selection | null }) {
   const [activeTab, setActiveTab] = useState<'context'|'search'>('context');
   const [contextData, setContextData] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -683,26 +689,20 @@ function KnowledgeExplorer({ gatewayUrl, isConnected, selection }: { gatewayUrl:
   useEffect(() => {
     if (isConnected && activeTab === 'context') {
       setIsLoading(true);
-      fetch(`${gatewayUrl}/v1/ns/${encodeURIComponent(targetNamespace)}/agents/${encodeURIComponent(targetAgent)}/knowledge`)
-        .then(res => res.json())
+      getGatewayClient().getKnowledge({ ns: targetNamespace, agent: targetAgent })
         .then(data => {
           setContextData(data.modules?.map((m: any) => `[${m.path}]\n${m.content}`).join('\n\n') || '');
           setIsLoading(false);
         })
         .catch(() => setIsLoading(false));
     }
-  }, [isConnected, activeTab, gatewayUrl, targetAgent, targetNamespace]);
+  }, [isConnected, activeTab, targetAgent, targetNamespace]);
 
   useEffect(() => {
     if (isConnected && activeTab === 'search' && searchQuery.trim().length > 2) {
       const timer = setTimeout(() => {
         setIsLoading(true);
-        fetch(`${gatewayUrl}/v1/ns/${encodeURIComponent(targetNamespace)}/agents/${encodeURIComponent(targetAgent)}/knowledge/search`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: searchQuery })
-        })
-          .then(res => res.json())
+        getGatewayClient().searchKnowledge({ ns: targetNamespace, agent: targetAgent, query: searchQuery })
           .then(data => {
             setSearchResults(data.results?.map((r: any) => `[${r.path}]\n${r.snippet}`) || []);
             setIsLoading(false);
@@ -713,7 +713,7 @@ function KnowledgeExplorer({ gatewayUrl, isConnected, selection }: { gatewayUrl:
     } else {
       setSearchResults([]);
     }
-  }, [isConnected, activeTab, searchQuery, gatewayUrl, targetAgent, targetNamespace]);
+  }, [isConnected, activeTab, searchQuery, targetAgent, targetNamespace]);
 
   return (
     <div className="flex flex-col h-full">
@@ -785,6 +785,7 @@ function DebuggerPageContent() {
   const searchParams = useSearchParams();
   const nextHistoryModeRef = useRef<'push' | 'replace'>('replace');
   const [gatewayUrl, setGatewayUrl] = useState('');
+  const [gatewayHttpUrl, setGatewayHttpUrl] = useState('');
   const [authToken, setAuthToken] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isHoveringConnection, setIsHoveringConnection] = useState(false);
@@ -810,10 +811,17 @@ function DebuggerPageContent() {
 
   useEffect(() => {
     const savedUrl = localStorage.getItem('talon_gateway_url');
+    const defaultGatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://envoy.talon.orb.local';
     if (savedUrl) {
       setGatewayUrl(savedUrl);
     } else {
-      setGatewayUrl(process.env.NEXT_PUBLIC_GATEWAY_URL || 'https://envoy.talon.orb.local');
+      setGatewayUrl(defaultGatewayUrl);
+    }
+    const savedHttpUrl = localStorage.getItem('talon_gateway_http_url');
+    if (savedHttpUrl) {
+      setGatewayHttpUrl(savedHttpUrl);
+    } else {
+      setGatewayHttpUrl(process.env.NEXT_PUBLIC_GATEWAY_HTTP_URL || defaultGatewayUrl);
     }
     const savedToken = localStorage.getItem('talon_auth_token');
     if (savedToken) {
@@ -842,6 +850,8 @@ function DebuggerPageContent() {
       setIsConnected(false);
     }
   }, [storageHydrated, searchParams, gatewayUrl]);
+
+  const effectiveGatewayHttpUrl = gatewayHttpUrl.trim() || gatewayUrl.trim();
 
   useEffect(() => {
     if (!storageHydrated) return;
@@ -875,65 +885,57 @@ function DebuggerPageContent() {
       setResourceLoading(true);
       setResourceError(null);
 
-      const headers = buildGatewayHeaders(authToken);
-      let path = '';
-
-      switch (selection.type) {
-        case 'namespace':
-          path = `/v1/namespaces/${encodeURIComponent(selection.ns)}`;
-          break;
-        case 'agent':
-          path = `/v1/ns/${encodeURIComponent(selection.ns)}/agents/${encodeURIComponent(selection.agent || '')}`;
-          break;
-        case 'channel':
-          path = `/v1/ns/${encodeURIComponent(selection.ns)}/channels/${encodeURIComponent(selection.resourceName || selection.channel || '')}`;
-          break;
-        case 'channel-subscription':
-          path = `/v1/ns/${encodeURIComponent(selection.ns)}/channels/${encodeURIComponent(selection.channel || '')}/subscriptions/${encodeURIComponent(selection.resourceName || '')}`;
-          break;
-        case 'schedule':
-          path = `/v1/ns/${encodeURIComponent(selection.ns)}/schedules/${encodeURIComponent(selection.resourceName || '')}`;
-          break;
-        case 'template':
-          path = `/v1/templates/${encodeURIComponent(selection.resourceName || '')}`;
-          break;
-        case 'mcp-server':
-          path = `/v1/mcp-servers/${encodeURIComponent(selection.resourceName || '')}`;
-          break;
-        case 'mcp-binding':
-          path = `/v1/namespaces/${encodeURIComponent(selection.ns)}/mcp-bindings/${encodeURIComponent(selection.resourceName || '')}`;
-          break;
-        case 'knowledge':
-          path = `/v1/namespaces/${encodeURIComponent(selection.ns)}/knowledge/${encodeURIComponent(selection.resourceName || '')}`;
-          break;
-      }
-
       try {
-        const response = await fetch(`${normalizeGatewayUrl(gatewayUrl)}${path}`, { headers });
-        if (!response.ok) {
-          throw new Error(`Failed to load resource: ${response.status}`);
+        let document: any;
+        switch (selection.type) {
+          case 'namespace':
+            document = await getGatewayClient().getNamespace({ name: selection.ns });
+            break;
+          case 'agent':
+            document = (await getGatewayClient().getAgent({ ns: selection.ns, name: selection.agent || '' })).agent;
+            break;
+          case 'channel':
+            document = (await getGatewayClient().getChannel({
+              ns: selection.ns,
+              name: selection.resourceName || selection.channel || '',
+            })).channel;
+            break;
+          case 'channel-subscription':
+            document = (await getGatewayClient().getChannelSubscription({
+              ns: selection.ns,
+              channel: selection.channel || '',
+              name: selection.resourceName || '',
+            })).subscription;
+            break;
+          case 'schedule':
+            document = (await getGatewayClient().getSchedule({ ns: selection.ns, name: selection.resourceName || '' })).schedule;
+            break;
+          case 'template':
+            document = (await getGatewayClient().getAgentTemplate({ name: selection.resourceName || '' })).template;
+            break;
+          case 'mcp-server':
+            document = (await getGatewayClient().getMcpServer({ name: selection.resourceName || '' })).server;
+            break;
+          case 'mcp-binding':
+            document = (await getGatewayClient().getMcpServerBinding({
+              ns: selection.ns,
+              name: selection.resourceName || '',
+            })).binding;
+            break;
+          case 'knowledge':
+            document = (await getGatewayClient().getNamespaceKnowledge({
+              ns: selection.ns,
+              name: selection.resourceName || '',
+            })).knowledge;
+            break;
         }
-        const payload = await response.json();
-        const document =
-          selection.type === 'agent'
-            ? payload.agent
-            : selection.type === 'channel'
-              ? payload.channel
-            : selection.type === 'channel-subscription'
-              ? payload.subscription
-            : selection.type === 'schedule'
-              ? payload.schedule
-            : selection.type === 'template'
-              ? payload.template
-              : selection.type === 'mcp-server'
-                ? payload.server
-                : selection.type === 'mcp-binding'
-                  ? payload.binding
-                : payload;
+        if (!document) {
+          throw new Error('Resource not found');
+        }
 
         if (!cancelled) {
           setResourceDocument(document);
-          setResourceYaml(dump(document, { noRefs: true, lineWidth: 100 }));
+          setResourceYaml(dump(yamlSafeValue(document), { noRefs: true, lineWidth: 100 }));
         }
       } catch (err: any) {
         if (!cancelled) {
@@ -952,12 +954,17 @@ function DebuggerPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [authToken, gatewayUrl, isConnected, selectedNamespace]);
+  }, [isConnected, selectedNamespace]);
 
   const handleConnect = (e: React.FormEvent) => {
     e.preventDefault();
     if (gatewayUrl.trim()) {
       localStorage.setItem('talon_gateway_url', gatewayUrl.trim());
+      if (gatewayHttpUrl.trim()) {
+        localStorage.setItem('talon_gateway_http_url', gatewayHttpUrl.trim());
+      } else {
+        localStorage.removeItem('talon_gateway_http_url');
+      }
       if (authToken.trim()) {
         localStorage.setItem('talon_auth_token', authToken.trim());
       } else {
@@ -1012,7 +1019,6 @@ function DebuggerPageContent() {
         <div className="w-64 lg:w-72 h-full flex flex-col flex-shrink-0">
           <NamespaceExplorer 
             isConnected={isConnected} 
-            gatewayUrl={gatewayUrl}
             selectedNode={selectedNamespace} 
             onSelect={setSelectedNamespace} 
           />
@@ -1079,13 +1085,13 @@ function DebuggerPageContent() {
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold text-foreground">Connect to Talon Engine</h2>
-                    <p className="text-[13px] text-muted-foreground mt-1">Provide the gateway URL for the autonomous agent.</p>
+                    <p className="text-[13px] text-muted-foreground mt-1">Provide gateway endpoints for this workspace.</p>
                   </div>
                 </div>
                 
                 <form onSubmit={handleConnect} className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-[12px] font-medium text-foreground">Gateway URL</label>
+                    <label className="text-[12px] font-medium text-foreground">gRPC Gateway URL</label>
                     <input 
                       type="url" 
                       required
@@ -1094,6 +1100,16 @@ function DebuggerPageContent() {
                       className="w-full bg-white/[0.03] border border-border/70 text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring text-sm transition-shadow font-mono"
                       placeholder="http://localhost:18789"
                       autoFocus
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[12px] font-medium text-foreground">HTTP Gateway URL</label>
+                    <input
+                      type="url"
+                      value={gatewayHttpUrl}
+                      onChange={(e) => setGatewayHttpUrl(e.target.value)}
+                      className="w-full bg-white/[0.03] border border-border/70 text-foreground px-3 py-2.5 rounded-xl focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring text-sm transition-shadow font-mono"
+                      placeholder="http://localhost:50052"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1125,7 +1141,7 @@ function DebuggerPageContent() {
                 namespace={selectedNamespace.ns}
                 agent={selectedNamespace.agent || 'default'}
                 sessionId={selectedNamespace.type === 'session' ? selectedNamespace.sessionId : undefined}
-                gatewayUrl={gatewayUrl}
+                gatewayUrl={effectiveGatewayHttpUrl}
                 authToken={authToken || undefined}
                 gatewayClient={getGatewayClient()}
                 historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
@@ -1194,7 +1210,7 @@ function DebuggerPageContent() {
                   />
                 ) : selectedNamespace.type === 'channel' && resourceDocument ? (
                   <ChannelInspector
-                    gatewayUrl={gatewayUrl}
+                    gatewayUrl={effectiveGatewayHttpUrl}
                     authToken={authToken}
                     channel={resourceDocument as ChannelDocument}
                     resourceYaml={resourceYaml}
@@ -1292,7 +1308,7 @@ function DebuggerPageContent() {
           <div className="h-px w-full bg-border flex-shrink-0" />
 
           <div className="flex-1 min-h-0 overflow-hidden">
-            <KnowledgeExplorer gatewayUrl={gatewayUrl} isConnected={isConnected} selection={selectedNamespace} />
+            <KnowledgeExplorer isConnected={isConnected} selection={selectedNamespace} />
           </div>
         </div>
       </motion.div>}
