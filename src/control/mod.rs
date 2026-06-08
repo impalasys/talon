@@ -492,13 +492,13 @@ fn configured_scheduler_callback_auth_from_env(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "rocksdb")]
+    use super::rocksdb_database_path;
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
         ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
         ProtoKeyValueStoreExt,
     };
-    #[cfg(feature = "rocksdb")]
-    use super::rocksdb_database_path;
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
     use crate::control::keys;

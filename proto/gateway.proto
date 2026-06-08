@@ -67,6 +67,27 @@ service GatewayService {
       delete: "/v1/namespaces/{ns}/knowledge/{name}"
     };
   }
+  rpc CreateNamespaceSkill(CreateNamespaceSkillRequest) returns (NamespaceSkillResponse) {
+    option (google.api.http) = {
+      post: "/v1/namespaces/{ns}/skills"
+      body: "*"
+    };
+  }
+  rpc GetNamespaceSkill(GetNamespaceSkillRequest) returns (NamespaceSkillResponse) {
+    option (google.api.http) = {
+      get: "/v1/namespaces/{ns}/skills/{name}"
+    };
+  }
+  rpc ListNamespaceSkills(ListNamespaceSkillsRequest) returns (ListNamespaceSkillsResponse) {
+    option (google.api.http) = {
+      get: "/v1/namespaces/{ns}/skills"
+    };
+  }
+  rpc DeleteNamespaceSkill(DeleteNamespaceSkillRequest) returns (DeleteNamespaceSkillResponse) {
+    option (google.api.http) = {
+      delete: "/v1/namespaces/{ns}/skills/{name}"
+    };
+  }
 
   // Agent Sessions
   rpc CreateSession(CreateSessionRequest) returns (SessionResponse) {
@@ -520,6 +541,37 @@ message NamespaceKnowledgeResponse {
 
 message ListNamespaceKnowledgeResponse {
   repeated talon.manifests.Knowledge knowledge = 1;
+}
+
+message CreateNamespaceSkillRequest {
+  string ns = 1;
+  talon.manifests.Skill skill = 2;
+}
+
+message GetNamespaceSkillRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message ListNamespaceSkillsRequest {
+  string ns = 1;
+}
+
+message DeleteNamespaceSkillRequest {
+  string ns = 1;
+  string name = 2;
+}
+
+message DeleteNamespaceSkillResponse {
+  bool success = 1;
+}
+
+message NamespaceSkillResponse {
+  talon.manifests.Skill skill = 1;
+}
+
+message ListNamespaceSkillsResponse {
+  repeated talon.manifests.Skill skills = 1;
 }
 
 // ---------------------------------------------------------
