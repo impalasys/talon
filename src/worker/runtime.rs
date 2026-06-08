@@ -212,11 +212,14 @@ impl AgentRuntime {
             reg.register_mcp_tools(&server_config.server_name, accepted_tools);
         }
         let registry = Arc::new(tokio::sync::RwLock::new(reg));
+        let skill_context = crate::skills::namespace::format_skill_context(
+            &crate::skills::namespace::load_effective_skills(cp.kv.clone(), ns).await?,
+        );
 
         // 5. Build executor
         let executor = AgentExecutor::new_with_session(
             llm,
-            ContextAssembler::new("."),
+            ContextAssembler::new_with_skill_context(".", skill_context),
             registry,
             Arc::new(config.clone()),
             Arc::new(KvKnowledgeBook::new(cp.kv.clone())),
@@ -611,6 +614,23 @@ mod tests {
         }
     }
 
+    fn skill(ns: &str, name: &str, description: &str, instructions: &str) -> manifests::Skill {
+        manifests::Skill {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Skill".to_string(),
+            metadata: Some(manifests::ObjectMeta {
+                name: name.to_string(),
+                namespace: ns.to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+            }),
+            spec: Some(manifests::SkillSpec {
+                description: description.to_string(),
+                instructions: instructions.to_string(),
+            }),
+        }
+    }
+
     #[test]
     fn qualify_mcp_tool_name_uses_binding_name_when_present() {
         let qualified = qualify_mcp_tool_name(
@@ -947,6 +967,80 @@ mod tests {
         assert!(!no_reply_registry
             .tools
             .contains_key(crate::native_tools::CHANNEL_SKIP_REPLY_TOOL));
+    }
+
+    #[tokio::test]
+    async fn agent_runtime_injects_inherited_skills_without_registering_skill_tools() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+        };
+
+        kv.set_msg(
+            &crate::control::keys::agent("acme:team", "writer"),
+            &models::Agent {
+                name: "writer".to_string(),
+                ns: "acme:team".to_string(),
+                definition: None,
+                effective_spec: Some(spec),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::skill("acme", "review"),
+            &skill("acme", "review", "Review code", "parent instructions"),
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::skill("acme:team", "review"),
+            &skill(
+                "acme:team",
+                "review",
+                "Review code locally",
+                "child instructions",
+            ),
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &crate::control::keys::skill("acme", "release"),
+            &skill(
+                "acme",
+                "release",
+                "Write release notes",
+                "release instructions",
+            ),
+        )
+        .await
+        .unwrap();
+
+        let runtime =
+            AgentRuntime::build("acme:team", "writer", "session-1", &cp, &config, &registry)
+                .await
+                .unwrap();
+        let assembled = runtime.executor.assembler.assemble().await.unwrap();
+        let tools = runtime.executor.registry.read().await.to_provider_tools();
+
+        assert!(assembled.contains("# INHERITED SKILLS"));
+        assert!(assembled.contains("Skill: review"));
+        assert!(assembled.contains("Source namespace: acme:team"));
+        assert!(assembled.contains("child instructions"));
+        assert!(assembled.contains("Skill: release"));
+        assert!(assembled.contains("release instructions"));
+        assert!(!assembled.contains("parent instructions"));
+        assert!(!tools.iter().any(|tool| tool.name == "review"));
+        assert!(!tools.iter().any(|tool| tool.name == "release"));
     }
 
     #[tokio::test]

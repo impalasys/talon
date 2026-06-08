@@ -475,6 +475,14 @@ pub fn knowledge_resource_prefix(namespace: &str) -> ResourceList {
     direct_child_prefix(namespace, &[], Some("KnowledgeResource"))
 }
 
+pub fn skill(namespace: &str, name: &str) -> ResourceKey {
+    resource_key(namespace, &[], "Skill", name)
+}
+
+pub fn skill_prefix(namespace: &str) -> ResourceList {
+    direct_child_prefix(namespace, &[], Some("Skill"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

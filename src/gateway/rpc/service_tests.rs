@@ -147,6 +147,18 @@ mod tests {
         }
     }
 
+    fn skill_manifest(name: &str, namespace: &str, instructions: &str) -> manifests::Skill {
+        manifests::Skill {
+            api_version: String::new(),
+            kind: String::new(),
+            metadata: Some(metadata(name, namespace)),
+            spec: Some(manifests::SkillSpec {
+                description: format!("{} description", name),
+                instructions: instructions.to_string(),
+            }),
+        }
+    }
+
     fn agent_template(name: &str, namespace: &str) -> manifests::AgentTemplate {
         manifests::AgentTemplate {
             api_version: String::new(),
@@ -542,6 +554,91 @@ mod tests {
                 .results
                 .len(),
             1
+        );
+    }
+
+    #[tokio::test]
+    async fn namespace_skill_crud_round_trip_and_validation() {
+        let (handler, _kv, _scheduler, _pubsub) = setup_handler();
+
+        let created = handler
+            .create_namespace_skill(tonic::Request::new(proto::CreateNamespaceSkillRequest {
+                ns: "acme".to_string(),
+                skill: Some(skill_manifest("review", "", "review carefully")),
+            }))
+            .await
+            .unwrap()
+            .into_inner()
+            .skill
+            .expect("skill should be returned");
+        assert_eq!(
+            created
+                .metadata
+                .as_ref()
+                .map(|meta| meta.namespace.as_str()),
+            Some("acme")
+        );
+
+        assert_eq!(
+            handler
+                .get_namespace_skill(tonic::Request::new(proto::GetNamespaceSkillRequest {
+                    ns: "acme".to_string(),
+                    name: "review".to_string(),
+                }))
+                .await
+                .unwrap()
+                .into_inner()
+                .skill
+                .as_ref()
+                .and_then(|skill| skill.spec.as_ref())
+                .map(|spec| spec.instructions.as_str()),
+            Some("review carefully")
+        );
+
+        assert_eq!(
+            handler
+                .list_namespace_skills(tonic::Request::new(proto::ListNamespaceSkillsRequest {
+                    ns: "acme".to_string(),
+                }))
+                .await
+                .unwrap()
+                .into_inner()
+                .skills
+                .len(),
+            1
+        );
+
+        let mismatch = handler
+            .create_namespace_skill(tonic::Request::new(proto::CreateNamespaceSkillRequest {
+                ns: "acme".to_string(),
+                skill: Some(skill_manifest("bad", "other", "bad")),
+            }))
+            .await
+            .expect_err("mismatched namespace should be rejected");
+        assert_eq!(mismatch.code(), tonic::Code::InvalidArgument);
+
+        assert!(
+            handler
+                .delete_namespace_skill(tonic::Request::new(proto::DeleteNamespaceSkillRequest {
+                    ns: "acme".to_string(),
+                    name: "review".to_string(),
+                }))
+                .await
+                .unwrap()
+                .into_inner()
+                .success
+        );
+        assert_eq!(
+            handler
+                .list_namespace_skills(tonic::Request::new(proto::ListNamespaceSkillsRequest {
+                    ns: "acme".to_string(),
+                }))
+                .await
+                .unwrap()
+                .into_inner()
+                .skills
+                .len(),
+            0
         );
     }
 
