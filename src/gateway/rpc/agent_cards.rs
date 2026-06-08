@@ -243,20 +243,18 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to list AgentCards: {err}")))?;
 
-        let mut cards = Vec::new();
-        for key in keys {
-            if let Some(card) = self
-                .gateway
+        let futures = keys.iter().map(|key| async {
+            self.gateway
                 .kv
-                .get_msg::<manifests::AgentCard>(&key)
+                .get_msg::<manifests::AgentCard>(key)
                 .await
-                .map_err(|err| {
-                    tonic::Status::internal(format!("Failed to fetch AgentCard: {err}"))
-                })?
-            {
-                cards.push(card);
-            }
-        }
+                .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))
+        });
+        let cards = futures::future::try_join_all(futures)
+            .await?
+            .into_iter()
+            .flatten()
+            .collect();
         Ok(tonic::Response::new(proto::ListAgentCardsResponse {
             cards,
         }))
@@ -269,23 +267,14 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let key = keys::agent_card(&req.ns, &req.name);
-        let exists = self
-            .gateway
-            .kv
-            .get(&key)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
-            .is_some();
-        if !exists {
-            return Err(tonic::Status::not_found("AgentCard not found"));
-        }
-        let old_hostname = self
+        let card = self
             .gateway
             .kv
             .get_msg::<manifests::AgentCard>(&key)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
-            .and_then(|card| card.spec.map(|spec| spec.hostname));
+            .ok_or_else(|| tonic::Status::not_found("AgentCard not found"))?;
+        let old_hostname = card.spec.map(|spec| spec.hostname);
         self.gateway
             .kv
             .delete(&key)
