@@ -1,0 +1,108 @@
+import { createHash, randomUUID } from 'crypto';
+import { mkdir, writeFile } from 'fs/promises';
+import path from 'path';
+import { NextRequest, NextResponse } from 'next/server';
+
+export const runtime = 'nodejs';
+
+const DEFAULT_OBJECT_STORE_PATH = '/data/talon/objects';
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+const SUPPORTED_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/gif', 'image/webp']);
+
+function safeSegment(value: string, fallback: string) {
+  const segment = value
+    .trim()
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 96);
+  return segment || fallback;
+}
+
+function extensionForMediaType(mediaType: string) {
+  switch (mediaType) {
+    case 'image/jpeg':
+      return '.jpg';
+    case 'image/gif':
+      return '.gif';
+    case 'image/webp':
+      return '.webp';
+    case 'image/png':
+    default:
+      return '.png';
+  }
+}
+
+function objectDataPath(root: string, key: string) {
+  const resolvedRoot = path.resolve(root);
+  const resolvedPath = path.resolve(resolvedRoot, key);
+  if (!resolvedPath.startsWith(`${resolvedRoot}${path.sep}`)) {
+    throw new Error('invalid object key');
+  }
+  return resolvedPath;
+}
+
+function metadataPath(dataPath: string) {
+  return path.join(path.dirname(dataPath), `${path.basename(dataPath)}.metadata.json`);
+}
+
+export async function POST(request: NextRequest) {
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return NextResponse.json({ error: 'multipart form data is required' }, { status: 400 });
+  }
+  const file = form.get('file');
+  if (!(file instanceof File)) {
+    return NextResponse.json({ error: 'file is required' }, { status: 400 });
+  }
+  if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
+    return NextResponse.json({ error: 'unsupported image type' }, { status: 400 });
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return NextResponse.json({ error: 'image is too large' }, { status: 413 });
+  }
+
+  const namespace = safeSegment(String(form.get('namespace') || 'default'), 'default');
+  const agent = safeSegment(String(form.get('agent') || 'default'), 'default');
+  const sessionId = safeSegment(String(form.get('sessionId') || 'session'), 'session');
+  const originalName = file.name || `image${extensionForMediaType(file.type)}`;
+  const extension = path.extname(originalName) || extensionForMediaType(file.type);
+  const key = [
+    'sessions',
+    namespace,
+    agent,
+    sessionId,
+    'uploads',
+    `${Date.now()}-${randomUUID()}${extension}`,
+  ].join('/');
+
+  const bytes = Buffer.from(await file.arrayBuffer());
+  const sha256 = createHash('sha256').update(bytes).digest('hex');
+  const root = process.env.TALON_OBJECT_STORE_PATH || DEFAULT_OBJECT_STORE_PATH;
+  const dataPath = objectDataPath(root, key);
+  const metaPath = metadataPath(dataPath);
+  const object = {
+    key,
+    mediaType: file.type,
+    sizeBytes: bytes.length,
+    sha256,
+    filename: originalName,
+    metadata: {
+      source: 'sightline',
+    },
+  };
+  const metadata = {
+    media_type: object.mediaType,
+    size_bytes: object.sizeBytes,
+    sha256: object.sha256,
+    filename: object.filename,
+    metadata: object.metadata,
+  };
+
+  await mkdir(path.dirname(dataPath), { recursive: true });
+  await writeFile(dataPath, bytes);
+  await writeFile(metaPath, JSON.stringify(metadata));
+
+  return NextResponse.json(object);
+}
