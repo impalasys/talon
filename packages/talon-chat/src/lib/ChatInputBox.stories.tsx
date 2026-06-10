@@ -14,14 +14,19 @@ const meta = {
     autoFocus: false,
     imageUploadEnabled: true,
     canSubmit: false,
+    previewTopPadding: 40,
+  },
+  argTypes: {
+    previewTopPadding: { table: { disable: true } },
   },
   render: (args) => {
     const [value, setValue] = useState(args.value ?? "");
+    const { previewTopPadding, ...inputArgs } = args;
     return (
-      <div style={{ padding: 40, background: "#fff" }}>
+      <div style={{ padding: `${previewTopPadding ?? 40}px 40px 40px`, background: "#fff" }}>
         <div style={{ width: "min(100%, 960px)", margin: "0 auto" }}>
           <ChatInputBox
-            {...args}
+            {...inputArgs}
             value={value}
             onValueChange={setValue}
             onSubmit={() => {}}
@@ -38,6 +43,9 @@ type Story = StoryObj<typeof meta>;
 export const ImageInputEnabled: Story = {};
 
 export const AttachmentMenuOpen: Story = {
+  args: {
+    previewTopPadding: 320,
+  },
   play: async ({ canvasElement }) => {
     const button = canvasElement.querySelector<HTMLButtonElement>('button[aria-label="Open attachment menu"]');
     button?.click();
