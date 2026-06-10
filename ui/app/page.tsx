@@ -628,6 +628,7 @@ function ChannelInspector({
           authToken={authToken}
           namespace={ns}
           channel={channel}
+          enabledBuiltInCommands={['clear']}
           renderMessageActions={(message) => {
             const sourceAgent = message.sourceAgent || message.source_agent || '';
             const sourceSessionId = message.sourceSessionId || message.source_session_id || '';
@@ -1129,6 +1130,7 @@ function DebuggerPageContent() {
                 authToken={authToken || undefined}
                 gatewayClient={getGatewayClient()}
                 historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
+                enabledBuiltInCommands={['clear']}
                 disabled={!isConnected}
                 onSessionChange={(nextSessionId) => {
                   handleSelectionChange({
