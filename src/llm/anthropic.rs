@@ -3,7 +3,8 @@
 
 use crate::gateway::rpc::manifests;
 use crate::llm::provider::{
-    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
+    ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent,
+    ChatUsage, LlmProvider,
 };
 use crate::memory::Embedding;
 use anyhow::{anyhow, Result};
@@ -74,6 +75,49 @@ impl AnthropicProvider {
             })
             .filter(|content| !content.is_empty())
     }
+
+    fn serialize_message(message: &ChatMessage) -> serde_json::Value {
+        let content = match message.content_parts.as_slice() {
+            [] => serde_json::Value::String(String::new()),
+            [ChatContentPart::Text { text }] => serde_json::Value::String(text.clone()),
+            _ => serde_json::Value::Array(
+                message
+                    .content_parts
+                    .iter()
+                    .map(anthropic_content_part)
+                    .collect(),
+            ),
+        };
+        json!({
+            "role": message.role,
+            "content": content,
+        })
+    }
+}
+
+fn anthropic_content_part(part: &ChatContentPart) -> serde_json::Value {
+    match part {
+        ChatContentPart::Text { text } => json!({
+            "type": "text",
+            "text": text,
+        }),
+        ChatContentPart::ImageUrl { url, .. } => json!({
+            "type": "text",
+            "text": format!("[Image URL: {url}]"),
+        }),
+        ChatContentPart::ImageData {
+            media_type,
+            data_base64,
+            ..
+        } => json!({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": media_type,
+                "data": data_base64,
+            }
+        }),
+    }
 }
 
 #[async_trait]
@@ -92,12 +136,7 @@ impl LlmProvider for AnthropicProvider {
         let mut payload = json!({
             "model": self.model,
             "max_tokens": max_tokens,
-            "messages": request.messages.iter().map(|m| {
-                json!({
-                    "role": m.role,
-                    "content": m.content
-                })
-            }).collect::<Vec<_>>(),
+            "messages": request.messages.iter().filter(|message| message.role != "system").map(Self::serialize_message).collect::<Vec<_>>(),
         });
         if let Some(thinking_payload) = thinking_payload {
             payload["thinking"] = thinking_payload;
@@ -137,12 +176,7 @@ impl LlmProvider for AnthropicProvider {
         let mut payload = json!({
             "model": self.model,
             "max_tokens": max_tokens,
-            "messages": request.messages.iter().map(|m| {
-                json!({
-                    "role": m.role,
-                    "content": m.content
-                })
-            }).collect::<Vec<_>>(),
+            "messages": request.messages.iter().filter(|message| message.role != "system").map(Self::serialize_message).collect::<Vec<_>>(),
             "stream": true,
         });
         if let Some(thinking_payload) = thinking_payload {
@@ -236,12 +270,7 @@ impl LlmProvider for AnthropicProvider {
 
     async fn completion(&self, prompt: &str) -> Result<String> {
         self.chat_completion(ChatRequest {
-            messages: vec![ChatMessage {
-                role: "user".to_string(),
-                content: prompt.to_string(),
-                tool_calls: None,
-                tool_call_id: None,
-            }],
+            messages: vec![ChatMessage::text("user", prompt)],
             tools: vec![],
             thinking: None,
         })
@@ -342,6 +371,53 @@ mod tests {
             AnthropicProvider::extract_text_content(&response),
             Some("hello world".to_string())
         );
+    }
+
+    #[test]
+    fn anthropic_content_part_falls_back_to_text_for_image_urls() {
+        assert_eq!(
+            anthropic_content_part(&ChatContentPart::ImageUrl {
+                url: "https://example.com/image.png".to_string(),
+                detail: Some("high".to_string()),
+            }),
+            json!({
+                "type": "text",
+                "text": "[Image URL: https://example.com/image.png]",
+            })
+        );
+    }
+
+    #[test]
+    fn anthropic_content_part_serializes_image_data_as_base64() {
+        assert_eq!(
+            anthropic_content_part(&ChatContentPart::ImageData {
+                media_type: "image/png".to_string(),
+                data_base64: "cG5n".to_string(),
+                detail: None,
+            }),
+            json!({
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/png",
+                    "data": "cG5n",
+                }
+            })
+        );
+    }
+
+    #[test]
+    fn serialize_message_emits_strings_for_empty_and_single_text_content() {
+        let empty = AnthropicProvider::serialize_message(&ChatMessage {
+            role: "assistant".to_string(),
+            content_parts: Vec::new(),
+            tool_calls: None,
+            tool_call_id: None,
+        });
+        let text = AnthropicProvider::serialize_message(&ChatMessage::text("user", "hello"));
+
+        assert_eq!(empty["content"], "");
+        assert_eq!(text["content"], "hello");
     }
 
     fn test_provider(base_url: String) -> AnthropicProvider {
@@ -478,6 +554,11 @@ mod tests {
         let app = Router::new().route(
             "/v1/messages",
             post(|Json(body): Json<serde_json::Value>| async move {
+                assert!(body["messages"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|message| message["role"] != "system"));
                 let content = body["messages"][0]["content"].as_str().unwrap_or_default();
                 if content == "cause-error" {
                     return (
@@ -502,12 +583,10 @@ mod tests {
         });
 
         let provider = test_provider(format!("http://{}", addr));
-        let messages = vec![ChatMessage {
-            role: "user".to_string(),
-            content: "hello".to_string(),
-            tool_calls: None,
-            tool_call_id: None,
-        }];
+        let messages = vec![
+            ChatMessage::text("system", "top-level system prompt"),
+            ChatMessage::text("user", "hello"),
+        ];
 
         let response = provider
             .chat_completion(ChatRequest {
@@ -522,10 +601,7 @@ mod tests {
 
         let api_err = provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    content: "cause-error".to_string(),
-                    ..messages[0].clone()
-                }],
+                messages: vec![ChatMessage::text("user", "cause-error")],
                 tools: vec![],
                 thinking: None,
             })
@@ -535,10 +611,7 @@ mod tests {
 
         let format_err = provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    content: "bad-format".to_string(),
-                    ..messages[0].clone()
-                }],
+                messages: vec![ChatMessage::text("user", "bad-format")],
                 tools: vec![],
                 thinking: None,
             })
@@ -556,6 +629,11 @@ mod tests {
         let app = Router::new().route(
             "/v1/messages",
             post(|Json(body): Json<serde_json::Value>| async move {
+                assert!(body["messages"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|message| message["role"] != "system"));
                 let content = body["messages"][0]["content"].as_str().unwrap_or_default();
                 if body["stream"].as_bool() == Some(true) {
                     if content == "stream-error" {
@@ -581,12 +659,10 @@ mod tests {
         });
 
         let provider = test_provider(format!("http://{}", addr));
-        let messages = vec![ChatMessage {
-            role: "user".to_string(),
-            content: "stream".to_string(),
-            tool_calls: None,
-            tool_call_id: None,
-        }];
+        let messages = vec![
+            ChatMessage::text("system", "top-level system prompt"),
+            ChatMessage::text("user", "stream"),
+        ];
 
         let mut stream = provider
             .stream_chat_completion(ChatRequest {
@@ -610,10 +686,7 @@ mod tests {
 
         let err = match provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    content: "stream-error".to_string(),
-                    ..messages[0].clone()
-                }],
+                messages: vec![ChatMessage::text("user", "stream-error")],
                 tools: vec![],
                 thinking: None,
             })

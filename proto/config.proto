@@ -72,6 +72,32 @@ message MessageBrokerConfig {
   string driver = 1;
 }
 
+message LocalObjectStoreConfig {
+  string path = 1;
+}
+
+message GcsObjectStoreConfig {
+  string bucket = 1;
+  string prefix = 2;
+  string api_base_url = 3;
+}
+
+message S3ObjectStoreConfig {
+  string bucket = 1;
+  string prefix = 2;
+  string region = 3;
+  string endpoint_url = 4;
+  bool force_path_style = 5;
+}
+
+message ObjectStoreConfig {
+  oneof backend {
+    LocalObjectStoreConfig local = 1;
+    GcsObjectStoreConfig gcs = 2;
+    S3ObjectStoreConfig s3 = 3;
+  }
+}
+
 message SchedulerCallbackAuthConfig {
   oneof auth {
     Secret shared_secret = 1;
@@ -102,6 +128,7 @@ message ControlPlaneConfig {
   DatabaseConfig database = 1;
   MessageBrokerConfig message_broker = 2;
   SchedulerConfig scheduler = 3;
+  ObjectStoreConfig object_store = 4;
 }
 
 message ServerConfig {

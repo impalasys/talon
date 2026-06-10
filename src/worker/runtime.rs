@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{anyhow, Result};
+use std::path::Path;
 use std::sync::Arc;
 
 use super::mcp_registry::McpRegistry;
@@ -15,8 +16,9 @@ use crate::core::executor::{
 use crate::gateway::rpc::models;
 use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
 use crate::knowledge::KvKnowledgeBook;
-use crate::llm::ToolCall;
+use crate::llm::{ChatContentPart, ToolCall};
 use crate::skills::registry::ToolRegistry;
+use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
 
 /// Fully-assembled, ready-to-run environment for one agent session.
@@ -121,7 +123,7 @@ impl AgentRuntime {
 
                 history.push(LoopMessage {
                     role: role.to_string(),
-                    content: message_text(&msg),
+                    content_parts: message_content_parts(&msg, cp.objects.as_ref()).await?,
                     tool_calls,
                     tool_call_id: None,
                 });
@@ -353,14 +355,94 @@ fn sanitize_tool_name_component(value: &str) -> String {
     sanitized.trim_matches('_').to_string()
 }
 
-fn message_text(message: &models::SessionMessage) -> String {
-    message
-        .parts
-        .iter()
-        .filter(|part| part.part_type == models::SessionMessagePartType::Text as i32)
-        .map(|part| part.content.as_str())
-        .collect::<Vec<_>>()
-        .join("")
+fn inferred_image_media_type(key: &str) -> Option<&'static str> {
+    match Path::new(key)
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "png" => Some("image/png"),
+        "jpg" | "jpeg" => Some("image/jpeg"),
+        "gif" => Some("image/gif"),
+        "webp" => Some("image/webp"),
+        _ => None,
+    }
+}
+
+async fn message_content_parts(
+    message: &models::SessionMessage,
+    objects: &(dyn crate::control::object_store::ObjectStore + Send + Sync),
+) -> Result<Vec<ChatContentPart>> {
+    let mut content_parts = Vec::new();
+    for part in &message.parts {
+        if part.part_type == models::SessionMessagePartType::Text as i32 {
+            if !part.content.is_empty() {
+                content_parts.push(ChatContentPart::Text {
+                    text: part.content.clone(),
+                });
+            }
+            continue;
+        }
+
+        if part.part_type != models::SessionMessagePartType::Image as i32 {
+            continue;
+        }
+
+        if !part.content.is_empty() {
+            content_parts.push(ChatContentPart::Text {
+                text: part.content.clone(),
+            });
+        }
+
+        let payload = serde_json::from_str::<serde_json::Value>(&part.payload_json)
+            .unwrap_or(serde_json::Value::Null);
+        let detail = payload
+            .get("detail")
+            .and_then(|value| value.as_str())
+            .map(ToString::to_string);
+        if let Some(url) = payload.get("url").and_then(|value| value.as_str()) {
+            content_parts.push(ChatContentPart::ImageUrl {
+                url: url.to_string(),
+                detail,
+            });
+            continue;
+        }
+
+        let Some(object) = part.object.as_ref() else {
+            continue;
+        };
+        let stored = objects.get(&object.key).await?.ok_or_else(|| {
+            anyhow!(
+                "object '{}' referenced by message part is missing",
+                object.key
+            )
+        })?;
+        let mut media_type = if object.media_type.trim().is_empty() {
+            stored.metadata.media_type.trim().to_string()
+        } else {
+            object.media_type.trim().to_string()
+        };
+        if media_type.is_empty() {
+            media_type = inferred_image_media_type(&object.key)
+                .ok_or_else(|| anyhow!("missing media type for image object '{}'", object.key))?
+                .to_string();
+        }
+        if !media_type.to_ascii_lowercase().starts_with("image/") {
+            return Err(anyhow!(
+                "unsupported media type '{}' for image object '{}'",
+                media_type,
+                object.key
+            ));
+        }
+        content_parts.push(ChatContentPart::ImageData {
+            media_type,
+            data_base64: general_purpose::STANDARD.encode(stored.bytes),
+            detail,
+        });
+    }
+    Ok(content_parts)
 }
 
 fn tool_result_message_from_part(part: &models::SessionMessagePart) -> Option<LoopMessage> {
@@ -373,28 +455,27 @@ fn tool_result_message_from_part(part: &models::SessionMessagePart) -> Option<Lo
         .or_else(|| payload.get("output").and_then(|v| v.as_str()))
         .map(tool_result_preview)
         .unwrap_or_else(|| tool_result_preview(&part.content));
-    Some(LoopMessage {
-        role: "tool".to_string(),
-        content: output,
-        tool_calls: None,
-        tool_call_id: Some(tool_call_id.to_string()),
-    })
+    let mut message = LoopMessage::text("tool", output);
+    message.tool_call_id = Some(tool_call_id.to_string());
+    Some(message)
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        builtin_tool_names, has_capability_action, qualify_mcp_tool_name,
+        builtin_tool_names, has_capability_action, message_content_parts, qualify_mcp_tool_name,
         tool_result_message_from_part, visible_tools_for_agent, AgentRuntime,
     };
     use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::connectors::mcp::McpConnectionConfig;
     use crate::control::{
         keys::{ResourceKey, ResourceList},
+        object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::{manifests, models, protobuf_value};
+    use crate::llm::ChatContentPart;
     use futures::stream;
     use std::collections::HashMap;
     use std::pin::Pin;
@@ -409,6 +490,7 @@ mod tests {
             name: "tool".to_string(),
             payload_json,
             created_at: 0,
+            object: None,
         }
     }
 
@@ -525,6 +607,7 @@ mod tests {
             kv,
             pubsub: Arc::new(MockPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         }
     }
 
@@ -567,7 +650,7 @@ mod tests {
         let message = tool_result_message_from_part(&part).unwrap();
 
         assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
-        assert_eq!(message.content, "small preview");
+        assert_eq!(message.text_content(), "small preview");
     }
 
     #[test]
@@ -589,9 +672,10 @@ mod tests {
 
         let message = tool_result_message_from_part(&part).unwrap();
 
-        assert!(message.content.len() < 10_000);
+        assert!(message.text_content().len() < 10_000);
         assert!(
-            message.content.contains("chars omitted") || message.content.contains("_truncated")
+            message.text_content().contains("chars omitted")
+                || message.text_content().contains("_truncated")
         );
     }
 
@@ -703,7 +787,7 @@ mod tests {
         );
 
         let message = tool_result_message_from_part(&part).unwrap();
-        assert_eq!(message.content, "fallback output");
+        assert_eq!(message.text_content(), "fallback output");
     }
 
     #[test]
@@ -904,6 +988,7 @@ mod tests {
                     name: String::new(),
                     payload_json: String::new(),
                     created_at: 10,
+                    object: None,
                 }],
             },
         )
@@ -924,6 +1009,7 @@ mod tests {
                         name: String::new(),
                         payload_json: String::new(),
                         created_at: 20,
+                        object: None,
                     },
                     models::SessionMessagePart {
                         id: "000001".to_string(),
@@ -936,6 +1022,7 @@ mod tests {
                         })
                         .to_string(),
                         created_at: 21,
+                        object: None,
                     },
                     models::SessionMessagePart {
                         id: "000002".to_string(),
@@ -948,6 +1035,7 @@ mod tests {
                         })
                         .to_string(),
                         created_at: 22,
+                        object: None,
                     },
                 ],
             },
@@ -967,13 +1055,217 @@ mod tests {
         assert_eq!(runtime.context.agent_id, "writer");
         assert_eq!(runtime.context.history.len(), 3);
         assert_eq!(runtime.context.history[0].role, "user");
-        assert_eq!(runtime.context.history[0].content, "hello");
+        assert_eq!(runtime.context.history[0].text_content(), "hello");
         assert_eq!(runtime.context.history[1].role, "assistant");
         assert_eq!(
             runtime.context.history[1].tool_calls.as_ref().unwrap()[0].name,
             "search"
         );
         assert_eq!(runtime.context.history[2].role, "tool");
-        assert_eq!(runtime.context.history[2].content, "tool preview");
+        assert_eq!(runtime.context.history[2].text_content(), "tool preview");
+    }
+
+    #[tokio::test]
+    async fn agent_runtime_build_rehydrates_image_parts_from_object_store() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+        let spec = manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: None,
+            system_prompt: "assist".to_string(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+        };
+
+        kv.set_msg(
+            &crate::control::keys::agent("conic", "writer"),
+            &models::Agent {
+                name: "writer".to_string(),
+                ns: "conic".to_string(),
+                definition: None,
+                effective_spec: Some(spec),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let object = cp
+            .objects
+            .put(
+                "sessions/session-1/screenshot.png",
+                b"png-bytes",
+                crate::control::object_store::ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "screenshot.png".to_string(),
+                    ..crate::control::object_store::ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        kv.set_msg(
+            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
+            &models::SessionMessage {
+                id: "msg-1".to_string(),
+                role: models::MessageRole::RoleUser as i32,
+                created_at: 2,
+                labels: HashMap::new(),
+                parts: vec![
+                    models::SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: models::SessionMessagePartType::Text as i32,
+                        content: "describe this".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 2,
+                        object: None,
+                    },
+                    models::SessionMessagePart {
+                        id: "000001".to_string(),
+                        part_type: models::SessionMessagePartType::Image as i32,
+                        content: String::new(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 2,
+                        object: Some(object),
+                    },
+                ],
+            },
+        )
+        .await
+        .unwrap();
+
+        let runtime = AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
+            .await
+            .unwrap();
+
+        assert_eq!(runtime.context.history.len(), 1);
+        assert_eq!(runtime.context.history[0].text_content(), "describe this");
+        assert_eq!(
+            runtime.context.history[0].content_parts,
+            vec![
+                ChatContentPart::Text {
+                    text: "describe this".to_string(),
+                },
+                ChatContentPart::ImageData {
+                    media_type: "image/png".to_string(),
+                    data_base64: "cG5nLWJ5dGVz".to_string(),
+                    detail: None,
+                },
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn message_content_parts_infers_missing_image_media_type_from_extension() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/session-1/screenshot.jpeg",
+                b"jpeg-bytes",
+                ObjectMetadata::default(),
+            )
+            .await
+            .unwrap();
+        let message = models::SessionMessage {
+            id: "msg-1".to_string(),
+            role: models::MessageRole::RoleUser as i32,
+            created_at: 2,
+            labels: HashMap::new(),
+            parts: vec![models::SessionMessagePart {
+                id: "000001".to_string(),
+                part_type: models::SessionMessagePartType::Image as i32,
+                content: String::new(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: 2,
+                object: Some(object),
+            }],
+        };
+
+        let parts = message_content_parts(&message, &store).await.unwrap();
+
+        assert_eq!(
+            parts,
+            vec![ChatContentPart::ImageData {
+                media_type: "image/jpeg".to_string(),
+                data_base64: "anBlZy1ieXRlcw==".to_string(),
+                detail: None,
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn message_content_parts_rejects_non_image_object_media_type() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/session-1/file.txt",
+                b"text",
+                ObjectMetadata {
+                    media_type: "text/plain".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let message = models::SessionMessage {
+            id: "msg-1".to_string(),
+            role: models::MessageRole::RoleUser as i32,
+            created_at: 2,
+            labels: HashMap::new(),
+            parts: vec![models::SessionMessagePart {
+                id: "000001".to_string(),
+                part_type: models::SessionMessagePartType::Image as i32,
+                content: String::new(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: 2,
+                object: Some(object),
+            }],
+        };
+
+        let err = message_content_parts(&message, &store).await.unwrap_err();
+
+        assert!(err.to_string().contains(
+            "unsupported media type 'text/plain' for image object 'sessions/session-1/file.txt'"
+        ));
+    }
+
+    #[tokio::test]
+    async fn message_content_parts_rejects_unknown_image_media_type() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/session-1/upload",
+                b"unknown-bytes",
+                ObjectMetadata::default(),
+            )
+            .await
+            .unwrap();
+        let message = models::SessionMessage {
+            id: "msg-1".to_string(),
+            role: models::MessageRole::RoleUser as i32,
+            created_at: 2,
+            labels: HashMap::new(),
+            parts: vec![models::SessionMessagePart {
+                id: "000001".to_string(),
+                part_type: models::SessionMessagePartType::Image as i32,
+                content: String::new(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: 2,
+                object: Some(object),
+            }],
+        };
+
+        let err = message_content_parts(&message, &store).await.unwrap_err();
+
+        assert!(err
+            .to_string()
+            .contains("missing media type for image object 'sessions/session-1/upload'"));
     }
 }

@@ -262,6 +262,9 @@ control_plane:
     data_dir: ./data
   message_broker:
     driver: local_socket
+  object_store:
+    driver: local
+    path: ./objects
 "#,
         )
         .unwrap();
@@ -280,6 +283,27 @@ control_plane:
                 .parent()
                 .unwrap()
                 .join("data")
+                .display()
+                .to_string()
+        );
+        let Some(proto::object_store_config::Backend::Local(local)) = config
+            .control_plane
+            .as_ref()
+            .unwrap()
+            .object_store
+            .as_ref()
+            .unwrap()
+            .backend
+            .as_ref()
+        else {
+            panic!("expected local object store");
+        };
+        assert_eq!(
+            local.path,
+            config_path
+                .parent()
+                .unwrap()
+                .join("objects")
                 .display()
                 .to_string()
         );
@@ -470,6 +494,13 @@ control_plane:
                         },
                     ),
                 }),
+                object_store: Some(crate::config::ObjectStoreConfigWrapper::S3 {
+                    bucket: "talon-objects".to_string(),
+                    prefix: Some("dev".to_string()),
+                    region: Some("us-west-2".to_string()),
+                    endpoint_url: Some("https://s3.example.com".to_string()),
+                    force_path_style: Some(true),
+                }),
             }),
         };
 
@@ -502,17 +533,34 @@ control_plane:
         };
         assert_eq!(secret_ref.source, proto::secret_ref::Source::Azure as i32);
 
-        let scheduler = config.control_plane.unwrap().scheduler.unwrap();
-        let Some(proto::scheduler_config::Backend::CloudTasks(cloud)) = scheduler.backend else {
+        let control_plane = config.control_plane.as_ref().unwrap();
+        let scheduler = control_plane.scheduler.as_ref().unwrap();
+        let Some(proto::scheduler_config::Backend::CloudTasks(cloud)) = scheduler.backend.as_ref()
+        else {
             panic!("expected cloud tasks scheduler");
         };
         assert_eq!(cloud.project_id, "project");
         let Some(proto::scheduler_callback_auth_config::Auth::GoogleOidc(oidc)) =
-            cloud.callback_auth.unwrap().auth
+            cloud.callback_auth.as_ref().unwrap().auth.as_ref()
         else {
             panic!("expected oidc auth");
         };
         assert_eq!(oidc.service_account_email, "svc@example.com");
+
+        let Some(proto::object_store_config::Backend::S3(s3)) = control_plane
+            .object_store
+            .as_ref()
+            .unwrap()
+            .backend
+            .as_ref()
+        else {
+            panic!("expected s3 object store");
+        };
+        assert_eq!(s3.bucket, "talon-objects");
+        assert_eq!(s3.prefix, "dev");
+        assert_eq!(s3.region, "us-west-2");
+        assert_eq!(s3.endpoint_url, "https://s3.example.com");
+        assert!(s3.force_path_style);
     }
 
     #[test]

@@ -2631,6 +2631,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend) as Arc<dyn SchedulerBackend>,
+            objects: talon::control::object_store::default_object_store(),
             session_streams: Arc::new(SessionStreamHub::new(pubsub)),
         });
         let handler = GrpcGatewayHandler { gateway };

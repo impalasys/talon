@@ -42,7 +42,13 @@ where
 }
 
 fn build_gateway(auth_config: AuthConfig, cp: ControlPlane) -> Gateway {
-    Gateway::new(Some(auth_config), cp.kv, cp.pubsub, cp.scheduler)
+    Gateway::new(
+        Some(auth_config),
+        cp.kv,
+        cp.pubsub,
+        cp.scheduler,
+        cp.objects,
+    )
 }
 
 fn spawn_gateway_tasks(
@@ -234,6 +240,7 @@ mod tests {
             kv: Arc::new(MockKvStore::default()),
             pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: talon::control::object_store::default_object_store(),
         }
     }
 

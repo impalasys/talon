@@ -32,6 +32,7 @@ mod tests {
             kv.clone(),
             pubsub.clone(),
             Arc::new(NoopSchedulerBackend),
+            crate::control::object_store::default_object_store(),
         ));
         (GrpcGatewayHandler { gateway }, kv, pubsub)
     }
@@ -41,6 +42,7 @@ mod tests {
             kv,
             pubsub,
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         }
     }
 
@@ -831,6 +833,7 @@ mod tests {
             kv.clone(),
             pubsub,
             Arc::new(NoopSchedulerBackend),
+            crate::control::object_store::default_object_store(),
         ));
         let handler = GrpcGatewayHandler { gateway };
         seed_channel(&kv, "acme", "incident-1").await;
@@ -1141,6 +1144,7 @@ mod tests {
             kv: handler.gateway.kv.clone(),
             pubsub: handler.gateway.pubsub.clone(),
             scheduler: handler.gateway.scheduler.clone(),
+            objects: crate::control::object_store::default_object_store(),
         };
 
         let published_message =

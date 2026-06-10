@@ -114,6 +114,7 @@ The local compose stack sets most runtime wiring automatically, including:
 
 - Postgres URL
 - Pub/Sub emulator host
+- local object store path
 - local scheduler driver
 - worker pull mode
 

@@ -156,6 +156,7 @@ impl PubSubSessionSink {
                 name,
                 payload_json,
                 created_at: chrono::Utc::now().timestamp_micros(),
+                object: None,
             });
     }
 
@@ -179,6 +180,7 @@ impl PubSubSessionSink {
                 name: String::new(),
                 payload_json: String::new(),
                 created_at: chrono::Utc::now().timestamp_micros(),
+                object: None,
             });
         }
         parts
@@ -195,6 +197,7 @@ impl PubSubSessionSink {
                 name: String::new(),
                 payload_json: String::new(),
                 created_at: chrono::Utc::now().timestamp_micros(),
+                object: None,
             });
         }
         parts
@@ -329,6 +332,7 @@ impl PubSubSessionSink {
                 name,
                 payload_json,
                 created_at: chrono::Utc::now().timestamp_micros(),
+                object: None,
             }),
             timestamp: chrono::Utc::now().timestamp_micros(),
             agent: self.agent_id.clone(),

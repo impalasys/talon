@@ -289,7 +289,7 @@ public interface HttpRuleOrBuilder extends
    *
    * <code>repeated .google.api.HttpRule additional_bindings = 11;</code>
    */
-  java.util.List<com.google.api.HttpRule> 
+  java.util.List<com.google.api.HttpRule>
       getAdditionalBindingsList();
   /**
    * <pre>
@@ -320,7 +320,7 @@ public interface HttpRuleOrBuilder extends
    *
    * <code>repeated .google.api.HttpRule additional_bindings = 11;</code>
    */
-  java.util.List<? extends com.google.api.HttpRuleOrBuilder> 
+  java.util.List<? extends com.google.api.HttpRuleOrBuilder>
       getAdditionalBindingsOrBuilderList();
   /**
    * <pre>

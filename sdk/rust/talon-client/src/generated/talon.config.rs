@@ -158,6 +158,50 @@ pub struct MessageBrokerConfig {
     pub driver: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct LocalObjectStoreConfig {
+    #[prost(string, tag = "1")]
+    pub path: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GcsObjectStoreConfig {
+    #[prost(string, tag = "1")]
+    pub bucket: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub prefix: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub api_base_url: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct S3ObjectStoreConfig {
+    #[prost(string, tag = "1")]
+    pub bucket: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub prefix: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub region: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub endpoint_url: ::prost::alloc::string::String,
+    #[prost(bool, tag = "5")]
+    pub force_path_style: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ObjectStoreConfig {
+    #[prost(oneof = "object_store_config::Backend", tags = "1, 2, 3")]
+    pub backend: ::core::option::Option<object_store_config::Backend>,
+}
+/// Nested message and enum types in `ObjectStoreConfig`.
+pub mod object_store_config {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Backend {
+        #[prost(message, tag = "1")]
+        Local(super::LocalObjectStoreConfig),
+        #[prost(message, tag = "2")]
+        Gcs(super::GcsObjectStoreConfig),
+        #[prost(message, tag = "3")]
+        S3(super::S3ObjectStoreConfig),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SchedulerCallbackAuthConfig {
     #[prost(oneof = "scheduler_callback_auth_config::Auth", tags = "1, 2")]
     pub auth: ::core::option::Option<scheduler_callback_auth_config::Auth>,
@@ -213,6 +257,8 @@ pub struct ControlPlaneConfig {
     pub message_broker: ::core::option::Option<MessageBrokerConfig>,
     #[prost(message, optional, tag = "3")]
     pub scheduler: ::core::option::Option<SchedulerConfig>,
+    #[prost(message, optional, tag = "4")]
+    pub object_store: ::core::option::Option<ObjectStoreConfig>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ServerConfig {

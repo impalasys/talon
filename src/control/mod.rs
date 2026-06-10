@@ -6,6 +6,7 @@ pub mod events;
 pub mod keys;
 pub mod kv;
 pub mod ns;
+pub mod object_store;
 pub mod pubsub;
 pub mod scheduler;
 pub mod topics;
@@ -163,6 +164,7 @@ pub struct ControlPlane {
     pub kv: std::sync::Arc<dyn KeyValueStore + Send + Sync>,
     pub pubsub: std::sync::Arc<dyn MessagePublisher + Send + Sync>,
     pub scheduler: std::sync::Arc<dyn scheduler::SchedulerBackend + Send + Sync>,
+    pub objects: std::sync::Arc<dyn object_store::ObjectStore + Send + Sync>,
 }
 
 async fn ensure_builtin_namespaces(kv: &(dyn KeyValueStore + Send + Sync)) -> anyhow::Result<()> {
@@ -356,10 +358,15 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             },
         };
 
+    let objects =
+        object_store::object_store_from_config(cp.object_store.as_ref(), &config.workspace_dir)
+            .await?;
+
     Ok(ControlPlane {
         kv,
         pubsub,
         scheduler,
+        objects,
     })
 }
 
@@ -492,13 +499,13 @@ fn configured_scheduler_callback_auth_from_env(
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "rocksdb")]
+    use super::rocksdb_database_path;
     use super::{
         build_control_plane, configured_scheduler, configured_scheduler_callback_auth_from_env,
         ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
         ProtoKeyValueStoreExt,
     };
-    #[cfg(feature = "rocksdb")]
-    use super::rocksdb_database_path;
     use crate::config::proto;
     use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
     use crate::control::keys;
@@ -775,6 +782,7 @@ mod tests {
                     driver: "gcp_pubsub".to_string(),
                 }),
                 scheduler: None,
+                object_store: None,
             }),
             ..Default::default()
         };
@@ -794,6 +802,7 @@ mod tests {
             database: None,
             message_broker: None,
             scheduler: None,
+            object_store: None,
         };
         let err = match message_broker_config(&cp) {
             Ok(_) => panic!("expected missing message broker error"),
@@ -817,6 +826,7 @@ mod tests {
                     driver: "gcp_pubsub".to_string(),
                 }),
                 scheduler: None,
+                object_store: None,
             }),
             ..Default::default()
         };
@@ -840,6 +850,7 @@ mod tests {
                     driver: "gcp_pubsub".to_string(),
                 }),
                 scheduler: None,
+                object_store: None,
             }),
             ..Default::default()
         };
@@ -856,6 +867,7 @@ mod tests {
                 driver: "kafka".to_string(),
             }),
             scheduler: None,
+            object_store: None,
         };
 
         let err = match message_broker_config(&unsupported_message_broker) {
@@ -872,6 +884,7 @@ mod tests {
                 driver: "local_socket".to_string(),
             }),
             scheduler: None,
+            object_store: None,
         };
         assert!(message_broker_config(&local_socket_message_broker).is_ok());
     }

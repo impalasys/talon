@@ -22,8 +22,8 @@ pub mod proto {
 }
 
 pub use proto::{
-    DatabaseConfig, LlmProviderConfig as ProviderConfig, SchedulerConfig, SecretRef, ServerConfig,
-    TalonConfig as Config,
+    DatabaseConfig, LlmProviderConfig as ProviderConfig, ObjectStoreConfig, SchedulerConfig,
+    SecretRef, ServerConfig, TalonConfig as Config,
 };
 pub use secrets::{Secret, SecretExt};
 
@@ -94,6 +94,7 @@ pub struct ControlPlaneConfigWrapper {
     pub database: DatabaseConfigWrapper,
     pub message_broker: MessageBrokerConfigWrapper,
     pub scheduler: Option<SchedulerConfigWrapper>,
+    pub object_store: Option<ObjectStoreConfigWrapper>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -111,6 +112,26 @@ pub enum SchedulerConfigWrapper {
         queue: Option<String>,
         target_url: Option<String>,
         callback_auth: Option<SchedulerCallbackAuthConfigWrapper>,
+    },
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(tag = "driver", rename_all = "snake_case")]
+pub enum ObjectStoreConfigWrapper {
+    Local {
+        path: Option<String>,
+    },
+    Gcs {
+        bucket: String,
+        prefix: Option<String>,
+        api_base_url: Option<String>,
+    },
+    S3 {
+        bucket: String,
+        prefix: Option<String>,
+        region: Option<String>,
+        endpoint_url: Option<String>,
+        force_path_style: Option<bool>,
     },
 }
 
@@ -200,6 +221,7 @@ impl From<SerdeConfig> for Config {
                     driver: cp.message_broker.driver,
                 }),
                 scheduler: cp.scheduler.map(Into::into),
+                object_store: cp.object_store.map(Into::into),
             }),
         }
     }
@@ -279,6 +301,11 @@ fn resolve_config_relative_paths(path: &Path, config: &mut SerdeConfig) {
 
     if let Some(control_plane) = config.control_plane.as_mut() {
         resolve_config_relative_data_dir(path, &mut control_plane.database.data_dir);
+        if let Some(ObjectStoreConfigWrapper::Local { path: object_path }) =
+            control_plane.object_store.as_mut()
+        {
+            resolve_config_relative_string_path(path, object_path);
+        }
     }
 
     resolve_config_relative_string_path(path, &mut config.workspace_dir);
@@ -301,6 +328,50 @@ impl From<SchedulerConfigWrapper> for proto::SchedulerConfig {
                         queue: queue.unwrap_or_default(),
                         target_url: target_url.unwrap_or_default(),
                         callback_auth: callback_auth.map(Into::into),
+                    },
+                )),
+            },
+        }
+    }
+}
+
+impl From<ObjectStoreConfigWrapper> for proto::ObjectStoreConfig {
+    fn from(s: ObjectStoreConfigWrapper) -> Self {
+        match s {
+            ObjectStoreConfigWrapper::Local { path } => Self {
+                backend: Some(proto::object_store_config::Backend::Local(
+                    proto::LocalObjectStoreConfig {
+                        path: path.unwrap_or_default(),
+                    },
+                )),
+            },
+            ObjectStoreConfigWrapper::Gcs {
+                bucket,
+                prefix,
+                api_base_url,
+            } => Self {
+                backend: Some(proto::object_store_config::Backend::Gcs(
+                    proto::GcsObjectStoreConfig {
+                        bucket,
+                        prefix: prefix.unwrap_or_default(),
+                        api_base_url: api_base_url.unwrap_or_default(),
+                    },
+                )),
+            },
+            ObjectStoreConfigWrapper::S3 {
+                bucket,
+                prefix,
+                region,
+                endpoint_url,
+                force_path_style,
+            } => Self {
+                backend: Some(proto::object_store_config::Backend::S3(
+                    proto::S3ObjectStoreConfig {
+                        bucket,
+                        prefix: prefix.unwrap_or_default(),
+                        region: region.unwrap_or_default(),
+                        endpoint_url: endpoint_url.unwrap_or_default(),
+                        force_path_style: force_path_style.unwrap_or(false),
                     },
                 )),
             },

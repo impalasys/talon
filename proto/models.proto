@@ -32,6 +32,19 @@ enum SessionMessagePartType {
   SESSION_MESSAGE_PART_TYPE_TOOL_RESULT = 4;
   SESSION_MESSAGE_PART_TYPE_USAGE = 5;
   SESSION_MESSAGE_PART_TYPE_ERROR = 6;
+  SESSION_MESSAGE_PART_TYPE_IMAGE = 7;
+  SESSION_MESSAGE_PART_TYPE_AUDIO = 8;
+  SESSION_MESSAGE_PART_TYPE_VIDEO = 9;
+  SESSION_MESSAGE_PART_TYPE_FILE = 10;
+}
+
+message ObjectRef {
+  string key = 1;
+  string media_type = 2;
+  uint64 size_bytes = 3;
+  string sha256 = 4;
+  string filename = 5;
+  map<string, string> metadata = 6;
 }
 
 message SessionMessagePart {
@@ -42,6 +55,7 @@ message SessionMessagePart {
   string payload_json = 5;
   // Unix timestamp in microseconds.
   int64 created_at = 6;
+  ObjectRef object = 7;
 }
 
 message SessionMessage {

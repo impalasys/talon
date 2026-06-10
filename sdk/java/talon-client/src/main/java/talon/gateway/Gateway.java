@@ -537,7 +537,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
        * <code>.talon.manifests.AgentTemplate template = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder> 
+          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>
           internalGetTemplateFieldBuilder() {
         if (templateBuilder_ == null) {
           templateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -1112,7 +1112,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
        * <code>.talon.manifests.AgentTemplate template = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder> 
+          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>
           internalGetTemplateFieldBuilder() {
         if (templateBuilder_ == null) {
           templateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -1248,7 +1248,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -1264,7 +1264,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -1593,7 +1593,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -1763,7 +1763,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -1779,7 +1779,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -2108,7 +2108,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -3013,7 +3013,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     /**
      * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.AgentTemplate> 
+    java.util.List<talon.manifests.Manifests.AgentTemplate>
         getTemplatesList();
     /**
      * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
@@ -3026,7 +3026,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     /**
      * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder> 
+    java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder>
         getTemplatesOrBuilderList();
     /**
      * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
@@ -3091,7 +3091,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
      * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder> 
+    public java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder>
         getTemplatesOrBuilderList() {
       return templates_;
     }
@@ -3401,7 +3401,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
               templatesBuilder_ = null;
               templates_ = other.templates_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              templatesBuilder_ = 
+              templatesBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetTemplatesFieldBuilder() : null;
             } else {
@@ -3660,7 +3660,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       /**
        * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder> 
+      public java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder>
            getTemplatesOrBuilderList() {
         if (templatesBuilder_ != null) {
           return templatesBuilder_.getMessageOrBuilderList();
@@ -3686,12 +3686,12 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       /**
        * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.AgentTemplate.Builder> 
+      public java.util.List<talon.manifests.Manifests.AgentTemplate.Builder>
            getTemplatesBuilderList() {
         return internalGetTemplatesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder> 
+          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>
           internalGetTemplatesFieldBuilder() {
         if (templatesBuilder_ == null) {
           templatesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -4267,7 +4267,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
        * <code>.talon.manifests.McpServer server = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder> 
+          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>
           internalGetServerFieldBuilder() {
         if (serverBuilder_ == null) {
           serverBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -4403,7 +4403,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -4419,7 +4419,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -4748,7 +4748,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -5278,7 +5278,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -5294,7 +5294,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -5623,7 +5623,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -6672,7 +6672,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
        * <code>.talon.manifests.McpServer server = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder> 
+          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>
           internalGetServerFieldBuilder() {
         if (serverBuilder_ == null) {
           serverBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -6743,7 +6743,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     /**
      * <code>repeated .talon.manifests.McpServer servers = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.McpServer> 
+    java.util.List<talon.manifests.Manifests.McpServer>
         getServersList();
     /**
      * <code>repeated .talon.manifests.McpServer servers = 1;</code>
@@ -6756,7 +6756,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     /**
      * <code>repeated .talon.manifests.McpServer servers = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder> 
+    java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder>
         getServersOrBuilderList();
     /**
      * <code>repeated .talon.manifests.McpServer servers = 1;</code>
@@ -6821,7 +6821,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
      * <code>repeated .talon.manifests.McpServer servers = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder> 
+    public java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder>
         getServersOrBuilderList() {
       return servers_;
     }
@@ -7131,7 +7131,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
               serversBuilder_ = null;
               servers_ = other.servers_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              serversBuilder_ = 
+              serversBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetServersFieldBuilder() : null;
             } else {
@@ -7390,7 +7390,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       /**
        * <code>repeated .talon.manifests.McpServer servers = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder> 
+      public java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder>
            getServersOrBuilderList() {
         if (serversBuilder_ != null) {
           return serversBuilder_.getMessageOrBuilderList();
@@ -7416,12 +7416,12 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       /**
        * <code>repeated .talon.manifests.McpServer servers = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.McpServer.Builder> 
+      public java.util.List<talon.manifests.Manifests.McpServer.Builder>
            getServersBuilderList() {
         return internalGetServersFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder> 
+          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>
           internalGetServersFieldBuilder() {
         if (serversBuilder_ == null) {
           serversBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -7574,7 +7574,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -7590,7 +7590,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -7990,7 +7990,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -8145,7 +8145,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
        * <code>.talon.manifests.McpServerBinding binding = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder> 
+          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>
           internalGetBindingFieldBuilder() {
         if (bindingBuilder_ == null) {
           bindingBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -8294,7 +8294,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -8310,7 +8310,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -8333,7 +8333,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -8349,7 +8349,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -8702,7 +8702,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -8774,7 +8774,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -8944,7 +8944,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -8960,7 +8960,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -9289,7 +9289,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -9472,7 +9472,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -9488,7 +9488,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -9511,7 +9511,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -9527,7 +9527,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -9880,7 +9880,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -9952,7 +9952,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -11001,7 +11001,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
        * <code>.talon.manifests.McpServerBinding binding = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder> 
+          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>
           internalGetBindingFieldBuilder() {
         if (bindingBuilder_ == null) {
           bindingBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -11072,7 +11072,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     /**
      * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.McpServerBinding> 
+    java.util.List<talon.manifests.Manifests.McpServerBinding>
         getBindingsList();
     /**
      * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
@@ -11085,7 +11085,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     /**
      * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder> 
+    java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder>
         getBindingsOrBuilderList();
     /**
      * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
@@ -11150,7 +11150,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
      * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder> 
+    public java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder>
         getBindingsOrBuilderList() {
       return bindings_;
     }
@@ -11460,7 +11460,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
               bindingsBuilder_ = null;
               bindings_ = other.bindings_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              bindingsBuilder_ = 
+              bindingsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetBindingsFieldBuilder() : null;
             } else {
@@ -11719,7 +11719,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       /**
        * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder> 
+      public java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder>
            getBindingsOrBuilderList() {
         if (bindingsBuilder_ != null) {
           return bindingsBuilder_.getMessageOrBuilderList();
@@ -11745,12 +11745,12 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       /**
        * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.McpServerBinding.Builder> 
+      public java.util.List<talon.manifests.Manifests.McpServerBinding.Builder>
            getBindingsBuilderList() {
         return internalGetBindingsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder> 
+          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>
           internalGetBindingsFieldBuilder() {
         if (bindingsBuilder_ == null) {
           bindingsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -12326,7 +12326,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
        * <code>.talon.models.Agent agent = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Agent, talon.models.Models.Agent.Builder, talon.models.Models.AgentOrBuilder> 
+          talon.models.Models.Agent, talon.models.Models.Agent.Builder, talon.models.Models.AgentOrBuilder>
           internalGetAgentFieldBuilder() {
         if (agentBuilder_ == null) {
           agentBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -12475,7 +12475,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -12491,7 +12491,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -12514,7 +12514,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -12530,7 +12530,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -12883,7 +12883,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -12955,7 +12955,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -13205,7 +13205,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -13221,7 +13221,7 @@ java.lang.String defaultValue);
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -13252,7 +13252,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -13268,7 +13268,7 @@ java.lang.String defaultValue);
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -13310,7 +13310,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_CreateAgentRequest_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_CreateAgentRequest_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -13838,7 +13838,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -13917,7 +13917,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -14072,7 +14072,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.AgentDefinition definition = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder> 
+          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder>
           internalGetDefinitionFieldBuilder() {
         if (definitionBuilder_ == null) {
           definitionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -14394,7 +14394,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -14410,7 +14410,7 @@ java.lang.String defaultValue);
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -14433,7 +14433,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -14449,7 +14449,7 @@ java.lang.String defaultValue);
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -14465,7 +14465,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_AgentResponse_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_AgentResponse_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -14942,7 +14942,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -15014,7 +15014,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -15311,7 +15311,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -15327,7 +15327,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -15656,7 +15656,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -16481,7 +16481,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -16497,7 +16497,7 @@ java.lang.String defaultValue);
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -16520,7 +16520,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -16536,7 +16536,7 @@ java.lang.String defaultValue);
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -16578,7 +16578,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_ModifyAgentRequest_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_ModifyAgentRequest_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -17100,7 +17100,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -17172,7 +17172,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -17327,7 +17327,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.AgentDefinition definition = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder> 
+          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder>
           internalGetDefinitionFieldBuilder() {
         if (definitionBuilder_ == null) {
           definitionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -17634,7 +17634,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -17650,7 +17650,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -17673,7 +17673,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -17689,7 +17689,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -17728,7 +17728,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         path_ = s;
@@ -17748,7 +17748,7 @@ java.lang.String defaultValue) {
         getPathBytes() {
       java.lang.Object ref = path_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         path_ = b;
@@ -18133,7 +18133,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -18205,7 +18205,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -18296,7 +18296,7 @@ java.lang.String defaultValue) {
           getPathBytes() {
         java.lang.Object ref = path_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           path_ = b;
@@ -18413,7 +18413,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.Knowledge modules = 1;</code>
      */
-    java.util.List<talon.models.Models.Knowledge> 
+    java.util.List<talon.models.Models.Knowledge>
         getModulesList();
     /**
      * <code>repeated .talon.models.Knowledge modules = 1;</code>
@@ -18426,7 +18426,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.Knowledge modules = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.KnowledgeOrBuilder> 
+    java.util.List<? extends talon.models.Models.KnowledgeOrBuilder>
         getModulesOrBuilderList();
     /**
      * <code>repeated .talon.models.Knowledge modules = 1;</code>
@@ -18491,7 +18491,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.models.Knowledge modules = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.KnowledgeOrBuilder> 
+    public java.util.List<? extends talon.models.Models.KnowledgeOrBuilder>
         getModulesOrBuilderList() {
       return modules_;
     }
@@ -18801,7 +18801,7 @@ java.lang.String defaultValue) {
               modulesBuilder_ = null;
               modules_ = other.modules_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              modulesBuilder_ = 
+              modulesBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetModulesFieldBuilder() : null;
             } else {
@@ -19060,7 +19060,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.Knowledge modules = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.KnowledgeOrBuilder> 
+      public java.util.List<? extends talon.models.Models.KnowledgeOrBuilder>
            getModulesOrBuilderList() {
         if (modulesBuilder_ != null) {
           return modulesBuilder_.getMessageOrBuilderList();
@@ -19086,12 +19086,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.Knowledge modules = 1;</code>
        */
-      public java.util.List<talon.models.Models.Knowledge.Builder> 
+      public java.util.List<talon.models.Models.Knowledge.Builder>
            getModulesBuilderList() {
         return internalGetModulesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Knowledge, talon.models.Models.Knowledge.Builder, talon.models.Models.KnowledgeOrBuilder> 
+          talon.models.Models.Knowledge, talon.models.Models.Knowledge.Builder, talon.models.Models.KnowledgeOrBuilder>
           internalGetModulesFieldBuilder() {
         if (modulesBuilder_ == null) {
           modulesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -19254,7 +19254,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -19270,7 +19270,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -19293,7 +19293,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -19309,7 +19309,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -19332,7 +19332,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         query_ = s;
@@ -19348,7 +19348,7 @@ java.lang.String defaultValue) {
         getQueryBytes() {
       java.lang.Object ref = query_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         query_ = b;
@@ -19725,7 +19725,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -19797,7 +19797,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -19869,7 +19869,7 @@ java.lang.String defaultValue) {
           getQueryBytes() {
         java.lang.Object ref = query_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           query_ = b;
@@ -19974,7 +19974,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
      */
-    java.util.List<talon.models.Models.KnowledgeSearchResult> 
+    java.util.List<talon.models.Models.KnowledgeSearchResult>
         getResultsList();
     /**
      * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
@@ -19987,7 +19987,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder> 
+    java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder>
         getResultsOrBuilderList();
     /**
      * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
@@ -20052,7 +20052,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder> 
+    public java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder>
         getResultsOrBuilderList() {
       return results_;
     }
@@ -20362,7 +20362,7 @@ java.lang.String defaultValue) {
               resultsBuilder_ = null;
               results_ = other.results_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              resultsBuilder_ = 
+              resultsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetResultsFieldBuilder() : null;
             } else {
@@ -20621,7 +20621,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder> 
+      public java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder>
            getResultsOrBuilderList() {
         if (resultsBuilder_ != null) {
           return resultsBuilder_.getMessageOrBuilderList();
@@ -20647,12 +20647,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
        */
-      public java.util.List<talon.models.Models.KnowledgeSearchResult.Builder> 
+      public java.util.List<talon.models.Models.KnowledgeSearchResult.Builder>
            getResultsBuilderList() {
         return internalGetResultsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.KnowledgeSearchResult, talon.models.Models.KnowledgeSearchResult.Builder, talon.models.Models.KnowledgeSearchResultOrBuilder> 
+          talon.models.Models.KnowledgeSearchResult, talon.models.Models.KnowledgeSearchResult.Builder, talon.models.Models.KnowledgeSearchResultOrBuilder>
           internalGetResultsFieldBuilder() {
         if (resultsBuilder_ == null) {
           resultsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -20805,7 +20805,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -20821,7 +20821,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -21221,7 +21221,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -21376,7 +21376,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.Knowledge knowledge = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder> 
+          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>
           internalGetKnowledgeFieldBuilder() {
         if (knowledgeBuilder_ == null) {
           knowledgeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -21525,7 +21525,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -21541,7 +21541,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -21564,7 +21564,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -21580,7 +21580,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -21933,7 +21933,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -22005,7 +22005,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -22175,7 +22175,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -22191,7 +22191,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -22520,7 +22520,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -22703,7 +22703,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -22719,7 +22719,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -22742,7 +22742,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -22758,7 +22758,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -23111,7 +23111,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -23183,7 +23183,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -24232,7 +24232,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.Knowledge knowledge = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder> 
+          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>
           internalGetKnowledgeFieldBuilder() {
         if (knowledgeBuilder_ == null) {
           knowledgeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -24303,7 +24303,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.Knowledge> 
+    java.util.List<talon.manifests.Manifests.Knowledge>
         getKnowledgeList();
     /**
      * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
@@ -24316,7 +24316,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder> 
+    java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder>
         getKnowledgeOrBuilderList();
     /**
      * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
@@ -24381,7 +24381,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder> 
+    public java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder>
         getKnowledgeOrBuilderList() {
       return knowledge_;
     }
@@ -24691,7 +24691,7 @@ java.lang.String defaultValue) {
               knowledgeBuilder_ = null;
               knowledge_ = other.knowledge_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              knowledgeBuilder_ = 
+              knowledgeBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetKnowledgeFieldBuilder() : null;
             } else {
@@ -24950,7 +24950,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder> 
+      public java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder>
            getKnowledgeOrBuilderList() {
         if (knowledgeBuilder_ != null) {
           return knowledgeBuilder_.getMessageOrBuilderList();
@@ -24976,12 +24976,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.Knowledge.Builder> 
+      public java.util.List<talon.manifests.Manifests.Knowledge.Builder>
            getKnowledgeBuilderList() {
         return internalGetKnowledgeFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder> 
+          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>
           internalGetKnowledgeFieldBuilder() {
         if (knowledgeBuilder_ == null) {
           knowledgeBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -25177,7 +25177,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -25193,7 +25193,7 @@ java.lang.String defaultValue);
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -25216,7 +25216,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -25232,7 +25232,7 @@ java.lang.String defaultValue);
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -25248,7 +25248,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_CreateSessionRequest_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_CreateSessionRequest_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -25725,7 +25725,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -25797,7 +25797,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -26130,7 +26130,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -26146,7 +26146,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -26169,7 +26169,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -26185,7 +26185,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -26208,7 +26208,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -26224,7 +26224,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -26639,7 +26639,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -26711,7 +26711,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -26783,7 +26783,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -27048,7 +27048,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -27064,7 +27064,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -27087,7 +27087,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -27103,7 +27103,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -27126,7 +27126,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -27142,7 +27142,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -27184,7 +27184,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         beforeMessageId_ = s;
@@ -27200,7 +27200,7 @@ java.lang.String defaultValue) {
         getBeforeMessageIdBytes() {
       java.lang.Object ref = beforeMessageId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         beforeMessageId_ = b;
@@ -27632,7 +27632,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -27704,7 +27704,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -27776,7 +27776,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -27887,7 +27887,7 @@ java.lang.String defaultValue) {
           getBeforeMessageIdBytes() {
         java.lang.Object ref = beforeMessageId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           beforeMessageId_ = b;
@@ -28496,7 +28496,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.SessionMessage message = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder> 
+          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -28603,7 +28603,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.gateway.ListSessionMessagesResponseItem items = 4;</code>
      */
-    java.util.List<talon.gateway.Gateway.ListSessionMessagesResponseItem> 
+    java.util.List<talon.gateway.Gateway.ListSessionMessagesResponseItem>
         getItemsList();
     /**
      * <code>repeated .talon.gateway.ListSessionMessagesResponseItem items = 4;</code>
@@ -28616,7 +28616,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.gateway.ListSessionMessagesResponseItem items = 4;</code>
      */
-    java.util.List<? extends talon.gateway.Gateway.ListSessionMessagesResponseItemOrBuilder> 
+    java.util.List<? extends talon.gateway.Gateway.ListSessionMessagesResponseItemOrBuilder>
         getItemsOrBuilderList();
     /**
      * <code>repeated .talon.gateway.ListSessionMessagesResponseItem items = 4;</code>
@@ -28708,7 +28708,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -28724,7 +28724,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -28747,7 +28747,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -28763,7 +28763,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -28786,7 +28786,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         state_ = s;
@@ -28802,7 +28802,7 @@ java.lang.String defaultValue) {
         getStateBytes() {
       java.lang.Object ref = state_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         state_ = b;
@@ -28826,7 +28826,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.gateway.ListSessionMessagesResponseItem items = 4;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.gateway.Gateway.ListSessionMessagesResponseItemOrBuilder> 
+    public java.util.List<? extends talon.gateway.Gateway.ListSessionMessagesResponseItemOrBuilder>
         getItemsOrBuilderList() {
       return items_;
     }
@@ -28885,7 +28885,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         nextBeforeMessageId_ = s;
@@ -28901,7 +28901,7 @@ java.lang.String defaultValue) {
         getNextBeforeMessageIdBytes() {
       java.lang.Object ref = nextBeforeMessageId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         nextBeforeMessageId_ = b;
@@ -29289,7 +29289,7 @@ java.lang.String defaultValue) {
               itemsBuilder_ = null;
               items_ = other.items_;
               bitField0_ = (bitField0_ & ~0x00000008);
-              itemsBuilder_ = 
+              itemsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetItemsFieldBuilder() : null;
             } else {
@@ -29411,7 +29411,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -29483,7 +29483,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -29555,7 +29555,7 @@ java.lang.String defaultValue) {
           getStateBytes() {
         java.lang.Object ref = state_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           state_ = b;
@@ -29797,7 +29797,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.gateway.ListSessionMessagesResponseItem items = 4;</code>
        */
-      public java.util.List<? extends talon.gateway.Gateway.ListSessionMessagesResponseItemOrBuilder> 
+      public java.util.List<? extends talon.gateway.Gateway.ListSessionMessagesResponseItemOrBuilder>
            getItemsOrBuilderList() {
         if (itemsBuilder_ != null) {
           return itemsBuilder_.getMessageOrBuilderList();
@@ -29823,12 +29823,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.gateway.ListSessionMessagesResponseItem items = 4;</code>
        */
-      public java.util.List<talon.gateway.Gateway.ListSessionMessagesResponseItem.Builder> 
+      public java.util.List<talon.gateway.Gateway.ListSessionMessagesResponseItem.Builder>
            getItemsBuilderList() {
         return internalGetItemsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.gateway.Gateway.ListSessionMessagesResponseItem, talon.gateway.Gateway.ListSessionMessagesResponseItem.Builder, talon.gateway.Gateway.ListSessionMessagesResponseItemOrBuilder> 
+          talon.gateway.Gateway.ListSessionMessagesResponseItem, talon.gateway.Gateway.ListSessionMessagesResponseItem.Builder, talon.gateway.Gateway.ListSessionMessagesResponseItemOrBuilder>
           internalGetItemsFieldBuilder() {
         if (itemsBuilder_ == null) {
           itemsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -29906,7 +29906,7 @@ java.lang.String defaultValue) {
           getNextBeforeMessageIdBytes() {
         java.lang.Object ref = nextBeforeMessageId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           nextBeforeMessageId_ = b;
@@ -30089,7 +30089,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -30105,7 +30105,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -30128,7 +30128,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -30144,7 +30144,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -30497,7 +30497,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -30569,7 +30569,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -30791,7 +30791,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -30807,7 +30807,7 @@ java.lang.String defaultValue);
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -30834,7 +30834,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_SessionListItem_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_SessionListItem_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -31311,7 +31311,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -31600,7 +31600,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.gateway.SessionListItem sessions = 2;</code>
      */
-    java.util.List<talon.gateway.Gateway.SessionListItem> 
+    java.util.List<talon.gateway.Gateway.SessionListItem>
         getSessionsList();
     /**
      * <code>repeated .talon.gateway.SessionListItem sessions = 2;</code>
@@ -31613,7 +31613,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.gateway.SessionListItem sessions = 2;</code>
      */
-    java.util.List<? extends talon.gateway.Gateway.SessionListItemOrBuilder> 
+    java.util.List<? extends talon.gateway.Gateway.SessionListItemOrBuilder>
         getSessionsOrBuilderList();
     /**
      * <code>repeated .talon.gateway.SessionListItem sessions = 2;</code>
@@ -31717,7 +31717,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.gateway.SessionListItem sessions = 2;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.gateway.Gateway.SessionListItemOrBuilder> 
+    public java.util.List<? extends talon.gateway.Gateway.SessionListItemOrBuilder>
         getSessionsOrBuilderList() {
       return sessions_;
     }
@@ -32060,7 +32060,7 @@ java.lang.String defaultValue) {
               sessionsBuilder_ = null;
               sessions_ = other.sessions_;
               bitField0_ = (bitField0_ & ~0x00000002);
-              sessionsBuilder_ = 
+              sessionsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetSessionsFieldBuilder() : null;
             } else {
@@ -32435,7 +32435,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.gateway.SessionListItem sessions = 2;</code>
        */
-      public java.util.List<? extends talon.gateway.Gateway.SessionListItemOrBuilder> 
+      public java.util.List<? extends talon.gateway.Gateway.SessionListItemOrBuilder>
            getSessionsOrBuilderList() {
         if (sessionsBuilder_ != null) {
           return sessionsBuilder_.getMessageOrBuilderList();
@@ -32461,12 +32461,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.gateway.SessionListItem sessions = 2;</code>
        */
-      public java.util.List<talon.gateway.Gateway.SessionListItem.Builder> 
+      public java.util.List<talon.gateway.Gateway.SessionListItem.Builder>
            getSessionsBuilderList() {
         return internalGetSessionsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.gateway.Gateway.SessionListItem, talon.gateway.Gateway.SessionListItem.Builder, talon.gateway.Gateway.SessionListItemOrBuilder> 
+          talon.gateway.Gateway.SessionListItem, talon.gateway.Gateway.SessionListItem.Builder, talon.gateway.Gateway.SessionListItemOrBuilder>
           internalGetSessionsFieldBuilder() {
         if (sessionsBuilder_ == null) {
           sessionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -32574,7 +32574,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.SessionMessage messages = 4;</code>
      */
-    java.util.List<talon.models.Models.SessionMessage> 
+    java.util.List<talon.models.Models.SessionMessage>
         getMessagesList();
     /**
      * <code>repeated .talon.models.SessionMessage messages = 4;</code>
@@ -32587,7 +32587,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.SessionMessage messages = 4;</code>
      */
-    java.util.List<? extends talon.models.Models.SessionMessageOrBuilder> 
+    java.util.List<? extends talon.models.Models.SessionMessageOrBuilder>
         getMessagesOrBuilderList();
     /**
      * <code>repeated .talon.models.SessionMessage messages = 4;</code>
@@ -32700,7 +32700,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -32716,7 +32716,7 @@ java.lang.String defaultValue);
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -32739,7 +32739,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -32755,7 +32755,7 @@ java.lang.String defaultValue);
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -32778,7 +32778,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         state_ = s;
@@ -32794,7 +32794,7 @@ java.lang.String defaultValue);
         getStateBytes() {
       java.lang.Object ref = state_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         state_ = b;
@@ -32818,7 +32818,7 @@ java.lang.String defaultValue);
      * <code>repeated .talon.models.SessionMessage messages = 4;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.SessionMessageOrBuilder> 
+    public java.util.List<? extends talon.models.Models.SessionMessageOrBuilder>
         getMessagesOrBuilderList() {
       return messages_;
     }
@@ -32851,7 +32851,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_SessionResponse_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_SessionResponse_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -33313,7 +33313,7 @@ java.lang.String defaultValue) {
               messagesBuilder_ = null;
               messages_ = other.messages_;
               bitField0_ = (bitField0_ & ~0x00000008);
-              messagesBuilder_ = 
+              messagesBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetMessagesFieldBuilder() : null;
             } else {
@@ -33429,7 +33429,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -33501,7 +33501,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -33573,7 +33573,7 @@ java.lang.String defaultValue) {
           getStateBytes() {
         java.lang.Object ref = state_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           state_ = b;
@@ -33815,7 +33815,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.SessionMessage messages = 4;</code>
        */
-      public java.util.List<? extends talon.models.Models.SessionMessageOrBuilder> 
+      public java.util.List<? extends talon.models.Models.SessionMessageOrBuilder>
            getMessagesOrBuilderList() {
         if (messagesBuilder_ != null) {
           return messagesBuilder_.getMessageOrBuilderList();
@@ -33841,12 +33841,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.SessionMessage messages = 4;</code>
        */
-      public java.util.List<talon.models.Models.SessionMessage.Builder> 
+      public java.util.List<talon.models.Models.SessionMessage.Builder>
            getMessagesBuilderList() {
         return internalGetMessagesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder> 
+          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>
           internalGetMessagesFieldBuilder() {
         if (messagesBuilder_ == null) {
           messagesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -34136,7 +34136,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -34152,7 +34152,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -34175,7 +34175,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -34191,7 +34191,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -34214,7 +34214,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -34230,7 +34230,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -34607,7 +34607,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -34679,7 +34679,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -34751,7 +34751,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -36628,7 +36628,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -36644,7 +36644,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -37044,7 +37044,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -37199,7 +37199,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.Channel channel = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder> 
+          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>
           internalGetChannelFieldBuilder() {
         if (channelBuilder_ == null) {
           channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -37348,7 +37348,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -37364,7 +37364,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -37387,7 +37387,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -37403,7 +37403,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -37756,7 +37756,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -37828,7 +37828,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -38027,7 +38027,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -38043,7 +38043,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -38066,7 +38066,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -38082,7 +38082,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -38506,7 +38506,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -38578,7 +38578,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -38733,7 +38733,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.Channel channel = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder> 
+          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>
           internalGetChannelFieldBuilder() {
         if (channelBuilder_ == null) {
           channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -38869,7 +38869,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -38885,7 +38885,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -39214,7 +39214,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -39397,7 +39397,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -39413,7 +39413,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -39436,7 +39436,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -39452,7 +39452,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -39805,7 +39805,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -39877,7 +39877,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -40486,7 +40486,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.Channel channel = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder> 
+          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>
           internalGetChannelFieldBuilder() {
         if (channelBuilder_ == null) {
           channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -40557,7 +40557,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.Channel channels = 1;</code>
      */
-    java.util.List<talon.models.Models.Channel> 
+    java.util.List<talon.models.Models.Channel>
         getChannelsList();
     /**
      * <code>repeated .talon.models.Channel channels = 1;</code>
@@ -40570,7 +40570,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.Channel channels = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.ChannelOrBuilder> 
+    java.util.List<? extends talon.models.Models.ChannelOrBuilder>
         getChannelsOrBuilderList();
     /**
      * <code>repeated .talon.models.Channel channels = 1;</code>
@@ -40635,7 +40635,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.models.Channel channels = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.ChannelOrBuilder> 
+    public java.util.List<? extends talon.models.Models.ChannelOrBuilder>
         getChannelsOrBuilderList() {
       return channels_;
     }
@@ -40945,7 +40945,7 @@ java.lang.String defaultValue) {
               channelsBuilder_ = null;
               channels_ = other.channels_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              channelsBuilder_ = 
+              channelsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetChannelsFieldBuilder() : null;
             } else {
@@ -41204,7 +41204,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.Channel channels = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.ChannelOrBuilder> 
+      public java.util.List<? extends talon.models.Models.ChannelOrBuilder>
            getChannelsOrBuilderList() {
         if (channelsBuilder_ != null) {
           return channelsBuilder_.getMessageOrBuilderList();
@@ -41230,12 +41230,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.Channel channels = 1;</code>
        */
-      public java.util.List<talon.models.Models.Channel.Builder> 
+      public java.util.List<talon.models.Models.Channel.Builder>
            getChannelsBuilderList() {
         return internalGetChannelsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder> 
+          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>
           internalGetChannelsFieldBuilder() {
         if (channelsBuilder_ == null) {
           channelsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -41937,7 +41937,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -41953,7 +41953,7 @@ java.lang.String defaultValue);
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -41976,7 +41976,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -41992,7 +41992,7 @@ java.lang.String defaultValue);
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -42015,7 +42015,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         authorKind_ = s;
@@ -42031,7 +42031,7 @@ java.lang.String defaultValue);
         getAuthorKindBytes() {
       java.lang.Object ref = authorKind_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         authorKind_ = b;
@@ -42054,7 +42054,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         author_ = s;
@@ -42070,7 +42070,7 @@ java.lang.String defaultValue);
         getAuthorBytes() {
       java.lang.Object ref = author_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         author_ = b;
@@ -42093,7 +42093,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         content_ = s;
@@ -42109,7 +42109,7 @@ java.lang.String defaultValue);
         getContentBytes() {
       java.lang.Object ref = content_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         content_ = b;
@@ -42162,7 +42162,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_PostChannelMessageRequest_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_PostChannelMessageRequest_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -42749,7 +42749,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -42821,7 +42821,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -42893,7 +42893,7 @@ java.lang.String defaultValue) {
           getAuthorKindBytes() {
         java.lang.Object ref = authorKind_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           authorKind_ = b;
@@ -42965,7 +42965,7 @@ java.lang.String defaultValue) {
           getAuthorBytes() {
         java.lang.Object ref = author_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           author_ = b;
@@ -43037,7 +43037,7 @@ java.lang.String defaultValue) {
           getContentBytes() {
         java.lang.Object ref = content_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           content_ = b;
@@ -43484,7 +43484,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         subscription_ = s;
@@ -43500,7 +43500,7 @@ java.lang.String defaultValue) {
         getSubscriptionBytes() {
       java.lang.Object ref = subscription_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         subscription_ = b;
@@ -43523,7 +43523,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -43539,7 +43539,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -43562,7 +43562,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -43578,7 +43578,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -43601,7 +43601,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         error_ = s;
@@ -43617,7 +43617,7 @@ java.lang.String defaultValue) {
         getErrorBytes() {
       java.lang.Object ref = error_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         error_ = b;
@@ -44018,7 +44018,7 @@ java.lang.String defaultValue) {
           getSubscriptionBytes() {
         java.lang.Object ref = subscription_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           subscription_ = b;
@@ -44090,7 +44090,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -44162,7 +44162,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -44234,7 +44234,7 @@ java.lang.String defaultValue) {
           getErrorBytes() {
         java.lang.Object ref = error_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           error_ = b;
@@ -44354,7 +44354,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.gateway.RoutedChannelSession routed_sessions = 2;</code>
      */
-    java.util.List<talon.gateway.Gateway.RoutedChannelSession> 
+    java.util.List<talon.gateway.Gateway.RoutedChannelSession>
         getRoutedSessionsList();
     /**
      * <code>repeated .talon.gateway.RoutedChannelSession routed_sessions = 2;</code>
@@ -44367,7 +44367,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.gateway.RoutedChannelSession routed_sessions = 2;</code>
      */
-    java.util.List<? extends talon.gateway.Gateway.RoutedChannelSessionOrBuilder> 
+    java.util.List<? extends talon.gateway.Gateway.RoutedChannelSessionOrBuilder>
         getRoutedSessionsOrBuilderList();
     /**
      * <code>repeated .talon.gateway.RoutedChannelSession routed_sessions = 2;</code>
@@ -44459,7 +44459,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.gateway.RoutedChannelSession routed_sessions = 2;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.gateway.Gateway.RoutedChannelSessionOrBuilder> 
+    public java.util.List<? extends talon.gateway.Gateway.RoutedChannelSessionOrBuilder>
         getRoutedSessionsOrBuilderList() {
       return routedSessions_;
     }
@@ -44808,7 +44808,7 @@ java.lang.String defaultValue) {
               routedSessionsBuilder_ = null;
               routedSessions_ = other.routedSessions_;
               bitField0_ = (bitField0_ & ~0x00000002);
-              routedSessionsBuilder_ = 
+              routedSessionsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetRoutedSessionsFieldBuilder() : null;
             } else {
@@ -44987,7 +44987,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.ChannelMessage message = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder> 
+          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -45195,7 +45195,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.gateway.RoutedChannelSession routed_sessions = 2;</code>
        */
-      public java.util.List<? extends talon.gateway.Gateway.RoutedChannelSessionOrBuilder> 
+      public java.util.List<? extends talon.gateway.Gateway.RoutedChannelSessionOrBuilder>
            getRoutedSessionsOrBuilderList() {
         if (routedSessionsBuilder_ != null) {
           return routedSessionsBuilder_.getMessageOrBuilderList();
@@ -45221,12 +45221,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.gateway.RoutedChannelSession routed_sessions = 2;</code>
        */
-      public java.util.List<talon.gateway.Gateway.RoutedChannelSession.Builder> 
+      public java.util.List<talon.gateway.Gateway.RoutedChannelSession.Builder>
            getRoutedSessionsBuilderList() {
         return internalGetRoutedSessionsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.gateway.Gateway.RoutedChannelSession, talon.gateway.Gateway.RoutedChannelSession.Builder, talon.gateway.Gateway.RoutedChannelSessionOrBuilder> 
+          talon.gateway.Gateway.RoutedChannelSession, talon.gateway.Gateway.RoutedChannelSession.Builder, talon.gateway.Gateway.RoutedChannelSessionOrBuilder>
           internalGetRoutedSessionsFieldBuilder() {
         if (routedSessionsBuilder_ == null) {
           routedSessionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -45389,7 +45389,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -45405,7 +45405,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -45428,7 +45428,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -45444,7 +45444,7 @@ java.lang.String defaultValue) {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -45467,7 +45467,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         messageId_ = s;
@@ -45483,7 +45483,7 @@ java.lang.String defaultValue) {
         getMessageIdBytes() {
       java.lang.Object ref = messageId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         messageId_ = b;
@@ -45860,7 +45860,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -45932,7 +45932,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -46004,7 +46004,7 @@ java.lang.String defaultValue) {
           getMessageIdBytes() {
         java.lang.Object ref = messageId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           messageId_ = b;
@@ -46613,7 +46613,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.ChannelMessage message = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder> 
+          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -46793,7 +46793,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -46809,7 +46809,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -46832,7 +46832,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -46848,7 +46848,7 @@ java.lang.String defaultValue) {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -46901,7 +46901,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         beforeMessageId_ = s;
@@ -46917,7 +46917,7 @@ java.lang.String defaultValue) {
         getBeforeMessageIdBytes() {
       java.lang.Object ref = beforeMessageId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         beforeMessageId_ = b;
@@ -47348,7 +47348,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -47420,7 +47420,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -47563,7 +47563,7 @@ java.lang.String defaultValue) {
           getBeforeMessageIdBytes() {
         java.lang.Object ref = beforeMessageId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           beforeMessageId_ = b;
@@ -47668,7 +47668,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
      */
-    java.util.List<talon.models.Models.ChannelMessage> 
+    java.util.List<talon.models.Models.ChannelMessage>
         getMessagesList();
     /**
      * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
@@ -47681,7 +47681,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder> 
+    java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder>
         getMessagesOrBuilderList();
     /**
      * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
@@ -47771,7 +47771,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder> 
+    public java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder>
         getMessagesOrBuilderList() {
       return messages_;
     }
@@ -47830,7 +47830,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         nextBeforeMessageId_ = s;
@@ -47846,7 +47846,7 @@ java.lang.String defaultValue) {
         getNextBeforeMessageIdBytes() {
       java.lang.Object ref = nextBeforeMessageId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         nextBeforeMessageId_ = b;
@@ -48177,7 +48177,7 @@ java.lang.String defaultValue) {
               messagesBuilder_ = null;
               messages_ = other.messages_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              messagesBuilder_ = 
+              messagesBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetMessagesFieldBuilder() : null;
             } else {
@@ -48454,7 +48454,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder> 
+      public java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder>
            getMessagesOrBuilderList() {
         if (messagesBuilder_ != null) {
           return messagesBuilder_.getMessageOrBuilderList();
@@ -48480,12 +48480,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
        */
-      public java.util.List<talon.models.Models.ChannelMessage.Builder> 
+      public java.util.List<talon.models.Models.ChannelMessage.Builder>
            getMessagesBuilderList() {
         return internalGetMessagesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder> 
+          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>
           internalGetMessagesFieldBuilder() {
         if (messagesBuilder_ == null) {
           messagesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -48563,7 +48563,7 @@ java.lang.String defaultValue) {
           getNextBeforeMessageIdBytes() {
         java.lang.Object ref = nextBeforeMessageId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           nextBeforeMessageId_ = b;
@@ -48762,7 +48762,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -48778,7 +48778,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -48801,7 +48801,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -48817,7 +48817,7 @@ java.lang.String defaultValue) {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -49241,7 +49241,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -49313,7 +49313,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -49468,7 +49468,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.ChannelSubscription subscription = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder> 
+          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>
           internalGetSubscriptionFieldBuilder() {
         if (subscriptionBuilder_ == null) {
           subscriptionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -49630,7 +49630,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -49646,7 +49646,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -49669,7 +49669,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -49685,7 +49685,7 @@ java.lang.String defaultValue) {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -49708,7 +49708,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -49724,7 +49724,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -50101,7 +50101,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -50173,7 +50173,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -50245,7 +50245,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -50457,7 +50457,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -50473,7 +50473,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -50496,7 +50496,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -50512,7 +50512,7 @@ java.lang.String defaultValue) {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -50535,7 +50535,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -50551,7 +50551,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -50999,7 +50999,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -51071,7 +51071,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -51143,7 +51143,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -51298,7 +51298,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.ChannelSubscription subscription = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder> 
+          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>
           internalGetSubscriptionFieldBuilder() {
         if (subscriptionBuilder_ == null) {
           subscriptionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -51447,7 +51447,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -51463,7 +51463,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -51486,7 +51486,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -51502,7 +51502,7 @@ java.lang.String defaultValue) {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -51855,7 +51855,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -51927,7 +51927,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -52123,7 +52123,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -52139,7 +52139,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -52162,7 +52162,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -52178,7 +52178,7 @@ java.lang.String defaultValue) {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -52201,7 +52201,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -52217,7 +52217,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -52594,7 +52594,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -52666,7 +52666,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -52738,7 +52738,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -53347,7 +53347,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.ChannelSubscription subscription = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder> 
+          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>
           internalGetSubscriptionFieldBuilder() {
         if (subscriptionBuilder_ == null) {
           subscriptionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -53418,7 +53418,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
      */
-    java.util.List<talon.models.Models.ChannelSubscription> 
+    java.util.List<talon.models.Models.ChannelSubscription>
         getSubscriptionsList();
     /**
      * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
@@ -53431,7 +53431,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder> 
+    java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder>
         getSubscriptionsOrBuilderList();
     /**
      * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
@@ -53496,7 +53496,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder> 
+    public java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder>
         getSubscriptionsOrBuilderList() {
       return subscriptions_;
     }
@@ -53806,7 +53806,7 @@ java.lang.String defaultValue) {
               subscriptionsBuilder_ = null;
               subscriptions_ = other.subscriptions_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              subscriptionsBuilder_ = 
+              subscriptionsBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetSubscriptionsFieldBuilder() : null;
             } else {
@@ -54065,7 +54065,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder> 
+      public java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder>
            getSubscriptionsOrBuilderList() {
         if (subscriptionsBuilder_ != null) {
           return subscriptionsBuilder_.getMessageOrBuilderList();
@@ -54091,12 +54091,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
        */
-      public java.util.List<talon.models.Models.ChannelSubscription.Builder> 
+      public java.util.List<talon.models.Models.ChannelSubscription.Builder>
            getSubscriptionsBuilderList() {
         return internalGetSubscriptionsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder> 
+          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>
           internalGetSubscriptionsFieldBuilder() {
         if (subscriptionsBuilder_ == null) {
           subscriptionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -54686,7 +54686,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -54702,7 +54702,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -54725,7 +54725,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         channel_ = s;
@@ -54741,7 +54741,7 @@ java.lang.String defaultValue) {
         getChannelBytes() {
       java.lang.Object ref = channel_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         channel_ = b;
@@ -55094,7 +55094,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -55166,7 +55166,7 @@ java.lang.String defaultValue) {
           getChannelBytes() {
         java.lang.Object ref = channel_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           channel_ = b;
@@ -55352,7 +55352,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -55368,7 +55368,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -55768,7 +55768,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -55923,7 +55923,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.Schedule schedule = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder> 
+          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>
           internalGetScheduleFieldBuilder() {
         if (scheduleBuilder_ == null) {
           scheduleBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -56072,7 +56072,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -56088,7 +56088,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -56111,7 +56111,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -56127,7 +56127,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -56480,7 +56480,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -56552,7 +56552,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -56751,7 +56751,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -56767,7 +56767,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -56790,7 +56790,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -56806,7 +56806,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -57230,7 +57230,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -57302,7 +57302,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -57457,7 +57457,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.Schedule schedule = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder> 
+          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>
           internalGetScheduleFieldBuilder() {
         if (scheduleBuilder_ == null) {
           scheduleBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -57593,7 +57593,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -57609,7 +57609,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -57938,7 +57938,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -58043,7 +58043,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.Schedule schedules = 1;</code>
      */
-    java.util.List<talon.models.Models.Schedule> 
+    java.util.List<talon.models.Models.Schedule>
         getSchedulesList();
     /**
      * <code>repeated .talon.models.Schedule schedules = 1;</code>
@@ -58056,7 +58056,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.models.Schedule schedules = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.ScheduleOrBuilder> 
+    java.util.List<? extends talon.models.Models.ScheduleOrBuilder>
         getSchedulesOrBuilderList();
     /**
      * <code>repeated .talon.models.Schedule schedules = 1;</code>
@@ -58121,7 +58121,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.models.Schedule schedules = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.ScheduleOrBuilder> 
+    public java.util.List<? extends talon.models.Models.ScheduleOrBuilder>
         getSchedulesOrBuilderList() {
       return schedules_;
     }
@@ -58431,7 +58431,7 @@ java.lang.String defaultValue) {
               schedulesBuilder_ = null;
               schedules_ = other.schedules_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              schedulesBuilder_ = 
+              schedulesBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetSchedulesFieldBuilder() : null;
             } else {
@@ -58690,7 +58690,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.Schedule schedules = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.ScheduleOrBuilder> 
+      public java.util.List<? extends talon.models.Models.ScheduleOrBuilder>
            getSchedulesOrBuilderList() {
         if (schedulesBuilder_ != null) {
           return schedulesBuilder_.getMessageOrBuilderList();
@@ -58716,12 +58716,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.models.Schedule schedules = 1;</code>
        */
-      public java.util.List<talon.models.Models.Schedule.Builder> 
+      public java.util.List<talon.models.Models.Schedule.Builder>
            getSchedulesBuilderList() {
         return internalGetSchedulesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder> 
+          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>
           internalGetSchedulesFieldBuilder() {
         if (schedulesBuilder_ == null) {
           schedulesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -58871,7 +58871,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -58887,7 +58887,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -58910,7 +58910,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -58926,7 +58926,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -59279,7 +59279,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -59351,7 +59351,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -60400,7 +60400,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.Schedule schedule = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder> 
+          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>
           internalGetScheduleFieldBuilder() {
         if (scheduleBuilder_ == null) {
           scheduleBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -60621,7 +60621,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -60637,7 +60637,7 @@ java.lang.String defaultValue);
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -60660,7 +60660,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -60676,7 +60676,7 @@ java.lang.String defaultValue);
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -60699,7 +60699,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -60715,7 +60715,7 @@ java.lang.String defaultValue);
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -60738,7 +60738,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         message_ = s;
@@ -60754,7 +60754,7 @@ java.lang.String defaultValue);
         getMessageBytes() {
       java.lang.Object ref = message_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         message_ = b;
@@ -60770,7 +60770,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_SendMessageRequest_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_SendMessageRequest_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -61295,7 +61295,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -61367,7 +61367,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -61439,7 +61439,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -61511,7 +61511,7 @@ java.lang.String defaultValue) {
           getMessageBytes() {
         java.lang.Object ref = message_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           message_ = b;
@@ -61821,7 +61821,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         reply_ = s;
@@ -61837,7 +61837,7 @@ java.lang.String defaultValue) {
         getReplyBytes() {
       java.lang.Object ref = reply_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         reply_ = b;
@@ -61860,7 +61860,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -61876,7 +61876,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -62229,7 +62229,7 @@ java.lang.String defaultValue) {
           getReplyBytes() {
         java.lang.Object ref = reply_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           reply_ = b;
@@ -62301,7 +62301,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -62513,7 +62513,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -62529,7 +62529,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -62552,7 +62552,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -62568,7 +62568,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -62591,7 +62591,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -62607,7 +62607,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -63055,7 +63055,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -63127,7 +63127,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -63199,7 +63199,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -63354,7 +63354,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.SessionMessage message = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder> 
+          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -63506,7 +63506,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -63522,7 +63522,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -63922,7 +63922,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -64077,7 +64077,7 @@ java.lang.String defaultValue) {
        * <code>.talon.models.SessionMessage message = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder> 
+          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -64239,7 +64239,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -64255,7 +64255,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -64278,7 +64278,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -64294,7 +64294,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -64317,7 +64317,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -64333,7 +64333,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -64710,7 +64710,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -64782,7 +64782,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -64854,7 +64854,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -65490,7 +65490,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         sessionId_ = s;
@@ -65506,7 +65506,7 @@ java.lang.String defaultValue) {
         getSessionIdBytes() {
       java.lang.Object ref = sessionId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         sessionId_ = b;
@@ -65529,7 +65529,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         agent_ = s;
@@ -65545,7 +65545,7 @@ java.lang.String defaultValue) {
         getAgentBytes() {
       java.lang.Object ref = agent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         agent_ = b;
@@ -65568,7 +65568,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         ns_ = s;
@@ -65584,7 +65584,7 @@ java.lang.String defaultValue) {
         getNsBytes() {
       java.lang.Object ref = ns_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         ns_ = b;
@@ -65961,7 +65961,7 @@ java.lang.String defaultValue) {
           getSessionIdBytes() {
         java.lang.Object ref = sessionId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           sessionId_ = b;
@@ -66033,7 +66033,7 @@ java.lang.String defaultValue) {
           getAgentBytes() {
         java.lang.Object ref = agent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           agent_ = b;
@@ -66105,7 +66105,7 @@ java.lang.String defaultValue) {
           getNsBytes() {
         java.lang.Object ref = ns_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           ns_ = b;
@@ -66992,7 +66992,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -67008,7 +67008,7 @@ java.lang.String defaultValue);
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -67035,7 +67035,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_CreateNamespaceRequest_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_CreateNamespaceRequest_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -67512,7 +67512,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -67841,7 +67841,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -67857,7 +67857,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -68186,7 +68186,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -68356,7 +68356,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -68372,7 +68372,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -68701,7 +68701,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -68885,7 +68885,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         parent_ = s;
@@ -68901,7 +68901,7 @@ java.lang.String defaultValue) {
         getParentBytes() {
       java.lang.Object ref = parent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         parent_ = b;
@@ -69245,7 +69245,7 @@ java.lang.String defaultValue) {
           getParentBytes() {
         java.lang.Object ref = parent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           parent_ = b;
@@ -69492,7 +69492,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -69508,7 +69508,7 @@ java.lang.String defaultValue);
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -69539,7 +69539,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         parent_ = s;
@@ -69555,7 +69555,7 @@ java.lang.String defaultValue);
         getParentBytes() {
       java.lang.Object ref = parent_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         parent_ = b;
@@ -69593,7 +69593,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.gateway.Gateway.internal_static_talon_gateway_NamespaceResponse_LabelsEntry_descriptor, 
+                  talon.gateway.Gateway.internal_static_talon_gateway_NamespaceResponse_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -70126,7 +70126,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -70205,7 +70205,7 @@ java.lang.String defaultValue) {
           getParentBytes() {
         java.lang.Object ref = parent_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           parent_ = b;
@@ -70501,7 +70501,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.gateway.NamespaceResponse namespaces = 1;</code>
      */
-    java.util.List<talon.gateway.Gateway.NamespaceResponse> 
+    java.util.List<talon.gateway.Gateway.NamespaceResponse>
         getNamespacesList();
     /**
      * <code>repeated .talon.gateway.NamespaceResponse namespaces = 1;</code>
@@ -70514,7 +70514,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.gateway.NamespaceResponse namespaces = 1;</code>
      */
-    java.util.List<? extends talon.gateway.Gateway.NamespaceResponseOrBuilder> 
+    java.util.List<? extends talon.gateway.Gateway.NamespaceResponseOrBuilder>
         getNamespacesOrBuilderList();
     /**
      * <code>repeated .talon.gateway.NamespaceResponse namespaces = 1;</code>
@@ -70579,7 +70579,7 @@ java.lang.String defaultValue) {
      * <code>repeated .talon.gateway.NamespaceResponse namespaces = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.gateway.Gateway.NamespaceResponseOrBuilder> 
+    public java.util.List<? extends talon.gateway.Gateway.NamespaceResponseOrBuilder>
         getNamespacesOrBuilderList() {
       return namespaces_;
     }
@@ -70889,7 +70889,7 @@ java.lang.String defaultValue) {
               namespacesBuilder_ = null;
               namespaces_ = other.namespaces_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              namespacesBuilder_ = 
+              namespacesBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetNamespacesFieldBuilder() : null;
             } else {
@@ -71148,7 +71148,7 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.gateway.NamespaceResponse namespaces = 1;</code>
        */
-      public java.util.List<? extends talon.gateway.Gateway.NamespaceResponseOrBuilder> 
+      public java.util.List<? extends talon.gateway.Gateway.NamespaceResponseOrBuilder>
            getNamespacesOrBuilderList() {
         if (namespacesBuilder_ != null) {
           return namespacesBuilder_.getMessageOrBuilderList();
@@ -71174,12 +71174,12 @@ java.lang.String defaultValue) {
       /**
        * <code>repeated .talon.gateway.NamespaceResponse namespaces = 1;</code>
        */
-      public java.util.List<talon.gateway.Gateway.NamespaceResponse.Builder> 
+      public java.util.List<talon.gateway.Gateway.NamespaceResponse.Builder>
            getNamespacesBuilderList() {
         return internalGetNamespacesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.gateway.Gateway.NamespaceResponse, talon.gateway.Gateway.NamespaceResponse.Builder, talon.gateway.Gateway.NamespaceResponseOrBuilder> 
+          talon.gateway.Gateway.NamespaceResponse, talon.gateway.Gateway.NamespaceResponse.Builder, talon.gateway.Gateway.NamespaceResponseOrBuilder>
           internalGetNamespacesFieldBuilder() {
         if (namespacesBuilder_ == null) {
           namespacesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -71246,282 +71246,282 @@ java.lang.String defaultValue) {
 
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateAgentTemplateRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateAgentTemplateRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_AgentTemplateResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_AgentTemplateResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetAgentTemplateRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetAgentTemplateRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteAgentTemplateRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteAgentTemplateRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteAgentTemplateResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteAgentTemplateResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListAgentTemplatesRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListAgentTemplatesRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListAgentTemplatesResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListAgentTemplatesResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateMcpServerRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateMcpServerRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetMcpServerRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetMcpServerRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListMcpServersRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListMcpServersRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteMcpServerRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteMcpServerRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteMcpServerResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteMcpServerResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_McpServerResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_McpServerResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListMcpServersResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListMcpServersResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateMcpServerBindingRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateMcpServerBindingRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetMcpServerBindingRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetMcpServerBindingRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListMcpServerBindingsRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListMcpServerBindingsRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteMcpServerBindingRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteMcpServerBindingRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteMcpServerBindingResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteMcpServerBindingResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_McpServerBindingResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_McpServerBindingResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListMcpServerBindingsResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListMcpServerBindingsResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetAgentResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetAgentResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetAgentRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetAgentRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateAgentRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateAgentRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateAgentRequest_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateAgentRequest_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_AgentResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_AgentResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_AgentResponse_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_AgentResponse_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListAgentsRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListAgentsRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListAgentsResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListAgentsResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ModifyAgentRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ModifyAgentRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ModifyAgentRequest_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ModifyAgentRequest_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetKnowledgeRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetKnowledgeRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_KnowledgeResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_KnowledgeResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SearchKnowledgeRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SearchKnowledgeRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SearchKnowledgeResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SearchKnowledgeResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateNamespaceKnowledgeRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateNamespaceKnowledgeRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetNamespaceKnowledgeRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetNamespaceKnowledgeRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListNamespaceKnowledgeRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListNamespaceKnowledgeRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteNamespaceKnowledgeRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteNamespaceKnowledgeRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteNamespaceKnowledgeResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteNamespaceKnowledgeResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_NamespaceKnowledgeResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_NamespaceKnowledgeResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListNamespaceKnowledgeResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListNamespaceKnowledgeResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateSessionRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateSessionRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateSessionRequest_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateSessionRequest_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetSessionRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetSessionRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListSessionMessagesRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListSessionMessagesRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListSessionMessagesResponseItem_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListSessionMessagesResponseItem_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListSessionMessagesResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListSessionMessagesResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListSessionsRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListSessionsRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SessionListItem_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SessionListItem_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SessionListItem_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SessionListItem_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListSessionsResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListSessionsResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SessionResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SessionResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SessionResponse_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SessionResponse_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteSessionRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteSessionRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteSessionResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteSessionResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
@@ -71536,252 +71536,252 @@ java.lang.String defaultValue) {
       internal_static_talon_gateway_ClearSessionResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateChannelRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateChannelRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetChannelRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetChannelRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ModifyChannelRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ModifyChannelRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListChannelsRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListChannelsRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteChannelRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteChannelRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ChannelResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ChannelResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListChannelsResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListChannelsResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteChannelResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteChannelResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_PostChannelMessageRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_PostChannelMessageRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_PostChannelMessageRequest_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_PostChannelMessageRequest_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_RoutedChannelSession_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_RoutedChannelSession_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_PostChannelMessageResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_PostChannelMessageResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetChannelMessageRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetChannelMessageRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ChannelMessageResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ChannelMessageResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListChannelMessagesRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListChannelMessagesRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListChannelMessagesResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListChannelMessagesResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateChannelSubscriptionRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateChannelSubscriptionRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetChannelSubscriptionRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetChannelSubscriptionRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ModifyChannelSubscriptionRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ModifyChannelSubscriptionRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListChannelSubscriptionsRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListChannelSubscriptionsRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteChannelSubscriptionRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteChannelSubscriptionRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ChannelSubscriptionResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ChannelSubscriptionResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListChannelSubscriptionsResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListChannelSubscriptionsResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteChannelSubscriptionResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteChannelSubscriptionResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_StreamChannelEventsRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_StreamChannelEventsRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateScheduleRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateScheduleRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetScheduleRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetScheduleRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ModifyScheduleRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ModifyScheduleRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListSchedulesRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListSchedulesRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListSchedulesResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListSchedulesResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteScheduleRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteScheduleRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteScheduleResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteScheduleResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ScheduleResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ScheduleResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SendMessageRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SendMessageRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SendMessageRequest_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SendMessageRequest_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_SendMessageResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_SendMessageResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_AppendSessionMessageRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_AppendSessionMessageRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_AppendSessionMessageResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_AppendSessionMessageResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_StopSessionGenerationRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_StopSessionGenerationRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_StopSessionGenerationResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_StopSessionGenerationResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_StreamSessionPartsRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_StreamSessionPartsRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_StreamSessionPartsBatchRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_StreamSessionPartsBatchRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateNamespaceRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateNamespaceRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateNamespaceRequest_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_CreateNamespaceRequest_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_GetNamespaceRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_GetNamespaceRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_DeleteNamespaceRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_DeleteNamespaceRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListNamespacesRequest_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListNamespacesRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_NamespaceResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_NamespaceResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_NamespaceResponse_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_NamespaceResponse_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_ListNamespacesResponse_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListNamespacesResponse_fieldAccessorTable;
 

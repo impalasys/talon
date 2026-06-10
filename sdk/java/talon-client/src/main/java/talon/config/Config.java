@@ -196,7 +196,7 @@ talon.config.Config.LlmProviderConfig defaultValue);
           java.lang.String, talon.config.Config.LlmProviderConfig> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, talon.config.Config.LlmProviderConfig>newDefaultInstance(
-                  talon.config.Config.internal_static_talon_config_TalonConfig_ProvidersEntry_descriptor, 
+                  talon.config.Config.internal_static_talon_config_TalonConfig_ProvidersEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.MESSAGE,
@@ -334,7 +334,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         defaultProvider_ = s;
@@ -350,7 +350,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getDefaultProviderBytes() {
       java.lang.Object ref = defaultProvider_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         defaultProvider_ = b;
@@ -373,7 +373,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         workspaceDir_ = s;
@@ -389,7 +389,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getWorkspaceDirBytes() {
       java.lang.Object ref = workspaceDir_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         workspaceDir_ = b;
@@ -1187,7 +1187,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.DatabaseConfig database = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.DatabaseConfig, talon.config.Config.DatabaseConfig.Builder, talon.config.Config.DatabaseConfigOrBuilder> 
+          talon.config.Config.DatabaseConfig, talon.config.Config.DatabaseConfig.Builder, talon.config.Config.DatabaseConfigOrBuilder>
           internalGetDatabaseFieldBuilder() {
         if (databaseBuilder_ == null) {
           databaseBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -1308,7 +1308,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.ServerConfig server = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.ServerConfig, talon.config.Config.ServerConfig.Builder, talon.config.Config.ServerConfigOrBuilder> 
+          talon.config.Config.ServerConfig, talon.config.Config.ServerConfig.Builder, talon.config.Config.ServerConfigOrBuilder>
           internalGetServerFieldBuilder() {
         if (serverBuilder_ == null) {
           serverBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -1346,7 +1346,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getDefaultProviderBytes() {
         java.lang.Object ref = defaultProvider_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           defaultProvider_ = b;
@@ -1418,7 +1418,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getWorkspaceDirBytes() {
         java.lang.Object ref = workspaceDir_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           workspaceDir_ = b;
@@ -1573,7 +1573,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.ControlPlaneConfig control_plane = 6;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.ControlPlaneConfig, talon.config.Config.ControlPlaneConfig.Builder, talon.config.Config.ControlPlaneConfigOrBuilder> 
+          talon.config.Config.ControlPlaneConfig, talon.config.Config.ControlPlaneConfig.Builder, talon.config.Config.ControlPlaneConfigOrBuilder>
           internalGetControlPlaneFieldBuilder() {
         if (controlPlaneBuilder_ == null) {
           controlPlaneBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -2478,7 +2478,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.OpenAiConfig openai = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.OpenAiConfig, talon.config.Config.OpenAiConfig.Builder, talon.config.Config.OpenAiConfigOrBuilder> 
+          talon.config.Config.OpenAiConfig, talon.config.Config.OpenAiConfig.Builder, talon.config.Config.OpenAiConfigOrBuilder>
           internalGetOpenaiFieldBuilder() {
         if (openaiBuilder_ == null) {
           if (!(configCase_ == 1)) {
@@ -2620,7 +2620,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.AnthropicConfig anthropic = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.AnthropicConfig, talon.config.Config.AnthropicConfig.Builder, talon.config.Config.AnthropicConfigOrBuilder> 
+          talon.config.Config.AnthropicConfig, talon.config.Config.AnthropicConfig.Builder, talon.config.Config.AnthropicConfigOrBuilder>
           internalGetAnthropicFieldBuilder() {
         if (anthropicBuilder_ == null) {
           if (!(configCase_ == 2)) {
@@ -2762,7 +2762,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.GoogleConfig google = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.GoogleConfig, talon.config.Config.GoogleConfig.Builder, talon.config.Config.GoogleConfigOrBuilder> 
+          talon.config.Config.GoogleConfig, talon.config.Config.GoogleConfig.Builder, talon.config.Config.GoogleConfigOrBuilder>
           internalGetGoogleFieldBuilder() {
         if (googleBuilder_ == null) {
           if (!(configCase_ == 3)) {
@@ -2904,7 +2904,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.GenericConfig openai_compatible = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.GenericConfig, talon.config.Config.GenericConfig.Builder, talon.config.Config.GenericConfigOrBuilder> 
+          talon.config.Config.GenericConfig, talon.config.Config.GenericConfig.Builder, talon.config.Config.GenericConfigOrBuilder>
           internalGetOpenaiCompatibleFieldBuilder() {
         if (openaiCompatibleBuilder_ == null) {
           if (!(configCase_ == 4)) {
@@ -3074,7 +3074,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         model_ = s;
@@ -3090,7 +3090,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getModelBytes() {
       java.lang.Object ref = model_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         model_ = b;
@@ -3139,7 +3139,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         orgId_ = s;
@@ -3155,7 +3155,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getOrgIdBytes() {
       java.lang.Object ref = orgId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         orgId_ = b;
@@ -3553,7 +3553,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getModelBytes() {
         java.lang.Object ref = model_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           model_ = b;
@@ -3708,7 +3708,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.Secret api_key = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder> 
+          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder>
           internalGetApiKeyFieldBuilder() {
         if (apiKeyBuilder_ == null) {
           apiKeyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -3746,7 +3746,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getOrgIdBytes() {
         java.lang.Object ref = orgId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           orgId_ = b;
@@ -3932,7 +3932,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         model_ = s;
@@ -3948,7 +3948,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getModelBytes() {
       java.lang.Object ref = model_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         model_ = b;
@@ -4348,7 +4348,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getModelBytes() {
         java.lang.Object ref = model_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           model_ = b;
@@ -4503,7 +4503,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.Secret api_key = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder> 
+          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder>
           internalGetApiKeyFieldBuilder() {
         if (apiKeyBuilder_ == null) {
           apiKeyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -4655,7 +4655,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         model_ = s;
@@ -4671,7 +4671,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getModelBytes() {
       java.lang.Object ref = model_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         model_ = b;
@@ -5071,7 +5071,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getModelBytes() {
         java.lang.Object ref = model_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           model_ = b;
@@ -5226,7 +5226,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.Secret api_key = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder> 
+          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder>
           internalGetApiKeyFieldBuilder() {
         if (apiKeyBuilder_ == null) {
           apiKeyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -5404,7 +5404,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -5420,7 +5420,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -5443,7 +5443,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         baseUrl_ = s;
@@ -5459,7 +5459,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getBaseUrlBytes() {
       java.lang.Object ref = baseUrl_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         baseUrl_ = b;
@@ -5482,7 +5482,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         model_ = s;
@@ -5498,7 +5498,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getModelBytes() {
       java.lang.Object ref = model_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         model_ = b;
@@ -5946,7 +5946,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -6018,7 +6018,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getBaseUrlBytes() {
         java.lang.Object ref = baseUrl_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           baseUrl_ = b;
@@ -6090,7 +6090,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getModelBytes() {
         java.lang.Object ref = model_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           model_ = b;
@@ -6245,7 +6245,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.Secret api_key = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder> 
+          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder>
           internalGetApiKeyFieldBuilder() {
         if (apiKeyBuilder_ == null) {
           apiKeyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -6451,7 +6451,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         source_ = s;
@@ -6469,7 +6469,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       }
       java.lang.Object ref = source_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         source_ = b;
@@ -6915,7 +6915,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         }
         java.lang.Object ref = source_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           source_ = b;
@@ -7088,7 +7088,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.SecretRef ref = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.SecretRef, talon.config.Config.SecretRef.Builder, talon.config.Config.SecretRefOrBuilder> 
+          talon.config.Config.SecretRef, talon.config.Config.SecretRef.Builder, talon.config.Config.SecretRefOrBuilder>
           internalGetRefFieldBuilder() {
         if (refBuilder_ == null) {
           if (!(sourceCase_ == 2)) {
@@ -7403,7 +7403,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         key_ = s;
@@ -7419,7 +7419,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getKeyBytes() {
       java.lang.Object ref = key_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         key_ = b;
@@ -7822,7 +7822,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getKeyBytes() {
         java.lang.Object ref = key_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           key_ = b;
@@ -8021,7 +8021,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         dataDir_ = s;
@@ -8037,7 +8037,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getDataDirBytes() {
       java.lang.Object ref = dataDir_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         dataDir_ = b;
@@ -8060,7 +8060,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         driver_ = s;
@@ -8076,7 +8076,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getDriverBytes() {
       java.lang.Object ref = driver_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         driver_ = b;
@@ -8500,7 +8500,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getDataDirBytes() {
         java.lang.Object ref = dataDir_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           dataDir_ = b;
@@ -8572,7 +8572,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getDriverBytes() {
         java.lang.Object ref = driver_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           driver_ = b;
@@ -8727,7 +8727,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.Secret url = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder> 
+          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder>
           internalGetUrlFieldBuilder() {
         if (urlBuilder_ == null) {
           urlBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -8863,7 +8863,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         driver_ = s;
@@ -8879,7 +8879,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getDriverBytes() {
       java.lang.Object ref = driver_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         driver_ = b;
@@ -9208,7 +9208,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getDriverBytes() {
         java.lang.Object ref = driver_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           driver_ = b;
@@ -9301,6 +9301,3477 @@ talon.config.Config.LlmProviderConfig defaultValue) {
 
     @java.lang.Override
     public talon.config.Config.MessageBrokerConfig getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface LocalObjectStoreConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.LocalObjectStoreConfig)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string path = 1;</code>
+     * @return The path.
+     */
+    java.lang.String getPath();
+    /**
+     * <code>string path = 1;</code>
+     * @return The bytes for path.
+     */
+    com.google.protobuf.ByteString
+        getPathBytes();
+  }
+  /**
+   * Protobuf type {@code talon.config.LocalObjectStoreConfig}
+   */
+  public static final class LocalObjectStoreConfig extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.LocalObjectStoreConfig)
+      LocalObjectStoreConfigOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "LocalObjectStoreConfig");
+    }
+    // Use LocalObjectStoreConfig.newBuilder() to construct.
+    private LocalObjectStoreConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private LocalObjectStoreConfig() {
+      path_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.LocalObjectStoreConfig.class, talon.config.Config.LocalObjectStoreConfig.Builder.class);
+    }
+
+    public static final int PATH_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object path_ = "";
+    /**
+     * <code>string path = 1;</code>
+     * @return The path.
+     */
+    @java.lang.Override
+    public java.lang.String getPath() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        path_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string path = 1;</code>
+     * @return The bytes for path.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPathBytes() {
+      java.lang.Object ref = path_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        path_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, path_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(path_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, path_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.LocalObjectStoreConfig)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.LocalObjectStoreConfig other = (talon.config.Config.LocalObjectStoreConfig) obj;
+
+      if (!getPath()
+          .equals(other.getPath())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + PATH_FIELD_NUMBER;
+      hash = (53 * hash) + getPath().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.LocalObjectStoreConfig parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.LocalObjectStoreConfig parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.LocalObjectStoreConfig parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.LocalObjectStoreConfig prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.config.LocalObjectStoreConfig}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.LocalObjectStoreConfig)
+        talon.config.Config.LocalObjectStoreConfigOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.LocalObjectStoreConfig.class, talon.config.Config.LocalObjectStoreConfig.Builder.class);
+      }
+
+      // Construct using talon.config.Config.LocalObjectStoreConfig.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        path_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_LocalObjectStoreConfig_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.LocalObjectStoreConfig getDefaultInstanceForType() {
+        return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.LocalObjectStoreConfig build() {
+        talon.config.Config.LocalObjectStoreConfig result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.LocalObjectStoreConfig buildPartial() {
+        talon.config.Config.LocalObjectStoreConfig result = new talon.config.Config.LocalObjectStoreConfig(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.LocalObjectStoreConfig result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.path_ = path_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.LocalObjectStoreConfig) {
+          return mergeFrom((talon.config.Config.LocalObjectStoreConfig)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.LocalObjectStoreConfig other) {
+        if (other == talon.config.Config.LocalObjectStoreConfig.getDefaultInstance()) return this;
+        if (!other.getPath().isEmpty()) {
+          path_ = other.path_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                path_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object path_ = "";
+      /**
+       * <code>string path = 1;</code>
+       * @return The path.
+       */
+      public java.lang.String getPath() {
+        java.lang.Object ref = path_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          path_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string path = 1;</code>
+       * @return The bytes for path.
+       */
+      public com.google.protobuf.ByteString
+          getPathBytes() {
+        java.lang.Object ref = path_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          path_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string path = 1;</code>
+       * @param value The path to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPath(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        path_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string path = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPath() {
+        path_ = getDefaultInstance().getPath();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string path = 1;</code>
+       * @param value The bytes for path to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPathBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        path_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.LocalObjectStoreConfig)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.LocalObjectStoreConfig)
+    private static final talon.config.Config.LocalObjectStoreConfig DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.LocalObjectStoreConfig();
+    }
+
+    public static talon.config.Config.LocalObjectStoreConfig getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<LocalObjectStoreConfig>
+        PARSER = new com.google.protobuf.AbstractParser<LocalObjectStoreConfig>() {
+      @java.lang.Override
+      public LocalObjectStoreConfig parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<LocalObjectStoreConfig> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<LocalObjectStoreConfig> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.LocalObjectStoreConfig getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface GcsObjectStoreConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.GcsObjectStoreConfig)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string bucket = 1;</code>
+     * @return The bucket.
+     */
+    java.lang.String getBucket();
+    /**
+     * <code>string bucket = 1;</code>
+     * @return The bytes for bucket.
+     */
+    com.google.protobuf.ByteString
+        getBucketBytes();
+
+    /**
+     * <code>string prefix = 2;</code>
+     * @return The prefix.
+     */
+    java.lang.String getPrefix();
+    /**
+     * <code>string prefix = 2;</code>
+     * @return The bytes for prefix.
+     */
+    com.google.protobuf.ByteString
+        getPrefixBytes();
+
+    /**
+     * <code>string api_base_url = 3;</code>
+     * @return The apiBaseUrl.
+     */
+    java.lang.String getApiBaseUrl();
+    /**
+     * <code>string api_base_url = 3;</code>
+     * @return The bytes for apiBaseUrl.
+     */
+    com.google.protobuf.ByteString
+        getApiBaseUrlBytes();
+  }
+  /**
+   * Protobuf type {@code talon.config.GcsObjectStoreConfig}
+   */
+  public static final class GcsObjectStoreConfig extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.GcsObjectStoreConfig)
+      GcsObjectStoreConfigOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "GcsObjectStoreConfig");
+    }
+    // Use GcsObjectStoreConfig.newBuilder() to construct.
+    private GcsObjectStoreConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private GcsObjectStoreConfig() {
+      bucket_ = "";
+      prefix_ = "";
+      apiBaseUrl_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_GcsObjectStoreConfig_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_GcsObjectStoreConfig_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_GcsObjectStoreConfig_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.GcsObjectStoreConfig.class, talon.config.Config.GcsObjectStoreConfig.Builder.class);
+    }
+
+    public static final int BUCKET_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object bucket_ = "";
+    /**
+     * <code>string bucket = 1;</code>
+     * @return The bucket.
+     */
+    @java.lang.Override
+    public java.lang.String getBucket() {
+      java.lang.Object ref = bucket_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        bucket_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string bucket = 1;</code>
+     * @return The bytes for bucket.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getBucketBytes() {
+      java.lang.Object ref = bucket_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        bucket_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PREFIX_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object prefix_ = "";
+    /**
+     * <code>string prefix = 2;</code>
+     * @return The prefix.
+     */
+    @java.lang.Override
+    public java.lang.String getPrefix() {
+      java.lang.Object ref = prefix_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        prefix_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string prefix = 2;</code>
+     * @return The bytes for prefix.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPrefixBytes() {
+      java.lang.Object ref = prefix_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        prefix_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int API_BASE_URL_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object apiBaseUrl_ = "";
+    /**
+     * <code>string api_base_url = 3;</code>
+     * @return The apiBaseUrl.
+     */
+    @java.lang.Override
+    public java.lang.String getApiBaseUrl() {
+      java.lang.Object ref = apiBaseUrl_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        apiBaseUrl_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string api_base_url = 3;</code>
+     * @return The bytes for apiBaseUrl.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getApiBaseUrlBytes() {
+      java.lang.Object ref = apiBaseUrl_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        apiBaseUrl_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(bucket_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, bucket_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(prefix_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, prefix_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(apiBaseUrl_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, apiBaseUrl_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(bucket_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, bucket_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(prefix_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, prefix_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(apiBaseUrl_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, apiBaseUrl_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.GcsObjectStoreConfig)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.GcsObjectStoreConfig other = (talon.config.Config.GcsObjectStoreConfig) obj;
+
+      if (!getBucket()
+          .equals(other.getBucket())) return false;
+      if (!getPrefix()
+          .equals(other.getPrefix())) return false;
+      if (!getApiBaseUrl()
+          .equals(other.getApiBaseUrl())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + BUCKET_FIELD_NUMBER;
+      hash = (53 * hash) + getBucket().hashCode();
+      hash = (37 * hash) + PREFIX_FIELD_NUMBER;
+      hash = (53 * hash) + getPrefix().hashCode();
+      hash = (37 * hash) + API_BASE_URL_FIELD_NUMBER;
+      hash = (53 * hash) + getApiBaseUrl().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.GcsObjectStoreConfig parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.GcsObjectStoreConfig parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.GcsObjectStoreConfig parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.GcsObjectStoreConfig prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.config.GcsObjectStoreConfig}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.GcsObjectStoreConfig)
+        talon.config.Config.GcsObjectStoreConfigOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_GcsObjectStoreConfig_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_GcsObjectStoreConfig_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.GcsObjectStoreConfig.class, talon.config.Config.GcsObjectStoreConfig.Builder.class);
+      }
+
+      // Construct using talon.config.Config.GcsObjectStoreConfig.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        bucket_ = "";
+        prefix_ = "";
+        apiBaseUrl_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_GcsObjectStoreConfig_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.GcsObjectStoreConfig getDefaultInstanceForType() {
+        return talon.config.Config.GcsObjectStoreConfig.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.GcsObjectStoreConfig build() {
+        talon.config.Config.GcsObjectStoreConfig result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.GcsObjectStoreConfig buildPartial() {
+        talon.config.Config.GcsObjectStoreConfig result = new talon.config.Config.GcsObjectStoreConfig(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.GcsObjectStoreConfig result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.bucket_ = bucket_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.prefix_ = prefix_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.apiBaseUrl_ = apiBaseUrl_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.GcsObjectStoreConfig) {
+          return mergeFrom((talon.config.Config.GcsObjectStoreConfig)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.GcsObjectStoreConfig other) {
+        if (other == talon.config.Config.GcsObjectStoreConfig.getDefaultInstance()) return this;
+        if (!other.getBucket().isEmpty()) {
+          bucket_ = other.bucket_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getPrefix().isEmpty()) {
+          prefix_ = other.prefix_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getApiBaseUrl().isEmpty()) {
+          apiBaseUrl_ = other.apiBaseUrl_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                bucket_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                prefix_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                apiBaseUrl_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object bucket_ = "";
+      /**
+       * <code>string bucket = 1;</code>
+       * @return The bucket.
+       */
+      public java.lang.String getBucket() {
+        java.lang.Object ref = bucket_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          bucket_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string bucket = 1;</code>
+       * @return The bytes for bucket.
+       */
+      public com.google.protobuf.ByteString
+          getBucketBytes() {
+        java.lang.Object ref = bucket_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          bucket_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string bucket = 1;</code>
+       * @param value The bucket to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBucket(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        bucket_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string bucket = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBucket() {
+        bucket_ = getDefaultInstance().getBucket();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string bucket = 1;</code>
+       * @param value The bytes for bucket to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBucketBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        bucket_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object prefix_ = "";
+      /**
+       * <code>string prefix = 2;</code>
+       * @return The prefix.
+       */
+      public java.lang.String getPrefix() {
+        java.lang.Object ref = prefix_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          prefix_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string prefix = 2;</code>
+       * @return The bytes for prefix.
+       */
+      public com.google.protobuf.ByteString
+          getPrefixBytes() {
+        java.lang.Object ref = prefix_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          prefix_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string prefix = 2;</code>
+       * @param value The prefix to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPrefix(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        prefix_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string prefix = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPrefix() {
+        prefix_ = getDefaultInstance().getPrefix();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string prefix = 2;</code>
+       * @param value The bytes for prefix to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPrefixBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        prefix_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object apiBaseUrl_ = "";
+      /**
+       * <code>string api_base_url = 3;</code>
+       * @return The apiBaseUrl.
+       */
+      public java.lang.String getApiBaseUrl() {
+        java.lang.Object ref = apiBaseUrl_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          apiBaseUrl_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string api_base_url = 3;</code>
+       * @return The bytes for apiBaseUrl.
+       */
+      public com.google.protobuf.ByteString
+          getApiBaseUrlBytes() {
+        java.lang.Object ref = apiBaseUrl_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          apiBaseUrl_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string api_base_url = 3;</code>
+       * @param value The apiBaseUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setApiBaseUrl(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        apiBaseUrl_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string api_base_url = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearApiBaseUrl() {
+        apiBaseUrl_ = getDefaultInstance().getApiBaseUrl();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string api_base_url = 3;</code>
+       * @param value The bytes for apiBaseUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setApiBaseUrlBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        apiBaseUrl_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.GcsObjectStoreConfig)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.GcsObjectStoreConfig)
+    private static final talon.config.Config.GcsObjectStoreConfig DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.GcsObjectStoreConfig();
+    }
+
+    public static talon.config.Config.GcsObjectStoreConfig getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<GcsObjectStoreConfig>
+        PARSER = new com.google.protobuf.AbstractParser<GcsObjectStoreConfig>() {
+      @java.lang.Override
+      public GcsObjectStoreConfig parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<GcsObjectStoreConfig> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GcsObjectStoreConfig> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.GcsObjectStoreConfig getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface S3ObjectStoreConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.S3ObjectStoreConfig)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string bucket = 1;</code>
+     * @return The bucket.
+     */
+    java.lang.String getBucket();
+    /**
+     * <code>string bucket = 1;</code>
+     * @return The bytes for bucket.
+     */
+    com.google.protobuf.ByteString
+        getBucketBytes();
+
+    /**
+     * <code>string prefix = 2;</code>
+     * @return The prefix.
+     */
+    java.lang.String getPrefix();
+    /**
+     * <code>string prefix = 2;</code>
+     * @return The bytes for prefix.
+     */
+    com.google.protobuf.ByteString
+        getPrefixBytes();
+
+    /**
+     * <code>string region = 3;</code>
+     * @return The region.
+     */
+    java.lang.String getRegion();
+    /**
+     * <code>string region = 3;</code>
+     * @return The bytes for region.
+     */
+    com.google.protobuf.ByteString
+        getRegionBytes();
+
+    /**
+     * <code>string endpoint_url = 4;</code>
+     * @return The endpointUrl.
+     */
+    java.lang.String getEndpointUrl();
+    /**
+     * <code>string endpoint_url = 4;</code>
+     * @return The bytes for endpointUrl.
+     */
+    com.google.protobuf.ByteString
+        getEndpointUrlBytes();
+
+    /**
+     * <code>bool force_path_style = 5;</code>
+     * @return The forcePathStyle.
+     */
+    boolean getForcePathStyle();
+  }
+  /**
+   * Protobuf type {@code talon.config.S3ObjectStoreConfig}
+   */
+  public static final class S3ObjectStoreConfig extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.S3ObjectStoreConfig)
+      S3ObjectStoreConfigOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "S3ObjectStoreConfig");
+    }
+    // Use S3ObjectStoreConfig.newBuilder() to construct.
+    private S3ObjectStoreConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private S3ObjectStoreConfig() {
+      bucket_ = "";
+      prefix_ = "";
+      region_ = "";
+      endpointUrl_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_S3ObjectStoreConfig_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_S3ObjectStoreConfig_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_S3ObjectStoreConfig_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.S3ObjectStoreConfig.class, talon.config.Config.S3ObjectStoreConfig.Builder.class);
+    }
+
+    public static final int BUCKET_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object bucket_ = "";
+    /**
+     * <code>string bucket = 1;</code>
+     * @return The bucket.
+     */
+    @java.lang.Override
+    public java.lang.String getBucket() {
+      java.lang.Object ref = bucket_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        bucket_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string bucket = 1;</code>
+     * @return The bytes for bucket.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getBucketBytes() {
+      java.lang.Object ref = bucket_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        bucket_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PREFIX_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object prefix_ = "";
+    /**
+     * <code>string prefix = 2;</code>
+     * @return The prefix.
+     */
+    @java.lang.Override
+    public java.lang.String getPrefix() {
+      java.lang.Object ref = prefix_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        prefix_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string prefix = 2;</code>
+     * @return The bytes for prefix.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPrefixBytes() {
+      java.lang.Object ref = prefix_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        prefix_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REGION_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object region_ = "";
+    /**
+     * <code>string region = 3;</code>
+     * @return The region.
+     */
+    @java.lang.Override
+    public java.lang.String getRegion() {
+      java.lang.Object ref = region_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        region_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string region = 3;</code>
+     * @return The bytes for region.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRegionBytes() {
+      java.lang.Object ref = region_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        region_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ENDPOINT_URL_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object endpointUrl_ = "";
+    /**
+     * <code>string endpoint_url = 4;</code>
+     * @return The endpointUrl.
+     */
+    @java.lang.Override
+    public java.lang.String getEndpointUrl() {
+      java.lang.Object ref = endpointUrl_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        endpointUrl_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string endpoint_url = 4;</code>
+     * @return The bytes for endpointUrl.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getEndpointUrlBytes() {
+      java.lang.Object ref = endpointUrl_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        endpointUrl_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int FORCE_PATH_STYLE_FIELD_NUMBER = 5;
+    private boolean forcePathStyle_ = false;
+    /**
+     * <code>bool force_path_style = 5;</code>
+     * @return The forcePathStyle.
+     */
+    @java.lang.Override
+    public boolean getForcePathStyle() {
+      return forcePathStyle_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(bucket_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, bucket_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(prefix_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, prefix_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(region_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, region_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(endpointUrl_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, endpointUrl_);
+      }
+      if (forcePathStyle_ != false) {
+        output.writeBool(5, forcePathStyle_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(bucket_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, bucket_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(prefix_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, prefix_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(region_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, region_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(endpointUrl_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, endpointUrl_);
+      }
+      if (forcePathStyle_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, forcePathStyle_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.S3ObjectStoreConfig)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.S3ObjectStoreConfig other = (talon.config.Config.S3ObjectStoreConfig) obj;
+
+      if (!getBucket()
+          .equals(other.getBucket())) return false;
+      if (!getPrefix()
+          .equals(other.getPrefix())) return false;
+      if (!getRegion()
+          .equals(other.getRegion())) return false;
+      if (!getEndpointUrl()
+          .equals(other.getEndpointUrl())) return false;
+      if (getForcePathStyle()
+          != other.getForcePathStyle()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + BUCKET_FIELD_NUMBER;
+      hash = (53 * hash) + getBucket().hashCode();
+      hash = (37 * hash) + PREFIX_FIELD_NUMBER;
+      hash = (53 * hash) + getPrefix().hashCode();
+      hash = (37 * hash) + REGION_FIELD_NUMBER;
+      hash = (53 * hash) + getRegion().hashCode();
+      hash = (37 * hash) + ENDPOINT_URL_FIELD_NUMBER;
+      hash = (53 * hash) + getEndpointUrl().hashCode();
+      hash = (37 * hash) + FORCE_PATH_STYLE_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getForcePathStyle());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.S3ObjectStoreConfig parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.S3ObjectStoreConfig parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.S3ObjectStoreConfig parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.S3ObjectStoreConfig prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.config.S3ObjectStoreConfig}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.S3ObjectStoreConfig)
+        talon.config.Config.S3ObjectStoreConfigOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_S3ObjectStoreConfig_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_S3ObjectStoreConfig_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.S3ObjectStoreConfig.class, talon.config.Config.S3ObjectStoreConfig.Builder.class);
+      }
+
+      // Construct using talon.config.Config.S3ObjectStoreConfig.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        bucket_ = "";
+        prefix_ = "";
+        region_ = "";
+        endpointUrl_ = "";
+        forcePathStyle_ = false;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_S3ObjectStoreConfig_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.S3ObjectStoreConfig getDefaultInstanceForType() {
+        return talon.config.Config.S3ObjectStoreConfig.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.S3ObjectStoreConfig build() {
+        talon.config.Config.S3ObjectStoreConfig result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.S3ObjectStoreConfig buildPartial() {
+        talon.config.Config.S3ObjectStoreConfig result = new talon.config.Config.S3ObjectStoreConfig(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.S3ObjectStoreConfig result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.bucket_ = bucket_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.prefix_ = prefix_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.region_ = region_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.endpointUrl_ = endpointUrl_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.forcePathStyle_ = forcePathStyle_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.S3ObjectStoreConfig) {
+          return mergeFrom((talon.config.Config.S3ObjectStoreConfig)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.S3ObjectStoreConfig other) {
+        if (other == talon.config.Config.S3ObjectStoreConfig.getDefaultInstance()) return this;
+        if (!other.getBucket().isEmpty()) {
+          bucket_ = other.bucket_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getPrefix().isEmpty()) {
+          prefix_ = other.prefix_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getRegion().isEmpty()) {
+          region_ = other.region_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getEndpointUrl().isEmpty()) {
+          endpointUrl_ = other.endpointUrl_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (other.getForcePathStyle() != false) {
+          setForcePathStyle(other.getForcePathStyle());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                bucket_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                prefix_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                region_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                endpointUrl_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 40: {
+                forcePathStyle_ = input.readBool();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 40
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object bucket_ = "";
+      /**
+       * <code>string bucket = 1;</code>
+       * @return The bucket.
+       */
+      public java.lang.String getBucket() {
+        java.lang.Object ref = bucket_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          bucket_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string bucket = 1;</code>
+       * @return The bytes for bucket.
+       */
+      public com.google.protobuf.ByteString
+          getBucketBytes() {
+        java.lang.Object ref = bucket_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          bucket_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string bucket = 1;</code>
+       * @param value The bucket to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBucket(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        bucket_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string bucket = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearBucket() {
+        bucket_ = getDefaultInstance().getBucket();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string bucket = 1;</code>
+       * @param value The bytes for bucket to set.
+       * @return This builder for chaining.
+       */
+      public Builder setBucketBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        bucket_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object prefix_ = "";
+      /**
+       * <code>string prefix = 2;</code>
+       * @return The prefix.
+       */
+      public java.lang.String getPrefix() {
+        java.lang.Object ref = prefix_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          prefix_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string prefix = 2;</code>
+       * @return The bytes for prefix.
+       */
+      public com.google.protobuf.ByteString
+          getPrefixBytes() {
+        java.lang.Object ref = prefix_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          prefix_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string prefix = 2;</code>
+       * @param value The prefix to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPrefix(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        prefix_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string prefix = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPrefix() {
+        prefix_ = getDefaultInstance().getPrefix();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string prefix = 2;</code>
+       * @param value The bytes for prefix to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPrefixBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        prefix_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object region_ = "";
+      /**
+       * <code>string region = 3;</code>
+       * @return The region.
+       */
+      public java.lang.String getRegion() {
+        java.lang.Object ref = region_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          region_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string region = 3;</code>
+       * @return The bytes for region.
+       */
+      public com.google.protobuf.ByteString
+          getRegionBytes() {
+        java.lang.Object ref = region_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          region_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string region = 3;</code>
+       * @param value The region to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRegion(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        region_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string region = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRegion() {
+        region_ = getDefaultInstance().getRegion();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string region = 3;</code>
+       * @param value The bytes for region to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRegionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        region_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object endpointUrl_ = "";
+      /**
+       * <code>string endpoint_url = 4;</code>
+       * @return The endpointUrl.
+       */
+      public java.lang.String getEndpointUrl() {
+        java.lang.Object ref = endpointUrl_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          endpointUrl_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string endpoint_url = 4;</code>
+       * @return The bytes for endpointUrl.
+       */
+      public com.google.protobuf.ByteString
+          getEndpointUrlBytes() {
+        java.lang.Object ref = endpointUrl_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          endpointUrl_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string endpoint_url = 4;</code>
+       * @param value The endpointUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEndpointUrl(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        endpointUrl_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string endpoint_url = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearEndpointUrl() {
+        endpointUrl_ = getDefaultInstance().getEndpointUrl();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string endpoint_url = 4;</code>
+       * @param value The bytes for endpointUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setEndpointUrlBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        endpointUrl_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private boolean forcePathStyle_ ;
+      /**
+       * <code>bool force_path_style = 5;</code>
+       * @return The forcePathStyle.
+       */
+      @java.lang.Override
+      public boolean getForcePathStyle() {
+        return forcePathStyle_;
+      }
+      /**
+       * <code>bool force_path_style = 5;</code>
+       * @param value The forcePathStyle to set.
+       * @return This builder for chaining.
+       */
+      public Builder setForcePathStyle(boolean value) {
+
+        forcePathStyle_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool force_path_style = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearForcePathStyle() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        forcePathStyle_ = false;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.S3ObjectStoreConfig)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.S3ObjectStoreConfig)
+    private static final talon.config.Config.S3ObjectStoreConfig DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.S3ObjectStoreConfig();
+    }
+
+    public static talon.config.Config.S3ObjectStoreConfig getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<S3ObjectStoreConfig>
+        PARSER = new com.google.protobuf.AbstractParser<S3ObjectStoreConfig>() {
+      @java.lang.Override
+      public S3ObjectStoreConfig parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<S3ObjectStoreConfig> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<S3ObjectStoreConfig> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.S3ObjectStoreConfig getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ObjectStoreConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.ObjectStoreConfig)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     * @return Whether the local field is set.
+     */
+    boolean hasLocal();
+    /**
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     * @return The local.
+     */
+    talon.config.Config.LocalObjectStoreConfig getLocal();
+    /**
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     */
+    talon.config.Config.LocalObjectStoreConfigOrBuilder getLocalOrBuilder();
+
+    /**
+     * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+     * @return Whether the gcs field is set.
+     */
+    boolean hasGcs();
+    /**
+     * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+     * @return The gcs.
+     */
+    talon.config.Config.GcsObjectStoreConfig getGcs();
+    /**
+     * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+     */
+    talon.config.Config.GcsObjectStoreConfigOrBuilder getGcsOrBuilder();
+
+    /**
+     * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+     * @return Whether the s3 field is set.
+     */
+    boolean hasS3();
+    /**
+     * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+     * @return The s3.
+     */
+    talon.config.Config.S3ObjectStoreConfig getS3();
+    /**
+     * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+     */
+    talon.config.Config.S3ObjectStoreConfigOrBuilder getS3OrBuilder();
+
+    talon.config.Config.ObjectStoreConfig.BackendCase getBackendCase();
+  }
+  /**
+   * Protobuf type {@code talon.config.ObjectStoreConfig}
+   */
+  public static final class ObjectStoreConfig extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.config.ObjectStoreConfig)
+      ObjectStoreConfigOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ObjectStoreConfig");
+    }
+    // Use ObjectStoreConfig.newBuilder() to construct.
+    private ObjectStoreConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ObjectStoreConfig() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.config.Config.internal_static_talon_config_ObjectStoreConfig_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.config.Config.internal_static_talon_config_ObjectStoreConfig_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.config.Config.internal_static_talon_config_ObjectStoreConfig_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.config.Config.ObjectStoreConfig.class, talon.config.Config.ObjectStoreConfig.Builder.class);
+    }
+
+    private int backendCase_ = 0;
+    @SuppressWarnings("serial")
+    private java.lang.Object backend_;
+    public enum BackendCase
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
+      LOCAL(1),
+      GCS(2),
+      S3(3),
+      BACKEND_NOT_SET(0);
+      private final int value;
+      private BackendCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static BackendCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static BackendCase forNumber(int value) {
+        switch (value) {
+          case 1: return LOCAL;
+          case 2: return GCS;
+          case 3: return S3;
+          case 0: return BACKEND_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public BackendCase
+    getBackendCase() {
+      return BackendCase.forNumber(
+          backendCase_);
+    }
+
+    public static final int LOCAL_FIELD_NUMBER = 1;
+    /**
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     * @return Whether the local field is set.
+     */
+    @java.lang.Override
+    public boolean hasLocal() {
+      return backendCase_ == 1;
+    }
+    /**
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     * @return The local.
+     */
+    @java.lang.Override
+    public talon.config.Config.LocalObjectStoreConfig getLocal() {
+      if (backendCase_ == 1) {
+         return (talon.config.Config.LocalObjectStoreConfig) backend_;
+      }
+      return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.LocalObjectStoreConfigOrBuilder getLocalOrBuilder() {
+      if (backendCase_ == 1) {
+         return (talon.config.Config.LocalObjectStoreConfig) backend_;
+      }
+      return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
+    }
+
+    public static final int GCS_FIELD_NUMBER = 2;
+    /**
+     * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+     * @return Whether the gcs field is set.
+     */
+    @java.lang.Override
+    public boolean hasGcs() {
+      return backendCase_ == 2;
+    }
+    /**
+     * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+     * @return The gcs.
+     */
+    @java.lang.Override
+    public talon.config.Config.GcsObjectStoreConfig getGcs() {
+      if (backendCase_ == 2) {
+         return (talon.config.Config.GcsObjectStoreConfig) backend_;
+      }
+      return talon.config.Config.GcsObjectStoreConfig.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.GcsObjectStoreConfigOrBuilder getGcsOrBuilder() {
+      if (backendCase_ == 2) {
+         return (talon.config.Config.GcsObjectStoreConfig) backend_;
+      }
+      return talon.config.Config.GcsObjectStoreConfig.getDefaultInstance();
+    }
+
+    public static final int S3_FIELD_NUMBER = 3;
+    /**
+     * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+     * @return Whether the s3 field is set.
+     */
+    @java.lang.Override
+    public boolean hasS3() {
+      return backendCase_ == 3;
+    }
+    /**
+     * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+     * @return The s3.
+     */
+    @java.lang.Override
+    public talon.config.Config.S3ObjectStoreConfig getS3() {
+      if (backendCase_ == 3) {
+         return (talon.config.Config.S3ObjectStoreConfig) backend_;
+      }
+      return talon.config.Config.S3ObjectStoreConfig.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.S3ObjectStoreConfigOrBuilder getS3OrBuilder() {
+      if (backendCase_ == 3) {
+         return (talon.config.Config.S3ObjectStoreConfig) backend_;
+      }
+      return talon.config.Config.S3ObjectStoreConfig.getDefaultInstance();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (backendCase_ == 1) {
+        output.writeMessage(1, (talon.config.Config.LocalObjectStoreConfig) backend_);
+      }
+      if (backendCase_ == 2) {
+        output.writeMessage(2, (talon.config.Config.GcsObjectStoreConfig) backend_);
+      }
+      if (backendCase_ == 3) {
+        output.writeMessage(3, (talon.config.Config.S3ObjectStoreConfig) backend_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (backendCase_ == 1) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, (talon.config.Config.LocalObjectStoreConfig) backend_);
+      }
+      if (backendCase_ == 2) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, (talon.config.Config.GcsObjectStoreConfig) backend_);
+      }
+      if (backendCase_ == 3) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, (talon.config.Config.S3ObjectStoreConfig) backend_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.config.Config.ObjectStoreConfig)) {
+        return super.equals(obj);
+      }
+      talon.config.Config.ObjectStoreConfig other = (talon.config.Config.ObjectStoreConfig) obj;
+
+      if (!getBackendCase().equals(other.getBackendCase())) return false;
+      switch (backendCase_) {
+        case 1:
+          if (!getLocal()
+              .equals(other.getLocal())) return false;
+          break;
+        case 2:
+          if (!getGcs()
+              .equals(other.getGcs())) return false;
+          break;
+        case 3:
+          if (!getS3()
+              .equals(other.getS3())) return false;
+          break;
+        case 0:
+        default:
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      switch (backendCase_) {
+        case 1:
+          hash = (37 * hash) + LOCAL_FIELD_NUMBER;
+          hash = (53 * hash) + getLocal().hashCode();
+          break;
+        case 2:
+          hash = (37 * hash) + GCS_FIELD_NUMBER;
+          hash = (53 * hash) + getGcs().hashCode();
+          break;
+        case 3:
+          hash = (37 * hash) + S3_FIELD_NUMBER;
+          hash = (53 * hash) + getS3().hashCode();
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.config.Config.ObjectStoreConfig parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.config.Config.ObjectStoreConfig parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.config.Config.ObjectStoreConfig parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.config.Config.ObjectStoreConfig parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.config.Config.ObjectStoreConfig prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.config.ObjectStoreConfig}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.config.ObjectStoreConfig)
+        talon.config.Config.ObjectStoreConfigOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.config.Config.internal_static_talon_config_ObjectStoreConfig_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.config.Config.internal_static_talon_config_ObjectStoreConfig_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.config.Config.ObjectStoreConfig.class, talon.config.Config.ObjectStoreConfig.Builder.class);
+      }
+
+      // Construct using talon.config.Config.ObjectStoreConfig.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        if (localBuilder_ != null) {
+          localBuilder_.clear();
+        }
+        if (gcsBuilder_ != null) {
+          gcsBuilder_.clear();
+        }
+        if (s3Builder_ != null) {
+          s3Builder_.clear();
+        }
+        backendCase_ = 0;
+        backend_ = null;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.config.Config.internal_static_talon_config_ObjectStoreConfig_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.ObjectStoreConfig getDefaultInstanceForType() {
+        return talon.config.Config.ObjectStoreConfig.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.config.Config.ObjectStoreConfig build() {
+        talon.config.Config.ObjectStoreConfig result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.config.Config.ObjectStoreConfig buildPartial() {
+        talon.config.Config.ObjectStoreConfig result = new talon.config.Config.ObjectStoreConfig(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        buildPartialOneofs(result);
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.config.Config.ObjectStoreConfig result) {
+        int from_bitField0_ = bitField0_;
+      }
+
+      private void buildPartialOneofs(talon.config.Config.ObjectStoreConfig result) {
+        result.backendCase_ = backendCase_;
+        result.backend_ = this.backend_;
+        if (backendCase_ == 1 &&
+            localBuilder_ != null) {
+          result.backend_ = localBuilder_.build();
+        }
+        if (backendCase_ == 2 &&
+            gcsBuilder_ != null) {
+          result.backend_ = gcsBuilder_.build();
+        }
+        if (backendCase_ == 3 &&
+            s3Builder_ != null) {
+          result.backend_ = s3Builder_.build();
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.config.Config.ObjectStoreConfig) {
+          return mergeFrom((talon.config.Config.ObjectStoreConfig)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.config.Config.ObjectStoreConfig other) {
+        if (other == talon.config.Config.ObjectStoreConfig.getDefaultInstance()) return this;
+        switch (other.getBackendCase()) {
+          case LOCAL: {
+            mergeLocal(other.getLocal());
+            break;
+          }
+          case GCS: {
+            mergeGcs(other.getGcs());
+            break;
+          }
+          case S3: {
+            mergeS3(other.getS3());
+            break;
+          }
+          case BACKEND_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetLocalFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                backendCase_ = 1;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetGcsFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                backendCase_ = 2;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetS3FieldBuilder().getBuilder(),
+                    extensionRegistry);
+                backendCase_ = 3;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int backendCase_ = 0;
+      private java.lang.Object backend_;
+      public BackendCase
+          getBackendCase() {
+        return BackendCase.forNumber(
+            backendCase_);
+      }
+
+      public Builder clearBackend() {
+        backendCase_ = 0;
+        backend_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int bitField0_;
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.LocalObjectStoreConfig, talon.config.Config.LocalObjectStoreConfig.Builder, talon.config.Config.LocalObjectStoreConfigOrBuilder> localBuilder_;
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       * @return Whether the local field is set.
+       */
+      @java.lang.Override
+      public boolean hasLocal() {
+        return backendCase_ == 1;
+      }
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       * @return The local.
+       */
+      @java.lang.Override
+      public talon.config.Config.LocalObjectStoreConfig getLocal() {
+        if (localBuilder_ == null) {
+          if (backendCase_ == 1) {
+            return (talon.config.Config.LocalObjectStoreConfig) backend_;
+          }
+          return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
+        } else {
+          if (backendCase_ == 1) {
+            return localBuilder_.getMessage();
+          }
+          return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       */
+      public Builder setLocal(talon.config.Config.LocalObjectStoreConfig value) {
+        if (localBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          backend_ = value;
+          onChanged();
+        } else {
+          localBuilder_.setMessage(value);
+        }
+        backendCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       */
+      public Builder setLocal(
+          talon.config.Config.LocalObjectStoreConfig.Builder builderForValue) {
+        if (localBuilder_ == null) {
+          backend_ = builderForValue.build();
+          onChanged();
+        } else {
+          localBuilder_.setMessage(builderForValue.build());
+        }
+        backendCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       */
+      public Builder mergeLocal(talon.config.Config.LocalObjectStoreConfig value) {
+        if (localBuilder_ == null) {
+          if (backendCase_ == 1 &&
+              backend_ != talon.config.Config.LocalObjectStoreConfig.getDefaultInstance()) {
+            backend_ = talon.config.Config.LocalObjectStoreConfig.newBuilder((talon.config.Config.LocalObjectStoreConfig) backend_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            backend_ = value;
+          }
+          onChanged();
+        } else {
+          if (backendCase_ == 1) {
+            localBuilder_.mergeFrom(value);
+          } else {
+            localBuilder_.setMessage(value);
+          }
+        }
+        backendCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       */
+      public Builder clearLocal() {
+        if (localBuilder_ == null) {
+          if (backendCase_ == 1) {
+            backendCase_ = 0;
+            backend_ = null;
+            onChanged();
+          }
+        } else {
+          if (backendCase_ == 1) {
+            backendCase_ = 0;
+            backend_ = null;
+          }
+          localBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       */
+      public talon.config.Config.LocalObjectStoreConfig.Builder getLocalBuilder() {
+        return internalGetLocalFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       */
+      @java.lang.Override
+      public talon.config.Config.LocalObjectStoreConfigOrBuilder getLocalOrBuilder() {
+        if ((backendCase_ == 1) && (localBuilder_ != null)) {
+          return localBuilder_.getMessageOrBuilder();
+        } else {
+          if (backendCase_ == 1) {
+            return (talon.config.Config.LocalObjectStoreConfig) backend_;
+          }
+          return talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.LocalObjectStoreConfig local = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.LocalObjectStoreConfig, talon.config.Config.LocalObjectStoreConfig.Builder, talon.config.Config.LocalObjectStoreConfigOrBuilder>
+          internalGetLocalFieldBuilder() {
+        if (localBuilder_ == null) {
+          if (!(backendCase_ == 1)) {
+            backend_ = talon.config.Config.LocalObjectStoreConfig.getDefaultInstance();
+          }
+          localBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.LocalObjectStoreConfig, talon.config.Config.LocalObjectStoreConfig.Builder, talon.config.Config.LocalObjectStoreConfigOrBuilder>(
+                  (talon.config.Config.LocalObjectStoreConfig) backend_,
+                  getParentForChildren(),
+                  isClean());
+          backend_ = null;
+        }
+        backendCase_ = 1;
+        onChanged();
+        return localBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.GcsObjectStoreConfig, talon.config.Config.GcsObjectStoreConfig.Builder, talon.config.Config.GcsObjectStoreConfigOrBuilder> gcsBuilder_;
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       * @return Whether the gcs field is set.
+       */
+      @java.lang.Override
+      public boolean hasGcs() {
+        return backendCase_ == 2;
+      }
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       * @return The gcs.
+       */
+      @java.lang.Override
+      public talon.config.Config.GcsObjectStoreConfig getGcs() {
+        if (gcsBuilder_ == null) {
+          if (backendCase_ == 2) {
+            return (talon.config.Config.GcsObjectStoreConfig) backend_;
+          }
+          return talon.config.Config.GcsObjectStoreConfig.getDefaultInstance();
+        } else {
+          if (backendCase_ == 2) {
+            return gcsBuilder_.getMessage();
+          }
+          return talon.config.Config.GcsObjectStoreConfig.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       */
+      public Builder setGcs(talon.config.Config.GcsObjectStoreConfig value) {
+        if (gcsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          backend_ = value;
+          onChanged();
+        } else {
+          gcsBuilder_.setMessage(value);
+        }
+        backendCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       */
+      public Builder setGcs(
+          talon.config.Config.GcsObjectStoreConfig.Builder builderForValue) {
+        if (gcsBuilder_ == null) {
+          backend_ = builderForValue.build();
+          onChanged();
+        } else {
+          gcsBuilder_.setMessage(builderForValue.build());
+        }
+        backendCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       */
+      public Builder mergeGcs(talon.config.Config.GcsObjectStoreConfig value) {
+        if (gcsBuilder_ == null) {
+          if (backendCase_ == 2 &&
+              backend_ != talon.config.Config.GcsObjectStoreConfig.getDefaultInstance()) {
+            backend_ = talon.config.Config.GcsObjectStoreConfig.newBuilder((talon.config.Config.GcsObjectStoreConfig) backend_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            backend_ = value;
+          }
+          onChanged();
+        } else {
+          if (backendCase_ == 2) {
+            gcsBuilder_.mergeFrom(value);
+          } else {
+            gcsBuilder_.setMessage(value);
+          }
+        }
+        backendCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       */
+      public Builder clearGcs() {
+        if (gcsBuilder_ == null) {
+          if (backendCase_ == 2) {
+            backendCase_ = 0;
+            backend_ = null;
+            onChanged();
+          }
+        } else {
+          if (backendCase_ == 2) {
+            backendCase_ = 0;
+            backend_ = null;
+          }
+          gcsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       */
+      public talon.config.Config.GcsObjectStoreConfig.Builder getGcsBuilder() {
+        return internalGetGcsFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       */
+      @java.lang.Override
+      public talon.config.Config.GcsObjectStoreConfigOrBuilder getGcsOrBuilder() {
+        if ((backendCase_ == 2) && (gcsBuilder_ != null)) {
+          return gcsBuilder_.getMessageOrBuilder();
+        } else {
+          if (backendCase_ == 2) {
+            return (talon.config.Config.GcsObjectStoreConfig) backend_;
+          }
+          return talon.config.Config.GcsObjectStoreConfig.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.GcsObjectStoreConfig gcs = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.GcsObjectStoreConfig, talon.config.Config.GcsObjectStoreConfig.Builder, talon.config.Config.GcsObjectStoreConfigOrBuilder>
+          internalGetGcsFieldBuilder() {
+        if (gcsBuilder_ == null) {
+          if (!(backendCase_ == 2)) {
+            backend_ = talon.config.Config.GcsObjectStoreConfig.getDefaultInstance();
+          }
+          gcsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.GcsObjectStoreConfig, talon.config.Config.GcsObjectStoreConfig.Builder, talon.config.Config.GcsObjectStoreConfigOrBuilder>(
+                  (talon.config.Config.GcsObjectStoreConfig) backend_,
+                  getParentForChildren(),
+                  isClean());
+          backend_ = null;
+        }
+        backendCase_ = 2;
+        onChanged();
+        return gcsBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.S3ObjectStoreConfig, talon.config.Config.S3ObjectStoreConfig.Builder, talon.config.Config.S3ObjectStoreConfigOrBuilder> s3Builder_;
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       * @return Whether the s3 field is set.
+       */
+      @java.lang.Override
+      public boolean hasS3() {
+        return backendCase_ == 3;
+      }
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       * @return The s3.
+       */
+      @java.lang.Override
+      public talon.config.Config.S3ObjectStoreConfig getS3() {
+        if (s3Builder_ == null) {
+          if (backendCase_ == 3) {
+            return (talon.config.Config.S3ObjectStoreConfig) backend_;
+          }
+          return talon.config.Config.S3ObjectStoreConfig.getDefaultInstance();
+        } else {
+          if (backendCase_ == 3) {
+            return s3Builder_.getMessage();
+          }
+          return talon.config.Config.S3ObjectStoreConfig.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       */
+      public Builder setS3(talon.config.Config.S3ObjectStoreConfig value) {
+        if (s3Builder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          backend_ = value;
+          onChanged();
+        } else {
+          s3Builder_.setMessage(value);
+        }
+        backendCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       */
+      public Builder setS3(
+          talon.config.Config.S3ObjectStoreConfig.Builder builderForValue) {
+        if (s3Builder_ == null) {
+          backend_ = builderForValue.build();
+          onChanged();
+        } else {
+          s3Builder_.setMessage(builderForValue.build());
+        }
+        backendCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       */
+      public Builder mergeS3(talon.config.Config.S3ObjectStoreConfig value) {
+        if (s3Builder_ == null) {
+          if (backendCase_ == 3 &&
+              backend_ != talon.config.Config.S3ObjectStoreConfig.getDefaultInstance()) {
+            backend_ = talon.config.Config.S3ObjectStoreConfig.newBuilder((talon.config.Config.S3ObjectStoreConfig) backend_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            backend_ = value;
+          }
+          onChanged();
+        } else {
+          if (backendCase_ == 3) {
+            s3Builder_.mergeFrom(value);
+          } else {
+            s3Builder_.setMessage(value);
+          }
+        }
+        backendCase_ = 3;
+        return this;
+      }
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       */
+      public Builder clearS3() {
+        if (s3Builder_ == null) {
+          if (backendCase_ == 3) {
+            backendCase_ = 0;
+            backend_ = null;
+            onChanged();
+          }
+        } else {
+          if (backendCase_ == 3) {
+            backendCase_ = 0;
+            backend_ = null;
+          }
+          s3Builder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       */
+      public talon.config.Config.S3ObjectStoreConfig.Builder getS3Builder() {
+        return internalGetS3FieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       */
+      @java.lang.Override
+      public talon.config.Config.S3ObjectStoreConfigOrBuilder getS3OrBuilder() {
+        if ((backendCase_ == 3) && (s3Builder_ != null)) {
+          return s3Builder_.getMessageOrBuilder();
+        } else {
+          if (backendCase_ == 3) {
+            return (talon.config.Config.S3ObjectStoreConfig) backend_;
+          }
+          return talon.config.Config.S3ObjectStoreConfig.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.config.S3ObjectStoreConfig s3 = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.S3ObjectStoreConfig, talon.config.Config.S3ObjectStoreConfig.Builder, talon.config.Config.S3ObjectStoreConfigOrBuilder>
+          internalGetS3FieldBuilder() {
+        if (s3Builder_ == null) {
+          if (!(backendCase_ == 3)) {
+            backend_ = talon.config.Config.S3ObjectStoreConfig.getDefaultInstance();
+          }
+          s3Builder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.S3ObjectStoreConfig, talon.config.Config.S3ObjectStoreConfig.Builder, talon.config.Config.S3ObjectStoreConfigOrBuilder>(
+                  (talon.config.Config.S3ObjectStoreConfig) backend_,
+                  getParentForChildren(),
+                  isClean());
+          backend_ = null;
+        }
+        backendCase_ = 3;
+        onChanged();
+        return s3Builder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.config.ObjectStoreConfig)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.config.ObjectStoreConfig)
+    private static final talon.config.Config.ObjectStoreConfig DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.config.Config.ObjectStoreConfig();
+    }
+
+    public static talon.config.Config.ObjectStoreConfig getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ObjectStoreConfig>
+        PARSER = new com.google.protobuf.AbstractParser<ObjectStoreConfig>() {
+      @java.lang.Override
+      public ObjectStoreConfig parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ObjectStoreConfig> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ObjectStoreConfig> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.config.Config.ObjectStoreConfig getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -9985,7 +13456,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.Secret shared_secret = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder> 
+          talon.config.Config.Secret, talon.config.Config.Secret.Builder, talon.config.Config.SecretOrBuilder>
           internalGetSharedSecretFieldBuilder() {
         if (sharedSecretBuilder_ == null) {
           if (!(authCase_ == 1)) {
@@ -10127,7 +13598,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.GoogleOidcAuthConfig google_oidc = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.GoogleOidcAuthConfig, talon.config.Config.GoogleOidcAuthConfig.Builder, talon.config.Config.GoogleOidcAuthConfigOrBuilder> 
+          talon.config.Config.GoogleOidcAuthConfig, talon.config.Config.GoogleOidcAuthConfig.Builder, talon.config.Config.GoogleOidcAuthConfigOrBuilder>
           internalGetGoogleOidcFieldBuilder() {
         if (googleOidcBuilder_ == null) {
           if (!(authCase_ == 2)) {
@@ -10281,7 +13752,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         audience_ = s;
@@ -10297,7 +13768,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getAudienceBytes() {
       java.lang.Object ref = audience_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         audience_ = b;
@@ -10320,7 +13791,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         serviceAccountEmail_ = s;
@@ -10336,7 +13807,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getServiceAccountEmailBytes() {
       java.lang.Object ref = serviceAccountEmail_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         serviceAccountEmail_ = b;
@@ -10689,7 +14160,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getAudienceBytes() {
         java.lang.Object ref = audience_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           audience_ = b;
@@ -10761,7 +14232,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getServiceAccountEmailBytes() {
         java.lang.Object ref = serviceAccountEmail_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           serviceAccountEmail_ = b;
@@ -10986,7 +14457,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         projectId_ = s;
@@ -11002,7 +14473,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getProjectIdBytes() {
       java.lang.Object ref = projectId_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         projectId_ = b;
@@ -11025,7 +14496,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         location_ = s;
@@ -11041,7 +14512,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getLocationBytes() {
       java.lang.Object ref = location_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         location_ = b;
@@ -11064,7 +14535,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         queue_ = s;
@@ -11080,7 +14551,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getQueueBytes() {
       java.lang.Object ref = queue_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         queue_ = b;
@@ -11103,7 +14574,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         targetUrl_ = s;
@@ -11119,7 +14590,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getTargetUrlBytes() {
       java.lang.Object ref = targetUrl_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         targetUrl_ = b;
@@ -11591,7 +15062,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getProjectIdBytes() {
         java.lang.Object ref = projectId_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           projectId_ = b;
@@ -11663,7 +15134,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getLocationBytes() {
         java.lang.Object ref = location_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           location_ = b;
@@ -11735,7 +15206,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getQueueBytes() {
         java.lang.Object ref = queue_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           queue_ = b;
@@ -11807,7 +15278,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getTargetUrlBytes() {
         java.lang.Object ref = targetUrl_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           targetUrl_ = b;
@@ -11962,7 +15433,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.SchedulerCallbackAuthConfig callback_auth = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.SchedulerCallbackAuthConfig, talon.config.Config.SchedulerCallbackAuthConfig.Builder, talon.config.Config.SchedulerCallbackAuthConfigOrBuilder> 
+          talon.config.Config.SchedulerCallbackAuthConfig, talon.config.Config.SchedulerCallbackAuthConfig.Builder, talon.config.Config.SchedulerCallbackAuthConfigOrBuilder>
           internalGetCallbackAuthFieldBuilder() {
         if (callbackAuthBuilder_ == null) {
           callbackAuthBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -12624,7 +16095,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.CloudTasksSchedulerConfig cloud_tasks = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.CloudTasksSchedulerConfig, talon.config.Config.CloudTasksSchedulerConfig.Builder, talon.config.Config.CloudTasksSchedulerConfigOrBuilder> 
+          talon.config.Config.CloudTasksSchedulerConfig, talon.config.Config.CloudTasksSchedulerConfig.Builder, talon.config.Config.CloudTasksSchedulerConfigOrBuilder>
           internalGetCloudTasksFieldBuilder() {
         if (cloudTasksBuilder_ == null) {
           if (!(backendCase_ == 1)) {
@@ -12741,6 +16212,21 @@ talon.config.Config.LlmProviderConfig defaultValue) {
      * <code>.talon.config.SchedulerConfig scheduler = 3;</code>
      */
     talon.config.Config.SchedulerConfigOrBuilder getSchedulerOrBuilder();
+
+    /**
+     * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+     * @return Whether the objectStore field is set.
+     */
+    boolean hasObjectStore();
+    /**
+     * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+     * @return The objectStore.
+     */
+    talon.config.Config.ObjectStoreConfig getObjectStore();
+    /**
+     * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+     */
+    talon.config.Config.ObjectStoreConfigOrBuilder getObjectStoreOrBuilder();
   }
   /**
    * Protobuf type {@code talon.config.ControlPlaneConfig}
@@ -12863,6 +16349,32 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       return scheduler_ == null ? talon.config.Config.SchedulerConfig.getDefaultInstance() : scheduler_;
     }
 
+    public static final int OBJECT_STORE_FIELD_NUMBER = 4;
+    private talon.config.Config.ObjectStoreConfig objectStore_;
+    /**
+     * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+     * @return Whether the objectStore field is set.
+     */
+    @java.lang.Override
+    public boolean hasObjectStore() {
+      return ((bitField0_ & 0x00000008) != 0);
+    }
+    /**
+     * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+     * @return The objectStore.
+     */
+    @java.lang.Override
+    public talon.config.Config.ObjectStoreConfig getObjectStore() {
+      return objectStore_ == null ? talon.config.Config.ObjectStoreConfig.getDefaultInstance() : objectStore_;
+    }
+    /**
+     * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+     */
+    @java.lang.Override
+    public talon.config.Config.ObjectStoreConfigOrBuilder getObjectStoreOrBuilder() {
+      return objectStore_ == null ? talon.config.Config.ObjectStoreConfig.getDefaultInstance() : objectStore_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -12886,6 +16398,9 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (((bitField0_ & 0x00000004) != 0)) {
         output.writeMessage(3, getScheduler());
       }
+      if (((bitField0_ & 0x00000008) != 0)) {
+        output.writeMessage(4, getObjectStore());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -12906,6 +16421,10 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(3, getScheduler());
+      }
+      if (((bitField0_ & 0x00000008) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getObjectStore());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -12937,6 +16456,11 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         if (!getScheduler()
             .equals(other.getScheduler())) return false;
       }
+      if (hasObjectStore() != other.hasObjectStore()) return false;
+      if (hasObjectStore()) {
+        if (!getObjectStore()
+            .equals(other.getObjectStore())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -12959,6 +16483,10 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (hasScheduler()) {
         hash = (37 * hash) + SCHEDULER_FIELD_NUMBER;
         hash = (53 * hash) + getScheduler().hashCode();
+      }
+      if (hasObjectStore()) {
+        hash = (37 * hash) + OBJECT_STORE_FIELD_NUMBER;
+        hash = (53 * hash) + getObjectStore().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -13093,6 +16621,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           internalGetDatabaseFieldBuilder();
           internalGetMessageBrokerFieldBuilder();
           internalGetSchedulerFieldBuilder();
+          internalGetObjectStoreFieldBuilder();
         }
       }
       @java.lang.Override
@@ -13113,6 +16642,11 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         if (schedulerBuilder_ != null) {
           schedulerBuilder_.dispose();
           schedulerBuilder_ = null;
+        }
+        objectStore_ = null;
+        if (objectStoreBuilder_ != null) {
+          objectStoreBuilder_.dispose();
+          objectStoreBuilder_ = null;
         }
         return this;
       }
@@ -13166,6 +16700,12 @@ talon.config.Config.LlmProviderConfig defaultValue) {
               : schedulerBuilder_.build();
           to_bitField0_ |= 0x00000004;
         }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.objectStore_ = objectStoreBuilder_ == null
+              ? objectStore_
+              : objectStoreBuilder_.build();
+          to_bitField0_ |= 0x00000008;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -13189,6 +16729,9 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         }
         if (other.hasScheduler()) {
           mergeScheduler(other.getScheduler());
+        }
+        if (other.hasObjectStore()) {
+          mergeObjectStore(other.getObjectStore());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -13237,6 +16780,13 @@ talon.config.Config.LlmProviderConfig defaultValue) {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                input.readMessage(
+                    internalGetObjectStoreFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -13362,7 +16912,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.DatabaseConfig database = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.DatabaseConfig, talon.config.Config.DatabaseConfig.Builder, talon.config.Config.DatabaseConfigOrBuilder> 
+          talon.config.Config.DatabaseConfig, talon.config.Config.DatabaseConfig.Builder, talon.config.Config.DatabaseConfigOrBuilder>
           internalGetDatabaseFieldBuilder() {
         if (databaseBuilder_ == null) {
           databaseBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -13483,7 +17033,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.MessageBrokerConfig message_broker = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.MessageBrokerConfig, talon.config.Config.MessageBrokerConfig.Builder, talon.config.Config.MessageBrokerConfigOrBuilder> 
+          talon.config.Config.MessageBrokerConfig, talon.config.Config.MessageBrokerConfig.Builder, talon.config.Config.MessageBrokerConfigOrBuilder>
           internalGetMessageBrokerFieldBuilder() {
         if (messageBrokerBuilder_ == null) {
           messageBrokerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -13604,7 +17154,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
        * <code>.talon.config.SchedulerConfig scheduler = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.SchedulerConfig, talon.config.Config.SchedulerConfig.Builder, talon.config.Config.SchedulerConfigOrBuilder> 
+          talon.config.Config.SchedulerConfig, talon.config.Config.SchedulerConfig.Builder, talon.config.Config.SchedulerConfigOrBuilder>
           internalGetSchedulerFieldBuilder() {
         if (schedulerBuilder_ == null) {
           schedulerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -13615,6 +17165,127 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           scheduler_ = null;
         }
         return schedulerBuilder_;
+      }
+
+      private talon.config.Config.ObjectStoreConfig objectStore_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.ObjectStoreConfig, talon.config.Config.ObjectStoreConfig.Builder, talon.config.Config.ObjectStoreConfigOrBuilder> objectStoreBuilder_;
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       * @return Whether the objectStore field is set.
+       */
+      public boolean hasObjectStore() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       * @return The objectStore.
+       */
+      public talon.config.Config.ObjectStoreConfig getObjectStore() {
+        if (objectStoreBuilder_ == null) {
+          return objectStore_ == null ? talon.config.Config.ObjectStoreConfig.getDefaultInstance() : objectStore_;
+        } else {
+          return objectStoreBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       */
+      public Builder setObjectStore(talon.config.Config.ObjectStoreConfig value) {
+        if (objectStoreBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          objectStore_ = value;
+        } else {
+          objectStoreBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       */
+      public Builder setObjectStore(
+          talon.config.Config.ObjectStoreConfig.Builder builderForValue) {
+        if (objectStoreBuilder_ == null) {
+          objectStore_ = builderForValue.build();
+        } else {
+          objectStoreBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       */
+      public Builder mergeObjectStore(talon.config.Config.ObjectStoreConfig value) {
+        if (objectStoreBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) != 0) &&
+            objectStore_ != null &&
+            objectStore_ != talon.config.Config.ObjectStoreConfig.getDefaultInstance()) {
+            getObjectStoreBuilder().mergeFrom(value);
+          } else {
+            objectStore_ = value;
+          }
+        } else {
+          objectStoreBuilder_.mergeFrom(value);
+        }
+        if (objectStore_ != null) {
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       */
+      public Builder clearObjectStore() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        objectStore_ = null;
+        if (objectStoreBuilder_ != null) {
+          objectStoreBuilder_.dispose();
+          objectStoreBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       */
+      public talon.config.Config.ObjectStoreConfig.Builder getObjectStoreBuilder() {
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return internalGetObjectStoreFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       */
+      public talon.config.Config.ObjectStoreConfigOrBuilder getObjectStoreOrBuilder() {
+        if (objectStoreBuilder_ != null) {
+          return objectStoreBuilder_.getMessageOrBuilder();
+        } else {
+          return objectStore_ == null ?
+              talon.config.Config.ObjectStoreConfig.getDefaultInstance() : objectStore_;
+        }
+      }
+      /**
+       * <code>.talon.config.ObjectStoreConfig object_store = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.config.Config.ObjectStoreConfig, talon.config.Config.ObjectStoreConfig.Builder, talon.config.Config.ObjectStoreConfigOrBuilder>
+          internalGetObjectStoreFieldBuilder() {
+        if (objectStoreBuilder_ == null) {
+          objectStoreBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.ObjectStoreConfig, talon.config.Config.ObjectStoreConfig.Builder, talon.config.Config.ObjectStoreConfigOrBuilder>(
+                  getObjectStore(),
+                  getParentForChildren(),
+                  isClean());
+          objectStore_ = null;
+        }
+        return objectStoreBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.config.ControlPlaneConfig)
@@ -13746,7 +17417,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         host_ = s;
@@ -13762,7 +17433,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getHostBytes() {
       java.lang.Object ref = host_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         host_ = b;
@@ -14125,7 +17796,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           getHostBytes() {
         java.lang.Object ref = host_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           host_ = b;
@@ -14257,87 +17928,107 @@ talon.config.Config.LlmProviderConfig defaultValue) {
 
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_TalonConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_TalonConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_TalonConfig_ProvidersEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_TalonConfig_ProvidersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_LlmProviderConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_LlmProviderConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_OpenAiConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_OpenAiConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_AnthropicConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_AnthropicConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_GoogleConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_GoogleConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_GenericConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_GenericConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_Secret_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_Secret_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_SecretRef_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_SecretRef_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_DatabaseConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_DatabaseConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_MessageBrokerConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_MessageBrokerConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_LocalObjectStoreConfig_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_GcsObjectStoreConfig_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_GcsObjectStoreConfig_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_S3ObjectStoreConfig_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_S3ObjectStoreConfig_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_config_ObjectStoreConfig_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_config_ObjectStoreConfig_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_SchedulerCallbackAuthConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_GoogleOidcAuthConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_GoogleOidcAuthConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_CloudTasksSchedulerConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_CloudTasksSchedulerConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_SchedulerConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_SchedulerConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_ControlPlaneConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_ControlPlaneConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_ServerConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_ServerConfig_fieldAccessorTable;
 
@@ -14381,23 +18072,35 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       "\003\022\t\n\005AZURE\020\004\"U\n\016DatabaseConfig\022\020\n\010data_d" +
       "ir\030\001 \001(\t\022\016\n\006driver\030\002 \001(\t\022!\n\003url\030\003 \001(\0132\024." +
       "talon.config.Secret\"%\n\023MessageBrokerConf" +
-      "ig\022\016\n\006driver\030\001 \001(\t\"\217\001\n\033SchedulerCallback" +
-      "AuthConfig\022-\n\rshared_secret\030\001 \001(\0132\024.talo" +
-      "n.config.SecretH\000\0229\n\013google_oidc\030\002 \001(\0132\"" +
-      ".talon.config.GoogleOidcAuthConfigH\000B\006\n\004" +
-      "auth\"G\n\024GoogleOidcAuthConfig\022\020\n\010audience" +
-      "\030\001 \001(\t\022\035\n\025service_account_email\030\002 \001(\t\"\246\001" +
-      "\n\031CloudTasksSchedulerConfig\022\022\n\nproject_i" +
-      "d\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t" +
-      "\022\022\n\ntarget_url\030\004 \001(\t\022@\n\rcallback_auth\030\005 " +
-      "\001(\0132).talon.config.SchedulerCallbackAuth" +
-      "Config\"\\\n\017SchedulerConfig\022>\n\013cloud_tasks" +
-      "\030\001 \001(\0132\'.talon.config.CloudTasksSchedule" +
-      "rConfigH\000B\t\n\007backend\"\261\001\n\022ControlPlaneCon" +
-      "fig\022.\n\010database\030\001 \001(\0132\034.talon.config.Dat" +
-      "abaseConfig\0229\n\016message_broker\030\002 \001(\0132!.ta" +
-      "lon.config.MessageBrokerConfig\0220\n\tschedu" +
-      "ler\030\003 \001(\0132\035.talon.config.SchedulerConfig" +
+      "ig\022\016\n\006driver\030\001 \001(\t\"&\n\026LocalObjectStoreCo" +
+      "nfig\022\014\n\004path\030\001 \001(\t\"L\n\024GcsObjectStoreConf" +
+      "ig\022\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\024\n\014ap" +
+      "i_base_url\030\003 \001(\t\"u\n\023S3ObjectStoreConfig\022" +
+      "\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006regio" +
+      "n\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(\t\022\030\n\020force_p" +
+      "ath_style\030\005 \001(\010\"\271\001\n\021ObjectStoreConfig\0225\n" +
+      "\005local\030\001 \001(\0132$.talon.config.LocalObjectS" +
+      "toreConfigH\000\0221\n\003gcs\030\002 \001(\0132\".talon.config" +
+      ".GcsObjectStoreConfigH\000\022/\n\002s3\030\003 \001(\0132!.ta" +
+      "lon.config.S3ObjectStoreConfigH\000B\t\n\007back" +
+      "end\"\217\001\n\033SchedulerCallbackAuthConfig\022-\n\rs" +
+      "hared_secret\030\001 \001(\0132\024.talon.config.Secret" +
+      "H\000\0229\n\013google_oidc\030\002 \001(\0132\".talon.config.G" +
+      "oogleOidcAuthConfigH\000B\006\n\004auth\"G\n\024GoogleO" +
+      "idcAuthConfig\022\020\n\010audience\030\001 \001(\t\022\035\n\025servi" +
+      "ce_account_email\030\002 \001(\t\"\246\001\n\031CloudTasksSch" +
+      "edulerConfig\022\022\n\nproject_id\030\001 \001(\t\022\020\n\010loca" +
+      "tion\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarget_url\030" +
+      "\004 \001(\t\022@\n\rcallback_auth\030\005 \001(\0132).talon.con" +
+      "fig.SchedulerCallbackAuthConfig\"\\\n\017Sched" +
+      "ulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'.talon." +
+      "config.CloudTasksSchedulerConfigH\000B\t\n\007ba" +
+      "ckend\"\350\001\n\022ControlPlaneConfig\022.\n\010database" +
+      "\030\001 \001(\0132\034.talon.config.DatabaseConfig\0229\n\016" +
+      "message_broker\030\002 \001(\0132!.talon.config.Mess" +
+      "ageBrokerConfig\0220\n\tscheduler\030\003 \001(\0132\035.tal" +
+      "on.config.SchedulerConfig\0225\n\014object_stor" +
+      "e\030\004 \001(\0132\037.talon.config.ObjectStoreConfig" +
       "\"*\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004port\030\002" +
       " \001(\rb\006proto3"
     };
@@ -14471,38 +18174,62 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_MessageBrokerConfig_descriptor,
         new java.lang.String[] { "Driver", });
-    internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor =
+    internal_static_talon_config_LocalObjectStoreConfig_descriptor =
       getDescriptor().getMessageType(10);
+    internal_static_talon_config_LocalObjectStoreConfig_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_LocalObjectStoreConfig_descriptor,
+        new java.lang.String[] { "Path", });
+    internal_static_talon_config_GcsObjectStoreConfig_descriptor =
+      getDescriptor().getMessageType(11);
+    internal_static_talon_config_GcsObjectStoreConfig_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_GcsObjectStoreConfig_descriptor,
+        new java.lang.String[] { "Bucket", "Prefix", "ApiBaseUrl", });
+    internal_static_talon_config_S3ObjectStoreConfig_descriptor =
+      getDescriptor().getMessageType(12);
+    internal_static_talon_config_S3ObjectStoreConfig_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_S3ObjectStoreConfig_descriptor,
+        new java.lang.String[] { "Bucket", "Prefix", "Region", "EndpointUrl", "ForcePathStyle", });
+    internal_static_talon_config_ObjectStoreConfig_descriptor =
+      getDescriptor().getMessageType(13);
+    internal_static_talon_config_ObjectStoreConfig_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_config_ObjectStoreConfig_descriptor,
+        new java.lang.String[] { "Local", "Gcs", "S3", "Backend", });
+    internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor =
+      getDescriptor().getMessageType(14);
     internal_static_talon_config_SchedulerCallbackAuthConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor,
         new java.lang.String[] { "SharedSecret", "GoogleOidc", "Auth", });
     internal_static_talon_config_GoogleOidcAuthConfig_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(15);
     internal_static_talon_config_GoogleOidcAuthConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_GoogleOidcAuthConfig_descriptor,
         new java.lang.String[] { "Audience", "ServiceAccountEmail", });
     internal_static_talon_config_CloudTasksSchedulerConfig_descriptor =
-      getDescriptor().getMessageType(12);
+      getDescriptor().getMessageType(16);
     internal_static_talon_config_CloudTasksSchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_CloudTasksSchedulerConfig_descriptor,
         new java.lang.String[] { "ProjectId", "Location", "Queue", "TargetUrl", "CallbackAuth", });
     internal_static_talon_config_SchedulerConfig_descriptor =
-      getDescriptor().getMessageType(13);
+      getDescriptor().getMessageType(17);
     internal_static_talon_config_SchedulerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_SchedulerConfig_descriptor,
         new java.lang.String[] { "CloudTasks", "Backend", });
     internal_static_talon_config_ControlPlaneConfig_descriptor =
-      getDescriptor().getMessageType(14);
+      getDescriptor().getMessageType(18);
     internal_static_talon_config_ControlPlaneConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ControlPlaneConfig_descriptor,
-        new java.lang.String[] { "Database", "MessageBroker", "Scheduler", });
+        new java.lang.String[] { "Database", "MessageBroker", "Scheduler", "ObjectStore", });
     internal_static_talon_config_ServerConfig_descriptor =
-      getDescriptor().getMessageType(15);
+      getDescriptor().getMessageType(19);
     internal_static_talon_config_ServerConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ServerConfig_descriptor,

@@ -910,6 +910,7 @@ mod tests {
                 kv: Arc::new(MockKvStore::default()),
                 pubsub: Arc::new(EmptyPubSub),
                 scheduler: Arc::new(NoopSchedulerBackend),
+                objects: talon::control::object_store::default_object_store(),
             }),
             config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),
@@ -1123,6 +1124,7 @@ mod tests {
             kv: Arc::new(MockKvStore::default()),
             pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: talon::control::object_store::default_object_store(),
         });
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
@@ -1233,12 +1235,14 @@ mod tests {
                 driver: "local_socket".to_string(),
             }),
             scheduler: None,
+            object_store: None,
         });
         let handler = WorkerEventHandler {
             cp: Arc::new(ControlPlane {
                 kv: Arc::new(MockKvStore::default()),
                 pubsub: Arc::new(EmptyPubSub),
                 scheduler: Arc::new(NoopSchedulerBackend),
+                objects: talon::control::object_store::default_object_store(),
             }),
             config: Arc::new(config),
             mcp_registry: Arc::new(McpRegistry::new()),
@@ -1503,6 +1507,7 @@ mod tests {
                 kv,
                 pubsub: Arc::new(EmptyPubSub),
                 scheduler: Arc::new(NoopSchedulerBackend),
+                objects: talon::control::object_store::default_object_store(),
             }),
             config: Arc::new(Config::default()),
             mcp_registry: Arc::new(McpRegistry::new()),
@@ -1565,6 +1570,7 @@ mod tests {
             kv: Arc::new(MockKvStore::default()),
             pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: talon::control::object_store::default_object_store(),
         });
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
@@ -1611,6 +1617,7 @@ mod tests {
             kv: Arc::new(MockKvStore::default()),
             pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: talon::control::object_store::default_object_store(),
         });
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
@@ -1650,6 +1657,7 @@ mod tests {
             kv: Arc::new(MockKvStore::default()),
             pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: talon::control::object_store::default_object_store(),
         });
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());
@@ -1699,6 +1707,7 @@ mod tests {
                     kv: Arc::new(MockKvStore::default()),
                     pubsub: Arc::new(EmptyPubSub),
                     scheduler: Arc::new(NoopSchedulerBackend),
+                    objects: talon::control::object_store::default_object_store(),
                 }))
             },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
@@ -1731,6 +1740,7 @@ mod tests {
                     kv: Arc::new(MockKvStore::default()),
                     pubsub: Arc::new(EmptyPubSub),
                     scheduler: Arc::new(NoopSchedulerBackend),
+                    objects: talon::control::object_store::default_object_store(),
                 }))
             },
             |_| async { anyhow::bail!("scheduler auth failed") },
@@ -1754,6 +1764,7 @@ mod tests {
                     kv: Arc::new(MockKvStore::default()),
                     pubsub: Arc::new(EmptyPubSub),
                     scheduler: Arc::new(NoopSchedulerBackend),
+                    objects: talon::control::object_store::default_object_store(),
                 }))
             },
             |_| async { Ok(Arc::new(SchedulerRequestAuthenticator::deny_all())) },
@@ -2049,6 +2060,7 @@ mod tests {
             kv: Arc::new(MockKvStore::default()),
             pubsub: Arc::new(EmptyPubSub),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: talon::control::object_store::default_object_store(),
         });
         let config = Arc::new(Config::default());
         let auth = Arc::new(SchedulerRequestAuthenticator::deny_all());

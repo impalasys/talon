@@ -163,6 +163,7 @@ async fn run() -> Result<()> {
         Arc::clone(&cp.kv),
         Arc::clone(&cp.pubsub),
         Arc::clone(&cp.scheduler),
+        Arc::clone(&cp.objects),
     );
     let (rpc_addr, ui_addr) = gateway_addresses();
     let rpc_gateway = gateway.clone();

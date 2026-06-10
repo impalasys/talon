@@ -390,6 +390,7 @@ mod tests {
                 name: String::new(),
                 payload_json: String::new(),
                 created_at: 1,
+                object: None,
             }),
             timestamp: 1,
             agent: agent.to_string(),

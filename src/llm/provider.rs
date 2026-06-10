@@ -11,13 +11,71 @@ use serde_json::Value;
 use std::pin::Pin;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ChatContentPart {
+    Text {
+        text: String,
+    },
+    ImageUrl {
+        url: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        detail: Option<String>,
+    },
+    ImageData {
+        media_type: String,
+        data_base64: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        detail: Option<String>,
+    },
+}
+
+pub fn content_parts_text(parts: &[ChatContentPart]) -> String {
+    parts
+        .iter()
+        .filter_map(|part| match part {
+            ChatContentPart::Text { text } => Some(text.as_str()),
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+        .join("")
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ChatMessage {
     pub role: String,
-    pub content: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub content_parts: Vec<ChatContentPart>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_calls: Option<Vec<ToolCall>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tool_call_id: Option<String>,
+}
+
+impl ChatMessage {
+    pub fn text(role: impl Into<String>, content: impl Into<String>) -> Self {
+        let content = content.into();
+        Self {
+            role: role.into(),
+            content_parts: if content.is_empty() {
+                Vec::new()
+            } else {
+                vec![ChatContentPart::Text { text: content }]
+            },
+            tool_calls: None,
+            tool_call_id: None,
+        }
+    }
+
+    pub fn text_content(&self) -> String {
+        content_parts_text(&self.content_parts)
+    }
+
+    pub fn is_empty_content(&self) -> bool {
+        self.content_parts.iter().all(|part| match part {
+            ChatContentPart::Text { text } => text.is_empty(),
+            _ => false,
+        })
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

@@ -7,7 +7,9 @@ use crate::control::ControlPlane;
 use crate::core::context_budget::{compact_history_for_llm, tool_result_preview};
 use crate::knowledge::KnowledgeBook;
 use crate::llm::resolver::resolve_model_profile;
-use crate::llm::{ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall};
+use crate::llm::{
+    ChatContentPart, ChatMessage, ChatRequest, ChatStreamEvent, ChatUsage, LlmProvider, ToolCall,
+};
 use crate::skills::registry::ToolRegistry;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -34,9 +36,37 @@ fn tool_error_result(name: &str, error: &anyhow::Error) -> String {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct LoopMessage {
     pub role: String,
-    pub content: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub content_parts: Vec<ChatContentPart>,
     pub tool_calls: Option<Vec<ToolCall>>,
     pub tool_call_id: Option<String>,
+}
+
+impl LoopMessage {
+    pub fn text(role: impl Into<String>, content: impl Into<String>) -> Self {
+        let content = content.into();
+        Self {
+            role: role.into(),
+            content_parts: if content.is_empty() {
+                Vec::new()
+            } else {
+                vec![ChatContentPart::Text { text: content }]
+            },
+            tool_calls: None,
+            tool_call_id: None,
+        }
+    }
+
+    pub fn text_content(&self) -> String {
+        crate::llm::content_parts_text(&self.content_parts)
+    }
+
+    pub fn is_empty_content(&self) -> bool {
+        self.content_parts.iter().all(|part| match part {
+            ChatContentPart::Text { text } => text.is_empty(),
+            _ => false,
+        })
+    }
 }
 
 /// Events emitted by the executor during a run.
@@ -320,20 +350,10 @@ impl AgentExecutor {
         // Inject system prompt on first turn
         if context.history.is_empty() {
             let soul = self.assembler.assemble().await?;
-            context.push(LoopMessage {
-                role: "system".to_string(),
-                content: soul,
-                tool_calls: None,
-                tool_call_id: None,
-            });
+            context.push(LoopMessage::text("system", soul));
         }
 
-        context.push(LoopMessage {
-            role: "user".to_string(),
-            content: task.to_string(),
-            tool_calls: None,
-            tool_call_id: None,
-        });
+        context.push(LoopMessage::text("user", task));
 
         let mut turn_limit = DEFAULT_EXECUTION_TURN_LIMIT;
         loop {
@@ -348,7 +368,7 @@ impl AgentExecutor {
                 .iter()
                 .map(|m| ChatMessage {
                     role: m.role.clone(),
-                    content: m.content.clone(),
+                    content_parts: m.content_parts.clone(),
                     tool_calls: m.tool_calls.clone(),
                     tool_call_id: m.tool_call_id.clone(),
                 })
@@ -377,12 +397,7 @@ impl AgentExecutor {
                     tokio::select! {
                         _ = token.cancelled() => {
                             tracing::info!(agent_id = %context.agent_id, "Generation interrupted by user");
-                            context.push(LoopMessage {
-                                role: "assistant".to_string(),
-                                content: final_reply.clone(),
-                                tool_calls: None,
-                                tool_call_id: None,
-                            });
+                            context.push(LoopMessage::text("assistant", final_reply.clone()));
                             sink.on_done(&final_reply).await;
                             return Ok(final_reply);
                         }
@@ -436,16 +451,13 @@ impl AgentExecutor {
                 .collect();
 
             // Record assistant turn
-            context.push(LoopMessage {
-                role: "assistant".to_string(),
-                content: final_reply.clone(),
-                tool_calls: if tool_calls.is_empty() {
-                    None
-                } else {
-                    Some(tool_calls.clone())
-                },
-                tool_call_id: None,
-            });
+            let mut assistant_message = LoopMessage::text("assistant", final_reply.clone());
+            assistant_message.tool_calls = if tool_calls.is_empty() {
+                None
+            } else {
+                Some(tool_calls.clone())
+            };
+            context.push(assistant_message);
 
             if !tool_calls.is_empty() {
                 for tool in &tool_calls {
@@ -458,12 +470,9 @@ impl AgentExecutor {
                     sink.on_tool_result(&tool.id, &tool.name, &result).await;
                     let preview = tool_result_preview(&result);
 
-                    context.push(LoopMessage {
-                        role: "tool".to_string(),
-                        content: preview,
-                        tool_calls: None,
-                        tool_call_id: Some(tool.id.clone()),
-                    });
+                    let mut tool_message = LoopMessage::text("tool", preview);
+                    tool_message.tool_call_id = Some(tool.id.clone());
+                    context.push(tool_message);
                 }
                 continue;
             }
@@ -790,6 +799,7 @@ mod tests {
                 kv: Arc::new(NoopKv),
                 pubsub: Arc::new(NoopPubSub),
                 scheduler: Arc::new(NoopScheduler),
+                objects: crate::control::object_store::default_object_store(),
             },
             manifests::AgentSpec::default(),
             HashMap::new(),
@@ -799,42 +809,27 @@ mod tests {
             "{{\"items\":[{{\"path\":\"footer.tsx\",\"content\":\"{}\"}}],\"query\":\"repo:pablonyx/proliferate blog\"}}",
             "x".repeat(150_000)
         );
-        let mut history = vec![LoopMessage {
-            role: "system".to_string(),
-            content: "You are Conic.".to_string(),
-            tool_calls: None,
-            tool_call_id: None,
-        }];
+        let mut history = vec![LoopMessage::text("system", "You are Conic.")];
         for index in 0..10 {
-            history.push(LoopMessage {
-                role: "user".to_string(),
-                content: format!("Earlier question #{index}: {}", "q".repeat(8_000)),
-                tool_calls: None,
-                tool_call_id: None,
-            });
-            history.push(LoopMessage {
-                role: "assistant".to_string(),
-                content: format!("Earlier answer #{index}: {}", "a".repeat(8_000)),
-                tool_calls: None,
-                tool_call_id: None,
-            });
+            history.push(LoopMessage::text(
+                "user",
+                format!("Earlier question #{index}: {}", "q".repeat(8_000)),
+            ));
+            history.push(LoopMessage::text(
+                "assistant",
+                format!("Earlier answer #{index}: {}", "a".repeat(8_000)),
+            ));
         }
-        history.push(LoopMessage {
-            role: "assistant".to_string(),
-            content: "Investigating repo.".to_string(),
-            tool_calls: Some(vec![crate::llm::ToolCall {
-                id: "tool-1".to_string(),
-                name: "mcp_github_search_code".to_string(),
-                arguments: "{\"query\":\"repo:pablonyx/proliferate blog\"}".to_string(),
-            }]),
-            tool_call_id: None,
-        });
-        history.push(LoopMessage {
-            role: "tool".to_string(),
-            content: huge_tool_result,
-            tool_calls: None,
-            tool_call_id: Some("tool-1".to_string()),
-        });
+        let mut assistant_message = LoopMessage::text("assistant", "Investigating repo.");
+        assistant_message.tool_calls = Some(vec![crate::llm::ToolCall {
+            id: "tool-1".to_string(),
+            name: "mcp_github_search_code".to_string(),
+            arguments: "{\"query\":\"repo:pablonyx/proliferate blog\"}".to_string(),
+        }]);
+        history.push(assistant_message);
+        let mut tool_message = LoopMessage::text("tool", huge_tool_result);
+        tool_message.tool_call_id = Some("tool-1".to_string());
+        history.push(tool_message);
 
         let mut context = ExecutionContext::with_history("cmo", history);
         let reply = executor
@@ -852,17 +847,19 @@ mod tests {
         let messages = seen.last().unwrap();
         assert!(messages.iter().any(|message| {
             message.role == "user"
-                && message.content
+                && message.text_content()
                     == "I'm talking about the blogs link in the footer and the blogs pages"
         }));
         let tool_message = messages
             .iter()
             .find(|message| message.role == "tool")
             .unwrap();
-        assert!(tool_message.content.len() <= ContextBudget::default().max_tool_result_chars);
         assert!(
-            tool_message.content.contains("chars omitted")
-                || tool_message.content.contains("_truncated")
+            tool_message.text_content().len() <= ContextBudget::default().max_tool_result_chars
+        );
+        assert!(
+            tool_message.text_content().contains("chars omitted")
+                || tool_message.text_content().contains("_truncated")
         );
         let assistant_tool_call = messages
             .iter()
@@ -875,7 +872,7 @@ mod tests {
             .unwrap();
         assert_eq!(assistant_tool_call.role, "assistant");
         assert!(messages.iter().any(|message| {
-            message.role == "system" && message.content.contains("earlier messages omitted")
+            message.role == "system" && message.text_content().contains("earlier messages omitted")
         }));
     }
 
@@ -909,6 +906,7 @@ mod tests {
                 kv: Arc::new(NoopKv),
                 pubsub: Arc::new(NoopPubSub),
                 scheduler: Arc::new(NoopScheduler),
+                objects: crate::control::object_store::default_object_store(),
             },
             spec.clone(),
             HashMap::new(),
@@ -991,6 +989,7 @@ mod tests {
                 kv: Arc::new(NoopKv),
                 pubsub: Arc::new(NoopPubSub),
                 scheduler: Arc::new(NoopScheduler),
+                objects: crate::control::object_store::default_object_store(),
             },
             manifests::AgentSpec::default(),
             HashMap::new(),
@@ -1080,6 +1079,7 @@ mod tests {
                 kv: Arc::new(NoopKv),
                 pubsub: Arc::new(NoopPubSub),
                 scheduler: Arc::new(NoopScheduler),
+                objects: crate::control::object_store::default_object_store(),
             },
             manifests::AgentSpec::default(),
             HashMap::new(),

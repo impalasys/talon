@@ -19,6 +19,7 @@ This starts the local compose stack and brings up:
 - Sightline UI
 - Postgres
 - the Pub/Sub emulator
+- a shared `talon-objects` volume for local object storage
 - the default template bootstrap
 
 ## SQLite development
@@ -30,6 +31,7 @@ If you want to run Talon directly on a single machine without Postgres, configur
 - `control_plane.database.driver: sqlite`
 - `control_plane.database.data_dir: <local directory>`
 - `control_plane.message_broker.driver: local_socket`
+- `control_plane.object_store.driver: local`
 - `TALON_SCHEDULER_DRIVER=local_sqlite`
 
 Keep the SQLite database on a local filesystem and run the gateway and worker on the same host.

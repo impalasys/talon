@@ -532,6 +532,7 @@ mod tests {
             kv,
             pubsub: Arc::new(EmptyPubSub),
             scheduler,
+            objects: crate::control::object_store::default_object_store(),
         }
     }
 

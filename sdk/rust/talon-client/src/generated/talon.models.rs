@@ -21,6 +21,24 @@ pub struct Agent {
     >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ObjectRef {
+    #[prost(string, tag = "1")]
+    pub key: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub media_type: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub size_bytes: u64,
+    #[prost(string, tag = "4")]
+    pub sha256: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub filename: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "6")]
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionMessagePart {
     #[prost(string, tag = "1")]
     pub id: ::prost::alloc::string::String,
@@ -35,6 +53,8 @@ pub struct SessionMessagePart {
     /// Unix timestamp in microseconds.
     #[prost(int64, tag = "6")]
     pub created_at: i64,
+    #[prost(message, optional, tag = "7")]
+    pub object: ::core::option::Option<ObjectRef>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionMessage {
@@ -336,6 +356,10 @@ pub enum SessionMessagePartType {
     ToolResult = 4,
     Usage = 5,
     Error = 6,
+    Image = 7,
+    Audio = 8,
+    Video = 9,
+    File = 10,
 }
 impl SessionMessagePartType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -351,6 +375,10 @@ impl SessionMessagePartType {
             Self::ToolResult => "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT",
             Self::Usage => "SESSION_MESSAGE_PART_TYPE_USAGE",
             Self::Error => "SESSION_MESSAGE_PART_TYPE_ERROR",
+            Self::Image => "SESSION_MESSAGE_PART_TYPE_IMAGE",
+            Self::Audio => "SESSION_MESSAGE_PART_TYPE_AUDIO",
+            Self::Video => "SESSION_MESSAGE_PART_TYPE_VIDEO",
+            Self::File => "SESSION_MESSAGE_PART_TYPE_FILE",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -363,6 +391,10 @@ impl SessionMessagePartType {
             "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT" => Some(Self::ToolResult),
             "SESSION_MESSAGE_PART_TYPE_USAGE" => Some(Self::Usage),
             "SESSION_MESSAGE_PART_TYPE_ERROR" => Some(Self::Error),
+            "SESSION_MESSAGE_PART_TYPE_IMAGE" => Some(Self::Image),
+            "SESSION_MESSAGE_PART_TYPE_AUDIO" => Some(Self::Audio),
+            "SESSION_MESSAGE_PART_TYPE_VIDEO" => Some(Self::Video),
+            "SESSION_MESSAGE_PART_TYPE_FILE" => Some(Self::File),
             _ => None,
         }
     }

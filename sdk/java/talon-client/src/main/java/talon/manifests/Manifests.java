@@ -197,7 +197,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -213,7 +213,7 @@ java.lang.String defaultValue);
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -236,7 +236,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         namespace_ = s;
@@ -252,7 +252,7 @@ java.lang.String defaultValue);
         getNamespaceBytes() {
       java.lang.Object ref = namespace_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         namespace_ = b;
@@ -268,7 +268,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.manifests.Manifests.internal_static_talon_manifests_ObjectMeta_LabelsEntry_descriptor, 
+                  talon.manifests.Manifests.internal_static_talon_manifests_ObjectMeta_LabelsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -347,7 +347,7 @@ java.lang.String defaultValue) {
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.manifests.Manifests.internal_static_talon_manifests_ObjectMeta_AnnotationsEntry_descriptor, 
+                  talon.manifests.Manifests.internal_static_talon_manifests_ObjectMeta_AnnotationsEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -871,7 +871,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -943,7 +943,7 @@ java.lang.String defaultValue) {
           getNamespaceBytes() {
         java.lang.Object ref = namespace_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           namespace_ = b;
@@ -1411,7 +1411,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         apiVersion_ = s;
@@ -1427,7 +1427,7 @@ java.lang.String defaultValue) {
         getApiVersionBytes() {
       java.lang.Object ref = apiVersion_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         apiVersion_ = b;
@@ -1450,7 +1450,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         kind_ = s;
@@ -1466,7 +1466,7 @@ java.lang.String defaultValue) {
         getKindBytes() {
       java.lang.Object ref = kind_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         kind_ = b;
@@ -1954,7 +1954,7 @@ java.lang.String defaultValue) {
           getApiVersionBytes() {
         java.lang.Object ref = apiVersion_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           apiVersion_ = b;
@@ -2026,7 +2026,7 @@ java.lang.String defaultValue) {
           getKindBytes() {
         java.lang.Object ref = kind_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           kind_ = b;
@@ -2181,7 +2181,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder> 
+          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder>
           internalGetMetadataFieldBuilder() {
         if (metadataBuilder_ == null) {
           metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -2302,7 +2302,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.AgentDefinition definition = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder> 
+          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder>
           internalGetDefinitionFieldBuilder() {
         if (definitionBuilder_ == null) {
           definitionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -2373,7 +2373,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.manifests.Feature features = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.Feature> 
+    java.util.List<talon.manifests.Manifests.Feature>
         getFeaturesList();
     /**
      * <code>repeated .talon.manifests.Feature features = 1;</code>
@@ -2386,7 +2386,7 @@ java.lang.String defaultValue) {
     /**
      * <code>repeated .talon.manifests.Feature features = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder> 
+    java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder>
         getFeaturesOrBuilderList();
     /**
      * <code>repeated .talon.manifests.Feature features = 1;</code>
@@ -2553,7 +2553,7 @@ com.google.protobuf.ListValue defaultValue);
      * <code>repeated .talon.manifests.Feature features = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder> 
+    public java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder>
         getFeaturesOrBuilderList() {
       return features_;
     }
@@ -2619,7 +2619,7 @@ com.google.protobuf.ListValue defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         systemPrompt_ = s;
@@ -2635,7 +2635,7 @@ com.google.protobuf.ListValue defaultValue);
         getSystemPromptBytes() {
       java.lang.Object ref = systemPrompt_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         systemPrompt_ = b;
@@ -2688,7 +2688,7 @@ com.google.protobuf.ListValue defaultValue);
           java.lang.String, com.google.protobuf.ListValue> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, com.google.protobuf.ListValue>newDefaultInstance(
-                  talon.manifests.Manifests.internal_static_talon_manifests_AgentSpec_CapabilitiesEntry_descriptor, 
+                  talon.manifests.Manifests.internal_static_talon_manifests_AgentSpec_CapabilitiesEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.MESSAGE,
@@ -3165,7 +3165,7 @@ com.google.protobuf.ListValue defaultValue) {
               featuresBuilder_ = null;
               features_ = other.features_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              featuresBuilder_ = 
+              featuresBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetFeaturesFieldBuilder() : null;
             } else {
@@ -3471,7 +3471,7 @@ com.google.protobuf.ListValue defaultValue) {
       /**
        * <code>repeated .talon.manifests.Feature features = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder> 
+      public java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder>
            getFeaturesOrBuilderList() {
         if (featuresBuilder_ != null) {
           return featuresBuilder_.getMessageOrBuilderList();
@@ -3497,12 +3497,12 @@ com.google.protobuf.ListValue defaultValue) {
       /**
        * <code>repeated .talon.manifests.Feature features = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.Feature.Builder> 
+      public java.util.List<talon.manifests.Manifests.Feature.Builder>
            getFeaturesBuilderList() {
         return internalGetFeaturesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.Feature, talon.manifests.Manifests.Feature.Builder, talon.manifests.Manifests.FeatureOrBuilder> 
+          talon.manifests.Manifests.Feature, talon.manifests.Manifests.Feature.Builder, talon.manifests.Manifests.FeatureOrBuilder>
           internalGetFeaturesFieldBuilder() {
         if (featuresBuilder_ == null) {
           featuresBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -3624,7 +3624,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.ModelPolicy model_policy = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ModelPolicy, talon.manifests.Manifests.ModelPolicy.Builder, talon.manifests.Manifests.ModelPolicyOrBuilder> 
+          talon.manifests.Manifests.ModelPolicy, talon.manifests.Manifests.ModelPolicy.Builder, talon.manifests.Manifests.ModelPolicyOrBuilder>
           internalGetModelPolicyFieldBuilder() {
         if (modelPolicyBuilder_ == null) {
           modelPolicyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -3662,7 +3662,7 @@ com.google.protobuf.ListValue defaultValue) {
           getSystemPromptBytes() {
         java.lang.Object ref = systemPrompt_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           systemPrompt_ = b;
@@ -4705,7 +4705,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.AgentSpec custom_spec = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentSpec, talon.manifests.Manifests.AgentSpec.Builder, talon.manifests.Manifests.AgentSpecOrBuilder> 
+          talon.manifests.Manifests.AgentSpec, talon.manifests.Manifests.AgentSpec.Builder, talon.manifests.Manifests.AgentSpecOrBuilder>
           internalGetCustomSpecFieldBuilder() {
         if (customSpecBuilder_ == null) {
           if (!(sourceCase_ == 1)) {
@@ -4847,7 +4847,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.TemplatedAgentSpec templated = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.TemplatedAgentSpec, talon.manifests.Manifests.TemplatedAgentSpec.Builder, talon.manifests.Manifests.TemplatedAgentSpecOrBuilder> 
+          talon.manifests.Manifests.TemplatedAgentSpec, talon.manifests.Manifests.TemplatedAgentSpec.Builder, talon.manifests.Manifests.TemplatedAgentSpecOrBuilder>
           internalGetTemplatedFieldBuilder() {
         if (templatedBuilder_ == null) {
           if (!(sourceCase_ == 2)) {
@@ -5004,7 +5004,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         templateName_ = s;
@@ -5020,7 +5020,7 @@ com.google.protobuf.ListValue defaultValue) {
         getTemplateNameBytes() {
       java.lang.Object ref = templateName_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         templateName_ = b;
@@ -5420,7 +5420,7 @@ com.google.protobuf.ListValue defaultValue) {
           getTemplateNameBytes() {
         java.lang.Object ref = templateName_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           templateName_ = b;
@@ -5575,7 +5575,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.AgentSpecDelta delta = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentSpecDelta, talon.manifests.Manifests.AgentSpecDelta.Builder, talon.manifests.Manifests.AgentSpecDeltaOrBuilder> 
+          talon.manifests.Manifests.AgentSpecDelta, talon.manifests.Manifests.AgentSpecDelta.Builder, talon.manifests.Manifests.AgentSpecDeltaOrBuilder>
           internalGetDeltaFieldBuilder() {
         if (deltaBuilder_ == null) {
           deltaBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -6466,7 +6466,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.ModelPolicyDelta model_policy = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ModelPolicyDelta, talon.manifests.Manifests.ModelPolicyDelta.Builder, talon.manifests.Manifests.ModelPolicyDeltaOrBuilder> 
+          talon.manifests.Manifests.ModelPolicyDelta, talon.manifests.Manifests.ModelPolicyDelta.Builder, talon.manifests.Manifests.ModelPolicyDeltaOrBuilder>
           internalGetModelPolicyFieldBuilder() {
         if (modelPolicyBuilder_ == null) {
           modelPolicyBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -6587,7 +6587,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.PromptDelta system_prompt = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.PromptDelta, talon.manifests.Manifests.PromptDelta.Builder, talon.manifests.Manifests.PromptDeltaOrBuilder> 
+          talon.manifests.Manifests.PromptDelta, talon.manifests.Manifests.PromptDelta.Builder, talon.manifests.Manifests.PromptDeltaOrBuilder>
           internalGetSystemPromptFieldBuilder() {
         if (systemPromptBuilder_ == null) {
           systemPromptBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -6708,7 +6708,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.FeatureSetDelta features = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.FeatureSetDelta, talon.manifests.Manifests.FeatureSetDelta.Builder, talon.manifests.Manifests.FeatureSetDeltaOrBuilder> 
+          talon.manifests.Manifests.FeatureSetDelta, talon.manifests.Manifests.FeatureSetDelta.Builder, talon.manifests.Manifests.FeatureSetDeltaOrBuilder>
           internalGetFeaturesFieldBuilder() {
         if (featuresBuilder_ == null) {
           featuresBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -6829,7 +6829,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.StringListDelta mcp_server_refs = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.StringListDelta, talon.manifests.Manifests.StringListDelta.Builder, talon.manifests.Manifests.StringListDeltaOrBuilder> 
+          talon.manifests.Manifests.StringListDelta, talon.manifests.Manifests.StringListDelta.Builder, talon.manifests.Manifests.StringListDeltaOrBuilder>
           internalGetMcpServerRefsFieldBuilder() {
         if (mcpServerRefsBuilder_ == null) {
           mcpServerRefsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -6950,7 +6950,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.CapabilitiesPolicyDelta capabilities = 6;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.CapabilitiesPolicyDelta, talon.manifests.Manifests.CapabilitiesPolicyDelta.Builder, talon.manifests.Manifests.CapabilitiesPolicyDeltaOrBuilder> 
+          talon.manifests.Manifests.CapabilitiesPolicyDelta, talon.manifests.Manifests.CapabilitiesPolicyDelta.Builder, talon.manifests.Manifests.CapabilitiesPolicyDeltaOrBuilder>
           internalGetCapabilitiesFieldBuilder() {
         if (capabilitiesBuilder_ == null) {
           capabilitiesBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -7177,7 +7177,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         operation_ = s;
@@ -7195,7 +7195,7 @@ com.google.protobuf.ListValue defaultValue) {
       }
       java.lang.Object ref = operation_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         operation_ = b;
@@ -7225,7 +7225,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         operation_ = s;
@@ -7243,7 +7243,7 @@ com.google.protobuf.ListValue defaultValue) {
       }
       java.lang.Object ref = operation_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         operation_ = b;
@@ -7273,7 +7273,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         operation_ = s;
@@ -7291,7 +7291,7 @@ com.google.protobuf.ListValue defaultValue) {
       }
       java.lang.Object ref = operation_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         operation_ = b;
@@ -7723,7 +7723,7 @@ com.google.protobuf.ListValue defaultValue) {
         }
         java.lang.Object ref = operation_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           operation_ = b;
@@ -7812,7 +7812,7 @@ com.google.protobuf.ListValue defaultValue) {
         }
         java.lang.Object ref = operation_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           operation_ = b;
@@ -7901,7 +7901,7 @@ com.google.protobuf.ListValue defaultValue) {
         }
         java.lang.Object ref = operation_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           operation_ = b;
@@ -8008,7 +8008,7 @@ com.google.protobuf.ListValue defaultValue) {
     /**
      * <code>repeated .talon.manifests.Feature upsert = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.Feature> 
+    java.util.List<talon.manifests.Manifests.Feature>
         getUpsertList();
     /**
      * <code>repeated .talon.manifests.Feature upsert = 1;</code>
@@ -8021,7 +8021,7 @@ com.google.protobuf.ListValue defaultValue) {
     /**
      * <code>repeated .talon.manifests.Feature upsert = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder> 
+    java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder>
         getUpsertOrBuilderList();
     /**
      * <code>repeated .talon.manifests.Feature upsert = 1;</code>
@@ -8113,7 +8113,7 @@ com.google.protobuf.ListValue defaultValue) {
      * <code>repeated .talon.manifests.Feature upsert = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder> 
+    public java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder>
         getUpsertOrBuilderList() {
       return upsert_;
     }
@@ -8483,7 +8483,7 @@ com.google.protobuf.ListValue defaultValue) {
               upsertBuilder_ = null;
               upsert_ = other.upsert_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              upsertBuilder_ = 
+              upsertBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetUpsertFieldBuilder() : null;
             } else {
@@ -8757,7 +8757,7 @@ com.google.protobuf.ListValue defaultValue) {
       /**
        * <code>repeated .talon.manifests.Feature upsert = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder> 
+      public java.util.List<? extends talon.manifests.Manifests.FeatureOrBuilder>
            getUpsertOrBuilderList() {
         if (upsertBuilder_ != null) {
           return upsertBuilder_.getMessageOrBuilderList();
@@ -8783,12 +8783,12 @@ com.google.protobuf.ListValue defaultValue) {
       /**
        * <code>repeated .talon.manifests.Feature upsert = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.Feature.Builder> 
+      public java.util.List<talon.manifests.Manifests.Feature.Builder>
            getUpsertBuilderList() {
         return internalGetUpsertFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.Feature, talon.manifests.Manifests.Feature.Builder, talon.manifests.Manifests.FeatureOrBuilder> 
+          talon.manifests.Manifests.Feature, talon.manifests.Manifests.Feature.Builder, talon.manifests.Manifests.FeatureOrBuilder>
           internalGetUpsertFieldBuilder() {
         if (upsertBuilder_ == null) {
           upsertBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -10068,7 +10068,7 @@ com.google.protobuf.ListValue defaultValue);
           java.lang.String, com.google.protobuf.ListValue> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, com.google.protobuf.ListValue>newDefaultInstance(
-                  talon.manifests.Manifests.internal_static_talon_manifests_CapabilitiesPolicyDelta_ReplaceEntry_descriptor, 
+                  talon.manifests.Manifests.internal_static_talon_manifests_CapabilitiesPolicyDelta_ReplaceEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.MESSAGE,
@@ -10768,7 +10768,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -10784,7 +10784,7 @@ com.google.protobuf.ListValue defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -10807,7 +10807,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         type_ = s;
@@ -10823,7 +10823,7 @@ com.google.protobuf.ListValue defaultValue) {
         getTypeBytes() {
       java.lang.Object ref = type_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         type_ = b;
@@ -11211,7 +11211,7 @@ com.google.protobuf.ListValue defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -11283,7 +11283,7 @@ com.google.protobuf.ListValue defaultValue) {
           getTypeBytes() {
         java.lang.Object ref = type_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           type_ = b;
@@ -11520,7 +11520,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         provider_ = s;
@@ -11536,7 +11536,7 @@ com.google.protobuf.ListValue defaultValue) {
         getProviderBytes() {
       java.lang.Object ref = provider_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         provider_ = b;
@@ -11559,7 +11559,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -11575,7 +11575,7 @@ com.google.protobuf.ListValue defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -12035,7 +12035,7 @@ com.google.protobuf.ListValue defaultValue) {
           getProviderBytes() {
         java.lang.Object ref = provider_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           provider_ = b;
@@ -12107,7 +12107,7 @@ com.google.protobuf.ListValue defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -12294,7 +12294,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.ThinkingConfig thinking = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ThinkingConfig, talon.manifests.Manifests.ThinkingConfig.Builder, talon.manifests.Manifests.ThinkingConfigOrBuilder> 
+          talon.manifests.Manifests.ThinkingConfig, talon.manifests.Manifests.ThinkingConfig.Builder, talon.manifests.Manifests.ThinkingConfigOrBuilder>
           internalGetThinkingFieldBuilder() {
         if (thinkingBuilder_ == null) {
           thinkingBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -12478,7 +12478,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         effort_ = s;
@@ -12494,7 +12494,7 @@ com.google.protobuf.ListValue defaultValue) {
         getEffortBytes() {
       java.lang.Object ref = effort_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         effort_ = b;
@@ -12950,7 +12950,7 @@ com.google.protobuf.ListValue defaultValue) {
           getEffortBytes() {
         java.lang.Object ref = effort_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           effort_ = b;
@@ -13136,7 +13136,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -13152,7 +13152,7 @@ com.google.protobuf.ListValue defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -13552,7 +13552,7 @@ com.google.protobuf.ListValue defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -13707,7 +13707,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.Model model = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Model, talon.manifests.Manifests.Model.Builder, talon.manifests.Manifests.ModelOrBuilder> 
+          talon.manifests.Manifests.Model, talon.manifests.Manifests.Model.Builder, talon.manifests.Manifests.ModelOrBuilder>
           internalGetModelFieldBuilder() {
         if (modelBuilder_ == null) {
           modelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -13778,7 +13778,7 @@ com.google.protobuf.ListValue defaultValue) {
     /**
      * <code>repeated .talon.manifests.ModelProfile profiles = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.ModelProfile> 
+    java.util.List<talon.manifests.Manifests.ModelProfile>
         getProfilesList();
     /**
      * <code>repeated .talon.manifests.ModelProfile profiles = 1;</code>
@@ -13791,7 +13791,7 @@ com.google.protobuf.ListValue defaultValue) {
     /**
      * <code>repeated .talon.manifests.ModelProfile profiles = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder> 
+    java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder>
         getProfilesOrBuilderList();
     /**
      * <code>repeated .talon.manifests.ModelProfile profiles = 1;</code>
@@ -13856,7 +13856,7 @@ com.google.protobuf.ListValue defaultValue) {
      * <code>repeated .talon.manifests.ModelProfile profiles = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder> 
+    public java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder>
         getProfilesOrBuilderList() {
       return profiles_;
     }
@@ -14166,7 +14166,7 @@ com.google.protobuf.ListValue defaultValue) {
               profilesBuilder_ = null;
               profiles_ = other.profiles_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              profilesBuilder_ = 
+              profilesBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetProfilesFieldBuilder() : null;
             } else {
@@ -14425,7 +14425,7 @@ com.google.protobuf.ListValue defaultValue) {
       /**
        * <code>repeated .talon.manifests.ModelProfile profiles = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder> 
+      public java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder>
            getProfilesOrBuilderList() {
         if (profilesBuilder_ != null) {
           return profilesBuilder_.getMessageOrBuilderList();
@@ -14451,12 +14451,12 @@ com.google.protobuf.ListValue defaultValue) {
       /**
        * <code>repeated .talon.manifests.ModelProfile profiles = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.ModelProfile.Builder> 
+      public java.util.List<talon.manifests.Manifests.ModelProfile.Builder>
            getProfilesBuilderList() {
         return internalGetProfilesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.ModelProfile, talon.manifests.Manifests.ModelProfile.Builder, talon.manifests.Manifests.ModelProfileOrBuilder> 
+          talon.manifests.Manifests.ModelProfile, talon.manifests.Manifests.ModelProfile.Builder, talon.manifests.Manifests.ModelProfileOrBuilder>
           internalGetProfilesFieldBuilder() {
         if (profilesBuilder_ == null) {
           profilesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -14528,7 +14528,7 @@ com.google.protobuf.ListValue defaultValue) {
     /**
      * <code>repeated .talon.manifests.ModelProfile upsert = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.ModelProfile> 
+    java.util.List<talon.manifests.Manifests.ModelProfile>
         getUpsertList();
     /**
      * <code>repeated .talon.manifests.ModelProfile upsert = 1;</code>
@@ -14541,7 +14541,7 @@ com.google.protobuf.ListValue defaultValue) {
     /**
      * <code>repeated .talon.manifests.ModelProfile upsert = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder> 
+    java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder>
         getUpsertOrBuilderList();
     /**
      * <code>repeated .talon.manifests.ModelProfile upsert = 1;</code>
@@ -14606,7 +14606,7 @@ com.google.protobuf.ListValue defaultValue) {
      * <code>repeated .talon.manifests.ModelProfile upsert = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder> 
+    public java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder>
         getUpsertOrBuilderList() {
       return upsert_;
     }
@@ -14916,7 +14916,7 @@ com.google.protobuf.ListValue defaultValue) {
               upsertBuilder_ = null;
               upsert_ = other.upsert_;
               bitField0_ = (bitField0_ & ~0x00000001);
-              upsertBuilder_ = 
+              upsertBuilder_ =
                 com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
                    internalGetUpsertFieldBuilder() : null;
             } else {
@@ -15175,7 +15175,7 @@ com.google.protobuf.ListValue defaultValue) {
       /**
        * <code>repeated .talon.manifests.ModelProfile upsert = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder> 
+      public java.util.List<? extends talon.manifests.Manifests.ModelProfileOrBuilder>
            getUpsertOrBuilderList() {
         if (upsertBuilder_ != null) {
           return upsertBuilder_.getMessageOrBuilderList();
@@ -15201,12 +15201,12 @@ com.google.protobuf.ListValue defaultValue) {
       /**
        * <code>repeated .talon.manifests.ModelProfile upsert = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.ModelProfile.Builder> 
+      public java.util.List<talon.manifests.Manifests.ModelProfile.Builder>
            getUpsertBuilderList() {
         return internalGetUpsertFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.ModelProfile, talon.manifests.Manifests.ModelProfile.Builder, talon.manifests.Manifests.ModelProfileOrBuilder> 
+          talon.manifests.Manifests.ModelProfile, talon.manifests.Manifests.ModelProfile.Builder, talon.manifests.Manifests.ModelProfileOrBuilder>
           internalGetUpsertFieldBuilder() {
         if (upsertBuilder_ == null) {
           upsertBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
@@ -15387,7 +15387,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         apiVersion_ = s;
@@ -15403,7 +15403,7 @@ com.google.protobuf.ListValue defaultValue) {
         getApiVersionBytes() {
       java.lang.Object ref = apiVersion_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         apiVersion_ = b;
@@ -15426,7 +15426,7 @@ com.google.protobuf.ListValue defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         kind_ = s;
@@ -15442,7 +15442,7 @@ com.google.protobuf.ListValue defaultValue) {
         getKindBytes() {
       java.lang.Object ref = kind_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         kind_ = b;
@@ -15930,7 +15930,7 @@ com.google.protobuf.ListValue defaultValue) {
           getApiVersionBytes() {
         java.lang.Object ref = apiVersion_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           apiVersion_ = b;
@@ -16002,7 +16002,7 @@ com.google.protobuf.ListValue defaultValue) {
           getKindBytes() {
         java.lang.Object ref = kind_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           kind_ = b;
@@ -16157,7 +16157,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder> 
+          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder>
           internalGetMetadataFieldBuilder() {
         if (metadataBuilder_ == null) {
           metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -16278,7 +16278,7 @@ com.google.protobuf.ListValue defaultValue) {
        * <code>.talon.manifests.McpServerSpec spec = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServerSpec, talon.manifests.Manifests.McpServerSpec.Builder, talon.manifests.Manifests.McpServerSpecOrBuilder> 
+          talon.manifests.Manifests.McpServerSpec, talon.manifests.Manifests.McpServerSpec.Builder, talon.manifests.Manifests.McpServerSpecOrBuilder>
           internalGetSpecFieldBuilder() {
         if (specBuilder_ == null) {
           specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -16506,7 +16506,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         transport_ = s;
@@ -16522,7 +16522,7 @@ java.lang.String defaultValue);
         getTransportBytes() {
       java.lang.Object ref = transport_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         transport_ = b;
@@ -16545,7 +16545,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         target_ = s;
@@ -16561,7 +16561,7 @@ java.lang.String defaultValue);
         getTargetBytes() {
       java.lang.Object ref = target_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         target_ = b;
@@ -16614,7 +16614,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.manifests.Manifests.internal_static_talon_manifests_McpServerSpec_HeadersEntry_descriptor, 
+                  talon.manifests.Manifests.internal_static_talon_manifests_McpServerSpec_HeadersEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -17164,7 +17164,7 @@ java.lang.String defaultValue) {
           getTransportBytes() {
         java.lang.Object ref = transport_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           transport_ = b;
@@ -17236,7 +17236,7 @@ java.lang.String defaultValue) {
           getTargetBytes() {
         java.lang.Object ref = target_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           target_ = b;
@@ -17720,7 +17720,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         apiVersion_ = s;
@@ -17736,7 +17736,7 @@ java.lang.String defaultValue) {
         getApiVersionBytes() {
       java.lang.Object ref = apiVersion_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         apiVersion_ = b;
@@ -17759,7 +17759,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         kind_ = s;
@@ -17775,7 +17775,7 @@ java.lang.String defaultValue) {
         getKindBytes() {
       java.lang.Object ref = kind_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         kind_ = b;
@@ -18263,7 +18263,7 @@ java.lang.String defaultValue) {
           getApiVersionBytes() {
         java.lang.Object ref = apiVersion_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           apiVersion_ = b;
@@ -18335,7 +18335,7 @@ java.lang.String defaultValue) {
           getKindBytes() {
         java.lang.Object ref = kind_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           kind_ = b;
@@ -18490,7 +18490,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder> 
+          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder>
           internalGetMetadataFieldBuilder() {
         if (metadataBuilder_ == null) {
           metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -18611,7 +18611,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.McpServerBindingSpec spec = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServerBindingSpec, talon.manifests.Manifests.McpServerBindingSpec.Builder, talon.manifests.Manifests.McpServerBindingSpecOrBuilder> 
+          talon.manifests.Manifests.McpServerBindingSpec, talon.manifests.Manifests.McpServerBindingSpec.Builder, talon.manifests.Manifests.McpServerBindingSpecOrBuilder>
           internalGetSpecFieldBuilder() {
         if (specBuilder_ == null) {
           specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -18869,7 +18869,7 @@ java.lang.String defaultValue);
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         serverRef_ = s;
@@ -18885,7 +18885,7 @@ java.lang.String defaultValue);
         getServerRefBytes() {
       java.lang.Object ref = serverRef_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         serverRef_ = b;
@@ -18938,7 +18938,7 @@ java.lang.String defaultValue);
           java.lang.String, java.lang.String> defaultEntry =
               com.google.protobuf.MapEntry
               .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.manifests.Manifests.internal_static_talon_manifests_McpServerBindingSpec_HeadersEntry_descriptor, 
+                  talon.manifests.Manifests.internal_static_talon_manifests_McpServerBindingSpec_HeadersEntry_descriptor,
                   com.google.protobuf.WireFormat.FieldType.STRING,
                   "",
                   com.google.protobuf.WireFormat.FieldType.STRING,
@@ -19610,7 +19610,7 @@ java.lang.String defaultValue) {
           getServerRefBytes() {
         java.lang.Object ref = serverRef_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           serverRef_ = b;
@@ -20035,7 +20035,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.McpAuthBrokerSpec auth_broker = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpAuthBrokerSpec, talon.manifests.Manifests.McpAuthBrokerSpec.Builder, talon.manifests.Manifests.McpAuthBrokerSpecOrBuilder> 
+          talon.manifests.Manifests.McpAuthBrokerSpec, talon.manifests.Manifests.McpAuthBrokerSpec.Builder, talon.manifests.Manifests.McpAuthBrokerSpecOrBuilder>
           internalGetAuthBrokerFieldBuilder() {
         if (authBrokerBuilder_ == null) {
           authBrokerBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -20314,7 +20314,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         kind_ = s;
@@ -20330,7 +20330,7 @@ java.lang.String defaultValue) {
         getKindBytes() {
       java.lang.Object ref = kind_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         kind_ = b;
@@ -20353,7 +20353,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         url_ = s;
@@ -20369,7 +20369,7 @@ java.lang.String defaultValue) {
         getUrlBytes() {
       java.lang.Object ref = url_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         url_ = b;
@@ -20403,7 +20403,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         audience_ = s;
@@ -20419,7 +20419,7 @@ java.lang.String defaultValue) {
         getAudienceBytes() {
       java.lang.Object ref = audience_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         audience_ = b;
@@ -20819,7 +20819,7 @@ java.lang.String defaultValue) {
           getKindBytes() {
         java.lang.Object ref = kind_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           kind_ = b;
@@ -20891,7 +20891,7 @@ java.lang.String defaultValue) {
           getUrlBytes() {
         java.lang.Object ref = url_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           url_ = b;
@@ -20995,7 +20995,7 @@ java.lang.String defaultValue) {
           getAudienceBytes() {
         java.lang.Object ref = audience_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           audience_ = b;
@@ -21209,7 +21209,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         apiVersion_ = s;
@@ -21225,7 +21225,7 @@ java.lang.String defaultValue) {
         getApiVersionBytes() {
       java.lang.Object ref = apiVersion_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         apiVersion_ = b;
@@ -21248,7 +21248,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         kind_ = s;
@@ -21264,7 +21264,7 @@ java.lang.String defaultValue) {
         getKindBytes() {
       java.lang.Object ref = kind_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         kind_ = b;
@@ -21752,7 +21752,7 @@ java.lang.String defaultValue) {
           getApiVersionBytes() {
         java.lang.Object ref = apiVersion_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           apiVersion_ = b;
@@ -21824,7 +21824,7 @@ java.lang.String defaultValue) {
           getKindBytes() {
         java.lang.Object ref = kind_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           kind_ = b;
@@ -21979,7 +21979,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder> 
+          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder>
           internalGetMetadataFieldBuilder() {
         if (metadataBuilder_ == null) {
           metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -22100,7 +22100,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.KnowledgeSpec spec = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.KnowledgeSpec, talon.manifests.Manifests.KnowledgeSpec.Builder, talon.manifests.Manifests.KnowledgeSpecOrBuilder> 
+          talon.manifests.Manifests.KnowledgeSpec, talon.manifests.Manifests.KnowledgeSpec.Builder, talon.manifests.Manifests.KnowledgeSpecOrBuilder>
           internalGetSpecFieldBuilder() {
         if (specBuilder_ == null) {
           specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -22249,7 +22249,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         path_ = s;
@@ -22265,7 +22265,7 @@ java.lang.String defaultValue) {
         getPathBytes() {
       java.lang.Object ref = path_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         path_ = b;
@@ -22288,7 +22288,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         content_ = s;
@@ -22304,7 +22304,7 @@ java.lang.String defaultValue) {
         getContentBytes() {
       java.lang.Object ref = content_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         content_ = b;
@@ -22657,7 +22657,7 @@ java.lang.String defaultValue) {
           getPathBytes() {
         java.lang.Object ref = path_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           path_ = b;
@@ -22729,7 +22729,7 @@ java.lang.String defaultValue) {
           getContentBytes() {
         java.lang.Object ref = content_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           content_ = b;
@@ -22943,7 +22943,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         apiVersion_ = s;
@@ -22959,7 +22959,7 @@ java.lang.String defaultValue) {
         getApiVersionBytes() {
       java.lang.Object ref = apiVersion_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         apiVersion_ = b;
@@ -22982,7 +22982,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         kind_ = s;
@@ -22998,7 +22998,7 @@ java.lang.String defaultValue) {
         getKindBytes() {
       java.lang.Object ref = kind_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         kind_ = b;
@@ -23486,7 +23486,7 @@ java.lang.String defaultValue) {
           getApiVersionBytes() {
         java.lang.Object ref = apiVersion_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           apiVersion_ = b;
@@ -23558,7 +23558,7 @@ java.lang.String defaultValue) {
           getKindBytes() {
         java.lang.Object ref = kind_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           kind_ = b;
@@ -23713,7 +23713,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder> 
+          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder>
           internalGetMetadataFieldBuilder() {
         if (metadataBuilder_ == null) {
           metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -23834,7 +23834,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.MemoryProviderSpec spec = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.MemoryProviderSpec, talon.manifests.Manifests.MemoryProviderSpec.Builder, talon.manifests.Manifests.MemoryProviderSpecOrBuilder> 
+          talon.manifests.Manifests.MemoryProviderSpec, talon.manifests.Manifests.MemoryProviderSpec.Builder, talon.manifests.Manifests.MemoryProviderSpecOrBuilder>
           internalGetSpecFieldBuilder() {
         if (specBuilder_ == null) {
           specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -24001,7 +24001,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         driver_ = s;
@@ -24017,7 +24017,7 @@ java.lang.String defaultValue) {
         getDriverBytes() {
       java.lang.Object ref = driver_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         driver_ = b;
@@ -24481,7 +24481,7 @@ java.lang.String defaultValue) {
           getDriverBytes() {
         java.lang.Object ref = driver_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           driver_ = b;
@@ -24636,7 +24636,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.ConnectionConfig connection = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.ConnectionConfig, talon.manifests.Manifests.ConnectionConfig.Builder, talon.manifests.Manifests.ConnectionConfigOrBuilder> 
+          talon.manifests.Manifests.ConnectionConfig, talon.manifests.Manifests.ConnectionConfig.Builder, talon.manifests.Manifests.ConnectionConfigOrBuilder>
           internalGetConnectionFieldBuilder() {
         if (connectionBuilder_ == null) {
           connectionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -24757,7 +24757,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.SchemaConfig schema = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.SchemaConfig, talon.manifests.Manifests.SchemaConfig.Builder, talon.manifests.Manifests.SchemaConfigOrBuilder> 
+          talon.manifests.Manifests.SchemaConfig, talon.manifests.Manifests.SchemaConfig.Builder, talon.manifests.Manifests.SchemaConfigOrBuilder>
           internalGetSchemaFieldBuilder() {
         if (schemaBuilder_ == null) {
           schemaBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -25411,7 +25411,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.EnvSecret url = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.EnvSecret, talon.manifests.Manifests.EnvSecret.Builder, talon.manifests.Manifests.EnvSecretOrBuilder> 
+          talon.manifests.Manifests.EnvSecret, talon.manifests.Manifests.EnvSecret.Builder, talon.manifests.Manifests.EnvSecretOrBuilder>
           internalGetUrlFieldBuilder() {
         if (urlBuilder_ == null) {
           urlBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -25532,7 +25532,7 @@ java.lang.String defaultValue) {
        * <code>.talon.manifests.PoolConfig pool = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.PoolConfig, talon.manifests.Manifests.PoolConfig.Builder, talon.manifests.Manifests.PoolConfigOrBuilder> 
+          talon.manifests.Manifests.PoolConfig, talon.manifests.Manifests.PoolConfig.Builder, talon.manifests.Manifests.PoolConfigOrBuilder>
           internalGetPoolFieldBuilder() {
         if (poolBuilder_ == null) {
           poolBuilder_ = new com.google.protobuf.SingleFieldBuilder<
@@ -25681,7 +25681,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         source_ = s;
@@ -25697,7 +25697,7 @@ java.lang.String defaultValue) {
         getSourceBytes() {
       java.lang.Object ref = source_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         source_ = b;
@@ -25720,7 +25720,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         key_ = s;
@@ -25736,7 +25736,7 @@ java.lang.String defaultValue) {
         getKeyBytes() {
       java.lang.Object ref = key_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         key_ = b;
@@ -26089,7 +26089,7 @@ java.lang.String defaultValue) {
           getSourceBytes() {
         java.lang.Object ref = source_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           source_ = b;
@@ -26161,7 +26161,7 @@ java.lang.String defaultValue) {
           getKeyBytes() {
         java.lang.Object ref = key_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           key_ = b;
@@ -26914,7 +26914,7 @@ java.lang.String defaultValue) {
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
-        com.google.protobuf.ByteString bs = 
+        com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         name_ = s;
@@ -26930,7 +26930,7 @@ java.lang.String defaultValue) {
         getNameBytes() {
       java.lang.Object ref = name_;
       if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
+        com.google.protobuf.ByteString b =
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
         name_ = b;
@@ -27259,7 +27259,7 @@ java.lang.String defaultValue) {
           getNameBytes() {
         java.lang.Object ref = name_;
         if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString b =
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
           name_ = b;
@@ -27359,177 +27359,177 @@ java.lang.String defaultValue) {
 
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_ObjectMeta_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ObjectMeta_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_ObjectMeta_LabelsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ObjectMeta_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_ObjectMeta_AnnotationsEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ObjectMeta_AnnotationsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_AgentTemplate_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_AgentTemplate_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_AgentSpec_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_AgentSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_AgentSpec_CapabilitiesEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_AgentSpec_CapabilitiesEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_AgentDefinition_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_AgentDefinition_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_TemplatedAgentSpec_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_TemplatedAgentSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_AgentSpecDelta_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_AgentSpecDelta_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_PromptDelta_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_PromptDelta_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_FeatureSetDelta_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_FeatureSetDelta_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_StringListDelta_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_StringListDelta_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_CapabilitiesPolicyDelta_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_CapabilitiesPolicyDelta_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_CapabilitiesPolicyDelta_ReplaceEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_CapabilitiesPolicyDelta_ReplaceEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_Feature_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_Feature_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_Model_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_Model_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_ThinkingConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ThinkingConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_ModelProfile_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ModelProfile_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_ModelPolicy_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ModelPolicy_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_ModelPolicyDelta_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ModelPolicyDelta_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_McpServer_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpServer_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_McpServerSpec_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpServerSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_McpServerSpec_HeadersEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpServerSpec_HeadersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_McpServerBinding_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpServerBinding_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_McpServerBindingSpec_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpServerBindingSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_McpServerBindingSpec_HeadersEntry_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpServerBindingSpec_HeadersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_McpAuthBrokerSpec_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpAuthBrokerSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_Knowledge_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_Knowledge_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_KnowledgeSpec_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_KnowledgeSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_MemoryProvider_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_MemoryProvider_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_MemoryProviderSpec_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_MemoryProviderSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_ConnectionConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ConnectionConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_EnvSecret_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_EnvSecret_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_PoolConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_PoolConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_SchemaConfig_descriptor;
-  private static final 
+  private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_SchemaConfig_fieldAccessorTable;
 

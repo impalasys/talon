@@ -77,6 +77,26 @@ export enum SessionMessagePartType {
    * @generated from enum value: SESSION_MESSAGE_PART_TYPE_ERROR = 6;
    */
   ERROR = 6,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_IMAGE = 7;
+   */
+  IMAGE = 7,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_AUDIO = 8;
+   */
+  AUDIO = 8,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_VIDEO = 9;
+   */
+  VIDEO = 9,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_FILE = 10;
+   */
+  FILE = 10,
 }
 // Retrieve enum metadata with: proto3.getEnumType(SessionMessagePartType)
 proto3.util.setEnumType(SessionMessagePartType, "talon.models.SessionMessagePartType", [
@@ -87,6 +107,10 @@ proto3.util.setEnumType(SessionMessagePartType, "talon.models.SessionMessagePart
   { no: 4, name: "SESSION_MESSAGE_PART_TYPE_TOOL_RESULT" },
   { no: 5, name: "SESSION_MESSAGE_PART_TYPE_USAGE" },
   { no: 6, name: "SESSION_MESSAGE_PART_TYPE_ERROR" },
+  { no: 7, name: "SESSION_MESSAGE_PART_TYPE_IMAGE" },
+  { no: 8, name: "SESSION_MESSAGE_PART_TYPE_AUDIO" },
+  { no: 9, name: "SESSION_MESSAGE_PART_TYPE_VIDEO" },
+  { no: 10, name: "SESSION_MESSAGE_PART_TYPE_FILE" },
 ]);
 
 /**
@@ -157,6 +181,73 @@ export class Agent extends Message<Agent> {
 }
 
 /**
+ * @generated from message talon.models.ObjectRef
+ */
+export class ObjectRef extends Message<ObjectRef> {
+  /**
+   * @generated from field: string key = 1;
+   */
+  key = "";
+
+  /**
+   * @generated from field: string media_type = 2;
+   */
+  mediaType = "";
+
+  /**
+   * @generated from field: uint64 size_bytes = 3;
+   */
+  sizeBytes = protoInt64.zero;
+
+  /**
+   * @generated from field: string sha256 = 4;
+   */
+  sha256 = "";
+
+  /**
+   * @generated from field: string filename = 5;
+   */
+  filename = "";
+
+  /**
+   * @generated from field: map<string, string> metadata = 6;
+   */
+  metadata: { [key: string]: string } = {};
+
+  constructor(data?: PartialMessage<ObjectRef>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.models.ObjectRef";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "key", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "media_type", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "size_bytes", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
+    { no: 4, name: "sha256", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 5, name: "filename", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 6, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ObjectRef {
+    return new ObjectRef().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ObjectRef {
+    return new ObjectRef().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ObjectRef {
+    return new ObjectRef().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ObjectRef | PlainMessage<ObjectRef> | undefined, b: ObjectRef | PlainMessage<ObjectRef> | undefined): boolean {
+    return proto3.util.equals(ObjectRef, a, b);
+  }
+}
+
+/**
  * @generated from message talon.models.SessionMessagePart
  */
 export class SessionMessagePart extends Message<SessionMessagePart> {
@@ -192,6 +283,11 @@ export class SessionMessagePart extends Message<SessionMessagePart> {
    */
   createdAt = protoInt64.zero;
 
+  /**
+   * @generated from field: talon.models.ObjectRef object = 7;
+   */
+  object?: ObjectRef;
+
   constructor(data?: PartialMessage<SessionMessagePart>) {
     super();
     proto3.util.initPartial(data, this);
@@ -206,6 +302,7 @@ export class SessionMessagePart extends Message<SessionMessagePart> {
     { no: 4, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "payload_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 6, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 7, name: "object", kind: "message", T: ObjectRef },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SessionMessagePart {

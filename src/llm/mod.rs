@@ -12,6 +12,6 @@ pub use anthropic::AnthropicProvider;
 pub use mock::MockLlmProvider;
 pub use openai::OpenAiCompatibleProvider;
 pub use provider::{
-    ChatMessage, ChatRequest, ChatResponse, ChatStream, ChatStreamEvent, ChatUsage, LlmProvider,
-    ToolCall, ToolCallDelta,
+    content_parts_text, ChatContentPart, ChatMessage, ChatRequest, ChatResponse, ChatStream,
+    ChatStreamEvent, ChatUsage, LlmProvider, ToolCall, ToolCallDelta,
 };

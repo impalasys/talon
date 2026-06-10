@@ -546,6 +546,7 @@ impl GrpcGatewayHandler {
                 kv: self.gateway.kv.clone(),
                 pubsub: self.gateway.pubsub.clone(),
                 scheduler: self.gateway.scheduler.clone(),
+                objects: self.gateway.objects.clone(),
             },
             models::ChannelMessage {
                 id: uuid::Uuid::now_v7().to_string(),
@@ -572,6 +573,7 @@ impl GrpcGatewayHandler {
                 kv: self.gateway.kv.clone(),
                 pubsub: self.gateway.pubsub.clone(),
                 scheduler: self.gateway.scheduler.clone(),
+                objects: self.gateway.objects.clone(),
             },
             &message,
             &req.subscription_names,

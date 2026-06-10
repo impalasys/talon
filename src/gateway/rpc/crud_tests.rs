@@ -22,6 +22,7 @@ mod tests {
             kv.clone(),
             pubsub.clone(),
             Arc::new(NoopSchedulerBackend),
+            crate::control::object_store::default_object_store(),
         ));
         (GrpcGatewayHandler { gateway }, kv, pubsub)
     }
