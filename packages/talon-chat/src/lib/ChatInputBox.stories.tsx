@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ChatInputBox, type ChatInputImageAttachment } from "./ChatInputBox";
 
+const existingImageUrl = new URL("../../../../docs/pr/hello-world-sightline.png", import.meta.url).href;
 const previewImageUrl =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 
@@ -49,6 +50,20 @@ export const AttachmentMenuOpen: Story = {
   play: async ({ canvasElement }) => {
     const button = canvasElement.querySelector<HTMLButtonElement>('button[aria-label="Open attachment menu"]');
     button?.click();
+  },
+};
+
+export const ExistingImageAttachment: Story = {
+  args: {
+    canSubmit: true,
+    imageAttachments: [
+      {
+        id: "existing-storybook-image",
+        filename: "hello-world-sightline.png",
+        previewUrl: existingImageUrl,
+        status: "ready",
+      },
+    ] satisfies ChatInputImageAttachment[],
   },
 };
 

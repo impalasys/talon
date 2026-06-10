@@ -145,7 +145,7 @@ export function ChatInputBox({
           gap: 8,
           width: "100%",
           boxSizing: "border-box",
-          borderRadius: 999,
+          borderRadius: "var(--copilot-input-radius, 22px)",
           border: border("var(--copilot-input-border, rgba(212,212,216,0.72))"),
           background: "var(--copilot-input-bg, rgba(255,255,255,0.96))",
           boxShadow: "var(--copilot-input-shadow, 0 4px 14px rgba(24,24,27,0.08), 0 1px 2px rgba(24,24,27,0.06))",
