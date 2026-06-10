@@ -355,7 +355,7 @@ fn sanitize_tool_name_component(value: &str) -> String {
     sanitized.trim_matches('_').to_string()
 }
 
-fn inferred_image_media_type(key: &str) -> &'static str {
+fn inferred_image_media_type(key: &str) -> Option<&'static str> {
     match Path::new(key)
         .extension()
         .and_then(|value| value.to_str())
@@ -363,10 +363,11 @@ fn inferred_image_media_type(key: &str) -> &'static str {
         .to_ascii_lowercase()
         .as_str()
     {
-        "jpg" | "jpeg" => "image/jpeg",
-        "gif" => "image/gif",
-        "webp" => "image/webp",
-        _ => "image/png",
+        "png" => Some("image/png"),
+        "jpg" | "jpeg" => Some("image/jpeg"),
+        "gif" => Some("image/gif"),
+        "webp" => Some("image/webp"),
+        _ => None,
     }
 }
 
@@ -424,7 +425,9 @@ async fn message_content_parts(
             object.media_type.trim().to_string()
         };
         if media_type.is_empty() {
-            media_type = inferred_image_media_type(&object.key).to_string();
+            media_type = inferred_image_media_type(&object.key)
+                .ok_or_else(|| anyhow!("missing media type for image object '{}'", object.key))?
+                .to_string();
         }
         if !media_type.to_ascii_lowercase().starts_with("image/") {
             return Err(anyhow!(
@@ -1230,5 +1233,39 @@ mod tests {
         assert!(err.to_string().contains(
             "unsupported media type 'text/plain' for image object 'sessions/session-1/file.txt'"
         ));
+    }
+
+    #[tokio::test]
+    async fn message_content_parts_rejects_unknown_image_media_type() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/session-1/upload",
+                b"unknown-bytes",
+                ObjectMetadata::default(),
+            )
+            .await
+            .unwrap();
+        let message = models::SessionMessage {
+            id: "msg-1".to_string(),
+            role: models::MessageRole::RoleUser as i32,
+            created_at: 2,
+            labels: HashMap::new(),
+            parts: vec![models::SessionMessagePart {
+                id: "000001".to_string(),
+                part_type: models::SessionMessagePartType::Image as i32,
+                content: String::new(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: 2,
+                object: Some(object),
+            }],
+        };
+
+        let err = message_content_parts(&message, &store).await.unwrap_err();
+
+        assert!(err
+            .to_string()
+            .contains("missing media type for image object 'sessions/session-1/upload'"));
     }
 }
