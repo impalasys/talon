@@ -1,15 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ArrowUp,
-  ChevronRight,
-  Ellipsis,
-  FileText,
-  Globe,
   ImagePlus,
-  Paperclip,
   Plus,
   Square,
-  Telescope,
   Terminal,
   X,
 } from "lucide-react";
@@ -83,7 +77,7 @@ export function ChatInputBox({
   imageAttachments,
   imageUploadEnabled = false,
   imageAccept = "image/png,image/jpeg,image/gif,image/webp",
-  imageButtonLabel = "Add photos & files",
+  imageButtonLabel = "Add image",
   onImageFilesSelected,
   onRemoveImageAttachment,
   style,
@@ -346,9 +340,9 @@ export function ChatInputBox({
                   left: 0,
                   bottom: "calc(100% + 8px)",
                   zIndex: 30,
-                  width: "min(300px, calc(100vw - 48px))",
+                  width: "min(240px, calc(100vw - 48px))",
                   boxSizing: "border-box",
-                  padding: "0.875rem 1rem",
+                  padding: "0.625rem",
                   borderRadius: 20,
                   border: border("var(--copilot-attachment-menu-border, rgba(212,212,216,0.9))"),
                   background: "var(--copilot-attachment-menu-bg, rgba(255,255,255,0.98))",
@@ -356,113 +350,55 @@ export function ChatInputBox({
                   color: "var(--copilot-attachment-menu-fg, rgba(24,24,27,0.96))",
                 }}
               >
-                {[
-                  {
-                    label: imageButtonLabel,
-                    icon: <Paperclip size="21" strokeWidth={2.3} />,
-                    action: () => {
-                      setShowAttachmentMenu(false);
-                      fileInputRef.current?.click();
-                    },
-                  },
-                  {
-                    label: "Recent files",
-                    icon: <FileText size="21" strokeWidth={2.2} />,
-                    chevron: true,
-                  },
-                  { divider: true },
-                  {
-                    label: "Create image",
-                    icon: <ImagePlus size="21" strokeWidth={2.2} />,
-                  },
-                  {
-                    label: "Deep research",
-                    icon: <Telescope size="21" strokeWidth={2.2} />,
-                  },
-                  {
-                    label: "Web search",
-                    icon: <Globe size="21" strokeWidth={2.2} />,
-                  },
-                  {
-                    label: "More",
-                    icon: <Ellipsis size="21" strokeWidth={2.2} />,
-                    chevron: true,
-                  },
-                ].map((item, index) => {
-                  if ("divider" in item) {
-                    return (
-                      <div
-                        key={`divider-${index}`}
-                        role="separator"
-                        style={{
-                          height: 1,
-                          margin: "0.5rem 0.25rem",
-                          background: "var(--copilot-attachment-menu-divider, rgba(212,212,216,0.88))",
-                        }}
-                      />
-                    );
-                  }
-                  const isActive = Boolean(item.action);
-                  const isHovered = hoveredAttachmentIndex === index;
-                  return (
-                    <button
-                      key={item.label}
-                      type="button"
-                      role="menuitem"
-                      aria-disabled={!isActive}
-                      onMouseDown={(event) => event.preventDefault()}
-                      onMouseEnter={() => setHoveredAttachmentIndex(index)}
-                      onMouseLeave={() => setHoveredAttachmentIndex(null)}
-                      onClick={() => item.action?.()}
-                      style={{
-                        width: "100%",
-                        minHeight: 44,
-                        boxSizing: "border-box",
-                        border: "none",
-                        borderRadius: 10,
-                        padding: "0.375rem 0.25rem",
-                        display: "grid",
-                        gridTemplateColumns: "32px minmax(0, 1fr) 20px",
-                        alignItems: "center",
-                        gap: 8,
-                        background: isHovered && isActive
-                          ? "var(--copilot-attachment-menu-hover-bg, rgba(24,24,27,0.07))"
-                          : "transparent",
-                        color: "inherit",
-                        cursor: isActive ? "pointer" : "default",
-                        fontFamily: "inherit",
-                        fontSize: 16,
-                        lineHeight: 1.2,
-                        textAlign: "left",
-                      }}
-                    >
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "var(--copilot-attachment-menu-icon-fg, rgba(24,24,27,0.96))",
-                        }}
-                      >
-                        {item.icon}
-                      </span>
-                      <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {item.label}
-                      </span>
-                      {item.chevron ? (
-                        <ChevronRight
-                          aria-hidden="true"
-                          size="20"
-                          strokeWidth={2.1}
-                          style={{ justifySelf: "end" }}
-                        />
-                      ) : null}
-                    </button>
-                  );
-                })}
+                <button
+                  type="button"
+                  role="menuitem"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onMouseEnter={() => setHoveredAttachmentIndex(0)}
+                  onMouseLeave={() => setHoveredAttachmentIndex(null)}
+                  onClick={() => {
+                    setShowAttachmentMenu(false);
+                    fileInputRef.current?.click();
+                  }}
+                  style={{
+                    width: "100%",
+                    minHeight: 44,
+                    boxSizing: "border-box",
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "0.375rem 0.5rem",
+                    display: "grid",
+                    gridTemplateColumns: "32px minmax(0, 1fr)",
+                    alignItems: "center",
+                    gap: 8,
+                    background: hoveredAttachmentIndex === 0
+                      ? "var(--copilot-attachment-menu-hover-bg, rgba(24,24,27,0.07))"
+                      : "transparent",
+                    color: "inherit",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    fontSize: 16,
+                    lineHeight: 1.2,
+                    textAlign: "left",
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--copilot-attachment-menu-icon-fg, rgba(24,24,27,0.96))",
+                    }}
+                  >
+                    <ImagePlus size="21" strokeWidth={2.2} />
+                  </span>
+                  <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {imageButtonLabel}
+                  </span>
+                </button>
               </div>
             ) : null}
             <input
