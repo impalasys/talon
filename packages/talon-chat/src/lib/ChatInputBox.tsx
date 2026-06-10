@@ -84,7 +84,7 @@ export function ChatInputBox({
   const resolvedCanStop = Boolean(isStopMode && canStop);
   const buttonDisabled = isStopMode ? !resolvedCanStop : !resolvedCanSubmit;
   const buttonIsEnabled = !buttonDisabled;
-  const buttonSize = 30;
+  const buttonSize = 34;
   const isSingleLine = rows <= 1;
   const attachments = imageAttachments ?? [];
   const textareaLineHeight = isSingleLine ? buttonSize : 20;
