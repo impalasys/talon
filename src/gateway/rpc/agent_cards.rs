@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::{manifests, models, proto, GrpcGatewayHandler};
-use crate::control::keys;
 use crate::control::ProtoKeyValueStoreExt;
+use crate::control::{keys, KeyValueStore};
+use prost::Message;
+
+const AGENT_CARD_HOSTNAME_CAS_RETRIES: usize = 8;
 
 fn card_name(card: &manifests::AgentCard) -> String {
     card.metadata
@@ -23,6 +26,10 @@ fn card_spec(card: &manifests::AgentCard) -> Result<&manifests::AgentCardSpec, t
     card.spec
         .as_ref()
         .ok_or_else(|| tonic::Status::invalid_argument("AgentCard missing spec"))
+}
+
+fn same_card_identity(left: &manifests::AgentCard, right: &manifests::AgentCard) -> bool {
+    card_namespace(left) == card_namespace(right) && card_name(left) == card_name(right)
 }
 
 fn normalize_hostname(hostname: &str) -> Result<String, tonic::Status> {
@@ -117,6 +124,14 @@ async fn validate_agent_card(
         ));
     }
     let hostname = normalize_hostname(&spec.hostname)?;
+    if let Some(auth) = spec.auth.as_ref() {
+        let discovery = auth.discovery.trim();
+        if !discovery.is_empty() && discovery != "public" {
+            return Err(tonic::Status::invalid_argument(
+                "AgentCard spec.auth.discovery must be 'public'; authenticated discovery is not supported yet",
+            ));
+        }
+    }
 
     handler
         .gateway
@@ -143,6 +158,87 @@ async fn validate_agent_card(
     }
 
     Ok(())
+}
+
+async fn claim_agent_card_hostname(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    hostname: &str,
+    card: &manifests::AgentCard,
+) -> Result<(), tonic::Status> {
+    let key = keys::agent_card_hostname(hostname);
+    let value = card.encode_to_vec();
+
+    for _ in 0..AGENT_CARD_HOSTNAME_CAS_RETRIES {
+        let current = kv.get(&key).await.map_err(|err| {
+            tonic::Status::internal(format!("Failed to fetch AgentCard hostname index: {err}"))
+        })?;
+        match current {
+            Some(current_bytes) => {
+                let current_card =
+                    manifests::AgentCard::decode(current_bytes.as_slice()).map_err(|err| {
+                        tonic::Status::internal(format!(
+                            "Failed to decode AgentCard hostname index: {err}"
+                        ))
+                    })?;
+                if !same_card_identity(&current_card, card) {
+                    let current_ns = card_namespace(&current_card);
+                    let current_name = card_name(&current_card);
+                    let current_owner = kv
+                        .get_msg::<manifests::AgentCard>(&keys::agent_card(
+                            &current_ns,
+                            &current_name,
+                        ))
+                        .await
+                        .map_err(|err| {
+                            tonic::Status::internal(format!(
+                                "Failed to fetch AgentCard hostname owner: {err}"
+                            ))
+                        })?;
+                    if current_owner
+                        .as_ref()
+                        .and_then(|owner| owner.spec.as_ref())
+                        .is_some_and(|spec| spec.hostname == hostname)
+                    {
+                        return Err(tonic::Status::already_exists(format!(
+                            "AgentCard hostname '{}' is already claimed by {}/{}",
+                            hostname, current_ns, current_name
+                        )));
+                    }
+                }
+                if current_bytes == value {
+                    return Ok(());
+                }
+                if kv
+                    .compare_and_swap(&key, Some(current_bytes.as_slice()), &value)
+                    .await
+                    .map_err(|err| {
+                        tonic::Status::internal(format!(
+                            "Failed to update AgentCard hostname index: {err}"
+                        ))
+                    })?
+                {
+                    return Ok(());
+                }
+            }
+            None => {
+                if kv
+                    .compare_and_swap(&key, None, &value)
+                    .await
+                    .map_err(|err| {
+                        tonic::Status::internal(format!(
+                            "Failed to create AgentCard hostname index: {err}"
+                        ))
+                    })?
+                {
+                    return Ok(());
+                }
+            }
+        }
+    }
+
+    Err(tonic::Status::aborted(
+        "Failed to claim AgentCard hostname after concurrent modifications",
+    ))
 }
 
 impl GrpcGatewayHandler {
@@ -175,41 +271,12 @@ impl GrpcGatewayHandler {
         let name = card_name(&card);
         let new_hostname = card_spec(&card)?.hostname.clone();
         let key = keys::agent_card(&req.ns, &name);
-        let old_hostname = self
-            .gateway
-            .kv
-            .get_msg::<manifests::AgentCard>(&key)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
-            .and_then(|old| old.spec.map(|spec| spec.hostname));
-        let old_hostname = old_hostname
-            .map(|hostname| normalize_hostname(&hostname))
-            .transpose()?;
-        self.gateway
-            .kv
-            .set_msg(&keys::agent_card_hostname(&new_hostname), &card)
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to index AgentCard hostname: {err}"))
-            })?;
+        claim_agent_card_hostname(self.gateway.kv.as_ref(), &new_hostname, &card).await?;
         self.gateway
             .kv
             .set_msg(&key, &card)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
-        if let Some(old_hostname) = old_hostname {
-            if old_hostname != new_hostname {
-                self.gateway
-                    .kv
-                    .delete(&keys::agent_card_hostname(&old_hostname))
-                    .await
-                    .map_err(|err| {
-                        tonic::Status::internal(format!(
-                            "Failed to delete old AgentCard hostname index: {err}"
-                        ))
-                    })?;
-            }
-        }
 
         Ok(tonic::Response::new(proto::AgentCardResponse {
             card: Some(card),
@@ -272,33 +339,17 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let key = keys::agent_card(&req.ns, &req.name);
-        let card = self
-            .gateway
+        self.gateway
             .kv
             .get_msg::<manifests::AgentCard>(&key)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
             .ok_or_else(|| tonic::Status::not_found("AgentCard not found"))?;
-        let old_hostname = card
-            .spec
-            .map(|spec| normalize_hostname(&spec.hostname))
-            .transpose()?;
         self.gateway
             .kv
             .delete(&key)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to delete AgentCard: {err}")))?;
-        if let Some(old_hostname) = old_hostname {
-            self.gateway
-                .kv
-                .delete(&keys::agent_card_hostname(&old_hostname))
-                .await
-                .map_err(|err| {
-                    tonic::Status::internal(format!(
-                        "Failed to delete AgentCard hostname index: {err}"
-                    ))
-                })?;
-        }
         Ok(tonic::Response::new(proto::DeleteAgentCardResponse {
             success: true,
         }))

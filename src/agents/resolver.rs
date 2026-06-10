@@ -3,7 +3,7 @@
 
 use std::collections::HashSet;
 
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use async_trait::async_trait;
 
 use crate::control::{keys, KeyValueStore, ProtoKeyValueStoreExt};
@@ -276,6 +276,86 @@ fn validate_agent_spec(spec: &manifests::AgentSpec) -> Result<()> {
         validate_capabilities_policy(&spec.capabilities, "AgentSpec.capabilities")?;
     }
 
+    if let Some(a2a) = spec.a2a.as_ref() {
+        validate_a2a(a2a)?;
+    }
+
+    Ok(())
+}
+
+fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {
+    let mut seen_connections = HashSet::new();
+    for connection in &a2a.connections {
+        let name = connection.name.trim();
+        if name.is_empty() {
+            bail!("A2A connection name is required");
+        }
+        if !seen_connections.insert(name.to_string()) {
+            bail!("Duplicate A2A connection '{}'", name);
+        }
+
+        let target = connection
+            .target
+            .as_ref()
+            .and_then(|target| target.target.as_ref())
+            .ok_or_else(|| anyhow!("A2A connection '{}' must set a target", name))?;
+        match target {
+            manifests::connection_ref::Target::Internal(internal) => {
+                if internal.namespace.trim().is_empty() || internal.agent.trim().is_empty() {
+                    bail!(
+                        "A2A connection '{}' internal target requires namespace and agent",
+                        name
+                    );
+                }
+            }
+            manifests::connection_ref::Target::External(external) => {
+                let url = external.agent_card_url.trim();
+                if url.is_empty() {
+                    bail!(
+                        "A2A connection '{}' external target requires agent_card_url",
+                        name
+                    );
+                }
+                let parsed = reqwest::Url::parse(url).with_context(|| {
+                    format!(
+                        "A2A connection '{}' external agent_card_url must be an absolute URL",
+                        name
+                    )
+                })?;
+                if !matches!(parsed.scheme(), "http" | "https") || parsed.host().is_none() {
+                    bail!(
+                        "A2A connection '{}' external agent_card_url must be an http(s) URL with a host",
+                        name
+                    );
+                }
+            }
+        }
+
+        if let Some(auth) = connection.auth.as_ref() {
+            let kind = auth.kind.trim();
+            match kind {
+                "" | "none" => {
+                    if !auth.secret_ref.trim().is_empty() {
+                        bail!(
+                            "A2A connection '{}' auth.secret_ref requires auth.kind 'bearer'",
+                            name
+                        );
+                    }
+                }
+                "bearer" => {
+                    if auth.secret_ref.trim().is_empty() {
+                        bail!("A2A connection '{}' bearer auth requires secret_ref", name);
+                    }
+                }
+                other => bail!(
+                    "A2A connection '{}' auth.kind must be 'none' or 'bearer'; got '{}'",
+                    name,
+                    other
+                ),
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -454,6 +534,17 @@ mod tests {
                 annotations: HashMap::new(),
             }),
             definition: Some(definition),
+        }
+    }
+
+    fn valid_agent_spec() -> manifests::AgentSpec {
+        manifests::AgentSpec {
+            features: vec![],
+            model_policy: Some(model_policy(vec![("default", "gpt-5")])),
+            system_prompt: "Base".to_string(),
+            mcp_server_refs: vec![],
+            capabilities: HashMap::new(),
+            a2a: None,
         }
     }
 
@@ -942,6 +1033,90 @@ mod tests {
         assert!(duplicate_mcp_ref
             .to_string()
             .contains("Duplicate MCP server ref"));
+    }
+
+    #[test]
+    fn validate_agent_spec_rejects_invalid_a2a_connections() {
+        let mut missing_target = valid_agent_spec();
+        missing_target.a2a = Some(manifests::A2a {
+            connections: vec![manifests::Connection {
+                name: "policy".to_string(),
+                ..Default::default()
+            }],
+        });
+        let err = validate_agent_spec(&missing_target).unwrap_err();
+        assert!(err.to_string().contains("must set a target"));
+
+        let mut duplicate = valid_agent_spec();
+        duplicate.a2a = Some(manifests::A2a {
+            connections: vec![
+                manifests::Connection {
+                    name: "policy".to_string(),
+                    target: Some(manifests::ConnectionRef {
+                        target: Some(manifests::connection_ref::Target::Internal(
+                            manifests::InternalConnectionRef {
+                                namespace: "conic".to_string(),
+                                agent: "policy".to_string(),
+                            },
+                        )),
+                    }),
+                    ..Default::default()
+                },
+                manifests::Connection {
+                    name: "policy".to_string(),
+                    target: Some(manifests::ConnectionRef {
+                        target: Some(manifests::connection_ref::Target::Internal(
+                            manifests::InternalConnectionRef {
+                                namespace: "conic".to_string(),
+                                agent: "other".to_string(),
+                            },
+                        )),
+                    }),
+                    ..Default::default()
+                },
+            ],
+        });
+        let err = validate_agent_spec(&duplicate).unwrap_err();
+        assert!(err.to_string().contains("Duplicate A2A connection"));
+
+        let mut invalid_url = valid_agent_spec();
+        invalid_url.a2a = Some(manifests::A2a {
+            connections: vec![manifests::Connection {
+                name: "external".to_string(),
+                target: Some(manifests::ConnectionRef {
+                    target: Some(manifests::connection_ref::Target::External(
+                        manifests::ExternalConnectionRef {
+                            agent_card_url: "file:///tmp/agent-card.json".to_string(),
+                        },
+                    )),
+                }),
+                ..Default::default()
+            }],
+        });
+        let err = validate_agent_spec(&invalid_url).unwrap_err();
+        assert!(err.to_string().contains("http(s) URL"));
+
+        let mut invalid_auth = valid_agent_spec();
+        invalid_auth.a2a = Some(manifests::A2a {
+            connections: vec![manifests::Connection {
+                name: "external".to_string(),
+                target: Some(manifests::ConnectionRef {
+                    target: Some(manifests::connection_ref::Target::External(
+                        manifests::ExternalConnectionRef {
+                            agent_card_url:
+                                "https://policy.example.com/.well-known/agent-card.json".to_string(),
+                        },
+                    )),
+                }),
+                auth: Some(manifests::ConnectionAuth {
+                    kind: "bearer".to_string(),
+                    secret_ref: String::new(),
+                }),
+                ..Default::default()
+            }],
+        });
+        let err = validate_agent_spec(&invalid_auth).unwrap_err();
+        assert!(err.to_string().contains("bearer auth requires secret_ref"));
     }
 
     #[test]

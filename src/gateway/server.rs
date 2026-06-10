@@ -231,6 +231,85 @@ mod tests {
         )
     }
 
+    async fn seed_namespace_and_agent(gateway: &Gateway, ns: &str, agent: &str) {
+        gateway
+            .kv
+            .set(
+                &crate::control::keys::namespace_metadata(ns),
+                &crate::gateway::rpc::models::Namespace {
+                    name: ns.to_string(),
+                    parent: String::new(),
+                    is_deleted: false,
+                    deleted_at: 0,
+                    labels: HashMap::new(),
+                }
+                .encode_to_vec(),
+            )
+            .await
+            .unwrap();
+        gateway
+            .kv
+            .set(
+                &crate::control::keys::agent(ns, agent),
+                &crate::gateway::rpc::models::Agent {
+                    name: agent.to_string(),
+                    ns: ns.to_string(),
+                    definition: None,
+                    effective_spec: None,
+                    template_deps: Vec::new(),
+                    labels: HashMap::new(),
+                }
+                .encode_to_vec(),
+            )
+            .await
+            .unwrap();
+    }
+
+    fn agent_card(
+        ns: &str,
+        name: &str,
+        agent_ref: &str,
+        hostname: &str,
+    ) -> crate::gateway::rpc::manifests::AgentCard {
+        crate::gateway::rpc::manifests::AgentCard {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "AgentCard".to_string(),
+            metadata: Some(crate::gateway::rpc::manifests::ObjectMeta {
+                name: name.to_string(),
+                namespace: ns.to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+            }),
+            spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
+                agent_ref: agent_ref.to_string(),
+                hostname: hostname.to_string(),
+                name: "Support Agent".to_string(),
+                description: "Answers support questions.".to_string(),
+                version: "1.0.0".to_string(),
+                capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
+                    streaming: true,
+                    push_notifications: false,
+                    extended_agent_card: false,
+                }),
+                default_input_modes: vec!["text/plain".to_string()],
+                default_output_modes: vec!["text/plain".to_string()],
+                skills: vec![crate::gateway::rpc::manifests::AgentCardSkill {
+                    id: "answer_support_question".to_string(),
+                    name: "Answer support question".to_string(),
+                    description: "Answers using docs.".to_string(),
+                    tags: vec!["support".to_string()],
+                    examples: Vec::new(),
+                    input_modes: Vec::new(),
+                    output_modes: Vec::new(),
+                }],
+                auth: Some(crate::gateway::rpc::manifests::AgentCardAuth {
+                    discovery: "public".to_string(),
+                    operations: "bearer".to_string(),
+                }),
+            }),
+        }
+    }
+
     #[test]
     fn new_preserves_auth_config_and_initializes_session_streams() {
         let gateway = Gateway::new(
@@ -411,6 +490,91 @@ mod tests {
         assert_eq!(value["skills"][0]["id"], "answer_support_question");
         assert_eq!(value["auth"]["discovery"], "public");
         assert_eq!(value["auth"]["operations"], "bearer");
+    }
+
+    #[tokio::test]
+    async fn agent_card_rejects_non_public_discovery_auth() {
+        let gateway = gateway();
+        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
+        let mut card = agent_card(
+            "support",
+            "support-private",
+            "support-docs",
+            "private.example.com",
+        );
+        card.spec.as_mut().unwrap().auth = Some(crate::gateway::rpc::manifests::AgentCardAuth {
+            discovery: "bearer".to_string(),
+            operations: "bearer".to_string(),
+        });
+
+        let err = crate::gateway::rpc::GrpcGatewayHandler {
+            gateway: Arc::new(gateway),
+        }
+        .handle_create_agent_card(tonic::Request::new(
+            crate::gateway::rpc::proto::CreateAgentCardRequest {
+                ns: "support".to_string(),
+                card: Some(card),
+            },
+        ))
+        .await
+        .unwrap_err();
+
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
+        assert!(err.message().contains("authenticated discovery"));
+    }
+
+    #[tokio::test]
+    async fn agent_card_hostname_claim_reuses_stale_index_but_rejects_live_owner() {
+        let gateway = gateway();
+        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
+        seed_namespace_and_agent(&gateway, "sales", "sales-docs").await;
+        let handler = crate::gateway::rpc::GrpcGatewayHandler {
+            gateway: Arc::new(gateway.clone()),
+        };
+
+        let stale = agent_card(
+            "support",
+            "deleted-card",
+            "support-docs",
+            "shared.example.com",
+        );
+        gateway
+            .kv
+            .set(
+                &crate::control::keys::agent_card_hostname("shared.example.com"),
+                &stale.encode_to_vec(),
+            )
+            .await
+            .unwrap();
+        let support_card = agent_card(
+            "support",
+            "support-public",
+            "support-docs",
+            "shared.example.com",
+        );
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "support".to_string(),
+                    card: Some(support_card),
+                },
+            ))
+            .await
+            .unwrap();
+
+        let sales_card = agent_card("sales", "sales-public", "sales-docs", "shared.example.com");
+        let err = handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "sales".to_string(),
+                    card: Some(sales_card),
+                },
+            ))
+            .await
+            .unwrap_err();
+
+        assert_eq!(err.code(), tonic::Code::AlreadyExists);
+        assert!(err.message().contains("already claimed"));
     }
 
     #[tokio::test]
