@@ -54,6 +54,7 @@ export function ChatInputBox({
 }: ChatInputBoxProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [highlightedCommandIndex, setHighlightedCommandIndex] = useState(0);
+  const [hoveredCommandIndex, setHoveredCommandIndex] = useState<number | null>(null);
   const resolvedCanSubmit = canSubmit ?? (Boolean(value.trim()) && !disabled && !isGenerating);
   const isStopMode = Boolean(isGenerating && onStop);
   const resolvedCanStop = Boolean(isStopMode && canStop);
@@ -138,13 +139,18 @@ export function ChatInputBox({
           >
             {visibleCommandItems.map((item, index) => {
               const isHighlighted = index === Math.min(highlightedCommandIndex, visibleCommandItems.length - 1);
+              const isHovered = hoveredCommandIndex === index;
               return (
                 <button
                   key={item.name}
                   type="button"
                   role="option"
                   aria-selected={isHighlighted}
-                  onMouseEnter={() => setHighlightedCommandIndex(index)}
+                  onMouseEnter={() => {
+                    setHighlightedCommandIndex(index);
+                    setHoveredCommandIndex(index);
+                  }}
+                  onMouseLeave={() => setHoveredCommandIndex(null)}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => selectCommand(item)}
                   style={{
@@ -155,11 +161,17 @@ export function ChatInputBox({
                     alignItems: "center",
                     gap: 10,
                     padding: "0.75rem 0.875rem",
-                    background: isHighlighted ? "var(--copilot-command-menu-active-bg, rgba(24,24,27,0.07))" : "transparent",
+                    background: isHovered
+                      ? "var(--copilot-command-menu-hover-bg, rgba(24,24,27,0.11))"
+                      : isHighlighted
+                        ? "var(--copilot-command-menu-active-bg, rgba(24,24,27,0.06))"
+                        : "transparent",
+                    boxShadow: isHovered ? "inset 0 0 0 1px var(--copilot-command-menu-hover-border, rgba(24,24,27,0.10))" : "none",
                     color: "inherit",
                     cursor: "pointer",
                     textAlign: "left",
                     fontFamily: "inherit",
+                    transition: "background 120ms ease, box-shadow 120ms ease",
                   }}
                 >
                   <span
@@ -172,8 +184,13 @@ export function ChatInputBox({
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      background: "var(--copilot-command-menu-icon-bg, rgba(24,24,27,0.08))",
-                      color: "var(--copilot-command-menu-icon-fg, rgba(39,39,42,0.86))",
+                      background: isHovered
+                        ? "var(--copilot-command-menu-icon-hover-bg, rgba(24,24,27,0.16))"
+                        : "var(--copilot-command-menu-icon-bg, rgba(24,24,27,0.08))",
+                      color: isHovered
+                        ? "var(--copilot-command-menu-icon-hover-fg, rgba(24,24,27,0.96))"
+                        : "var(--copilot-command-menu-icon-fg, rgba(39,39,42,0.86))",
+                      transition: "background 120ms ease, color 120ms ease",
                     }}
                   >
                     <Terminal size="15" strokeWidth={2} />
