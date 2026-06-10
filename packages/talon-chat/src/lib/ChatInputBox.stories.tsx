@@ -37,6 +37,13 @@ type Story = StoryObj<typeof meta>;
 
 export const ImageInputEnabled: Story = {};
 
+export const AttachmentMenuOpen: Story = {
+  play: async ({ canvasElement }) => {
+    const button = canvasElement.querySelector<HTMLButtonElement>('button[aria-label="Open attachment menu"]');
+    button?.click();
+  },
+};
+
 export const WithImageAttachment: Story = {
   args: {
     value: "What is this?",

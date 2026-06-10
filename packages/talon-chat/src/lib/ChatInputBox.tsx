@@ -1,5 +1,18 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { ArrowUp, ImagePlus, Square, Terminal, X } from "lucide-react";
+import {
+  ArrowUp,
+  ChevronRight,
+  Ellipsis,
+  FileText,
+  Globe,
+  ImagePlus,
+  Paperclip,
+  Plus,
+  Square,
+  Telescope,
+  Terminal,
+  X,
+} from "lucide-react";
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -70,7 +83,7 @@ export function ChatInputBox({
   imageAttachments,
   imageUploadEnabled = false,
   imageAccept = "image/png,image/jpeg,image/gif,image/webp",
-  imageButtonLabel = "Attach image",
+  imageButtonLabel = "Add photos & files",
   onImageFilesSelected,
   onRemoveImageAttachment,
   style,
@@ -79,6 +92,8 @@ export function ChatInputBox({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [highlightedCommandIndex, setHighlightedCommandIndex] = useState(0);
   const [hoveredCommandIndex, setHoveredCommandIndex] = useState<number | null>(null);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [hoveredAttachmentIndex, setHoveredAttachmentIndex] = useState<number | null>(null);
   const resolvedCanSubmit = canSubmit ?? (Boolean(value.trim()) && !disabled && !isGenerating);
   const isStopMode = Boolean(isGenerating && onStop);
   const resolvedCanStop = Boolean(isStopMode && canStop);
@@ -103,6 +118,7 @@ export function ChatInputBox({
 
   const submitValue = useCallback(() => {
     if (!resolvedCanSubmit) return;
+    setShowAttachmentMenu(false);
     onSubmit(value);
   }, [onSubmit, resolvedCanSubmit, value]);
 
@@ -144,6 +160,11 @@ export function ChatInputBox({
           flexWrap: attachments.length > 0 ? "wrap" : "nowrap",
           fontFamily: talonChatFontFamily,
           ...style,
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            setShowAttachmentMenu(false);
+          }
         }}
       >
         {shouldShowCommandMenu ? (
@@ -316,6 +337,134 @@ export function ChatInputBox({
         ) : null}
         {imageUploadEnabled ? (
           <>
+            {showAttachmentMenu && !disabled && !isGenerating ? (
+              <div
+                role="menu"
+                aria-label="Attachment menu"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  bottom: "calc(100% + 8px)",
+                  zIndex: 30,
+                  width: "min(300px, calc(100vw - 48px))",
+                  boxSizing: "border-box",
+                  padding: "0.875rem 1rem",
+                  borderRadius: 20,
+                  border: border("var(--copilot-attachment-menu-border, rgba(212,212,216,0.9))"),
+                  background: "var(--copilot-attachment-menu-bg, rgba(255,255,255,0.98))",
+                  boxShadow: "var(--copilot-attachment-menu-shadow, 0 18px 46px rgba(24,24,27,0.16), 0 2px 8px rgba(24,24,27,0.08))",
+                  color: "var(--copilot-attachment-menu-fg, rgba(24,24,27,0.96))",
+                }}
+              >
+                {[
+                  {
+                    label: imageButtonLabel,
+                    icon: <Paperclip size="21" strokeWidth={2.3} />,
+                    action: () => {
+                      setShowAttachmentMenu(false);
+                      fileInputRef.current?.click();
+                    },
+                  },
+                  {
+                    label: "Recent files",
+                    icon: <FileText size="21" strokeWidth={2.2} />,
+                    chevron: true,
+                  },
+                  { divider: true },
+                  {
+                    label: "Create image",
+                    icon: <ImagePlus size="21" strokeWidth={2.2} />,
+                  },
+                  {
+                    label: "Deep research",
+                    icon: <Telescope size="21" strokeWidth={2.2} />,
+                  },
+                  {
+                    label: "Web search",
+                    icon: <Globe size="21" strokeWidth={2.2} />,
+                  },
+                  {
+                    label: "More",
+                    icon: <Ellipsis size="21" strokeWidth={2.2} />,
+                    chevron: true,
+                  },
+                ].map((item, index) => {
+                  if ("divider" in item) {
+                    return (
+                      <div
+                        key={`divider-${index}`}
+                        role="separator"
+                        style={{
+                          height: 1,
+                          margin: "0.5rem 0.25rem",
+                          background: "var(--copilot-attachment-menu-divider, rgba(212,212,216,0.88))",
+                        }}
+                      />
+                    );
+                  }
+                  const isActive = Boolean(item.action);
+                  const isHovered = hoveredAttachmentIndex === index;
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      role="menuitem"
+                      aria-disabled={!isActive}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onMouseEnter={() => setHoveredAttachmentIndex(index)}
+                      onMouseLeave={() => setHoveredAttachmentIndex(null)}
+                      onClick={() => item.action?.()}
+                      style={{
+                        width: "100%",
+                        minHeight: 44,
+                        boxSizing: "border-box",
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "0.375rem 0.25rem",
+                        display: "grid",
+                        gridTemplateColumns: "32px minmax(0, 1fr) 20px",
+                        alignItems: "center",
+                        gap: 8,
+                        background: isHovered && isActive
+                          ? "var(--copilot-attachment-menu-hover-bg, rgba(24,24,27,0.07))"
+                          : "transparent",
+                        color: "inherit",
+                        cursor: isActive ? "pointer" : "default",
+                        fontFamily: "inherit",
+                        fontSize: 16,
+                        lineHeight: 1.2,
+                        textAlign: "left",
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "var(--copilot-attachment-menu-icon-fg, rgba(24,24,27,0.96))",
+                        }}
+                      >
+                        {item.icon}
+                      </span>
+                      <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {item.label}
+                      </span>
+                      {item.chevron ? (
+                        <ChevronRight
+                          aria-hidden="true"
+                          size="20"
+                          strokeWidth={2.1}
+                          style={{ justifySelf: "end" }}
+                        />
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
             <input
               ref={fileInputRef}
               type="file"
@@ -334,10 +483,12 @@ export function ChatInputBox({
             />
             <button
               type="button"
-              aria-label={imageButtonLabel}
-              title={imageButtonLabel}
+              aria-label="Open attachment menu"
+              aria-expanded={showAttachmentMenu}
+              aria-haspopup="menu"
+              title="Open attachment menu"
               disabled={disabled || isGenerating}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setShowAttachmentMenu((current) => !current)}
               style={{
                 width: buttonSize,
                 height: buttonSize,
@@ -355,7 +506,7 @@ export function ChatInputBox({
                 color: "var(--copilot-secondary-control-fg, rgba(39,39,42,0.88))",
               }}
             >
-              <ImagePlus size="16" strokeWidth={2} />
+              <Plus size="19" strokeWidth={2.1} />
             </button>
           </>
         ) : null}
