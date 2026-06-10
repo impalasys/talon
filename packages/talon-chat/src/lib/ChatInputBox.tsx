@@ -340,10 +340,10 @@ export function ChatInputBox({
                   left: 0,
                   bottom: "calc(100% + 8px)",
                   zIndex: 30,
-                  width: "min(240px, calc(100vw - 48px))",
+                  width: "min(176px, calc(100vw - 48px))",
                   boxSizing: "border-box",
-                  padding: "0.625rem",
-                  borderRadius: 20,
+                  padding: "0.375rem",
+                  borderRadius: 16,
                   border: border("var(--copilot-attachment-menu-border, rgba(212,212,216,0.9))"),
                   background: "var(--copilot-attachment-menu-bg, rgba(255,255,255,0.98))",
                   boxShadow: "var(--copilot-attachment-menu-shadow, 0 18px 46px rgba(24,24,27,0.16), 0 2px 8px rgba(24,24,27,0.08))",
@@ -362,13 +362,13 @@ export function ChatInputBox({
                   }}
                   style={{
                     width: "100%",
-                    minHeight: 44,
+                    minHeight: 34,
                     boxSizing: "border-box",
                     border: "none",
-                    borderRadius: 12,
-                    padding: "0.375rem 0.5rem",
+                    borderRadius: 10,
+                    padding: "0.25rem 0.375rem",
                     display: "grid",
-                    gridTemplateColumns: "32px minmax(0, 1fr)",
+                    gridTemplateColumns: "26px minmax(0, 1fr)",
                     alignItems: "center",
                     gap: 8,
                     background: hoveredAttachmentIndex === 0
@@ -377,7 +377,7 @@ export function ChatInputBox({
                     color: "inherit",
                     cursor: "pointer",
                     fontFamily: "inherit",
-                    fontSize: 16,
+                    fontSize: 14,
                     lineHeight: 1.2,
                     textAlign: "left",
                   }}
@@ -385,15 +385,15 @@ export function ChatInputBox({
                   <span
                     aria-hidden="true"
                     style={{
-                      width: 32,
-                      height: 32,
+                      width: 26,
+                      height: 26,
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
                       color: "var(--copilot-attachment-menu-icon-fg, rgba(24,24,27,0.96))",
                     }}
                   >
-                    <ImagePlus size="21" strokeWidth={2.2} />
+                    <ImagePlus size="17" strokeWidth={2.1} />
                   </span>
                   <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {imageButtonLabel}
