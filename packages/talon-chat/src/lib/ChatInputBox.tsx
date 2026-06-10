@@ -5,6 +5,9 @@ function border(color: string) {
   return `1px solid ${color}`;
 }
 
+const talonChatFontFamily =
+  'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
+
 export type ChatInputBoxProps = {
   value: string;
   onValueChange: (value: string) => void;
@@ -139,6 +142,7 @@ export function ChatInputBox({
           padding: "0.25rem 0.3125rem 0.25rem 0.625rem",
           backdropFilter: "blur(12px)",
           flexWrap: attachments.length > 0 ? "wrap" : "nowrap",
+          fontFamily: talonChatFontFamily,
           ...style,
         }}
       >
