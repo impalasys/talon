@@ -468,6 +468,62 @@ describe('TalonCopilot', () => {
     expect(body.messages[0].parts[1].previewUrl).toBeUndefined();
   });
 
+  it('marks selected images as errored when upload fails', async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:failed-photo');
+    jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    const uploadError = new Error('upload rejected');
+    const onImageUpload = jest.fn().mockRejectedValue(uploadError);
+    const gatewayClient = {
+      createSession: jest.fn().mockResolvedValue({ sessionId: 'sess-upload-fail' }),
+      listSessionMessages: jest.fn().mockRejectedValue(new Error('no canonical recovery')),
+      getSession: jest.fn(),
+    };
+
+    const { container } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        onImageUpload={onImageUpload}
+      />,
+    );
+
+    const file = new File([new Uint8Array([1, 2, 3])], 'broken.png', { type: 'image/png' });
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(screen.getByAltText('broken.png')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'what is this?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => expect(onImageUpload).toHaveBeenCalledWith(expect.objectContaining({
+      file,
+      namespace: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-upload-fail',
+      signal: expect.any(AbortSignal),
+    })));
+    expect(await screen.findByText('upload rejected')).toBeInTheDocument();
+    expect(screen.getByTitle('upload rejected')).toBeInTheDocument();
+    expect(container.querySelector('[aria-label="Uploading image"]')).toBeNull();
+    expect(gatewayClient.createSession).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('runs the built-in clear command without sending it as a session message', async () => {
     const gatewayClient = {
       createSession: jest.fn(),

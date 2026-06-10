@@ -119,10 +119,24 @@ export type TalonSessionProps = {
   historyStepLimit?: number;
   commands?: TalonSessionCommand[];
   enabledBuiltInCommands?: TalonBuiltInCommandName[];
+  /**
+   * Uploads an image selected in the composer and returns the stored object ref.
+   * TalonSession performs client-side type and size checks for UX only; callers
+   * must validate file type, size, and content again in this upload handler
+   * before storing or processing the file.
+   */
   onImageUpload?: (context: TalonImageUploadContext) => Promise<TalonImageUploadResult>;
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
   maxImageAttachments?: number;
+  /**
+   * Client-side image size limit in bytes. This improves UX only and must be
+   * enforced again by the onImageUpload implementation.
+   */
   maxImageBytes?: number;
+  /**
+   * Client-side accepted image MIME types. This can be bypassed by callers and
+   * must be enforced again by the onImageUpload implementation.
+   */
   acceptedImageTypes?: string[];
 };
 

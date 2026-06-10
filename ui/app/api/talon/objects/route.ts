@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'crypto';
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { mkdir, readFile, rename, unlink, writeFile } from 'fs/promises';
 import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -15,7 +15,7 @@ function safeSegment(value: string, fallback: string) {
     .replace(/[^A-Za-z0-9._-]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 96);
-  return segment || fallback;
+  return segment && segment !== '.' && segment !== '..' ? segment : fallback;
 }
 
 function extensionForMediaType(mediaType: string) {
@@ -52,6 +52,43 @@ async function readObjectMetadata(dataPath: string) {
     return metadata && typeof metadata === 'object' ? metadata as Record<string, unknown> : {};
   } catch {
     return {};
+  }
+}
+
+async function removeIfExists(filePath: string) {
+  try {
+    await unlink(filePath);
+  } catch (err: any) {
+    if (err?.code !== 'ENOENT') {
+      throw err;
+    }
+  }
+}
+
+async function writeObjectWithMetadata(
+  dataPath: string,
+  metaPath: string,
+  bytes: Buffer,
+  metadata: Record<string, unknown>,
+) {
+  const tempSuffix = `.tmp-${randomUUID()}`;
+  const dataTempPath = `${dataPath}${tempSuffix}`;
+  const metaTempPath = `${metaPath}${tempSuffix}`;
+  let dataCommitted = false;
+
+  try {
+    await writeFile(dataTempPath, bytes);
+    await writeFile(metaTempPath, JSON.stringify(metadata));
+    await rename(dataTempPath, dataPath);
+    dataCommitted = true;
+    await rename(metaTempPath, metaPath);
+  } catch (err) {
+    await Promise.all([
+      removeIfExists(dataTempPath),
+      removeIfExists(metaTempPath),
+      dataCommitted ? removeIfExists(dataPath) : Promise.resolve(),
+    ]);
+    throw err;
   }
 }
 
@@ -143,8 +180,7 @@ export async function POST(request: NextRequest) {
   };
 
   await mkdir(path.dirname(dataPath), { recursive: true });
-  await writeFile(dataPath, bytes);
-  await writeFile(metaPath, JSON.stringify(metadata));
+  await writeObjectWithMetadata(dataPath, metaPath, bytes, metadata);
 
   return NextResponse.json(object);
 }

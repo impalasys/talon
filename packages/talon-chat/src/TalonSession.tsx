@@ -90,10 +90,24 @@ export type TalonSessionProps = {
   historyStepLimit?: number;
   commands?: TalonSessionCommand[];
   enabledBuiltInCommands?: TalonBuiltInCommandName[];
+  /**
+   * Uploads an image selected in the composer and returns the stored object ref.
+   * TalonSession performs client-side type and size checks for UX only; callers
+   * must validate file type, size, and content again in this upload handler
+   * before storing or processing the file.
+   */
   onImageUpload?: (context: TalonImageUploadContext) => Promise<TalonImageUploadResult>;
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
   maxImageAttachments?: number;
+  /**
+   * Client-side image size limit in bytes. This improves UX only and must be
+   * enforced again by the onImageUpload implementation.
+   */
   maxImageBytes?: number;
+  /**
+   * Client-side accepted image MIME types. This can be bypassed by callers and
+   * must be enforced again by the onImageUpload implementation.
+   */
   acceptedImageTypes?: string[];
 };
 
@@ -104,6 +118,7 @@ const DEFAULT_HISTORY_PAGE_SIZE = 50;
 const DEFAULT_HISTORY_MESSAGE_LIMIT = 100;
 const DEFAULT_HISTORY_STEP_LIMIT = 1000;
 const HISTORY_SCROLL_LOAD_THRESHOLD_PX = 120;
+const SESSION_MESSAGE_PART_TYPE_IMAGE = 7;
 
 function buildGatewayChatUiUrl(gatewayUrl: string, ns: string, agent: string, sessionId: string) {
   return `${normalizeGatewayUrl(gatewayUrl)}/v1/ui/ns/${encodeURIComponent(ns)}/agents/${encodeURIComponent(agent)}/sessions/${encodeURIComponent(sessionId)}`;
@@ -302,7 +317,7 @@ function messageImageParts(
   if (!Array.isArray(message.parts)) return [];
   return message.parts.flatMap((part: any, index) => {
     const type = part?.type ?? part?.partType ?? part?.part_type;
-    if (type !== "image" && type !== 7 && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
+    if (type !== "image" && type !== SESSION_MESSAGE_PART_TYPE_IMAGE && type !== "SESSION_MESSAGE_PART_TYPE_IMAGE") {
       return [];
     }
     const payload = parsePayloadJson(part.payloadJson ?? part.payload_json);
@@ -1224,35 +1239,65 @@ export function TalonSession({
   ) => {
     if (!onImageUpload) return imageAttachmentsRef.current;
 
-    let attachments = imageAttachmentsRef.current;
+    const attachments = imageAttachmentsRef.current;
     const failed = attachments.find((attachment) => attachment.status === "error");
     if (failed) {
       throw new Error(failed.error || `Failed to attach ${failed.file.name}`);
     }
 
-    for (const attachment of attachments) {
-      if (attachment.object) continue;
-      setImageAttachments((current) => current.map((item) =>
-        item.id === attachment.id ? { ...item, status: "uploading", error: undefined } : item,
-      ));
-      const result = await onImageUpload({
+    const pendingUploads = attachments.filter((attachment) => !attachment.object);
+    if (pendingUploads.length === 0) {
+      return attachments;
+    }
+
+    const pendingIds = new Set(pendingUploads.map((attachment) => attachment.id));
+    const uploadingAttachments = imageAttachmentsRef.current.map((item) =>
+      pendingIds.has(item.id) ? { ...item, status: "uploading" as const, error: undefined } : item,
+    );
+    imageAttachmentsRef.current = uploadingAttachments;
+    setImageAttachments(uploadingAttachments);
+
+    const settled = await Promise.allSettled(pendingUploads.map(async (attachment) => ({
+      id: attachment.id,
+      object: normalizeImageUploadResult(await onImageUpload({
         file: attachment.file,
         namespace: session.ns,
         agent: session.agent,
         sessionId: session.sessionId,
         signal,
-      });
-      const object = normalizeImageUploadResult(result);
-      setImageAttachments((current) => current.map((item) =>
-        item.id === attachment.id ? { ...item, object, status: "ready", error: undefined } : item,
-      ));
-      attachments = imageAttachmentsRef.current.map((item) =>
-        item.id === attachment.id ? { ...item, object, status: "ready", error: undefined } : item,
-      );
-      imageAttachmentsRef.current = attachments;
+      })),
+    })));
+
+    const resultsById = new Map<string, { object?: TalonChatObjectRef; error?: string }>();
+    settled.forEach((result, index) => {
+      const attachment = pendingUploads[index];
+      if (!attachment) return;
+      if (result.status === "fulfilled") {
+        resultsById.set(attachment.id, { object: result.value.object });
+      } else {
+        const reason = result.reason;
+        resultsById.set(attachment.id, {
+          error: reason instanceof Error ? reason.message : String(reason || `Failed to attach ${attachment.file.name}`),
+        });
+      }
+    });
+
+    const nextAttachments = imageAttachmentsRef.current.map((item) => {
+      const result = resultsById.get(item.id);
+      if (!result) return item;
+      return result.object
+        ? { ...item, object: result.object, status: "ready" as const, error: undefined }
+        : { ...item, status: "error" as const, error: result.error || `Failed to attach ${item.file.name}` };
+    });
+    imageAttachmentsRef.current = nextAttachments;
+    setImageAttachments(nextAttachments);
+
+    const uploadFailure = nextAttachments.find((attachment) => attachment.status === "error");
+    if (uploadFailure) {
+      throw new Error(uploadFailure.error || `Failed to attach ${uploadFailure.file.name}`);
     }
 
-    return attachments;
+    return nextAttachments;
   }, [onImageUpload]);
 
   const submitMessage = useCallback(async (submittedText: string) => {
@@ -1351,9 +1396,7 @@ export function TalonSession({
         body: JSON.stringify({
           messages: [{
             role: userMessage.role,
-            parts: Array.isArray(userMessage.parts)
-              ? serializableMessageParts(userMessage.parts)
-              : (getMessageContent(userMessage) ? [{ type: "text", text: getMessageContent(userMessage) }] : []),
+            parts: serializableMessageParts(userMessage.parts),
           }],
         }),
       });
