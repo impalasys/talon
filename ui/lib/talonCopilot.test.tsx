@@ -320,7 +320,6 @@ describe('TalonCopilot', () => {
       messages: [
         {
           role: 'user',
-          content: 'square root of 144',
           parts: [{ type: 'text', text: 'square root of 144' }],
         },
       ],

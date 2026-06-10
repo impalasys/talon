@@ -1346,7 +1346,6 @@ export function TalonSession({
         body: JSON.stringify({
           messages: [{
             role: userMessage.role,
-            content: getMessageContent(userMessage),
             parts: Array.isArray(userMessage.parts)
               ? serializableMessageParts(userMessage.parts)
               : (getMessageContent(userMessage) ? [{ type: "text", text: getMessageContent(userMessage) }] : []),

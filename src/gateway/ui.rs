@@ -36,8 +36,6 @@ pub struct ChatRequestBody {
 #[derive(Deserialize)]
 pub struct UiMessage {
     #[serde(default)]
-    content: Option<String>,
-    #[serde(default)]
     parts: Vec<UiPart>,
 }
 
@@ -47,8 +45,6 @@ pub struct UiPart {
     kind: Option<String>,
     #[serde(default)]
     text: Option<String>,
-    #[serde(default)]
-    content: Option<String>,
     #[serde(default)]
     object: Option<UiObjectRef>,
     #[serde(default, rename = "payloadJson", alias = "payload_json")]
@@ -114,44 +110,11 @@ fn map_status(status: tonic::Status) -> Response {
     response_with_status(code, status.message())
 }
 
-#[cfg(test)]
-fn last_message_text(messages: &[UiMessage]) -> Option<String> {
-    messages.iter().rev().find_map(|message| {
-        if let Some(content) = &message.content {
-            if !content.trim().is_empty() {
-                return Some(content.clone());
-            }
-        }
-
-        let text = message
-            .parts
-            .iter()
-            .filter(|part| part.kind.as_deref() == Some("text"))
-            .filter_map(|part| part.text.as_deref().or(part.content.as_deref()))
-            .collect::<String>();
-
-        if text.trim().is_empty() {
-            None
-        } else {
-            Some(text)
-        }
-    })
-}
-
 fn ui_message_has_dispatchable_part(message: &UiMessage) -> bool {
-    if message
-        .content
-        .as_deref()
-        .is_some_and(|content| !content.trim().is_empty())
-    {
-        return true;
-    }
-
     message.parts.iter().any(|part| match part.kind.as_deref() {
         Some("text") => part
             .text
             .as_deref()
-            .or(part.content.as_deref())
             .is_some_and(|text| !text.trim().is_empty()),
         Some("image") => part
             .object
@@ -170,38 +133,11 @@ fn last_dispatchable_message(messages: &[UiMessage]) -> Option<&UiMessage> {
 
 fn ui_message_to_session_message(message: &UiMessage, now_micros: i64) -> models::SessionMessage {
     let mut parts = Vec::new();
-    let has_text_part = message.parts.iter().any(|part| {
-        part.kind.as_deref() == Some("text")
-            && part
-                .text
-                .as_deref()
-                .or(part.content.as_deref())
-                .is_some_and(|text| !text.trim().is_empty())
-    });
-    if !has_text_part {
-        if let Some(content) = message.content.as_deref() {
-            if !content.trim().is_empty() {
-                parts.push(models::SessionMessagePart {
-                    id: String::new(),
-                    part_type: models::SessionMessagePartType::Text as i32,
-                    content: content.to_string(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                    created_at: now_micros,
-                    object: None,
-                });
-            }
-        }
-    }
 
     for part in &message.parts {
         match part.kind.as_deref() {
             Some("text") => {
-                let text = part
-                    .text
-                    .as_deref()
-                    .or(part.content.as_deref())
-                    .unwrap_or_default();
+                let text = part.text.as_deref().unwrap_or_default();
                 if text.trim().is_empty() {
                     continue;
                 }
@@ -737,9 +673,9 @@ pub async fn delete_chat(
 mod tests {
     use super::{
         data_stream_line, delete_chat, extract_tool_part_payload, fetch_session_metadata, get_chat,
-        last_message_text, latest_assistant_message_text, latest_tool_part_payload, map_status,
-        ndjson_line, part_dedup_key, post_chat, tonic_request, ChatRequestBody, SessionPath,
-        UiMessage, UiObjectRef, UiPart,
+        latest_assistant_message_text, latest_tool_part_payload, map_status, ndjson_line,
+        part_dedup_key, post_chat, tonic_request, ChatRequestBody, SessionPath, UiMessage,
+        UiObjectRef, UiPart,
     };
     use crate::control::events::{
         SessionControlEvent, SessionMessagePartEvent, SessionMessagePartEventKind,
@@ -912,53 +848,6 @@ mod tests {
             ns: ns.to_string(),
             message_id: message_id.to_string(),
         }
-    }
-
-    #[test]
-    fn last_message_text_prefers_content_then_text_parts() {
-        let messages = vec![
-            UiMessage {
-                content: Some(String::new()),
-                parts: vec![UiPart {
-                    kind: Some("text".to_string()),
-                    text: Some("hello".to_string()),
-                    content: None,
-                    object: None,
-                    payload_json: None,
-                }],
-            },
-            UiMessage {
-                content: Some("world".to_string()),
-                parts: vec![],
-            },
-        ];
-
-        assert_eq!(last_message_text(&messages).as_deref(), Some("world"));
-    }
-
-    #[test]
-    fn last_message_text_uses_text_parts_when_content_is_empty() {
-        let messages = vec![UiMessage {
-            content: Some("   ".to_string()),
-            parts: vec![
-                UiPart {
-                    kind: Some("text".to_string()),
-                    text: Some("hello".to_string()),
-                    content: None,
-                    object: None,
-                    payload_json: None,
-                },
-                UiPart {
-                    kind: Some("text".to_string()),
-                    text: Some(" world".to_string()),
-                    content: None,
-                    object: None,
-                    payload_json: None,
-                },
-            ],
-        }];
-
-        assert_eq!(last_message_text(&messages).as_deref(), Some("hello world"));
     }
 
     #[test]
@@ -1254,11 +1143,9 @@ mod tests {
             HeaderMap::new(),
             Json(ChatRequestBody {
                 messages: vec![UiMessage {
-                    content: None,
                     parts: vec![UiPart {
                         kind: Some("text".to_string()),
                         text: Some("   ".to_string()),
-                        content: None,
                         object: None,
                         payload_json: None,
                     }],
@@ -1307,19 +1194,16 @@ mod tests {
             HeaderMap::new(),
             Json(ChatRequestBody {
                 messages: vec![UiMessage {
-                    content: Some("what is in this?".to_string()),
                     parts: vec![
                         UiPart {
                             kind: Some("text".to_string()),
                             text: Some("what is in this?".to_string()),
-                            content: None,
                             object: None,
                             payload_json: None,
                         },
                         UiPart {
                             kind: Some("image".to_string()),
                             text: None,
-                            content: None,
                             object: Some(UiObjectRef {
                                 key: "sessions/session-1/uploads/photo.png".to_string(),
                                 media_type: "image/png".to_string(),
@@ -1389,8 +1273,12 @@ mod tests {
             HeaderMap::new(),
             Json(ChatRequestBody {
                 messages: vec![UiMessage {
-                    content: Some("hello".to_string()),
-                    parts: vec![],
+                    parts: vec![UiPart {
+                        kind: Some("text".to_string()),
+                        text: Some("hello".to_string()),
+                        object: None,
+                        payload_json: None,
+                    }],
                 }],
             }),
         )
@@ -1452,8 +1340,12 @@ mod tests {
             HeaderMap::new(),
             Json(ChatRequestBody {
                 messages: vec![UiMessage {
-                    content: Some("hello".to_string()),
-                    parts: vec![],
+                    parts: vec![UiPart {
+                        kind: Some("text".to_string()),
+                        text: Some("hello".to_string()),
+                        object: None,
+                        payload_json: None,
+                    }],
                 }],
             }),
         )
