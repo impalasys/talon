@@ -61,6 +61,18 @@ pub trait KeyValueStore: Send + Sync {
         value: &[u8],
     ) -> anyhow::Result<bool>;
 
+    /// Delete the current value when it matches the expected value.
+    ///
+    /// Production stores override this with a storage-level atomic operation.
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> anyhow::Result<bool> {
+        if self.get(key).await?.as_deref() == Some(expected) {
+            self.delete(key).await?;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+
     /// Delete a key.
     async fn delete(&self, key: &ResourceKey) -> anyhow::Result<()>;
 

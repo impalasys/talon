@@ -241,6 +241,21 @@ async fn claim_agent_card_hostname(
     ))
 }
 
+async fn cleanup_agent_card_hostname_index(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    hostname: &str,
+    card: &manifests::AgentCard,
+) {
+    let key = keys::agent_card_hostname(hostname);
+    let expected = card.encode_to_vec();
+    if let Err(err) = kv.compare_and_delete(&key, &expected).await {
+        tracing::warn!(
+            "Failed to clean AgentCard hostname index '{}': {err}",
+            hostname
+        );
+    }
+}
+
 impl GrpcGatewayHandler {
     pub async fn handle_create_agent_card(
         &self,
@@ -271,12 +286,36 @@ impl GrpcGatewayHandler {
         let name = card_name(&card);
         let new_hostname = card_spec(&card)?.hostname.clone();
         let key = keys::agent_card(&req.ns, &name);
+        let existing_card = self
+            .gateway
+            .kv
+            .get_msg::<manifests::AgentCard>(&key)
+            .await
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to fetch existing AgentCard: {err}"))
+            })?;
         claim_agent_card_hostname(self.gateway.kv.as_ref(), &new_hostname, &card).await?;
         self.gateway
             .kv
             .set_msg(&key, &card)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
+        if let Some(existing_card) = existing_card {
+            if let Some(old_hostname) = existing_card
+                .spec
+                .as_ref()
+                .and_then(|spec| normalize_hostname(&spec.hostname).ok())
+            {
+                if old_hostname != new_hostname {
+                    cleanup_agent_card_hostname_index(
+                        self.gateway.kv.as_ref(),
+                        &old_hostname,
+                        &existing_card,
+                    )
+                    .await;
+                }
+            }
+        }
 
         Ok(tonic::Response::new(proto::AgentCardResponse {
             card: Some(card),
@@ -339,17 +378,25 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
         let key = keys::agent_card(&req.ns, &req.name);
-        self.gateway
+        let card = self
+            .gateway
             .kv
             .get_msg::<manifests::AgentCard>(&key)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to fetch AgentCard: {err}")))?
             .ok_or_else(|| tonic::Status::not_found("AgentCard not found"))?;
+        let hostname = card
+            .spec
+            .as_ref()
+            .and_then(|spec| normalize_hostname(&spec.hostname).ok());
         self.gateway
             .kv
             .delete(&key)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to delete AgentCard: {err}")))?;
+        if let Some(hostname) = hostname {
+            cleanup_agent_card_hostname_index(self.gateway.kv.as_ref(), &hostname, &card).await;
+        }
         Ok(tonic::Response::new(proto::DeleteAgentCardResponse {
             success: true,
         }))

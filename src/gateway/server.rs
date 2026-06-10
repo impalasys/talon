@@ -578,6 +578,101 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn agent_card_update_cleans_old_hostname_index() {
+        let gateway = gateway();
+        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
+        let handler = crate::gateway::rpc::GrpcGatewayHandler {
+            gateway: Arc::new(gateway.clone()),
+        };
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "support".to_string(),
+                    card: Some(agent_card(
+                        "support",
+                        "support-public",
+                        "support-docs",
+                        "old.example.com",
+                    )),
+                },
+            ))
+            .await
+            .unwrap();
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "support".to_string(),
+                    card: Some(agent_card(
+                        "support",
+                        "support-public",
+                        "support-docs",
+                        "new.example.com",
+                    )),
+                },
+            ))
+            .await
+            .unwrap();
+
+        assert!(gateway
+            .kv
+            .get(&crate::control::keys::agent_card_hostname(
+                "old.example.com"
+            ))
+            .await
+            .unwrap()
+            .is_none());
+        assert!(gateway
+            .kv
+            .get(&crate::control::keys::agent_card_hostname(
+                "new.example.com"
+            ))
+            .await
+            .unwrap()
+            .is_some());
+    }
+
+    #[tokio::test]
+    async fn agent_card_delete_cleans_hostname_index() {
+        let gateway = gateway();
+        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
+        let handler = crate::gateway::rpc::GrpcGatewayHandler {
+            gateway: Arc::new(gateway.clone()),
+        };
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "support".to_string(),
+                    card: Some(agent_card(
+                        "support",
+                        "support-public",
+                        "support-docs",
+                        "support.example.com",
+                    )),
+                },
+            ))
+            .await
+            .unwrap();
+        handler
+            .handle_delete_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::DeleteAgentCardRequest {
+                    ns: "support".to_string(),
+                    name: "support-public".to_string(),
+                },
+            ))
+            .await
+            .unwrap();
+
+        assert!(gateway
+            .kv
+            .get(&crate::control::keys::agent_card_hostname(
+                "support.example.com"
+            ))
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
     async fn http_ui_router_ignores_stale_agent_card_hostname_index() {
         let gateway = gateway();
         let stale_card = crate::gateway::rpc::manifests::AgentCard {

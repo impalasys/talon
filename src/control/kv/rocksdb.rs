@@ -313,6 +313,44 @@ impl KeyValueStore for RocksDbKvStore {
         .await
     }
 
+    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
+        let encoded = key_bytes(key);
+        let expected = expected.to_vec();
+        let span = tracing::debug_span!(
+            "RocksDbKvStore.compare_and_delete",
+            "db.system" = "rocksdb",
+            "db.operation" = "compare_and_delete",
+            "talon.kv.path" = %self.path.as_str(),
+            "talon.resource.kind" = %key.kind,
+            query_elapsed_us = field::Empty,
+            rows_affected = field::Empty,
+            expected_bytes = expected.len(),
+        );
+        let span_for_body = span.clone();
+        let write_options = Arc::clone(&self.write_options);
+        let write_lock = Arc::clone(&self.write_lock);
+        async move {
+            let started_at = Instant::now();
+            let write_guard = write_lock.lock_owned().await;
+            let deleted = self
+                .spawn_blocking("compare_and_delete", move |db| {
+                    let _write_guard = write_guard;
+                    let current = db.get(&encoded)?;
+                    let matches = current.as_deref() == Some(expected.as_slice());
+                    if matches {
+                        db.delete_opt(encoded, &write_options)?;
+                    }
+                    Ok(matches)
+                })
+                .await?;
+            record_elapsed(&span_for_body, started_at);
+            span_for_body.record("rows_affected", u64::from(deleted));
+            Ok(deleted)
+        }
+        .instrument(span)
+        .await
+    }
+
     async fn list_keys(&self, list: &ResourceList) -> Result<Vec<ResourceKey>> {
         let prefix = prefix_bytes(list);
         let span = tracing::debug_span!(
