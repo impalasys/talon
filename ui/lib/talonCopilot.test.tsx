@@ -84,6 +84,60 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
   });
 
+  it('renders reloaded image object refs from session history', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-image-history',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'user-image-history',
+              role: 'ROLE_USER',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_IMAGE',
+                  payloadJson: JSON.stringify({ filename: 'chart.png' }),
+                  objectRef: {
+                    key: 'sessions/sess-image-history/uploads/chart.png',
+                    mediaType: 'image/png',
+                    sizeBytes: 42,
+                    sha256: 'sha',
+                    filename: 'chart.png',
+                    metadata: {},
+                  },
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      getSession: jest.fn(),
+    };
+    const objectUrlForRef = jest.fn((object) => `/api/talon/objects?key=${encodeURIComponent(object.key)}`);
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-image-history"
+        objectUrlForRef={objectUrlForRef}
+      />,
+    );
+
+    const image = await screen.findByAltText('chart.png') as HTMLImageElement;
+    expect(image.getAttribute('src')).toBe('/api/talon/objects?key=sessions%2Fsess-image-history%2Fuploads%2Fchart.png');
+    expect(objectUrlForRef).toHaveBeenCalledWith(expect.objectContaining({
+      key: 'sessions/sess-image-history/uploads/chart.png',
+    }));
+  });
+
   it('renders assistant markdown instead of plain text blobs', async () => {
     const gatewayClient = {
       createSession: jest.fn(),

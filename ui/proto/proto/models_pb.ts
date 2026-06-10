@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/models.proto.
  */
 export const file_proto_models: GenFile = /*@__PURE__*/
-  fileDesc("ChJwcm90by9tb2RlbHMucHJvdG8SDHRhbG9uLm1vZGVscyKCAgoFQWdlbnQSDAoEbmFtZRgBIAEoCRIKCgJucxgCIAEoCRI0CgpkZWZpbml0aW9uGAMgASgLMiAudGFsb24ubWFuaWZlc3RzLkFnZW50RGVmaW5pdGlvbhIyCg5lZmZlY3RpdmVfc3BlYxgEIAEoCzIaLnRhbG9uLm1hbmlmZXN0cy5BZ2VudFNwZWMSFQoNdGVtcGxhdGVfZGVwcxgFIAMoCRIvCgZsYWJlbHMYByADKAsyHy50YWxvbi5tb2RlbHMuQWdlbnQuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKiAQoSU2Vzc2lvbk1lc3NhZ2VQYXJ0EgoKAmlkGAEgASgJEjcKCXBhcnRfdHlwZRgCIAEoDjIkLnRhbG9uLm1vZGVscy5TZXNzaW9uTWVzc2FnZVBhcnRUeXBlEg8KB2NvbnRlbnQYAyABKAkSDAoEbmFtZRgEIAEoCRIUCgxwYXlsb2FkX2pzb24YBSABKAkSEgoKY3JlYXRlZF9hdBgGIAEoAyL5AQoOU2Vzc2lvbk1lc3NhZ2USCgoCaWQYASABKAkSJwoEcm9sZRgCIAEoDjIZLnRhbG9uLm1vZGVscy5NZXNzYWdlUm9sZRISCgpjcmVhdGVkX2F0GAQgASgDEjgKBmxhYmVscxgFIAMoCzIoLnRhbG9uLm1vZGVscy5TZXNzaW9uTWVzc2FnZS5MYWJlbHNFbnRyeRIvCgVwYXJ0cxgGIAMoCzIgLnRhbG9uLm1vZGVscy5TZXNzaW9uTWVzc2FnZVBhcnQaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4AUoECAMQBCKzAgoHU2Vzc2lvbhIKCgJpZBgBIAEoCRINCgVhZ2VudBgCIAEoCRIKCgJucxgDIAEoCRIOCgZzdGF0dXMYBCABKAkSEgoKY3JlYXRlZF9hdBgFIAEoAxITCgtsYXN0X2FjdGl2ZRgGIAEoAxI1CghtZXRhZGF0YRgHIAMoCzIjLnRhbG9uLm1vZGVscy5TZXNzaW9uLk1ldGFkYXRhRW50cnkSMQoGbGFiZWxzGAggAygLMiEudGFsb24ubW9kZWxzLlNlc3Npb24uTGFiZWxzRW50cnkaLwoNTWV0YWRhdGFFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEitAIKB0NoYW5uZWwSDAoEbmFtZRgBIAEoCRIKCgJucxgCIAEoCRINCgV0aXRsZRgDIAEoCRIOCgZzdGF0dXMYBCABKAkSEgoKY3JlYXRlZF9hdBgFIAEoAxISCgp1cGRhdGVkX2F0GAYgASgDEjUKCG1ldGFkYXRhGAcgAygLMiMudGFsb24ubW9kZWxzLkNoYW5uZWwuTWV0YWRhdGFFbnRyeRIxCgZsYWJlbHMYCCADKAsyIS50YWxvbi5tb2RlbHMuQ2hhbm5lbC5MYWJlbHNFbnRyeRovCg1NZXRhZGF0YUVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKdAgoOQ2hhbm5lbE1lc3NhZ2USCgoCaWQYASABKAkSCgoCbnMYAiABKAkSDwoHY2hhbm5lbBgDIAEoCRITCgthdXRob3Jfa2luZBgEIAEoCRIOCgZhdXRob3IYBSABKAkSDwoHY29udGVudBgGIAEoCRISCgpjcmVhdGVkX2F0GAcgASgDEhQKDHNvdXJjZV9hZ2VudBgIIAEoCRIZChFzb3VyY2Vfc2Vzc2lvbl9pZBgJIAEoCRI4CgZsYWJlbHMYCiADKAsyKC50YWxvbi5tb2RlbHMuQ2hhbm5lbE1lc3NhZ2UuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASI6ChRDaGFubmVsQ29udGV4dFBvbGljeRIMCgRtb2RlGAEgASgJEhQKDG1heF9tZXNzYWdlcxgCIAEoDSKjAwoTQ2hhbm5lbFN1YnNjcmlwdGlvbhIMCgRuYW1lGAEgASgJEgoKAm5zGAIgASgJEg8KB2NoYW5uZWwYAyABKAkSDQoFYWdlbnQYBCABKAkSDwoHZW5hYmxlZBgFIAEoCBIPCgd0cmlnZ2VyGAYgASgJEjoKDmNvbnRleHRfcG9saWN5GAcgASgLMiIudGFsb24ubW9kZWxzLkNoYW5uZWxDb250ZXh0UG9saWN5EkEKCG1ldGFkYXRhGAggAygLMi8udGFsb24ubW9kZWxzLkNoYW5uZWxTdWJzY3JpcHRpb24uTWV0YWRhdGFFbnRyeRI9CgZsYWJlbHMYCSADKAsyLS50YWxvbi5tb2RlbHMuQ2hhbm5lbFN1YnNjcmlwdGlvbi5MYWJlbHNFbnRyeRISCgpyZXBseV9tb2RlGAogASgJGi8KDU1ldGFkYXRhRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIkkKDlNjaGVkdWxlVGFyZ2V0Eg0KBWFnZW50GAEgASgJEhQKDHNlc3Npb25fbW9kZRgCIAEoCRISCgpzZXNzaW9uX2lkGAMgASgJIrwBCgxTY2hlZHVsZVNwZWMSDAoEa2luZBgBIAEoCRIMCgRjcm9uGAIgASgJEhgKEGludGVydmFsX3NlY29uZHMYAyABKA0SDgoGcnVuX2F0GAQgASgJEhAKCHRpbWV6b25lGAUgASgJEiwKBnRhcmdldBgGIAEoCzIcLnRhbG9uLm1vZGVscy5TY2hlZHVsZVRhcmdldBIVCg1pbnB1dF9tZXNzYWdlGAcgASgJEg8KB2VuYWJsZWQYCCABKAgirwMKDlNjaGVkdWxlU3RhdHVzEhAKCHJldmlzaW9uGAEgASgEEhgKC25leHRfcnVuX2F0GAIgASgDSACIAQESGwoOYmFja2VuZF9oYW5kbGUYAyABKAlIAYgBARIVCg1iYWNrZW5kX2FybWVkGAQgASgIEhgKC2xhc3RfcnVuX2F0GAUgASgDSAKIAQESHAoPbGFzdF9zZXNzaW9uX2lkGAYgASgJSAOIAQESFwoKbGFzdF9lcnJvchgHIAEoCUgEiAEBEhsKDmNsYWltZWRfcnVuX2F0GAggASgDSAWIAQESHQoQY2xhaW1fZXhwaXJlc19hdBgJIAEoA0gGiAEBEjIKDXJlY2VudF9ldmVudHMYCiADKAsyGy50YWxvbi5tb2RlbHMuU2NoZWR1bGVFdmVudEIOCgxfbmV4dF9ydW5fYXRCEQoPX2JhY2tlbmRfaGFuZGxlQg4KDF9sYXN0X3J1bl9hdEISChBfbGFzdF9zZXNzaW9uX2lkQg0KC19sYXN0X2Vycm9yQhEKD19jbGFpbWVkX3J1bl9hdEITChFfY2xhaW1fZXhwaXJlc19hdCJSCg1TY2hlZHVsZUV2ZW50EhEKCXRpbWVzdGFtcBgBIAEoAxINCgVwaGFzZRgCIAEoCRIPCgdvdXRjb21lGAMgASgJEg4KBmRldGFpbBgEIAEoCSLfAQoIU2NoZWR1bGUSDAoEbmFtZRgBIAEoCRIKCgJucxgCIAEoCRIoCgRzcGVjGAMgASgLMhoudGFsb24ubW9kZWxzLlNjaGVkdWxlU3BlYxIsCgZzdGF0dXMYBCABKAsyHC50YWxvbi5tb2RlbHMuU2NoZWR1bGVTdGF0dXMSMgoGbGFiZWxzGAUgAygLMiIudGFsb24ubW9kZWxzLlNjaGVkdWxlLkxhYmVsc0VudHJ5Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEitQEKCU5hbWVzcGFjZRIMCgRuYW1lGAEgASgJEg4KBnBhcmVudBgCIAEoCRISCgppc19kZWxldGVkGAMgASgIEhIKCmRlbGV0ZWRfYXQYBCABKAMSMwoGbGFiZWxzGAUgAygLMiMudGFsb24ubW9kZWxzLk5hbWVzcGFjZS5MYWJlbHNFbnRyeRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIl8KCUtub3dsZWRnZRIMCgRwYXRoGAEgASgJEg8KB2NvbnRlbnQYAiABKAkSEgoKdXBkYXRlZF9hdBgDIAEoAxIRCgluYW1lc3BhY2UYBCABKAkSDAoEbmFtZRgFIAEoCSJrChVLbm93bGVkZ2VTZWFyY2hSZXN1bHQSDAoEcGF0aBgBIAEoCRIPCgdzbmlwcGV0GAIgASgJEg0KBXNjb3JlGAMgASgCEhEKCXRpbWVzdGFtcBgEIAEoAxIRCgluYW1lc3BhY2UYBSABKAkqVwoLTWVzc2FnZVJvbGUSFAoQUk9MRV9VTlNQRUNJRklFRBAAEg0KCVJPTEVfVVNFUhABEhIKDlJPTEVfQVNTSVNUQU5UEAISDwoLUk9MRV9TWVNURU0QAyquAgoWU2Vzc2lvbk1lc3NhZ2VQYXJ0VHlwZRIpCiVTRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1VOU1BFQ0lGSUVEEAASIgoeU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9URVhUEAESJwojU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9SRUFTT05JTkcQAhInCiNTRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1RPT0xfQ0FMTBADEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX1RZUEVfVE9PTF9SRVNVTFQQBBIjCh9TRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1VTQUdFEAUSIwofU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9FUlJPUhAGYgZwcm90bzM", [file_proto_manifests]);
+  fileDesc("ChJwcm90by9tb2RlbHMucHJvdG8SDHRhbG9uLm1vZGVscyKCAgoFQWdlbnQSDAoEbmFtZRgBIAEoCRIKCgJucxgCIAEoCRI0CgpkZWZpbml0aW9uGAMgASgLMiAudGFsb24ubWFuaWZlc3RzLkFnZW50RGVmaW5pdGlvbhIyCg5lZmZlY3RpdmVfc3BlYxgEIAEoCzIaLnRhbG9uLm1hbmlmZXN0cy5BZ2VudFNwZWMSFQoNdGVtcGxhdGVfZGVwcxgFIAMoCRIvCgZsYWJlbHMYByADKAsyHy50YWxvbi5tb2RlbHMuQWdlbnQuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASLMAQoJT2JqZWN0UmVmEgsKA2tleRgBIAEoCRISCgptZWRpYV90eXBlGAIgASgJEhIKCnNpemVfYnl0ZXMYAyABKAQSDgoGc2hhMjU2GAQgASgJEhAKCGZpbGVuYW1lGAUgASgJEjcKCG1ldGFkYXRhGAYgAygLMiUudGFsb24ubW9kZWxzLk9iamVjdFJlZi5NZXRhZGF0YUVudHJ5Gi8KDU1ldGFkYXRhRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASLLAQoSU2Vzc2lvbk1lc3NhZ2VQYXJ0EgoKAmlkGAEgASgJEjcKCXBhcnRfdHlwZRgCIAEoDjIkLnRhbG9uLm1vZGVscy5TZXNzaW9uTWVzc2FnZVBhcnRUeXBlEg8KB2NvbnRlbnQYAyABKAkSDAoEbmFtZRgEIAEoCRIUCgxwYXlsb2FkX2pzb24YBSABKAkSEgoKY3JlYXRlZF9hdBgGIAEoAxInCgZvYmplY3QYByABKAsyFy50YWxvbi5tb2RlbHMuT2JqZWN0UmVmIvkBCg5TZXNzaW9uTWVzc2FnZRIKCgJpZBgBIAEoCRInCgRyb2xlGAIgASgOMhkudGFsb24ubW9kZWxzLk1lc3NhZ2VSb2xlEhIKCmNyZWF0ZWRfYXQYBCABKAMSOAoGbGFiZWxzGAUgAygLMigudGFsb24ubW9kZWxzLlNlc3Npb25NZXNzYWdlLkxhYmVsc0VudHJ5Ei8KBXBhcnRzGAYgAygLMiAudGFsb24ubW9kZWxzLlNlc3Npb25NZXNzYWdlUGFydBotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBSgQIAxAEIrMCCgdTZXNzaW9uEgoKAmlkGAEgASgJEg0KBWFnZW50GAIgASgJEgoKAm5zGAMgASgJEg4KBnN0YXR1cxgEIAEoCRISCgpjcmVhdGVkX2F0GAUgASgDEhMKC2xhc3RfYWN0aXZlGAYgASgDEjUKCG1ldGFkYXRhGAcgAygLMiMudGFsb24ubW9kZWxzLlNlc3Npb24uTWV0YWRhdGFFbnRyeRIxCgZsYWJlbHMYCCADKAsyIS50YWxvbi5tb2RlbHMuU2Vzc2lvbi5MYWJlbHNFbnRyeRovCg1NZXRhZGF0YUVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASK0AgoHQ2hhbm5lbBIMCgRuYW1lGAEgASgJEgoKAm5zGAIgASgJEg0KBXRpdGxlGAMgASgJEg4KBnN0YXR1cxgEIAEoCRISCgpjcmVhdGVkX2F0GAUgASgDEhIKCnVwZGF0ZWRfYXQYBiABKAMSNQoIbWV0YWRhdGEYByADKAsyIy50YWxvbi5tb2RlbHMuQ2hhbm5lbC5NZXRhZGF0YUVudHJ5EjEKBmxhYmVscxgIIAMoCzIhLnRhbG9uLm1vZGVscy5DaGFubmVsLkxhYmVsc0VudHJ5Gi8KDU1ldGFkYXRhRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIp0CCg5DaGFubmVsTWVzc2FnZRIKCgJpZBgBIAEoCRIKCgJucxgCIAEoCRIPCgdjaGFubmVsGAMgASgJEhMKC2F1dGhvcl9raW5kGAQgASgJEg4KBmF1dGhvchgFIAEoCRIPCgdjb250ZW50GAYgASgJEhIKCmNyZWF0ZWRfYXQYByABKAMSFAoMc291cmNlX2FnZW50GAggASgJEhkKEXNvdXJjZV9zZXNzaW9uX2lkGAkgASgJEjgKBmxhYmVscxgKIAMoCzIoLnRhbG9uLm1vZGVscy5DaGFubmVsTWVzc2FnZS5MYWJlbHNFbnRyeRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIjoKFENoYW5uZWxDb250ZXh0UG9saWN5EgwKBG1vZGUYASABKAkSFAoMbWF4X21lc3NhZ2VzGAIgASgNIqMDChNDaGFubmVsU3Vic2NyaXB0aW9uEgwKBG5hbWUYASABKAkSCgoCbnMYAiABKAkSDwoHY2hhbm5lbBgDIAEoCRINCgVhZ2VudBgEIAEoCRIPCgdlbmFibGVkGAUgASgIEg8KB3RyaWdnZXIYBiABKAkSOgoOY29udGV4dF9wb2xpY3kYByABKAsyIi50YWxvbi5tb2RlbHMuQ2hhbm5lbENvbnRleHRQb2xpY3kSQQoIbWV0YWRhdGEYCCADKAsyLy50YWxvbi5tb2RlbHMuQ2hhbm5lbFN1YnNjcmlwdGlvbi5NZXRhZGF0YUVudHJ5Ej0KBmxhYmVscxgJIAMoCzItLnRhbG9uLm1vZGVscy5DaGFubmVsU3Vic2NyaXB0aW9uLkxhYmVsc0VudHJ5EhIKCnJlcGx5X21vZGUYCiABKAkaLwoNTWV0YWRhdGFFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBGi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiSQoOU2NoZWR1bGVUYXJnZXQSDQoFYWdlbnQYASABKAkSFAoMc2Vzc2lvbl9tb2RlGAIgASgJEhIKCnNlc3Npb25faWQYAyABKAkivAEKDFNjaGVkdWxlU3BlYxIMCgRraW5kGAEgASgJEgwKBGNyb24YAiABKAkSGAoQaW50ZXJ2YWxfc2Vjb25kcxgDIAEoDRIOCgZydW5fYXQYBCABKAkSEAoIdGltZXpvbmUYBSABKAkSLAoGdGFyZ2V0GAYgASgLMhwudGFsb24ubW9kZWxzLlNjaGVkdWxlVGFyZ2V0EhUKDWlucHV0X21lc3NhZ2UYByABKAkSDwoHZW5hYmxlZBgIIAEoCCKvAwoOU2NoZWR1bGVTdGF0dXMSEAoIcmV2aXNpb24YASABKAQSGAoLbmV4dF9ydW5fYXQYAiABKANIAIgBARIbCg5iYWNrZW5kX2hhbmRsZRgDIAEoCUgBiAEBEhUKDWJhY2tlbmRfYXJtZWQYBCABKAgSGAoLbGFzdF9ydW5fYXQYBSABKANIAogBARIcCg9sYXN0X3Nlc3Npb25faWQYBiABKAlIA4gBARIXCgpsYXN0X2Vycm9yGAcgASgJSASIAQESGwoOY2xhaW1lZF9ydW5fYXQYCCABKANIBYgBARIdChBjbGFpbV9leHBpcmVzX2F0GAkgASgDSAaIAQESMgoNcmVjZW50X2V2ZW50cxgKIAMoCzIbLnRhbG9uLm1vZGVscy5TY2hlZHVsZUV2ZW50Qg4KDF9uZXh0X3J1bl9hdEIRCg9fYmFja2VuZF9oYW5kbGVCDgoMX2xhc3RfcnVuX2F0QhIKEF9sYXN0X3Nlc3Npb25faWRCDQoLX2xhc3RfZXJyb3JCEQoPX2NsYWltZWRfcnVuX2F0QhMKEV9jbGFpbV9leHBpcmVzX2F0IlIKDVNjaGVkdWxlRXZlbnQSEQoJdGltZXN0YW1wGAEgASgDEg0KBXBoYXNlGAIgASgJEg8KB291dGNvbWUYAyABKAkSDgoGZGV0YWlsGAQgASgJIt8BCghTY2hlZHVsZRIMCgRuYW1lGAEgASgJEgoKAm5zGAIgASgJEigKBHNwZWMYAyABKAsyGi50YWxvbi5tb2RlbHMuU2NoZWR1bGVTcGVjEiwKBnN0YXR1cxgEIAEoCzIcLnRhbG9uLm1vZGVscy5TY2hlZHVsZVN0YXR1cxIyCgZsYWJlbHMYBSADKAsyIi50YWxvbi5tb2RlbHMuU2NoZWR1bGUuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASK1AQoJTmFtZXNwYWNlEgwKBG5hbWUYASABKAkSDgoGcGFyZW50GAIgASgJEhIKCmlzX2RlbGV0ZWQYAyABKAgSEgoKZGVsZXRlZF9hdBgEIAEoAxIzCgZsYWJlbHMYBSADKAsyIy50YWxvbi5tb2RlbHMuTmFtZXNwYWNlLkxhYmVsc0VudHJ5Gi0KC0xhYmVsc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiXwoJS25vd2xlZGdlEgwKBHBhdGgYASABKAkSDwoHY29udGVudBgCIAEoCRISCgp1cGRhdGVkX2F0GAMgASgDEhEKCW5hbWVzcGFjZRgEIAEoCRIMCgRuYW1lGAUgASgJImsKFUtub3dsZWRnZVNlYXJjaFJlc3VsdBIMCgRwYXRoGAEgASgJEg8KB3NuaXBwZXQYAiABKAkSDQoFc2NvcmUYAyABKAISEQoJdGltZXN0YW1wGAQgASgDEhEKCW5hbWVzcGFjZRgFIAEoCSpXCgtNZXNzYWdlUm9sZRIUChBST0xFX1VOU1BFQ0lGSUVEEAASDQoJUk9MRV9VU0VSEAESEgoOUk9MRV9BU1NJU1RBTlQQAhIPCgtST0xFX1NZU1RFTRADKsEDChZTZXNzaW9uTWVzc2FnZVBhcnRUeXBlEikKJVNFU1NJT05fTUVTU0FHRV9QQVJUX1RZUEVfVU5TUEVDSUZJRUQQABIiCh5TRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1RFWFQQARInCiNTRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1JFQVNPTklORxACEicKI1NFU1NJT05fTUVTU0FHRV9QQVJUX1RZUEVfVE9PTF9DQUxMEAMSKQolU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9UT09MX1JFU1VMVBAEEiMKH1NFU1NJT05fTUVTU0FHRV9QQVJUX1RZUEVfVVNBR0UQBRIjCh9TRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX0VSUk9SEAYSIwofU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9JTUFHRRAHEiMKH1NFU1NJT05fTUVTU0FHRV9QQVJUX1RZUEVfQVVESU8QCBIjCh9TRVNTSU9OX01FU1NBR0VfUEFSVF9UWVBFX1ZJREVPEAkSIgoeU0VTU0lPTl9NRVNTQUdFX1BBUlRfVFlQRV9GSUxFEApiBnByb3RvMw", [file_proto_manifests]);
 
 /**
  * @generated from message talon.models.Agent
@@ -57,6 +57,48 @@ export const AgentSchema: GenMessage<Agent> = /*@__PURE__*/
   messageDesc(file_proto_models, 0);
 
 /**
+ * @generated from message talon.models.ObjectRef
+ */
+export type ObjectRef = Message<"talon.models.ObjectRef"> & {
+  /**
+   * @generated from field: string key = 1;
+   */
+  key: string;
+
+  /**
+   * @generated from field: string media_type = 2;
+   */
+  mediaType: string;
+
+  /**
+   * @generated from field: uint64 size_bytes = 3;
+   */
+  sizeBytes: bigint;
+
+  /**
+   * @generated from field: string sha256 = 4;
+   */
+  sha256: string;
+
+  /**
+   * @generated from field: string filename = 5;
+   */
+  filename: string;
+
+  /**
+   * @generated from field: map<string, string> metadata = 6;
+   */
+  metadata: { [key: string]: string };
+};
+
+/**
+ * Describes the message talon.models.ObjectRef.
+ * Use `create(ObjectRefSchema)` to create a new message.
+ */
+export const ObjectRefSchema: GenMessage<ObjectRef> = /*@__PURE__*/
+  messageDesc(file_proto_models, 1);
+
+/**
  * @generated from message talon.models.SessionMessagePart
  */
 export type SessionMessagePart = Message<"talon.models.SessionMessagePart"> & {
@@ -91,6 +133,11 @@ export type SessionMessagePart = Message<"talon.models.SessionMessagePart"> & {
    * @generated from field: int64 created_at = 6;
    */
   createdAt: bigint;
+
+  /**
+   * @generated from field: talon.models.ObjectRef object = 7;
+   */
+  object?: ObjectRef;
 };
 
 /**
@@ -98,7 +145,7 @@ export type SessionMessagePart = Message<"talon.models.SessionMessagePart"> & {
  * Use `create(SessionMessagePartSchema)` to create a new message.
  */
 export const SessionMessagePartSchema: GenMessage<SessionMessagePart> = /*@__PURE__*/
-  messageDesc(file_proto_models, 1);
+  messageDesc(file_proto_models, 2);
 
 /**
  * @generated from message talon.models.SessionMessage
@@ -137,7 +184,7 @@ export type SessionMessage = Message<"talon.models.SessionMessage"> & {
  * Use `create(SessionMessageSchema)` to create a new message.
  */
 export const SessionMessageSchema: GenMessage<SessionMessage> = /*@__PURE__*/
-  messageDesc(file_proto_models, 2);
+  messageDesc(file_proto_models, 3);
 
 /**
  * @generated from message talon.models.Session
@@ -193,7 +240,7 @@ export type Session = Message<"talon.models.Session"> & {
  * Use `create(SessionSchema)` to create a new message.
  */
 export const SessionSchema: GenMessage<Session> = /*@__PURE__*/
-  messageDesc(file_proto_models, 3);
+  messageDesc(file_proto_models, 4);
 
 /**
  * @generated from message talon.models.Channel
@@ -249,7 +296,7 @@ export type Channel = Message<"talon.models.Channel"> & {
  * Use `create(ChannelSchema)` to create a new message.
  */
 export const ChannelSchema: GenMessage<Channel> = /*@__PURE__*/
-  messageDesc(file_proto_models, 4);
+  messageDesc(file_proto_models, 5);
 
 /**
  * @generated from message talon.models.ChannelMessage
@@ -313,7 +360,7 @@ export type ChannelMessage = Message<"talon.models.ChannelMessage"> & {
  * Use `create(ChannelMessageSchema)` to create a new message.
  */
 export const ChannelMessageSchema: GenMessage<ChannelMessage> = /*@__PURE__*/
-  messageDesc(file_proto_models, 5);
+  messageDesc(file_proto_models, 6);
 
 /**
  * @generated from message talon.models.ChannelContextPolicy
@@ -335,7 +382,7 @@ export type ChannelContextPolicy = Message<"talon.models.ChannelContextPolicy"> 
  * Use `create(ChannelContextPolicySchema)` to create a new message.
  */
 export const ChannelContextPolicySchema: GenMessage<ChannelContextPolicy> = /*@__PURE__*/
-  messageDesc(file_proto_models, 6);
+  messageDesc(file_proto_models, 7);
 
 /**
  * @generated from message talon.models.ChannelSubscription
@@ -399,7 +446,7 @@ export type ChannelSubscription = Message<"talon.models.ChannelSubscription"> & 
  * Use `create(ChannelSubscriptionSchema)` to create a new message.
  */
 export const ChannelSubscriptionSchema: GenMessage<ChannelSubscription> = /*@__PURE__*/
-  messageDesc(file_proto_models, 7);
+  messageDesc(file_proto_models, 8);
 
 /**
  * @generated from message talon.models.ScheduleTarget
@@ -426,7 +473,7 @@ export type ScheduleTarget = Message<"talon.models.ScheduleTarget"> & {
  * Use `create(ScheduleTargetSchema)` to create a new message.
  */
 export const ScheduleTargetSchema: GenMessage<ScheduleTarget> = /*@__PURE__*/
-  messageDesc(file_proto_models, 8);
+  messageDesc(file_proto_models, 9);
 
 /**
  * @generated from message talon.models.ScheduleSpec
@@ -478,7 +525,7 @@ export type ScheduleSpec = Message<"talon.models.ScheduleSpec"> & {
  * Use `create(ScheduleSpecSchema)` to create a new message.
  */
 export const ScheduleSpecSchema: GenMessage<ScheduleSpec> = /*@__PURE__*/
-  messageDesc(file_proto_models, 9);
+  messageDesc(file_proto_models, 10);
 
 /**
  * @generated from message talon.models.ScheduleStatus
@@ -540,7 +587,7 @@ export type ScheduleStatus = Message<"talon.models.ScheduleStatus"> & {
  * Use `create(ScheduleStatusSchema)` to create a new message.
  */
 export const ScheduleStatusSchema: GenMessage<ScheduleStatus> = /*@__PURE__*/
-  messageDesc(file_proto_models, 10);
+  messageDesc(file_proto_models, 11);
 
 /**
  * @generated from message talon.models.ScheduleEvent
@@ -572,7 +619,7 @@ export type ScheduleEvent = Message<"talon.models.ScheduleEvent"> & {
  * Use `create(ScheduleEventSchema)` to create a new message.
  */
 export const ScheduleEventSchema: GenMessage<ScheduleEvent> = /*@__PURE__*/
-  messageDesc(file_proto_models, 11);
+  messageDesc(file_proto_models, 12);
 
 /**
  * @generated from message talon.models.Schedule
@@ -609,7 +656,7 @@ export type Schedule = Message<"talon.models.Schedule"> & {
  * Use `create(ScheduleSchema)` to create a new message.
  */
 export const ScheduleSchema: GenMessage<Schedule> = /*@__PURE__*/
-  messageDesc(file_proto_models, 12);
+  messageDesc(file_proto_models, 13);
 
 /**
  * @generated from message talon.models.Namespace
@@ -650,7 +697,7 @@ export type Namespace = Message<"talon.models.Namespace"> & {
  * Use `create(NamespaceSchema)` to create a new message.
  */
 export const NamespaceSchema: GenMessage<Namespace> = /*@__PURE__*/
-  messageDesc(file_proto_models, 13);
+  messageDesc(file_proto_models, 14);
 
 /**
  * @generated from message talon.models.Knowledge
@@ -689,7 +736,7 @@ export type Knowledge = Message<"talon.models.Knowledge"> & {
  * Use `create(KnowledgeSchema)` to create a new message.
  */
 export const KnowledgeSchema: GenMessage<Knowledge> = /*@__PURE__*/
-  messageDesc(file_proto_models, 14);
+  messageDesc(file_proto_models, 15);
 
 /**
  * @generated from message talon.models.KnowledgeSearchResult
@@ -726,7 +773,7 @@ export type KnowledgeSearchResult = Message<"talon.models.KnowledgeSearchResult"
  * Use `create(KnowledgeSearchResultSchema)` to create a new message.
  */
 export const KnowledgeSearchResultSchema: GenMessage<KnowledgeSearchResult> = /*@__PURE__*/
-  messageDesc(file_proto_models, 15);
+  messageDesc(file_proto_models, 16);
 
 /**
  * @generated from enum talon.models.MessageRole
@@ -797,6 +844,26 @@ export enum SessionMessagePartType {
    * @generated from enum value: SESSION_MESSAGE_PART_TYPE_ERROR = 6;
    */
   ERROR = 6,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_IMAGE = 7;
+   */
+  IMAGE = 7,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_AUDIO = 8;
+   */
+  AUDIO = 8,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_VIDEO = 9;
+   */
+  VIDEO = 9,
+
+  /**
+   * @generated from enum value: SESSION_MESSAGE_PART_TYPE_FILE = 10;
+   */
+  FILE = 10,
 }
 
 /**

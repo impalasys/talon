@@ -290,6 +290,11 @@ function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
   }
 }
 
+function objectRefFromPart(part: any): TalonChatObjectRef | undefined {
+  const object = part?.object ?? part?.objectRef ?? part?.object_ref;
+  return object && typeof object === "object" ? object as TalonChatObjectRef : undefined;
+}
+
 function messageImageParts(
   message: CopilotMessage,
   objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined,
@@ -301,7 +306,7 @@ function messageImageParts(
       return [];
     }
     const payload = parsePayloadJson(part.payloadJson ?? part.payload_json);
-    const object = part.object as TalonChatObjectRef | undefined;
+    const object = objectRefFromPart(part);
     const src =
       typeof part.previewUrl === "string"
         ? part.previewUrl
