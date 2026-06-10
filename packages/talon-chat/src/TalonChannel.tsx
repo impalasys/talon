@@ -635,6 +635,10 @@ export function TalonChannel({
     }
     return [...(commands ?? []), ...builtInCommands];
   }, [clearMessages, commands, enabledBuiltInCommands]);
+  const commandMenuItems = useMemo(
+    () => resolvedCommands.map(({ name, aliases, description }) => ({ name, aliases, description })),
+    [resolvedCommands],
+  );
 
   const handleMessageScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
     isNearBottomRef.current = isNearScrollBottom(event.currentTarget);
@@ -765,6 +769,7 @@ export function TalonChannel({
               disabled={isUserInputDisabled}
               canSubmit={canPost}
               submitLabel="Send channel message"
+              commandMenuItems={commandMenuItems}
               textareaMinHeight={40}
               textareaMaxHeight={128}
             />

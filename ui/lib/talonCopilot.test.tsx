@@ -378,6 +378,42 @@ describe('TalonCopilot', () => {
     expect(gatewayClient.createSession).not.toHaveBeenCalled();
   });
 
+  it('shows enabled session commands in the command menu', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      clearSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-menu',
+        state: 'IDLE',
+        messages: [],
+        steps: [],
+      }),
+      getSession: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-menu"
+        enabledBuiltInCommands={['clear']}
+      />,
+    );
+
+    const input = await screen.findByPlaceholderText('Ask Talon to perform a task...');
+    fireEvent.change(input, {
+      target: { value: '/' },
+    });
+
+    expect(screen.getByRole('listbox', { name: 'Command menu' })).toBeInTheDocument();
+    const clearOption = screen.getByRole('option', { name: /\/clear/i });
+    expect(clearOption).toBeInTheDocument();
+    fireEvent.click(clearOption);
+    expect(input).toHaveValue('/clear');
+  });
+
   it('runs custom session commands with parsed arguments and context', async () => {
     const commandRun = jest.fn();
 

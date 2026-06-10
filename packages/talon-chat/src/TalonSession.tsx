@@ -981,6 +981,10 @@ export function TalonSession({
     }
     return [...(commands ?? []), ...builtInCommands];
   }, [clearSession, commands, enabledBuiltInCommands]);
+  const commandMenuItems = useMemo(
+    () => resolvedCommands.map(({ name, aliases, description }) => ({ name, aliases, description })),
+    [resolvedCommands],
+  );
 
   const submitMessage = useCallback(async (submittedText: string) => {
     const text = submittedText.trim();
@@ -1242,6 +1246,7 @@ export function TalonSession({
               canSubmit={Boolean((input || "").trim()) && !isLoading}
               isGenerating={isLoading}
               canStop={Boolean(currentSession)}
+              commandMenuItems={commandMenuItems}
               onStop={() => {
                 void stopGeneration().catch((err: any) =>
                   setError(err instanceof Error ? err : new Error("Failed to stop generation")),

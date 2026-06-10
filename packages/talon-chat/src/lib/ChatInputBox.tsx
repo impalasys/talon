@@ -1,5 +1,5 @@
-import React, { useCallback } from "react";
-import { ArrowUp, Square } from "lucide-react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
+import { ArrowUp, Square, Terminal } from "lucide-react";
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -22,7 +22,14 @@ export type ChatInputBoxProps = {
   stopLabel?: string;
   textareaMinHeight?: number;
   textareaMaxHeight?: number | string;
+  commandMenuItems?: ChatInputCommandMenuItem[];
   style?: React.CSSProperties;
+};
+
+export type ChatInputCommandMenuItem = {
+  name: string;
+  aliases?: string[];
+  description?: string;
 };
 
 export function ChatInputBox({
@@ -42,8 +49,11 @@ export function ChatInputBox({
   stopLabel = "Stop generation",
   textareaMinHeight = 24,
   textareaMaxHeight = "40vh",
+  commandMenuItems,
   style,
 }: ChatInputBoxProps) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [highlightedCommandIndex, setHighlightedCommandIndex] = useState(0);
   const resolvedCanSubmit = canSubmit ?? (Boolean(value.trim()) && !disabled && !isGenerating);
   const isStopMode = Boolean(isGenerating && onStop);
   const resolvedCanStop = Boolean(isStopMode && canStop);
@@ -53,11 +63,29 @@ export function ChatInputBox({
   const isSingleLine = rows <= 1;
   const textareaLineHeight = isSingleLine ? buttonSize : 20;
   const resolvedTextareaMinHeight = rows > 1 ? textareaMinHeight : buttonSize;
+  const commandQuery = value.trimStart().startsWith("/") ? value.trimStart().slice(1).toLowerCase() : null;
+  const visibleCommandItems = useMemo(() => {
+    if (commandQuery === null || !commandMenuItems?.length || isGenerating) return [];
+    return commandMenuItems.filter((item) => {
+      const normalizedName = item.name.toLowerCase();
+      if (normalizedName.startsWith(commandQuery)) return true;
+      return item.aliases?.some((alias) => alias.toLowerCase().startsWith(commandQuery)) ?? false;
+    });
+  }, [commandMenuItems, commandQuery, isGenerating]);
+  const shouldShowCommandMenu = visibleCommandItems.length > 0 && !disabled;
+  const highlightedCommand = visibleCommandItems[Math.min(highlightedCommandIndex, visibleCommandItems.length - 1)];
 
   const submitValue = useCallback(() => {
     if (!resolvedCanSubmit) return;
     onSubmit(value);
   }, [onSubmit, resolvedCanSubmit, value]);
+
+  const selectCommand = useCallback((item: ChatInputCommandMenuItem) => {
+    onValueChange(`/${item.name}`);
+    window.requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
+  }, [onValueChange]);
 
   return (
     <>
@@ -90,7 +118,81 @@ export function ChatInputBox({
           ...style,
         }}
       >
+        {shouldShowCommandMenu ? (
+          <div
+            role="listbox"
+            aria-label="Command menu"
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: "calc(100% + 8px)",
+              zIndex: 20,
+              overflow: "hidden",
+              borderRadius: 12,
+              border: border("var(--copilot-command-menu-border, rgba(212,212,216,0.84))"),
+              background: "var(--copilot-command-menu-bg, rgba(255,255,255,0.98))",
+              boxShadow: "var(--copilot-command-menu-shadow, 0 14px 32px rgba(24,24,27,0.14), 0 2px 8px rgba(24,24,27,0.08))",
+              color: "inherit",
+            }}
+          >
+            {visibleCommandItems.map((item, index) => {
+              const isHighlighted = index === Math.min(highlightedCommandIndex, visibleCommandItems.length - 1);
+              return (
+                <button
+                  key={item.name}
+                  type="button"
+                  role="option"
+                  aria-selected={isHighlighted}
+                  onMouseEnter={() => setHighlightedCommandIndex(index)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => selectCommand(item)}
+                  style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "0.75rem 0.875rem",
+                    background: isHighlighted ? "var(--copilot-command-menu-active-bg, rgba(24,24,27,0.07))" : "transparent",
+                    color: "inherit",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 28,
+                      height: 28,
+                      flexShrink: 0,
+                      borderRadius: 8,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "var(--copilot-command-menu-icon-bg, rgba(24,24,27,0.08))",
+                      color: "var(--copilot-command-menu-icon-fg, rgba(39,39,42,0.86))",
+                    }}
+                  >
+                    <Terminal size="15" strokeWidth={2} />
+                  </span>
+                  <span style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                    <span style={{ fontSize: 14, fontWeight: 650, lineHeight: 1.2 }}>/{item.name}</span>
+                    {item.description ? (
+                      <span style={{ fontSize: 12, lineHeight: 1.35, opacity: 0.68, overflowWrap: "anywhere" }}>
+                        {item.description}
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
         <textarea
+          ref={textareaRef}
           className="talon-chat-input-textarea"
           value={value}
           onChange={(event) => onValueChange(event.target.value)}
@@ -119,6 +221,19 @@ export function ChatInputBox({
             WebkitAppearance: "none",
           }}
           onKeyDown={(event) => {
+            if (shouldShowCommandMenu && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+              event.preventDefault();
+              setHighlightedCommandIndex((current) => {
+                const delta = event.key === "ArrowDown" ? 1 : -1;
+                return (current + delta + visibleCommandItems.length) % visibleCommandItems.length;
+              });
+              return;
+            }
+            if (shouldShowCommandMenu && event.key === "Tab" && highlightedCommand) {
+              event.preventDefault();
+              selectCommand(highlightedCommand);
+              return;
+            }
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
               submitValue();

@@ -232,6 +232,7 @@ const meta = {
     sessionId: "storybook-session",
     autoFocus: false,
     placeholder: "Ask Talon about the incident...",
+    enabledBuiltInCommands: ["clear"],
   },
   render: (args) => (
     <div style={{ height: "100%", padding: 24, overflow: "hidden" }}>
