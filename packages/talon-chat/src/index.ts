@@ -6,6 +6,9 @@ export {
   type TalonSessionCommandTarget,
   type TalonSessionProps,
   type TalonCopilotProps,
+  type TalonChatObjectRef,
+  type TalonImageUploadContext,
+  type TalonImageUploadResult,
 } from "./TalonSession";
 export {
   TalonChannel,

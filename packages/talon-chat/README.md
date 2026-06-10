@@ -42,6 +42,43 @@ You can also inject a gateway client for session CRUD:
 
 `TalonCopilot` is still exported as an alias for existing integrations.
 
+## Image uploads
+
+`TalonSession` can accept image attachments when you provide an `onImageUpload`
+callback. The callback is responsible for uploading bytes to your object store
+or backend upload route and returning the Talon `ObjectRef`. The chat request
+then sends only text plus object references.
+
+```tsx
+<TalonSession
+  namespace="support"
+  agent="docs"
+  gatewayUrl="http://localhost:18789"
+  onImageUpload={async ({ file, namespace, agent, sessionId, signal }) => {
+    const form = new FormData();
+    form.set("file", file);
+    form.set("namespace", namespace);
+    form.set("agent", agent);
+    form.set("sessionId", sessionId);
+
+    const response = await fetch("/api/talon/objects", {
+      method: "POST",
+      body: form,
+      signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status}`);
+    }
+    return response.json();
+  }}
+/>
+```
+
+The uploader may return either an `ObjectRef` directly or `{ object:
+ObjectRef }`. Supported image types default to PNG, JPEG, GIF, and WebP. Use
+`acceptedImageTypes`, `maxImageAttachments`, and `maxImageBytes` to tune the
+composer validation.
+
 ## Commands
 
 Both `TalonSession` and `TalonChannel` can intercept slash commands before they are sent as chat messages. Enable the built-in session `/clear` command with `enabledBuiltInCommands`:

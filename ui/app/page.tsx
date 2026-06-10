@@ -28,7 +28,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { TalonChannel, TalonCopilot } from '@impalasys/talon-chat';
+import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
 import { updateGatewayClient, getGatewayClient } from '../lib/grpc';
 
@@ -245,6 +245,30 @@ function selectionIcon(selection: Selection | null) {
   if (selection.type === 'knowledge') return <FileText className="w-4 h-4 text-violet-400" />;
   if (selection.type === 'template') return <FileText className="w-4 h-4 text-emerald-500" />;
   return <Plug className="w-4 h-4 text-blue-500" />;
+}
+
+async function uploadTalonImage({ file, namespace, agent, sessionId, signal }: TalonImageUploadContext) {
+  const form = new FormData();
+  form.set('file', file);
+  form.set('namespace', namespace);
+  form.set('agent', agent);
+  form.set('sessionId', sessionId);
+
+  const response = await fetch('/api/talon/objects', {
+    method: 'POST',
+    body: form,
+    signal,
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    const message = typeof payload?.error === 'string' ? payload.error : `Upload failed: ${response.status}`;
+    throw new Error(message);
+  }
+  return response.json();
+}
+
+function talonObjectUrl(object: TalonChatObjectRef) {
+  return object.key ? `/api/talon/objects?key=${encodeURIComponent(object.key)}` : undefined;
 }
 
 type StreamEventItem = {
@@ -1146,6 +1170,8 @@ function DebuggerPageContent() {
                 gatewayClient={getGatewayClient()}
                 historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
                 enabledBuiltInCommands={['clear']}
+                onImageUpload={uploadTalonImage}
+                objectUrlForRef={talonObjectUrl}
                 disabled={!isConnected}
                 onSessionChange={(nextSessionId) => {
                   handleSelectionChange({

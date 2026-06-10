@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/config.proto.
  */
 export const file_proto_config: GenFile = /*@__PURE__*/
-  fileDesc("ChJwcm90by9jb25maWcucHJvdG8SDHRhbG9uLmNvbmZpZyLjAgoLVGFsb25Db25maWcSOwoJcHJvdmlkZXJzGAEgAygLMigudGFsb24uY29uZmlnLlRhbG9uQ29uZmlnLlByb3ZpZGVyc0VudHJ5Ei4KCGRhdGFiYXNlGAIgASgLMhwudGFsb24uY29uZmlnLkRhdGFiYXNlQ29uZmlnEioKBnNlcnZlchgDIAEoCzIaLnRhbG9uLmNvbmZpZy5TZXJ2ZXJDb25maWcSGAoQZGVmYXVsdF9wcm92aWRlchgEIAEoCRIVCg13b3Jrc3BhY2VfZGlyGAUgASgJEjcKDWNvbnRyb2xfcGxhbmUYBiABKAsyIC50YWxvbi5jb25maWcuQ29udHJvbFBsYW5lQ29uZmlnGlEKDlByb3ZpZGVyc0VudHJ5EgsKA2tleRgBIAEoCRIuCgV2YWx1ZRgCIAEoCzIfLnRhbG9uLmNvbmZpZy5MbG1Qcm92aWRlckNvbmZpZzoCOAEi5wEKEUxsbVByb3ZpZGVyQ29uZmlnEiwKBm9wZW5haRgBIAEoCzIaLnRhbG9uLmNvbmZpZy5PcGVuQWlDb25maWdIABIyCglhbnRocm9waWMYAiABKAsyHS50YWxvbi5jb25maWcuQW50aHJvcGljQ29uZmlnSAASLAoGZ29vZ2xlGAMgASgLMhoudGFsb24uY29uZmlnLkdvb2dsZUNvbmZpZ0gAEjgKEW9wZW5haV9jb21wYXRpYmxlGAQgASgLMhsudGFsb24uY29uZmlnLkdlbmVyaWNDb25maWdIAEIICgZjb25maWciVAoMT3BlbkFpQ29uZmlnEg0KBW1vZGVsGAEgASgJEiUKB2FwaV9rZXkYAiABKAsyFC50YWxvbi5jb25maWcuU2VjcmV0Eg4KBm9yZ19pZBgDIAEoCSJHCg9BbnRocm9waWNDb25maWcSDQoFbW9kZWwYASABKAkSJQoHYXBpX2tleRgCIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXQiRAoMR29vZ2xlQ29uZmlnEg0KBW1vZGVsGAEgASgJEiUKB2FwaV9rZXkYAiABKAsyFC50YWxvbi5jb25maWcuU2VjcmV0ImUKDUdlbmVyaWNDb25maWcSDAoEbmFtZRgBIAEoCRIQCghiYXNlX3VybBgCIAEoCRINCgVtb2RlbBgDIAEoCRIlCgdhcGlfa2V5GAQgASgLMhQudGFsb24uY29uZmlnLlNlY3JldCJLCgZTZWNyZXQSDwoFcGxhaW4YASABKAlIABImCgNyZWYYAiABKAsyFy50YWxvbi5jb25maWcuU2VjcmV0UmVmSABCCAoGc291cmNlIoYBCglTZWNyZXRSZWYSLgoGc291cmNlGAEgASgOMh4udGFsb24uY29uZmlnLlNlY3JldFJlZi5Tb3VyY2USCwoDa2V5GAIgASgJIjwKBlNvdXJjZRIHCgNFTlYQABIHCgNHQ1AQARIMCghLRVlDSEFJThACEgcKA0FXUxADEgkKBUFaVVJFEAQiVQoORGF0YWJhc2VDb25maWcSEAoIZGF0YV9kaXIYASABKAkSDgoGZHJpdmVyGAIgASgJEiEKA3VybBgDIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXQiJQoTTWVzc2FnZUJyb2tlckNvbmZpZxIOCgZkcml2ZXIYASABKAkijwEKG1NjaGVkdWxlckNhbGxiYWNrQXV0aENvbmZpZxItCg1zaGFyZWRfc2VjcmV0GAEgASgLMhQudGFsb24uY29uZmlnLlNlY3JldEgAEjkKC2dvb2dsZV9vaWRjGAIgASgLMiIudGFsb24uY29uZmlnLkdvb2dsZU9pZGNBdXRoQ29uZmlnSABCBgoEYXV0aCJHChRHb29nbGVPaWRjQXV0aENvbmZpZxIQCghhdWRpZW5jZRgBIAEoCRIdChVzZXJ2aWNlX2FjY291bnRfZW1haWwYAiABKAkipgEKGUNsb3VkVGFza3NTY2hlZHVsZXJDb25maWcSEgoKcHJvamVjdF9pZBgBIAEoCRIQCghsb2NhdGlvbhgCIAEoCRINCgVxdWV1ZRgDIAEoCRISCgp0YXJnZXRfdXJsGAQgASgJEkAKDWNhbGxiYWNrX2F1dGgYBSABKAsyKS50YWxvbi5jb25maWcuU2NoZWR1bGVyQ2FsbGJhY2tBdXRoQ29uZmlnIlwKD1NjaGVkdWxlckNvbmZpZxI+CgtjbG91ZF90YXNrcxgBIAEoCzInLnRhbG9uLmNvbmZpZy5DbG91ZFRhc2tzU2NoZWR1bGVyQ29uZmlnSABCCQoHYmFja2VuZCKxAQoSQ29udHJvbFBsYW5lQ29uZmlnEi4KCGRhdGFiYXNlGAEgASgLMhwudGFsb24uY29uZmlnLkRhdGFiYXNlQ29uZmlnEjkKDm1lc3NhZ2VfYnJva2VyGAIgASgLMiEudGFsb24uY29uZmlnLk1lc3NhZ2VCcm9rZXJDb25maWcSMAoJc2NoZWR1bGVyGAMgASgLMh0udGFsb24uY29uZmlnLlNjaGVkdWxlckNvbmZpZyIqCgxTZXJ2ZXJDb25maWcSDAoEaG9zdBgBIAEoCRIMCgRwb3J0GAIgASgNYgZwcm90bzM");
+  fileDesc("ChJwcm90by9jb25maWcucHJvdG8SDHRhbG9uLmNvbmZpZyLjAgoLVGFsb25Db25maWcSOwoJcHJvdmlkZXJzGAEgAygLMigudGFsb24uY29uZmlnLlRhbG9uQ29uZmlnLlByb3ZpZGVyc0VudHJ5Ei4KCGRhdGFiYXNlGAIgASgLMhwudGFsb24uY29uZmlnLkRhdGFiYXNlQ29uZmlnEioKBnNlcnZlchgDIAEoCzIaLnRhbG9uLmNvbmZpZy5TZXJ2ZXJDb25maWcSGAoQZGVmYXVsdF9wcm92aWRlchgEIAEoCRIVCg13b3Jrc3BhY2VfZGlyGAUgASgJEjcKDWNvbnRyb2xfcGxhbmUYBiABKAsyIC50YWxvbi5jb25maWcuQ29udHJvbFBsYW5lQ29uZmlnGlEKDlByb3ZpZGVyc0VudHJ5EgsKA2tleRgBIAEoCRIuCgV2YWx1ZRgCIAEoCzIfLnRhbG9uLmNvbmZpZy5MbG1Qcm92aWRlckNvbmZpZzoCOAEi5wEKEUxsbVByb3ZpZGVyQ29uZmlnEiwKBm9wZW5haRgBIAEoCzIaLnRhbG9uLmNvbmZpZy5PcGVuQWlDb25maWdIABIyCglhbnRocm9waWMYAiABKAsyHS50YWxvbi5jb25maWcuQW50aHJvcGljQ29uZmlnSAASLAoGZ29vZ2xlGAMgASgLMhoudGFsb24uY29uZmlnLkdvb2dsZUNvbmZpZ0gAEjgKEW9wZW5haV9jb21wYXRpYmxlGAQgASgLMhsudGFsb24uY29uZmlnLkdlbmVyaWNDb25maWdIAEIICgZjb25maWciVAoMT3BlbkFpQ29uZmlnEg0KBW1vZGVsGAEgASgJEiUKB2FwaV9rZXkYAiABKAsyFC50YWxvbi5jb25maWcuU2VjcmV0Eg4KBm9yZ19pZBgDIAEoCSJHCg9BbnRocm9waWNDb25maWcSDQoFbW9kZWwYASABKAkSJQoHYXBpX2tleRgCIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXQiRAoMR29vZ2xlQ29uZmlnEg0KBW1vZGVsGAEgASgJEiUKB2FwaV9rZXkYAiABKAsyFC50YWxvbi5jb25maWcuU2VjcmV0ImUKDUdlbmVyaWNDb25maWcSDAoEbmFtZRgBIAEoCRIQCghiYXNlX3VybBgCIAEoCRINCgVtb2RlbBgDIAEoCRIlCgdhcGlfa2V5GAQgASgLMhQudGFsb24uY29uZmlnLlNlY3JldCJLCgZTZWNyZXQSDwoFcGxhaW4YASABKAlIABImCgNyZWYYAiABKAsyFy50YWxvbi5jb25maWcuU2VjcmV0UmVmSABCCAoGc291cmNlIoYBCglTZWNyZXRSZWYSLgoGc291cmNlGAEgASgOMh4udGFsb24uY29uZmlnLlNlY3JldFJlZi5Tb3VyY2USCwoDa2V5GAIgASgJIjwKBlNvdXJjZRIHCgNFTlYQABIHCgNHQ1AQARIMCghLRVlDSEFJThACEgcKA0FXUxADEgkKBUFaVVJFEAQiVQoORGF0YWJhc2VDb25maWcSEAoIZGF0YV9kaXIYASABKAkSDgoGZHJpdmVyGAIgASgJEiEKA3VybBgDIAEoCzIULnRhbG9uLmNvbmZpZy5TZWNyZXQiJQoTTWVzc2FnZUJyb2tlckNvbmZpZxIOCgZkcml2ZXIYASABKAkiJgoWTG9jYWxPYmplY3RTdG9yZUNvbmZpZxIMCgRwYXRoGAEgASgJIkwKFEdjc09iamVjdFN0b3JlQ29uZmlnEg4KBmJ1Y2tldBgBIAEoCRIOCgZwcmVmaXgYAiABKAkSFAoMYXBpX2Jhc2VfdXJsGAMgASgJInUKE1MzT2JqZWN0U3RvcmVDb25maWcSDgoGYnVja2V0GAEgASgJEg4KBnByZWZpeBgCIAEoCRIOCgZyZWdpb24YAyABKAkSFAoMZW5kcG9pbnRfdXJsGAQgASgJEhgKEGZvcmNlX3BhdGhfc3R5bGUYBSABKAgiuQEKEU9iamVjdFN0b3JlQ29uZmlnEjUKBWxvY2FsGAEgASgLMiQudGFsb24uY29uZmlnLkxvY2FsT2JqZWN0U3RvcmVDb25maWdIABIxCgNnY3MYAiABKAsyIi50YWxvbi5jb25maWcuR2NzT2JqZWN0U3RvcmVDb25maWdIABIvCgJzMxgDIAEoCzIhLnRhbG9uLmNvbmZpZy5TM09iamVjdFN0b3JlQ29uZmlnSABCCQoHYmFja2VuZCKPAQobU2NoZWR1bGVyQ2FsbGJhY2tBdXRoQ29uZmlnEi0KDXNoYXJlZF9zZWNyZXQYASABKAsyFC50YWxvbi5jb25maWcuU2VjcmV0SAASOQoLZ29vZ2xlX29pZGMYAiABKAsyIi50YWxvbi5jb25maWcuR29vZ2xlT2lkY0F1dGhDb25maWdIAEIGCgRhdXRoIkcKFEdvb2dsZU9pZGNBdXRoQ29uZmlnEhAKCGF1ZGllbmNlGAEgASgJEh0KFXNlcnZpY2VfYWNjb3VudF9lbWFpbBgCIAEoCSKmAQoZQ2xvdWRUYXNrc1NjaGVkdWxlckNvbmZpZxISCgpwcm9qZWN0X2lkGAEgASgJEhAKCGxvY2F0aW9uGAIgASgJEg0KBXF1ZXVlGAMgASgJEhIKCnRhcmdldF91cmwYBCABKAkSQAoNY2FsbGJhY2tfYXV0aBgFIAEoCzIpLnRhbG9uLmNvbmZpZy5TY2hlZHVsZXJDYWxsYmFja0F1dGhDb25maWciXAoPU2NoZWR1bGVyQ29uZmlnEj4KC2Nsb3VkX3Rhc2tzGAEgASgLMicudGFsb24uY29uZmlnLkNsb3VkVGFza3NTY2hlZHVsZXJDb25maWdIAEIJCgdiYWNrZW5kIugBChJDb250cm9sUGxhbmVDb25maWcSLgoIZGF0YWJhc2UYASABKAsyHC50YWxvbi5jb25maWcuRGF0YWJhc2VDb25maWcSOQoObWVzc2FnZV9icm9rZXIYAiABKAsyIS50YWxvbi5jb25maWcuTWVzc2FnZUJyb2tlckNvbmZpZxIwCglzY2hlZHVsZXIYAyABKAsyHS50YWxvbi5jb25maWcuU2NoZWR1bGVyQ29uZmlnEjUKDG9iamVjdF9zdG9yZRgEIAEoCzIfLnRhbG9uLmNvbmZpZy5PYmplY3RTdG9yZUNvbmZpZyIqCgxTZXJ2ZXJDb25maWcSDAoEaG9zdBgBIAEoCRIMCgRwb3J0GAIgASgNYgZwcm90bzM");
 
 /**
  * @generated from message talon.config.TalonConfig
@@ -330,6 +330,122 @@ export const MessageBrokerConfigSchema: GenMessage<MessageBrokerConfig> = /*@__P
   messageDesc(file_proto_config, 9);
 
 /**
+ * @generated from message talon.config.LocalObjectStoreConfig
+ */
+export type LocalObjectStoreConfig = Message<"talon.config.LocalObjectStoreConfig"> & {
+  /**
+   * @generated from field: string path = 1;
+   */
+  path: string;
+};
+
+/**
+ * Describes the message talon.config.LocalObjectStoreConfig.
+ * Use `create(LocalObjectStoreConfigSchema)` to create a new message.
+ */
+export const LocalObjectStoreConfigSchema: GenMessage<LocalObjectStoreConfig> = /*@__PURE__*/
+  messageDesc(file_proto_config, 10);
+
+/**
+ * @generated from message talon.config.GcsObjectStoreConfig
+ */
+export type GcsObjectStoreConfig = Message<"talon.config.GcsObjectStoreConfig"> & {
+  /**
+   * @generated from field: string bucket = 1;
+   */
+  bucket: string;
+
+  /**
+   * @generated from field: string prefix = 2;
+   */
+  prefix: string;
+
+  /**
+   * @generated from field: string api_base_url = 3;
+   */
+  apiBaseUrl: string;
+};
+
+/**
+ * Describes the message talon.config.GcsObjectStoreConfig.
+ * Use `create(GcsObjectStoreConfigSchema)` to create a new message.
+ */
+export const GcsObjectStoreConfigSchema: GenMessage<GcsObjectStoreConfig> = /*@__PURE__*/
+  messageDesc(file_proto_config, 11);
+
+/**
+ * @generated from message talon.config.S3ObjectStoreConfig
+ */
+export type S3ObjectStoreConfig = Message<"talon.config.S3ObjectStoreConfig"> & {
+  /**
+   * @generated from field: string bucket = 1;
+   */
+  bucket: string;
+
+  /**
+   * @generated from field: string prefix = 2;
+   */
+  prefix: string;
+
+  /**
+   * @generated from field: string region = 3;
+   */
+  region: string;
+
+  /**
+   * @generated from field: string endpoint_url = 4;
+   */
+  endpointUrl: string;
+
+  /**
+   * @generated from field: bool force_path_style = 5;
+   */
+  forcePathStyle: boolean;
+};
+
+/**
+ * Describes the message talon.config.S3ObjectStoreConfig.
+ * Use `create(S3ObjectStoreConfigSchema)` to create a new message.
+ */
+export const S3ObjectStoreConfigSchema: GenMessage<S3ObjectStoreConfig> = /*@__PURE__*/
+  messageDesc(file_proto_config, 12);
+
+/**
+ * @generated from message talon.config.ObjectStoreConfig
+ */
+export type ObjectStoreConfig = Message<"talon.config.ObjectStoreConfig"> & {
+  /**
+   * @generated from oneof talon.config.ObjectStoreConfig.backend
+   */
+  backend: {
+    /**
+     * @generated from field: talon.config.LocalObjectStoreConfig local = 1;
+     */
+    value: LocalObjectStoreConfig;
+    case: "local";
+  } | {
+    /**
+     * @generated from field: talon.config.GcsObjectStoreConfig gcs = 2;
+     */
+    value: GcsObjectStoreConfig;
+    case: "gcs";
+  } | {
+    /**
+     * @generated from field: talon.config.S3ObjectStoreConfig s3 = 3;
+     */
+    value: S3ObjectStoreConfig;
+    case: "s3";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message talon.config.ObjectStoreConfig.
+ * Use `create(ObjectStoreConfigSchema)` to create a new message.
+ */
+export const ObjectStoreConfigSchema: GenMessage<ObjectStoreConfig> = /*@__PURE__*/
+  messageDesc(file_proto_config, 13);
+
+/**
  * @generated from message talon.config.SchedulerCallbackAuthConfig
  */
 export type SchedulerCallbackAuthConfig = Message<"talon.config.SchedulerCallbackAuthConfig"> & {
@@ -356,7 +472,7 @@ export type SchedulerCallbackAuthConfig = Message<"talon.config.SchedulerCallbac
  * Use `create(SchedulerCallbackAuthConfigSchema)` to create a new message.
  */
 export const SchedulerCallbackAuthConfigSchema: GenMessage<SchedulerCallbackAuthConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 10);
+  messageDesc(file_proto_config, 14);
 
 /**
  * @generated from message talon.config.GoogleOidcAuthConfig
@@ -378,7 +494,7 @@ export type GoogleOidcAuthConfig = Message<"talon.config.GoogleOidcAuthConfig"> 
  * Use `create(GoogleOidcAuthConfigSchema)` to create a new message.
  */
 export const GoogleOidcAuthConfigSchema: GenMessage<GoogleOidcAuthConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 11);
+  messageDesc(file_proto_config, 15);
 
 /**
  * @generated from message talon.config.CloudTasksSchedulerConfig
@@ -415,7 +531,7 @@ export type CloudTasksSchedulerConfig = Message<"talon.config.CloudTasksSchedule
  * Use `create(CloudTasksSchedulerConfigSchema)` to create a new message.
  */
 export const CloudTasksSchedulerConfigSchema: GenMessage<CloudTasksSchedulerConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 12);
+  messageDesc(file_proto_config, 16);
 
 /**
  * @generated from message talon.config.SchedulerConfig
@@ -438,7 +554,7 @@ export type SchedulerConfig = Message<"talon.config.SchedulerConfig"> & {
  * Use `create(SchedulerConfigSchema)` to create a new message.
  */
 export const SchedulerConfigSchema: GenMessage<SchedulerConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 13);
+  messageDesc(file_proto_config, 17);
 
 /**
  * @generated from message talon.config.ControlPlaneConfig
@@ -458,6 +574,11 @@ export type ControlPlaneConfig = Message<"talon.config.ControlPlaneConfig"> & {
    * @generated from field: talon.config.SchedulerConfig scheduler = 3;
    */
   scheduler?: SchedulerConfig;
+
+  /**
+   * @generated from field: talon.config.ObjectStoreConfig object_store = 4;
+   */
+  objectStore?: ObjectStoreConfig;
 };
 
 /**
@@ -465,7 +586,7 @@ export type ControlPlaneConfig = Message<"talon.config.ControlPlaneConfig"> & {
  * Use `create(ControlPlaneConfigSchema)` to create a new message.
  */
 export const ControlPlaneConfigSchema: GenMessage<ControlPlaneConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 14);
+  messageDesc(file_proto_config, 18);
 
 /**
  * @generated from message talon.config.ServerConfig
@@ -487,5 +608,5 @@ export type ServerConfig = Message<"talon.config.ServerConfig"> & {
  * Use `create(ServerConfigSchema)` to create a new message.
  */
 export const ServerConfigSchema: GenMessage<ServerConfig> = /*@__PURE__*/
-  messageDesc(file_proto_config, 15);
+  messageDesc(file_proto_config, 19);
 

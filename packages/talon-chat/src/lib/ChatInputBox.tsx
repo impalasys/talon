@@ -1,9 +1,19 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { ArrowUp, Square, Terminal } from "lucide-react";
+import {
+  ArrowUp,
+  ImagePlus,
+  Plus,
+  Square,
+  Terminal,
+  X,
+} from "lucide-react";
 
 function border(color: string) {
   return `1px solid ${color}`;
 }
+
+const talonChatFontFamily =
+  'var(--talon-chat-font-family, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)';
 
 export type ChatInputBoxProps = {
   value: string;
@@ -23,6 +33,12 @@ export type ChatInputBoxProps = {
   textareaMinHeight?: number;
   textareaMaxHeight?: number | string;
   commandMenuItems?: ChatInputCommandMenuItem[];
+  imageAttachments?: ChatInputImageAttachment[];
+  imageUploadEnabled?: boolean;
+  imageAccept?: string;
+  imageButtonLabel?: string;
+  onImageFilesSelected?: (files: File[]) => void;
+  onRemoveImageAttachment?: (id: string) => void;
   style?: React.CSSProperties;
 };
 
@@ -30,6 +46,14 @@ export type ChatInputCommandMenuItem = {
   name: string;
   aliases?: string[];
   description?: string;
+};
+
+export type ChatInputImageAttachment = {
+  id: string;
+  filename: string;
+  previewUrl: string;
+  status?: "queued" | "uploading" | "ready" | "error";
+  error?: string;
 };
 
 export function ChatInputBox({
@@ -50,18 +74,28 @@ export function ChatInputBox({
   textareaMinHeight = 24,
   textareaMaxHeight = "40vh",
   commandMenuItems,
+  imageAttachments,
+  imageUploadEnabled = false,
+  imageAccept = "image/png,image/jpeg,image/gif,image/webp",
+  imageButtonLabel = "Add image",
+  onImageFilesSelected,
+  onRemoveImageAttachment,
   style,
 }: ChatInputBoxProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [highlightedCommandIndex, setHighlightedCommandIndex] = useState(0);
   const [hoveredCommandIndex, setHoveredCommandIndex] = useState<number | null>(null);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
+  const [hoveredAttachmentIndex, setHoveredAttachmentIndex] = useState<number | null>(null);
   const resolvedCanSubmit = canSubmit ?? (Boolean(value.trim()) && !disabled && !isGenerating);
   const isStopMode = Boolean(isGenerating && onStop);
   const resolvedCanStop = Boolean(isStopMode && canStop);
   const buttonDisabled = isStopMode ? !resolvedCanStop : !resolvedCanSubmit;
   const buttonIsEnabled = !buttonDisabled;
-  const buttonSize = 30;
+  const buttonSize = 34;
   const isSingleLine = rows <= 1;
+  const attachments = imageAttachments ?? [];
   const textareaLineHeight = isSingleLine ? buttonSize : 20;
   const resolvedTextareaMinHeight = rows > 1 ? textareaMinHeight : buttonSize;
   const commandQuery = value.trimStart().startsWith("/") ? value.trimStart().slice(1).toLowerCase() : null;
@@ -78,6 +112,7 @@ export function ChatInputBox({
 
   const submitValue = useCallback(() => {
     if (!resolvedCanSubmit) return;
+    setShowAttachmentMenu(false);
     onSubmit(value);
   }, [onSubmit, resolvedCanSubmit, value]);
 
@@ -110,13 +145,20 @@ export function ChatInputBox({
           gap: 8,
           width: "100%",
           boxSizing: "border-box",
-          borderRadius: 18,
+          borderRadius: "var(--copilot-input-radius, 22px)",
           border: border("var(--copilot-input-border, rgba(212,212,216,0.72))"),
           background: "var(--copilot-input-bg, rgba(255,255,255,0.96))",
           boxShadow: "var(--copilot-input-shadow, 0 4px 14px rgba(24,24,27,0.08), 0 1px 2px rgba(24,24,27,0.06))",
           padding: "0.25rem 0.3125rem 0.25rem 0.625rem",
           backdropFilter: "blur(12px)",
+          flexWrap: attachments.length > 0 ? "wrap" : "nowrap",
+          fontFamily: talonChatFontFamily,
           ...style,
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            setShowAttachmentMenu(false);
+          }
         }}
       >
         {shouldShowCommandMenu ? (
@@ -207,6 +249,202 @@ export function ChatInputBox({
               );
             })}
           </div>
+        ) : null}
+        {attachments.length > 0 ? (
+          <div
+            style={{
+              flexBasis: "100%",
+              display: "flex",
+              gap: 8,
+              overflowX: "auto",
+              padding: "0.25rem 0.25rem 0.125rem 0",
+            }}
+          >
+            {attachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                style={{
+                  position: "relative",
+                  width: 58,
+                  height: 58,
+                  flexShrink: 0,
+                  overflow: "hidden",
+                  borderRadius: 8,
+                  border: border(
+                    attachment.status === "error"
+                      ? "var(--copilot-attachment-error-border, rgba(220,38,38,0.55))"
+                      : "var(--copilot-attachment-border, rgba(212,212,216,0.9))",
+                  ),
+                  background: "var(--copilot-attachment-bg, rgba(244,244,245,0.88))",
+                }}
+                title={attachment.error || attachment.filename}
+              >
+                <img
+                  src={attachment.previewUrl}
+                  alt={attachment.filename}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+                {attachment.status === "uploading" ? (
+                  <div
+                    aria-label="Uploading image"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(24,24,27,0.42)",
+                      color: "#fff",
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    ...
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  aria-label={`Remove ${attachment.filename}`}
+                  onClick={() => onRemoveImageAttachment?.(attachment.id)}
+                  style={{
+                    position: "absolute",
+                    top: 4,
+                    right: 4,
+                    width: 20,
+                    height: 20,
+                    borderRadius: 999,
+                    border: "none",
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(24,24,27,0.74)",
+                    color: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size="13" strokeWidth={2.2} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        {imageUploadEnabled ? (
+          <>
+            {showAttachmentMenu && !disabled && !isGenerating ? (
+              <div
+                role="menu"
+                aria-label="Attachment menu"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  bottom: "calc(100% + 8px)",
+                  zIndex: 30,
+                  width: "min(176px, calc(100vw - 48px))",
+                  boxSizing: "border-box",
+                  padding: "0.375rem",
+                  borderRadius: 16,
+                  border: border("var(--copilot-attachment-menu-border, rgba(212,212,216,0.9))"),
+                  background: "var(--copilot-attachment-menu-bg, rgba(255,255,255,0.98))",
+                  boxShadow: "var(--copilot-attachment-menu-shadow, 0 18px 46px rgba(24,24,27,0.16), 0 2px 8px rgba(24,24,27,0.08))",
+                  color: "var(--copilot-attachment-menu-fg, rgba(24,24,27,0.96))",
+                }}
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onMouseEnter={() => setHoveredAttachmentIndex(0)}
+                  onMouseLeave={() => setHoveredAttachmentIndex(null)}
+                  onClick={() => {
+                    setShowAttachmentMenu(false);
+                    fileInputRef.current?.click();
+                  }}
+                  style={{
+                    width: "100%",
+                    minHeight: 34,
+                    boxSizing: "border-box",
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "0.25rem 0.375rem",
+                    display: "grid",
+                    gridTemplateColumns: "26px minmax(0, 1fr)",
+                    alignItems: "center",
+                    gap: 8,
+                    background: hoveredAttachmentIndex === 0
+                      ? "var(--copilot-attachment-menu-hover-bg, rgba(24,24,27,0.07))"
+                      : "transparent",
+                    color: "inherit",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    fontSize: 14,
+                    lineHeight: 1.2,
+                    textAlign: "left",
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: 26,
+                      height: 26,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--copilot-attachment-menu-icon-fg, rgba(24,24,27,0.96))",
+                    }}
+                  >
+                    <ImagePlus size="17" strokeWidth={2.1} />
+                  </span>
+                  <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {imageButtonLabel}
+                  </span>
+                </button>
+              </div>
+            ) : null}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={imageAccept}
+              multiple
+              tabIndex={-1}
+              aria-hidden="true"
+              style={{ display: "none" }}
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                event.target.value = "";
+                if (files.length > 0) {
+                  onImageFilesSelected?.(files);
+                }
+              }}
+            />
+            <button
+              type="button"
+              aria-label="Open attachment menu"
+              aria-expanded={showAttachmentMenu}
+              aria-haspopup="menu"
+              title="Open attachment menu"
+              disabled={disabled || isGenerating}
+              onClick={() => setShowAttachmentMenu((current) => !current)}
+              style={{
+                width: buttonSize,
+                height: buttonSize,
+                boxSizing: "border-box",
+                flexShrink: 0,
+                borderRadius: 999,
+                border: "none",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: disabled || isGenerating ? "not-allowed" : "pointer",
+                opacity: disabled || isGenerating ? 0.5 : 1,
+                background: "transparent",
+                color: "var(--copilot-secondary-control-fg, rgba(39,39,42,0.88))",
+              }}
+            >
+              <Plus size="19" strokeWidth={2.1} />
+            </button>
+          </>
         ) : null}
         <textarea
           ref={textareaRef}

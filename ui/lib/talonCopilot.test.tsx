@@ -84,6 +84,60 @@ describe('TalonCopilot', () => {
     expect(await screen.findByText('Hello from history')).toBeInTheDocument();
   });
 
+  it('renders reloaded image object refs from session history', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-image-history',
+        state: 'IDLE',
+        items: [
+          {
+            message: {
+              id: 'user-image-history',
+              role: 'ROLE_USER',
+              parts: [
+                {
+                  partType: 'SESSION_MESSAGE_PART_TYPE_IMAGE',
+                  payloadJson: JSON.stringify({ filename: 'chart.png' }),
+                  objectRef: {
+                    key: 'sessions/sess-image-history/uploads/chart.png',
+                    mediaType: 'image/png',
+                    sizeBytes: 42,
+                    sha256: 'sha',
+                    filename: 'chart.png',
+                    metadata: {},
+                  },
+                },
+              ],
+              createdAt: String(Date.now() * 1000),
+            },
+            steps: [],
+          },
+        ],
+        hasMore: false,
+      }),
+      getSession: jest.fn(),
+    };
+    const objectUrlForRef = jest.fn((object) => `/api/talon/objects?key=${encodeURIComponent(object.key)}`);
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-image-history"
+        objectUrlForRef={objectUrlForRef}
+      />,
+    );
+
+    const image = await screen.findByAltText('chart.png') as HTMLImageElement;
+    expect(image.getAttribute('src')).toBe('/api/talon/objects?key=sessions%2Fsess-image-history%2Fuploads%2Fchart.png');
+    expect(objectUrlForRef).toHaveBeenCalledWith(expect.objectContaining({
+      key: 'sessions/sess-image-history/uploads/chart.png',
+    }));
+  });
+
   it('renders assistant markdown instead of plain text blobs', async () => {
     const gatewayClient = {
       createSession: jest.fn(),
@@ -320,7 +374,6 @@ describe('TalonCopilot', () => {
       messages: [
         {
           role: 'user',
-          content: 'square root of 144',
           parts: [{ type: 'text', text: 'square root of 144' }],
         },
       ],
@@ -330,6 +383,145 @@ describe('TalonCopilot', () => {
       'http://localhost:18789/v1/ns/ops/agents/copilot/sessions/sess-2/messages?page_size=50',
       expect.anything(),
     );
+  });
+
+  it('uploads selected images and sends object refs as session message parts', async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    const createObjectURL = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:preview-photo');
+    jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    const onImageUpload = jest.fn().mockResolvedValue({
+      key: 'sessions/sess-img/uploads/photo.png',
+      mediaType: 'image/png',
+      sizeBytes: 12,
+      sha256: 'sha',
+      filename: 'photo.png',
+      metadata: { width: '1', height: '1' },
+    });
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ sessionId: 'sess-img' }))
+      .mockResolvedValueOnce(makeStreamResponse([
+        'f:{"messageId":"assistant-img"}\n',
+        '0:"That is a tiny image."\n',
+      ]))
+      .mockResolvedValueOnce(makeJsonResponse({
+        sessionId: 'sess-img',
+        state: 'IDLE',
+        messages: [],
+        steps: [],
+      }));
+
+    const { container } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        onImageUpload={onImageUpload}
+      />,
+    );
+
+    const file = new File([new Uint8Array([1, 2, 3])], 'photo.png', { type: 'image/png' });
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(createObjectURL).toHaveBeenCalledWith(file);
+    expect(screen.getByAltText('photo.png')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'what is this?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => expect(onImageUpload).toHaveBeenCalledWith(expect.objectContaining({
+      file,
+      namespace: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-img',
+      signal: expect.any(AbortSignal),
+    })));
+
+    await screen.findByText('That is a tiny image.');
+    const body = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(body.messages[0].parts).toEqual([
+      { type: 'text', text: 'what is this?' },
+      expect.objectContaining({
+        type: 'image',
+        payloadJson: JSON.stringify({ filename: 'photo.png' }),
+        object: {
+          key: 'sessions/sess-img/uploads/photo.png',
+          mediaType: 'image/png',
+          sizeBytes: 12,
+          sha256: 'sha',
+          filename: 'photo.png',
+          metadata: { width: '1', height: '1' },
+        },
+      }),
+    ]);
+    expect(body.messages[0].parts[1].previewUrl).toBeUndefined();
+  });
+
+  it('marks selected images as errored when upload fails', async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:failed-photo');
+    jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    const uploadError = new Error('upload rejected');
+    const onImageUpload = jest.fn().mockRejectedValue(uploadError);
+    const gatewayClient = {
+      createSession: jest.fn().mockResolvedValue({ sessionId: 'sess-upload-fail' }),
+      listSessionMessages: jest.fn().mockRejectedValue(new Error('no canonical recovery')),
+      getSession: jest.fn(),
+    };
+
+    const { container } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        onImageUpload={onImageUpload}
+      />,
+    );
+
+    const file = new File([new Uint8Array([1, 2, 3])], 'broken.png', { type: 'image/png' });
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(screen.getByAltText('broken.png')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'what is this?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => expect(onImageUpload).toHaveBeenCalledWith(expect.objectContaining({
+      file,
+      namespace: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-upload-fail',
+      signal: expect.any(AbortSignal),
+    })));
+    expect(await screen.findByText('upload rejected')).toBeInTheDocument();
+    expect(screen.getByTitle('upload rejected')).toBeInTheDocument();
+    expect(container.querySelector('[aria-label="Uploading image"]')).toBeNull();
+    expect(gatewayClient.createSession).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('runs the built-in clear command without sending it as a session message', async () => {

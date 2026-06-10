@@ -532,6 +532,38 @@ pub async fn send_message(
     if message.trim().is_empty() {
         return Err(EmptyMessageError.into());
     }
+    let now_micros = now.timestamp_micros();
+    let user_msg = models::SessionMessage {
+        id: uuid::Uuid::now_v7().to_string(),
+        role: models::MessageRole::RoleUser as i32,
+        created_at: now_micros,
+        labels,
+        parts: vec![models::SessionMessagePart {
+            id: "000000".to_string(),
+            part_type: models::SessionMessagePartType::Text as i32,
+            content: message.to_string(),
+            name: String::new(),
+            payload_json: String::new(),
+            created_at: now_micros,
+            object: None,
+        }],
+    };
+
+    send_session_message(kv, pubsub, ns, agent, session_id, user_msg, now).await
+}
+
+pub async fn send_session_message(
+    kv: &dyn KeyValueStore,
+    pubsub: &dyn MessagePublisher,
+    ns: &str,
+    agent: &str,
+    session_id: &str,
+    mut user_msg: models::SessionMessage,
+    now: DateTime<Utc>,
+) -> Result<()> {
+    if user_msg.parts.is_empty() {
+        return Err(EmptyMessageError.into());
+    }
 
     let key = keys::session(ns, agent, session_id);
     let now_micros = now.timestamp_micros();
@@ -567,21 +599,24 @@ pub async fn send_message(
         return Err(anyhow!("failed to atomically acquire session lock"));
     }
 
-    let user_msg = models::SessionMessage {
-        id: uuid::Uuid::now_v7().to_string(),
-        role: models::MessageRole::RoleUser as i32,
-        created_at: now.timestamp_micros(),
-        labels,
-        parts: vec![models::SessionMessagePart {
-            id: "000000".to_string(),
-            part_type: models::SessionMessagePartType::Text as i32,
-            content: message.to_string(),
-            name: String::new(),
-            payload_json: String::new(),
-            created_at: now.timestamp_micros(),
-            object: None,
-        }],
-    };
+    if user_msg.id.is_empty() {
+        user_msg.id = uuid::Uuid::now_v7().to_string();
+    }
+    if user_msg.role == models::MessageRole::RoleUnspecified as i32 {
+        user_msg.role = models::MessageRole::RoleUser as i32;
+    }
+    if user_msg.created_at == 0 {
+        user_msg.created_at = now_micros;
+    }
+    for (index, part) in user_msg.parts.iter_mut().enumerate() {
+        if part.id.is_empty() {
+            part.id = format!("{index:06}");
+        }
+        if part.created_at == 0 {
+            part.created_at = user_msg.created_at;
+        }
+    }
+
     if let Err(err) = kv
         .set_msg(
             &keys::session_message(ns, agent, session_id, &user_msg.id),
@@ -598,13 +633,14 @@ pub async fn send_message(
     }
 
     let message_id = user_msg.id.clone();
+    let message_text = session_message_text_projection(&user_msg);
     let message_event = events::SessionMessageEvent {
         session_id: session_id.to_string(),
         message_id: message_id.clone(),
         direction: events::MessageDirection::Inbound as i32,
         timestamp: now_micros,
         agent: agent.to_string(),
-        message: message.to_string(),
+        message: message_text,
         ns: ns.to_string(),
     };
     if let Err(err) = pubsub
@@ -629,6 +665,38 @@ pub async fn send_message(
         "Queued scheduled message for session dispatch"
     );
     Ok(())
+}
+
+fn session_message_text_projection(message: &models::SessionMessage) -> String {
+    let text = message
+        .parts
+        .iter()
+        .filter(|part| part.part_type == models::SessionMessagePartType::Text as i32)
+        .map(|part| part.content.as_str())
+        .collect::<String>();
+    if !text.trim().is_empty() {
+        return text;
+    }
+
+    let image_names = message
+        .parts
+        .iter()
+        .filter(|part| part.part_type == models::SessionMessagePartType::Image as i32)
+        .filter_map(|part| part.object.as_ref())
+        .map(|object| {
+            if object.filename.is_empty() {
+                object.key.as_str()
+            } else {
+                object.filename.as_str()
+            }
+        })
+        .filter(|name| !name.is_empty())
+        .collect::<Vec<_>>();
+    if image_names.is_empty() {
+        "[non-text message]".to_string()
+    } else {
+        format!("[Image: {}]", image_names.join(", "))
+    }
 }
 
 fn log_session_release_failure(result: Result<()>, namespace: &str, key: &ResourceKey) {
