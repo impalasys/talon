@@ -102,6 +102,7 @@ This starts:
 - Pub/Sub emulator
 - Envoy
 - Sightline UI
+- a local object store volume for multimodal session assets
 - a manifest bootstrap step that applies `manifests/default_agent.yaml`
 
 Useful local endpoints:
@@ -162,6 +163,7 @@ Talon reads config from `TALON_CONFIG_PATH` or the default config loader. The ch
 - provider definitions under `providers`
 - control-plane database driver and connection
 - message broker driver
+- optional object store configuration
 - optional scheduler configuration
 
 Common environment variables used by the runtime:

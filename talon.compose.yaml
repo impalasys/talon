@@ -29,3 +29,6 @@ control_plane:
     project_id:
       source: env
       key: GCP_PROJECT_ID
+  object_store:
+    driver: local
+    path: /data/talon/objects
