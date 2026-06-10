@@ -910,7 +910,7 @@ export function NamespaceExplorer({
       const channelEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const response = await getGatewayClient().listChannels({ ns });
+            const response = await getGatewayClient().listChannels({ ns }, { signal: abortController.signal });
             return [ns, response.channels || []] as const;
           } catch (e) {
             if (abortController.signal.aborted) throw e;
@@ -942,7 +942,10 @@ export function NamespaceExplorer({
       const subscriptionEntries = await Promise.all(
         expandedChannels.map(async ({ ns, name }) => {
           try {
-            const response = await getGatewayClient().listChannelSubscriptions({ ns, channel: name });
+            const response = await getGatewayClient().listChannelSubscriptions(
+              { ns, channel: name },
+              { signal: abortController.signal },
+            );
             return [`${ns}/${name}`, response.subscriptions || []] as const;
           } catch (e) {
             if (abortController.signal.aborted) throw e;

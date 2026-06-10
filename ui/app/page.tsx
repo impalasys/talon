@@ -954,7 +954,7 @@ function DebuggerPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [isConnected, selectedNamespace]);
+  }, [authToken, gatewayUrl, isConnected, selectedNamespace]);
 
   const handleConnect = (e: React.FormEvent) => {
     e.preventDefault();
