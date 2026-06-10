@@ -256,6 +256,34 @@ async fn cleanup_agent_card_hostname_index(
     }
 }
 
+async fn rollback_agent_card_after_failed_hostname_claim(
+    kv: &(dyn KeyValueStore + Send + Sync),
+    key: &keys::ResourceKey,
+    attempted: &manifests::AgentCard,
+    existing: Option<&manifests::AgentCard>,
+) {
+    let attempted_bytes = attempted.encode_to_vec();
+    let result = if let Some(existing) = existing {
+        kv.compare_and_swap(
+            key,
+            Some(attempted_bytes.as_slice()),
+            &existing.encode_to_vec(),
+        )
+        .await
+    } else {
+        kv.compare_and_delete(key, &attempted_bytes).await
+    };
+    match result {
+        Ok(true) => {}
+        Ok(false) => {
+            tracing::warn!("Skipped AgentCard rollback because the primary record changed");
+        }
+        Err(err) => {
+            tracing::warn!("Failed to roll back AgentCard after hostname claim failure: {err}");
+        }
+    }
+}
+
 impl GrpcGatewayHandler {
     pub async fn handle_create_agent_card(
         &self,
@@ -294,12 +322,23 @@ impl GrpcGatewayHandler {
             .map_err(|err| {
                 tonic::Status::internal(format!("Failed to fetch existing AgentCard: {err}"))
             })?;
-        claim_agent_card_hostname(self.gateway.kv.as_ref(), &new_hostname, &card).await?;
         self.gateway
             .kv
             .set_msg(&key, &card)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
+        if let Err(err) =
+            claim_agent_card_hostname(self.gateway.kv.as_ref(), &new_hostname, &card).await
+        {
+            rollback_agent_card_after_failed_hostname_claim(
+                self.gateway.kv.as_ref(),
+                &key,
+                &card,
+                existing_card.as_ref(),
+            )
+            .await;
+            return Err(err);
+        }
         if let Some(existing_card) = existing_card {
             if let Some(old_hostname) = existing_card
                 .spec

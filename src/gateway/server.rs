@@ -578,6 +578,53 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn agent_card_create_rolls_back_primary_when_hostname_claim_fails() {
+        let gateway = gateway();
+        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
+        seed_namespace_and_agent(&gateway, "sales", "sales-docs").await;
+        let handler = crate::gateway::rpc::GrpcGatewayHandler {
+            gateway: Arc::new(gateway.clone()),
+        };
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "support".to_string(),
+                    card: Some(agent_card(
+                        "support",
+                        "support-public",
+                        "support-docs",
+                        "shared.example.com",
+                    )),
+                },
+            ))
+            .await
+            .unwrap();
+
+        let err = handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "sales".to_string(),
+                    card: Some(agent_card(
+                        "sales",
+                        "sales-public",
+                        "sales-docs",
+                        "shared.example.com",
+                    )),
+                },
+            ))
+            .await
+            .unwrap_err();
+
+        assert_eq!(err.code(), tonic::Code::AlreadyExists);
+        assert!(gateway
+            .kv
+            .get(&crate::control::keys::agent_card("sales", "sales-public"))
+            .await
+            .unwrap()
+            .is_none());
+    }
+
+    #[tokio::test]
     async fn agent_card_update_cleans_old_hostname_index() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
