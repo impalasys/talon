@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { getGatewayClient, buildGatewayHeaders, normalizeGatewayUrl } from '../../lib/grpc';
+import { getGatewayClient } from '../../lib/grpc';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from "../tailgrids/core/button";
 import { DropdownMenu as Dropdown, DropdownMenuTrigger as DropdownTrigger, DropdownMenuContent as DropdownMenu, DropdownMenuItem as DropdownItem } from "../tailgrids/core/dropdown";
@@ -488,12 +488,10 @@ function NamespaceNode({
 
 export function NamespaceExplorer({ 
   isConnected, 
-  gatewayUrl,
   selectedNode, 
   onSelect 
 }: { 
   isConnected: boolean, 
-  gatewayUrl: string,
   selectedNode: Selection | null, 
   onSelect: (selection: Selection) => void 
 }) {
@@ -557,7 +555,7 @@ export function NamespaceExplorer({
   useEffect(() => {
     refreshChannelsConfigVersionRef.current += 1;
     refreshChannelsAbortRef.current?.abort();
-  }, [gatewayUrl, isConnected]);
+  }, [isConnected]);
 
   useEffect(() => {
     return () => {
@@ -817,23 +815,11 @@ export function NamespaceExplorer({
 
     try {
       const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
-      const baseUrl = normalizeGatewayUrl(gatewayUrl);
-      const headers =
-        typeof window === 'undefined'
-          ? undefined
-          : buildGatewayHeaders(window.localStorage.getItem('talon_auth_token'));
       const bindingEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const response = await fetch(
-              `${baseUrl}/v1/namespaces/${encodeURIComponent(ns)}/mcp-bindings`,
-              { headers },
-            );
-            if (!response.ok) {
-              throw new Error(`HTTP ${response.status}`);
-            }
-            const payload = await response.json();
-            return [ns, payload.bindings || []] as const;
+            const response = await getGatewayClient().listMcpServerBindings({ ns });
+            return [ns, response.bindings || []] as const;
           } catch (e) {
             console.warn(`Could not fetch MCP bindings for ns ${ns}`, e);
             return [ns, []] as const;
@@ -845,7 +831,7 @@ export function NamespaceExplorer({
       console.warn('Could not list namespaces for MCP bindings', e);
       setMcpBindingsByNamespace({});
     }
-  }, [expanded, gatewayUrl, isConnected, selectedNode]);
+  }, [expanded, isConnected, selectedNode]);
 
   const refreshSchedules = useCallback(async () => {
     if (!isConnected) {
@@ -921,21 +907,11 @@ export function NamespaceExplorer({
     try {
       const currentExpanded = expandedRef.current;
       const namespaces = collectExpandedNamespaceIds(currentExpanded, selectedNodeRef.current);
-      const baseUrl = normalizeGatewayUrl(gatewayUrl);
-      const headers =
-        typeof window === 'undefined'
-          ? undefined
-          : buildGatewayHeaders(window.localStorage.getItem('talon_auth_token'));
       const channelEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const response = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels`, {
-              headers,
-              signal: abortController.signal,
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const payload = await response.json();
-            return [ns, payload.channels || []] as const;
+            const response = await getGatewayClient().listChannels({ ns }, { signal: abortController.signal });
+            return [ns, response.channels || []] as const;
           } catch (e) {
             if (abortController.signal.aborted) throw e;
             console.warn(`Could not fetch channels for ns ${ns}`, e);
@@ -966,13 +942,11 @@ export function NamespaceExplorer({
       const subscriptionEntries = await Promise.all(
         expandedChannels.map(async ({ ns, name }) => {
           try {
-            const response = await fetch(
-              `${baseUrl}/v1/ns/${encodeURIComponent(ns)}/channels/${encodeURIComponent(name)}/subscriptions`,
-              { headers, signal: abortController.signal },
+            const response = await getGatewayClient().listChannelSubscriptions(
+              { ns, channel: name },
+              { signal: abortController.signal },
             );
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const payload = await response.json();
-            return [`${ns}/${name}`, payload.subscriptions || []] as const;
+            return [`${ns}/${name}`, response.subscriptions || []] as const;
           } catch (e) {
             if (abortController.signal.aborted) throw e;
             console.warn(`Could not fetch channel subscriptions for ${ns}/${name}`, e);
@@ -1000,7 +974,7 @@ export function NamespaceExplorer({
         void refreshChannels();
       }
     }
-  }, [gatewayUrl, isConnected]);
+  }, [isConnected]);
 
   useEffect(() => {
     refreshData();
@@ -1127,24 +1101,19 @@ export function NamespaceExplorer({
     if (!channelForm.name.trim()) return;
     setIsSubmittingChannel(true);
     try {
-      const baseUrl = normalizeGatewayUrl(gatewayUrl);
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(typeof window === 'undefined' ? {} : (buildGatewayHeaders(window.localStorage.getItem('talon_auth_token')) || {})),
-      };
-      const response = await fetch(`${baseUrl}/v1/ns/${encodeURIComponent(channelModalOpen.ns)}/channels`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
+      await getGatewayClient().createChannel({
+        ns: channelModalOpen.ns,
+        channel: {
+          name: channelForm.name.trim(),
+          title: channelForm.title.trim(),
+          status: 'open',
           ns: channelModalOpen.ns,
-          channel: {
-            name: channelForm.name.trim(),
-            title: channelForm.title.trim(),
-            status: 'open',
-          },
-        }),
+          createdAt: BigInt(0),
+          updatedAt: BigInt(0),
+          metadata: {},
+          labels: {},
+        },
       });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       setExpanded(prev => new Set(prev).add(channelModalOpen.ns));
       await refreshChannels();
       await refreshData();
@@ -1163,30 +1132,22 @@ export function NamespaceExplorer({
     if (!subscriptionForm.name.trim() || !subscriptionForm.agent.trim()) return;
     setIsSubmittingSubscription(true);
     try {
-      const baseUrl = normalizeGatewayUrl(gatewayUrl);
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(typeof window === 'undefined' ? {} : (buildGatewayHeaders(window.localStorage.getItem('talon_auth_token')) || {})),
-      };
-      const response = await fetch(
-        `${baseUrl}/v1/ns/${encodeURIComponent(subscriptionModalOpen.ns)}/channels/${encodeURIComponent(subscriptionModalOpen.channel)}/subscriptions`,
-        {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            ns: subscriptionModalOpen.ns,
-            channel: subscriptionModalOpen.channel,
-            subscription: {
-              name: subscriptionForm.name.trim(),
-              agent: subscriptionForm.agent.trim(),
-              enabled: subscriptionForm.enabled,
-              trigger: subscriptionForm.trigger,
-              replyMode: subscriptionForm.replyMode,
-            },
-          }),
+      await getGatewayClient().createChannelSubscription({
+        ns: subscriptionModalOpen.ns,
+        channel: subscriptionModalOpen.channel,
+        subscription: {
+          name: subscriptionForm.name.trim(),
+          ns: subscriptionModalOpen.ns,
+          channel: subscriptionModalOpen.channel,
+          agent: subscriptionForm.agent.trim(),
+          enabled: subscriptionForm.enabled,
+          trigger: subscriptionForm.trigger,
+          replyMode: subscriptionForm.replyMode,
+          contextPolicy: undefined,
+          metadata: {},
+          labels: {},
         },
-      );
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      });
       setExpanded(prev => new Set(prev).add(`${subscriptionModalOpen.ns}:channel:${subscriptionModalOpen.channel}`));
       await refreshChannels();
       await refreshData();
@@ -1212,23 +1173,13 @@ export function NamespaceExplorer({
       } else if (selection.type === 'session') {
         await getGatewayClient().deleteSession({ ns: selection.ns, agent: selection.agent!, sessionId: selection.sessionId! });
       } else if (selection.type === 'channel') {
-        const response = await fetch(
-          `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(selection.ns)}/channels/${encodeURIComponent(selection.resourceName || selection.channel || '')}`,
-          {
-            method: 'DELETE',
-            headers: typeof window === 'undefined' ? undefined : buildGatewayHeaders(window.localStorage.getItem('talon_auth_token')),
-          },
-        );
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        await getGatewayClient().deleteChannel({ ns: selection.ns, name: selection.resourceName || selection.channel || '' });
       } else if (selection.type === 'channel-subscription') {
-        const response = await fetch(
-          `${normalizeGatewayUrl(gatewayUrl)}/v1/ns/${encodeURIComponent(selection.ns)}/channels/${encodeURIComponent(selection.channel || '')}/subscriptions/${encodeURIComponent(selection.resourceName || '')}`,
-          {
-            method: 'DELETE',
-            headers: typeof window === 'undefined' ? undefined : buildGatewayHeaders(window.localStorage.getItem('talon_auth_token')),
-          },
-        );
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        await getGatewayClient().deleteChannelSubscription({
+          ns: selection.ns,
+          channel: selection.channel || '',
+          name: selection.resourceName || '',
+        });
       } else if (selection.type === 'schedule') {
         await getGatewayClient().deleteSchedule({ ns: selection.ns, name: selection.resourceName || '' });
       }

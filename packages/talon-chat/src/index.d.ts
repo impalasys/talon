@@ -124,6 +124,25 @@ export type TalonChannelCommandTarget = {
 
 export type TalonChannelCommand = TalonChatCommand<TalonChannelCommandTarget, ChannelMessage>;
 
+export type ChannelGatewayClientLike = {
+  listChannelMessages(request: {
+    ns: string;
+    channel: string;
+    limit?: number;
+    pageSize?: number;
+    beforeMessageId?: string;
+  }): Promise<any>;
+  postChannelMessage(request: {
+    ns: string;
+    channel: string;
+    authorKind: string;
+    author: string;
+    content: string;
+    subscriptionNames?: string[];
+    labels?: Record<string, string>;
+  }): Promise<any>;
+};
+
 export type TalonChannelProps = {
   namespace: string;
   channel: string | {
@@ -136,6 +155,7 @@ export type TalonChannelProps = {
   };
   gatewayUrl: string;
   authToken?: string | null;
+  gatewayClient?: ChannelGatewayClientLike;
   className?: string;
   style?: React.CSSProperties;
   disabled?: boolean;
@@ -162,6 +182,7 @@ export type UseTalonChannelMessagesOptions = {
   } | null | undefined;
   gatewayUrl: string;
   authToken?: string | null;
+  gatewayClient?: ChannelGatewayClientLike;
   disabled?: boolean;
   messageLimit?: number;
   refreshIntervalMs?: number | false;
