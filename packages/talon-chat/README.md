@@ -44,7 +44,7 @@ You can also inject a gateway client for session CRUD:
 
 ## Commands
 
-Both `TalonSession` and `TalonChannel` can intercept slash commands before they are sent as chat messages. Enable the built-in `/clear` command with `enabledBuiltInCommands`:
+Both `TalonSession` and `TalonChannel` can intercept slash commands before they are sent as chat messages. Enable the built-in session `/clear` command with `enabledBuiltInCommands`:
 
 ```tsx
 <TalonSession
@@ -55,7 +55,7 @@ Both `TalonSession` and `TalonChannel` can intercept slash commands before they 
 />
 ```
 
-For sessions, `/clear` calls the gateway session clear API when a session is active and then clears the visible transcript. For channels, `/clear` clears the visible channel message buffer.
+For sessions, `/clear` calls the gateway session clear API when a session is active and then clears the visible transcript. Channels do not include a built-in clear command because channel messages are shared history, not per-session transcript state.
 
 You can also provide custom commands:
 
@@ -66,9 +66,9 @@ You can also provide custom commands:
   gatewayUrl="http://localhost:18789"
   commands={[
     {
-      name: "clear-local",
-      aliases: ["cl"],
-      run: ({ clear }) => clear(),
+      name: "ack",
+      description: "Acknowledge the active incident room.",
+      run: ({ target }) => console.log(`Acknowledged ${target.channel}`),
     },
   ]}
 />

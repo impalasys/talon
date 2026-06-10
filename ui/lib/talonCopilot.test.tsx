@@ -1116,19 +1116,22 @@ describe('TalonChannel', () => {
     expect(await screen.findByText('hello channel')).toBeInTheDocument();
   });
 
-  it('runs the built-in clear command without posting it as a channel message', async () => {
+  it('posts /clear as a normal channel message because channels have no built-in clear command', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();
-    fetchMock.mockResolvedValueOnce(makeJsonResponse({
-      messages: [
-        {
-          id: 'channel-clear-1',
-          authorKind: 'user',
-          author: 'sightline',
-          content: 'Clear this channel view',
-        },
-      ],
-    }));
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(makeJsonResponse({ message: { id: 'channel-clear-text' } }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-clear-text',
+            authorKind: 'user',
+            author: 'sightline',
+            content: '/clear',
+          },
+        ],
+      }));
 
     render(
       <TalonChannel
@@ -1136,62 +1139,35 @@ describe('TalonChannel', () => {
         channel="incident-room"
         gatewayUrl="http://localhost:18789"
         refreshIntervalMs={false}
-        enabledBuiltInCommands={['clear']}
       />,
     );
 
-    expect(await screen.findByText('Clear this channel view')).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText('Message #incident-room'), {
+    const input = await screen.findByPlaceholderText('Message #incident-room');
+    fireEvent.change(input, { target: { value: '/' } });
+    expect(screen.queryByRole('listbox', { name: 'Command menu' })).not.toBeInTheDocument();
+
+    fireEvent.change(input, {
       target: { value: '/clear' },
     });
     fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
 
-    await waitFor(() => expect(screen.queryByText('Clear this channel view')).not.toBeInTheDocument());
-    expect(screen.getByText('No channel messages.')).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps cleared channel messages hidden after the next background refresh', async () => {
-    jest.useFakeTimers();
-    const fetchMock = global.fetch as jest.Mock;
-    fetchMock.mockReset();
-    const clearedMessage = {
-      id: 'channel-clear-1',
-      authorKind: 'user',
-      author: 'sightline',
-      content: 'Do not bring this back',
-      createdAt: '2026-06-08T21:00:00.000Z',
-    };
-    fetchMock
-      .mockResolvedValueOnce(makeJsonResponse({ messages: [clearedMessage] }))
-      .mockResolvedValueOnce(makeJsonResponse({ messages: [clearedMessage] }));
-
-    render(
-      <TalonChannel
-        namespace="channel-collaboration"
-        channel="incident-room"
-        gatewayUrl="http://localhost:18789"
-        refreshIntervalMs={750}
-        enabledBuiltInCommands={['clear']}
-      />,
-    );
-
-    expect(await screen.findByText('Do not bring this back')).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText('Message #incident-room'), {
-      target: { value: '/clear' },
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            ns: 'channel-collaboration',
+            channel: 'incident-room',
+            authorKind: 'user',
+            author: 'sightline',
+            content: '/clear',
+          }),
+        }),
+      );
     });
-    fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
-
-    await waitFor(() => expect(screen.queryByText('Do not bring this back')).not.toBeInTheDocument());
-    await act(async () => {
-      jest.advanceTimersByTime(750);
-      await Promise.resolve();
-    });
-
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText('Do not bring this back')).not.toBeInTheDocument();
-    expect(screen.getByText('No channel messages.')).toBeInTheDocument();
-    jest.useRealTimers();
+    expect(await screen.findByText('/clear')).toBeInTheDocument();
   });
 
   it('does not post duplicate channel messages while a submit is in flight', async () => {

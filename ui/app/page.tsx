@@ -628,7 +628,6 @@ function ChannelInspector({
           authToken={authToken}
           namespace={ns}
           channel={channel}
-          enabledBuiltInCommands={['clear']}
           renderMessageActions={(message) => {
             const sourceAgent = message.sourceAgent || message.source_agent || '';
             const sourceSessionId = message.sourceSessionId || message.source_session_id || '';

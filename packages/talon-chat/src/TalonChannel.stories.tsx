@@ -74,7 +74,6 @@ const meta = {
     gatewayUrl: "http://localhost:18789",
     refreshIntervalMs: false,
     formatTimestamp: () => "Jun 5, 2026, 9:12 AM",
-    enabledBuiltInCommands: ["clear"],
   },
   render: (args) => (
     <div style={{ height: "100%", padding: 24, overflow: "hidden" }}>

@@ -976,7 +976,7 @@ export function TalonSession({
       builtInCommands.push({
         name: "clear",
         description: "Clear the current session history.",
-        run: ({ clear }) => clear(),
+        run: ({ clear }) => clear?.(),
       });
     }
     return [...(commands ?? []), ...builtInCommands];

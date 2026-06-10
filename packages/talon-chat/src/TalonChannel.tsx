@@ -7,7 +7,6 @@ import { ChatInputBox } from "./lib/ChatInputBox";
 import {
   findTalonChatCommand,
   parseTalonChatCommandInput,
-  type TalonBuiltInCommandName,
   type TalonChatCommand,
 } from "./lib/commands";
 import { MarkdownMessage } from "./lib/MarkdownMessage";
@@ -73,7 +72,6 @@ export type TalonChannelProps = {
   formatTimestamp?: (message: ChannelMessage) => string;
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
   commands?: TalonChannelCommand[];
-  enabledBuiltInCommands?: TalonBuiltInCommandName[];
 };
 
 export type UseTalonChannelMessagesOptions = {
@@ -97,7 +95,6 @@ export type UseTalonChannelMessagesResult = {
   refresh: (options?: { silent?: boolean; replace?: boolean }) => Promise<void>;
   loadOlderMessages: () => Promise<void>;
   postMessage: (options: { author: string; authorKind: string; content: string }) => Promise<void>;
-  clearMessages: () => void;
 };
 
 function coerceChannelName(channel: string | ChannelLike | null | undefined) {
@@ -217,39 +214,6 @@ function mergeChannelMessages(existing: ChannelMessage[], incoming: ChannelMessa
   return Array.from(byKey.values()).sort(compareChannelMessages);
 }
 
-type ChannelClearMarker = {
-  message: ChannelMessage;
-  id: string | null;
-  timestamp: number | null;
-};
-
-function isChannelMessageAfterClear(message: ChannelMessage, marker: ChannelClearMarker) {
-  const messageTimestamp = channelMessageTimestamp(message);
-  if (messageTimestamp !== null && marker.timestamp !== null) {
-    if (messageTimestamp !== marker.timestamp) return messageTimestamp > marker.timestamp;
-    if (message.id && marker.id && message.id !== marker.id) return message.id > marker.id;
-    return false;
-  }
-  if (message.id && marker.id) {
-    return message.id > marker.id;
-  }
-  return compareChannelMessages(message, marker.message) > 0;
-}
-
-function applyChannelClearMarker(
-  page: { messages: ChannelMessage[]; hasMore: boolean; nextBeforeMessageId: string | null },
-  marker: ChannelClearMarker | null,
-) {
-  if (!marker) return page;
-  const messages = page.messages.filter((message) => isChannelMessageAfterClear(message, marker));
-  const reachedClearBoundary = messages.length < page.messages.length;
-  return {
-    messages,
-    hasMore: reachedClearBoundary ? false : page.hasMore,
-    nextBeforeMessageId: reachedClearBoundary ? null : page.nextBeforeMessageId,
-  };
-}
-
 export function useTalonChannelMessages({
   namespace,
   channel,
@@ -272,7 +236,6 @@ export function useTalonChannelMessages({
   const delayedRefreshTimeoutRef = useRef<number | null>(null);
   const loadedChannelRef = useRef<{ namespace: string; channelName: string } | null>(null);
   const refreshConfigVersionRef = useRef(0);
-  const lastClearedRef = useRef<ChannelClearMarker | null>(null);
 
   const channelName = coerceChannelName(channel);
   const status = coerceChannelStatus(channel);
@@ -310,31 +273,6 @@ export function useTalonChannelMessages({
     };
   }, [namespace, channelName]);
 
-  const clearMessages = useCallback(() => {
-    const latestMessage = messagesRef.current[messagesRef.current.length - 1];
-    lastClearedRef.current = latestMessage
-      ? {
-          message: latestMessage,
-          id: latestMessage.id || null,
-          timestamp: channelMessageTimestamp(latestMessage),
-        }
-      : null;
-    refreshRequestIdRef.current += 1;
-    pendingRefreshRef.current = false;
-    isLoadingOlderMessagesRef.current = false;
-    messagesRef.current = [];
-    setMessages([]);
-    setHasMoreMessages(false);
-    setNextBeforeMessageId(null);
-    setIsLoading(false);
-    setIsLoadingOlderMessages(false);
-    setError(null);
-    if (delayedRefreshTimeoutRef.current !== null) {
-      window.clearTimeout(delayedRefreshTimeoutRef.current);
-      delayedRefreshTimeoutRef.current = null;
-    }
-  }, []);
-
   const refresh = useCallback(
     async (options?: { silent?: boolean; replace?: boolean }) => {
       if (!namespace || !channelName || disabled || pendingRefreshRef.current) return;
@@ -362,7 +300,7 @@ export function useTalonChannelMessages({
         ) {
           return;
         }
-        const page = applyChannelClearMarker(normalizeChannelPage(responseJson), lastClearedRef.current);
+        const page = normalizeChannelPage(responseJson);
         const newestIds = new Set(page.messages.map((message, index) => channelMessageKey(message, index)));
         const oldestNewestMessage = page.messages[0];
         const oldestNewestTimestamp = oldestNewestMessage ? channelMessageTimestamp(oldestNewestMessage) : null;
@@ -423,7 +361,6 @@ export function useTalonChannelMessages({
       setIsLoadingOlderMessages(false);
       setError(null);
       isLoadingOlderMessagesRef.current = false;
-      lastClearedRef.current = null;
     }
     void refresh({ replace: true, silent: !channelChanged });
   }, [namespace, channelName, refresh]);
@@ -457,7 +394,7 @@ export function useTalonChannelMessages({
       ) {
         return;
       }
-      const page = applyChannelClearMarker(normalizeChannelPage(responseJson), lastClearedRef.current);
+      const page = normalizeChannelPage(responseJson);
       setMessages((existing) => mergeChannelMessages(existing, page.messages));
       setHasMoreMessages(page.hasMore);
       setNextBeforeMessageId(page.nextBeforeMessageId);
@@ -527,7 +464,6 @@ export function useTalonChannelMessages({
     refresh,
     loadOlderMessages,
     postMessage,
-    clearMessages,
   };
 }
 
@@ -548,7 +484,6 @@ export function TalonChannel({
   formatTimestamp,
   renderMessageActions,
   commands,
-  enabledBuiltInCommands,
 }: TalonChannelProps) {
   const [draft, setDraft] = useState("");
   const [isPosting, setIsPosting] = useState(false);
@@ -567,7 +502,6 @@ export function TalonChannel({
     error,
     loadOlderMessages,
     postMessage,
-    clearMessages,
   } = useTalonChannelMessages({
     namespace,
     channel,
@@ -624,17 +558,7 @@ export function TalonChannel({
     return () => window.cancelAnimationFrame(rafId);
   }, [messages, scrollMessagesToBottom]);
 
-  const resolvedCommands = useMemo<Array<TalonChannelCommand>>(() => {
-    const builtInCommands: TalonChannelCommand[] = [];
-    if (enabledBuiltInCommands?.includes("clear")) {
-      builtInCommands.push({
-        name: "clear",
-        description: "Clear the visible channel messages.",
-        run: ({ clear }) => clear(),
-      });
-    }
-    return [...(commands ?? []), ...builtInCommands];
-  }, [clearMessages, commands, enabledBuiltInCommands]);
+  const resolvedCommands = useMemo<Array<TalonChannelCommand>>(() => commands ?? [], [commands]);
   const commandMenuItems = useMemo(
     () => resolvedCommands.map(({ name, aliases, description }) => ({ name, aliases, description })),
     [resolvedCommands],
@@ -679,7 +603,6 @@ export function TalonChannel({
             status,
           },
           messages,
-          clear: clearMessages,
         });
       } catch (err) {
         setCommandError(err instanceof Error ? err.message : String(err));
@@ -699,7 +622,7 @@ export function TalonChannel({
       isPostingRef.current = false;
       setIsPosting(false);
     }
-  }, [author, authorKind, channelName, clearMessages, isUserInputDisabled, messages, namespace, postMessage, resolvedCommands, status]);
+  }, [author, authorKind, channelName, isUserInputDisabled, messages, namespace, postMessage, resolvedCommands, status]);
 
   return (
     <div

@@ -7,7 +7,7 @@ export type TalonChatCommandContext<TTarget, TMessage> = {
   argv: string[];
   target: TTarget;
   messages: TMessage[];
-  clear: () => void | Promise<void>;
+  clear?: () => void | Promise<void>;
 };
 
 export type TalonChatCommand<TTarget = unknown, TMessage = unknown> = {

@@ -58,7 +58,7 @@ export type TalonChatCommandContext<TTarget, TMessage> = {
   argv: string[];
   target: TTarget;
   messages: TMessage[];
-  clear: () => void | Promise<void>;
+  clear?: () => void | Promise<void>;
 };
 
 export type TalonChatCommand<TTarget = unknown, TMessage = unknown> = {
@@ -148,7 +148,6 @@ export type TalonChannelProps = {
   formatTimestamp?: (message: ChannelMessage) => string;
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
   commands?: TalonChannelCommand[];
-  enabledBuiltInCommands?: TalonBuiltInCommandName[];
 };
 
 export type UseTalonChannelMessagesOptions = {
@@ -179,7 +178,6 @@ export type UseTalonChannelMessagesResult = {
   refresh: (options?: { silent?: boolean; replace?: boolean }) => Promise<void>;
   loadOlderMessages: () => Promise<void>;
   postMessage: (options: { author: string; authorKind: string; content: string }) => Promise<void>;
-  clearMessages: () => void;
 };
 
 export function TalonSession(props: TalonSessionProps): React.JSX.Element;
