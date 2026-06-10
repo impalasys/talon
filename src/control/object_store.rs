@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
+use std::time::Duration;
 
 const GCS_STORAGE_SCOPE: &str = "https://www.googleapis.com/auth/devstorage.read_write";
 const GCS_API_BASE: &str = "https://storage.googleapis.com";
@@ -150,11 +151,15 @@ impl ObjectStore for LocalFsObjectStore {
         metadata.size_bytes = bytes.len() as u64;
         let data_path = self.data_path(key)?;
         let metadata_path = self.metadata_path(key)?;
+        let metadata_bytes = serde_json::to_vec(&metadata)?;
         if let Some(parent) = data_path.parent() {
             tokio::fs::create_dir_all(parent).await?;
         }
         tokio::fs::write(&data_path, bytes).await?;
-        tokio::fs::write(&metadata_path, serde_json::to_vec(&metadata)?).await?;
+        if let Err(err) = tokio::fs::write(&metadata_path, metadata_bytes).await {
+            let _ = tokio::fs::remove_file(&data_path).await;
+            return Err(err.into());
+        }
         Ok(object_ref(key, metadata))
     }
 
@@ -209,7 +214,10 @@ impl GcsObjectStore {
             .build_access_token_credentials()
             .context("failed to build Google access token credentials for GCS object store")?;
         Ok(Self {
-            client: reqwest::Client::new(),
+            client: reqwest::Client::builder()
+                .timeout(Duration::from_secs(30))
+                .build()
+                .context("failed to build GCS object store HTTP client")?,
             credentials,
             bucket: cfg.bucket.trim().to_string(),
             prefix: normalize_prefix(&cfg.prefix)?,
@@ -628,6 +636,34 @@ mod tests {
             .await
             .unwrap_err();
         assert!(err.to_string().contains("cannot contain '..'"));
+    }
+
+    #[tokio::test]
+    async fn local_object_store_cleans_up_data_when_metadata_write_fails() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = LocalObjectStore::new(dir.path());
+        let key = "sessions/session-1/image.png";
+        let data_path = store.data_path(key).unwrap();
+        let metadata_path = store.metadata_path(key).unwrap();
+        tokio::fs::create_dir_all(&metadata_path).await.unwrap();
+
+        let err = store
+            .put(
+                key,
+                b"image-bytes",
+                ObjectMetadata {
+                    media_type: "image/png".to_string(),
+                    filename: "image.png".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap_err();
+
+        assert!(
+            err.to_string().contains("directory") || err.to_string().contains("Is a directory")
+        );
+        assert!(!data_path.exists());
     }
 
     #[tokio::test]

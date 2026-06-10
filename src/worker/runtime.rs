@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use anyhow::{anyhow, Result};
+use std::path::Path;
 use std::sync::Arc;
 
 use super::mcp_registry::McpRegistry;
@@ -354,6 +355,21 @@ fn sanitize_tool_name_component(value: &str) -> String {
     sanitized.trim_matches('_').to_string()
 }
 
+fn inferred_image_media_type(key: &str) -> &'static str {
+    match Path::new(key)
+        .extension()
+        .and_then(|value| value.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "jpg" | "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "webp" => "image/webp",
+        _ => "image/png",
+    }
+}
+
 async fn message_content_parts(
     message: &models::SessionMessage,
     objects: &(dyn crate::control::object_store::ObjectStore + Send + Sync),
@@ -402,16 +418,23 @@ async fn message_content_parts(
                 object.key
             )
         })?;
-        let media_type = if object.media_type.trim().is_empty() {
-            stored.metadata.media_type.trim()
+        let mut media_type = if object.media_type.trim().is_empty() {
+            stored.metadata.media_type.trim().to_string()
         } else {
-            object.media_type.trim()
+            object.media_type.trim().to_string()
         };
         if media_type.is_empty() {
-            return Err(anyhow!("missing media type for object '{}'", object.key));
+            media_type = inferred_image_media_type(&object.key).to_string();
+        }
+        if !media_type.to_ascii_lowercase().starts_with("image/") {
+            return Err(anyhow!(
+                "unsupported media type '{}' for image object '{}'",
+                media_type,
+                object.key
+            ));
         }
         content_parts.push(ChatContentPart::ImageData {
-            media_type: media_type.to_string(),
+            media_type,
             data_base64: general_purpose::STANDARD.encode(stored.bytes),
             detail,
         });
@@ -437,13 +460,14 @@ fn tool_result_message_from_part(part: &models::SessionMessagePart) -> Option<Lo
 #[cfg(test)]
 mod tests {
     use super::{
-        builtin_tool_names, has_capability_action, qualify_mcp_tool_name,
+        builtin_tool_names, has_capability_action, message_content_parts, qualify_mcp_tool_name,
         tool_result_message_from_part, visible_tools_for_agent, AgentRuntime,
     };
     use crate::config::{proto, Config, ProviderConfig, Secret};
     use crate::connectors::mcp::McpConnectionConfig;
     use crate::control::{
         keys::{ResourceKey, ResourceList},
+        object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
@@ -1133,71 +1157,78 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_runtime_build_rejects_image_parts_without_media_type() {
-        let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
-        let config = runtime_config();
-        let registry = crate::worker::mcp_registry::McpRegistry::new();
-        let spec = manifests::AgentSpec {
-            features: Vec::new(),
-            model_policy: None,
-            system_prompt: "assist".to_string(),
-            mcp_server_refs: Vec::new(),
-            capabilities: HashMap::new(),
-        };
-
-        kv.set_msg(
-            &crate::control::keys::agent("conic", "writer"),
-            &models::Agent {
-                name: "writer".to_string(),
-                ns: "conic".to_string(),
-                definition: None,
-                effective_spec: Some(spec),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
-
-        let object = cp
-            .objects
+    async fn message_content_parts_infers_missing_image_media_type_from_extension() {
+        let store = InMemoryObjectStore::default();
+        let object = store
             .put(
-                "sessions/session-1/screenshot.png",
-                b"png-bytes",
-                crate::control::object_store::ObjectMetadata::default(),
+                "sessions/session-1/screenshot.jpeg",
+                b"jpeg-bytes",
+                ObjectMetadata::default(),
             )
             .await
             .unwrap();
-        kv.set_msg(
-            &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
-            &models::SessionMessage {
-                id: "msg-1".to_string(),
-                role: models::MessageRole::RoleUser as i32,
+        let message = models::SessionMessage {
+            id: "msg-1".to_string(),
+            role: models::MessageRole::RoleUser as i32,
+            created_at: 2,
+            labels: HashMap::new(),
+            parts: vec![models::SessionMessagePart {
+                id: "000001".to_string(),
+                part_type: models::SessionMessagePartType::Image as i32,
+                content: String::new(),
+                name: String::new(),
+                payload_json: String::new(),
                 created_at: 2,
-                labels: HashMap::new(),
-                parts: vec![models::SessionMessagePart {
-                    id: "000001".to_string(),
-                    part_type: models::SessionMessagePartType::Image as i32,
-                    content: String::new(),
-                    name: String::new(),
-                    payload_json: String::new(),
-                    created_at: 2,
-                    object: Some(object),
-                }],
-            },
-        )
-        .await
-        .unwrap();
-
-        let err = match AgentRuntime::build("conic", "writer", "session-1", &cp, &config, &registry)
-            .await
-        {
-            Ok(_) => panic!("expected missing media type error"),
-            Err(err) => err,
+                object: Some(object),
+            }],
         };
-        assert!(err
-            .to_string()
-            .contains("missing media type for object 'sessions/session-1/screenshot.png'"));
+
+        let parts = message_content_parts(&message, &store).await.unwrap();
+
+        assert_eq!(
+            parts,
+            vec![ChatContentPart::ImageData {
+                media_type: "image/jpeg".to_string(),
+                data_base64: "anBlZy1ieXRlcw==".to_string(),
+                detail: None,
+            }]
+        );
+    }
+
+    #[tokio::test]
+    async fn message_content_parts_rejects_non_image_object_media_type() {
+        let store = InMemoryObjectStore::default();
+        let object = store
+            .put(
+                "sessions/session-1/file.txt",
+                b"text",
+                ObjectMetadata {
+                    media_type: "text/plain".to_string(),
+                    ..ObjectMetadata::default()
+                },
+            )
+            .await
+            .unwrap();
+        let message = models::SessionMessage {
+            id: "msg-1".to_string(),
+            role: models::MessageRole::RoleUser as i32,
+            created_at: 2,
+            labels: HashMap::new(),
+            parts: vec![models::SessionMessagePart {
+                id: "000001".to_string(),
+                part_type: models::SessionMessagePartType::Image as i32,
+                content: String::new(),
+                name: String::new(),
+                payload_json: String::new(),
+                created_at: 2,
+                object: Some(object),
+            }],
+        };
+
+        let err = message_content_parts(&message, &store).await.unwrap_err();
+
+        assert!(err.to_string().contains(
+            "unsupported media type 'text/plain' for image object 'sessions/session-1/file.txt'"
+        ));
     }
 }

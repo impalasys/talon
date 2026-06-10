@@ -5,6 +5,8 @@ use super::executor::LoopMessage;
 use crate::llm::ChatContentPart;
 use serde_json::{json, Map, Value};
 
+const INLINE_IMAGE_CONTEXT_WEIGHT: usize = 4_000;
+
 #[derive(Debug, Clone)]
 enum HistorySegment {
     Message(LoopMessage),
@@ -186,8 +188,27 @@ fn normalize_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopM
 
 fn force_fit_message(message: &LoopMessage, budget: ContextBudget) -> LoopMessage {
     let mut compacted = normalize_loop_message(message, budget);
-    let allowed_chars = budget.total_chars.min(budget.max_message_chars.max(512));
-    compacted.content_parts = truncate_text_parts(&compacted.content_parts, allowed_chars);
+    let metadata_weight = message.role.len()
+        + message
+            .tool_calls
+            .as_ref()
+            .map(|calls| {
+                calls
+                    .iter()
+                    .map(|call| call.id.len() + call.name.len() + call.arguments.len())
+                    .sum::<usize>()
+            })
+            .unwrap_or(0)
+        + message
+            .tool_call_id
+            .as_ref()
+            .map(|id| id.len())
+            .unwrap_or(0);
+    let allowed_chars = budget
+        .total_chars
+        .saturating_sub(metadata_weight)
+        .min(budget.max_message_chars.max(512));
+    compacted.content_parts = fit_content_parts_to_weight(&compacted.content_parts, allowed_chars);
     compacted
 }
 
@@ -386,25 +407,73 @@ fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatC
     truncated
 }
 
+fn fit_content_parts_to_weight(
+    parts: &[ChatContentPart],
+    max_weight: usize,
+) -> Vec<ChatContentPart> {
+    let mut remaining = max_weight;
+    let mut fitted = Vec::with_capacity(parts.len());
+
+    for part in parts {
+        match part {
+            ChatContentPart::Text { text } => {
+                if remaining == 0 {
+                    continue;
+                }
+                let next = truncate_middle(text, remaining);
+                remaining = remaining.saturating_sub(next.len());
+                if !next.is_empty() {
+                    fitted.push(ChatContentPart::Text { text: next });
+                }
+            }
+            ChatContentPart::ImageUrl { .. } | ChatContentPart::ImageData { .. } => {
+                let weight = content_part_weight(part);
+                if weight <= remaining {
+                    fitted.push(part.clone());
+                    remaining = remaining.saturating_sub(weight);
+                    continue;
+                }
+
+                let marker = match part {
+                    ChatContentPart::ImageUrl { .. } => {
+                        "[Image URL omitted to stay within Talon context budget.]"
+                    }
+                    ChatContentPart::ImageData { .. } => {
+                        "[Image omitted to stay within Talon context budget.]"
+                    }
+                    ChatContentPart::Text { .. } => unreachable!(),
+                };
+                if marker.len() <= remaining {
+                    fitted.push(ChatContentPart::Text {
+                        text: marker.to_string(),
+                    });
+                    remaining = remaining.saturating_sub(marker.len());
+                }
+            }
+        }
+    }
+
+    fitted
+}
+
+fn content_part_weight(part: &ChatContentPart) -> usize {
+    match part {
+        ChatContentPart::Text { text } => text.len(),
+        ChatContentPart::ImageUrl { url, detail } => {
+            url.len() + detail.as_ref().map(|detail| detail.len()).unwrap_or(0)
+        }
+        ChatContentPart::ImageData {
+            media_type, detail, ..
+        } => {
+            INLINE_IMAGE_CONTEXT_WEIGHT
+                + media_type.len()
+                + detail.as_ref().map(|detail| detail.len()).unwrap_or(0)
+        }
+    }
+}
+
 fn content_parts_weight(parts: &[ChatContentPart]) -> usize {
-    parts
-        .iter()
-        .map(|part| match part {
-            ChatContentPart::Text { text } => text.len(),
-            ChatContentPart::ImageUrl { url, detail } => {
-                url.len() + detail.as_ref().map(|detail| detail.len()).unwrap_or(0)
-            }
-            ChatContentPart::ImageData {
-                media_type,
-                data_base64,
-                detail,
-            } => {
-                media_type.len()
-                    + data_base64.len()
-                    + detail.as_ref().map(|detail| detail.len()).unwrap_or(0)
-            }
-        })
-        .sum()
+    parts.iter().map(content_part_weight).sum()
 }
 
 impl HistorySegment {
@@ -675,13 +744,20 @@ mod tests {
             },
             ChatContentPart::ImageData {
                 media_type: "image/png".to_string(),
-                data_base64: "cG5n".to_string(),
+                data_base64: "x".repeat(200_000),
                 detail: None,
             },
         ];
         let history = vec![message("system", "sys"), user];
 
-        let compacted = compact_history_for_llm_with_budget(&history, budget());
+        let compacted = compact_history_for_llm_with_budget(
+            &history,
+            ContextBudget {
+                total_chars: 5_000,
+                max_message_chars: 5_000,
+                ..budget()
+            },
+        );
 
         assert!(compacted.iter().any(|message| {
             message.role == "user"
@@ -689,6 +765,38 @@ mod tests {
                     matches!(part, ChatContentPart::ImageData { media_type, .. } if media_type == "image/png")
                 })
         }));
+    }
+
+    #[test]
+    fn compact_history_force_fit_bounds_multimodal_message_weight() {
+        let mut user = message("user", "");
+        user.content_parts = vec![
+            ChatContentPart::Text {
+                text: "please inspect this image carefully".to_string(),
+            },
+            ChatContentPart::ImageData {
+                media_type: "image/png".to_string(),
+                data_base64: "x".repeat(200_000),
+                detail: None,
+            },
+        ];
+        let tiny_budget = ContextBudget {
+            total_chars: 80,
+            max_message_chars: 80,
+            ..budget()
+        };
+
+        let compacted = compact_history_for_llm_with_budget(&[user], tiny_budget);
+        let total_weight = compacted
+            .iter()
+            .map(serialized_message_weight)
+            .sum::<usize>();
+
+        assert!(total_weight <= tiny_budget.total_chars);
+        assert!(compacted
+            .iter()
+            .flat_map(|message| &message.content_parts)
+            .all(|part| !matches!(part, ChatContentPart::ImageData { .. })));
     }
 
     #[test]

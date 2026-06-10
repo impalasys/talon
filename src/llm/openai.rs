@@ -169,6 +169,25 @@ impl OpenAiCompatibleProvider {
         chars.into_iter().take(max_chars).collect::<String>()
     }
 
+    fn redact_data_urls(value: &Value) -> Value {
+        match value {
+            Value::String(text) if text.starts_with("data:") => {
+                Value::String("<redacted-data-url>".to_string())
+            }
+            Value::Array(items) => Value::Array(items.iter().map(Self::redact_data_urls).collect()),
+            Value::Object(map) => Value::Object(
+                map.iter()
+                    .map(|(key, value)| (key.clone(), Self::redact_data_urls(value)))
+                    .collect(),
+            ),
+            other => other.clone(),
+        }
+    }
+
+    fn payload_json_for_debug(payload: &Value) -> String {
+        serde_json::to_string(&Self::redact_data_urls(payload)).unwrap_or_default()
+    }
+
     fn compute_request_debug_stats(
         serialized_messages: &[Value],
         tools: &[crate::llm::provider::Tool],
@@ -211,7 +230,7 @@ impl OpenAiCompatibleProvider {
         let stats = Self::compute_request_debug_stats(serialized_messages, tools, payload);
         let debug_requests = Self::debug_requests_enabled();
         let payload_json = if debug_requests {
-            serde_json::to_string(payload).unwrap_or_default()
+            Self::payload_json_for_debug(payload)
         } else {
             String::new()
         };
@@ -255,7 +274,7 @@ impl OpenAiCompatibleProvider {
         let stats = Self::compute_request_debug_stats(serialized_messages, tools, payload);
         let debug_requests = Self::debug_requests_enabled();
         let payload_json = if debug_requests {
-            serde_json::to_string(payload).unwrap_or_default()
+            Self::payload_json_for_debug(payload)
         } else {
             String::new()
         };
@@ -864,6 +883,35 @@ mod tests {
             "data:image/png;base64,cG5nLWJ5dGVz"
         );
         assert_eq!(serialized[0]["content"][1]["image_url"]["detail"], "low");
+    }
+
+    #[test]
+    fn debug_payload_redacts_data_urls_without_mutating_request_payload() {
+        let payload = serde_json::json!({
+            "messages": [{
+                "role": "user",
+                "content": [{
+                    "type": "image_url",
+                    "image_url": {
+                        "url": "data:image/png;base64,c2VjcmV0",
+                        "detail": "low"
+                    }
+                }]
+            }],
+            "metadata": {
+                "callback": "https://example.com/data:image/png;base64/not-a-data-url"
+            }
+        });
+
+        let debug_json = OpenAiCompatibleProvider::payload_json_for_debug(&payload);
+
+        assert!(debug_json.contains("<redacted-data-url>"));
+        assert!(!debug_json.contains("c2VjcmV0"));
+        assert_eq!(
+            payload["messages"][0]["content"][0]["image_url"]["url"],
+            "data:image/png;base64,c2VjcmV0"
+        );
+        assert!(debug_json.contains("https://example.com/data:image/png;base64/not-a-data-url"));
     }
 
     #[test]
