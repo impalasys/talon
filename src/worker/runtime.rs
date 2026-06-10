@@ -122,7 +122,6 @@ impl AgentRuntime {
 
                 history.push(LoopMessage {
                     role: role.to_string(),
-                    content: message_text(&msg),
                     content_parts: message_content_parts(&msg, cp.objects.as_ref()).await?,
                     tool_calls,
                     tool_call_id: None,
@@ -355,16 +354,6 @@ fn sanitize_tool_name_component(value: &str) -> String {
     sanitized.trim_matches('_').to_string()
 }
 
-fn message_text(message: &models::SessionMessage) -> String {
-    message
-        .parts
-        .iter()
-        .filter(|part| part.part_type == models::SessionMessagePartType::Text as i32)
-        .map(|part| part.content.as_str())
-        .collect::<Vec<_>>()
-        .join("")
-}
-
 async fn message_content_parts(
     message: &models::SessionMessage,
     objects: &(dyn crate::control::object_store::ObjectStore + Send + Sync),
@@ -440,13 +429,9 @@ fn tool_result_message_from_part(part: &models::SessionMessagePart) -> Option<Lo
         .or_else(|| payload.get("output").and_then(|v| v.as_str()))
         .map(tool_result_preview)
         .unwrap_or_else(|| tool_result_preview(&part.content));
-    Some(LoopMessage {
-        role: "tool".to_string(),
-        content: output,
-        content_parts: Vec::new(),
-        tool_calls: None,
-        tool_call_id: Some(tool_call_id.to_string()),
-    })
+    let mut message = LoopMessage::text("tool", output);
+    message.tool_call_id = Some(tool_call_id.to_string());
+    Some(message)
 }
 
 #[cfg(test)]
@@ -638,7 +623,7 @@ mod tests {
         let message = tool_result_message_from_part(&part).unwrap();
 
         assert_eq!(message.tool_call_id.as_deref(), Some("tool-1"));
-        assert_eq!(message.content, "small preview");
+        assert_eq!(message.text_content(), "small preview");
     }
 
     #[test]
@@ -660,9 +645,10 @@ mod tests {
 
         let message = tool_result_message_from_part(&part).unwrap();
 
-        assert!(message.content.len() < 10_000);
+        assert!(message.text_content().len() < 10_000);
         assert!(
-            message.content.contains("chars omitted") || message.content.contains("_truncated")
+            message.text_content().contains("chars omitted")
+                || message.text_content().contains("_truncated")
         );
     }
 
@@ -774,7 +760,7 @@ mod tests {
         );
 
         let message = tool_result_message_from_part(&part).unwrap();
-        assert_eq!(message.content, "fallback output");
+        assert_eq!(message.text_content(), "fallback output");
     }
 
     #[test]
@@ -1042,14 +1028,14 @@ mod tests {
         assert_eq!(runtime.context.agent_id, "writer");
         assert_eq!(runtime.context.history.len(), 3);
         assert_eq!(runtime.context.history[0].role, "user");
-        assert_eq!(runtime.context.history[0].content, "hello");
+        assert_eq!(runtime.context.history[0].text_content(), "hello");
         assert_eq!(runtime.context.history[1].role, "assistant");
         assert_eq!(
             runtime.context.history[1].tool_calls.as_ref().unwrap()[0].name,
             "search"
         );
         assert_eq!(runtime.context.history[2].role, "tool");
-        assert_eq!(runtime.context.history[2].content, "tool preview");
+        assert_eq!(runtime.context.history[2].text_content(), "tool preview");
     }
 
     #[tokio::test]
@@ -1130,7 +1116,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(runtime.context.history.len(), 1);
-        assert_eq!(runtime.context.history[0].content, "describe this");
+        assert_eq!(runtime.context.history[0].text_content(), "describe this");
         assert_eq!(
             runtime.context.history[0].content_parts,
             vec![

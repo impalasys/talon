@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::executor::LoopMessage;
+use crate::llm::ChatContentPart;
 use serde_json::{json, Map, Value};
 
 #[derive(Debug, Clone)]
@@ -131,16 +132,13 @@ pub fn compact_history_for_llm_with_budget(
 
     let mut compacted = system_messages;
     if omitted > 0 {
-        compacted.push(LoopMessage {
-            role: "system".to_string(),
-            content: format!(
+        compacted.push(LoopMessage::text(
+            "system",
+            format!(
                 "[{} earlier messages omitted to stay within Talon context budget.]",
                 omitted
             ),
-            content_parts: Vec::new(),
-            tool_calls: None,
-            tool_call_id: None,
-        });
+        ));
     }
     compacted.extend(flatten_segments(&kept_tail));
     debug_assert!(
@@ -156,12 +154,15 @@ fn normalize_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopM
     } else {
         budget.max_message_chars
     };
-    let content = if message.role == "tool" {
-        tool_result_preview_with_budget(&message.content, budget)
+    let content_parts = if message.role == "tool" {
+        text_parts(tool_result_preview_with_budget(
+            &message.text_content(),
+            budget,
+        ))
     } else if message.role == "system" {
-        message.content.clone()
+        message.content_parts.clone()
     } else {
-        truncate_middle(&message.content, max_chars)
+        truncate_text_parts(&message.content_parts, max_chars)
     };
 
     let tool_calls = message.tool_calls.as_ref().map(|calls| {
@@ -177,8 +178,7 @@ fn normalize_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopM
 
     LoopMessage {
         role: message.role.clone(),
-        content,
-        content_parts: message.content_parts.clone(),
+        content_parts,
         tool_calls,
         tool_call_id: message.tool_call_id.clone(),
     }
@@ -187,7 +187,7 @@ fn normalize_loop_message(message: &LoopMessage, budget: ContextBudget) -> LoopM
 fn force_fit_message(message: &LoopMessage, budget: ContextBudget) -> LoopMessage {
     let mut compacted = normalize_loop_message(message, budget);
     let allowed_chars = budget.total_chars.min(budget.max_message_chars.max(512));
-    compacted.content = truncate_middle(&compacted.content, allowed_chars);
+    compacted.content_parts = truncate_text_parts(&compacted.content_parts, allowed_chars);
     compacted
 }
 
@@ -203,7 +203,7 @@ fn serialized_message_weight(message: &LoopMessage) -> usize {
         })
         .unwrap_or(0);
     message.role.len()
-        + message.content.len()
+        + content_parts_weight(&message.content_parts)
         + tool_call_weight
         + message
             .tool_call_id
@@ -306,9 +306,10 @@ fn tool_segment_summary(
 ) -> LoopMessage {
     let mut parts = Vec::new();
     if let Some(assistant) = assistant {
-        if !assistant.content.trim().is_empty() {
+        let assistant_text = assistant.text_content();
+        if !assistant_text.trim().is_empty() {
             parts.push(truncate_middle(
-                &assistant.content,
+                &assistant_text,
                 budget.max_message_chars / 2,
             ));
         }
@@ -337,15 +338,73 @@ fn tool_segment_summary(
     }
 
     let content = truncate_middle(&parts.join("\n\n"), budget.max_message_chars);
-    LoopMessage {
-        role: assistant
+    LoopMessage::text(
+        assistant
             .map(|message| message.role.clone())
             .unwrap_or_else(|| "assistant".to_string()),
         content,
-        content_parts: Vec::new(),
-        tool_calls: None,
-        tool_call_id: None,
+    )
+}
+
+fn text_parts(text: String) -> Vec<ChatContentPart> {
+    if text.is_empty() {
+        Vec::new()
+    } else {
+        vec![ChatContentPart::Text { text }]
     }
+}
+
+fn truncate_text_parts(parts: &[ChatContentPart], max_chars: usize) -> Vec<ChatContentPart> {
+    let total_text_len = parts
+        .iter()
+        .filter_map(|part| match part {
+            ChatContentPart::Text { text } => Some(text.len()),
+            _ => None,
+        })
+        .sum::<usize>();
+    if total_text_len <= max_chars {
+        return parts.to_vec();
+    }
+
+    let mut remaining = max_chars;
+    let mut truncated = Vec::with_capacity(parts.len());
+    for part in parts {
+        match part {
+            ChatContentPart::Text { text } => {
+                if remaining == 0 {
+                    continue;
+                }
+                let next = truncate_middle(text, remaining);
+                remaining = remaining.saturating_sub(next.len());
+                if !next.is_empty() {
+                    truncated.push(ChatContentPart::Text { text: next });
+                }
+            }
+            other => truncated.push(other.clone()),
+        }
+    }
+    truncated
+}
+
+fn content_parts_weight(parts: &[ChatContentPart]) -> usize {
+    parts
+        .iter()
+        .map(|part| match part {
+            ChatContentPart::Text { text } => text.len(),
+            ChatContentPart::ImageUrl { url, detail } => {
+                url.len() + detail.as_ref().map(|detail| detail.len()).unwrap_or(0)
+            }
+            ChatContentPart::ImageData {
+                media_type,
+                data_base64,
+                detail,
+            } => {
+                media_type.len()
+                    + data_base64.len()
+                    + detail.as_ref().map(|detail| detail.len()).unwrap_or(0)
+            }
+        })
+        .sum()
 }
 
 impl HistorySegment {
@@ -516,7 +575,7 @@ mod tests {
         tool_result_preview_with_budget, ContextBudget,
     };
     use crate::core::executor::LoopMessage;
-    use crate::llm::ToolCall;
+    use crate::llm::{ChatContentPart, ToolCall};
     use serde::Deserialize;
 
     fn budget() -> ContextBudget {
@@ -545,6 +604,10 @@ mod tests {
         }
     }
 
+    fn message(role: impl Into<String>, content: impl Into<String>) -> LoopMessage {
+        LoopMessage::text(role, content)
+    }
+
     #[derive(Deserialize)]
     struct FixtureLoopMessage {
         role: String,
@@ -557,13 +620,7 @@ mod tests {
             serde_json::from_str(fixture).expect("session fixture should parse");
         parsed
             .into_iter()
-            .map(|message| LoopMessage {
-                role: message.role,
-                content: message.content,
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            })
+            .map(|message| LoopMessage::text(message.role, message.content))
             .collect()
     }
 
@@ -585,79 +642,74 @@ mod tests {
     #[test]
     fn compact_history_keeps_recent_messages_within_budget() {
         let history = vec![
-            LoopMessage {
-                role: "system".to_string(),
-                content: "sys".repeat(40),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
+            message("system", "sys".repeat(40)),
+            message("assistant", "A".repeat(500)),
+            {
+                let mut message =
+                    message("tool", format!(r#"{{"payload":"{}"}}"#, "B".repeat(500)));
+                message.tool_call_id = Some("tool-1".to_string());
+                message
             },
-            LoopMessage {
-                role: "assistant".to_string(),
-                content: "A".repeat(500),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            },
-            LoopMessage {
-                role: "tool".to_string(),
-                content: format!(r#"{{"payload":"{}"}}"#, "B".repeat(500)),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: Some("tool-1".to_string()),
-            },
-            LoopMessage {
-                role: "user".to_string(),
-                content: "latest question".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            },
+            message("user", "latest question"),
         ];
 
         let compacted = compact_history_for_llm_with_budget(&history, budget());
-        let combined_len = compacted.iter().map(|m| m.content.len()).sum::<usize>();
+        let combined_len = compacted
+            .iter()
+            .map(|m| m.text_content().len())
+            .sum::<usize>();
 
         assert!(combined_len <= budget().total_chars + 128);
-        assert_eq!(compacted.last().unwrap().content, "latest question");
-        assert!(compacted.iter().any(|m| m.content.contains("omitted")));
+        assert_eq!(compacted.last().unwrap().text_content(), "latest question");
+        assert!(compacted
+            .iter()
+            .any(|m| m.text_content().contains("omitted")));
+    }
+
+    #[test]
+    fn compact_history_preserves_multimodal_parts_when_message_is_kept() {
+        let mut user = message("user", "");
+        user.content_parts = vec![
+            ChatContentPart::Text {
+                text: "describe this".to_string(),
+            },
+            ChatContentPart::ImageData {
+                media_type: "image/png".to_string(),
+                data_base64: "cG5n".to_string(),
+                detail: None,
+            },
+        ];
+        let history = vec![message("system", "sys"), user];
+
+        let compacted = compact_history_for_llm_with_budget(&history, budget());
+
+        assert!(compacted.iter().any(|message| {
+            message.role == "user"
+                && message.content_parts.iter().any(|part| {
+                    matches!(part, ChatContentPart::ImageData { media_type, .. } if media_type == "image/png")
+                })
+        }));
     }
 
     #[test]
     fn compact_history_preserves_complete_tool_interaction() {
         let history = vec![
-            LoopMessage {
-                role: "user".to_string(),
-                content: "Inspect the footer.".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            },
-            LoopMessage {
-                role: "assistant".to_string(),
-                content: String::new(),
-                content_parts: Vec::new(),
-                tool_calls: Some(vec![ToolCall {
+            message("user", "Inspect the footer."),
+            {
+                let mut message = message("assistant", "");
+                message.tool_calls = Some(vec![ToolCall {
                     id: "tool-1".to_string(),
                     name: "mcp_github_get_file_contents".to_string(),
                     arguments: "{\"path\":\"Footer.tsx\"}".to_string(),
-                }]),
-                tool_call_id: None,
+                }]);
+                message
             },
-            LoopMessage {
-                role: "tool".to_string(),
-                content: "{\"content\":\"export function Footer() {}\"}".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: Some("tool-1".to_string()),
+            {
+                let mut message = message("tool", "{\"content\":\"export function Footer() {}\"}");
+                message.tool_call_id = Some("tool-1".to_string());
+                message
             },
-            LoopMessage {
-                role: "user".to_string(),
-                content: "Continue".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            },
+            message("user", "Continue"),
         ];
 
         let compacted = compact_history_for_llm_with_budget(&history, budget());
@@ -677,31 +729,24 @@ mod tests {
     #[test]
     fn compact_history_degrades_oversized_tool_interaction_instead_of_splitting_it() {
         let history = vec![
-            LoopMessage {
-                role: "assistant".to_string(),
-                content: String::new(),
-                content_parts: Vec::new(),
-                tool_calls: Some(vec![ToolCall {
+            {
+                let mut message = message("assistant", "");
+                message.tool_calls = Some(vec![ToolCall {
                     id: "tool-1".to_string(),
                     name: "mcp_github_search_code".to_string(),
                     arguments: "x".repeat(1_000),
-                }]),
-                tool_call_id: None,
+                }]);
+                message
             },
-            LoopMessage {
-                role: "tool".to_string(),
-                content: format!("{{\"items\":[{{\"content\":\"{}\"}}]}}", "y".repeat(4_000)),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: Some("tool-1".to_string()),
+            {
+                let mut message = message(
+                    "tool",
+                    format!("{{\"items\":[{{\"content\":\"{}\"}}]}}", "y".repeat(4_000)),
+                );
+                message.tool_call_id = Some("tool-1".to_string());
+                message
             },
-            LoopMessage {
-                role: "user".to_string(),
-                content: "Continue".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            },
+            message("user", "Continue"),
         ];
         let tiny_budget = ContextBudget {
             total_chars: 180,
@@ -723,28 +768,20 @@ mod tests {
             .as_ref()
             .is_some_and(|calls| !calls.is_empty())));
         assert!(compacted.iter().any(|message| {
-            message.content.contains("valid tool transcript")
-                || message.content.contains("earlier messages omitted")
+            message.text_content().contains("valid tool transcript")
+                || message.text_content().contains("earlier messages omitted")
         }));
     }
 
     #[test]
     fn compact_history_degrades_orphaned_tool_messages() {
         let history = vec![
-            LoopMessage {
-                role: "tool".to_string(),
-                content: "{\"content\":\"orphan\"}".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: Some("tool-orphan".to_string()),
+            {
+                let mut message = message("tool", "{\"content\":\"orphan\"}");
+                message.tool_call_id = Some("tool-orphan".to_string());
+                message
             },
-            LoopMessage {
-                role: "user".to_string(),
-                content: "Continue".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            },
+            message("user", "Continue"),
         ];
 
         let compacted = compact_history_for_llm_with_budget(&history, budget());
@@ -753,7 +790,7 @@ mod tests {
         assert!(!compacted.iter().any(|message| message.role == "tool"));
         assert!(compacted
             .iter()
-            .any(|message| message.content.contains("orphaned tool result")));
+            .any(|message| message.text_content().contains("orphaned tool result")));
     }
 
     #[test]
@@ -777,20 +814,20 @@ mod tests {
             compacted
                 .iter()
                 .filter(|message| message.role == "tool")
-                .all(|message| message.content.len() <= budget.max_tool_result_chars),
+                .all(|message| message.text_content().len() <= budget.max_tool_result_chars),
             "tool output exceeded max_tool_result_chars"
         );
         assert!(
             compacted
                 .iter()
                 .filter(|message| message.role != "tool" && message.role != "system")
-                .all(|message| message.content.len() <= budget.max_message_chars),
+                .all(|message| message.text_content().len() <= budget.max_message_chars),
             "non-tool message exceeded max_message_chars"
         );
         assert!(
             compacted
                 .iter()
-                .any(|message| message.content.contains("omitted")),
+                .any(|message| message.text_content().contains("omitted")),
             "expected older replay history to be omitted for this downloaded session"
         );
         assert!(
@@ -798,8 +835,8 @@ mod tests {
             "compacted replay should preserve valid tool-call structure"
         );
         assert_eq!(
-            compacted.last().map(|message| message.content.as_str()),
-            Some(""),
+            compacted.last().map(|message| message.text_content()),
+            Some(String::new()),
             "latest assistant message from the downloaded session should remain in replay tail"
         );
     }

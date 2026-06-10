@@ -29,10 +29,20 @@ pub enum ChatContentPart {
     },
 }
 
+pub fn content_parts_text(parts: &[ChatContentPart]) -> String {
+    parts
+        .iter()
+        .filter_map(|part| match part {
+            ChatContentPart::Text { text } => Some(text.as_str()),
+            _ => None,
+        })
+        .collect::<Vec<_>>()
+        .join("")
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ChatMessage {
     pub role: String,
-    pub content: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub content_parts: Vec<ChatContentPart>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,27 +53,28 @@ pub struct ChatMessage {
 
 impl ChatMessage {
     pub fn text(role: impl Into<String>, content: impl Into<String>) -> Self {
+        let content = content.into();
         Self {
             role: role.into(),
-            content: content.into(),
-            content_parts: Vec::new(),
+            content_parts: if content.is_empty() {
+                Vec::new()
+            } else {
+                vec![ChatContentPart::Text { text: content }]
+            },
             tool_calls: None,
             tool_call_id: None,
         }
     }
 
-    pub fn effective_content_parts(&self) -> Vec<ChatContentPart> {
-        if self.content_parts.is_empty() {
-            if self.content.is_empty() {
-                Vec::new()
-            } else {
-                vec![ChatContentPart::Text {
-                    text: self.content.clone(),
-                }]
-            }
-        } else {
-            self.content_parts.clone()
-        }
+    pub fn text_content(&self) -> String {
+        content_parts_text(&self.content_parts)
+    }
+
+    pub fn is_empty_content(&self) -> bool {
+        self.content_parts.iter().all(|part| match part {
+            ChatContentPart::Text { text } => text.is_empty(),
+            _ => false,
+        })
     }
 }
 

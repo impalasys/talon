@@ -77,19 +77,21 @@ impl AnthropicProvider {
     }
 
     fn serialize_message(message: &ChatMessage) -> serde_json::Value {
+        let content = match message.content_parts.as_slice() {
+            [] => serde_json::Value::String(String::new()),
+            [ChatContentPart::Text { text }] => serde_json::Value::String(text.clone()),
+            _ => serde_json::Value::Array(
+                message
+                    .content_parts
+                    .clone()
+                    .into_iter()
+                    .map(anthropic_content_part)
+                    .collect(),
+            ),
+        };
         json!({
             "role": message.role,
-            "content": if message.content_parts.is_empty() {
-                serde_json::Value::String(message.content.clone())
-            } else {
-                serde_json::Value::Array(
-                    message
-                        .effective_content_parts()
-                        .into_iter()
-                        .map(anthropic_content_part)
-                        .collect()
-                )
-            }
+            "content": content,
         })
     }
 }
@@ -269,13 +271,7 @@ impl LlmProvider for AnthropicProvider {
 
     async fn completion(&self, prompt: &str) -> Result<String> {
         self.chat_completion(ChatRequest {
-            messages: vec![ChatMessage {
-                role: "user".to_string(),
-                content: prompt.to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            }],
+            messages: vec![ChatMessage::text("user", prompt)],
             tools: vec![],
             thinking: None,
         })
@@ -409,6 +405,20 @@ mod tests {
                 }
             })
         );
+    }
+
+    #[test]
+    fn serialize_message_emits_strings_for_empty_and_single_text_content() {
+        let empty = AnthropicProvider::serialize_message(&ChatMessage {
+            role: "assistant".to_string(),
+            content_parts: Vec::new(),
+            tool_calls: None,
+            tool_call_id: None,
+        });
+        let text = AnthropicProvider::serialize_message(&ChatMessage::text("user", "hello"));
+
+        assert_eq!(empty["content"], "");
+        assert_eq!(text["content"], "hello");
     }
 
     fn test_provider(base_url: String) -> AnthropicProvider {
@@ -569,13 +579,7 @@ mod tests {
         });
 
         let provider = test_provider(format!("http://{}", addr));
-        let messages = vec![ChatMessage {
-            role: "user".to_string(),
-            content: "hello".to_string(),
-            content_parts: Vec::new(),
-            tool_calls: None,
-            tool_call_id: None,
-        }];
+        let messages = vec![ChatMessage::text("user", "hello")];
 
         let response = provider
             .chat_completion(ChatRequest {
@@ -590,10 +594,7 @@ mod tests {
 
         let api_err = provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    content: "cause-error".to_string(),
-                    ..messages[0].clone()
-                }],
+                messages: vec![ChatMessage::text("user", "cause-error")],
                 tools: vec![],
                 thinking: None,
             })
@@ -603,10 +604,7 @@ mod tests {
 
         let format_err = provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    content: "bad-format".to_string(),
-                    ..messages[0].clone()
-                }],
+                messages: vec![ChatMessage::text("user", "bad-format")],
                 tools: vec![],
                 thinking: None,
             })
@@ -649,13 +647,7 @@ mod tests {
         });
 
         let provider = test_provider(format!("http://{}", addr));
-        let messages = vec![ChatMessage {
-            role: "user".to_string(),
-            content: "stream".to_string(),
-            content_parts: Vec::new(),
-            tool_calls: None,
-            tool_call_id: None,
-        }];
+        let messages = vec![ChatMessage::text("user", "stream")];
 
         let mut stream = provider
             .stream_chat_completion(ChatRequest {
@@ -679,10 +671,7 @@ mod tests {
 
         let err = match provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    content: "stream-error".to_string(),
-                    ..messages[0].clone()
-                }],
+                messages: vec![ChatMessage::text("user", "stream-error")],
                 tools: vec![],
                 thinking: None,
             })

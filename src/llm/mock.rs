@@ -51,13 +51,7 @@ mod tests {
 
         let response = provider
             .chat_completion(ChatRequest {
-                messages: vec![crate::llm::ChatMessage {
-                    role: "user".to_string(),
-                    content: "hi".to_string(),
-                    content_parts: Vec::new(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
+                messages: vec![crate::llm::ChatMessage::text("user", "hi")],
                 tools: vec![],
                 thinking: None,
             })
@@ -69,13 +63,7 @@ mod tests {
 
         let stream = provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![crate::llm::ChatMessage {
-                    role: "user".to_string(),
-                    content: "stream".to_string(),
-                    content_parts: Vec::new(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
+                messages: vec![crate::llm::ChatMessage::text("user", "stream")],
                 tools: vec![],
                 thinking: None,
             })

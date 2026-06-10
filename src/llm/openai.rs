@@ -84,16 +84,16 @@ impl OpenAiCompatibleProvider {
         messages
             .into_iter()
             .map(|message| {
-                let content = if message.content_parts.is_empty() {
-                    serde_json::Value::String(message.content)
-                } else {
-                    serde_json::Value::Array(
+                let content = match message.content_parts.as_slice() {
+                    [] => serde_json::Value::String(String::new()),
+                    [ChatContentPart::Text { text }] => serde_json::Value::String(text.clone()),
+                    _ => serde_json::Value::Array(
                         message
                             .content_parts
                             .into_iter()
                             .map(openai_content_part)
                             .collect(),
-                    )
+                    ),
                 };
                 let mut json = serde_json::json!({
                     "role": message.role,
@@ -687,13 +687,7 @@ impl LlmProvider for OpenAiCompatibleProvider {
 
     async fn completion(&self, prompt: &str) -> Result<String> {
         self.chat_completion(ChatRequest {
-            messages: vec![ChatMessage {
-                role: "user".to_string(),
-                content: prompt.to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: None,
-            }],
+            messages: vec![ChatMessage::text("user", prompt)],
             tools: vec![],
             thinking: None,
         })
@@ -762,6 +756,30 @@ mod tests {
     };
     use tokio::net::TcpListener;
 
+    fn assistant_tool_call_message(name: &str, arguments: &str) -> ChatMessage {
+        ChatMessage {
+            role: "assistant".to_string(),
+            content_parts: Vec::new(),
+            tool_calls: Some(vec![crate::llm::provider::ToolCall {
+                id: "call_1".to_string(),
+                name: name.to_string(),
+                arguments: arguments.to_string(),
+            }]),
+            tool_call_id: None,
+        }
+    }
+
+    fn tool_result_message(content: &str) -> ChatMessage {
+        ChatMessage {
+            role: "tool".to_string(),
+            content_parts: vec![ChatContentPart::Text {
+                text: content.to_string(),
+            }],
+            tool_calls: None,
+            tool_call_id: Some("call_1".to_string()),
+        }
+    }
+
     #[test]
     fn request_debug_stats_measure_payload_and_schemas() {
         let messages = vec![serde_json::json!({
@@ -807,24 +825,8 @@ mod tests {
     #[test]
     fn serialize_messages_preserves_tool_protocol_fields() {
         let messages = vec![
-            ChatMessage {
-                role: "assistant".to_string(),
-                content: "".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: Some(vec![crate::llm::provider::ToolCall {
-                    id: "call_1".to_string(),
-                    name: "mcp_conic_create_github_pr".to_string(),
-                    arguments: "{\"title\":\"x\"}".to_string(),
-                }]),
-                tool_call_id: None,
-            },
-            ChatMessage {
-                role: "tool".to_string(),
-                content: "{\"url\":\"https://github.com/example/repo/pull/2\"}".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: Some("call_1".to_string()),
-            },
+            assistant_tool_call_message("mcp_conic_create_github_pr", "{\"title\":\"x\"}"),
+            tool_result_message("{\"url\":\"https://github.com/example/repo/pull/2\"}"),
         ];
 
         let serialized = OpenAiCompatibleProvider::serialize_messages(messages);
@@ -840,7 +842,6 @@ mod tests {
     fn serialize_messages_emits_multimodal_content_parts() {
         let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
             role: "user".to_string(),
-            content: "fallback text".to_string(),
             content_parts: vec![
                 ChatContentPart::Text {
                     text: "look at this".to_string(),
@@ -873,24 +874,8 @@ mod tests {
             "model".to_string(),
         );
         let messages = vec![
-            ChatMessage {
-                role: "assistant".to_string(),
-                content: "".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: Some(vec![crate::llm::provider::ToolCall {
-                    id: "call_1".to_string(),
-                    name: "mcp_conic_create_github_pr".to_string(),
-                    arguments: "{\"title\":\"x\"}".to_string(),
-                }]),
-                tool_call_id: None,
-            },
-            ChatMessage {
-                role: "tool".to_string(),
-                content: "{\"url\":\"https://github.com/example/repo/pull/2\"}".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: Some("call_1".to_string()),
-            },
+            assistant_tool_call_message("mcp_conic_create_github_pr", "{\"title\":\"x\"}"),
+            tool_result_message("{\"url\":\"https://github.com/example/repo/pull/2\"}"),
         ];
 
         assert!(provider.supports_tool_retry_without_tools(
@@ -945,17 +930,25 @@ mod tests {
 
     #[test]
     fn serialize_messages_omits_absent_tool_fields() {
+        let serialized =
+            OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage::text("user", "hello")]);
+
+        assert_eq!(serialized[0]["role"], "user");
+        assert_eq!(serialized[0]["content"], "hello");
+        assert!(serialized[0].get("tool_calls").is_none());
+        assert!(serialized[0].get("tool_call_id").is_none());
+    }
+
+    #[test]
+    fn serialize_messages_emits_empty_string_for_empty_content_parts() {
         let serialized = OpenAiCompatibleProvider::serialize_messages(vec![ChatMessage {
-            role: "user".to_string(),
-            content: "hello".to_string(),
+            role: "assistant".to_string(),
             content_parts: Vec::new(),
             tool_calls: None,
             tool_call_id: None,
         }]);
 
-        assert_eq!(serialized[0]["role"], "user");
-        assert!(serialized[0].get("tool_calls").is_none());
-        assert!(serialized[0].get("tool_call_id").is_none());
+        assert_eq!(serialized[0]["content"], "");
     }
 
     #[tokio::test]
@@ -1040,24 +1033,8 @@ mod tests {
             "model".to_string(),
         );
         let messages = vec![
-            ChatMessage {
-                role: "assistant".to_string(),
-                content: "".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: Some(vec![crate::llm::provider::ToolCall {
-                    id: "call_1".to_string(),
-                    name: "search".to_string(),
-                    arguments: "{\"q\":\"x\"}".to_string(),
-                }]),
-                tool_call_id: None,
-            },
-            ChatMessage {
-                role: "tool".to_string(),
-                content: "{\"ok\":true}".to_string(),
-                content_parts: Vec::new(),
-                tool_calls: None,
-                tool_call_id: Some("call_1".to_string()),
-            },
+            assistant_tool_call_message("search", "{\"q\":\"x\"}"),
+            tool_result_message("{\"ok\":true}"),
         ];
         let tools = vec![crate::llm::provider::Tool {
             name: "search".to_string(),
@@ -1149,13 +1126,7 @@ mod tests {
 
         provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: "hi".to_string(),
-                    content_parts: Vec::new(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
+                messages: vec![ChatMessage::text("user", "hi")],
                 tools: vec![],
                 thinking: Some(ThinkingConfig {
                     enabled: true,
@@ -1200,13 +1171,7 @@ mod tests {
 
         provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: "hi".to_string(),
-                    content_parts: Vec::new(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
+                messages: vec![ChatMessage::text("user", "hi")],
                 tools: vec![],
                 thinking: Some(ThinkingConfig {
                     enabled: true,
@@ -1255,13 +1220,7 @@ mod tests {
         );
         let result = provider
             .chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: "hi".to_string(),
-                    content_parts: Vec::new(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
+                messages: vec![ChatMessage::text("user", "hi")],
                 tools: vec![],
                 thinking: None,
             })
@@ -1304,13 +1263,7 @@ mod tests {
         let err = provider
             .send_chat_request(
                 ChatRequest {
-                    messages: vec![ChatMessage {
-                        role: "user".to_string(),
-                        content: "hi".to_string(),
-                        content_parts: Vec::new(),
-                        tool_calls: None,
-                        tool_call_id: None,
-                    }],
+                    messages: vec![ChatMessage::text("user", "hi")],
                     tools: vec![],
                     thinking: None,
                 },
@@ -1379,13 +1332,7 @@ mod tests {
         let response = provider
             .send_chat_request(
                 ChatRequest {
-                    messages: vec![ChatMessage {
-                        role: "user".to_string(),
-                        content: "hi".to_string(),
-                        content_parts: Vec::new(),
-                        tool_calls: None,
-                        tool_call_id: None,
-                    }],
+                    messages: vec![ChatMessage::text("user", "hi")],
                     tools: vec![],
                     thinking: None,
                 },
@@ -1447,24 +1394,8 @@ mod tests {
             .send_chat_request(
                 ChatRequest {
                     messages: vec![
-                        ChatMessage {
-                            role: "assistant".to_string(),
-                            content: "".to_string(),
-                            content_parts: Vec::new(),
-                            tool_calls: Some(vec![crate::llm::provider::ToolCall {
-                                id: "call_1".to_string(),
-                                name: "search".to_string(),
-                                arguments: "{\"q\":\"x\"}".to_string(),
-                            }]),
-                            tool_call_id: None,
-                        },
-                        ChatMessage {
-                            role: "tool".to_string(),
-                            content: "{\"ok\":true}".to_string(),
-                            content_parts: Vec::new(),
-                            tool_calls: None,
-                            tool_call_id: Some("call_1".to_string()),
-                        },
+                        assistant_tool_call_message("search", "{\"q\":\"x\"}"),
+                        tool_result_message("{\"ok\":true}"),
                     ],
                     tools: vec![crate::llm::provider::Tool {
                         name: "search".to_string(),
@@ -1526,13 +1457,7 @@ mod tests {
         );
         let mut stream = provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: "hi".to_string(),
-                    content_parts: Vec::new(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
+                messages: vec![ChatMessage::text("user", "hi")],
                 tools: vec![],
                 thinking: None,
             })
@@ -1591,13 +1516,7 @@ mod tests {
         );
         let mut stream = provider
             .stream_chat_completion(ChatRequest {
-                messages: vec![ChatMessage {
-                    role: "user".to_string(),
-                    content: "hi".to_string(),
-                    content_parts: Vec::new(),
-                    tool_calls: None,
-                    tool_call_id: None,
-                }],
+                messages: vec![ChatMessage::text("user", "hi")],
                 tools: vec![],
                 thinking: None,
             })
