@@ -47,7 +47,7 @@ pub struct AgentSpec {
         ::prost_types::ListValue,
     >,
     #[prost(message, optional, tag = "7")]
-    pub a2a: ::core::option::Option<A2aSpec>,
+    pub a2a: ::core::option::Option<A2a>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AgentDefinition {
@@ -228,18 +228,18 @@ pub struct McpServerBindingSpec {
     pub allowed_tool_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct A2aSpec {
+pub struct A2a {
     #[prost(message, repeated, tag = "1")]
-    pub connections: ::prost::alloc::vec::Vec<A2aConnection>,
+    pub connections: ::prost::alloc::vec::Vec<Connection>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct A2aConnection {
+pub struct Connection {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub description: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "3")]
-    pub target: ::core::option::Option<A2aTarget>,
+    pub target: ::core::option::Option<ConnectionRef>,
     #[prost(string, repeated, tag = "4")]
     pub input_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     #[prost(string, repeated, tag = "5")]
@@ -249,37 +249,37 @@ pub struct A2aConnection {
     #[prost(uint32, tag = "7")]
     pub max_depth: u32,
     #[prost(message, optional, tag = "8")]
-    pub auth: ::core::option::Option<A2aConnectionAuth>,
+    pub auth: ::core::option::Option<ConnectionAuth>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct A2aTarget {
-    #[prost(oneof = "a2a_target::Target", tags = "1, 2")]
-    pub target: ::core::option::Option<a2a_target::Target>,
+pub struct ConnectionRef {
+    #[prost(oneof = "connection_ref::Target", tags = "1, 2")]
+    pub target: ::core::option::Option<connection_ref::Target>,
 }
-/// Nested message and enum types in `A2aTarget`.
-pub mod a2a_target {
+/// Nested message and enum types in `ConnectionRef`.
+pub mod connection_ref {
     #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Target {
         #[prost(message, tag = "1")]
-        Internal(super::A2aInternalTarget),
+        Internal(super::InternalConnectionRef),
         #[prost(message, tag = "2")]
-        External(super::A2aExternalTarget),
+        External(super::ExternalConnectionRef),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct A2aInternalTarget {
+pub struct InternalConnectionRef {
     #[prost(string, tag = "1")]
     pub namespace: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub agent: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct A2aExternalTarget {
+pub struct ExternalConnectionRef {
     #[prost(string, tag = "1")]
     pub agent_card_url: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct A2aConnectionAuth {
+pub struct ConnectionAuth {
     #[prost(string, tag = "1")]
     pub kind: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]

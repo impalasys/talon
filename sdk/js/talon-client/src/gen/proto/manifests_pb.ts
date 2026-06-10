@@ -148,9 +148,9 @@ export class AgentSpec extends Message<AgentSpec> {
   capabilities: { [key: string]: ListValue } = {};
 
   /**
-   * @generated from field: talon.manifests.A2aSpec a2a = 7;
+   * @generated from field: talon.manifests.A2A a2a = 7;
    */
-  a2a?: A2aSpec;
+  a2a?: A2A;
 
   constructor(data?: PartialMessage<AgentSpec>) {
     super();
@@ -165,7 +165,7 @@ export class AgentSpec extends Message<AgentSpec> {
     { no: 3, name: "system_prompt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "mcp_server_refs", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 6, name: "capabilities", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ListValue} },
-    { no: 7, name: "a2a", kind: "message", T: A2aSpec },
+    { no: 7, name: "a2a", kind: "message", T: A2A },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentSpec {
@@ -1034,46 +1034,46 @@ export class McpServerBindingSpec extends Message<McpServerBindingSpec> {
 }
 
 /**
- * @generated from message talon.manifests.A2aSpec
+ * @generated from message talon.manifests.A2A
  */
-export class A2aSpec extends Message<A2aSpec> {
+export class A2A extends Message<A2A> {
   /**
-   * @generated from field: repeated talon.manifests.A2aConnection connections = 1;
+   * @generated from field: repeated talon.manifests.Connection connections = 1;
    */
-  connections: A2aConnection[] = [];
+  connections: Connection[] = [];
 
-  constructor(data?: PartialMessage<A2aSpec>) {
+  constructor(data?: PartialMessage<A2A>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.manifests.A2aSpec";
+  static readonly typeName = "talon.manifests.A2A";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "connections", kind: "message", T: A2aConnection, repeated: true },
+    { no: 1, name: "connections", kind: "message", T: Connection, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2aSpec {
-    return new A2aSpec().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2A {
+    return new A2A().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): A2aSpec {
-    return new A2aSpec().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): A2A {
+    return new A2A().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): A2aSpec {
-    return new A2aSpec().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): A2A {
+    return new A2A().fromJsonString(jsonString, options);
   }
 
-  static equals(a: A2aSpec | PlainMessage<A2aSpec> | undefined, b: A2aSpec | PlainMessage<A2aSpec> | undefined): boolean {
-    return proto3.util.equals(A2aSpec, a, b);
+  static equals(a: A2A | PlainMessage<A2A> | undefined, b: A2A | PlainMessage<A2A> | undefined): boolean {
+    return proto3.util.equals(A2A, a, b);
   }
 }
 
 /**
- * @generated from message talon.manifests.A2aConnection
+ * @generated from message talon.manifests.Connection
  */
-export class A2aConnection extends Message<A2aConnection> {
+export class Connection extends Message<Connection> {
   /**
    * @generated from field: string name = 1;
    */
@@ -1085,9 +1085,9 @@ export class A2aConnection extends Message<A2aConnection> {
   description = "";
 
   /**
-   * @generated from field: talon.manifests.A2aTarget target = 3;
+   * @generated from field: talon.manifests.ConnectionRef target = 3;
    */
-  target?: A2aTarget;
+  target?: ConnectionRef;
 
   /**
    * @generated from field: repeated string input_modes = 4;
@@ -1110,99 +1110,99 @@ export class A2aConnection extends Message<A2aConnection> {
   maxDepth = 0;
 
   /**
-   * @generated from field: talon.manifests.A2aConnectionAuth auth = 8;
+   * @generated from field: talon.manifests.ConnectionAuth auth = 8;
    */
-  auth?: A2aConnectionAuth;
+  auth?: ConnectionAuth;
 
-  constructor(data?: PartialMessage<A2aConnection>) {
+  constructor(data?: PartialMessage<Connection>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.manifests.A2aConnection";
+  static readonly typeName = "talon.manifests.Connection";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "target", kind: "message", T: A2aTarget },
+    { no: 3, name: "target", kind: "message", T: ConnectionRef },
     { no: 4, name: "input_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 5, name: "output_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 6, name: "timeout_seconds", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
     { no: 7, name: "max_depth", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
-    { no: 8, name: "auth", kind: "message", T: A2aConnectionAuth },
+    { no: 8, name: "auth", kind: "message", T: ConnectionAuth },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2aConnection {
-    return new A2aConnection().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Connection {
+    return new Connection().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): A2aConnection {
-    return new A2aConnection().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Connection {
+    return new Connection().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): A2aConnection {
-    return new A2aConnection().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Connection {
+    return new Connection().fromJsonString(jsonString, options);
   }
 
-  static equals(a: A2aConnection | PlainMessage<A2aConnection> | undefined, b: A2aConnection | PlainMessage<A2aConnection> | undefined): boolean {
-    return proto3.util.equals(A2aConnection, a, b);
+  static equals(a: Connection | PlainMessage<Connection> | undefined, b: Connection | PlainMessage<Connection> | undefined): boolean {
+    return proto3.util.equals(Connection, a, b);
   }
 }
 
 /**
- * @generated from message talon.manifests.A2aTarget
+ * @generated from message talon.manifests.ConnectionRef
  */
-export class A2aTarget extends Message<A2aTarget> {
+export class ConnectionRef extends Message<ConnectionRef> {
   /**
-   * @generated from oneof talon.manifests.A2aTarget.target
+   * @generated from oneof talon.manifests.ConnectionRef.target
    */
   target: {
     /**
-     * @generated from field: talon.manifests.A2aInternalTarget internal = 1;
+     * @generated from field: talon.manifests.InternalConnectionRef internal = 1;
      */
-    value: A2aInternalTarget;
+    value: InternalConnectionRef;
     case: "internal";
   } | {
     /**
-     * @generated from field: talon.manifests.A2aExternalTarget external = 2;
+     * @generated from field: talon.manifests.ExternalConnectionRef external = 2;
      */
-    value: A2aExternalTarget;
+    value: ExternalConnectionRef;
     case: "external";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
-  constructor(data?: PartialMessage<A2aTarget>) {
+  constructor(data?: PartialMessage<ConnectionRef>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.manifests.A2aTarget";
+  static readonly typeName = "talon.manifests.ConnectionRef";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "internal", kind: "message", T: A2aInternalTarget, oneof: "target" },
-    { no: 2, name: "external", kind: "message", T: A2aExternalTarget, oneof: "target" },
+    { no: 1, name: "internal", kind: "message", T: InternalConnectionRef, oneof: "target" },
+    { no: 2, name: "external", kind: "message", T: ExternalConnectionRef, oneof: "target" },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2aTarget {
-    return new A2aTarget().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionRef {
+    return new ConnectionRef().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): A2aTarget {
-    return new A2aTarget().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionRef {
+    return new ConnectionRef().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): A2aTarget {
-    return new A2aTarget().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionRef {
+    return new ConnectionRef().fromJsonString(jsonString, options);
   }
 
-  static equals(a: A2aTarget | PlainMessage<A2aTarget> | undefined, b: A2aTarget | PlainMessage<A2aTarget> | undefined): boolean {
-    return proto3.util.equals(A2aTarget, a, b);
+  static equals(a: ConnectionRef | PlainMessage<ConnectionRef> | undefined, b: ConnectionRef | PlainMessage<ConnectionRef> | undefined): boolean {
+    return proto3.util.equals(ConnectionRef, a, b);
   }
 }
 
 /**
- * @generated from message talon.manifests.A2aInternalTarget
+ * @generated from message talon.manifests.InternalConnectionRef
  */
-export class A2aInternalTarget extends Message<A2aInternalTarget> {
+export class InternalConnectionRef extends Message<InternalConnectionRef> {
   /**
    * @generated from field: string namespace = 1;
    */
@@ -1213,76 +1213,76 @@ export class A2aInternalTarget extends Message<A2aInternalTarget> {
    */
   agent = "";
 
-  constructor(data?: PartialMessage<A2aInternalTarget>) {
+  constructor(data?: PartialMessage<InternalConnectionRef>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.manifests.A2aInternalTarget";
+  static readonly typeName = "talon.manifests.InternalConnectionRef";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2aInternalTarget {
-    return new A2aInternalTarget().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InternalConnectionRef {
+    return new InternalConnectionRef().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): A2aInternalTarget {
-    return new A2aInternalTarget().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InternalConnectionRef {
+    return new InternalConnectionRef().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): A2aInternalTarget {
-    return new A2aInternalTarget().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InternalConnectionRef {
+    return new InternalConnectionRef().fromJsonString(jsonString, options);
   }
 
-  static equals(a: A2aInternalTarget | PlainMessage<A2aInternalTarget> | undefined, b: A2aInternalTarget | PlainMessage<A2aInternalTarget> | undefined): boolean {
-    return proto3.util.equals(A2aInternalTarget, a, b);
+  static equals(a: InternalConnectionRef | PlainMessage<InternalConnectionRef> | undefined, b: InternalConnectionRef | PlainMessage<InternalConnectionRef> | undefined): boolean {
+    return proto3.util.equals(InternalConnectionRef, a, b);
   }
 }
 
 /**
- * @generated from message talon.manifests.A2aExternalTarget
+ * @generated from message talon.manifests.ExternalConnectionRef
  */
-export class A2aExternalTarget extends Message<A2aExternalTarget> {
+export class ExternalConnectionRef extends Message<ExternalConnectionRef> {
   /**
    * @generated from field: string agent_card_url = 1;
    */
   agentCardUrl = "";
 
-  constructor(data?: PartialMessage<A2aExternalTarget>) {
+  constructor(data?: PartialMessage<ExternalConnectionRef>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.manifests.A2aExternalTarget";
+  static readonly typeName = "talon.manifests.ExternalConnectionRef";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "agent_card_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2aExternalTarget {
-    return new A2aExternalTarget().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExternalConnectionRef {
+    return new ExternalConnectionRef().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): A2aExternalTarget {
-    return new A2aExternalTarget().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExternalConnectionRef {
+    return new ExternalConnectionRef().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): A2aExternalTarget {
-    return new A2aExternalTarget().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExternalConnectionRef {
+    return new ExternalConnectionRef().fromJsonString(jsonString, options);
   }
 
-  static equals(a: A2aExternalTarget | PlainMessage<A2aExternalTarget> | undefined, b: A2aExternalTarget | PlainMessage<A2aExternalTarget> | undefined): boolean {
-    return proto3.util.equals(A2aExternalTarget, a, b);
+  static equals(a: ExternalConnectionRef | PlainMessage<ExternalConnectionRef> | undefined, b: ExternalConnectionRef | PlainMessage<ExternalConnectionRef> | undefined): boolean {
+    return proto3.util.equals(ExternalConnectionRef, a, b);
   }
 }
 
 /**
- * @generated from message talon.manifests.A2aConnectionAuth
+ * @generated from message talon.manifests.ConnectionAuth
  */
-export class A2aConnectionAuth extends Message<A2aConnectionAuth> {
+export class ConnectionAuth extends Message<ConnectionAuth> {
   /**
    * @generated from field: string kind = 1;
    */
@@ -1293,32 +1293,32 @@ export class A2aConnectionAuth extends Message<A2aConnectionAuth> {
    */
   secretRef = "";
 
-  constructor(data?: PartialMessage<A2aConnectionAuth>) {
+  constructor(data?: PartialMessage<ConnectionAuth>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.manifests.A2aConnectionAuth";
+  static readonly typeName = "talon.manifests.ConnectionAuth";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "secret_ref", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2aConnectionAuth {
-    return new A2aConnectionAuth().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionAuth {
+    return new ConnectionAuth().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): A2aConnectionAuth {
-    return new A2aConnectionAuth().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionAuth {
+    return new ConnectionAuth().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): A2aConnectionAuth {
-    return new A2aConnectionAuth().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionAuth {
+    return new ConnectionAuth().fromJsonString(jsonString, options);
   }
 
-  static equals(a: A2aConnectionAuth | PlainMessage<A2aConnectionAuth> | undefined, b: A2aConnectionAuth | PlainMessage<A2aConnectionAuth> | undefined): boolean {
-    return proto3.util.equals(A2aConnectionAuth, a, b);
+  static equals(a: ConnectionAuth | PlainMessage<ConnectionAuth> | undefined, b: ConnectionAuth | PlainMessage<ConnectionAuth> | undefined): boolean {
+    return proto3.util.equals(ConnectionAuth, a, b);
   }
 }
 

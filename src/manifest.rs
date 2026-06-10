@@ -106,7 +106,7 @@ struct AgentSpecManifest {
     system_prompt: String,
     mcp_server_refs: Vec<String>,
     capabilities: Option<CapabilitiesPolicyManifest>,
-    a2a: Option<A2ASpecManifest>,
+    a2a: Option<A2AManifest>,
 }
 
 type CapabilitiesPolicyManifest = HashMap<String, Vec<String>>;
@@ -204,46 +204,46 @@ struct McpServerBindingSpecManifest {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-struct A2ASpecManifest {
-    connections: Vec<A2AConnectionManifest>,
+struct A2AManifest {
+    connections: Vec<ConnectionManifest>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-struct A2AConnectionManifest {
+struct ConnectionManifest {
     name: String,
     description: String,
-    target: A2ATargetManifest,
+    target: ConnectionRefManifest,
     input_modes: Vec<String>,
     output_modes: Vec<String>,
     timeout_seconds: u32,
     max_depth: u32,
-    auth: Option<A2AConnectionAuthManifest>,
+    auth: Option<ConnectionAuthManifest>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-struct A2ATargetManifest {
-    internal: Option<A2AInternalTargetManifest>,
-    external: Option<A2AExternalTargetManifest>,
+struct ConnectionRefManifest {
+    internal: Option<InternalConnectionRefManifest>,
+    external: Option<ExternalConnectionRefManifest>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-struct A2AInternalTargetManifest {
+struct InternalConnectionRefManifest {
     namespace: String,
     agent: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-struct A2AExternalTargetManifest {
+struct ExternalConnectionRefManifest {
     agent_card_url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-struct A2AConnectionAuthManifest {
+struct ConnectionAuthManifest {
     kind: String,
     secret_ref: String,
 }
@@ -1000,34 +1000,34 @@ impl McpServerBindingSpecManifest {
     }
 }
 
-impl A2ASpecManifest {
-    fn into_proto(self) -> Result<manifests::A2aSpec> {
-        Ok(manifests::A2aSpec {
+impl A2AManifest {
+    fn into_proto(self) -> Result<manifests::A2a> {
+        Ok(manifests::A2a {
             connections: self
                 .connections
                 .into_iter()
-                .map(A2AConnectionManifest::into_proto)
+                .map(ConnectionManifest::into_proto)
                 .collect::<Result<Vec<_>>>()?,
         })
     }
 
-    fn from_proto(spec: &manifests::A2aSpec) -> Self {
+    fn from_proto(spec: &manifests::A2a) -> Self {
         Self {
             connections: spec
                 .connections
                 .iter()
-                .map(A2AConnectionManifest::from_proto)
+                .map(ConnectionManifest::from_proto)
                 .collect(),
         }
     }
 }
 
-impl A2AConnectionManifest {
-    fn into_proto(self) -> Result<manifests::A2aConnection> {
+impl ConnectionManifest {
+    fn into_proto(self) -> Result<manifests::Connection> {
         if self.name.trim().is_empty() {
             bail!("A2A connection name is required");
         }
-        Ok(manifests::A2aConnection {
+        Ok(manifests::Connection {
             name: self.name,
             description: self.description,
             target: Some(self.target.into_proto()?),
@@ -1035,18 +1035,18 @@ impl A2AConnectionManifest {
             output_modes: self.output_modes,
             timeout_seconds: self.timeout_seconds,
             max_depth: self.max_depth,
-            auth: self.auth.map(A2AConnectionAuthManifest::into_proto),
+            auth: self.auth.map(ConnectionAuthManifest::into_proto),
         })
     }
 
-    fn from_proto(connection: &manifests::A2aConnection) -> Self {
+    fn from_proto(connection: &manifests::Connection) -> Self {
         Self {
             name: connection.name.clone(),
             description: connection.description.clone(),
             target: connection
                 .target
                 .as_ref()
-                .map(A2ATargetManifest::from_proto)
+                .map(ConnectionRefManifest::from_proto)
                 .unwrap_or_default(),
             input_modes: connection.input_modes.clone(),
             output_modes: connection.output_modes.clone(),
@@ -1055,20 +1055,20 @@ impl A2AConnectionManifest {
             auth: connection
                 .auth
                 .as_ref()
-                .map(A2AConnectionAuthManifest::from_proto),
+                .map(ConnectionAuthManifest::from_proto),
         }
     }
 }
 
-impl A2ATargetManifest {
-    fn into_proto(self) -> Result<manifests::A2aTarget> {
+impl ConnectionRefManifest {
+    fn into_proto(self) -> Result<manifests::ConnectionRef> {
         let target = match (self.internal, self.external) {
             (Some(internal), None) => {
                 if internal.namespace.trim().is_empty() || internal.agent.trim().is_empty() {
                     bail!("A2A internal target requires namespace and agent");
                 }
-                Some(manifests::a2a_target::Target::Internal(
-                    manifests::A2aInternalTarget {
+                Some(manifests::connection_ref::Target::Internal(
+                    manifests::InternalConnectionRef {
                         namespace: internal.namespace,
                         agent: internal.agent,
                     },
@@ -1078,8 +1078,8 @@ impl A2ATargetManifest {
                 if external.agent_card_url.trim().is_empty() {
                     bail!("A2A external target requires agentCardUrl");
                 }
-                Some(manifests::a2a_target::Target::External(
-                    manifests::A2aExternalTarget {
+                Some(manifests::connection_ref::Target::External(
+                    manifests::ExternalConnectionRef {
                         agent_card_url: external.agent_card_url,
                     },
                 ))
@@ -1087,21 +1087,21 @@ impl A2ATargetManifest {
             (Some(_), Some(_)) => bail!("A2A target must set only one of internal or external"),
             (None, None) => bail!("A2A target must set one of internal or external"),
         };
-        Ok(manifests::A2aTarget { target })
+        Ok(manifests::ConnectionRef { target })
     }
 
-    fn from_proto(target: &manifests::A2aTarget) -> Self {
+    fn from_proto(target: &manifests::ConnectionRef) -> Self {
         match target.target.as_ref() {
-            Some(manifests::a2a_target::Target::Internal(internal)) => Self {
-                internal: Some(A2AInternalTargetManifest {
+            Some(manifests::connection_ref::Target::Internal(internal)) => Self {
+                internal: Some(InternalConnectionRefManifest {
                     namespace: internal.namespace.clone(),
                     agent: internal.agent.clone(),
                 }),
                 external: None,
             },
-            Some(manifests::a2a_target::Target::External(external)) => Self {
+            Some(manifests::connection_ref::Target::External(external)) => Self {
                 internal: None,
-                external: Some(A2AExternalTargetManifest {
+                external: Some(ExternalConnectionRefManifest {
                     agent_card_url: external.agent_card_url.clone(),
                 }),
             },
@@ -1110,15 +1110,15 @@ impl A2ATargetManifest {
     }
 }
 
-impl A2AConnectionAuthManifest {
-    fn into_proto(self) -> manifests::A2aConnectionAuth {
-        manifests::A2aConnectionAuth {
+impl ConnectionAuthManifest {
+    fn into_proto(self) -> manifests::ConnectionAuth {
+        manifests::ConnectionAuth {
             kind: self.kind,
             secret_ref: self.secret_ref,
         }
     }
 
-    fn from_proto(auth: &manifests::A2aConnectionAuth) -> Self {
+    fn from_proto(auth: &manifests::ConnectionAuth) -> Self {
         Self {
             kind: auth.kind.clone(),
             secret_ref: auth.secret_ref.clone(),
@@ -1642,7 +1642,7 @@ impl AgentSpecManifest {
                 .capabilities
                 .map(capabilities_policy_into_proto)
                 .unwrap_or_default(),
-            a2a: self.a2a.map(A2ASpecManifest::into_proto).transpose()?,
+            a2a: self.a2a.map(A2AManifest::into_proto).transpose()?,
         })
     }
 
@@ -1661,7 +1661,7 @@ impl AgentSpecManifest {
             mcp_server_refs: spec.mcp_server_refs.clone(),
             capabilities: (!spec.capabilities.is_empty())
                 .then(|| capabilities_policy_from_proto(&spec.capabilities)),
-            a2a: spec.a2a.as_ref().map(A2ASpecManifest::from_proto),
+            a2a: spec.a2a.as_ref().map(A2AManifest::from_proto),
         }
     }
 }
@@ -1905,7 +1905,7 @@ definition:
                     .as_ref()
                     .and_then(|target| target.target.as_ref())
                 {
-                    Some(manifests::a2a_target::Target::Internal(target)) => {
+                    Some(manifests::connection_ref::Target::Internal(target)) => {
                         assert_eq!(target.namespace, "billing");
                         assert_eq!(target.agent, "invoice-agent");
                     }
@@ -1916,7 +1916,7 @@ definition:
                     .as_ref()
                     .and_then(|target| target.target.as_ref())
                 {
-                    Some(manifests::a2a_target::Target::External(target)) => {
+                    Some(manifests::connection_ref::Target::External(target)) => {
                         assert_eq!(
                             target.agent_card_url,
                             "https://policy.example.com/.well-known/agent-card.json"

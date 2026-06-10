@@ -2481,19 +2481,19 @@ com.google.protobuf.ListValue defaultValue);
         java.lang.String key);
 
     /**
-     * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+     * <code>.talon.manifests.A2A a2a = 7;</code>
      * @return Whether the a2a field is set.
      */
     boolean hasA2A();
     /**
-     * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+     * <code>.talon.manifests.A2A a2a = 7;</code>
      * @return The a2a.
      */
-    talon.manifests.Manifests.A2aSpec getA2A();
+    talon.manifests.Manifests.A2A getA2A();
     /**
-     * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+     * <code>.talon.manifests.A2A a2a = 7;</code>
      */
-    talon.manifests.Manifests.A2aSpecOrBuilder getA2AOrBuilder();
+    talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder();
   }
   /**
    * Protobuf type {@code talon.manifests.AgentSpec}
@@ -2777,9 +2777,9 @@ com.google.protobuf.ListValue defaultValue) {
     }
 
     public static final int A2A_FIELD_NUMBER = 7;
-    private talon.manifests.Manifests.A2aSpec a2A_;
+    private talon.manifests.Manifests.A2A a2A_;
     /**
-     * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+     * <code>.talon.manifests.A2A a2a = 7;</code>
      * @return Whether the a2a field is set.
      */
     @java.lang.Override
@@ -2787,19 +2787,19 @@ com.google.protobuf.ListValue defaultValue) {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+     * <code>.talon.manifests.A2A a2a = 7;</code>
      * @return The a2a.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aSpec getA2A() {
-      return a2A_ == null ? talon.manifests.Manifests.A2aSpec.getDefaultInstance() : a2A_;
+    public talon.manifests.Manifests.A2A getA2A() {
+      return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
     }
     /**
-     * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+     * <code>.talon.manifests.A2A a2a = 7;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aSpecOrBuilder getA2AOrBuilder() {
-      return a2A_ == null ? talon.manifests.Manifests.A2aSpec.getDefaultInstance() : a2A_;
+    public talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder() {
+      return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -4054,31 +4054,31 @@ com.google.protobuf.ListValue defaultValue) {
         return (com.google.protobuf.ListValue.Builder) entry;
       }
 
-      private talon.manifests.Manifests.A2aSpec a2A_;
+      private talon.manifests.Manifests.A2A a2A_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aSpec, talon.manifests.Manifests.A2aSpec.Builder, talon.manifests.Manifests.A2aSpecOrBuilder> a2ABuilder_;
+          talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder> a2ABuilder_;
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        * @return Whether the a2a field is set.
        */
       public boolean hasA2A() {
         return ((bitField0_ & 0x00000020) != 0);
       }
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        * @return The a2a.
        */
-      public talon.manifests.Manifests.A2aSpec getA2A() {
+      public talon.manifests.Manifests.A2A getA2A() {
         if (a2ABuilder_ == null) {
-          return a2A_ == null ? talon.manifests.Manifests.A2aSpec.getDefaultInstance() : a2A_;
+          return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
         } else {
           return a2ABuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        */
-      public Builder setA2A(talon.manifests.Manifests.A2aSpec value) {
+      public Builder setA2A(talon.manifests.Manifests.A2A value) {
         if (a2ABuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -4092,10 +4092,10 @@ com.google.protobuf.ListValue defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        */
       public Builder setA2A(
-          talon.manifests.Manifests.A2aSpec.Builder builderForValue) {
+          talon.manifests.Manifests.A2A.Builder builderForValue) {
         if (a2ABuilder_ == null) {
           a2A_ = builderForValue.build();
         } else {
@@ -4106,13 +4106,13 @@ com.google.protobuf.ListValue defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        */
-      public Builder mergeA2A(talon.manifests.Manifests.A2aSpec value) {
+      public Builder mergeA2A(talon.manifests.Manifests.A2A value) {
         if (a2ABuilder_ == null) {
           if (((bitField0_ & 0x00000020) != 0) &&
             a2A_ != null &&
-            a2A_ != talon.manifests.Manifests.A2aSpec.getDefaultInstance()) {
+            a2A_ != talon.manifests.Manifests.A2A.getDefaultInstance()) {
             getA2ABuilder().mergeFrom(value);
           } else {
             a2A_ = value;
@@ -4127,7 +4127,7 @@ com.google.protobuf.ListValue defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        */
       public Builder clearA2A() {
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -4140,33 +4140,33 @@ com.google.protobuf.ListValue defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        */
-      public talon.manifests.Manifests.A2aSpec.Builder getA2ABuilder() {
+      public talon.manifests.Manifests.A2A.Builder getA2ABuilder() {
         bitField0_ |= 0x00000020;
         onChanged();
         return internalGetA2AFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        */
-      public talon.manifests.Manifests.A2aSpecOrBuilder getA2AOrBuilder() {
+      public talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder() {
         if (a2ABuilder_ != null) {
           return a2ABuilder_.getMessageOrBuilder();
         } else {
           return a2A_ == null ?
-              talon.manifests.Manifests.A2aSpec.getDefaultInstance() : a2A_;
+              talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
         }
       }
       /**
-       * <code>.talon.manifests.A2aSpec a2a = 7;</code>
+       * <code>.talon.manifests.A2A a2a = 7;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aSpec, talon.manifests.Manifests.A2aSpec.Builder, talon.manifests.Manifests.A2aSpecOrBuilder>
+          talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder>
           internalGetA2AFieldBuilder() {
         if (a2ABuilder_ == null) {
           a2ABuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.A2aSpec, talon.manifests.Manifests.A2aSpec.Builder, talon.manifests.Manifests.A2aSpecOrBuilder>(
+              talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder>(
                   getA2A(),
                   getParentForChildren(),
                   isClean());
@@ -20410,41 +20410,41 @@ java.lang.String defaultValue) {
 
   }
 
-  public interface A2aSpecOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.manifests.A2aSpec)
+  public interface A2AOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.A2A)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.A2aConnection>
+    java.util.List<talon.manifests.Manifests.Connection>
         getConnectionsList();
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
-    talon.manifests.Manifests.A2aConnection getConnections(int index);
+    talon.manifests.Manifests.Connection getConnections(int index);
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
     int getConnectionsCount();
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.A2aConnectionOrBuilder>
+    java.util.List<? extends talon.manifests.Manifests.ConnectionOrBuilder>
         getConnectionsOrBuilderList();
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
-    talon.manifests.Manifests.A2aConnectionOrBuilder getConnectionsOrBuilder(
+    talon.manifests.Manifests.ConnectionOrBuilder getConnectionsOrBuilder(
         int index);
   }
   /**
-   * Protobuf type {@code talon.manifests.A2aSpec}
+   * Protobuf type {@code talon.manifests.A2A}
    */
-  public static final class A2aSpec extends
+  public static final class A2A extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.manifests.A2aSpec)
-      A2aSpecOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.manifests.A2A)
+      A2AOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -20453,71 +20453,71 @@ java.lang.String defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "A2aSpec");
+        "A2A");
     }
-    // Use A2aSpec.newBuilder() to construct.
-    private A2aSpec(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use A2A.newBuilder() to construct.
+    private A2A(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private A2aSpec() {
+    private A2A() {
       connections_ = java.util.Collections.emptyList();
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aSpec_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_A2A_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aSpec_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_A2A_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aSpec_fieldAccessorTable
+      return talon.manifests.Manifests.internal_static_talon_manifests_A2A_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.manifests.Manifests.A2aSpec.class, talon.manifests.Manifests.A2aSpec.Builder.class);
+              talon.manifests.Manifests.A2A.class, talon.manifests.Manifests.A2A.Builder.class);
     }
 
     public static final int CONNECTIONS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.manifests.Manifests.A2aConnection> connections_;
+    private java.util.List<talon.manifests.Manifests.Connection> connections_;
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.manifests.Manifests.A2aConnection> getConnectionsList() {
+    public java.util.List<talon.manifests.Manifests.Connection> getConnectionsList() {
       return connections_;
     }
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.A2aConnectionOrBuilder>
+    public java.util.List<? extends talon.manifests.Manifests.ConnectionOrBuilder>
         getConnectionsOrBuilderList() {
       return connections_;
     }
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
     @java.lang.Override
     public int getConnectionsCount() {
       return connections_.size();
     }
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aConnection getConnections(int index) {
+    public talon.manifests.Manifests.Connection getConnections(int index) {
       return connections_.get(index);
     }
     /**
-     * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aConnectionOrBuilder getConnectionsOrBuilder(
+    public talon.manifests.Manifests.ConnectionOrBuilder getConnectionsOrBuilder(
         int index) {
       return connections_.get(index);
     }
@@ -20567,10 +20567,10 @@ java.lang.String defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.manifests.Manifests.A2aSpec)) {
+      if (!(obj instanceof talon.manifests.Manifests.A2A)) {
         return super.equals(obj);
       }
-      talon.manifests.Manifests.A2aSpec other = (talon.manifests.Manifests.A2aSpec) obj;
+      talon.manifests.Manifests.A2A other = (talon.manifests.Manifests.A2A) obj;
 
       if (!getConnectionsList()
           .equals(other.getConnectionsList())) return false;
@@ -20594,44 +20594,44 @@ java.lang.String defaultValue) {
       return hash;
     }
 
-    public static talon.manifests.Manifests.A2aSpec parseFrom(
+    public static talon.manifests.Manifests.A2A parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(
+    public static talon.manifests.Manifests.A2A parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(
+    public static talon.manifests.Manifests.A2A parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(
+    public static talon.manifests.Manifests.A2A parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(byte[] data)
+    public static talon.manifests.Manifests.A2A parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(
+    public static talon.manifests.Manifests.A2A parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.A2A parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(
+    public static talon.manifests.Manifests.A2A parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -20639,26 +20639,26 @@ java.lang.String defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.manifests.Manifests.A2aSpec parseDelimitedFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.A2A parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.manifests.Manifests.A2aSpec parseDelimitedFrom(
+    public static talon.manifests.Manifests.A2A parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(
+    public static talon.manifests.Manifests.A2A parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aSpec parseFrom(
+    public static talon.manifests.Manifests.A2A parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -20671,7 +20671,7 @@ java.lang.String defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.manifests.Manifests.A2aSpec prototype) {
+    public static Builder newBuilder(talon.manifests.Manifests.A2A prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -20687,26 +20687,26 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.manifests.A2aSpec}
+     * Protobuf type {@code talon.manifests.A2A}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.manifests.A2aSpec)
-        talon.manifests.Manifests.A2aSpecOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.manifests.A2A)
+        talon.manifests.Manifests.A2AOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aSpec_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_A2A_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aSpec_fieldAccessorTable
+        return talon.manifests.Manifests.internal_static_talon_manifests_A2A_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.manifests.Manifests.A2aSpec.class, talon.manifests.Manifests.A2aSpec.Builder.class);
+                talon.manifests.Manifests.A2A.class, talon.manifests.Manifests.A2A.Builder.class);
       }
 
-      // Construct using talon.manifests.Manifests.A2aSpec.newBuilder()
+      // Construct using talon.manifests.Manifests.A2A.newBuilder()
       private Builder() {
 
       }
@@ -20733,17 +20733,17 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aSpec_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_A2A_descriptor;
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aSpec getDefaultInstanceForType() {
-        return talon.manifests.Manifests.A2aSpec.getDefaultInstance();
+      public talon.manifests.Manifests.A2A getDefaultInstanceForType() {
+        return talon.manifests.Manifests.A2A.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aSpec build() {
-        talon.manifests.Manifests.A2aSpec result = buildPartial();
+      public talon.manifests.Manifests.A2A build() {
+        talon.manifests.Manifests.A2A result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -20751,15 +20751,15 @@ java.lang.String defaultValue) {
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aSpec buildPartial() {
-        talon.manifests.Manifests.A2aSpec result = new talon.manifests.Manifests.A2aSpec(this);
+      public talon.manifests.Manifests.A2A buildPartial() {
+        talon.manifests.Manifests.A2A result = new talon.manifests.Manifests.A2A(this);
         buildPartialRepeatedFields(result);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartialRepeatedFields(talon.manifests.Manifests.A2aSpec result) {
+      private void buildPartialRepeatedFields(talon.manifests.Manifests.A2A result) {
         if (connectionsBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0)) {
             connections_ = java.util.Collections.unmodifiableList(connections_);
@@ -20771,22 +20771,22 @@ java.lang.String defaultValue) {
         }
       }
 
-      private void buildPartial0(talon.manifests.Manifests.A2aSpec result) {
+      private void buildPartial0(talon.manifests.Manifests.A2A result) {
         int from_bitField0_ = bitField0_;
       }
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.manifests.Manifests.A2aSpec) {
-          return mergeFrom((talon.manifests.Manifests.A2aSpec)other);
+        if (other instanceof talon.manifests.Manifests.A2A) {
+          return mergeFrom((talon.manifests.Manifests.A2A)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.manifests.Manifests.A2aSpec other) {
-        if (other == talon.manifests.Manifests.A2aSpec.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.manifests.Manifests.A2A other) {
+        if (other == talon.manifests.Manifests.A2A.getDefaultInstance()) return this;
         if (connectionsBuilder_ == null) {
           if (!other.connections_.isEmpty()) {
             if (connections_.isEmpty()) {
@@ -20840,9 +20840,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.manifests.Manifests.A2aConnection m =
+                talon.manifests.Manifests.Connection m =
                     input.readMessage(
-                        talon.manifests.Manifests.A2aConnection.parser(),
+                        talon.manifests.Manifests.Connection.parser(),
                         extensionRegistry);
                 if (connectionsBuilder_ == null) {
                   ensureConnectionsIsMutable();
@@ -20869,22 +20869,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.manifests.Manifests.A2aConnection> connections_ =
+      private java.util.List<talon.manifests.Manifests.Connection> connections_ =
         java.util.Collections.emptyList();
       private void ensureConnectionsIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          connections_ = new java.util.ArrayList<talon.manifests.Manifests.A2aConnection>(connections_);
+          connections_ = new java.util.ArrayList<talon.manifests.Manifests.Connection>(connections_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.A2aConnection, talon.manifests.Manifests.A2aConnection.Builder, talon.manifests.Manifests.A2aConnectionOrBuilder> connectionsBuilder_;
+          talon.manifests.Manifests.Connection, talon.manifests.Manifests.Connection.Builder, talon.manifests.Manifests.ConnectionOrBuilder> connectionsBuilder_;
 
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.A2aConnection> getConnectionsList() {
+      public java.util.List<talon.manifests.Manifests.Connection> getConnectionsList() {
         if (connectionsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(connections_);
         } else {
@@ -20892,7 +20892,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public int getConnectionsCount() {
         if (connectionsBuilder_ == null) {
@@ -20902,9 +20902,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public talon.manifests.Manifests.A2aConnection getConnections(int index) {
+      public talon.manifests.Manifests.Connection getConnections(int index) {
         if (connectionsBuilder_ == null) {
           return connections_.get(index);
         } else {
@@ -20912,10 +20912,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public Builder setConnections(
-          int index, talon.manifests.Manifests.A2aConnection value) {
+          int index, talon.manifests.Manifests.Connection value) {
         if (connectionsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -20929,10 +20929,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public Builder setConnections(
-          int index, talon.manifests.Manifests.A2aConnection.Builder builderForValue) {
+          int index, talon.manifests.Manifests.Connection.Builder builderForValue) {
         if (connectionsBuilder_ == null) {
           ensureConnectionsIsMutable();
           connections_.set(index, builderForValue.build());
@@ -20943,9 +20943,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public Builder addConnections(talon.manifests.Manifests.A2aConnection value) {
+      public Builder addConnections(talon.manifests.Manifests.Connection value) {
         if (connectionsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -20959,10 +20959,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public Builder addConnections(
-          int index, talon.manifests.Manifests.A2aConnection value) {
+          int index, talon.manifests.Manifests.Connection value) {
         if (connectionsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -20976,10 +20976,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public Builder addConnections(
-          talon.manifests.Manifests.A2aConnection.Builder builderForValue) {
+          talon.manifests.Manifests.Connection.Builder builderForValue) {
         if (connectionsBuilder_ == null) {
           ensureConnectionsIsMutable();
           connections_.add(builderForValue.build());
@@ -20990,10 +20990,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public Builder addConnections(
-          int index, talon.manifests.Manifests.A2aConnection.Builder builderForValue) {
+          int index, talon.manifests.Manifests.Connection.Builder builderForValue) {
         if (connectionsBuilder_ == null) {
           ensureConnectionsIsMutable();
           connections_.add(index, builderForValue.build());
@@ -21004,10 +21004,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public Builder addAllConnections(
-          java.lang.Iterable<? extends talon.manifests.Manifests.A2aConnection> values) {
+          java.lang.Iterable<? extends talon.manifests.Manifests.Connection> values) {
         if (connectionsBuilder_ == null) {
           ensureConnectionsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -21019,7 +21019,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public Builder clearConnections() {
         if (connectionsBuilder_ == null) {
@@ -21032,7 +21032,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
       public Builder removeConnections(int index) {
         if (connectionsBuilder_ == null) {
@@ -21045,16 +21045,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public talon.manifests.Manifests.A2aConnection.Builder getConnectionsBuilder(
+      public talon.manifests.Manifests.Connection.Builder getConnectionsBuilder(
           int index) {
         return internalGetConnectionsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public talon.manifests.Manifests.A2aConnectionOrBuilder getConnectionsOrBuilder(
+      public talon.manifests.Manifests.ConnectionOrBuilder getConnectionsOrBuilder(
           int index) {
         if (connectionsBuilder_ == null) {
           return connections_.get(index);  } else {
@@ -21062,9 +21062,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.A2aConnectionOrBuilder>
+      public java.util.List<? extends talon.manifests.Manifests.ConnectionOrBuilder>
            getConnectionsOrBuilderList() {
         if (connectionsBuilder_ != null) {
           return connectionsBuilder_.getMessageOrBuilderList();
@@ -21073,33 +21073,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public talon.manifests.Manifests.A2aConnection.Builder addConnectionsBuilder() {
+      public talon.manifests.Manifests.Connection.Builder addConnectionsBuilder() {
         return internalGetConnectionsFieldBuilder().addBuilder(
-            talon.manifests.Manifests.A2aConnection.getDefaultInstance());
+            talon.manifests.Manifests.Connection.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public talon.manifests.Manifests.A2aConnection.Builder addConnectionsBuilder(
+      public talon.manifests.Manifests.Connection.Builder addConnectionsBuilder(
           int index) {
         return internalGetConnectionsFieldBuilder().addBuilder(
-            index, talon.manifests.Manifests.A2aConnection.getDefaultInstance());
+            index, talon.manifests.Manifests.Connection.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.manifests.A2aConnection connections = 1;</code>
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.A2aConnection.Builder>
+      public java.util.List<talon.manifests.Manifests.Connection.Builder>
            getConnectionsBuilderList() {
         return internalGetConnectionsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.A2aConnection, talon.manifests.Manifests.A2aConnection.Builder, talon.manifests.Manifests.A2aConnectionOrBuilder>
+          talon.manifests.Manifests.Connection, talon.manifests.Manifests.Connection.Builder, talon.manifests.Manifests.ConnectionOrBuilder>
           internalGetConnectionsFieldBuilder() {
         if (connectionsBuilder_ == null) {
           connectionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.manifests.Manifests.A2aConnection, talon.manifests.Manifests.A2aConnection.Builder, talon.manifests.Manifests.A2aConnectionOrBuilder>(
+              talon.manifests.Manifests.Connection, talon.manifests.Manifests.Connection.Builder, talon.manifests.Manifests.ConnectionOrBuilder>(
                   connections_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -21109,23 +21109,23 @@ java.lang.String defaultValue) {
         return connectionsBuilder_;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.manifests.A2aSpec)
+      // @@protoc_insertion_point(builder_scope:talon.manifests.A2A)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.manifests.A2aSpec)
-    private static final talon.manifests.Manifests.A2aSpec DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.manifests.A2A)
+    private static final talon.manifests.Manifests.A2A DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.manifests.Manifests.A2aSpec();
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.A2A();
     }
 
-    public static talon.manifests.Manifests.A2aSpec getDefaultInstance() {
+    public static talon.manifests.Manifests.A2A getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<A2aSpec>
-        PARSER = new com.google.protobuf.AbstractParser<A2aSpec>() {
+    private static final com.google.protobuf.Parser<A2A>
+        PARSER = new com.google.protobuf.AbstractParser<A2A>() {
       @java.lang.Override
-      public A2aSpec parsePartialFrom(
+      public A2A parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -21144,24 +21144,24 @@ java.lang.String defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<A2aSpec> parser() {
+    public static com.google.protobuf.Parser<A2A> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<A2aSpec> getParserForType() {
+    public com.google.protobuf.Parser<A2A> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.manifests.Manifests.A2aSpec getDefaultInstanceForType() {
+    public talon.manifests.Manifests.A2A getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface A2aConnectionOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.manifests.A2aConnection)
+  public interface ConnectionOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.Connection)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -21189,19 +21189,19 @@ java.lang.String defaultValue) {
         getDescriptionBytes();
 
     /**
-     * <code>.talon.manifests.A2aTarget target = 3;</code>
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
      * @return Whether the target field is set.
      */
     boolean hasTarget();
     /**
-     * <code>.talon.manifests.A2aTarget target = 3;</code>
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
      * @return The target.
      */
-    talon.manifests.Manifests.A2aTarget getTarget();
+    talon.manifests.Manifests.ConnectionRef getTarget();
     /**
-     * <code>.talon.manifests.A2aTarget target = 3;</code>
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
      */
-    talon.manifests.Manifests.A2aTargetOrBuilder getTargetOrBuilder();
+    talon.manifests.Manifests.ConnectionRefOrBuilder getTargetOrBuilder();
 
     /**
      * <code>repeated string input_modes = 4;</code>
@@ -21266,27 +21266,27 @@ java.lang.String defaultValue) {
     int getMaxDepth();
 
     /**
-     * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
      * @return Whether the auth field is set.
      */
     boolean hasAuth();
     /**
-     * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
      * @return The auth.
      */
-    talon.manifests.Manifests.A2aConnectionAuth getAuth();
+    talon.manifests.Manifests.ConnectionAuth getAuth();
     /**
-     * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
      */
-    talon.manifests.Manifests.A2aConnectionAuthOrBuilder getAuthOrBuilder();
+    talon.manifests.Manifests.ConnectionAuthOrBuilder getAuthOrBuilder();
   }
   /**
-   * Protobuf type {@code talon.manifests.A2aConnection}
+   * Protobuf type {@code talon.manifests.Connection}
    */
-  public static final class A2aConnection extends
+  public static final class Connection extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.manifests.A2aConnection)
-      A2aConnectionOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.manifests.Connection)
+      ConnectionOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -21295,13 +21295,13 @@ java.lang.String defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "A2aConnection");
+        "Connection");
     }
-    // Use A2aConnection.newBuilder() to construct.
-    private A2aConnection(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use Connection.newBuilder() to construct.
+    private Connection(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private A2aConnection() {
+    private Connection() {
       name_ = "";
       description_ = "";
       inputModes_ =
@@ -21312,20 +21312,20 @@ java.lang.String defaultValue) {
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnection_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_Connection_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnection_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_Connection_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnection_fieldAccessorTable
+      return talon.manifests.Manifests.internal_static_talon_manifests_Connection_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.manifests.Manifests.A2aConnection.class, talon.manifests.Manifests.A2aConnection.Builder.class);
+              talon.manifests.Manifests.Connection.class, talon.manifests.Manifests.Connection.Builder.class);
     }
 
     private int bitField0_;
@@ -21408,9 +21408,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int TARGET_FIELD_NUMBER = 3;
-    private talon.manifests.Manifests.A2aTarget target_;
+    private talon.manifests.Manifests.ConnectionRef target_;
     /**
-     * <code>.talon.manifests.A2aTarget target = 3;</code>
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
      * @return Whether the target field is set.
      */
     @java.lang.Override
@@ -21418,19 +21418,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.A2aTarget target = 3;</code>
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
      * @return The target.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aTarget getTarget() {
-      return target_ == null ? talon.manifests.Manifests.A2aTarget.getDefaultInstance() : target_;
+    public talon.manifests.Manifests.ConnectionRef getTarget() {
+      return target_ == null ? talon.manifests.Manifests.ConnectionRef.getDefaultInstance() : target_;
     }
     /**
-     * <code>.talon.manifests.A2aTarget target = 3;</code>
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aTargetOrBuilder getTargetOrBuilder() {
-      return target_ == null ? talon.manifests.Manifests.A2aTarget.getDefaultInstance() : target_;
+    public talon.manifests.Manifests.ConnectionRefOrBuilder getTargetOrBuilder() {
+      return target_ == null ? talon.manifests.Manifests.ConnectionRef.getDefaultInstance() : target_;
     }
 
     public static final int INPUT_MODES_FIELD_NUMBER = 4;
@@ -21530,9 +21530,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int AUTH_FIELD_NUMBER = 8;
-    private talon.manifests.Manifests.A2aConnectionAuth auth_;
+    private talon.manifests.Manifests.ConnectionAuth auth_;
     /**
-     * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
      * @return Whether the auth field is set.
      */
     @java.lang.Override
@@ -21540,19 +21540,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
      * @return The auth.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aConnectionAuth getAuth() {
-      return auth_ == null ? talon.manifests.Manifests.A2aConnectionAuth.getDefaultInstance() : auth_;
+    public talon.manifests.Manifests.ConnectionAuth getAuth() {
+      return auth_ == null ? talon.manifests.Manifests.ConnectionAuth.getDefaultInstance() : auth_;
     }
     /**
-     * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aConnectionAuthOrBuilder getAuthOrBuilder() {
-      return auth_ == null ? talon.manifests.Manifests.A2aConnectionAuth.getDefaultInstance() : auth_;
+    public talon.manifests.Manifests.ConnectionAuthOrBuilder getAuthOrBuilder() {
+      return auth_ == null ? talon.manifests.Manifests.ConnectionAuth.getDefaultInstance() : auth_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -21650,10 +21650,10 @@ java.lang.String defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.manifests.Manifests.A2aConnection)) {
+      if (!(obj instanceof talon.manifests.Manifests.Connection)) {
         return super.equals(obj);
       }
-      talon.manifests.Manifests.A2aConnection other = (talon.manifests.Manifests.A2aConnection) obj;
+      talon.manifests.Manifests.Connection other = (talon.manifests.Manifests.Connection) obj;
 
       if (!getName()
           .equals(other.getName())) return false;
@@ -21717,44 +21717,44 @@ java.lang.String defaultValue) {
       return hash;
     }
 
-    public static talon.manifests.Manifests.A2aConnection parseFrom(
+    public static talon.manifests.Manifests.Connection parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(
+    public static talon.manifests.Manifests.Connection parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(
+    public static talon.manifests.Manifests.Connection parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(
+    public static talon.manifests.Manifests.Connection parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(byte[] data)
+    public static talon.manifests.Manifests.Connection parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(
+    public static talon.manifests.Manifests.Connection parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.Connection parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(
+    public static talon.manifests.Manifests.Connection parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -21762,26 +21762,26 @@ java.lang.String defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.manifests.Manifests.A2aConnection parseDelimitedFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.Connection parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.manifests.Manifests.A2aConnection parseDelimitedFrom(
+    public static talon.manifests.Manifests.Connection parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(
+    public static talon.manifests.Manifests.Connection parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aConnection parseFrom(
+    public static talon.manifests.Manifests.Connection parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -21794,7 +21794,7 @@ java.lang.String defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.manifests.Manifests.A2aConnection prototype) {
+    public static Builder newBuilder(talon.manifests.Manifests.Connection prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -21810,26 +21810,26 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.manifests.A2aConnection}
+     * Protobuf type {@code talon.manifests.Connection}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.manifests.A2aConnection)
-        talon.manifests.Manifests.A2aConnectionOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.manifests.Connection)
+        talon.manifests.Manifests.ConnectionOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnection_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_Connection_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnection_fieldAccessorTable
+        return talon.manifests.Manifests.internal_static_talon_manifests_Connection_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.manifests.Manifests.A2aConnection.class, talon.manifests.Manifests.A2aConnection.Builder.class);
+                talon.manifests.Manifests.Connection.class, talon.manifests.Manifests.Connection.Builder.class);
       }
 
-      // Construct using talon.manifests.Manifests.A2aConnection.newBuilder()
+      // Construct using talon.manifests.Manifests.Connection.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -21874,17 +21874,17 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnection_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_Connection_descriptor;
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aConnection getDefaultInstanceForType() {
-        return talon.manifests.Manifests.A2aConnection.getDefaultInstance();
+      public talon.manifests.Manifests.Connection getDefaultInstanceForType() {
+        return talon.manifests.Manifests.Connection.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aConnection build() {
-        talon.manifests.Manifests.A2aConnection result = buildPartial();
+      public talon.manifests.Manifests.Connection build() {
+        talon.manifests.Manifests.Connection result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -21892,14 +21892,14 @@ java.lang.String defaultValue) {
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aConnection buildPartial() {
-        talon.manifests.Manifests.A2aConnection result = new talon.manifests.Manifests.A2aConnection(this);
+      public talon.manifests.Manifests.Connection buildPartial() {
+        talon.manifests.Manifests.Connection result = new talon.manifests.Manifests.Connection(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.manifests.Manifests.A2aConnection result) {
+      private void buildPartial0(talon.manifests.Manifests.Connection result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.name_ = name_;
@@ -21939,16 +21939,16 @@ java.lang.String defaultValue) {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.manifests.Manifests.A2aConnection) {
-          return mergeFrom((talon.manifests.Manifests.A2aConnection)other);
+        if (other instanceof talon.manifests.Manifests.Connection) {
+          return mergeFrom((talon.manifests.Manifests.Connection)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.manifests.Manifests.A2aConnection other) {
-        if (other == talon.manifests.Manifests.A2aConnection.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.manifests.Manifests.Connection other) {
+        if (other == talon.manifests.Manifests.Connection.getDefaultInstance()) return this;
         if (!other.getName().isEmpty()) {
           name_ = other.name_;
           bitField0_ |= 0x00000001;
@@ -22222,31 +22222,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.manifests.Manifests.A2aTarget target_;
+      private talon.manifests.Manifests.ConnectionRef target_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aTarget, talon.manifests.Manifests.A2aTarget.Builder, talon.manifests.Manifests.A2aTargetOrBuilder> targetBuilder_;
+          talon.manifests.Manifests.ConnectionRef, talon.manifests.Manifests.ConnectionRef.Builder, talon.manifests.Manifests.ConnectionRefOrBuilder> targetBuilder_;
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        * @return Whether the target field is set.
        */
       public boolean hasTarget() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        * @return The target.
        */
-      public talon.manifests.Manifests.A2aTarget getTarget() {
+      public talon.manifests.Manifests.ConnectionRef getTarget() {
         if (targetBuilder_ == null) {
-          return target_ == null ? talon.manifests.Manifests.A2aTarget.getDefaultInstance() : target_;
+          return target_ == null ? talon.manifests.Manifests.ConnectionRef.getDefaultInstance() : target_;
         } else {
           return targetBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        */
-      public Builder setTarget(talon.manifests.Manifests.A2aTarget value) {
+      public Builder setTarget(talon.manifests.Manifests.ConnectionRef value) {
         if (targetBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -22260,10 +22260,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        */
       public Builder setTarget(
-          talon.manifests.Manifests.A2aTarget.Builder builderForValue) {
+          talon.manifests.Manifests.ConnectionRef.Builder builderForValue) {
         if (targetBuilder_ == null) {
           target_ = builderForValue.build();
         } else {
@@ -22274,13 +22274,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        */
-      public Builder mergeTarget(talon.manifests.Manifests.A2aTarget value) {
+      public Builder mergeTarget(talon.manifests.Manifests.ConnectionRef value) {
         if (targetBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
             target_ != null &&
-            target_ != talon.manifests.Manifests.A2aTarget.getDefaultInstance()) {
+            target_ != talon.manifests.Manifests.ConnectionRef.getDefaultInstance()) {
             getTargetBuilder().mergeFrom(value);
           } else {
             target_ = value;
@@ -22295,7 +22295,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        */
       public Builder clearTarget() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -22308,33 +22308,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        */
-      public talon.manifests.Manifests.A2aTarget.Builder getTargetBuilder() {
+      public talon.manifests.Manifests.ConnectionRef.Builder getTargetBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
         return internalGetTargetFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        */
-      public talon.manifests.Manifests.A2aTargetOrBuilder getTargetOrBuilder() {
+      public talon.manifests.Manifests.ConnectionRefOrBuilder getTargetOrBuilder() {
         if (targetBuilder_ != null) {
           return targetBuilder_.getMessageOrBuilder();
         } else {
           return target_ == null ?
-              talon.manifests.Manifests.A2aTarget.getDefaultInstance() : target_;
+              talon.manifests.Manifests.ConnectionRef.getDefaultInstance() : target_;
         }
       }
       /**
-       * <code>.talon.manifests.A2aTarget target = 3;</code>
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aTarget, talon.manifests.Manifests.A2aTarget.Builder, talon.manifests.Manifests.A2aTargetOrBuilder>
+          talon.manifests.Manifests.ConnectionRef, talon.manifests.Manifests.ConnectionRef.Builder, talon.manifests.Manifests.ConnectionRefOrBuilder>
           internalGetTargetFieldBuilder() {
         if (targetBuilder_ == null) {
           targetBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.A2aTarget, talon.manifests.Manifests.A2aTarget.Builder, talon.manifests.Manifests.A2aTargetOrBuilder>(
+              talon.manifests.Manifests.ConnectionRef, talon.manifests.Manifests.ConnectionRef.Builder, talon.manifests.Manifests.ConnectionRefOrBuilder>(
                   getTarget(),
                   getParentForChildren(),
                   isClean());
@@ -22629,31 +22629,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.manifests.Manifests.A2aConnectionAuth auth_;
+      private talon.manifests.Manifests.ConnectionAuth auth_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aConnectionAuth, talon.manifests.Manifests.A2aConnectionAuth.Builder, talon.manifests.Manifests.A2aConnectionAuthOrBuilder> authBuilder_;
+          talon.manifests.Manifests.ConnectionAuth, talon.manifests.Manifests.ConnectionAuth.Builder, talon.manifests.Manifests.ConnectionAuthOrBuilder> authBuilder_;
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        * @return Whether the auth field is set.
        */
       public boolean hasAuth() {
         return ((bitField0_ & 0x00000080) != 0);
       }
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        * @return The auth.
        */
-      public talon.manifests.Manifests.A2aConnectionAuth getAuth() {
+      public talon.manifests.Manifests.ConnectionAuth getAuth() {
         if (authBuilder_ == null) {
-          return auth_ == null ? talon.manifests.Manifests.A2aConnectionAuth.getDefaultInstance() : auth_;
+          return auth_ == null ? talon.manifests.Manifests.ConnectionAuth.getDefaultInstance() : auth_;
         } else {
           return authBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        */
-      public Builder setAuth(talon.manifests.Manifests.A2aConnectionAuth value) {
+      public Builder setAuth(talon.manifests.Manifests.ConnectionAuth value) {
         if (authBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -22667,10 +22667,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        */
       public Builder setAuth(
-          talon.manifests.Manifests.A2aConnectionAuth.Builder builderForValue) {
+          talon.manifests.Manifests.ConnectionAuth.Builder builderForValue) {
         if (authBuilder_ == null) {
           auth_ = builderForValue.build();
         } else {
@@ -22681,13 +22681,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        */
-      public Builder mergeAuth(talon.manifests.Manifests.A2aConnectionAuth value) {
+      public Builder mergeAuth(talon.manifests.Manifests.ConnectionAuth value) {
         if (authBuilder_ == null) {
           if (((bitField0_ & 0x00000080) != 0) &&
             auth_ != null &&
-            auth_ != talon.manifests.Manifests.A2aConnectionAuth.getDefaultInstance()) {
+            auth_ != talon.manifests.Manifests.ConnectionAuth.getDefaultInstance()) {
             getAuthBuilder().mergeFrom(value);
           } else {
             auth_ = value;
@@ -22702,7 +22702,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        */
       public Builder clearAuth() {
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -22715,33 +22715,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        */
-      public talon.manifests.Manifests.A2aConnectionAuth.Builder getAuthBuilder() {
+      public talon.manifests.Manifests.ConnectionAuth.Builder getAuthBuilder() {
         bitField0_ |= 0x00000080;
         onChanged();
         return internalGetAuthFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        */
-      public talon.manifests.Manifests.A2aConnectionAuthOrBuilder getAuthOrBuilder() {
+      public talon.manifests.Manifests.ConnectionAuthOrBuilder getAuthOrBuilder() {
         if (authBuilder_ != null) {
           return authBuilder_.getMessageOrBuilder();
         } else {
           return auth_ == null ?
-              talon.manifests.Manifests.A2aConnectionAuth.getDefaultInstance() : auth_;
+              talon.manifests.Manifests.ConnectionAuth.getDefaultInstance() : auth_;
         }
       }
       /**
-       * <code>.talon.manifests.A2aConnectionAuth auth = 8;</code>
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aConnectionAuth, talon.manifests.Manifests.A2aConnectionAuth.Builder, talon.manifests.Manifests.A2aConnectionAuthOrBuilder>
+          talon.manifests.Manifests.ConnectionAuth, talon.manifests.Manifests.ConnectionAuth.Builder, talon.manifests.Manifests.ConnectionAuthOrBuilder>
           internalGetAuthFieldBuilder() {
         if (authBuilder_ == null) {
           authBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.A2aConnectionAuth, talon.manifests.Manifests.A2aConnectionAuth.Builder, talon.manifests.Manifests.A2aConnectionAuthOrBuilder>(
+              talon.manifests.Manifests.ConnectionAuth, talon.manifests.Manifests.ConnectionAuth.Builder, talon.manifests.Manifests.ConnectionAuthOrBuilder>(
                   getAuth(),
                   getParentForChildren(),
                   isClean());
@@ -22750,23 +22750,23 @@ java.lang.String defaultValue) {
         return authBuilder_;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.manifests.A2aConnection)
+      // @@protoc_insertion_point(builder_scope:talon.manifests.Connection)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.manifests.A2aConnection)
-    private static final talon.manifests.Manifests.A2aConnection DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.manifests.Connection)
+    private static final talon.manifests.Manifests.Connection DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.manifests.Manifests.A2aConnection();
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.Connection();
     }
 
-    public static talon.manifests.Manifests.A2aConnection getDefaultInstance() {
+    public static talon.manifests.Manifests.Connection getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<A2aConnection>
-        PARSER = new com.google.protobuf.AbstractParser<A2aConnection>() {
+    private static final com.google.protobuf.Parser<Connection>
+        PARSER = new com.google.protobuf.AbstractParser<Connection>() {
       @java.lang.Override
-      public A2aConnection parsePartialFrom(
+      public Connection parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -22785,65 +22785,65 @@ java.lang.String defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<A2aConnection> parser() {
+    public static com.google.protobuf.Parser<Connection> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<A2aConnection> getParserForType() {
+    public com.google.protobuf.Parser<Connection> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.manifests.Manifests.A2aConnection getDefaultInstanceForType() {
+    public talon.manifests.Manifests.Connection getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface A2aTargetOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.manifests.A2aTarget)
+  public interface ConnectionRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.ConnectionRef)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
      * @return Whether the internal field is set.
      */
     boolean hasInternal();
     /**
-     * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
      * @return The internal.
      */
-    talon.manifests.Manifests.A2aInternalTarget getInternal();
+    talon.manifests.Manifests.InternalConnectionRef getInternal();
     /**
-     * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
      */
-    talon.manifests.Manifests.A2aInternalTargetOrBuilder getInternalOrBuilder();
+    talon.manifests.Manifests.InternalConnectionRefOrBuilder getInternalOrBuilder();
 
     /**
-     * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
      * @return Whether the external field is set.
      */
     boolean hasExternal();
     /**
-     * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
      * @return The external.
      */
-    talon.manifests.Manifests.A2aExternalTarget getExternal();
+    talon.manifests.Manifests.ExternalConnectionRef getExternal();
     /**
-     * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
      */
-    talon.manifests.Manifests.A2aExternalTargetOrBuilder getExternalOrBuilder();
+    talon.manifests.Manifests.ExternalConnectionRefOrBuilder getExternalOrBuilder();
 
-    talon.manifests.Manifests.A2aTarget.TargetCase getTargetCase();
+    talon.manifests.Manifests.ConnectionRef.TargetCase getTargetCase();
   }
   /**
-   * Protobuf type {@code talon.manifests.A2aTarget}
+   * Protobuf type {@code talon.manifests.ConnectionRef}
    */
-  public static final class A2aTarget extends
+  public static final class ConnectionRef extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.manifests.A2aTarget)
-      A2aTargetOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.manifests.ConnectionRef)
+      ConnectionRefOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -22852,31 +22852,31 @@ java.lang.String defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "A2aTarget");
+        "ConnectionRef");
     }
-    // Use A2aTarget.newBuilder() to construct.
-    private A2aTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use ConnectionRef.newBuilder() to construct.
+    private ConnectionRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private A2aTarget() {
+    private ConnectionRef() {
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aTarget_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aTarget_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aTarget_fieldAccessorTable
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.manifests.Manifests.A2aTarget.class, talon.manifests.Manifests.A2aTarget.Builder.class);
+              talon.manifests.Manifests.ConnectionRef.class, talon.manifests.Manifests.ConnectionRef.Builder.class);
     }
 
     private int targetCase_ = 0;
@@ -22923,7 +22923,7 @@ java.lang.String defaultValue) {
 
     public static final int INTERNAL_FIELD_NUMBER = 1;
     /**
-     * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
      * @return Whether the internal field is set.
      */
     @java.lang.Override
@@ -22931,30 +22931,30 @@ java.lang.String defaultValue) {
       return targetCase_ == 1;
     }
     /**
-     * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
      * @return The internal.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aInternalTarget getInternal() {
+    public talon.manifests.Manifests.InternalConnectionRef getInternal() {
       if (targetCase_ == 1) {
-         return (talon.manifests.Manifests.A2aInternalTarget) target_;
+         return (talon.manifests.Manifests.InternalConnectionRef) target_;
       }
-      return talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance();
+      return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
     }
     /**
-     * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aInternalTargetOrBuilder getInternalOrBuilder() {
+    public talon.manifests.Manifests.InternalConnectionRefOrBuilder getInternalOrBuilder() {
       if (targetCase_ == 1) {
-         return (talon.manifests.Manifests.A2aInternalTarget) target_;
+         return (talon.manifests.Manifests.InternalConnectionRef) target_;
       }
-      return talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance();
+      return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
     }
 
     public static final int EXTERNAL_FIELD_NUMBER = 2;
     /**
-     * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
      * @return Whether the external field is set.
      */
     @java.lang.Override
@@ -22962,25 +22962,25 @@ java.lang.String defaultValue) {
       return targetCase_ == 2;
     }
     /**
-     * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
      * @return The external.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aExternalTarget getExternal() {
+    public talon.manifests.Manifests.ExternalConnectionRef getExternal() {
       if (targetCase_ == 2) {
-         return (talon.manifests.Manifests.A2aExternalTarget) target_;
+         return (talon.manifests.Manifests.ExternalConnectionRef) target_;
       }
-      return talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance();
+      return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
     }
     /**
-     * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.A2aExternalTargetOrBuilder getExternalOrBuilder() {
+    public talon.manifests.Manifests.ExternalConnectionRefOrBuilder getExternalOrBuilder() {
       if (targetCase_ == 2) {
-         return (talon.manifests.Manifests.A2aExternalTarget) target_;
+         return (talon.manifests.Manifests.ExternalConnectionRef) target_;
       }
-      return talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance();
+      return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -22998,10 +22998,10 @@ java.lang.String defaultValue) {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (targetCase_ == 1) {
-        output.writeMessage(1, (talon.manifests.Manifests.A2aInternalTarget) target_);
+        output.writeMessage(1, (talon.manifests.Manifests.InternalConnectionRef) target_);
       }
       if (targetCase_ == 2) {
-        output.writeMessage(2, (talon.manifests.Manifests.A2aExternalTarget) target_);
+        output.writeMessage(2, (talon.manifests.Manifests.ExternalConnectionRef) target_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -23014,11 +23014,11 @@ java.lang.String defaultValue) {
       size = 0;
       if (targetCase_ == 1) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, (talon.manifests.Manifests.A2aInternalTarget) target_);
+          .computeMessageSize(1, (talon.manifests.Manifests.InternalConnectionRef) target_);
       }
       if (targetCase_ == 2) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, (talon.manifests.Manifests.A2aExternalTarget) target_);
+          .computeMessageSize(2, (talon.manifests.Manifests.ExternalConnectionRef) target_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -23030,10 +23030,10 @@ java.lang.String defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.manifests.Manifests.A2aTarget)) {
+      if (!(obj instanceof talon.manifests.Manifests.ConnectionRef)) {
         return super.equals(obj);
       }
-      talon.manifests.Manifests.A2aTarget other = (talon.manifests.Manifests.A2aTarget) obj;
+      talon.manifests.Manifests.ConnectionRef other = (talon.manifests.Manifests.ConnectionRef) obj;
 
       if (!getTargetCase().equals(other.getTargetCase())) return false;
       switch (targetCase_) {
@@ -23076,44 +23076,44 @@ java.lang.String defaultValue) {
       return hash;
     }
 
-    public static talon.manifests.Manifests.A2aTarget parseFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(byte[] data)
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -23121,26 +23121,26 @@ java.lang.String defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.manifests.Manifests.A2aTarget parseDelimitedFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.ConnectionRef parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.manifests.Manifests.A2aTarget parseDelimitedFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aTarget parseFrom(
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -23153,7 +23153,7 @@ java.lang.String defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.manifests.Manifests.A2aTarget prototype) {
+    public static Builder newBuilder(talon.manifests.Manifests.ConnectionRef prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -23169,26 +23169,26 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.manifests.A2aTarget}
+     * Protobuf type {@code talon.manifests.ConnectionRef}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.manifests.A2aTarget)
-        talon.manifests.Manifests.A2aTargetOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.manifests.ConnectionRef)
+        talon.manifests.Manifests.ConnectionRefOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aTarget_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aTarget_fieldAccessorTable
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.manifests.Manifests.A2aTarget.class, talon.manifests.Manifests.A2aTarget.Builder.class);
+                talon.manifests.Manifests.ConnectionRef.class, talon.manifests.Manifests.ConnectionRef.Builder.class);
       }
 
-      // Construct using talon.manifests.Manifests.A2aTarget.newBuilder()
+      // Construct using talon.manifests.Manifests.ConnectionRef.newBuilder()
       private Builder() {
 
       }
@@ -23216,17 +23216,17 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aTarget_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_descriptor;
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aTarget getDefaultInstanceForType() {
-        return talon.manifests.Manifests.A2aTarget.getDefaultInstance();
+      public talon.manifests.Manifests.ConnectionRef getDefaultInstanceForType() {
+        return talon.manifests.Manifests.ConnectionRef.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aTarget build() {
-        talon.manifests.Manifests.A2aTarget result = buildPartial();
+      public talon.manifests.Manifests.ConnectionRef build() {
+        talon.manifests.Manifests.ConnectionRef result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -23234,19 +23234,19 @@ java.lang.String defaultValue) {
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aTarget buildPartial() {
-        talon.manifests.Manifests.A2aTarget result = new talon.manifests.Manifests.A2aTarget(this);
+      public talon.manifests.Manifests.ConnectionRef buildPartial() {
+        talon.manifests.Manifests.ConnectionRef result = new talon.manifests.Manifests.ConnectionRef(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         buildPartialOneofs(result);
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.manifests.Manifests.A2aTarget result) {
+      private void buildPartial0(talon.manifests.Manifests.ConnectionRef result) {
         int from_bitField0_ = bitField0_;
       }
 
-      private void buildPartialOneofs(talon.manifests.Manifests.A2aTarget result) {
+      private void buildPartialOneofs(talon.manifests.Manifests.ConnectionRef result) {
         result.targetCase_ = targetCase_;
         result.target_ = this.target_;
         if (targetCase_ == 1 &&
@@ -23261,16 +23261,16 @@ java.lang.String defaultValue) {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.manifests.Manifests.A2aTarget) {
-          return mergeFrom((talon.manifests.Manifests.A2aTarget)other);
+        if (other instanceof talon.manifests.Manifests.ConnectionRef) {
+          return mergeFrom((talon.manifests.Manifests.ConnectionRef)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.manifests.Manifests.A2aTarget other) {
-        if (other == talon.manifests.Manifests.A2aTarget.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.manifests.Manifests.ConnectionRef other) {
+        if (other == talon.manifests.Manifests.ConnectionRef.getDefaultInstance()) return this;
         switch (other.getTargetCase()) {
           case INTERNAL: {
             mergeInternal(other.getInternal());
@@ -23357,9 +23357,9 @@ java.lang.String defaultValue) {
       private int bitField0_;
 
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aInternalTarget, talon.manifests.Manifests.A2aInternalTarget.Builder, talon.manifests.Manifests.A2aInternalTargetOrBuilder> internalBuilder_;
+          talon.manifests.Manifests.InternalConnectionRef, talon.manifests.Manifests.InternalConnectionRef.Builder, talon.manifests.Manifests.InternalConnectionRefOrBuilder> internalBuilder_;
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        * @return Whether the internal field is set.
        */
       @java.lang.Override
@@ -23367,27 +23367,27 @@ java.lang.String defaultValue) {
         return targetCase_ == 1;
       }
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        * @return The internal.
        */
       @java.lang.Override
-      public talon.manifests.Manifests.A2aInternalTarget getInternal() {
+      public talon.manifests.Manifests.InternalConnectionRef getInternal() {
         if (internalBuilder_ == null) {
           if (targetCase_ == 1) {
-            return (talon.manifests.Manifests.A2aInternalTarget) target_;
+            return (talon.manifests.Manifests.InternalConnectionRef) target_;
           }
-          return talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance();
+          return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
         } else {
           if (targetCase_ == 1) {
             return internalBuilder_.getMessage();
           }
-          return talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance();
+          return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        */
-      public Builder setInternal(talon.manifests.Manifests.A2aInternalTarget value) {
+      public Builder setInternal(talon.manifests.Manifests.InternalConnectionRef value) {
         if (internalBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -23401,10 +23401,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        */
       public Builder setInternal(
-          talon.manifests.Manifests.A2aInternalTarget.Builder builderForValue) {
+          talon.manifests.Manifests.InternalConnectionRef.Builder builderForValue) {
         if (internalBuilder_ == null) {
           target_ = builderForValue.build();
           onChanged();
@@ -23415,13 +23415,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        */
-      public Builder mergeInternal(talon.manifests.Manifests.A2aInternalTarget value) {
+      public Builder mergeInternal(talon.manifests.Manifests.InternalConnectionRef value) {
         if (internalBuilder_ == null) {
           if (targetCase_ == 1 &&
-              target_ != talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance()) {
-            target_ = talon.manifests.Manifests.A2aInternalTarget.newBuilder((talon.manifests.Manifests.A2aInternalTarget) target_)
+              target_ != talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance()) {
+            target_ = talon.manifests.Manifests.InternalConnectionRef.newBuilder((talon.manifests.Manifests.InternalConnectionRef) target_)
                 .mergeFrom(value).buildPartial();
           } else {
             target_ = value;
@@ -23438,7 +23438,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        */
       public Builder clearInternal() {
         if (internalBuilder_ == null) {
@@ -23457,38 +23457,38 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        */
-      public talon.manifests.Manifests.A2aInternalTarget.Builder getInternalBuilder() {
+      public talon.manifests.Manifests.InternalConnectionRef.Builder getInternalBuilder() {
         return internalGetInternalFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        */
       @java.lang.Override
-      public talon.manifests.Manifests.A2aInternalTargetOrBuilder getInternalOrBuilder() {
+      public talon.manifests.Manifests.InternalConnectionRefOrBuilder getInternalOrBuilder() {
         if ((targetCase_ == 1) && (internalBuilder_ != null)) {
           return internalBuilder_.getMessageOrBuilder();
         } else {
           if (targetCase_ == 1) {
-            return (talon.manifests.Manifests.A2aInternalTarget) target_;
+            return (talon.manifests.Manifests.InternalConnectionRef) target_;
           }
-          return talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance();
+          return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.manifests.A2aInternalTarget internal = 1;</code>
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aInternalTarget, talon.manifests.Manifests.A2aInternalTarget.Builder, talon.manifests.Manifests.A2aInternalTargetOrBuilder>
+          talon.manifests.Manifests.InternalConnectionRef, talon.manifests.Manifests.InternalConnectionRef.Builder, talon.manifests.Manifests.InternalConnectionRefOrBuilder>
           internalGetInternalFieldBuilder() {
         if (internalBuilder_ == null) {
           if (!(targetCase_ == 1)) {
-            target_ = talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance();
+            target_ = talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
           }
           internalBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.A2aInternalTarget, talon.manifests.Manifests.A2aInternalTarget.Builder, talon.manifests.Manifests.A2aInternalTargetOrBuilder>(
-                  (talon.manifests.Manifests.A2aInternalTarget) target_,
+              talon.manifests.Manifests.InternalConnectionRef, talon.manifests.Manifests.InternalConnectionRef.Builder, talon.manifests.Manifests.InternalConnectionRefOrBuilder>(
+                  (talon.manifests.Manifests.InternalConnectionRef) target_,
                   getParentForChildren(),
                   isClean());
           target_ = null;
@@ -23499,9 +23499,9 @@ java.lang.String defaultValue) {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aExternalTarget, talon.manifests.Manifests.A2aExternalTarget.Builder, talon.manifests.Manifests.A2aExternalTargetOrBuilder> externalBuilder_;
+          talon.manifests.Manifests.ExternalConnectionRef, talon.manifests.Manifests.ExternalConnectionRef.Builder, talon.manifests.Manifests.ExternalConnectionRefOrBuilder> externalBuilder_;
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        * @return Whether the external field is set.
        */
       @java.lang.Override
@@ -23509,27 +23509,27 @@ java.lang.String defaultValue) {
         return targetCase_ == 2;
       }
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        * @return The external.
        */
       @java.lang.Override
-      public talon.manifests.Manifests.A2aExternalTarget getExternal() {
+      public talon.manifests.Manifests.ExternalConnectionRef getExternal() {
         if (externalBuilder_ == null) {
           if (targetCase_ == 2) {
-            return (talon.manifests.Manifests.A2aExternalTarget) target_;
+            return (talon.manifests.Manifests.ExternalConnectionRef) target_;
           }
-          return talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance();
+          return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
         } else {
           if (targetCase_ == 2) {
             return externalBuilder_.getMessage();
           }
-          return talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance();
+          return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        */
-      public Builder setExternal(talon.manifests.Manifests.A2aExternalTarget value) {
+      public Builder setExternal(talon.manifests.Manifests.ExternalConnectionRef value) {
         if (externalBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -23543,10 +23543,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        */
       public Builder setExternal(
-          talon.manifests.Manifests.A2aExternalTarget.Builder builderForValue) {
+          talon.manifests.Manifests.ExternalConnectionRef.Builder builderForValue) {
         if (externalBuilder_ == null) {
           target_ = builderForValue.build();
           onChanged();
@@ -23557,13 +23557,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        */
-      public Builder mergeExternal(talon.manifests.Manifests.A2aExternalTarget value) {
+      public Builder mergeExternal(talon.manifests.Manifests.ExternalConnectionRef value) {
         if (externalBuilder_ == null) {
           if (targetCase_ == 2 &&
-              target_ != talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance()) {
-            target_ = talon.manifests.Manifests.A2aExternalTarget.newBuilder((talon.manifests.Manifests.A2aExternalTarget) target_)
+              target_ != talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance()) {
+            target_ = talon.manifests.Manifests.ExternalConnectionRef.newBuilder((talon.manifests.Manifests.ExternalConnectionRef) target_)
                 .mergeFrom(value).buildPartial();
           } else {
             target_ = value;
@@ -23580,7 +23580,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        */
       public Builder clearExternal() {
         if (externalBuilder_ == null) {
@@ -23599,38 +23599,38 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        */
-      public talon.manifests.Manifests.A2aExternalTarget.Builder getExternalBuilder() {
+      public talon.manifests.Manifests.ExternalConnectionRef.Builder getExternalBuilder() {
         return internalGetExternalFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        */
       @java.lang.Override
-      public talon.manifests.Manifests.A2aExternalTargetOrBuilder getExternalOrBuilder() {
+      public talon.manifests.Manifests.ExternalConnectionRefOrBuilder getExternalOrBuilder() {
         if ((targetCase_ == 2) && (externalBuilder_ != null)) {
           return externalBuilder_.getMessageOrBuilder();
         } else {
           if (targetCase_ == 2) {
-            return (talon.manifests.Manifests.A2aExternalTarget) target_;
+            return (talon.manifests.Manifests.ExternalConnectionRef) target_;
           }
-          return talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance();
+          return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.manifests.A2aExternalTarget external = 2;</code>
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.A2aExternalTarget, talon.manifests.Manifests.A2aExternalTarget.Builder, talon.manifests.Manifests.A2aExternalTargetOrBuilder>
+          talon.manifests.Manifests.ExternalConnectionRef, talon.manifests.Manifests.ExternalConnectionRef.Builder, talon.manifests.Manifests.ExternalConnectionRefOrBuilder>
           internalGetExternalFieldBuilder() {
         if (externalBuilder_ == null) {
           if (!(targetCase_ == 2)) {
-            target_ = talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance();
+            target_ = talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
           }
           externalBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.A2aExternalTarget, talon.manifests.Manifests.A2aExternalTarget.Builder, talon.manifests.Manifests.A2aExternalTargetOrBuilder>(
-                  (talon.manifests.Manifests.A2aExternalTarget) target_,
+              talon.manifests.Manifests.ExternalConnectionRef, talon.manifests.Manifests.ExternalConnectionRef.Builder, talon.manifests.Manifests.ExternalConnectionRefOrBuilder>(
+                  (talon.manifests.Manifests.ExternalConnectionRef) target_,
                   getParentForChildren(),
                   isClean());
           target_ = null;
@@ -23640,23 +23640,23 @@ java.lang.String defaultValue) {
         return externalBuilder_;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.manifests.A2aTarget)
+      // @@protoc_insertion_point(builder_scope:talon.manifests.ConnectionRef)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.manifests.A2aTarget)
-    private static final talon.manifests.Manifests.A2aTarget DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.manifests.ConnectionRef)
+    private static final talon.manifests.Manifests.ConnectionRef DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.manifests.Manifests.A2aTarget();
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.ConnectionRef();
     }
 
-    public static talon.manifests.Manifests.A2aTarget getDefaultInstance() {
+    public static talon.manifests.Manifests.ConnectionRef getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<A2aTarget>
-        PARSER = new com.google.protobuf.AbstractParser<A2aTarget>() {
+    private static final com.google.protobuf.Parser<ConnectionRef>
+        PARSER = new com.google.protobuf.AbstractParser<ConnectionRef>() {
       @java.lang.Override
-      public A2aTarget parsePartialFrom(
+      public ConnectionRef parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -23675,24 +23675,24 @@ java.lang.String defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<A2aTarget> parser() {
+    public static com.google.protobuf.Parser<ConnectionRef> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<A2aTarget> getParserForType() {
+    public com.google.protobuf.Parser<ConnectionRef> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.manifests.Manifests.A2aTarget getDefaultInstanceForType() {
+    public talon.manifests.Manifests.ConnectionRef getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface A2aInternalTargetOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.manifests.A2aInternalTarget)
+  public interface InternalConnectionRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.InternalConnectionRef)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -23720,12 +23720,12 @@ java.lang.String defaultValue) {
         getAgentBytes();
   }
   /**
-   * Protobuf type {@code talon.manifests.A2aInternalTarget}
+   * Protobuf type {@code talon.manifests.InternalConnectionRef}
    */
-  public static final class A2aInternalTarget extends
+  public static final class InternalConnectionRef extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.manifests.A2aInternalTarget)
-      A2aInternalTargetOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.manifests.InternalConnectionRef)
+      InternalConnectionRefOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -23734,33 +23734,33 @@ java.lang.String defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "A2aInternalTarget");
+        "InternalConnectionRef");
     }
-    // Use A2aInternalTarget.newBuilder() to construct.
-    private A2aInternalTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use InternalConnectionRef.newBuilder() to construct.
+    private InternalConnectionRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private A2aInternalTarget() {
+    private InternalConnectionRef() {
       namespace_ = "";
       agent_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aInternalTarget_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aInternalTarget_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aInternalTarget_fieldAccessorTable
+      return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.manifests.Manifests.A2aInternalTarget.class, talon.manifests.Manifests.A2aInternalTarget.Builder.class);
+              talon.manifests.Manifests.InternalConnectionRef.class, talon.manifests.Manifests.InternalConnectionRef.Builder.class);
     }
 
     public static final int NAMESPACE_FIELD_NUMBER = 1;
@@ -23886,10 +23886,10 @@ java.lang.String defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.manifests.Manifests.A2aInternalTarget)) {
+      if (!(obj instanceof talon.manifests.Manifests.InternalConnectionRef)) {
         return super.equals(obj);
       }
-      talon.manifests.Manifests.A2aInternalTarget other = (talon.manifests.Manifests.A2aInternalTarget) obj;
+      talon.manifests.Manifests.InternalConnectionRef other = (talon.manifests.Manifests.InternalConnectionRef) obj;
 
       if (!getNamespace()
           .equals(other.getNamespace())) return false;
@@ -23915,44 +23915,44 @@ java.lang.String defaultValue) {
       return hash;
     }
 
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(byte[] data)
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -23960,26 +23960,26 @@ java.lang.String defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.manifests.Manifests.A2aInternalTarget parseDelimitedFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.InternalConnectionRef parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.manifests.Manifests.A2aInternalTarget parseDelimitedFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aInternalTarget parseFrom(
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -23992,7 +23992,7 @@ java.lang.String defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.manifests.Manifests.A2aInternalTarget prototype) {
+    public static Builder newBuilder(talon.manifests.Manifests.InternalConnectionRef prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -24008,26 +24008,26 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.manifests.A2aInternalTarget}
+     * Protobuf type {@code talon.manifests.InternalConnectionRef}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.manifests.A2aInternalTarget)
-        talon.manifests.Manifests.A2aInternalTargetOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.manifests.InternalConnectionRef)
+        talon.manifests.Manifests.InternalConnectionRefOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aInternalTarget_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aInternalTarget_fieldAccessorTable
+        return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.manifests.Manifests.A2aInternalTarget.class, talon.manifests.Manifests.A2aInternalTarget.Builder.class);
+                talon.manifests.Manifests.InternalConnectionRef.class, talon.manifests.Manifests.InternalConnectionRef.Builder.class);
       }
 
-      // Construct using talon.manifests.Manifests.A2aInternalTarget.newBuilder()
+      // Construct using talon.manifests.Manifests.InternalConnectionRef.newBuilder()
       private Builder() {
 
       }
@@ -24049,17 +24049,17 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aInternalTarget_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_descriptor;
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aInternalTarget getDefaultInstanceForType() {
-        return talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance();
+      public talon.manifests.Manifests.InternalConnectionRef getDefaultInstanceForType() {
+        return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aInternalTarget build() {
-        talon.manifests.Manifests.A2aInternalTarget result = buildPartial();
+      public talon.manifests.Manifests.InternalConnectionRef build() {
+        talon.manifests.Manifests.InternalConnectionRef result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -24067,14 +24067,14 @@ java.lang.String defaultValue) {
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aInternalTarget buildPartial() {
-        talon.manifests.Manifests.A2aInternalTarget result = new talon.manifests.Manifests.A2aInternalTarget(this);
+      public talon.manifests.Manifests.InternalConnectionRef buildPartial() {
+        talon.manifests.Manifests.InternalConnectionRef result = new talon.manifests.Manifests.InternalConnectionRef(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.manifests.Manifests.A2aInternalTarget result) {
+      private void buildPartial0(talon.manifests.Manifests.InternalConnectionRef result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.namespace_ = namespace_;
@@ -24086,16 +24086,16 @@ java.lang.String defaultValue) {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.manifests.Manifests.A2aInternalTarget) {
-          return mergeFrom((talon.manifests.Manifests.A2aInternalTarget)other);
+        if (other instanceof talon.manifests.Manifests.InternalConnectionRef) {
+          return mergeFrom((talon.manifests.Manifests.InternalConnectionRef)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.manifests.Manifests.A2aInternalTarget other) {
-        if (other == talon.manifests.Manifests.A2aInternalTarget.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.manifests.Manifests.InternalConnectionRef other) {
+        if (other == talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance()) return this;
         if (!other.getNamespace().isEmpty()) {
           namespace_ = other.namespace_;
           bitField0_ |= 0x00000001;
@@ -24303,23 +24303,23 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.manifests.A2aInternalTarget)
+      // @@protoc_insertion_point(builder_scope:talon.manifests.InternalConnectionRef)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.manifests.A2aInternalTarget)
-    private static final talon.manifests.Manifests.A2aInternalTarget DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.manifests.InternalConnectionRef)
+    private static final talon.manifests.Manifests.InternalConnectionRef DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.manifests.Manifests.A2aInternalTarget();
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.InternalConnectionRef();
     }
 
-    public static talon.manifests.Manifests.A2aInternalTarget getDefaultInstance() {
+    public static talon.manifests.Manifests.InternalConnectionRef getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<A2aInternalTarget>
-        PARSER = new com.google.protobuf.AbstractParser<A2aInternalTarget>() {
+    private static final com.google.protobuf.Parser<InternalConnectionRef>
+        PARSER = new com.google.protobuf.AbstractParser<InternalConnectionRef>() {
       @java.lang.Override
-      public A2aInternalTarget parsePartialFrom(
+      public InternalConnectionRef parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -24338,24 +24338,24 @@ java.lang.String defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<A2aInternalTarget> parser() {
+    public static com.google.protobuf.Parser<InternalConnectionRef> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<A2aInternalTarget> getParserForType() {
+    public com.google.protobuf.Parser<InternalConnectionRef> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.manifests.Manifests.A2aInternalTarget getDefaultInstanceForType() {
+    public talon.manifests.Manifests.InternalConnectionRef getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface A2aExternalTargetOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.manifests.A2aExternalTarget)
+  public interface ExternalConnectionRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.ExternalConnectionRef)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -24371,12 +24371,12 @@ java.lang.String defaultValue) {
         getAgentCardUrlBytes();
   }
   /**
-   * Protobuf type {@code talon.manifests.A2aExternalTarget}
+   * Protobuf type {@code talon.manifests.ExternalConnectionRef}
    */
-  public static final class A2aExternalTarget extends
+  public static final class ExternalConnectionRef extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.manifests.A2aExternalTarget)
-      A2aExternalTargetOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.manifests.ExternalConnectionRef)
+      ExternalConnectionRefOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -24385,32 +24385,32 @@ java.lang.String defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "A2aExternalTarget");
+        "ExternalConnectionRef");
     }
-    // Use A2aExternalTarget.newBuilder() to construct.
-    private A2aExternalTarget(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use ExternalConnectionRef.newBuilder() to construct.
+    private ExternalConnectionRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private A2aExternalTarget() {
+    private ExternalConnectionRef() {
       agentCardUrl_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aExternalTarget_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aExternalTarget_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aExternalTarget_fieldAccessorTable
+      return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.manifests.Manifests.A2aExternalTarget.class, talon.manifests.Manifests.A2aExternalTarget.Builder.class);
+              talon.manifests.Manifests.ExternalConnectionRef.class, talon.manifests.Manifests.ExternalConnectionRef.Builder.class);
     }
 
     public static final int AGENT_CARD_URL_FIELD_NUMBER = 1;
@@ -24491,10 +24491,10 @@ java.lang.String defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.manifests.Manifests.A2aExternalTarget)) {
+      if (!(obj instanceof talon.manifests.Manifests.ExternalConnectionRef)) {
         return super.equals(obj);
       }
-      talon.manifests.Manifests.A2aExternalTarget other = (talon.manifests.Manifests.A2aExternalTarget) obj;
+      talon.manifests.Manifests.ExternalConnectionRef other = (talon.manifests.Manifests.ExternalConnectionRef) obj;
 
       if (!getAgentCardUrl()
           .equals(other.getAgentCardUrl())) return false;
@@ -24516,44 +24516,44 @@ java.lang.String defaultValue) {
       return hash;
     }
 
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(byte[] data)
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -24561,26 +24561,26 @@ java.lang.String defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.manifests.Manifests.A2aExternalTarget parseDelimitedFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.ExternalConnectionRef parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.manifests.Manifests.A2aExternalTarget parseDelimitedFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aExternalTarget parseFrom(
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -24593,7 +24593,7 @@ java.lang.String defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.manifests.Manifests.A2aExternalTarget prototype) {
+    public static Builder newBuilder(talon.manifests.Manifests.ExternalConnectionRef prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -24609,26 +24609,26 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.manifests.A2aExternalTarget}
+     * Protobuf type {@code talon.manifests.ExternalConnectionRef}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.manifests.A2aExternalTarget)
-        talon.manifests.Manifests.A2aExternalTargetOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.manifests.ExternalConnectionRef)
+        talon.manifests.Manifests.ExternalConnectionRefOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aExternalTarget_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aExternalTarget_fieldAccessorTable
+        return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.manifests.Manifests.A2aExternalTarget.class, talon.manifests.Manifests.A2aExternalTarget.Builder.class);
+                talon.manifests.Manifests.ExternalConnectionRef.class, talon.manifests.Manifests.ExternalConnectionRef.Builder.class);
       }
 
-      // Construct using talon.manifests.Manifests.A2aExternalTarget.newBuilder()
+      // Construct using talon.manifests.Manifests.ExternalConnectionRef.newBuilder()
       private Builder() {
 
       }
@@ -24649,17 +24649,17 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aExternalTarget_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_descriptor;
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aExternalTarget getDefaultInstanceForType() {
-        return talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance();
+      public talon.manifests.Manifests.ExternalConnectionRef getDefaultInstanceForType() {
+        return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aExternalTarget build() {
-        talon.manifests.Manifests.A2aExternalTarget result = buildPartial();
+      public talon.manifests.Manifests.ExternalConnectionRef build() {
+        talon.manifests.Manifests.ExternalConnectionRef result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -24667,14 +24667,14 @@ java.lang.String defaultValue) {
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aExternalTarget buildPartial() {
-        talon.manifests.Manifests.A2aExternalTarget result = new talon.manifests.Manifests.A2aExternalTarget(this);
+      public talon.manifests.Manifests.ExternalConnectionRef buildPartial() {
+        talon.manifests.Manifests.ExternalConnectionRef result = new talon.manifests.Manifests.ExternalConnectionRef(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.manifests.Manifests.A2aExternalTarget result) {
+      private void buildPartial0(talon.manifests.Manifests.ExternalConnectionRef result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.agentCardUrl_ = agentCardUrl_;
@@ -24683,16 +24683,16 @@ java.lang.String defaultValue) {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.manifests.Manifests.A2aExternalTarget) {
-          return mergeFrom((talon.manifests.Manifests.A2aExternalTarget)other);
+        if (other instanceof talon.manifests.Manifests.ExternalConnectionRef) {
+          return mergeFrom((talon.manifests.Manifests.ExternalConnectionRef)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.manifests.Manifests.A2aExternalTarget other) {
-        if (other == talon.manifests.Manifests.A2aExternalTarget.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.manifests.Manifests.ExternalConnectionRef other) {
+        if (other == talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance()) return this;
         if (!other.getAgentCardUrl().isEmpty()) {
           agentCardUrl_ = other.agentCardUrl_;
           bitField0_ |= 0x00000001;
@@ -24818,23 +24818,23 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.manifests.A2aExternalTarget)
+      // @@protoc_insertion_point(builder_scope:talon.manifests.ExternalConnectionRef)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.manifests.A2aExternalTarget)
-    private static final talon.manifests.Manifests.A2aExternalTarget DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.manifests.ExternalConnectionRef)
+    private static final talon.manifests.Manifests.ExternalConnectionRef DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.manifests.Manifests.A2aExternalTarget();
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.ExternalConnectionRef();
     }
 
-    public static talon.manifests.Manifests.A2aExternalTarget getDefaultInstance() {
+    public static talon.manifests.Manifests.ExternalConnectionRef getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<A2aExternalTarget>
-        PARSER = new com.google.protobuf.AbstractParser<A2aExternalTarget>() {
+    private static final com.google.protobuf.Parser<ExternalConnectionRef>
+        PARSER = new com.google.protobuf.AbstractParser<ExternalConnectionRef>() {
       @java.lang.Override
-      public A2aExternalTarget parsePartialFrom(
+      public ExternalConnectionRef parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -24853,24 +24853,24 @@ java.lang.String defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<A2aExternalTarget> parser() {
+    public static com.google.protobuf.Parser<ExternalConnectionRef> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<A2aExternalTarget> getParserForType() {
+    public com.google.protobuf.Parser<ExternalConnectionRef> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.manifests.Manifests.A2aExternalTarget getDefaultInstanceForType() {
+    public talon.manifests.Manifests.ExternalConnectionRef getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface A2aConnectionAuthOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.manifests.A2aConnectionAuth)
+  public interface ConnectionAuthOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.ConnectionAuth)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -24898,12 +24898,12 @@ java.lang.String defaultValue) {
         getSecretRefBytes();
   }
   /**
-   * Protobuf type {@code talon.manifests.A2aConnectionAuth}
+   * Protobuf type {@code talon.manifests.ConnectionAuth}
    */
-  public static final class A2aConnectionAuth extends
+  public static final class ConnectionAuth extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.manifests.A2aConnectionAuth)
-      A2aConnectionAuthOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.manifests.ConnectionAuth)
+      ConnectionAuthOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -24912,33 +24912,33 @@ java.lang.String defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "A2aConnectionAuth");
+        "ConnectionAuth");
     }
-    // Use A2aConnectionAuth.newBuilder() to construct.
-    private A2aConnectionAuth(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use ConnectionAuth.newBuilder() to construct.
+    private ConnectionAuth(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private A2aConnectionAuth() {
+    private ConnectionAuth() {
       kind_ = "";
       secretRef_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnectionAuth_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnectionAuth_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnectionAuth_fieldAccessorTable
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.manifests.Manifests.A2aConnectionAuth.class, talon.manifests.Manifests.A2aConnectionAuth.Builder.class);
+              talon.manifests.Manifests.ConnectionAuth.class, talon.manifests.Manifests.ConnectionAuth.Builder.class);
     }
 
     public static final int KIND_FIELD_NUMBER = 1;
@@ -25064,10 +25064,10 @@ java.lang.String defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.manifests.Manifests.A2aConnectionAuth)) {
+      if (!(obj instanceof talon.manifests.Manifests.ConnectionAuth)) {
         return super.equals(obj);
       }
-      talon.manifests.Manifests.A2aConnectionAuth other = (talon.manifests.Manifests.A2aConnectionAuth) obj;
+      talon.manifests.Manifests.ConnectionAuth other = (talon.manifests.Manifests.ConnectionAuth) obj;
 
       if (!getKind()
           .equals(other.getKind())) return false;
@@ -25093,44 +25093,44 @@ java.lang.String defaultValue) {
       return hash;
     }
 
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(byte[] data)
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -25138,26 +25138,26 @@ java.lang.String defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.manifests.Manifests.A2aConnectionAuth parseDelimitedFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.ConnectionAuth parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.manifests.Manifests.A2aConnectionAuth parseDelimitedFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.A2aConnectionAuth parseFrom(
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -25170,7 +25170,7 @@ java.lang.String defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.manifests.Manifests.A2aConnectionAuth prototype) {
+    public static Builder newBuilder(talon.manifests.Manifests.ConnectionAuth prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -25186,26 +25186,26 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.manifests.A2aConnectionAuth}
+     * Protobuf type {@code talon.manifests.ConnectionAuth}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.manifests.A2aConnectionAuth)
-        talon.manifests.Manifests.A2aConnectionAuthOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.manifests.ConnectionAuth)
+        talon.manifests.Manifests.ConnectionAuthOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnectionAuth_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnectionAuth_fieldAccessorTable
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.manifests.Manifests.A2aConnectionAuth.class, talon.manifests.Manifests.A2aConnectionAuth.Builder.class);
+                talon.manifests.Manifests.ConnectionAuth.class, talon.manifests.Manifests.ConnectionAuth.Builder.class);
       }
 
-      // Construct using talon.manifests.Manifests.A2aConnectionAuth.newBuilder()
+      // Construct using talon.manifests.Manifests.ConnectionAuth.newBuilder()
       private Builder() {
 
       }
@@ -25227,17 +25227,17 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_A2aConnectionAuth_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_descriptor;
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aConnectionAuth getDefaultInstanceForType() {
-        return talon.manifests.Manifests.A2aConnectionAuth.getDefaultInstance();
+      public talon.manifests.Manifests.ConnectionAuth getDefaultInstanceForType() {
+        return talon.manifests.Manifests.ConnectionAuth.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aConnectionAuth build() {
-        talon.manifests.Manifests.A2aConnectionAuth result = buildPartial();
+      public talon.manifests.Manifests.ConnectionAuth build() {
+        talon.manifests.Manifests.ConnectionAuth result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -25245,14 +25245,14 @@ java.lang.String defaultValue) {
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.A2aConnectionAuth buildPartial() {
-        talon.manifests.Manifests.A2aConnectionAuth result = new talon.manifests.Manifests.A2aConnectionAuth(this);
+      public talon.manifests.Manifests.ConnectionAuth buildPartial() {
+        talon.manifests.Manifests.ConnectionAuth result = new talon.manifests.Manifests.ConnectionAuth(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.manifests.Manifests.A2aConnectionAuth result) {
+      private void buildPartial0(talon.manifests.Manifests.ConnectionAuth result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.kind_ = kind_;
@@ -25264,16 +25264,16 @@ java.lang.String defaultValue) {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.manifests.Manifests.A2aConnectionAuth) {
-          return mergeFrom((talon.manifests.Manifests.A2aConnectionAuth)other);
+        if (other instanceof talon.manifests.Manifests.ConnectionAuth) {
+          return mergeFrom((talon.manifests.Manifests.ConnectionAuth)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.manifests.Manifests.A2aConnectionAuth other) {
-        if (other == talon.manifests.Manifests.A2aConnectionAuth.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.manifests.Manifests.ConnectionAuth other) {
+        if (other == talon.manifests.Manifests.ConnectionAuth.getDefaultInstance()) return this;
         if (!other.getKind().isEmpty()) {
           kind_ = other.kind_;
           bitField0_ |= 0x00000001;
@@ -25481,23 +25481,23 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.manifests.A2aConnectionAuth)
+      // @@protoc_insertion_point(builder_scope:talon.manifests.ConnectionAuth)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.manifests.A2aConnectionAuth)
-    private static final talon.manifests.Manifests.A2aConnectionAuth DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.manifests.ConnectionAuth)
+    private static final talon.manifests.Manifests.ConnectionAuth DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.manifests.Manifests.A2aConnectionAuth();
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.ConnectionAuth();
     }
 
-    public static talon.manifests.Manifests.A2aConnectionAuth getDefaultInstance() {
+    public static talon.manifests.Manifests.ConnectionAuth getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<A2aConnectionAuth>
-        PARSER = new com.google.protobuf.AbstractParser<A2aConnectionAuth>() {
+    private static final com.google.protobuf.Parser<ConnectionAuth>
+        PARSER = new com.google.protobuf.AbstractParser<ConnectionAuth>() {
       @java.lang.Override
-      public A2aConnectionAuth parsePartialFrom(
+      public ConnectionAuth parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -25516,17 +25516,17 @@ java.lang.String defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<A2aConnectionAuth> parser() {
+    public static com.google.protobuf.Parser<ConnectionAuth> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<A2aConnectionAuth> getParserForType() {
+    public com.google.protobuf.Parser<ConnectionAuth> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.manifests.Manifests.A2aConnectionAuth getDefaultInstanceForType() {
+    public talon.manifests.Manifests.ConnectionAuth getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -39118,35 +39118,35 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpServerBindingSpec_HeadersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_manifests_A2aSpec_descriptor;
+    internal_static_talon_manifests_A2A_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_manifests_A2aSpec_fieldAccessorTable;
+      internal_static_talon_manifests_A2A_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_manifests_A2aConnection_descriptor;
+    internal_static_talon_manifests_Connection_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_manifests_A2aConnection_fieldAccessorTable;
+      internal_static_talon_manifests_Connection_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_manifests_A2aTarget_descriptor;
+    internal_static_talon_manifests_ConnectionRef_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_manifests_A2aTarget_fieldAccessorTable;
+      internal_static_talon_manifests_ConnectionRef_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_manifests_A2aInternalTarget_descriptor;
+    internal_static_talon_manifests_InternalConnectionRef_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_manifests_A2aInternalTarget_fieldAccessorTable;
+      internal_static_talon_manifests_InternalConnectionRef_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_manifests_A2aExternalTarget_descriptor;
+    internal_static_talon_manifests_ExternalConnectionRef_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_manifests_A2aExternalTarget_fieldAccessorTable;
+      internal_static_talon_manifests_ExternalConnectionRef_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_manifests_A2aConnectionAuth_descriptor;
+    internal_static_talon_manifests_ConnectionAuth_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_manifests_A2aConnectionAuth_fieldAccessorTable;
+      internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_AgentCard_descriptor;
   private static final
@@ -39238,125 +39238,125 @@ java.lang.String defaultValue) {
       "\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010me" +
       "tadata\030\003 \001(\0132\033.talon.manifests.ObjectMet" +
       "a\0224\n\ndefinition\030\004 \001(\0132 .talon.manifests." +
-      "AgentDefinition\"\327\002\n\tAgentSpec\022*\n\010feature" +
+      "AgentDefinition\"\323\002\n\tAgentSpec\022*\n\010feature" +
       "s\030\001 \003(\0132\030.talon.manifests.Feature\0222\n\014mod" +
       "el_policy\030\002 \001(\0132\034.talon.manifests.ModelP" +
       "olicy\022\025\n\rsystem_prompt\030\003 \001(\t\022\027\n\017mcp_serv" +
       "er_refs\030\004 \003(\t\022B\n\014capabilities\030\006 \003(\0132,.ta" +
       "lon.manifests.AgentSpec.CapabilitiesEntr" +
-      "y\022%\n\003a2a\030\007 \001(\0132\030.talon.manifests.A2aSpec" +
-      "\032O\n\021CapabilitiesEntry\022\013\n\003key\030\001 \001(\t\022)\n\005va" +
-      "lue\030\002 \001(\0132\032.google.protobuf.ListValue:\0028" +
-      "\001\"\210\001\n\017AgentDefinition\0221\n\013custom_spec\030\001 \001" +
-      "(\0132\032.talon.manifests.AgentSpecH\000\0228\n\ttemp" +
-      "lated\030\002 \001(\0132#.talon.manifests.TemplatedA" +
-      "gentSpecH\000B\010\n\006source\"[\n\022TemplatedAgentSp" +
-      "ec\022\025\n\rtemplate_name\030\001 \001(\t\022.\n\005delta\030\002 \001(\013" +
-      "2\037.talon.manifests.AgentSpecDelta\"\255\002\n\016Ag" +
-      "entSpecDelta\0227\n\014model_policy\030\001 \001(\0132!.tal" +
-      "on.manifests.ModelPolicyDelta\0223\n\rsystem_" +
-      "prompt\030\002 \001(\0132\034.talon.manifests.PromptDel" +
-      "ta\0222\n\010features\030\003 \001(\0132 .talon.manifests.F" +
-      "eatureSetDelta\0229\n\017mcp_server_refs\030\004 \001(\0132" +
-      " .talon.manifests.StringListDelta\022>\n\014cap" +
-      "abilities\030\006 \001(\0132(.talon.manifests.Capabi" +
-      "litiesPolicyDelta\"R\n\013PromptDelta\022\021\n\007repl" +
-      "ace\030\001 \001(\tH\000\022\021\n\007prepend\030\002 \001(\tH\000\022\020\n\006append" +
-      "\030\003 \001(\tH\000B\013\n\toperation\"K\n\017FeatureSetDelta" +
-      "\022(\n\006upsert\030\001 \003(\0132\030.talon.manifests.Featu" +
-      "re\022\016\n\006remove\030\002 \003(\t\"?\n\017StringListDelta\022\017\n" +
-      "\007replace\030\001 \003(\t\022\013\n\003add\030\002 \003(\t\022\016\n\006remove\030\003 " +
-      "\003(\t\"\255\001\n\027CapabilitiesPolicyDelta\022F\n\007repla" +
-      "ce\030\001 \003(\01325.talon.manifests.CapabilitiesP" +
-      "olicyDelta.ReplaceEntry\032J\n\014ReplaceEntry\022" +
-      "\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.google.pro" +
-      "tobuf.ListValue:\0028\001\"7\n\007Feature\022\014\n\004name\030\001" +
-      " \001(\t\022\014\n\004type\030\002 \001(\t\022\020\n\010required\030\003 \001(\010\"o\n\005" +
-      "Model\022\020\n\010provider\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n" +
-      "\013temperature\030\003 \001(\002\0221\n\010thinking\030\004 \001(\0132\037.t" +
-      "alon.manifests.ThinkingConfig\"_\n\016Thinkin" +
-      "gConfig\022\017\n\007enabled\030\001 \001(\010\022\032\n\rbudget_token" +
-      "s\030\002 \001(\rH\000\210\001\001\022\016\n\006effort\030\003 \001(\tB\020\n\016_budget_" +
-      "tokens\"C\n\014ModelProfile\022\014\n\004name\030\001 \001(\t\022%\n\005" +
-      "model\030\002 \001(\0132\026.talon.manifests.Model\">\n\013M" +
-      "odelPolicy\022/\n\010profiles\030\001 \003(\0132\035.talon.man" +
-      "ifests.ModelProfile\"A\n\020ModelPolicyDelta\022" +
-      "-\n\006upsert\030\001 \003(\0132\035.talon.manifests.ModelP" +
-      "rofile\"\213\001\n\tMcpServer\022\023\n\013api_version\030\001 \001(" +
-      "\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132\033.talo" +
-      "n.manifests.ObjectMeta\022,\n\004spec\030\004 \001(\0132\036.t" +
-      "alon.manifests.McpServerSpec\"\300\001\n\rMcpServ" +
-      "erSpec\022\021\n\ttransport\030\001 \001(\t\022\016\n\006target\030\002 \001(" +
-      "\t\022\014\n\004args\030\003 \003(\t\022<\n\007headers\030\004 \003(\0132+.talon" +
-      ".manifests.McpServerSpec.HeadersEntry\022\020\n" +
-      "\010disabled\030\005 \001(\010\032.\n\014HeadersEntry\022\013\n\003key\030\001" +
-      " \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\231\001\n\020McpServerBin" +
-      "ding\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022" +
-      "-\n\010metadata\030\003 \001(\0132\033.talon.manifests.Obje" +
-      "ctMeta\0223\n\004spec\030\004 \001(\0132%.talon.manifests.M" +
-      "cpServerBindingSpec\"\224\002\n\024McpServerBinding" +
-      "Spec\022\022\n\nserver_ref\030\001 \001(\t\022\014\n\004args\030\002 \003(\t\022C" +
-      "\n\007headers\030\003 \003(\01322.talon.manifests.McpSer" +
-      "verBindingSpec.HeadersEntry\022\020\n\010disabled\030" +
-      "\004 \001(\010\0227\n\013auth_broker\030\005 \001(\0132\".talon.manif" +
-      "ests.McpAuthBrokerSpec\022\032\n\022allowed_tool_n" +
-      "ames\030\006 \003(\t\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001\">\n\007A2aSpec\0223\n\013connect" +
-      "ions\030\001 \003(\0132\036.talon.manifests.A2aConnecti" +
-      "on\"\347\001\n\rA2aConnection\022\014\n\004name\030\001 \001(\t\022\023\n\013de" +
-      "scription\030\002 \001(\t\022*\n\006target\030\003 \001(\0132\032.talon." +
-      "manifests.A2aTarget\022\023\n\013input_modes\030\004 \003(\t" +
-      "\022\024\n\014output_modes\030\005 \003(\t\022\027\n\017timeout_second" +
-      "s\030\006 \001(\r\022\021\n\tmax_depth\030\007 \001(\r\0220\n\004auth\030\010 \001(\013" +
-      "2\".talon.manifests.A2aConnectionAuth\"\205\001\n" +
-      "\tA2aTarget\0226\n\010internal\030\001 \001(\0132\".talon.man" +
-      "ifests.A2aInternalTargetH\000\0226\n\010external\030\002" +
-      " \001(\0132\".talon.manifests.A2aExternalTarget" +
-      "H\000B\010\n\006target\"5\n\021A2aInternalTarget\022\021\n\tnam" +
-      "espace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"+\n\021A2aExtern" +
-      "alTarget\022\026\n\016agent_card_url\030\001 \001(\t\"5\n\021A2aC" +
-      "onnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n\nsecret_re" +
-      "f\030\002 \001(\t\"\213\001\n\tAgentCard\022\023\n\013api_version\030\001 \001" +
-      "(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132\033.tal" +
-      "on.manifests.ObjectMeta\022,\n\004spec\030\004 \001(\0132\036." +
-      "talon.manifests.AgentCardSpec\"\300\002\n\rAgentC" +
-      "ardSpec\022\021\n\tagent_ref\030\001 \001(\t\022\020\n\010hostname\030\002" +
-      " \001(\t\022\014\n\004name\030\003 \001(\t\022\023\n\013description\030\004 \001(\t\022" +
-      "\017\n\007version\030\005 \001(\t\022<\n\014capabilities\030\006 \001(\0132&" +
-      ".talon.manifests.AgentCardCapabilities\022\033" +
-      "\n\023default_input_modes\030\007 \003(\t\022\034\n\024default_o" +
-      "utput_modes\030\010 \003(\t\022/\n\006skills\030\t \003(\0132\037.talo" +
-      "n.manifests.AgentCardSkill\022,\n\004auth\030\n \001(\013" +
-      "2\036.talon.manifests.AgentCardAuth\"c\n\025Agen" +
-      "tCardCapabilities\022\021\n\tstreaming\030\001 \001(\010\022\032\n\022" +
-      "push_notifications\030\002 \001(\010\022\033\n\023extended_age" +
-      "nt_card\030\003 \001(\010\"\212\001\n\016AgentCardSkill\022\n\n\002id\030\001" +
-      " \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013description\030\003 \001(\t\022" +
-      "\014\n\004tags\030\004 \003(\t\022\020\n\010examples\030\005 \003(\t\022\023\n\013input" +
-      "_modes\030\006 \003(\t\022\024\n\014output_modes\030\007 \003(\t\"6\n\rAg" +
-      "entCardAuth\022\021\n\tdiscovery\030\001 \001(\t\022\022\n\noperat" +
-      "ions\030\002 \001(\t\"[\n\021McpAuthBrokerSpec\022\014\n\004kind\030" +
-      "\001 \001(\t\022\013\n\003url\030\002 \001(\t\022\031\n\021cache_ttl_seconds\030" +
-      "\003 \001(\005\022\020\n\010audience\030\004 \001(\t\"\213\001\n\tKnowledge\022\023\n" +
-      "\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010meta" +
-      "data\030\003 \001(\0132\033.talon.manifests.ObjectMeta\022" +
-      ",\n\004spec\030\004 \001(\0132\036.talon.manifests.Knowledg" +
-      "eSpec\".\n\rKnowledgeSpec\022\014\n\004path\030\001 \001(\t\022\017\n\007" +
-      "content\030\002 \001(\t\"\225\001\n\016MemoryProvider\022\023\n\013api_" +
-      "version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030" +
-      "\003 \001(\0132\033.talon.manifests.ObjectMeta\0221\n\004sp" +
-      "ec\030\004 \001(\0132#.talon.manifests.MemoryProvide" +
-      "rSpec\"\212\001\n\022MemoryProviderSpec\022\016\n\006driver\030\001" +
-      " \001(\t\0225\n\nconnection\030\002 \001(\0132!.talon.manifes" +
-      "ts.ConnectionConfig\022-\n\006schema\030\003 \001(\0132\035.ta" +
-      "lon.manifests.SchemaConfig\"f\n\020Connection" +
-      "Config\022\'\n\003url\030\001 \001(\0132\032.talon.manifests.En" +
-      "vSecret\022)\n\004pool\030\002 \001(\0132\033.talon.manifests." +
-      "PoolConfig\"(\n\tEnvSecret\022\016\n\006source\030\001 \001(\t\022" +
-      "\013\n\003key\030\002 \001(\t\"\\\n\nPoolConfig\022\027\n\017max_connec" +
-      "tions\030\001 \001(\005\022\027\n\017min_connections\030\002 \001(\005\022\034\n\024" +
-      "idle_timeout_seconds\030\003 \001(\005\"\034\n\014SchemaConf" +
-      "ig\022\014\n\004name\030\001 \001(\tb\006proto3"
+      "y\022!\n\003a2a\030\007 \001(\0132\024.talon.manifests.A2A\032O\n\021" +
+      "CapabilitiesEntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030" +
+      "\002 \001(\0132\032.google.protobuf.ListValue:\0028\001\"\210\001" +
+      "\n\017AgentDefinition\0221\n\013custom_spec\030\001 \001(\0132\032" +
+      ".talon.manifests.AgentSpecH\000\0228\n\ttemplate" +
+      "d\030\002 \001(\0132#.talon.manifests.TemplatedAgent" +
+      "SpecH\000B\010\n\006source\"[\n\022TemplatedAgentSpec\022\025" +
+      "\n\rtemplate_name\030\001 \001(\t\022.\n\005delta\030\002 \001(\0132\037.t" +
+      "alon.manifests.AgentSpecDelta\"\255\002\n\016AgentS" +
+      "pecDelta\0227\n\014model_policy\030\001 \001(\0132!.talon.m" +
+      "anifests.ModelPolicyDelta\0223\n\rsystem_prom" +
+      "pt\030\002 \001(\0132\034.talon.manifests.PromptDelta\0222" +
+      "\n\010features\030\003 \001(\0132 .talon.manifests.Featu" +
+      "reSetDelta\0229\n\017mcp_server_refs\030\004 \001(\0132 .ta" +
+      "lon.manifests.StringListDelta\022>\n\014capabil" +
+      "ities\030\006 \001(\0132(.talon.manifests.Capabiliti" +
+      "esPolicyDelta\"R\n\013PromptDelta\022\021\n\007replace\030" +
+      "\001 \001(\tH\000\022\021\n\007prepend\030\002 \001(\tH\000\022\020\n\006append\030\003 \001" +
+      "(\tH\000B\013\n\toperation\"K\n\017FeatureSetDelta\022(\n\006" +
+      "upsert\030\001 \003(\0132\030.talon.manifests.Feature\022\016" +
+      "\n\006remove\030\002 \003(\t\"?\n\017StringListDelta\022\017\n\007rep" +
+      "lace\030\001 \003(\t\022\013\n\003add\030\002 \003(\t\022\016\n\006remove\030\003 \003(\t\"" +
+      "\255\001\n\027CapabilitiesPolicyDelta\022F\n\007replace\030\001" +
+      " \003(\01325.talon.manifests.CapabilitiesPolic" +
+      "yDelta.ReplaceEntry\032J\n\014ReplaceEntry\022\013\n\003k" +
+      "ey\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.google.protobu" +
+      "f.ListValue:\0028\001\"7\n\007Feature\022\014\n\004name\030\001 \001(\t" +
+      "\022\014\n\004type\030\002 \001(\t\022\020\n\010required\030\003 \001(\010\"o\n\005Mode" +
+      "l\022\020\n\010provider\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013tem" +
+      "perature\030\003 \001(\002\0221\n\010thinking\030\004 \001(\0132\037.talon" +
+      ".manifests.ThinkingConfig\"_\n\016ThinkingCon" +
+      "fig\022\017\n\007enabled\030\001 \001(\010\022\032\n\rbudget_tokens\030\002 " +
+      "\001(\rH\000\210\001\001\022\016\n\006effort\030\003 \001(\tB\020\n\016_budget_toke" +
+      "ns\"C\n\014ModelProfile\022\014\n\004name\030\001 \001(\t\022%\n\005mode" +
+      "l\030\002 \001(\0132\026.talon.manifests.Model\">\n\013Model" +
+      "Policy\022/\n\010profiles\030\001 \003(\0132\035.talon.manifes" +
+      "ts.ModelProfile\"A\n\020ModelPolicyDelta\022-\n\006u" +
+      "psert\030\001 \003(\0132\035.talon.manifests.ModelProfi" +
+      "le\"\213\001\n\tMcpServer\022\023\n\013api_version\030\001 \001(\t\022\014\n" +
+      "\004kind\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132\033.talon.ma" +
+      "nifests.ObjectMeta\022,\n\004spec\030\004 \001(\0132\036.talon" +
+      ".manifests.McpServerSpec\"\300\001\n\rMcpServerSp" +
+      "ec\022\021\n\ttransport\030\001 \001(\t\022\016\n\006target\030\002 \001(\t\022\014\n" +
+      "\004args\030\003 \003(\t\022<\n\007headers\030\004 \003(\0132+.talon.man" +
+      "ifests.McpServerSpec.HeadersEntry\022\020\n\010dis" +
+      "abled\030\005 \001(\010\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(\t" +
+      "\022\r\n\005value\030\002 \001(\t:\0028\001\"\231\001\n\020McpServerBinding" +
+      "\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010m" +
+      "etadata\030\003 \001(\0132\033.talon.manifests.ObjectMe" +
+      "ta\0223\n\004spec\030\004 \001(\0132%.talon.manifests.McpSe" +
+      "rverBindingSpec\"\224\002\n\024McpServerBindingSpec" +
+      "\022\022\n\nserver_ref\030\001 \001(\t\022\014\n\004args\030\002 \003(\t\022C\n\007he" +
+      "aders\030\003 \003(\01322.talon.manifests.McpServerB" +
+      "indingSpec.HeadersEntry\022\020\n\010disabled\030\004 \001(" +
+      "\010\0227\n\013auth_broker\030\005 \001(\0132\".talon.manifests" +
+      ".McpAuthBrokerSpec\022\032\n\022allowed_tool_names" +
+      "\030\006 \003(\t\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \001(\t:\0028\001\"7\n\003A2A\0220\n\013connections\030\001 \003" +
+      "(\0132\033.talon.manifests.Connection\"\345\001\n\nConn" +
+      "ection\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(" +
+      "\t\022.\n\006target\030\003 \001(\0132\036.talon.manifests.Conn" +
+      "ectionRef\022\023\n\013input_modes\030\004 \003(\t\022\024\n\014output" +
+      "_modes\030\005 \003(\t\022\027\n\017timeout_seconds\030\006 \001(\r\022\021\n" +
+      "\tmax_depth\030\007 \001(\r\022-\n\004auth\030\010 \001(\0132\037.talon.m" +
+      "anifests.ConnectionAuth\"\221\001\n\rConnectionRe" +
+      "f\022:\n\010internal\030\001 \001(\0132&.talon.manifests.In" +
+      "ternalConnectionRefH\000\022:\n\010external\030\002 \001(\0132" +
+      "&.talon.manifests.ExternalConnectionRefH" +
+      "\000B\010\n\006target\"9\n\025InternalConnectionRef\022\021\n\t" +
+      "namespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"/\n\025Extern" +
+      "alConnectionRef\022\026\n\016agent_card_url\030\001 \001(\t\"" +
+      "2\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n\nsecre" +
+      "t_ref\030\002 \001(\t\"\213\001\n\tAgentCard\022\023\n\013api_version" +
+      "\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132\033" +
+      ".talon.manifests.ObjectMeta\022,\n\004spec\030\004 \001(" +
+      "\0132\036.talon.manifests.AgentCardSpec\"\300\002\n\rAg" +
+      "entCardSpec\022\021\n\tagent_ref\030\001 \001(\t\022\020\n\010hostna" +
+      "me\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\023\n\013description\030\004 " +
+      "\001(\t\022\017\n\007version\030\005 \001(\t\022<\n\014capabilities\030\006 \001" +
+      "(\0132&.talon.manifests.AgentCardCapabiliti" +
+      "es\022\033\n\023default_input_modes\030\007 \003(\t\022\034\n\024defau" +
+      "lt_output_modes\030\010 \003(\t\022/\n\006skills\030\t \003(\0132\037." +
+      "talon.manifests.AgentCardSkill\022,\n\004auth\030\n" +
+      " \001(\0132\036.talon.manifests.AgentCardAuth\"c\n\025" +
+      "AgentCardCapabilities\022\021\n\tstreaming\030\001 \001(\010" +
+      "\022\032\n\022push_notifications\030\002 \001(\010\022\033\n\023extended" +
+      "_agent_card\030\003 \001(\010\"\212\001\n\016AgentCardSkill\022\n\n\002" +
+      "id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013description\030\003 " +
+      "\001(\t\022\014\n\004tags\030\004 \003(\t\022\020\n\010examples\030\005 \003(\t\022\023\n\013i" +
+      "nput_modes\030\006 \003(\t\022\024\n\014output_modes\030\007 \003(\t\"6" +
+      "\n\rAgentCardAuth\022\021\n\tdiscovery\030\001 \001(\t\022\022\n\nop" +
+      "erations\030\002 \001(\t\"[\n\021McpAuthBrokerSpec\022\014\n\004k" +
+      "ind\030\001 \001(\t\022\013\n\003url\030\002 \001(\t\022\031\n\021cache_ttl_seco" +
+      "nds\030\003 \001(\005\022\020\n\010audience\030\004 \001(\t\"\213\001\n\tKnowledg" +
+      "e\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010" +
+      "metadata\030\003 \001(\0132\033.talon.manifests.ObjectM" +
+      "eta\022,\n\004spec\030\004 \001(\0132\036.talon.manifests.Know" +
+      "ledgeSpec\".\n\rKnowledgeSpec\022\014\n\004path\030\001 \001(\t" +
+      "\022\017\n\007content\030\002 \001(\t\"\225\001\n\016MemoryProvider\022\023\n\013" +
+      "api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metad" +
+      "ata\030\003 \001(\0132\033.talon.manifests.ObjectMeta\0221" +
+      "\n\004spec\030\004 \001(\0132#.talon.manifests.MemoryPro" +
+      "viderSpec\"\212\001\n\022MemoryProviderSpec\022\016\n\006driv" +
+      "er\030\001 \001(\t\0225\n\nconnection\030\002 \001(\0132!.talon.man" +
+      "ifests.ConnectionConfig\022-\n\006schema\030\003 \001(\0132" +
+      "\035.talon.manifests.SchemaConfig\"f\n\020Connec" +
+      "tionConfig\022\'\n\003url\030\001 \001(\0132\032.talon.manifest" +
+      "s.EnvSecret\022)\n\004pool\030\002 \001(\0132\033.talon.manife" +
+      "sts.PoolConfig\"(\n\tEnvSecret\022\016\n\006source\030\001 " +
+      "\001(\t\022\013\n\003key\030\002 \001(\t\"\\\n\nPoolConfig\022\027\n\017max_co" +
+      "nnections\030\001 \001(\005\022\027\n\017min_connections\030\002 \001(\005" +
+      "\022\034\n\024idle_timeout_seconds\030\003 \001(\005\"\034\n\014Schema" +
+      "Config\022\014\n\004name\030\001 \001(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -39519,41 +39519,41 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_McpServerBindingSpec_HeadersEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_manifests_A2aSpec_descriptor =
+    internal_static_talon_manifests_A2A_descriptor =
       getDescriptor().getMessageType(20);
-    internal_static_talon_manifests_A2aSpec_fieldAccessorTable = new
+    internal_static_talon_manifests_A2A_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_manifests_A2aSpec_descriptor,
+        internal_static_talon_manifests_A2A_descriptor,
         new java.lang.String[] { "Connections", });
-    internal_static_talon_manifests_A2aConnection_descriptor =
+    internal_static_talon_manifests_Connection_descriptor =
       getDescriptor().getMessageType(21);
-    internal_static_talon_manifests_A2aConnection_fieldAccessorTable = new
+    internal_static_talon_manifests_Connection_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_manifests_A2aConnection_descriptor,
+        internal_static_talon_manifests_Connection_descriptor,
         new java.lang.String[] { "Name", "Description", "Target", "InputModes", "OutputModes", "TimeoutSeconds", "MaxDepth", "Auth", });
-    internal_static_talon_manifests_A2aTarget_descriptor =
+    internal_static_talon_manifests_ConnectionRef_descriptor =
       getDescriptor().getMessageType(22);
-    internal_static_talon_manifests_A2aTarget_fieldAccessorTable = new
+    internal_static_talon_manifests_ConnectionRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_manifests_A2aTarget_descriptor,
+        internal_static_talon_manifests_ConnectionRef_descriptor,
         new java.lang.String[] { "Internal", "External", "Target", });
-    internal_static_talon_manifests_A2aInternalTarget_descriptor =
+    internal_static_talon_manifests_InternalConnectionRef_descriptor =
       getDescriptor().getMessageType(23);
-    internal_static_talon_manifests_A2aInternalTarget_fieldAccessorTable = new
+    internal_static_talon_manifests_InternalConnectionRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_manifests_A2aInternalTarget_descriptor,
+        internal_static_talon_manifests_InternalConnectionRef_descriptor,
         new java.lang.String[] { "Namespace", "Agent", });
-    internal_static_talon_manifests_A2aExternalTarget_descriptor =
+    internal_static_talon_manifests_ExternalConnectionRef_descriptor =
       getDescriptor().getMessageType(24);
-    internal_static_talon_manifests_A2aExternalTarget_fieldAccessorTable = new
+    internal_static_talon_manifests_ExternalConnectionRef_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_manifests_A2aExternalTarget_descriptor,
+        internal_static_talon_manifests_ExternalConnectionRef_descriptor,
         new java.lang.String[] { "AgentCardUrl", });
-    internal_static_talon_manifests_A2aConnectionAuth_descriptor =
+    internal_static_talon_manifests_ConnectionAuth_descriptor =
       getDescriptor().getMessageType(25);
-    internal_static_talon_manifests_A2aConnectionAuth_fieldAccessorTable = new
+    internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_manifests_A2aConnectionAuth_descriptor,
+        internal_static_talon_manifests_ConnectionAuth_descriptor,
         new java.lang.String[] { "Kind", "SecretRef", });
     internal_static_talon_manifests_AgentCard_descriptor =
       getDescriptor().getMessageType(26);

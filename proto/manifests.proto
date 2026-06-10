@@ -29,7 +29,7 @@ message AgentSpec {
   string system_prompt = 3;
   repeated string mcp_server_refs = 4;
   map<string, google.protobuf.ListValue> capabilities = 6;
-  A2aSpec a2a = 7;
+  A2A a2a = 7;
 }
 
 message AgentDefinition {
@@ -138,38 +138,38 @@ message McpServerBindingSpec {
   repeated string allowed_tool_names = 6;
 }
 
-message A2aSpec {
-  repeated A2aConnection connections = 1;
+message A2A {
+  repeated Connection connections = 1;
 }
 
-message A2aConnection {
+message Connection {
   string name = 1;
   string description = 2;
-  A2aTarget target = 3;
+  ConnectionRef target = 3;
   repeated string input_modes = 4;
   repeated string output_modes = 5;
   uint32 timeout_seconds = 6;
   uint32 max_depth = 7;
-  A2aConnectionAuth auth = 8;
+  ConnectionAuth auth = 8;
 }
 
-message A2aTarget {
+message ConnectionRef {
   oneof target {
-    A2aInternalTarget internal = 1;
-    A2aExternalTarget external = 2;
+    InternalConnectionRef internal = 1;
+    ExternalConnectionRef external = 2;
   }
 }
 
-message A2aInternalTarget {
+message InternalConnectionRef {
   string namespace = 1;
   string agent = 2;
 }
 
-message A2aExternalTarget {
+message ExternalConnectionRef {
   string agent_card_url = 1;
 }
 
-message A2aConnectionAuth {
+message ConnectionAuth {
   string kind = 1;
   string secret_ref = 2;
 }
