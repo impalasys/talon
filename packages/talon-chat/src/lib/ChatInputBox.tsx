@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { ArrowUp, Square, Terminal } from "lucide-react";
+import { ArrowUp, ImagePlus, Square, Terminal, X } from "lucide-react";
 
 function border(color: string) {
   return `1px solid ${color}`;
@@ -23,6 +23,12 @@ export type ChatInputBoxProps = {
   textareaMinHeight?: number;
   textareaMaxHeight?: number | string;
   commandMenuItems?: ChatInputCommandMenuItem[];
+  imageAttachments?: ChatInputImageAttachment[];
+  imageUploadEnabled?: boolean;
+  imageAccept?: string;
+  imageButtonLabel?: string;
+  onImageFilesSelected?: (files: File[]) => void;
+  onRemoveImageAttachment?: (id: string) => void;
   style?: React.CSSProperties;
 };
 
@@ -30,6 +36,14 @@ export type ChatInputCommandMenuItem = {
   name: string;
   aliases?: string[];
   description?: string;
+};
+
+export type ChatInputImageAttachment = {
+  id: string;
+  filename: string;
+  previewUrl: string;
+  status?: "queued" | "uploading" | "ready" | "error";
+  error?: string;
 };
 
 export function ChatInputBox({
@@ -50,9 +64,16 @@ export function ChatInputBox({
   textareaMinHeight = 24,
   textareaMaxHeight = "40vh",
   commandMenuItems,
+  imageAttachments,
+  imageUploadEnabled = false,
+  imageAccept = "image/png,image/jpeg,image/gif,image/webp",
+  imageButtonLabel = "Attach image",
+  onImageFilesSelected,
+  onRemoveImageAttachment,
   style,
 }: ChatInputBoxProps) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [highlightedCommandIndex, setHighlightedCommandIndex] = useState(0);
   const [hoveredCommandIndex, setHoveredCommandIndex] = useState<number | null>(null);
   const resolvedCanSubmit = canSubmit ?? (Boolean(value.trim()) && !disabled && !isGenerating);
@@ -62,6 +83,7 @@ export function ChatInputBox({
   const buttonIsEnabled = !buttonDisabled;
   const buttonSize = 30;
   const isSingleLine = rows <= 1;
+  const attachments = imageAttachments ?? [];
   const textareaLineHeight = isSingleLine ? buttonSize : 20;
   const resolvedTextareaMinHeight = rows > 1 ? textareaMinHeight : buttonSize;
   const commandQuery = value.trimStart().startsWith("/") ? value.trimStart().slice(1).toLowerCase() : null;
@@ -116,6 +138,7 @@ export function ChatInputBox({
           boxShadow: "var(--copilot-input-shadow, 0 4px 14px rgba(24,24,27,0.08), 0 1px 2px rgba(24,24,27,0.06))",
           padding: "0.25rem 0.3125rem 0.25rem 0.625rem",
           backdropFilter: "blur(12px)",
+          flexWrap: attachments.length > 0 ? "wrap" : "nowrap",
           ...style,
         }}
       >
@@ -207,6 +230,130 @@ export function ChatInputBox({
               );
             })}
           </div>
+        ) : null}
+        {attachments.length > 0 ? (
+          <div
+            style={{
+              flexBasis: "100%",
+              display: "flex",
+              gap: 8,
+              overflowX: "auto",
+              padding: "0.25rem 0.25rem 0.125rem 0",
+            }}
+          >
+            {attachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                style={{
+                  position: "relative",
+                  width: 58,
+                  height: 58,
+                  flexShrink: 0,
+                  overflow: "hidden",
+                  borderRadius: 8,
+                  border: border(
+                    attachment.status === "error"
+                      ? "var(--copilot-attachment-error-border, rgba(220,38,38,0.55))"
+                      : "var(--copilot-attachment-border, rgba(212,212,216,0.9))",
+                  ),
+                  background: "var(--copilot-attachment-bg, rgba(244,244,245,0.88))",
+                }}
+                title={attachment.error || attachment.filename}
+              >
+                <img
+                  src={attachment.previewUrl}
+                  alt={attachment.filename}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+                {attachment.status === "uploading" ? (
+                  <div
+                    aria-label="Uploading image"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "rgba(24,24,27,0.42)",
+                      color: "#fff",
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    ...
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  aria-label={`Remove ${attachment.filename}`}
+                  onClick={() => onRemoveImageAttachment?.(attachment.id)}
+                  style={{
+                    position: "absolute",
+                    top: 4,
+                    right: 4,
+                    width: 20,
+                    height: 20,
+                    borderRadius: 999,
+                    border: "none",
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(24,24,27,0.74)",
+                    color: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size="13" strokeWidth={2.2} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        {imageUploadEnabled ? (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={imageAccept}
+              multiple
+              tabIndex={-1}
+              aria-hidden="true"
+              style={{ display: "none" }}
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                event.target.value = "";
+                if (files.length > 0) {
+                  onImageFilesSelected?.(files);
+                }
+              }}
+            />
+            <button
+              type="button"
+              aria-label={imageButtonLabel}
+              title={imageButtonLabel}
+              disabled={disabled || isGenerating}
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                width: buttonSize,
+                height: buttonSize,
+                boxSizing: "border-box",
+                flexShrink: 0,
+                borderRadius: 999,
+                border: "none",
+                padding: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: disabled || isGenerating ? "not-allowed" : "pointer",
+                opacity: disabled || isGenerating ? 0.5 : 1,
+                background: "var(--copilot-secondary-control-bg, rgba(24,24,27,0.08))",
+                color: "var(--copilot-secondary-control-fg, rgba(39,39,42,0.88))",
+              }}
+            >
+              <ImagePlus size="16" strokeWidth={2} />
+            </button>
+          </>
         ) : null}
         <textarea
           ref={textareaRef}

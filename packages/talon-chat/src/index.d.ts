@@ -77,6 +77,30 @@ export type TalonSessionCommandTarget = {
 
 export type TalonSessionCommand = TalonChatCommand<TalonSessionCommandTarget, CopilotMessage>;
 
+export type TalonChatObjectRef = {
+  key: string;
+  mediaType?: string;
+  media_type?: string;
+  sizeBytes?: number | bigint | string;
+  size_bytes?: number | bigint | string;
+  sha256?: string;
+  filename?: string;
+  metadata?: Record<string, string>;
+};
+
+export type TalonImageUploadContext = {
+  file: File;
+  namespace: string;
+  agent: string;
+  sessionId: string;
+  signal: AbortSignal;
+};
+
+export type TalonImageUploadResult = TalonChatObjectRef | {
+  object: TalonChatObjectRef;
+  url?: string;
+};
+
 export type TalonSessionProps = {
   namespace: string;
   agent: string;
@@ -95,6 +119,10 @@ export type TalonSessionProps = {
   historyStepLimit?: number;
   commands?: TalonSessionCommand[];
   enabledBuiltInCommands?: TalonBuiltInCommandName[];
+  onImageUpload?: (context: TalonImageUploadContext) => Promise<TalonImageUploadResult>;
+  maxImageAttachments?: number;
+  maxImageBytes?: number;
+  acceptedImageTypes?: string[];
 };
 
 export type TalonCopilotProps = TalonSessionProps;

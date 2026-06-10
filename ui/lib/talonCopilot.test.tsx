@@ -332,6 +332,88 @@ describe('TalonCopilot', () => {
     );
   });
 
+  it('uploads selected images and sends object refs as session message parts', async () => {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    const createObjectURL = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:preview-photo');
+    jest.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    const onImageUpload = jest.fn().mockResolvedValue({
+      key: 'sessions/sess-img/uploads/photo.png',
+      mediaType: 'image/png',
+      sizeBytes: 12,
+      sha256: 'sha',
+      filename: 'photo.png',
+      metadata: { width: '1', height: '1' },
+    });
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ sessionId: 'sess-img' }))
+      .mockResolvedValueOnce(makeStreamResponse([
+        'f:{"messageId":"assistant-img"}\n',
+        '0:"That is a tiny image."\n',
+      ]))
+      .mockResolvedValueOnce(makeJsonResponse({
+        sessionId: 'sess-img',
+        state: 'IDLE',
+        messages: [],
+        steps: [],
+      }));
+
+    const { container } = render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        onImageUpload={onImageUpload}
+      />,
+    );
+
+    const file = new File([new Uint8Array([1, 2, 3])], 'photo.png', { type: 'image/png' });
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(createObjectURL).toHaveBeenCalledWith(file);
+    expect(screen.getByAltText('photo.png')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: 'what is this?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => expect(onImageUpload).toHaveBeenCalledWith(expect.objectContaining({
+      file,
+      namespace: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-img',
+      signal: expect.any(AbortSignal),
+    })));
+
+    await screen.findByText('That is a tiny image.');
+    const body = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(body.messages[0].parts).toEqual([
+      { type: 'text', text: 'what is this?' },
+      expect.objectContaining({
+        type: 'image',
+        object: {
+          key: 'sessions/sess-img/uploads/photo.png',
+          mediaType: 'image/png',
+          sizeBytes: 12,
+          sha256: 'sha',
+          filename: 'photo.png',
+          metadata: { width: '1', height: '1' },
+        },
+      }),
+    ]);
+    expect(body.messages[0].parts[1].previewUrl).toBe('blob:preview-photo');
+  });
+
   it('runs the built-in clear command without sending it as a session message', async () => {
     const gatewayClient = {
       createSession: jest.fn(),
