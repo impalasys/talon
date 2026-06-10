@@ -87,6 +87,13 @@ const gatewayClient: GatewayClientLike = {
   }),
 };
 
+const mockImageUpload: TalonSessionProps["onImageUpload"] = async ({ file, namespace, agent, sessionId }) => ({
+  key: `${namespace}/${agent}/${sessionId}/uploads/${file.name}`,
+  mediaType: file.type || "image/png",
+  sizeBytes: file.size,
+  filename: file.name,
+});
+
 const streamingPrompt = "Summarize the latest incident notes and identify the next owner.";
 const streamingAssistantMessage = fixedMessages[1];
 const originalFetch = globalThis.fetch;
@@ -252,6 +259,13 @@ export const Disabled: Story = {
   args: {
     disabled: true,
     placeholder: "The copilot is temporarily unavailable",
+  },
+};
+
+export const ImageInputEnabled: Story = {
+  args: {
+    placeholder: "Ask Talon to inspect an image...",
+    onImageUpload: mockImageUpload,
   },
 };
 
