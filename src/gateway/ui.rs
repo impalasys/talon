@@ -170,17 +170,27 @@ fn last_dispatchable_message(messages: &[UiMessage]) -> Option<&UiMessage> {
 
 fn ui_message_to_session_message(message: &UiMessage, now_micros: i64) -> models::SessionMessage {
     let mut parts = Vec::new();
-    if let Some(content) = message.content.as_deref() {
-        if !content.trim().is_empty() {
-            parts.push(models::SessionMessagePart {
-                id: String::new(),
-                part_type: models::SessionMessagePartType::Text as i32,
-                content: content.to_string(),
-                name: String::new(),
-                payload_json: String::new(),
-                created_at: now_micros,
-                object: None,
-            });
+    let has_text_part = message.parts.iter().any(|part| {
+        part.kind.as_deref() == Some("text")
+            && part
+                .text
+                .as_deref()
+                .or(part.content.as_deref())
+                .is_some_and(|text| !text.trim().is_empty())
+    });
+    if !has_text_part {
+        if let Some(content) = message.content.as_deref() {
+            if !content.trim().is_empty() {
+                parts.push(models::SessionMessagePart {
+                    id: String::new(),
+                    part_type: models::SessionMessagePartType::Text as i32,
+                    content: content.to_string(),
+                    name: String::new(),
+                    payload_json: String::new(),
+                    created_at: now_micros,
+                    object: None,
+                });
+            }
         }
     }
 
@@ -1297,7 +1307,7 @@ mod tests {
             HeaderMap::new(),
             Json(ChatRequestBody {
                 messages: vec![UiMessage {
-                    content: None,
+                    content: Some("what is in this?".to_string()),
                     parts: vec![
                         UiPart {
                             kind: Some("text".to_string()),

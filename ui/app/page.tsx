@@ -28,7 +28,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { TalonChannel, TalonCopilot, type TalonImageUploadContext } from '@impalasys/talon-chat';
+import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUploadContext } from '@impalasys/talon-chat';
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
 import { updateGatewayClient, getGatewayClient } from '../lib/grpc';
 
@@ -265,6 +265,10 @@ async function uploadTalonImage({ file, namespace, agent, sessionId, signal }: T
     throw new Error(message);
   }
   return response.json();
+}
+
+function talonObjectUrl(object: TalonChatObjectRef) {
+  return object.key ? `/api/talon/objects?key=${encodeURIComponent(object.key)}` : undefined;
 }
 
 type StreamEventItem = {
@@ -1167,6 +1171,7 @@ function DebuggerPageContent() {
                 historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
                 enabledBuiltInCommands={['clear']}
                 onImageUpload={uploadTalonImage}
+                objectUrlForRef={talonObjectUrl}
                 disabled={!isConnected}
                 onSessionChange={(nextSessionId) => {
                   handleSelectionChange({

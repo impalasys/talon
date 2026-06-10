@@ -401,6 +401,7 @@ describe('TalonCopilot', () => {
       { type: 'text', text: 'what is this?' },
       expect.objectContaining({
         type: 'image',
+        payloadJson: JSON.stringify({ filename: 'photo.png' }),
         object: {
           key: 'sessions/sess-img/uploads/photo.png',
           mediaType: 'image/png',
@@ -411,7 +412,7 @@ describe('TalonCopilot', () => {
         },
       }),
     ]);
-    expect(body.messages[0].parts[1].previewUrl).toBe('blob:preview-photo');
+    expect(body.messages[0].parts[1].previewUrl).toBeUndefined();
   });
 
   it('runs the built-in clear command without sending it as a session message', async () => {

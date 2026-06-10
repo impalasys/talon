@@ -120,6 +120,7 @@ export type TalonSessionProps = {
   commands?: TalonSessionCommand[];
   enabledBuiltInCommands?: TalonBuiltInCommandName[];
   onImageUpload?: (context: TalonImageUploadContext) => Promise<TalonImageUploadResult>;
+  objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
   maxImageAttachments?: number;
   maxImageBytes?: number;
   acceptedImageTypes?: string[];

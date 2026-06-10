@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'crypto';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, readFile, writeFile } from 'fs/promises';
 import path from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -43,6 +43,48 @@ function objectDataPath(root: string, key: string) {
 
 function metadataPath(dataPath: string) {
   return path.join(path.dirname(dataPath), `${path.basename(dataPath)}.metadata.json`);
+}
+
+async function readObjectMetadata(dataPath: string) {
+  try {
+    const bytes = await readFile(metadataPath(dataPath), 'utf8');
+    const metadata = JSON.parse(bytes);
+    return metadata && typeof metadata === 'object' ? metadata as Record<string, unknown> : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const key = request.nextUrl.searchParams.get('key');
+  if (!key) {
+    return NextResponse.json({ error: 'key is required' }, { status: 400 });
+  }
+
+  let dataPath: string;
+  try {
+    dataPath = objectDataPath(process.env.TALON_OBJECT_STORE_PATH || DEFAULT_OBJECT_STORE_PATH, key);
+  } catch {
+    return NextResponse.json({ error: 'invalid object key' }, { status: 400 });
+  }
+
+  try {
+    const [bytes, metadata] = await Promise.all([
+      readFile(dataPath),
+      readObjectMetadata(dataPath),
+    ]);
+    const mediaType = typeof metadata.media_type === 'string' && metadata.media_type
+      ? metadata.media_type
+      : 'application/octet-stream';
+    return new NextResponse(new Uint8Array(bytes), {
+      headers: {
+        'content-type': mediaType,
+        'cache-control': 'private, max-age=300',
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: 'object not found' }, { status: 404 });
+  }
 }
 
 export async function POST(request: NextRequest) {

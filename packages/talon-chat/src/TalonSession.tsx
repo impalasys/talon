@@ -91,6 +91,7 @@ export type TalonSessionProps = {
   commands?: TalonSessionCommand[];
   enabledBuiltInCommands?: TalonBuiltInCommandName[];
   onImageUpload?: (context: TalonImageUploadContext) => Promise<TalonImageUploadResult>;
+  objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined;
   maxImageAttachments?: number;
   maxImageBytes?: number;
   acceptedImageTypes?: string[];
@@ -270,6 +271,15 @@ function normalizeImageUploadResult(result: TalonImageUploadResult) {
   return "object" in result ? result.object : result;
 }
 
+function serializableMessageParts(parts: unknown) {
+  if (!Array.isArray(parts)) return [];
+  return parts.map((part: any) => {
+    if (!part || typeof part !== "object") return part;
+    const { previewUrl: _previewUrl, ...serializablePart } = part;
+    return serializablePart;
+  });
+}
+
 function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
   if (typeof payloadJson !== "string" || payloadJson.length === 0) return {};
   try {
@@ -280,7 +290,10 @@ function parsePayloadJson(payloadJson: unknown): Record<string, unknown> {
   }
 }
 
-function messageImageParts(message: CopilotMessage): Array<{ id: string; src?: string; label: string }> {
+function messageImageParts(
+  message: CopilotMessage,
+  objectUrlForRef?: (object: TalonChatObjectRef) => string | undefined,
+): Array<{ id: string; src?: string; label: string }> {
   if (!Array.isArray(message.parts)) return [];
   return message.parts.flatMap((part: any, index) => {
     const type = part?.type ?? part?.partType ?? part?.part_type;
@@ -294,10 +307,10 @@ function messageImageParts(message: CopilotMessage): Array<{ id: string; src?: s
         ? part.previewUrl
         : typeof part.url === "string"
           ? part.url
-          : typeof payload.previewUrl === "string"
-            ? payload.previewUrl
-            : typeof payload.url === "string"
-              ? payload.url
+          : typeof payload.url === "string"
+            ? payload.url
+            : object
+              ? objectUrlForRef?.(object)
               : undefined;
     const label =
       object?.filename ||
@@ -456,6 +469,7 @@ export function TalonSession({
   commands,
   enabledBuiltInCommands,
   onImageUpload,
+  objectUrlForRef,
   maxImageAttachments = 4,
   maxImageBytes = 20 * 1024 * 1024,
   acceptedImageTypes = ["image/png", "image/jpeg", "image/gif", "image/webp"],
@@ -629,7 +643,7 @@ export function TalonSession({
   const renderedMessages = useMemo(() => {
     return messages.map((message, messageIndex) => {
       const content = getMessageContent(message);
-      const images = messageImageParts(message);
+      const images = messageImageParts(message, objectUrlForRef);
       const timeline = getMessageAssistantTimeline(message);
       const textTimelineItems = timeline.filter((item): item is Extract<AssistantTimelineItem, { type: "text" }> => item.type === "text");
       const toolTimelineItems = timeline.filter((item): item is Extract<AssistantTimelineItem, { type: "tool" }> => item.type === "tool");
@@ -865,7 +879,7 @@ export function TalonSession({
         </div>
       );
     });
-  }, [messages, expandedThinkingMessages, expandedToolItems, isLoading, loadingNow, loadingStartedAt, toggleThinkingMessage, toggleToolItem]);
+  }, [messages, expandedThinkingMessages, expandedToolItems, isLoading, loadingNow, loadingStartedAt, objectUrlForRef, toggleThinkingMessage, toggleToolItem]);
 
   const resolvedHistoryPageSize = Math.max(
     1,
@@ -1302,7 +1316,7 @@ export function TalonSession({
             sizeBytes: attachment.object.sizeBytes ?? attachment.object.size_bytes ?? attachment.file.size,
           }),
           previewUrl: attachment.previewUrl,
-          payloadJson: JSON.stringify({ previewUrl: attachment.previewUrl, filename: attachment.file.name }),
+          payloadJson: JSON.stringify({ filename: attachment.file.name }),
         };
       });
       const messageParts = [
@@ -1333,7 +1347,9 @@ export function TalonSession({
           messages: [{
             role: userMessage.role,
             content: getMessageContent(userMessage),
-            parts: Array.isArray(userMessage.parts) ? userMessage.parts : (getMessageContent(userMessage) ? [{ type: "text", text: getMessageContent(userMessage) }] : []),
+            parts: Array.isArray(userMessage.parts)
+              ? serializableMessageParts(userMessage.parts)
+              : (getMessageContent(userMessage) ? [{ type: "text", text: getMessageContent(userMessage) }] : []),
           }],
         }),
       });
