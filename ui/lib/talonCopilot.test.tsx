@@ -332,6 +332,127 @@ describe('TalonCopilot', () => {
     );
   });
 
+  it('runs the built-in clear command without sending it as a session message', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      clearSession: jest.fn().mockResolvedValue({ success: true }),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-clear',
+        state: 'IDLE',
+        messages: [
+          {
+            id: 'assistant-clear',
+            role: 'ROLE_ASSISTANT',
+            content: 'Clear me from the transcript',
+            createdAt: String(Date.now() * 1000),
+          },
+        ],
+        steps: [],
+      }),
+      getSession: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-clear"
+        enabledBuiltInCommands={['clear']}
+      />,
+    );
+
+    expect(await screen.findByText('Clear me from the transcript')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: '/clear' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => expect(gatewayClient.clearSession).toHaveBeenCalledWith({
+      ns: 'ops',
+      agent: 'copilot',
+      sessionId: 'sess-clear',
+    }));
+    expect(screen.queryByText('Clear me from the transcript')).not.toBeInTheDocument();
+    expect(gatewayClient.createSession).not.toHaveBeenCalled();
+  });
+
+  it('shows enabled session commands in the command menu', async () => {
+    const gatewayClient = {
+      createSession: jest.fn(),
+      clearSession: jest.fn(),
+      listSessionMessages: jest.fn().mockResolvedValue({
+        sessionId: 'sess-menu',
+        state: 'IDLE',
+        messages: [],
+        steps: [],
+      }),
+      getSession: jest.fn(),
+    };
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        gatewayClient={gatewayClient}
+        sessionId="sess-menu"
+        enabledBuiltInCommands={['clear']}
+      />,
+    );
+
+    const input = await screen.findByPlaceholderText('Ask Talon to perform a task...');
+    fireEvent.change(input, {
+      target: { value: '/' },
+    });
+
+    expect(screen.getByRole('listbox', { name: 'Command menu' })).toBeInTheDocument();
+    const clearOption = screen.getByRole('option', { name: /\/clear/i });
+    expect(clearOption).toBeInTheDocument();
+    fireEvent.click(clearOption);
+    expect(input).toHaveValue('/clear');
+  });
+
+  it('runs custom session commands with parsed arguments and context', async () => {
+    const commandRun = jest.fn();
+
+    render(
+      <TalonCopilot
+        namespace="ops"
+        agent="copilot"
+        gatewayUrl="http://localhost:18789"
+        commands={[
+          {
+            name: 'tag',
+            aliases: ['t'],
+            run: commandRun,
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Ask Talon to perform a task...'), {
+      target: { value: '/t alpha beta' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send message/i }));
+
+    await waitFor(() => expect(commandRun).toHaveBeenCalled());
+    expect(commandRun).toHaveBeenCalledWith(expect.objectContaining({
+      name: 't',
+      input: '/t alpha beta',
+      args: 'alpha beta',
+      argv: ['alpha', 'beta'],
+      target: {
+        type: 'session',
+        namespace: 'ops',
+        agent: 'copilot',
+        sessionId: null,
+      },
+      messages: [],
+    }));
+  });
+
   it('scrolls the transcript container as streamed output arrives', async () => {
     const fetchMock = global.fetch as jest.Mock;
     fetchMock.mockReset();
@@ -993,6 +1114,60 @@ describe('TalonChannel', () => {
       );
     });
     expect(await screen.findByText('hello channel')).toBeInTheDocument();
+  });
+
+  it('posts /clear as a normal channel message because channels have no built-in clear command', async () => {
+    const fetchMock = global.fetch as jest.Mock;
+    fetchMock.mockReset();
+    fetchMock
+      .mockResolvedValueOnce(makeJsonResponse({ messages: [] }))
+      .mockResolvedValueOnce(makeJsonResponse({ message: { id: 'channel-clear-text' } }))
+      .mockResolvedValueOnce(makeJsonResponse({
+        messages: [
+          {
+            id: 'channel-clear-text',
+            authorKind: 'user',
+            author: 'sightline',
+            content: '/clear',
+          },
+        ],
+      }));
+
+    render(
+      <TalonChannel
+        namespace="channel-collaboration"
+        channel="incident-room"
+        gatewayUrl="http://localhost:18789"
+        refreshIntervalMs={false}
+      />,
+    );
+
+    const input = await screen.findByPlaceholderText('Message #incident-room');
+    fireEvent.change(input, { target: { value: '/' } });
+    expect(screen.queryByRole('listbox', { name: 'Command menu' })).not.toBeInTheDocument();
+
+    fireEvent.change(input, {
+      target: { value: '/clear' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /send channel message/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        'http://localhost:18789/v1/ns/channel-collaboration/channels/incident-room/messages',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            ns: 'channel-collaboration',
+            channel: 'incident-room',
+            authorKind: 'user',
+            author: 'sightline',
+            content: '/clear',
+          }),
+        }),
+      );
+    });
+    expect(await screen.findByText('/clear')).toBeInTheDocument();
   });
 
   it('does not post duplicate channel messages while a submit is in flight', async () => {

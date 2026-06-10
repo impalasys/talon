@@ -4,6 +4,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Hash } from "lucide-react";
 import { buildGatewayHeaders, normalizeGatewayUrl } from "./lib/grpc";
 import { ChatInputBox } from "./lib/ChatInputBox";
+import {
+  findTalonChatCommand,
+  parseTalonChatCommandInput,
+  type TalonChatCommand,
+} from "./lib/commands";
 import { MarkdownMessage } from "./lib/MarkdownMessage";
 
 function border(color: string) {
@@ -41,6 +46,15 @@ export type ChannelMessage = {
   source_session_id?: string;
 };
 
+export type TalonChannelCommandTarget = {
+  type: "channel";
+  namespace: string;
+  channel: string;
+  status: string;
+};
+
+export type TalonChannelCommand = TalonChatCommand<TalonChannelCommandTarget, ChannelMessage>;
+
 export type TalonChannelProps = {
   namespace: string;
   channel: string | ChannelLike | null | undefined;
@@ -57,6 +71,7 @@ export type TalonChannelProps = {
   timestampLocale?: Intl.LocalesArgument;
   formatTimestamp?: (message: ChannelMessage) => string;
   renderMessageActions?: (message: ChannelMessage) => React.ReactNode;
+  commands?: TalonChannelCommand[];
 };
 
 export type UseTalonChannelMessagesOptions = {
@@ -468,9 +483,11 @@ export function TalonChannel({
   timestampLocale,
   formatTimestamp,
   renderMessageActions,
+  commands,
 }: TalonChannelProps) {
   const [draft, setDraft] = useState("");
   const [isPosting, setIsPosting] = useState(false);
+  const [commandError, setCommandError] = useState<string | null>(null);
   const isPostingRef = useRef(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const skipNextAutoScrollRef = useRef(false);
@@ -495,6 +512,7 @@ export function TalonChannel({
     refreshIntervalMs,
   });
   const isUserInputDisabled = disabled || disableUserInput || status === "closed";
+  const displayedError = commandError || error;
 
   const resolvedFormatTimestamp = useMemo(() => {
     if (formatTimestamp) return formatTimestamp;
@@ -524,6 +542,7 @@ export function TalonChannel({
 
   useEffect(() => {
     isNearBottomRef.current = true;
+    setCommandError(null);
   }, [namespace, channelName]);
 
   useEffect(() => {
@@ -538,6 +557,12 @@ export function TalonChannel({
     });
     return () => window.cancelAnimationFrame(rafId);
   }, [messages, scrollMessagesToBottom]);
+
+  const resolvedCommands = useMemo<Array<TalonChannelCommand>>(() => commands ?? [], [commands]);
+  const commandMenuItems = useMemo(
+    () => resolvedCommands.map(({ name, aliases, description }) => ({ name, aliases, description })),
+    [resolvedCommands],
+  );
 
   const handleMessageScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
     isNearBottomRef.current = isNearScrollBottom(event.currentTarget);
@@ -559,8 +584,35 @@ export function TalonChannel({
   const submitChannelMessage = useCallback(async (submittedContent: string) => {
     const content = submittedContent.trim();
     if (!content || isPostingRef.current || isUserInputDisabled) return;
+
+    const parsedCommand = parseTalonChatCommandInput(content);
+    const command = findTalonChatCommand(resolvedCommands, parsedCommand);
+    if (command && parsedCommand) {
+      setDraft("");
+      setCommandError(null);
+      try {
+        await command.run({
+          name: parsedCommand.name,
+          input: content,
+          args: parsedCommand.args,
+          argv: parsedCommand.argv,
+          target: {
+            type: "channel",
+            namespace,
+            channel: channelName,
+            status,
+          },
+          messages,
+        });
+      } catch (err) {
+        setCommandError(err instanceof Error ? err.message : String(err));
+      }
+      return;
+    }
+
     isPostingRef.current = true;
     setIsPosting(true);
+    setCommandError(null);
     try {
       await postMessage({ author, authorKind, content });
       setDraft("");
@@ -570,7 +622,7 @@ export function TalonChannel({
       isPostingRef.current = false;
       setIsPosting(false);
     }
-  }, [author, authorKind, isUserInputDisabled, postMessage]);
+  }, [author, authorKind, channelName, isUserInputDisabled, messages, namespace, postMessage, resolvedCommands, status]);
 
   return (
     <div
@@ -597,9 +649,9 @@ export function TalonChannel({
         >
           {isLoading ? <div style={{ marginBottom: 12, fontSize: 12, opacity: 0.68 }}>Loading channel...</div> : null}
           {isLoadingOlderMessages ? <div style={{ marginBottom: 12, fontSize: 12, opacity: 0.68 }}>Loading older messages...</div> : null}
-          {error ? (
+          {displayedError ? (
             <div style={{ marginBottom: 12, borderRadius: 10, border: border("var(--copilot-channel-error-border, rgba(248,113,113,0.5))"), background: "var(--copilot-channel-error-bg, rgba(248,113,113,0.12))", color: "var(--copilot-channel-error-fg, inherit)", padding: 12, fontSize: 13 }}>
-              {error}
+              {displayedError}
             </div>
           ) : null}
           {messages.length === 0 && !isLoading ? (
@@ -639,6 +691,8 @@ export function TalonChannel({
               rows={inputRows}
               disabled={isUserInputDisabled}
               canSubmit={canPost}
+              submitLabel="Send channel message"
+              commandMenuItems={commandMenuItems}
               textareaMinHeight={40}
               textareaMaxHeight={128}
             />

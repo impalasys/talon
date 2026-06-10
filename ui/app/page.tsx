@@ -1129,6 +1129,7 @@ function DebuggerPageContent() {
                 authToken={authToken || undefined}
                 gatewayClient={getGatewayClient()}
                 historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
+                enabledBuiltInCommands={['clear']}
                 disabled={!isConnected}
                 onSessionChange={(nextSessionId) => {
                   handleSelectionChange({

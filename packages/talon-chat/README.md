@@ -42,6 +42,38 @@ You can also inject a gateway client for session CRUD:
 
 `TalonCopilot` is still exported as an alias for existing integrations.
 
+## Commands
+
+Both `TalonSession` and `TalonChannel` can intercept slash commands before they are sent as chat messages. Enable the built-in session `/clear` command with `enabledBuiltInCommands`:
+
+```tsx
+<TalonSession
+  namespace="support"
+  agent="docs"
+  gatewayUrl="http://localhost:18789"
+  enabledBuiltInCommands={["clear"]}
+/>
+```
+
+For sessions, `/clear` calls the gateway session clear API when a session is active and then clears the visible transcript. Channels do not include a built-in clear command because channel messages are shared history, not per-session transcript state.
+
+You can also provide custom commands:
+
+```tsx
+<TalonChannel
+  namespace="support"
+  channel="incident-room"
+  gatewayUrl="http://localhost:18789"
+  commands={[
+    {
+      name: "ack",
+      description: "Acknowledge the active incident room.",
+      run: ({ target }) => console.log(`Acknowledged ${target.channel}`),
+    },
+  ]}
+/>
+```
+
 Channels can be rendered with the same package:
 
 ```tsx

@@ -163,6 +163,44 @@ test.describe('Chat Streaming', () => {
     await expect(page.getByText('The square root of 144 is 12.', { exact: true })).toBeVisible({ timeout: 30000 });
   });
 
+  test('should show the slash command menu and clear the active session', async ({ page }) => {
+    const { chatInput, sendButton, client, sessionId, testNs, testAgent } = await provisionSession(page);
+    const target = { ns: testNs, agent: testAgent, sessionId };
+
+    await chatInput.click();
+    await chatInput.fill('square root of 144');
+    await expect(sendButton).toBeEnabled({ timeout: 5000 });
+    await sendButton.click();
+
+    await expect(page.getByText('square root of 144', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('The square root of 144 is 12.', { exact: true })).toBeVisible({ timeout: 30000 });
+    await waitForSessionText(client, target, 'square root of 144');
+
+    await chatInput.fill('/');
+    const commandMenu = page.getByRole('listbox', { name: 'Command menu' });
+    await expect(commandMenu).toBeVisible({ timeout: 5000 });
+
+    const clearOption = page.getByRole('option', { name: /\/clear/i });
+    await expect(clearOption).toBeVisible();
+    await clearOption.hover();
+    await expect(clearOption).toHaveCSS('background-color', 'rgba(24, 24, 27, 0.11)');
+    await clearOption.click();
+
+    await expect(chatInput).toHaveValue('/clear');
+    await expect(sendButton).toBeEnabled({ timeout: 5000 });
+    await sendButton.click();
+
+    await expect(page.getByText('square root of 144', { exact: true })).toHaveCount(0, { timeout: 10000 });
+    await expect(page.getByText('The square root of 144 is 12.', { exact: true })).toHaveCount(0);
+    await expect(async () => {
+      const history = await client.listSessionMessages({
+        ...target,
+        pageSize: 50,
+      });
+      expect(history.items ?? []).toHaveLength(0);
+    }).toPass({ timeout: 30000 });
+  });
+
   test('should render and replay thinking blocks from the mock llm', async ({ page }) => {
     const { client, sessionId, testNs, testAgent } = await provisionSession(page);
     await client.sendMessage({
