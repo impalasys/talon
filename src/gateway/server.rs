@@ -444,17 +444,18 @@ mod tests {
                 }),
             }),
         };
-        crate::gateway::rpc::GrpcGatewayHandler {
+        let handler = crate::gateway::rpc::GrpcGatewayHandler {
             gateway: Arc::new(gateway.clone()),
-        }
-        .handle_create_agent_card(tonic::Request::new(
-            crate::gateway::rpc::proto::CreateAgentCardRequest {
-                ns: "support".to_string(),
-                card: Some(card),
-            },
-        ))
-        .await
-        .unwrap();
+        };
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "support".to_string(),
+                    card: Some(card),
+                },
+            ))
+            .await
+            .unwrap();
 
         assert!(gateway
             .kv
@@ -471,7 +472,7 @@ mod tests {
                 Request::builder()
                     .method(Method::GET)
                     .uri("/.well-known/agent-card.json")
-                    .header(header::HOST, "support.example.com")
+                    .header(header::HOST, "support.example.com:8080")
                     .header("x-forwarded-proto", "HTTP")
                     .body(Body::empty())
                     .unwrap(),
@@ -485,10 +486,45 @@ mod tests {
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(value["name"], "Support Agent");
-        assert_eq!(value["url"], "http://support.example.com");
+        assert_eq!(value["url"], "http://support.example.com:8080");
         assert_eq!(value["capabilities"]["streaming"], false);
         assert_eq!(value["skills"][0]["id"], "answer_support_question");
         assert!(value.get("auth").is_none());
+
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "support".to_string(),
+                    card: Some(agent_card(
+                        "support",
+                        "local-public",
+                        "support-docs",
+                        "localhost",
+                    )),
+                },
+            ))
+            .await
+            .unwrap();
+
+        let response = gateway
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/.well-known/agent-card.json")
+                    .header(header::HOST, "localhost:8080")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["url"], "http://localhost:8080");
     }
 
     #[tokio::test]

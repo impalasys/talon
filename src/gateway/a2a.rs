@@ -54,7 +54,8 @@ pub async fn get_well_known_agent_card(
 ) -> Response {
     let handler = GrpcGatewayHandler { gateway };
     match handler.find_agent_card_by_hostname(&host).await {
-        Ok(Some(card)) => match agent_card_json(&card, scheme_from_headers(&headers)) {
+        Ok(Some(card)) => match agent_card_json(&card, scheme_from_headers(&headers, &host), &host)
+        {
             Ok(payload) => Json(payload).into_response(),
             Err(response) => response,
         },
@@ -73,7 +74,7 @@ pub async fn get_well_known_agent_card(
     }
 }
 
-fn scheme_from_headers(headers: &HeaderMap) -> &'static str {
+fn scheme_from_headers(headers: &HeaderMap, host: &str) -> &'static str {
     headers
         .get("x-forwarded-proto")
         .and_then(|value| value.to_str().ok())
@@ -88,10 +89,50 @@ fn scheme_from_headers(headers: &HeaderMap) -> &'static str {
                 None
             }
         })
-        .unwrap_or("https")
+        .unwrap_or_else(|| if is_local_host(host) { "http" } else { "https" })
 }
 
-fn agent_card_json(card: &manifests::AgentCard, scheme: &str) -> Result<AgentCardJson, Response> {
+fn host_without_port(host: &str) -> &str {
+    let host = host.trim();
+    if let Some(stripped) = host.strip_prefix('[') {
+        stripped
+            .split_once(']')
+            .map(|(inside, _rest)| inside)
+            .unwrap_or(host)
+    } else {
+        host.rsplit_once(':')
+            .and_then(|(candidate, port)| {
+                (!candidate.contains(':') && port.chars().all(|ch| ch.is_ascii_digit()))
+                    .then_some(candidate)
+            })
+            .unwrap_or(host)
+    }
+}
+
+fn is_local_host(host: &str) -> bool {
+    let hostname = host_without_port(host);
+    hostname.eq_ignore_ascii_case("localhost") || hostname == "127.0.0.1" || hostname == "::1"
+}
+
+fn request_host_port(host: &str) -> Option<&str> {
+    let host = host.trim();
+    if let Some(stripped) = host.strip_prefix('[') {
+        stripped
+            .split_once(']')
+            .and_then(|(_inside, rest)| rest.strip_prefix(':'))
+            .filter(|port| port.chars().all(|ch| ch.is_ascii_digit()))
+    } else {
+        host.rsplit_once(':').and_then(|(candidate, port)| {
+            (!candidate.contains(':') && port.chars().all(|ch| ch.is_ascii_digit())).then_some(port)
+        })
+    }
+}
+
+fn agent_card_json(
+    card: &manifests::AgentCard,
+    scheme: &str,
+    host: &str,
+) -> Result<AgentCardJson, Response> {
     let spec = card.spec.as_ref().ok_or_else(|| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -100,11 +141,16 @@ fn agent_card_json(card: &manifests::AgentCard, scheme: &str) -> Result<AgentCar
             .into_response()
     })?;
     let capabilities = spec.capabilities.as_ref();
+    let url = if let Some(port) = request_host_port(host) {
+        format!("{}://{}:{}", scheme, spec.hostname, port)
+    } else {
+        format!("{}://{}", scheme, spec.hostname)
+    };
     Ok(AgentCardJson {
         name: spec.name.clone(),
         description: spec.description.clone(),
         version: spec.version.clone(),
-        url: format!("{}://{}", scheme, spec.hostname),
+        url,
         capabilities: AgentCardCapabilitiesJson {
             streaming: capabilities.map(|value| value.streaming).unwrap_or(false),
             push_notifications: capabilities
