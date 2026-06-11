@@ -204,6 +204,10 @@ async fn claim_agent_card_hostname(
                             hostname, current_ns, current_name
                         )));
                     }
+                    return Err(tonic::Status::already_exists(format!(
+                        "AgentCard hostname '{}' is already claimed by {}/{}",
+                        hostname, current_ns, current_name
+                    )));
                 }
                 if current_bytes == value {
                     return Ok(());
@@ -256,30 +260,39 @@ async fn cleanup_agent_card_hostname_index(
     }
 }
 
-async fn rollback_agent_card_after_failed_hostname_claim(
+async fn rollback_hostname_claim(
     kv: &(dyn KeyValueStore + Send + Sync),
-    key: &keys::ResourceKey,
+    hostname: &str,
     attempted: &manifests::AgentCard,
     existing: Option<&manifests::AgentCard>,
 ) {
+    let key = keys::agent_card_hostname(hostname);
     let attempted_bytes = attempted.encode_to_vec();
     let result = if let Some(existing) = existing {
-        kv.compare_and_swap(
-            key,
-            Some(attempted_bytes.as_slice()),
-            &existing.encode_to_vec(),
-        )
-        .await
+        let existing_hostname = existing
+            .spec
+            .as_ref()
+            .and_then(|spec| normalize_hostname(&spec.hostname).ok());
+        if existing_hostname.as_deref() == Some(hostname) {
+            kv.compare_and_swap(
+                &key,
+                Some(attempted_bytes.as_slice()),
+                &existing.encode_to_vec(),
+            )
+            .await
+        } else {
+            kv.compare_and_delete(&key, &attempted_bytes).await
+        }
     } else {
-        kv.compare_and_delete(key, &attempted_bytes).await
+        kv.compare_and_delete(&key, &attempted_bytes).await
     };
     match result {
         Ok(true) => {}
         Ok(false) => {
-            tracing::warn!("Skipped AgentCard rollback because the primary record changed");
+            tracing::warn!("Skipped hostname claim rollback because the index record changed");
         }
         Err(err) => {
-            tracing::warn!("Failed to roll back AgentCard after hostname claim failure: {err}");
+            tracing::warn!("Failed to roll back hostname claim: {err}");
         }
     }
 }
@@ -322,22 +335,18 @@ impl GrpcGatewayHandler {
             .map_err(|err| {
                 tonic::Status::internal(format!("Failed to fetch existing AgentCard: {err}"))
             })?;
-        self.gateway
-            .kv
-            .set_msg(&key, &card)
-            .await
-            .map_err(|err| tonic::Status::internal(format!("Failed to save AgentCard: {err}")))?;
-        if let Err(err) =
-            claim_agent_card_hostname(self.gateway.kv.as_ref(), &new_hostname, &card).await
-        {
-            rollback_agent_card_after_failed_hostname_claim(
+        claim_agent_card_hostname(self.gateway.kv.as_ref(), &new_hostname, &card).await?;
+        if let Err(err) = self.gateway.kv.set_msg(&key, &card).await {
+            rollback_hostname_claim(
                 self.gateway.kv.as_ref(),
-                &key,
+                &new_hostname,
                 &card,
                 existing_card.as_ref(),
             )
             .await;
-            return Err(err);
+            return Err(tonic::Status::internal(format!(
+                "Failed to save AgentCard: {err}"
+            )));
         }
         if let Some(existing_card) = existing_card {
             if let Some(old_hostname) = existing_card

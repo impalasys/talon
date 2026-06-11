@@ -316,7 +316,7 @@ fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {
                         name
                     );
                 }
-                let parsed = reqwest::Url::parse(url).with_context(|| {
+                let parsed = url::Url::parse(url).with_context(|| {
                     format!(
                         "A2A connection '{}' external agent_card_url must be an absolute URL",
                         name
