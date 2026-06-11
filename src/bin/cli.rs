@@ -900,6 +900,7 @@ async fn rest_get_yaml(
     } else {
         resp.get(response_key)
             .cloned()
+            .or_else(|| (response_key == "card" && resp.get("cards").is_some()).then_some(resp))
             .with_context(|| format!("REST response missing {}", response_key))?
     };
     render_rest_get_yaml(response_key, value)
@@ -927,9 +928,24 @@ fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<
         "card" => {
             let mut value = value;
             normalize_manifest_metadata_maps(&mut value);
-            let card: talon::gateway::rpc::manifests::AgentCard =
-                serde_json::from_value(value).context("Failed to decode AgentCard JSON")?;
-            talon::manifest::render_agent_card_yaml(&card)
+            if let Some(cards) = value.get("cards").and_then(|cards| cards.as_array()) {
+                let mut yaml = String::new();
+                for card in cards {
+                    let mut card = card.clone();
+                    normalize_manifest_metadata_maps(&mut card);
+                    let card: talon::gateway::rpc::manifests::AgentCard =
+                        serde_json::from_value(card).context("Failed to decode AgentCard JSON")?;
+                    if !yaml.is_empty() {
+                        yaml.push_str("---\n");
+                    }
+                    yaml.push_str(&talon::manifest::render_agent_card_yaml(&card)?);
+                }
+                Ok(yaml)
+            } else {
+                let card: talon::gateway::rpc::manifests::AgentCard =
+                    serde_json::from_value(value).context("Failed to decode AgentCard JSON")?;
+                talon::manifest::render_agent_card_yaml(&card)
+            }
         }
         "knowledge" => {
             let mut value = value;
@@ -3668,6 +3684,74 @@ mod tests {
         let channel = talon::manifest::parse_channel(&channel_yaml).expect("channel should parse");
         assert_eq!(channel.name, "match");
         assert_eq!(channel.ns, "codewords:main");
+
+        let cards_yaml = render_rest_get_yaml(
+            "card",
+            json!({
+                "cards": [
+                    {
+                        "apiVersion": "talon.impalasys.com/v1",
+                        "kind": "AgentCard",
+                        "metadata": {
+                            "name": "support",
+                            "namespace": "team-a",
+                            "labels": null
+                        },
+                        "spec": {
+                            "agentRef": "support-docs",
+                            "hostname": "support.example.com",
+                            "name": "Support Agent",
+                            "description": "Answers support questions.",
+                            "version": "1.0.0",
+                            "capabilities": {
+                                "streaming": false,
+                                "pushNotifications": false,
+                                "extendedAgentCard": false
+                            },
+                            "defaultInputModes": ["text/plain"],
+                            "defaultOutputModes": ["text/plain"],
+                            "skills": [],
+                            "auth": {
+                                "discovery": "public",
+                                "operations": "public"
+                            }
+                        }
+                    },
+                    {
+                        "apiVersion": "talon.impalasys.com/v1",
+                        "kind": "AgentCard",
+                        "metadata": {
+                            "name": "sales",
+                            "namespace": "team-a",
+                            "labels": null
+                        },
+                        "spec": {
+                            "agentRef": "sales-docs",
+                            "hostname": "sales.example.com",
+                            "name": "Sales Agent",
+                            "description": "Answers sales questions.",
+                            "version": "1.0.0",
+                            "capabilities": {
+                                "streaming": false,
+                                "pushNotifications": false,
+                                "extendedAgentCard": false
+                            },
+                            "defaultInputModes": ["text/plain"],
+                            "defaultOutputModes": ["text/plain"],
+                            "skills": [],
+                            "auth": {
+                                "discovery": "public",
+                                "operations": "public"
+                            }
+                        }
+                    }
+                ]
+            }),
+        )
+        .unwrap();
+        assert_eq!(cards_yaml.matches("kind: AgentCard").count(), 2);
+        assert!(cards_yaml.contains("---\napiVersion: talon.impalasys.com/v1"));
+        assert!(!cards_yaml.contains("labels: null"));
     }
 
     #[test]
