@@ -556,7 +556,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_card_hostname_claim_reuses_stale_index_but_rejects_live_owner() {
+    async fn agent_card_hostname_claim_retries_missing_owner_and_rejects_live_owner() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
         seed_namespace_and_agent(&gateway, "sales", "sales-docs").await;
@@ -584,7 +584,7 @@ mod tests {
             "support-docs",
             "shared.example.com",
         );
-        handler
+        let err = handler
             .handle_create_agent_card(tonic::Request::new(
                 crate::gateway::rpc::proto::CreateAgentCardRequest {
                     ns: "support".to_string(),
@@ -592,9 +592,36 @@ mod tests {
                 },
             ))
             .await
+            .unwrap_err();
+
+        assert_eq!(err.code(), tonic::Code::Aborted);
+        assert!(err.message().contains("Failed to claim AgentCard hostname"));
+        assert!(gateway
+            .kv
+            .get(&crate::control::keys::agent_card(
+                "support",
+                "support-public"
+            ))
+            .await
+            .unwrap()
+            .is_none());
+
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: "support".to_string(),
+                    card: Some(agent_card(
+                        "support",
+                        "support-public",
+                        "support-docs",
+                        "live.example.com",
+                    )),
+                },
+            ))
+            .await
             .unwrap();
 
-        let sales_card = agent_card("sales", "sales-public", "sales-docs", "shared.example.com");
+        let sales_card = agent_card("sales", "sales-public", "sales-docs", "live.example.com");
         let err = handler
             .handle_create_agent_card(tonic::Request::new(
                 crate::gateway::rpc::proto::CreateAgentCardRequest {

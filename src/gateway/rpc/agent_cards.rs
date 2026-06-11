@@ -222,15 +222,15 @@ async fn claim_agent_card_hostname(
                                 "Failed to fetch AgentCard hostname owner: {err}"
                             ))
                         })?;
-                    if current_owner
-                        .as_ref()
-                        .and_then(|owner| owner.spec.as_ref())
-                        .is_some_and(|spec| spec.hostname == hostname)
-                    {
-                        return Err(tonic::Status::already_exists(format!(
-                            "AgentCard hostname '{}' is already claimed by {}/{}",
-                            hostname, current_ns, current_name
-                        )));
+                    match current_owner.as_ref().and_then(|owner| owner.spec.as_ref()) {
+                        Some(spec) if spec.hostname == hostname => {
+                            return Err(tonic::Status::already_exists(format!(
+                                "AgentCard hostname '{}' is already claimed by {}/{}",
+                                hostname, current_ns, current_name
+                            )));
+                        }
+                        Some(_) => {}
+                        None => continue,
                     }
                 }
                 if current_bytes == value {
