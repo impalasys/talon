@@ -238,7 +238,15 @@ docker build -f dockerfiles/envoy-cloudrun.Dockerfile .
 
 ## CI artifacts
 
-GitHub CI validates Cargo, runtime image, Envoy image, and UI builds. On pushes to `main`, CI also packages release binaries for:
+GitHub CI validates Cargo, runtime image, Envoy image, and UI builds. On pushes to `main`, CI publishes Docker images to GHCR:
+
+- `ghcr.io/impalasys/talon-runtime:latest`
+- `ghcr.io/impalasys/talon-envoy-cloudrun:latest`
+- `ghcr.io/impalasys/talon-ui:latest`
+
+Each image is also tagged as `sha-<commit>` for immutable references from downstream projects.
+
+On pushes to `main`, CI also packages release binaries for:
 
 - Linux `x86_64`
 - macOS `arm64`
