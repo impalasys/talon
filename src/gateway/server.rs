@@ -58,6 +58,19 @@ impl Gateway {
                 get(crate::gateway::a2a::get_well_known_agent_card),
             )
             .route(
+                "/message:operation",
+                post(crate::gateway::a2a::post_message_operation),
+            )
+            .route("/tasks", get(crate::gateway::a2a::list_tasks))
+            .route(
+                "/tasks/*tail",
+                get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
+            )
+            .route(
+                "/extendedAgentCard",
+                get(crate::gateway::a2a::unsupported_a2a_operation),
+            )
+            .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
                 post(crate::gateway::ui::post_chat)
                     .get(crate::gateway::ui::get_chat)
@@ -310,6 +323,28 @@ mod tests {
         }
     }
 
+    async fn seed_agent_card(
+        gateway: &Gateway,
+        ns: &str,
+        name: &str,
+        agent_ref: &str,
+        hostname: &str,
+    ) {
+        seed_namespace_and_agent(gateway, ns, agent_ref).await;
+        let handler = crate::gateway::rpc::GrpcGatewayHandler {
+            gateway: Arc::new(gateway.clone()),
+        };
+        handler
+            .handle_create_agent_card(tonic::Request::new(
+                crate::gateway::rpc::proto::CreateAgentCardRequest {
+                    ns: ns.to_string(),
+                    card: Some(agent_card(ns, name, agent_ref, hostname)),
+                },
+            ))
+            .await
+            .unwrap();
+    }
+
     #[test]
     fn new_preserves_auth_config_and_initializes_session_streams() {
         let gateway = Gateway::new(
@@ -376,37 +411,7 @@ mod tests {
     #[tokio::test]
     async fn http_ui_router_serves_agent_card_by_host() {
         let gateway = gateway();
-        gateway
-            .kv
-            .set(
-                &crate::control::keys::namespace_metadata("support"),
-                &crate::gateway::rpc::models::Namespace {
-                    name: "support".to_string(),
-                    parent: String::new(),
-                    is_deleted: false,
-                    deleted_at: 0,
-                    labels: HashMap::new(),
-                }
-                .encode_to_vec(),
-            )
-            .await
-            .unwrap();
-        gateway
-            .kv
-            .set(
-                &crate::control::keys::agent("support", "support-docs"),
-                &crate::gateway::rpc::models::Agent {
-                    name: "support-docs".to_string(),
-                    ns: "support".to_string(),
-                    definition: None,
-                    effective_spec: None,
-                    template_deps: Vec::new(),
-                    labels: HashMap::new(),
-                }
-                .encode_to_vec(),
-            )
-            .await
-            .unwrap();
+        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
         let card = crate::gateway::rpc::manifests::AgentCard {
             api_version: "talon.impalasys.com/v1".to_string(),
             kind: "AgentCard".to_string(),
@@ -525,6 +530,125 @@ mod tests {
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(value["url"], "http://localhost:8080");
+    }
+
+    #[tokio::test]
+    async fn http_ui_router_serves_external_a2a_task_operations() {
+        let gateway = gateway();
+        seed_agent_card(
+            &gateway,
+            "support",
+            "support-public",
+            "support-docs",
+            "support.example.com",
+        )
+        .await;
+        let router = gateway.http_ui_router();
+
+        let send = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/message:send")
+                    .header(header::HOST, "support.example.com")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        r#"{
+                            "message": {
+                                "messageId": "msg-1",
+                                "role": "ROLE_USER",
+                                "taskId": "task-1",
+                                "contextId": "ctx-1",
+                                "parts": [{ "text": "hello from A2A" }]
+                            },
+                            "configuration": { "returnImmediately": true }
+                        }"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(send.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(send.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["id"], "task-1");
+        assert_eq!(value["contextId"], "ctx-1");
+        assert_eq!(value["status"]["state"], "TASK_STATE_WORKING");
+        assert_eq!(value["history"][0]["role"], "ROLE_USER");
+        assert_eq!(value["history"][0]["parts"][0]["text"], "hello from A2A");
+
+        let get_task = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/tasks/task-1")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(get_task.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(get_task.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["id"], "task-1");
+
+        let list = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/tasks")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(list.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(list.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["tasks"][0]["id"], "task-1");
+
+        let cancel = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/tasks/task-1:cancel")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(cancel.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(cancel.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["status"]["state"], "TASK_STATE_CANCELED");
+
+        let stream = router
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/message:stream")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(stream.status(), StatusCode::NOT_IMPLEMENTED);
     }
 
     #[tokio::test]
