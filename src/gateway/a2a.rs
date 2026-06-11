@@ -25,8 +25,6 @@ struct AgentCardJson {
     default_input_modes: Vec<String>,
     default_output_modes: Vec<String>,
     skills: Vec<AgentCardSkillJson>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    auth: Option<AgentCardAuthJson>,
 }
 
 #[derive(Serialize)]
@@ -49,13 +47,6 @@ struct AgentCardSkillJson {
     output_modes: Vec<String>,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct AgentCardAuthJson {
-    discovery: String,
-    operations: String,
-}
-
 pub async fn get_well_known_agent_card(
     State(gateway): State<Arc<Gateway>>,
     headers: HeaderMap,
@@ -71,11 +62,14 @@ pub async fn get_well_known_agent_card(
         Err(status) if status.code() == tonic::Code::InvalidArgument => {
             (StatusCode::BAD_REQUEST, status.message().to_string()).into_response()
         }
-        Err(_status) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            "failed to load AgentCard",
-        )
-            .into_response(),
+        Err(status) => {
+            tracing::error!(%status, "Failed to find AgentCard by hostname");
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "failed to load AgentCard",
+            )
+                .into_response()
+        }
     }
 }
 
@@ -135,9 +129,5 @@ fn agent_card_json(card: &manifests::AgentCard, scheme: &str) -> Result<AgentCar
                 output_modes: skill.output_modes.clone(),
             })
             .collect(),
-        auth: spec.auth.as_ref().map(|auth| AgentCardAuthJson {
-            discovery: auth.discovery.clone(),
-            operations: auth.operations.clone(),
-        }),
     })
 }

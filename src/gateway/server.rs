@@ -287,7 +287,7 @@ mod tests {
                 description: "Answers support questions.".to_string(),
                 version: "1.0.0".to_string(),
                 capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
-                    streaming: true,
+                    streaming: false,
                     push_notifications: false,
                     extended_agent_card: false,
                 }),
@@ -304,7 +304,7 @@ mod tests {
                 }],
                 auth: Some(crate::gateway::rpc::manifests::AgentCardAuth {
                     discovery: "public".to_string(),
-                    operations: "bearer".to_string(),
+                    operations: "public".to_string(),
                 }),
             }),
         }
@@ -423,7 +423,7 @@ mod tests {
                 description: "Answers support questions.".to_string(),
                 version: "1.0.0".to_string(),
                 capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
-                    streaming: true,
+                    streaming: false,
                     push_notifications: false,
                     extended_agent_card: false,
                 }),
@@ -440,7 +440,7 @@ mod tests {
                 }],
                 auth: Some(crate::gateway::rpc::manifests::AgentCardAuth {
                     discovery: "public".to_string(),
-                    operations: "bearer".to_string(),
+                    operations: "public".to_string(),
                 }),
             }),
         };
@@ -486,10 +486,9 @@ mod tests {
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(value["name"], "Support Agent");
         assert_eq!(value["url"], "http://support.example.com");
-        assert_eq!(value["capabilities"]["streaming"], true);
+        assert_eq!(value["capabilities"]["streaming"], false);
         assert_eq!(value["skills"][0]["id"], "answer_support_question");
-        assert_eq!(value["auth"]["discovery"], "public");
-        assert_eq!(value["auth"]["operations"], "bearer");
+        assert!(value.get("auth").is_none());
     }
 
     #[tokio::test]
@@ -521,6 +520,39 @@ mod tests {
 
         assert_eq!(err.code(), tonic::Code::InvalidArgument);
         assert!(err.message().contains("authenticated discovery"));
+    }
+
+    #[tokio::test]
+    async fn agent_card_rejects_unsupported_capabilities() {
+        let gateway = gateway();
+        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
+        let mut card = agent_card(
+            "support",
+            "support-public",
+            "support-docs",
+            "support.example.com",
+        );
+        card.spec.as_mut().unwrap().capabilities =
+            Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
+                streaming: true,
+                push_notifications: false,
+                extended_agent_card: false,
+            });
+
+        let err = crate::gateway::rpc::GrpcGatewayHandler {
+            gateway: Arc::new(gateway),
+        }
+        .handle_create_agent_card(tonic::Request::new(
+            crate::gateway::rpc::proto::CreateAgentCardRequest {
+                ns: "support".to_string(),
+                card: Some(card),
+            },
+        ))
+        .await
+        .unwrap_err();
+
+        assert_eq!(err.code(), tonic::Code::InvalidArgument);
+        assert!(err.message().contains("streaming is not supported"));
     }
 
     #[tokio::test]
