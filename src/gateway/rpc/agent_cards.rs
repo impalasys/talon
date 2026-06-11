@@ -204,10 +204,6 @@ async fn claim_agent_card_hostname(
                             hostname, current_ns, current_name
                         )));
                     }
-                    return Err(tonic::Status::already_exists(format!(
-                        "AgentCard hostname '{}' is already claimed by {}/{}",
-                        hostname, current_ns, current_name
-                    )));
                 }
                 if current_bytes == value {
                     return Ok(());
@@ -265,7 +261,7 @@ async fn rollback_hostname_claim(
     hostname: &str,
     attempted: &manifests::AgentCard,
     existing: Option<&manifests::AgentCard>,
-) {
+) -> Result<(), tonic::Status> {
     let key = keys::agent_card_hostname(hostname);
     let attempted_bytes = attempted.encode_to_vec();
     let result = if let Some(existing) = existing {
@@ -287,13 +283,13 @@ async fn rollback_hostname_claim(
         kv.compare_and_delete(&key, &attempted_bytes).await
     };
     match result {
-        Ok(true) => {}
-        Ok(false) => {
-            tracing::warn!("Skipped hostname claim rollback because the index record changed");
-        }
-        Err(err) => {
-            tracing::warn!("Failed to roll back hostname claim: {err}");
-        }
+        Ok(true) => Ok(()),
+        Ok(false) => Err(tonic::Status::aborted(
+            "AgentCard save failed and hostname claim changed before rollback completed",
+        )),
+        Err(err) => Err(tonic::Status::internal(format!(
+            "AgentCard save failed and hostname claim rollback also failed: {err}"
+        ))),
     }
 }
 
@@ -343,7 +339,7 @@ impl GrpcGatewayHandler {
                 &card,
                 existing_card.as_ref(),
             )
-            .await;
+            .await?;
             return Err(tonic::Status::internal(format!(
                 "Failed to save AgentCard: {err}"
             )));
@@ -437,11 +433,18 @@ impl GrpcGatewayHandler {
             .spec
             .as_ref()
             .and_then(|spec| normalize_hostname(&spec.hostname).ok());
-        self.gateway
+        let expected = card.encode_to_vec();
+        let deleted = self
+            .gateway
             .kv
-            .delete(&key)
+            .compare_and_delete(&key, &expected)
             .await
             .map_err(|err| tonic::Status::internal(format!("Failed to delete AgentCard: {err}")))?;
+        if !deleted {
+            return Err(tonic::Status::aborted(
+                "AgentCard changed while deleting; retry the request",
+            ));
+        }
         if let Some(hostname) = hostname {
             cleanup_agent_card_hostname_index(self.gateway.kv.as_ref(), &hostname, &card).await;
         }

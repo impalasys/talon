@@ -524,7 +524,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_card_hostname_claim_rejects_live_owner() {
+    async fn agent_card_hostname_claim_reuses_stale_index_but_rejects_live_owner() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
         seed_namespace_and_agent(&gateway, "sales", "sales-docs").await;
@@ -532,6 +532,20 @@ mod tests {
             gateway: Arc::new(gateway.clone()),
         };
 
+        let stale = agent_card(
+            "support",
+            "deleted-card",
+            "support-docs",
+            "shared.example.com",
+        );
+        gateway
+            .kv
+            .set(
+                &crate::control::keys::agent_card_hostname("shared.example.com"),
+                &stale.encode_to_vec(),
+            )
+            .await
+            .unwrap();
         let support_card = agent_card(
             "support",
             "support-public",
