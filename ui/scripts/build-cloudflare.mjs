@@ -77,5 +77,9 @@ try {
     process.exitCode = status ?? 1;
   }
 } finally {
-  await cleanup();
+  try {
+    await cleanup();
+  } catch (err) {
+    console.error('Failed to clean up Cloudflare export staging directory:', err);
+  }
 }
