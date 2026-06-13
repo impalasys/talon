@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 mod cloud_tasks;
+mod cloudflare_alarms;
 mod local_postgres;
 mod local_sqlite;
 mod noop;
 
 pub use cloud_tasks::CloudTasksSchedulerBackend;
+pub use cloudflare_alarms::CloudflareAlarmsSchedulerBackend;
 pub use local_postgres::LocalPostgresSchedulerBackend;
 pub use local_sqlite::LocalSqliteSchedulerBackend;
 pub use noop::NoopSchedulerBackend;

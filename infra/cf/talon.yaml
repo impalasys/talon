@@ -1,0 +1,17 @@
+providers:
+  mock:
+    type: openai_compatible
+    name: mock
+    base_url: "http://mock-llm.internal"
+    model: minimax/minimax-m2.7
+    api_key:
+      source: env
+      key: NOVITA_API_KEY
+default_provider: mock
+control_plane:
+  database:
+    driver: cloudflare_d1
+  message_broker:
+    driver: cloudflare_queues
+  object_store:
+    driver: cloudflare_r2

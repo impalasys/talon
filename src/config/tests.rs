@@ -416,6 +416,61 @@ control_plane:
     }
 
     #[test]
+    fn test_load_default_uses_inline_yaml_before_path() {
+        let _guard = crate::test_support::env_lock();
+        unsafe {
+            env::set_var(
+                "TALON_CONFIG_INLINE_YAML",
+                "providers:\n  inline:\n    type: openai_compatible\n    base_url: https://example.com\n    model: demo\n    api_key: x\n",
+            );
+            env::set_var("TALON_CONFIG_PATH", "/does/not/exist.yaml");
+        }
+
+        let config = Config::load_default().unwrap();
+        assert!(config.providers.contains_key("inline"));
+
+        unsafe {
+            env::remove_var("TALON_CONFIG_INLINE_YAML");
+            env::remove_var("TALON_CONFIG_PATH");
+        }
+    }
+
+    #[test]
+    fn test_cloudflare_r2_object_store_config_from_yaml() {
+        let file = NamedTempFile::new().expect("Failed to create temp file");
+        let path = file.path().with_extension("yaml");
+        std::fs::write(
+            &path,
+            r#"
+control_plane:
+  database:
+    driver: cloudflare_d1
+  message_broker:
+    driver: cloudflare_queues
+  object_store:
+    driver: cloudflare_r2
+    endpoint_url: http://talon-r2.internal
+"#,
+        )
+        .unwrap();
+
+        let config = Config::from_file(&path).unwrap();
+        let backend = config
+            .control_plane
+            .unwrap()
+            .object_store
+            .unwrap()
+            .backend
+            .unwrap();
+        match backend {
+            proto::object_store_config::Backend::CloudflareR2(cfg) => {
+                assert_eq!(cfg.endpoint_url, "http://talon-r2.internal");
+            }
+            other => panic!("unexpected object store backend: {other:?}"),
+        }
+    }
+
+    #[test]
     fn test_load_default_errors_when_nothing_is_available() {
         let _guard = crate::test_support::env_lock();
         let dir = tempdir().unwrap();

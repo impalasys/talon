@@ -128,6 +128,15 @@ struct GcpPushPayload {
     subscription: String,
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CloudflareQueueDispatchPayload {
+    event_type: Option<String>,
+    subscription: Option<String>,
+    delivery_id: Option<String>,
+    payload_base64: String,
+}
+
 fn worker_port<F>(mut get: F) -> String
 where
     F: FnMut(&str) -> Option<String>,
@@ -238,6 +247,10 @@ fn build_worker_handler(
 fn worker_router(handler: WorkerEventHandler) -> Router {
     Router::new()
         .route("/pubsub/push", post(push_webhook))
+        .route(
+            "/cloudflare/queues/dispatch",
+            post(cloudflare_queue_dispatch),
+        )
         .route("/schedules/fire", post(schedule_fire))
         .nest(
             "/mcp/talon-ops",
@@ -620,6 +633,17 @@ where
         message_broker_driver(handler.config.as_ref()),
         Some("local_socket")
     );
+    let use_cloudflare_queues = matches!(
+        message_broker_driver(handler.config.as_ref()),
+        Some("cloudflare_queues")
+    );
+    if use_cloudflare_queues {
+        tracing::info!(
+            transport = "cloudflare_queues",
+            "Worker will receive events from the Cloudflare queue HTTP dispatch endpoint"
+        );
+        return Vec::new();
+    }
     tracing::info!(
         transport = if use_local_socket {
             "local_socket"
@@ -794,6 +818,40 @@ async fn push_webhook(
     } else {
         tracing::warn!("Could not decode payload as GcpPushPayload");
         axum::http::StatusCode::UNPROCESSABLE_ENTITY
+    }
+}
+
+async fn cloudflare_queue_dispatch(
+    State(handler): State<WorkerEventHandler>,
+    Json(payload): Json<CloudflareQueueDispatchPayload>,
+) -> impl IntoResponse {
+    use base64::{engine::general_purpose, Engine as _};
+
+    let raw_bytes = match general_purpose::STANDARD.decode(&payload.payload_base64) {
+        Ok(bytes) => bytes,
+        Err(err) => {
+            tracing::warn!(error = %err, "Invalid Cloudflare queue payload encoding");
+            return axum::http::StatusCode::BAD_REQUEST;
+        }
+    };
+    let event_type = payload.event_type.or_else(|| {
+        payload
+            .subscription
+            .as_deref()
+            .and_then(WorkerEventHandler::event_type_for_subscription)
+            .map(str::to_string)
+    });
+    match handler.dispatch(event_type.as_deref(), &raw_bytes).await {
+        Ok(_) => axum::http::StatusCode::OK,
+        Err(err) => {
+            tracing::error!(
+                delivery_id = ?payload.delivery_id,
+                event_type = ?event_type,
+                error = %err,
+                "Failed to handle Cloudflare queue event"
+            );
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR
+        }
     }
 }
 
