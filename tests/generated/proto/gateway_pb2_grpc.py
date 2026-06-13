@@ -5,8 +5,9 @@ import warnings
 
 from proto import events_pb2 as proto_dot_events__pb2
 from proto import gateway_pb2 as proto_dot_gateway__pb2
+from proto import models_pb2 as proto_dot_models__pb2
 
-GRPC_GENERATED_VERSION = '1.80.0'
+GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -234,6 +235,56 @@ class GatewayServiceStub(object):
                 '/talon.gateway.GatewayService/DeleteSchedule',
                 request_serializer=proto_dot_gateway__pb2.DeleteScheduleRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.DeleteScheduleResponse.FromString,
+                _registered_method=True)
+        self.CreateWorkflow = channel.unary_unary(
+                '/talon.gateway.GatewayService/CreateWorkflow',
+                request_serializer=proto_dot_gateway__pb2.CreateWorkflowRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.WorkflowResponse.FromString,
+                _registered_method=True)
+        self.GetWorkflow = channel.unary_unary(
+                '/talon.gateway.GatewayService/GetWorkflow',
+                request_serializer=proto_dot_gateway__pb2.GetWorkflowRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.WorkflowResponse.FromString,
+                _registered_method=True)
+        self.ListWorkflows = channel.unary_unary(
+                '/talon.gateway.GatewayService/ListWorkflows',
+                request_serializer=proto_dot_gateway__pb2.ListWorkflowsRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ListWorkflowsResponse.FromString,
+                _registered_method=True)
+        self.DeleteWorkflow = channel.unary_unary(
+                '/talon.gateway.GatewayService/DeleteWorkflow',
+                request_serializer=proto_dot_gateway__pb2.DeleteWorkflowRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.DeleteWorkflowResponse.FromString,
+                _registered_method=True)
+        self.CreateWorkflowRun = channel.unary_unary(
+                '/talon.gateway.GatewayService/CreateWorkflowRun',
+                request_serializer=proto_dot_gateway__pb2.CreateWorkflowRunRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.WorkflowRunResponse.FromString,
+                _registered_method=True)
+        self.GetWorkflowRun = channel.unary_unary(
+                '/talon.gateway.GatewayService/GetWorkflowRun',
+                request_serializer=proto_dot_gateway__pb2.GetWorkflowRunRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.WorkflowRunResponse.FromString,
+                _registered_method=True)
+        self.ListWorkflowRuns = channel.unary_unary(
+                '/talon.gateway.GatewayService/ListWorkflowRuns',
+                request_serializer=proto_dot_gateway__pb2.ListWorkflowRunsRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ListWorkflowRunsResponse.FromString,
+                _registered_method=True)
+        self.ResumeWorkflowRun = channel.unary_unary(
+                '/talon.gateway.GatewayService/ResumeWorkflowRun',
+                request_serializer=proto_dot_gateway__pb2.ResumeWorkflowRunRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.WorkflowRunResponse.FromString,
+                _registered_method=True)
+        self.CancelWorkflowRun = channel.unary_unary(
+                '/talon.gateway.GatewayService/CancelWorkflowRun',
+                request_serializer=proto_dot_gateway__pb2.CancelWorkflowRunRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.WorkflowRunResponse.FromString,
+                _registered_method=True)
+        self.StreamWorkflowEvents = channel.unary_stream(
+                '/talon.gateway.GatewayService/StreamWorkflowEvents',
+                request_serializer=proto_dot_gateway__pb2.StreamWorkflowEventsRequest.SerializeToString,
+                response_deserializer=proto_dot_models__pb2.WorkflowRunEvent.FromString,
                 _registered_method=True)
         self.CreateNamespace = channel.unary_unary(
                 '/talon.gateway.GatewayService/CreateNamespace',
@@ -566,6 +617,67 @@ class GatewayServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CreateWorkflow(self, request, context):
+        """Workflows
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetWorkflow(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListWorkflows(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteWorkflow(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateWorkflowRun(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetWorkflowRun(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListWorkflowRuns(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ResumeWorkflowRun(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CancelWorkflowRun(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StreamWorkflowEvents(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def CreateNamespace(self, request, context):
         """Namespaces
         """
@@ -867,6 +979,56 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     servicer.DeleteSchedule,
                     request_deserializer=proto_dot_gateway__pb2.DeleteScheduleRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.DeleteScheduleResponse.SerializeToString,
+            ),
+            'CreateWorkflow': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateWorkflow,
+                    request_deserializer=proto_dot_gateway__pb2.CreateWorkflowRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.WorkflowResponse.SerializeToString,
+            ),
+            'GetWorkflow': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetWorkflow,
+                    request_deserializer=proto_dot_gateway__pb2.GetWorkflowRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.WorkflowResponse.SerializeToString,
+            ),
+            'ListWorkflows': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListWorkflows,
+                    request_deserializer=proto_dot_gateway__pb2.ListWorkflowsRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ListWorkflowsResponse.SerializeToString,
+            ),
+            'DeleteWorkflow': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteWorkflow,
+                    request_deserializer=proto_dot_gateway__pb2.DeleteWorkflowRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.DeleteWorkflowResponse.SerializeToString,
+            ),
+            'CreateWorkflowRun': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateWorkflowRun,
+                    request_deserializer=proto_dot_gateway__pb2.CreateWorkflowRunRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.WorkflowRunResponse.SerializeToString,
+            ),
+            'GetWorkflowRun': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetWorkflowRun,
+                    request_deserializer=proto_dot_gateway__pb2.GetWorkflowRunRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.WorkflowRunResponse.SerializeToString,
+            ),
+            'ListWorkflowRuns': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListWorkflowRuns,
+                    request_deserializer=proto_dot_gateway__pb2.ListWorkflowRunsRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ListWorkflowRunsResponse.SerializeToString,
+            ),
+            'ResumeWorkflowRun': grpc.unary_unary_rpc_method_handler(
+                    servicer.ResumeWorkflowRun,
+                    request_deserializer=proto_dot_gateway__pb2.ResumeWorkflowRunRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.WorkflowRunResponse.SerializeToString,
+            ),
+            'CancelWorkflowRun': grpc.unary_unary_rpc_method_handler(
+                    servicer.CancelWorkflowRun,
+                    request_deserializer=proto_dot_gateway__pb2.CancelWorkflowRunRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.WorkflowRunResponse.SerializeToString,
+            ),
+            'StreamWorkflowEvents': grpc.unary_stream_rpc_method_handler(
+                    servicer.StreamWorkflowEvents,
+                    request_deserializer=proto_dot_gateway__pb2.StreamWorkflowEventsRequest.FromString,
+                    response_serializer=proto_dot_models__pb2.WorkflowRunEvent.SerializeToString,
             ),
             'CreateNamespace': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateNamespace,
@@ -2029,6 +2191,276 @@ class GatewayService(object):
             '/talon.gateway.GatewayService/DeleteSchedule',
             proto_dot_gateway__pb2.DeleteScheduleRequest.SerializeToString,
             proto_dot_gateway__pb2.DeleteScheduleResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateWorkflow(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/CreateWorkflow',
+            proto_dot_gateway__pb2.CreateWorkflowRequest.SerializeToString,
+            proto_dot_gateway__pb2.WorkflowResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetWorkflow(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/GetWorkflow',
+            proto_dot_gateway__pb2.GetWorkflowRequest.SerializeToString,
+            proto_dot_gateway__pb2.WorkflowResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListWorkflows(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/ListWorkflows',
+            proto_dot_gateway__pb2.ListWorkflowsRequest.SerializeToString,
+            proto_dot_gateway__pb2.ListWorkflowsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteWorkflow(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/DeleteWorkflow',
+            proto_dot_gateway__pb2.DeleteWorkflowRequest.SerializeToString,
+            proto_dot_gateway__pb2.DeleteWorkflowResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateWorkflowRun(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/CreateWorkflowRun',
+            proto_dot_gateway__pb2.CreateWorkflowRunRequest.SerializeToString,
+            proto_dot_gateway__pb2.WorkflowRunResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetWorkflowRun(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/GetWorkflowRun',
+            proto_dot_gateway__pb2.GetWorkflowRunRequest.SerializeToString,
+            proto_dot_gateway__pb2.WorkflowRunResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListWorkflowRuns(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/ListWorkflowRuns',
+            proto_dot_gateway__pb2.ListWorkflowRunsRequest.SerializeToString,
+            proto_dot_gateway__pb2.ListWorkflowRunsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ResumeWorkflowRun(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/ResumeWorkflowRun',
+            proto_dot_gateway__pb2.ResumeWorkflowRunRequest.SerializeToString,
+            proto_dot_gateway__pb2.WorkflowRunResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CancelWorkflowRun(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/CancelWorkflowRun',
+            proto_dot_gateway__pb2.CancelWorkflowRunRequest.SerializeToString,
+            proto_dot_gateway__pb2.WorkflowRunResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StreamWorkflowEvents(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/talon.gateway.GatewayService/StreamWorkflowEvents',
+            proto_dot_gateway__pb2.StreamWorkflowEventsRequest.SerializeToString,
+            proto_dot_models__pb2.WorkflowRunEvent.FromString,
             options,
             channel_credentials,
             insecure,

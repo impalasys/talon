@@ -4,6 +4,7 @@
 use anyhow::{Context, Result};
 use base64::Engine;
 use clap::{Parser, Subcommand};
+use futures::StreamExt;
 use jsonwebtoken::{EncodingKey, Header};
 use minijinja::{context, Environment, UndefinedBehavior};
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE};
@@ -16,17 +17,22 @@ use talon::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
 use talon::gateway::rpc::models;
 use talon::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use talon::gateway::rpc::proto::{
-    CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest,
+    CancelWorkflowRunRequest, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest,
     CreateChannelSubscriptionRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest,
-    DeleteAgentTemplateRequest, DeleteChannelRequest, DeleteChannelSubscriptionRequest,
-    DeleteMcpServerRequest, DeleteNamespaceKnowledgeRequest, GetAgentTemplateRequest,
+    CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentTemplateRequest,
+    DeleteChannelRequest, DeleteChannelSubscriptionRequest, DeleteMcpServerRequest,
+    DeleteNamespaceKnowledgeRequest, DeleteWorkflowRequest, GetAgentTemplateRequest,
     GetChannelRequest, GetChannelSubscriptionRequest, GetMcpServerRequest,
-    GetNamespaceKnowledgeRequest, GetScheduleRequest, ListNamespaceKnowledgeRequest,
-    ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest,
+    GetNamespaceKnowledgeRequest, GetScheduleRequest, GetWorkflowRequest, GetWorkflowRunRequest,
+    ListNamespaceKnowledgeRequest, ListWorkflowRunsRequest, ModifyAgentRequest,
+    ModifyChannelRequest, ModifyChannelSubscriptionRequest, ResumeWorkflowRunRequest,
+    StreamWorkflowEventsRequest,
 };
 use tonic::metadata::MetadataValue;
 use tonic::service::Interceptor;
 use tonic::{Request, Status};
+
+const MAX_REST_STREAM_BUFFER_BYTES: usize = 10 * 1024 * 1024;
 
 #[derive(Parser)]
 #[command(name = "talon-cli")]
@@ -265,6 +271,26 @@ fn auth_interceptor(cli: &Cli) -> Result<AuthInterceptor> {
     Ok(AuthInterceptor { authorization })
 }
 
+async fn connect_gateway(
+    cli: &Cli,
+) -> Result<
+    GatewayServiceClient<
+        tonic::service::interceptor::InterceptedService<tonic::transport::Channel, AuthInterceptor>,
+    >,
+> {
+    let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
+        .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
+        .connect_timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(30))
+        .connect()
+        .await
+        .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
+    Ok(GatewayServiceClient::with_interceptor(
+        channel,
+        auth_interceptor(cli)?,
+    ))
+}
+
 fn resolve_authorization_header(cli: &Cli) -> Result<Option<String>> {
     if let Some(token) = resolve_gateway_token(cli) {
         Ok(Some(format!("Bearer {}", token)))
@@ -311,10 +337,12 @@ fn schedule_json(schedule: &models::Schedule) -> serde_json::Value {
             "timezone": spec.timezone,
             "target": target.map(|target| json!({
                 "agent": target.agent,
+                "workflow": target.workflow,
                 "sessionMode": target.session_mode,
                 "sessionId": target.session_id,
             })),
             "inputMessage": spec.input_message,
+            "inputJson": spec.input_json,
             "enabled": spec.enabled,
         })),
         "status": status.map(|status| json!({
@@ -335,6 +363,75 @@ fn schedule_json(schedule: &models::Schedule) -> serde_json::Value {
             })).collect::<Vec<_>>(),
         })),
     })
+}
+
+fn workflow_run_json(
+    run: &models::WorkflowRun,
+    steps: &[models::WorkflowStepRun],
+) -> serde_json::Value {
+    json!({
+        "id": run.id,
+        "workflow": run.workflow,
+        "ns": run.ns,
+        "status": run.status,
+        "input": parse_json_field(&run.input_json),
+        "state": parse_json_field(&run.state_json),
+        "output": parse_json_field(&run.output_json),
+        "createdAt": run.created_at,
+        "updatedAt": run.updated_at,
+        "labels": run.labels,
+        "claimExpiresAt": run.claim_expires_at,
+        "error": run.error,
+        "workflowRevision": run.workflow_revision,
+        "claimOwner": run.claim_owner,
+        "claimAttempt": run.claim_attempt,
+        "lastDispatchReason": run.last_dispatch_reason,
+        "steps": steps.iter().map(workflow_step_run_json).collect::<Vec<_>>(),
+    })
+}
+
+fn workflow_step_run_json(step: &models::WorkflowStepRun) -> serde_json::Value {
+    json!({
+        "id": step.id,
+        "stepId": step.step_id,
+        "attempt": step.attempt,
+        "status": step.status,
+        "input": parse_json_field(&step.input_json),
+        "output": parse_json_field(&step.output_json),
+        "error": step.error,
+        "childSessionId": step.child_session_id,
+        "childWorkflowRunId": step.child_workflow_run_id,
+        "resume": parse_json_field(&step.resume_json),
+        "suspend": parse_json_field(&step.suspend_json),
+        "createdAt": step.created_at,
+        "updatedAt": step.updated_at,
+        "nextRetryAt": step.next_retry_at,
+        "timeoutAt": step.timeout_at,
+        "waitWakeupHandle": step.wait_wakeup_handle,
+        "waitUntilAt": step.wait_until_at,
+    })
+}
+
+fn workflow_event_json(event: &models::WorkflowRunEvent) -> serde_json::Value {
+    json!({
+        "id": event.id,
+        "ns": event.ns,
+        "workflow": event.workflow,
+        "runId": event.run_id,
+        "type": event.r#type,
+        "stepId": event.step_id,
+        "message": event.message,
+        "payload": parse_json_field(&event.payload_json),
+        "timestamp": event.timestamp,
+    })
+}
+
+fn parse_json_field(value: &str) -> serde_json::Value {
+    if value.trim().is_empty() {
+        serde_json::Value::Null
+    } else {
+        serde_json::from_str(value).unwrap_or_else(|_| serde_json::Value::String(value.to_string()))
+    }
 }
 
 async fn rest_request_json(
@@ -453,6 +550,16 @@ fn manifest_json_payload(content: &str) -> Result<(String, serde_json::Value)> {
                     "ns": subscription.ns,
                     "channel": subscription.channel,
                     "subscription": subscription,
+                }),
+            ))
+        }
+        "Workflow" => {
+            let workflow = talon::manifest::parse_workflow(content)?;
+            Ok((
+                "workflow".to_string(),
+                json!({
+                    "ns": workflow.ns,
+                    "workflow": workflow,
                 }),
             ))
         }
@@ -576,6 +683,19 @@ fn rest_get_path(
                 "subscription",
             ))
         }
+        "workflow" | "workflows" => {
+            let ns = namespace
+                .as_ref()
+                .context("Workflow get requires --namespace")?;
+            Ok((
+                format!(
+                    "/v1/ns/{}/workflows/{}",
+                    urlencoding::encode(ns),
+                    urlencoding::encode(name)
+                ),
+                "workflow",
+            ))
+        }
         other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
     }
 }
@@ -646,6 +766,16 @@ fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Resul
                 urlencoding::encode(subscription)
             ))
         }
+        "workflow" | "workflows" => {
+            let ns = namespace
+                .as_ref()
+                .context("Workflow delete requires --namespace")?;
+            Ok(format!(
+                "/v1/ns/{}/workflows/{}",
+                urlencoding::encode(ns),
+                urlencoding::encode(name)
+            ))
+        }
         other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
     }
 }
@@ -691,6 +821,10 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
                 "channel": subscription.channel,
                 "subscription": subscription,
             }))
+        }
+        "Workflow" => {
+            let workflow = talon::manifest::parse_workflow(content)?;
+            Ok(json!({ "ns": workflow.ns, "workflow": workflow }))
         }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
@@ -766,6 +900,11 @@ fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<
             let subscription: models::ChannelSubscription = serde_json::from_value(value)
                 .context("Failed to decode ChannelSubscription JSON")?;
             talon::manifest::render_channel_subscription_yaml(&subscription)
+        }
+        "workflow" => {
+            let workflow: models::Workflow =
+                serde_json::from_value(value).context("Failed to decode Workflow JSON")?;
+            talon::manifest::render_workflow_yaml(&workflow)
         }
         other => anyhow::bail!("Unsupported REST response resource '{}'", other),
     }
@@ -1104,6 +1243,332 @@ async fn knowledge_list(cli: &Cli, namespace: &str) -> Result<Vec<Knowledge>> {
     }
 }
 
+fn read_json_arg(value: &Option<String>, file: &Option<String>) -> Result<String> {
+    let raw = if let Some(file) = file {
+        fs::read_to_string(file).with_context(|| format!("Failed to read JSON file '{}'", file))?
+    } else {
+        value.clone().unwrap_or_else(|| "{}".to_string())
+    };
+    let parsed: serde_json::Value =
+        serde_json::from_str(&raw).context("Argument must be valid JSON")?;
+    serde_json::to_string(&parsed).context("Failed to normalize JSON argument")
+}
+
+async fn workflow_run_create(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+    input_json: String,
+) -> Result<serde_json::Value> {
+    if cli.rest {
+        return rest_request_json(
+            cli,
+            reqwest::Method::POST,
+            &format!(
+                "/v1/ns/{}/workflows/{}/runs",
+                urlencoding::encode(namespace),
+                urlencoding::encode(workflow)
+            ),
+            Some(json!({ "ns": namespace, "workflow": workflow, "inputJson": input_json })),
+        )
+        .await;
+    }
+    let mut client = connect_gateway(cli).await?;
+    let response = client
+        .create_workflow_run(CreateWorkflowRunRequest {
+            ns: namespace.to_string(),
+            workflow: workflow.to_string(),
+            input_json,
+            labels: HashMap::new(),
+        })
+        .await
+        .context("Failed to create workflow run")?
+        .into_inner();
+    let run = response.run.context("Workflow run missing from response")?;
+    Ok(workflow_run_json(&run, &response.steps))
+}
+
+async fn workflow_run_get(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+) -> Result<serde_json::Value> {
+    if cli.rest {
+        return rest_request_json(
+            cli,
+            reqwest::Method::GET,
+            &format!(
+                "/v1/ns/{}/workflows/{}/runs/{}",
+                urlencoding::encode(namespace),
+                urlencoding::encode(workflow),
+                urlencoding::encode(run_id)
+            ),
+            None,
+        )
+        .await;
+    }
+    let mut client = connect_gateway(cli).await?;
+    let response = client
+        .get_workflow_run(GetWorkflowRunRequest {
+            ns: namespace.to_string(),
+            workflow: workflow.to_string(),
+            run_id: run_id.to_string(),
+        })
+        .await
+        .context("Failed to get workflow run")?
+        .into_inner();
+    let run = response.run.context("Workflow run missing from response")?;
+    Ok(workflow_run_json(&run, &response.steps))
+}
+
+async fn workflow_run_list(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+    page_size: i32,
+    before_run_id: &str,
+) -> Result<serde_json::Value> {
+    if cli.rest {
+        let mut query = Vec::new();
+        if page_size != 0 {
+            query.push(format!("page_size={page_size}"));
+        }
+        if !before_run_id.is_empty() {
+            query.push(format!(
+                "before_run_id={}",
+                urlencoding::encode(before_run_id)
+            ));
+        }
+        let query = if query.is_empty() {
+            String::new()
+        } else {
+            format!("?{}", query.join("&"))
+        };
+        return rest_request_json(
+            cli,
+            reqwest::Method::GET,
+            &format!(
+                "/v1/ns/{}/workflows/{}/runs{}",
+                urlencoding::encode(namespace),
+                urlencoding::encode(workflow),
+                query
+            ),
+            None,
+        )
+        .await;
+    }
+    let mut client = connect_gateway(cli).await?;
+    let response = client
+        .list_workflow_runs(ListWorkflowRunsRequest {
+            ns: namespace.to_string(),
+            workflow: workflow.to_string(),
+            page_size,
+            before_run_id: before_run_id.to_string(),
+        })
+        .await
+        .context("Failed to list workflow runs")?
+        .into_inner();
+    Ok(json!({
+        "runs": response.runs.iter().map(|run| workflow_run_json(run, &[])).collect::<Vec<_>>(),
+        "hasMore": response.has_more,
+        "nextBeforeRunId": response.next_before_run_id,
+    }))
+}
+
+async fn workflow_run_resume(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+    step_id: &str,
+    resume_json: String,
+) -> Result<serde_json::Value> {
+    if cli.rest {
+        return rest_request_json(
+            cli,
+            reqwest::Method::POST,
+            &format!(
+                "/v1/ns/{}/workflows/{}/runs/{}:resume",
+                urlencoding::encode(namespace),
+                urlencoding::encode(workflow),
+                urlencoding::encode(run_id)
+            ),
+            Some(json!({
+                "ns": namespace,
+                "workflow": workflow,
+                "runId": run_id,
+                "stepId": step_id,
+                "resumeJson": resume_json,
+            })),
+        )
+        .await;
+    }
+    let mut client = connect_gateway(cli).await?;
+    let response = client
+        .resume_workflow_run(ResumeWorkflowRunRequest {
+            ns: namespace.to_string(),
+            workflow: workflow.to_string(),
+            run_id: run_id.to_string(),
+            step_id: step_id.to_string(),
+            resume_json,
+        })
+        .await
+        .context("Failed to resume workflow run")?
+        .into_inner();
+    let run = response.run.context("Workflow run missing from response")?;
+    Ok(workflow_run_json(&run, &response.steps))
+}
+
+async fn workflow_run_cancel(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+) -> Result<serde_json::Value> {
+    if cli.rest {
+        return rest_request_json(
+            cli,
+            reqwest::Method::POST,
+            &format!(
+                "/v1/ns/{}/workflows/{}/runs/{}:cancel",
+                urlencoding::encode(namespace),
+                urlencoding::encode(workflow),
+                urlencoding::encode(run_id)
+            ),
+            Some(json!({ "ns": namespace, "workflow": workflow, "runId": run_id })),
+        )
+        .await;
+    }
+    let mut client = connect_gateway(cli).await?;
+    let response = client
+        .cancel_workflow_run(CancelWorkflowRunRequest {
+            ns: namespace.to_string(),
+            workflow: workflow.to_string(),
+            run_id: run_id.to_string(),
+        })
+        .await
+        .context("Failed to cancel workflow run")?
+        .into_inner();
+    let run = response.run.context("Workflow run missing from response")?;
+    Ok(workflow_run_json(&run, &response.steps))
+}
+
+async fn workflow_run_events(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+) -> Result<()> {
+    if cli.rest {
+        rest_stream_workflow_events(cli, namespace, workflow, run_id).await?;
+        return Ok(());
+    }
+    let mut client = connect_gateway(cli).await?;
+    let mut stream = client
+        .stream_workflow_events(StreamWorkflowEventsRequest {
+            ns: namespace.to_string(),
+            workflow: workflow.to_string(),
+            run_id: run_id.to_string(),
+        })
+        .await
+        .context("Failed to stream workflow events")?
+        .into_inner();
+    while let Some(event) = stream
+        .message()
+        .await
+        .context("Failed to read workflow event")?
+    {
+        println!("{}", serde_json::to_string(&workflow_event_json(&event))?);
+    }
+    Ok(())
+}
+
+async fn rest_stream_workflow_events(
+    cli: &Cli,
+    namespace: &str,
+    workflow: &str,
+    run_id: &str,
+) -> Result<()> {
+    let client = rest_client(cli)?;
+    let path = format!(
+        "/v1/ns/{}/workflows/{}/runs/{}/stream",
+        urlencoding::encode(namespace),
+        urlencoding::encode(workflow),
+        urlencoding::encode(run_id)
+    );
+    let url = format!("{}{}", cli.gateway.trim_end_matches('/'), path);
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .with_context(|| format!("Failed to call REST endpoint {}", url))?;
+    let status = response.status();
+    if !status.is_success() {
+        let text = response
+            .text()
+            .await
+            .with_context(|| format!("Failed to read REST response body from {}", url))?;
+        anyhow::bail!(
+            "REST {} {} failed: status={} body={}",
+            path,
+            url,
+            status,
+            text.trim()
+        );
+    }
+
+    let mut stream = response.bytes_stream();
+    let mut buffer = Vec::new();
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk.with_context(|| format!("Failed to read REST stream from {}", url))?;
+        buffer.extend_from_slice(&chunk);
+        ensure_rest_stream_buffer_within_limit(buffer.len())?;
+        let mut last_index = 0;
+        while let Some(newline) = buffer[last_index..].iter().position(|byte| *byte == b'\n') {
+            let absolute_newline = last_index + newline;
+            let line = String::from_utf8_lossy(&buffer[last_index..absolute_newline]);
+            print_stream_event_line(line.trim_end_matches('\r'))?;
+            last_index = absolute_newline + 1;
+        }
+        if last_index > 0 {
+            buffer.drain(..last_index);
+        }
+    }
+    if !buffer.is_empty() {
+        let line = String::from_utf8_lossy(&buffer);
+        print_stream_event_line(line.trim_end_matches('\r'))?;
+    }
+    Ok(())
+}
+
+fn ensure_rest_stream_buffer_within_limit(buffer_len: usize) -> Result<()> {
+    if buffer_len > MAX_REST_STREAM_BUFFER_BYTES {
+        anyhow::bail!(
+            "REST stream exceeded maximum buffer limit of {} bytes without a newline",
+            MAX_REST_STREAM_BUFFER_BYTES
+        );
+    }
+    Ok(())
+}
+
+fn print_stream_event_line(line: &str) -> Result<()> {
+    let line = line.trim();
+    if line.is_empty() || line.starts_with(':') || line.starts_with("event:") {
+        return Ok(());
+    }
+    let payload = line.strip_prefix("data:").map(str::trim).unwrap_or(line);
+    if payload.is_empty() || payload == "[DONE]" {
+        return Ok(());
+    }
+    if let Ok(json) = serde_json::from_str::<serde_json::Value>(payload) {
+        println!("{}", serde_json::to_string(&json)?);
+    } else {
+        println!("{}", payload);
+    }
+    Ok(())
+}
+
 async fn sync_knowledge_dir(cli: &Cli, namespace: &str, dir: &str) -> Result<(usize, Vec<String>)> {
     let root = Path::new(dir);
     let files = collect_markdown_files(root)?;
@@ -1141,6 +1606,11 @@ enum Commands {
     Knowledge {
         #[command(subcommand)]
         command: KnowledgeCommands,
+    },
+    /// Create and inspect workflow runs.
+    Workflow {
+        #[command(subcommand)]
+        command: WorkflowCommands,
     },
     /// Applies a manifest file (e.g. AgentTemplate)
     Apply {
@@ -1277,6 +1747,63 @@ enum KnowledgeCommands {
     },
 }
 
+#[derive(Subcommand)]
+enum WorkflowCommands {
+    /// Create a workflow run.
+    RunCreate {
+        #[arg(short, long)]
+        namespace: String,
+        workflow: String,
+        #[arg(long, conflicts_with = "input_file")]
+        input: Option<String>,
+        #[arg(long, conflicts_with = "input")]
+        input_file: Option<String>,
+    },
+    /// Get one workflow run and its step runs.
+    RunGet {
+        #[arg(short, long)]
+        namespace: String,
+        workflow: String,
+        run_id: String,
+    },
+    /// List workflow runs.
+    RunList {
+        #[arg(short, long)]
+        namespace: String,
+        workflow: String,
+        #[arg(long, default_value_t = 0)]
+        page_size: i32,
+        #[arg(long, default_value = "")]
+        before_run_id: String,
+    },
+    /// Resume a suspended workflow step.
+    RunResume {
+        #[arg(short, long)]
+        namespace: String,
+        workflow: String,
+        run_id: String,
+        step_id: String,
+        #[arg(long, conflicts_with = "resume_file")]
+        resume: Option<String>,
+        #[arg(long, conflicts_with = "resume")]
+        resume_file: Option<String>,
+    },
+    /// Cancel a workflow run.
+    RunCancel {
+        #[arg(short, long)]
+        namespace: String,
+        workflow: String,
+        run_id: String,
+    },
+    /// Stream workflow run events.
+    RunEvents {
+        #[arg(short, long)]
+        namespace: String,
+        workflow: String,
+        run_id: String,
+    },
+}
+
 #[derive(Debug)]
 struct RestApplyPlan {
     method: reqwest::Method,
@@ -1314,6 +1841,10 @@ enum GrpcGetTarget {
         channel: String,
         name: String,
     },
+    Workflow {
+        ns: String,
+        name: String,
+    },
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -1335,6 +1866,10 @@ enum GrpcDeleteTarget {
     ChannelSubscription {
         ns: String,
         channel: String,
+        name: String,
+    },
+    Workflow {
+        ns: String,
         name: String,
     },
 }
@@ -1370,6 +1905,11 @@ enum GrpcApplyPlan {
         channel_name: String,
         name: String,
         subscription: models::ChannelSubscription,
+    },
+    Workflow {
+        ns: String,
+        name: String,
+        workflow: models::Workflow,
     },
 }
 
@@ -1532,6 +2072,15 @@ fn build_rest_apply_plan(
                 success_label: "ChannelSubscription".to_string(),
             })
         }
+        "Workflow" => {
+            let workflow = talon::manifest::parse_workflow(content)?;
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: format!("/v1/ns/{}/workflows", urlencoding::encode(&workflow.ns)),
+                payload: json!({ "ns": workflow.ns, "workflow": workflow }),
+                success_label: "Workflow".to_string(),
+            })
+        }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
 }
@@ -1664,6 +2213,15 @@ fn grpc_get_target(kind: &str, name: &str, namespace: Option<&String>) -> Result
                 name: subscription.to_string(),
             })
         }
+        "workflow" | "workflows" => {
+            let ns = namespace
+                .cloned()
+                .context("Workflow get requires --namespace")?;
+            Ok(GrpcGetTarget::Workflow {
+                ns,
+                name: name.to_string(),
+            })
+        }
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
     }
 }
@@ -1712,6 +2270,15 @@ fn grpc_delete_target(
                 ns,
                 channel: channel.to_string(),
                 name: subscription.to_string(),
+            })
+        }
+        "workflow" | "workflows" => {
+            let ns = namespace
+                .cloned()
+                .context("Workflow delete requires --namespace")?;
+            Ok(GrpcDeleteTarget::Workflow {
+                ns,
+                name: name.to_string(),
             })
         }
         other => anyhow::bail!("Unsupported resource kind '{}'", other),
@@ -1788,6 +2355,14 @@ fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
                 channel_name: subscription.channel.clone(),
                 name: subscription.name.clone(),
                 subscription,
+            })
+        }
+        "Workflow" => {
+            let workflow = talon::manifest::parse_workflow(content)?;
+            Ok(GrpcApplyPlan::Workflow {
+                ns: workflow.ns.clone(),
+                name: workflow.name.clone(),
+                workflow,
             })
         }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
@@ -1892,6 +2467,17 @@ async fn grpc_get_yaml(
                 .context("ChannelSubscription not found.")?;
             talon::manifest::render_channel_subscription_yaml(&subscription)
         }
+        GrpcGetTarget::Workflow { ns, name } => {
+            let resp = client
+                .get_workflow(GetWorkflowRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to fetch Workflow '{}/{}'", ns, name))?;
+            let workflow = resp.into_inner().workflow.context("Workflow not found.")?;
+            talon::manifest::render_workflow_yaml(&workflow)
+        }
     }
 }
 
@@ -1963,6 +2549,19 @@ async fn grpc_delete_resource(
             Ok(format!(
                 "✓ ChannelSubscription '{}/{}/{}' deleted successfully.",
                 ns, channel, name
+            ))
+        }
+        GrpcDeleteTarget::Workflow { ns, name } => {
+            client
+                .delete_workflow(DeleteWorkflowRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to delete Workflow '{}/{}'", ns, name))?;
+            Ok(format!(
+                "✓ Workflow '{}/{}' deleted successfully.",
+                ns, name
             ))
         }
     }
@@ -2135,6 +2734,19 @@ async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
                 ns, channel_name, name
             ))
         }
+        GrpcApplyPlan::Workflow { ns, name, workflow } => {
+            client
+                .create_workflow(CreateWorkflowRequest {
+                    ns: ns.clone(),
+                    workflow: Some(workflow),
+                })
+                .await
+                .with_context(|| format!("Gateway rejected Workflow '{}/{}'", ns, name))?;
+            Ok(format!(
+                "✓ Workflow '{}/{}' applied successfully.",
+                ns, name
+            ))
+        }
     }
 }
 
@@ -2245,6 +2857,81 @@ async fn run_cli(cli: &Cli) -> Result<RunOutcome> {
                         root.display()
                     );
                 }
+                return Ok(RunOutcome { exit_code: None });
+            }
+        },
+        Commands::Workflow { command } => match command {
+            WorkflowCommands::RunCreate {
+                namespace,
+                workflow,
+                input,
+                input_file,
+            } => {
+                let value = workflow_run_create(
+                    cli,
+                    namespace,
+                    workflow,
+                    read_json_arg(input, input_file)?,
+                )
+                .await?;
+                println!("{}", serde_json::to_string_pretty(&value)?);
+                return Ok(RunOutcome { exit_code: None });
+            }
+            WorkflowCommands::RunGet {
+                namespace,
+                workflow,
+                run_id,
+            } => {
+                let value = workflow_run_get(cli, namespace, workflow, run_id).await?;
+                println!("{}", serde_json::to_string_pretty(&value)?);
+                return Ok(RunOutcome { exit_code: None });
+            }
+            WorkflowCommands::RunList {
+                namespace,
+                workflow,
+                page_size,
+                before_run_id,
+            } => {
+                let value =
+                    workflow_run_list(cli, namespace, workflow, *page_size, before_run_id).await?;
+                println!("{}", serde_json::to_string_pretty(&value)?);
+                return Ok(RunOutcome { exit_code: None });
+            }
+            WorkflowCommands::RunResume {
+                namespace,
+                workflow,
+                run_id,
+                step_id,
+                resume,
+                resume_file,
+            } => {
+                let value = workflow_run_resume(
+                    cli,
+                    namespace,
+                    workflow,
+                    run_id,
+                    step_id,
+                    read_json_arg(resume, resume_file)?,
+                )
+                .await?;
+                println!("{}", serde_json::to_string_pretty(&value)?);
+                return Ok(RunOutcome { exit_code: None });
+            }
+            WorkflowCommands::RunCancel {
+                namespace,
+                workflow,
+                run_id,
+            } => {
+                let value = workflow_run_cancel(cli, namespace, workflow, run_id).await?;
+                println!("{}", serde_json::to_string_pretty(&value)?);
+                return Ok(RunOutcome { exit_code: None });
+            }
+            WorkflowCommands::RunEvents {
+                namespace,
+                workflow,
+                run_id,
+            } => {
+                workflow_run_events(cli, namespace, workflow, run_id).await?;
                 return Ok(RunOutcome { exit_code: None });
             }
         },
@@ -2468,18 +3155,20 @@ fn to_camel_case(s: &str) -> String {
 mod tests {
     use super::{
         agent_lookup_target, auth_interceptor, build_grpc_apply_plan, build_knowledge,
-        build_rest_apply_plan, canonicalize_manifest_path, collect_markdown_files, feature_ts_type,
-        grpc_apply_manifest, grpc_delete_resource, grpc_delete_target, grpc_get_target,
-        grpc_get_yaml, knowledge_delete, knowledge_get, knowledge_list, knowledge_resource_name,
-        knowledge_set, manifest_json_payload, mint_agent_jwt, mint_channel_jwt, mint_root_jwt,
-        mint_session_jwt, parse_raw_manifest, parse_vars, read_knowledge_content,
-        relative_knowledge_path, render_json_payload, render_manifest_file,
+        build_rest_apply_plan, canonicalize_manifest_path, collect_markdown_files,
+        ensure_rest_stream_buffer_within_limit, feature_ts_type, grpc_apply_manifest,
+        grpc_delete_resource, grpc_delete_target, grpc_get_target, grpc_get_yaml, knowledge_delete,
+        knowledge_get, knowledge_list, knowledge_resource_name, knowledge_set,
+        manifest_json_payload, mint_agent_jwt, mint_channel_jwt, mint_root_jwt, mint_session_jwt,
+        parse_raw_manifest, parse_vars, print_stream_event_line, read_json_arg,
+        read_knowledge_content, relative_knowledge_path, render_json_payload, render_manifest_file,
         render_manifest_template, render_rest_get_yaml, resolve_authorization_header,
         resolve_manifest_sources, rest_apply_manifest, rest_client, rest_delete_path,
         rest_delete_resource, rest_get_path, rest_get_yaml, rest_request_json, run_cli,
         schedule_json, sdk_method_for_template, sdk_methods_from_dir, sync_knowledge_dir,
-        to_camel_case, AuthCommands, Cli, Commands, GrpcApplyPlan, GrpcDeleteTarget, GrpcGetTarget,
-        KnowledgeCommands, RenderFormat,
+        to_camel_case, workflow_run_list, AuthCommands, Cli, Commands, GrpcApplyPlan,
+        GrpcDeleteTarget, GrpcGetTarget, KnowledgeCommands, RenderFormat, WorkflowCommands,
+        MAX_REST_STREAM_BUFFER_BYTES,
     };
     use axum::{
         extract::{Path as AxumPath, State},
@@ -2602,6 +3291,32 @@ mod tests {
             keys.sort();
             Ok(keys)
         }
+
+        async fn list_keys_page(
+            &self,
+            list: &keys::ResourceList,
+            before_name: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<keys::ResourceKey>> {
+            Ok(talon::control::page_keys_desc(
+                self.list_keys(list).await?,
+                before_name,
+                limit,
+            ))
+        }
+
+        async fn list_entries_page(
+            &self,
+            list: &keys::ResourceList,
+            before_name: Option<&str>,
+            limit: usize,
+        ) -> anyhow::Result<Vec<(keys::ResourceKey, Vec<u8>)>> {
+            Ok(talon::control::page_entries_desc(
+                self.list_entries(list).await?,
+                before_name,
+                limit,
+            ))
+        }
     }
 
     #[derive(Default)]
@@ -2683,6 +3398,15 @@ mod tests {
     fn parse_vars_rejects_empty_key() {
         let err = parse_vars(&["=value".to_string()]).expect_err("empty key should fail");
         assert!(err.to_string().contains("key cannot be empty"));
+    }
+
+    #[test]
+    fn read_json_arg_normalizes_json_and_uses_generic_errors() {
+        let normalized = read_json_arg(&Some(r#"{ "ok": true }"#.to_string()), &None).unwrap();
+        assert_eq!(normalized, r#"{"ok":true}"#);
+
+        let err = read_json_arg(&Some("{".to_string()), &None).expect_err("invalid JSON fails");
+        assert!(format!("{err:#}").contains("Argument must be valid JSON"));
     }
 
     #[test]
@@ -3601,10 +4325,12 @@ mod tests {
                 timezone: "UTC".to_string(),
                 target: Some(super::models::ScheduleTarget {
                     agent: "ctl".to_string(),
+                    workflow: String::new(),
                     session_mode: "new".to_string(),
                     session_id: String::new(),
                 }),
                 input_message: "ping".to_string(),
+                input_json: String::new(),
                 enabled: true,
             }),
             status: Some(super::models::ScheduleStatus {
@@ -3630,6 +4356,24 @@ mod tests {
         assert_eq!(json["spec"]["target"]["agent"], "ctl");
         assert_eq!(json["status"]["backendHandle"], "handle");
         assert_eq!(json["status"]["recentEvents"][0]["phase"], "armed");
+    }
+
+    #[test]
+    fn stream_event_line_parser_accepts_sse_and_ndjson_lines() {
+        print_stream_event_line("").unwrap();
+        print_stream_event_line(": keepalive").unwrap();
+        print_stream_event_line("event: workflow").unwrap();
+        print_stream_event_line(r#"data: {"type":"run_completed"}"#).unwrap();
+        print_stream_event_line(r#"{"type":"step_completed"}"#).unwrap();
+        print_stream_event_line("data: [DONE]").unwrap();
+    }
+
+    #[test]
+    fn rest_stream_buffer_limit_rejects_unbounded_lines() {
+        ensure_rest_stream_buffer_within_limit(MAX_REST_STREAM_BUFFER_BYTES).unwrap();
+        let err = ensure_rest_stream_buffer_within_limit(MAX_REST_STREAM_BUFFER_BYTES + 1)
+            .expect_err("oversized stream buffer should fail");
+        assert!(err.to_string().contains("maximum buffer limit"));
     }
 
     #[tokio::test]
@@ -3958,10 +4702,12 @@ mod tests {
                     timezone: "UTC".to_string(),
                     target: Some(models::ScheduleTarget {
                         agent: "writer".to_string(),
+                        workflow: String::new(),
                         session_mode: "new".to_string(),
                         session_id: String::new(),
                     }),
                     input_message: "publish".to_string(),
+                    input_json: String::new(),
                     enabled: true,
                 }),
                 status: Some(models::ScheduleStatus {
@@ -3999,6 +4745,7 @@ mod tests {
         struct RestState {
             templates: Arc<tokio::sync::Mutex<HashMap<String, serde_json::Value>>>,
             agents: Arc<tokio::sync::Mutex<HashMap<(String, String), serde_json::Value>>>,
+            workflows: Arc<tokio::sync::Mutex<HashMap<(String, String), serde_json::Value>>>,
         }
 
         let state = RestState::default();
@@ -4072,6 +4819,39 @@ mod tests {
                     },
                 ),
             )
+            .route(
+                "/v1/ns/:ns/workflows",
+                post(
+                    |State(state): State<RestState>,
+                     AxumPath(ns): AxumPath<String>,
+                     Json(payload): Json<serde_json::Value>| async move {
+                        let workflow = payload["workflow"].clone();
+                        let name = workflow["name"].as_str().unwrap().to_string();
+                        state.workflows.lock().await.insert((ns, name), workflow);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/ns/:ns/workflows/:name",
+                get(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        let value = state.workflows.lock().await.get(&(ns, name)).cloned();
+                        match value {
+                            Some(workflow) => (StatusCode::OK, Json(json!({ "workflow": workflow }))),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        state.workflows.lock().await.remove(&(ns, name));
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
             .with_state(state);
 
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -4132,6 +4912,25 @@ mod tests {
             .await
             .unwrap();
         assert!(deleted_agent.contains("deleted successfully"));
+
+        let created_workflow = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Workflow\nmetadata:\n  name: retention\n  namespace: conic\nspec:\n  steps:\n    - id: copy\n      type: transform\n      input:\n        answer: ${$.input.answer}\n  output:\n    answer: ${$.steps.copy.output.answer}\n",
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(created_workflow.contains("Workflow applied successfully."));
+        let workflow_yaml = rest_get_yaml(&cli, "workflow", "retention", Some(&namespace))
+            .await
+            .unwrap();
+        assert_eq!(parse_raw_manifest(&workflow_yaml).unwrap().kind, "Workflow");
+        assert!(workflow_yaml.contains("namespace: conic"));
+        let deleted_workflow =
+            rest_delete_resource(&cli, "workflow", "retention", Some(&namespace))
+                .await
+                .unwrap();
+        assert!(deleted_workflow.contains("deleted successfully"));
 
         server.abort();
     }
@@ -4827,6 +5626,112 @@ mod tests {
             ..cli()
         };
         assert!(run_cli(&delete).await.unwrap().exit_code.is_none());
+
+        let workflow_manifest = root.join("workflow.yaml");
+        fs::write(
+            &workflow_manifest,
+            "apiVersion: talon.impalasys.com/v1\nkind: Workflow\nmetadata:\n  name: grpc-workflow\n  namespace: conic\nspec:\n  steps:\n    - id: copy\n      type: transform\n      input:\n        answer: ${$.input.answer}\n  output:\n    answer: ${$.steps.copy.output.answer}\n",
+        )
+        .unwrap();
+        let apply_workflow = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Apply {
+                file: workflow_manifest.display().to_string(),
+                vars: Vec::new(),
+            },
+            ..cli()
+        };
+        assert!(run_cli(&apply_workflow).await.unwrap().exit_code.is_none());
+
+        let get_workflow = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Get {
+                kind: "workflow".to_string(),
+                name: "grpc-workflow".to_string(),
+                namespace: Some("conic".to_string()),
+            },
+            ..cli()
+        };
+        assert!(run_cli(&get_workflow).await.unwrap().exit_code.is_none());
+
+        let create_run = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Workflow {
+                command: WorkflowCommands::RunCreate {
+                    namespace: "conic".to_string(),
+                    workflow: "grpc-workflow".to_string(),
+                    input: Some(r#"{"answer":"cli"}"#.to_string()),
+                    input_file: None,
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&create_run).await.unwrap().exit_code.is_none());
+
+        let runs = workflow_run_list(
+            &Cli {
+                gateway: format!("http://{addr}"),
+                ..cli()
+            },
+            "conic",
+            "grpc-workflow",
+            0,
+            "",
+        )
+        .await
+        .unwrap();
+        let run_id = runs["runs"][0]["id"].as_str().unwrap().to_string();
+
+        let get_run = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Workflow {
+                command: WorkflowCommands::RunGet {
+                    namespace: "conic".to_string(),
+                    workflow: "grpc-workflow".to_string(),
+                    run_id: run_id.clone(),
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&get_run).await.unwrap().exit_code.is_none());
+
+        let list_runs = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Workflow {
+                command: WorkflowCommands::RunList {
+                    namespace: "conic".to_string(),
+                    workflow: "grpc-workflow".to_string(),
+                    page_size: 0,
+                    before_run_id: String::new(),
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&list_runs).await.unwrap().exit_code.is_none());
+
+        let cancel_run = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Workflow {
+                command: WorkflowCommands::RunCancel {
+                    namespace: "conic".to_string(),
+                    workflow: "grpc-workflow".to_string(),
+                    run_id,
+                },
+            },
+            ..cli()
+        };
+        assert!(run_cli(&cancel_run).await.unwrap().exit_code.is_none());
+
+        let delete_workflow = Cli {
+            gateway: format!("http://{addr}"),
+            command: Commands::Delete {
+                kind: "workflow".to_string(),
+                name: "grpc-workflow".to_string(),
+                namespace: Some("conic".to_string()),
+            },
+            ..cli()
+        };
+        assert!(run_cli(&delete_workflow).await.unwrap().exit_code.is_none());
 
         fs::remove_dir_all(root).unwrap();
     }

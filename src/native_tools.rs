@@ -375,10 +375,12 @@ async fn upsert_schedule(
             timezone,
             target: Some(models::ScheduleTarget {
                 agent,
+                workflow: String::new(),
                 session_mode,
                 session_id,
             }),
             input_message,
+            input_json: String::new(),
             enabled,
         }),
         status: existing.and_then(|schedule| schedule.status),

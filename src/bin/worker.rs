@@ -171,7 +171,7 @@ fn worker_bind_addr(port: &str) -> String {
     format!("0.0.0.0:{}", port)
 }
 
-fn pull_subscription_specs() -> [PullSubscriptionSpec; 3] {
+fn pull_subscription_specs() -> [PullSubscriptionSpec; 4] {
     [
         PullSubscriptionSpec {
             topic_name: topics::SESSION_DISPATCH_TOPIC,
@@ -187,6 +187,11 @@ fn pull_subscription_specs() -> [PullSubscriptionSpec; 3] {
             topic_name: topics::SESSION_CONTROL_TOPIC,
             subscription_name: "talon-session-control-sub",
             event_type: "session_control",
+        },
+        PullSubscriptionSpec {
+            topic_name: topics::WORKFLOW_DISPATCH_TOPIC,
+            subscription_name: "talon-workflow-dispatch-sub",
+            event_type: "workflow_dispatch",
         },
     ]
 }
@@ -807,21 +812,49 @@ async fn schedule_fire(
         return axum::http::StatusCode::UNAUTHORIZED;
     }
 
-    let payload = match serde_json::from_slice::<talon::scheduling::ScheduleWakeupPayload>(&body) {
+    let payload = match decode_scheduler_fire_payload(&body) {
         Ok(payload) => payload,
         Err(err) => {
-            tracing::warn!(error = %err, "Invalid schedule wakeup payload");
+            tracing::warn!(error = %err, "Invalid scheduler wakeup payload");
             return axum::http::StatusCode::BAD_REQUEST;
         }
     };
 
-    match handler.handle_schedule_wakeup(payload).await {
-        Ok(_) => axum::http::StatusCode::OK,
-        Err(err) => {
-            tracing::error!(error = %err, "Failed to process schedule wakeup");
-            axum::http::StatusCode::INTERNAL_SERVER_ERROR
+    match payload {
+        talon::scheduling::SchedulerFirePayload::Schedule(payload) => {
+            match handler.handle_schedule_wakeup(payload).await {
+                Ok(_) => axum::http::StatusCode::OK,
+                Err(err) => {
+                    tracing::error!(error = %err, "Failed to process schedule wakeup");
+                    axum::http::StatusCode::INTERNAL_SERVER_ERROR
+                }
+            }
+        }
+        talon::scheduling::SchedulerFirePayload::Workflow(payload) => {
+            match handler.handle_workflow_wakeup(payload).await {
+                Ok(_) => axum::http::StatusCode::OK,
+                Err(err) => {
+                    tracing::error!(error = %err, "Failed to process workflow wakeup");
+                    axum::http::StatusCode::INTERNAL_SERVER_ERROR
+                }
+            }
         }
     }
+}
+
+fn decode_scheduler_fire_payload(body: &[u8]) -> Result<talon::scheduling::SchedulerFirePayload> {
+    let value: serde_json::Value = serde_json::from_slice(body)?;
+    if value.get("kind").is_some() {
+        return serde_json::from_value(value).map_err(Into::into);
+    }
+    if value.get("schedule_id").is_some()
+        && value.get("revision").is_some()
+        && value.get("intended_run_at").is_some()
+    {
+        let payload = serde_json::from_value::<talon::scheduling::ScheduleWakeupPayload>(value)?;
+        return Ok(talon::scheduling::SchedulerFirePayload::Schedule(payload));
+    }
+    anyhow::bail!("scheduler wakeup payload requires kind discriminator")
 }
 
 #[tokio::main]
@@ -865,14 +898,15 @@ async fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_worker_handler, fully_qualified_subscription, fully_qualified_topic,
-        handle_pull_message, maybe_spawn_pull_subscriptions, next_pull_error_backoff,
-        next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled, pull_subscription_specs,
-        push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
-        run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
-        serve_worker_http, session_dispatch_concurrency, worker_bind_addr, worker_port,
-        worker_router, LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend,
-        PullSubscriptionBackend, ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
+        build_worker_handler, decode_scheduler_fire_payload, fully_qualified_subscription,
+        fully_qualified_topic, handle_pull_message, maybe_spawn_pull_subscriptions,
+        next_pull_error_backoff, next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled,
+        pull_subscription_specs, push_webhook, resolved_pull_subscription_specs,
+        run_pull_subscription_loop, run_pull_subscription_with_backend, run_worker_main_with,
+        run_worker_with, schedule_fire, serve_worker_http, session_dispatch_concurrency,
+        worker_bind_addr, worker_port, worker_router, LocalSocketMessagePublisher,
+        LocalSocketPullSubscriptionBackend, PullSubscriptionBackend, ResolvedPullSubscriptionSpec,
+        HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
     use axum::body::Bytes;
@@ -989,10 +1023,12 @@ mod tests {
                 timezone: String::new(),
                 target: Some(models::ScheduleTarget {
                     agent: "assistant".to_string(),
+                    workflow: String::new(),
                     session_mode: "reuse".to_string(),
                     session_id: "session-1".to_string(),
                 }),
                 input_message: "Run".to_string(),
+                input_json: String::new(),
                 enabled: true,
             }),
             status: Some(models::ScheduleStatus {
@@ -1048,13 +1084,18 @@ mod tests {
     #[test]
     fn pull_mode_helpers_cover_specs_and_qualified_names() {
         let specs = pull_subscription_specs();
-        assert_eq!(specs.len(), 3);
+        assert_eq!(specs.len(), 4);
         assert_eq!(
             specs[0].topic_name,
             talon::control::topics::SESSION_DISPATCH_TOPIC
         );
         assert_eq!(specs[1].event_type, "resource_lifecycle");
         assert_eq!(specs[2].subscription_name, "talon-session-control-sub");
+        assert_eq!(
+            specs[3].topic_name,
+            talon::control::topics::WORKFLOW_DISPATCH_TOPIC
+        );
+        assert_eq!(specs[3].event_type, "workflow_dispatch");
 
         assert_eq!(
             fully_qualified_topic("demo", "events"),
@@ -1109,7 +1150,7 @@ mod tests {
     #[test]
     fn resolved_pull_specs_and_handler_builder_cover_startup_wiring() {
         let specs = resolved_pull_subscription_specs("demo");
-        assert_eq!(specs.len(), 3);
+        assert_eq!(specs.len(), 4);
         assert_eq!(
             specs[0].topic_name,
             "projects/demo/topics/talon.session.dispatch"
@@ -1119,6 +1160,10 @@ mod tests {
             "projects/demo/subscriptions/talon-resource-lifecycle-sub"
         );
         assert_eq!(specs[2].event_type, "session_control");
+        assert_eq!(
+            specs[3].subscription_name,
+            "projects/demo/subscriptions/talon-workflow-dispatch-sub"
+        );
 
         let cp = Arc::new(ControlPlane {
             kv: Arc::new(MockKvStore::default()),
@@ -1214,7 +1259,7 @@ mod tests {
             },
         );
         let spawned = spawned.lock().expect("spawned lock poisoned");
-        assert_eq!(spawned.len(), 3);
+        assert_eq!(spawned.len(), 4);
         assert!(spawned
             .iter()
             .all(|(project_id, _, _)| project_id == "demo"));
@@ -1266,7 +1311,7 @@ mod tests {
             },
         );
         let spawned = spawned.lock().expect("spawned lock poisoned");
-        assert_eq!(spawned.len(), 3);
+        assert_eq!(spawned.len(), 4);
         assert_eq!(spawned[0].0, "demo");
         assert_eq!(spawned[0].1, talon::control::topics::SESSION_DISPATCH_TOPIC);
         assert_eq!(spawned[0].2, "talon-session-dispatch-sub");
@@ -1490,6 +1535,51 @@ mod tests {
         .await
         .into_response();
         assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[test]
+    fn scheduler_fire_payload_decoder_uses_kind_and_legacy_schedule_shape() {
+        let workflow = json!({
+            "kind": "workflow",
+            "payload": {
+                "namespace": "default",
+                "workflow": "wf",
+                "run_id": "run",
+                "step_id": "sleep",
+                "attempt": 1,
+                "intended_fire_at": 42,
+                "reason": "wait"
+            }
+        });
+        match decode_scheduler_fire_payload(&serde_json::to_vec(&workflow).unwrap()).unwrap() {
+            talon::scheduling::SchedulerFirePayload::Workflow(payload) => {
+                assert_eq!(payload.workflow, "wf");
+                assert_eq!(payload.reason, "wait");
+            }
+            _ => panic!("expected workflow payload"),
+        }
+
+        let legacy_schedule = json!({
+            "namespace": "default",
+            "schedule_id": "nightly",
+            "revision": 7,
+            "intended_run_at": 123
+        });
+        match decode_scheduler_fire_payload(&serde_json::to_vec(&legacy_schedule).unwrap()).unwrap()
+        {
+            talon::scheduling::SchedulerFirePayload::Schedule(payload) => {
+                assert_eq!(payload.schedule_id, "nightly");
+                assert_eq!(payload.revision, 7);
+            }
+            _ => panic!("expected schedule payload"),
+        }
+
+        let ambiguous = json!({
+            "namespace": "default",
+            "workflow": "wf",
+            "run_id": "run"
+        });
+        assert!(decode_scheduler_fire_payload(&serde_json::to_vec(&ambiguous).unwrap()).is_err());
     }
 
     #[tokio::test]

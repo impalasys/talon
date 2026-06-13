@@ -6872,6 +6872,1334 @@ public final class Events extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface WorkflowDispatchEventOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.events.WorkflowDispatchEvent)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string ns = 1;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+
+    /**
+     * <code>string workflow = 2;</code>
+     * @return The workflow.
+     */
+    java.lang.String getWorkflow();
+    /**
+     * <code>string workflow = 2;</code>
+     * @return The bytes for workflow.
+     */
+    com.google.protobuf.ByteString
+        getWorkflowBytes();
+
+    /**
+     * <code>string run_id = 3;</code>
+     * @return The runId.
+     */
+    java.lang.String getRunId();
+    /**
+     * <code>string run_id = 3;</code>
+     * @return The bytes for runId.
+     */
+    com.google.protobuf.ByteString
+        getRunIdBytes();
+
+    /**
+     * <code>string reason = 4;</code>
+     * @return The reason.
+     */
+    java.lang.String getReason();
+    /**
+     * <code>string reason = 4;</code>
+     * @return The bytes for reason.
+     */
+    com.google.protobuf.ByteString
+        getReasonBytes();
+
+    /**
+     * <code>string step_id = 5;</code>
+     * @return The stepId.
+     */
+    java.lang.String getStepId();
+    /**
+     * <code>string step_id = 5;</code>
+     * @return The bytes for stepId.
+     */
+    com.google.protobuf.ByteString
+        getStepIdBytes();
+
+    /**
+     * <code>string child_session_id = 6;</code>
+     * @return The childSessionId.
+     */
+    java.lang.String getChildSessionId();
+    /**
+     * <code>string child_session_id = 6;</code>
+     * @return The bytes for childSessionId.
+     */
+    com.google.protobuf.ByteString
+        getChildSessionIdBytes();
+
+    /**
+     * <code>int64 timestamp = 7;</code>
+     * @return The timestamp.
+     */
+    long getTimestamp();
+  }
+  /**
+   * Protobuf type {@code talon.events.WorkflowDispatchEvent}
+   */
+  public static final class WorkflowDispatchEvent extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.events.WorkflowDispatchEvent)
+      WorkflowDispatchEventOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowDispatchEvent");
+    }
+    // Use WorkflowDispatchEvent.newBuilder() to construct.
+    private WorkflowDispatchEvent(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowDispatchEvent() {
+      ns_ = "";
+      workflow_ = "";
+      runId_ = "";
+      reason_ = "";
+      stepId_ = "";
+      childSessionId_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.events.Events.internal_static_talon_events_WorkflowDispatchEvent_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.events.Events.internal_static_talon_events_WorkflowDispatchEvent_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.events.Events.internal_static_talon_events_WorkflowDispatchEvent_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.events.Events.WorkflowDispatchEvent.class, talon.events.Events.WorkflowDispatchEvent.Builder.class);
+    }
+
+    public static final int NS_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 1;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int WORKFLOW_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object workflow_ = "";
+    /**
+     * <code>string workflow = 2;</code>
+     * @return The workflow.
+     */
+    @java.lang.Override
+    public java.lang.String getWorkflow() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        workflow_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string workflow = 2;</code>
+     * @return The bytes for workflow.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWorkflowBytes() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        workflow_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RUN_ID_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object runId_ = "";
+    /**
+     * <code>string run_id = 3;</code>
+     * @return The runId.
+     */
+    @java.lang.Override
+    public java.lang.String getRunId() {
+      java.lang.Object ref = runId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        runId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string run_id = 3;</code>
+     * @return The bytes for runId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRunIdBytes() {
+      java.lang.Object ref = runId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        runId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int REASON_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object reason_ = "";
+    /**
+     * <code>string reason = 4;</code>
+     * @return The reason.
+     */
+    @java.lang.Override
+    public java.lang.String getReason() {
+      java.lang.Object ref = reason_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        reason_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string reason = 4;</code>
+     * @return The bytes for reason.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getReasonBytes() {
+      java.lang.Object ref = reason_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        reason_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STEP_ID_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object stepId_ = "";
+    /**
+     * <code>string step_id = 5;</code>
+     * @return The stepId.
+     */
+    @java.lang.Override
+    public java.lang.String getStepId() {
+      java.lang.Object ref = stepId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        stepId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string step_id = 5;</code>
+     * @return The bytes for stepId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getStepIdBytes() {
+      java.lang.Object ref = stepId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        stepId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CHILD_SESSION_ID_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object childSessionId_ = "";
+    /**
+     * <code>string child_session_id = 6;</code>
+     * @return The childSessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getChildSessionId() {
+      java.lang.Object ref = childSessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        childSessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string child_session_id = 6;</code>
+     * @return The bytes for childSessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getChildSessionIdBytes() {
+      java.lang.Object ref = childSessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        childSessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TIMESTAMP_FIELD_NUMBER = 7;
+    private long timestamp_ = 0L;
+    /**
+     * <code>int64 timestamp = 7;</code>
+     * @return The timestamp.
+     */
+    @java.lang.Override
+    public long getTimestamp() {
+      return timestamp_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, workflow_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(runId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, runId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(reason_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, reason_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(stepId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, stepId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(childSessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, childSessionId_);
+      }
+      if (timestamp_ != 0L) {
+        output.writeInt64(7, timestamp_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, workflow_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(runId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, runId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(reason_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, reason_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(stepId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, stepId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(childSessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, childSessionId_);
+      }
+      if (timestamp_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(7, timestamp_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.events.Events.WorkflowDispatchEvent)) {
+        return super.equals(obj);
+      }
+      talon.events.Events.WorkflowDispatchEvent other = (talon.events.Events.WorkflowDispatchEvent) obj;
+
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getWorkflow()
+          .equals(other.getWorkflow())) return false;
+      if (!getRunId()
+          .equals(other.getRunId())) return false;
+      if (!getReason()
+          .equals(other.getReason())) return false;
+      if (!getStepId()
+          .equals(other.getStepId())) return false;
+      if (!getChildSessionId()
+          .equals(other.getChildSessionId())) return false;
+      if (getTimestamp()
+          != other.getTimestamp()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkflow().hashCode();
+      hash = (37 * hash) + RUN_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getRunId().hashCode();
+      hash = (37 * hash) + REASON_FIELD_NUMBER;
+      hash = (53 * hash) + getReason().hashCode();
+      hash = (37 * hash) + STEP_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getStepId().hashCode();
+      hash = (37 * hash) + CHILD_SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getChildSessionId().hashCode();
+      hash = (37 * hash) + TIMESTAMP_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTimestamp());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.events.Events.WorkflowDispatchEvent parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.events.Events.WorkflowDispatchEvent parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.WorkflowDispatchEvent parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.events.Events.WorkflowDispatchEvent prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.events.WorkflowDispatchEvent}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.events.WorkflowDispatchEvent)
+        talon.events.Events.WorkflowDispatchEventOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.events.Events.internal_static_talon_events_WorkflowDispatchEvent_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.events.Events.internal_static_talon_events_WorkflowDispatchEvent_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.events.Events.WorkflowDispatchEvent.class, talon.events.Events.WorkflowDispatchEvent.Builder.class);
+      }
+
+      // Construct using talon.events.Events.WorkflowDispatchEvent.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        ns_ = "";
+        workflow_ = "";
+        runId_ = "";
+        reason_ = "";
+        stepId_ = "";
+        childSessionId_ = "";
+        timestamp_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.events.Events.internal_static_talon_events_WorkflowDispatchEvent_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.WorkflowDispatchEvent getDefaultInstanceForType() {
+        return talon.events.Events.WorkflowDispatchEvent.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.events.Events.WorkflowDispatchEvent build() {
+        talon.events.Events.WorkflowDispatchEvent result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.WorkflowDispatchEvent buildPartial() {
+        talon.events.Events.WorkflowDispatchEvent result = new talon.events.Events.WorkflowDispatchEvent(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.events.Events.WorkflowDispatchEvent result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.ns_ = ns_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.workflow_ = workflow_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.runId_ = runId_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.reason_ = reason_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.stepId_ = stepId_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.childSessionId_ = childSessionId_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.timestamp_ = timestamp_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.events.Events.WorkflowDispatchEvent) {
+          return mergeFrom((talon.events.Events.WorkflowDispatchEvent)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.events.Events.WorkflowDispatchEvent other) {
+        if (other == talon.events.Events.WorkflowDispatchEvent.getDefaultInstance()) return this;
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getWorkflow().isEmpty()) {
+          workflow_ = other.workflow_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getRunId().isEmpty()) {
+          runId_ = other.runId_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getReason().isEmpty()) {
+          reason_ = other.reason_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getStepId().isEmpty()) {
+          stepId_ = other.stepId_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.getChildSessionId().isEmpty()) {
+          childSessionId_ = other.childSessionId_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (other.getTimestamp() != 0L) {
+          setTimestamp(other.getTimestamp());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                workflow_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                runId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                reason_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                stepId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                childSessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 56: {
+                timestamp_ = input.readInt64();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 1;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object workflow_ = "";
+      /**
+       * <code>string workflow = 2;</code>
+       * @return The workflow.
+       */
+      public java.lang.String getWorkflow() {
+        java.lang.Object ref = workflow_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          workflow_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 2;</code>
+       * @return The bytes for workflow.
+       */
+      public com.google.protobuf.ByteString
+          getWorkflowBytes() {
+        java.lang.Object ref = workflow_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          workflow_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 2;</code>
+       * @param value The workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflow(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        workflow_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWorkflow() {
+        workflow_ = getDefaultInstance().getWorkflow();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 2;</code>
+       * @param value The bytes for workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflowBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        workflow_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object runId_ = "";
+      /**
+       * <code>string run_id = 3;</code>
+       * @return The runId.
+       */
+      public java.lang.String getRunId() {
+        java.lang.Object ref = runId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          runId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string run_id = 3;</code>
+       * @return The bytes for runId.
+       */
+      public com.google.protobuf.ByteString
+          getRunIdBytes() {
+        java.lang.Object ref = runId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          runId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string run_id = 3;</code>
+       * @param value The runId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRunId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        runId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string run_id = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRunId() {
+        runId_ = getDefaultInstance().getRunId();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string run_id = 3;</code>
+       * @param value The bytes for runId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRunIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        runId_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object reason_ = "";
+      /**
+       * <code>string reason = 4;</code>
+       * @return The reason.
+       */
+      public java.lang.String getReason() {
+        java.lang.Object ref = reason_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          reason_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string reason = 4;</code>
+       * @return The bytes for reason.
+       */
+      public com.google.protobuf.ByteString
+          getReasonBytes() {
+        java.lang.Object ref = reason_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          reason_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string reason = 4;</code>
+       * @param value The reason to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReason(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        reason_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string reason = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearReason() {
+        reason_ = getDefaultInstance().getReason();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string reason = 4;</code>
+       * @param value The bytes for reason to set.
+       * @return This builder for chaining.
+       */
+      public Builder setReasonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        reason_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object stepId_ = "";
+      /**
+       * <code>string step_id = 5;</code>
+       * @return The stepId.
+       */
+      public java.lang.String getStepId() {
+        java.lang.Object ref = stepId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          stepId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string step_id = 5;</code>
+       * @return The bytes for stepId.
+       */
+      public com.google.protobuf.ByteString
+          getStepIdBytes() {
+        java.lang.Object ref = stepId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          stepId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string step_id = 5;</code>
+       * @param value The stepId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStepId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        stepId_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string step_id = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStepId() {
+        stepId_ = getDefaultInstance().getStepId();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string step_id = 5;</code>
+       * @param value The bytes for stepId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStepIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        stepId_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object childSessionId_ = "";
+      /**
+       * <code>string child_session_id = 6;</code>
+       * @return The childSessionId.
+       */
+      public java.lang.String getChildSessionId() {
+        java.lang.Object ref = childSessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          childSessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string child_session_id = 6;</code>
+       * @return The bytes for childSessionId.
+       */
+      public com.google.protobuf.ByteString
+          getChildSessionIdBytes() {
+        java.lang.Object ref = childSessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          childSessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string child_session_id = 6;</code>
+       * @param value The childSessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChildSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        childSessionId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string child_session_id = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearChildSessionId() {
+        childSessionId_ = getDefaultInstance().getChildSessionId();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string child_session_id = 6;</code>
+       * @param value The bytes for childSessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChildSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        childSessionId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private long timestamp_ ;
+      /**
+       * <code>int64 timestamp = 7;</code>
+       * @return The timestamp.
+       */
+      @java.lang.Override
+      public long getTimestamp() {
+        return timestamp_;
+      }
+      /**
+       * <code>int64 timestamp = 7;</code>
+       * @param value The timestamp to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTimestamp(long value) {
+
+        timestamp_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 timestamp = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTimestamp() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        timestamp_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.events.WorkflowDispatchEvent)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.events.WorkflowDispatchEvent)
+    private static final talon.events.Events.WorkflowDispatchEvent DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.events.Events.WorkflowDispatchEvent();
+    }
+
+    public static talon.events.Events.WorkflowDispatchEvent getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowDispatchEvent>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowDispatchEvent>() {
+      @java.lang.Override
+      public WorkflowDispatchEvent parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowDispatchEvent> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowDispatchEvent> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.events.Events.WorkflowDispatchEvent getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_LifecycleEvent_descriptor;
   private static final
@@ -6897,6 +8225,11 @@ public final class Events extends com.google.protobuf.GeneratedFile {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_ChannelEvent_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_events_WorkflowDispatchEvent_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_events_WorkflowDispatchEvent_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -6928,25 +8261,29 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       "ts.ChannelEventKind\022-\n\007message\030\004 \001(\0132\034.t" +
       "alon.models.ChannelMessage\022\022\n\nsession_id" +
       "\030\005 \001(\t\022\r\n\005agent\030\006 \001(\t\022\024\n\014subscription\030\007 " +
-      "\001(\t\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*\260\001" +
-      "\n\014SystemAction\022\035\n\031SYSTEM_ACTION_UNSPECIF" +
-      "IED\020\000\022\030\n\024SYSTEM_ACTION_CREATE\020\001\022\030\n\024SYSTE" +
-      "M_ACTION_UPDATE\020\002\022\030\n\024SYSTEM_ACTION_DELET" +
-      "E\020\003\022\031\n\025SYSTEM_ACTION_SUSPEND\020\004\022\030\n\024SYSTEM" +
-      "_ACTION_RESUME\020\005*t\n\020MessageDirection\022!\n\035" +
-      "MESSAGE_DIRECTION_UNSPECIFIED\020\000\022\035\n\031MESSA" +
-      "GE_DIRECTION_INBOUND\020\001\022\036\n\032MESSAGE_DIRECT" +
-      "ION_OUTBOUND\020\002*\316\001\n\033SessionMessagePartEve" +
-      "ntKind\022/\n+SESSION_MESSAGE_PART_EVENT_KIN" +
-      "D_UNSPECIFIED\020\000\022)\n%SESSION_MESSAGE_PART_" +
-      "EVENT_KIND_DELTA\020\001\022(\n$SESSION_MESSAGE_PA" +
-      "RT_EVENT_KIND_DONE\020\002\022)\n%SESSION_MESSAGE_" +
-      "PART_EVENT_KIND_ERROR\020\003*\313\001\n\020ChannelEvent" +
-      "Kind\022\"\n\036CHANNEL_EVENT_KIND_UNSPECIFIED\020\000" +
-      "\022&\n\"CHANNEL_EVENT_KIND_MESSAGE_CREATED\020\001" +
-      "\022%\n!CHANNEL_EVENT_KIND_SESSION_ROUTED\020\002\022" +
-      "&\n\"CHANNEL_EVENT_KIND_PUBLISH_SKIPPED\020\003\022" +
-      "\034\n\030CHANNEL_EVENT_KIND_ERROR\020\004b\006proto3"
+      "\001(\t\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003\"\223\001" +
+      "\n\025WorkflowDispatchEvent\022\n\n\002ns\030\001 \001(\t\022\020\n\010w" +
+      "orkflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\016\n\006reason\030" +
+      "\004 \001(\t\022\017\n\007step_id\030\005 \001(\t\022\030\n\020child_session_" +
+      "id\030\006 \001(\t\022\021\n\ttimestamp\030\007 \001(\003*\260\001\n\014SystemAc" +
+      "tion\022\035\n\031SYSTEM_ACTION_UNSPECIFIED\020\000\022\030\n\024S" +
+      "YSTEM_ACTION_CREATE\020\001\022\030\n\024SYSTEM_ACTION_U" +
+      "PDATE\020\002\022\030\n\024SYSTEM_ACTION_DELETE\020\003\022\031\n\025SYS" +
+      "TEM_ACTION_SUSPEND\020\004\022\030\n\024SYSTEM_ACTION_RE" +
+      "SUME\020\005*t\n\020MessageDirection\022!\n\035MESSAGE_DI" +
+      "RECTION_UNSPECIFIED\020\000\022\035\n\031MESSAGE_DIRECTI" +
+      "ON_INBOUND\020\001\022\036\n\032MESSAGE_DIRECTION_OUTBOU" +
+      "ND\020\002*\316\001\n\033SessionMessagePartEventKind\022/\n+" +
+      "SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIF" +
+      "IED\020\000\022)\n%SESSION_MESSAGE_PART_EVENT_KIND" +
+      "_DELTA\020\001\022(\n$SESSION_MESSAGE_PART_EVENT_K" +
+      "IND_DONE\020\002\022)\n%SESSION_MESSAGE_PART_EVENT" +
+      "_KIND_ERROR\020\003*\313\001\n\020ChannelEventKind\022\"\n\036CH" +
+      "ANNEL_EVENT_KIND_UNSPECIFIED\020\000\022&\n\"CHANNE" +
+      "L_EVENT_KIND_MESSAGE_CREATED\020\001\022%\n!CHANNE" +
+      "L_EVENT_KIND_SESSION_ROUTED\020\002\022&\n\"CHANNEL" +
+      "_EVENT_KIND_PUBLISH_SKIPPED\020\003\022\034\n\030CHANNEL" +
+      "_EVENT_KIND_ERROR\020\004b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -6983,6 +8320,12 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_events_ChannelEvent_descriptor,
         new java.lang.String[] { "Ns", "Channel", "Kind", "Message", "SessionId", "Agent", "Subscription", "Error", "Timestamp", });
+    internal_static_talon_events_WorkflowDispatchEvent_descriptor =
+      getDescriptor().getMessageType(5);
+    internal_static_talon_events_WorkflowDispatchEvent_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_events_WorkflowDispatchEvent_descriptor,
+        new java.lang.String[] { "Ns", "Workflow", "RunId", "Reason", "StepId", "ChildSessionId", "Timestamp", });
     descriptor.resolveAllFeaturesImmutable();
     talon.models.Models.getDescriptor();
   }

@@ -8,7 +8,10 @@ import os
 from pathlib import Path
 import tempfile
 
-from python.runfiles import runfiles
+try:
+    from python.runfiles import runfiles
+except ModuleNotFoundError:
+    runfiles = None
 
 # Important: Add generated protos to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
@@ -20,6 +23,8 @@ import shutil
 
 SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
+WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
+MOCK_LLM_PORT = int(os.environ.get("MOCK_LLM_PORT", "8000"))
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 def binary_candidates(name):
@@ -30,6 +35,9 @@ def binary_candidates(name):
         yield name.replace("-", "_")
 
 def get_runfile_binary_path(name):
+    if runfiles is None:
+        return None
+
     runfiles_manifest = runfiles.Create()
     if runfiles_manifest is None:
         return None
@@ -147,6 +155,7 @@ def talon_infrastructure():
         for topic, subscription in [
             (SESSION_DISPATCH_TOPIC, "talon-session-dispatch-sub"),
             (RESOURCE_LIFECYCLE_TOPIC, "talon-resource-lifecycle-sub"),
+            (WORKFLOW_DISPATCH_TOPIC, "talon-workflow-dispatch-sub"),
         ]:
             requests.put(
                 f"http://{pubsub_host}/v1/projects/talon-local/topics/{topic}",
@@ -175,7 +184,7 @@ providers:
   mock:
     type: openai_compatible
     name: mock
-    base_url: "http://127.0.0.1:8000"
+    base_url: "http://127.0.0.1:{MOCK_LLM_PORT}"
     model: minimax/minimax-m2.7
     api_key:
       source: env
@@ -228,7 +237,7 @@ def mock_llm_server():
     server_thread = threading.Thread(
         target=uvicorn.run,
         args=(app,),
-        kwargs={"host": "0.0.0.0", "port": 8000, "log_level": "info"},
+        kwargs={"host": "0.0.0.0", "port": MOCK_LLM_PORT, "log_level": "info"},
         daemon=True
     )
     server_thread.start()
@@ -237,7 +246,7 @@ def mock_llm_server():
     import socket
     for _ in range(10):
         try:
-            with socket.create_connection(("127.0.0.1", 8000), timeout=1):
+            with socket.create_connection(("127.0.0.1", MOCK_LLM_PORT), timeout=1):
                 break
         except Exception:
             time.sleep(0.5)
@@ -281,7 +290,7 @@ providers:
   mock:
     type: openai_compatible
     name: mock
-    base_url: "http://127.0.0.1:8000"
+    base_url: "http://127.0.0.1:{MOCK_LLM_PORT}"
     model: minimax/minimax-m2.7
     api_key:
       source: env
