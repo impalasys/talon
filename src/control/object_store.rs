@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::config::proto::{
-    object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
-    S3ObjectStoreConfig,
+    object_store_config, CloudflareR2ObjectStoreConfig, GcsObjectStoreConfig,
+    LocalObjectStoreConfig, ObjectStoreConfig, S3ObjectStoreConfig,
 };
 use crate::gateway::rpc::models;
 use anyhow::{anyhow, Context, Result};
 use async_trait::async_trait;
+use base64::Engine as _;
 use google_cloud_auth::credentials::{AccessTokenCredentials, Builder as CredentialsBuilder};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -65,6 +66,9 @@ pub async fn object_store_from_config(
         )),
         object_store_config::Backend::Gcs(gcs) => Ok(Arc::new(GcsObjectStore::new(gcs).await?)),
         object_store_config::Backend::S3(s3) => Ok(Arc::new(S3ObjectStore::new(s3).await?)),
+        object_store_config::Backend::CloudflareR2(r2) => {
+            Ok(Arc::new(CloudflareR2ObjectStore::new(r2)))
+        }
     }
 }
 
@@ -192,6 +196,111 @@ impl ObjectStore for LocalFsObjectStore {
                 Err(err) => return Err(err.into()),
             }
         }
+        Ok(())
+    }
+}
+
+pub struct CloudflareR2ObjectStore {
+    client: reqwest::Client,
+    endpoint: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CloudflareR2MetadataEnvelope {
+    metadata: ObjectMetadata,
+}
+
+impl CloudflareR2ObjectStore {
+    pub fn new(cfg: &CloudflareR2ObjectStoreConfig) -> Self {
+        let endpoint = non_empty(&cfg.endpoint_url)
+            .or_else(|| std::env::var("TALON_CLOUDFLARE_R2_URL").ok())
+            .unwrap_or_else(|| "http://talon-r2.internal".to_string());
+        Self {
+            client: reqwest::Client::new(),
+            endpoint: endpoint.trim_end_matches('/').to_string(),
+        }
+    }
+
+    fn url(&self, key: &str) -> Result<String> {
+        validate_key(key)?;
+        Ok(format!(
+            "{}/objects/{}",
+            self.endpoint,
+            urlencoding::encode(key)
+        ))
+    }
+
+    fn metadata_header(metadata: &ObjectMetadata) -> Result<String> {
+        Ok(
+            base64::engine::general_purpose::STANDARD.encode(serde_json::to_vec(
+                &CloudflareR2MetadataEnvelope {
+                    metadata: metadata.clone(),
+                },
+            )?),
+        )
+    }
+
+    fn metadata_from_header(headers: &reqwest::header::HeaderMap) -> ObjectMetadata {
+        let Some(value) = headers
+            .get("x-talon-object-metadata")
+            .and_then(|value| value.to_str().ok())
+        else {
+            return ObjectMetadata::default();
+        };
+        base64::engine::general_purpose::STANDARD
+            .decode(value)
+            .ok()
+            .and_then(|bytes| serde_json::from_slice::<CloudflareR2MetadataEnvelope>(&bytes).ok())
+            .map(|envelope| envelope.metadata)
+            .unwrap_or_default()
+    }
+}
+
+#[async_trait]
+impl ObjectStore for CloudflareR2ObjectStore {
+    async fn put(
+        &self,
+        key: &str,
+        bytes: &[u8],
+        mut metadata: ObjectMetadata,
+    ) -> Result<models::ObjectRef> {
+        metadata.size_bytes = bytes.len() as u64;
+        let mut request = self
+            .client
+            .put(self.url(key)?)
+            .header("x-talon-object-metadata", Self::metadata_header(&metadata)?)
+            .body(bytes.to_vec());
+        if !metadata.media_type.is_empty() {
+            request = request.header(reqwest::header::CONTENT_TYPE, metadata.media_type.clone());
+        }
+        ensure_success(request.send().await?, "Cloudflare R2 object upload").await?;
+        Ok(object_ref(key, metadata))
+    }
+
+    async fn get(&self, key: &str) -> Result<Option<StoredObject>> {
+        let response = self.client.get(self.url(key)?).send().await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        let response = ensure_success(response, "Cloudflare R2 object download").await?;
+        let metadata = Self::metadata_from_header(response.headers());
+        let bytes = response.bytes().await?.to_vec();
+        Ok(Some(StoredObject {
+            metadata: ObjectMetadata {
+                size_bytes: bytes.len() as u64,
+                ..metadata
+            },
+            bytes,
+        }))
+    }
+
+    async fn delete(&self, key: &str) -> Result<()> {
+        let response = self.client.delete(self.url(key)?).send().await?;
+        if response.status() == StatusCode::NOT_FOUND {
+            return Ok(());
+        }
+        ensure_success(response, "Cloudflare R2 object delete").await?;
         Ok(())
     }
 }

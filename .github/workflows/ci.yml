@@ -281,6 +281,62 @@ jobs:
       - name: Run upstream A2A SDK compatibility test
         run: pytest -q tests/test_a2a_compat.py
 
+  cloudflare_e2e:
+    name: Cloudflare E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DOCKER_BUILDKIT: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: infra/cf/worker/package-lock.json
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Regenerate Wrangler configs
+        run: infra/cf/gen-wrangler.sh
+
+      - name: Verify Wrangler configs are checked in
+        run: git diff --exit-code -- infra/cf/dev/wrangler.jsonc infra/cf/worker/wrangler.jsonc
+
+      - name: Install Worker dependencies
+        working-directory: infra/cf/worker
+        run: npm ci
+
+      - name: Typecheck Worker
+        working-directory: infra/cf/worker
+        run: npm run typecheck
+
+      - name: Wrangler dry-run dev deploy
+        run: infra/cf/worker/node_modules/.bin/wrangler deploy --dry-run --config infra/cf/dev/wrangler.jsonc --outdir /tmp/talon-cloudflare-dev-dry-run --containers-rollout=none
+
+      - name: Wrangler dry-run production deploy
+        run: infra/cf/worker/node_modules/.bin/wrangler deploy --dry-run --config infra/cf/worker/wrangler.jsonc --outdir /tmp/talon-cloudflare-prod-dry-run --containers-rollout=none
+
+      - name: Validate Docker Compose config
+        run: docker compose -f infra/cf/dev/docker-compose.yaml config
+
+      - name: Run Cloudflare local E2E
+        timeout-minutes: 35
+        run: docker compose -f infra/cf/dev/docker-compose.yaml up --build --abort-on-container-exit --exit-code-from e2e-tests e2e-tests
+
+      - name: Dump Cloudflare stack logs
+        if: failure()
+        run: |
+          docker compose -f infra/cf/dev/docker-compose.yaml ps
+          docker compose -f infra/cf/dev/docker-compose.yaml logs --no-color --tail=400
+
+      - name: Stop Cloudflare stack
+        if: always()
+        run: docker compose -f infra/cf/dev/docker-compose.yaml down --volumes --remove-orphans
+
   binary_artifacts:
     name: Binary Artifacts
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')

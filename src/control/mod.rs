@@ -201,7 +201,10 @@ fn message_broker_config(
         .message_broker
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("control_plane.message_broker configuration is missing"))?;
-    if mb_config.driver != "gcp_pubsub" && mb_config.driver != "local_socket" {
+    if mb_config.driver != "gcp_pubsub"
+        && mb_config.driver != "local_socket"
+        && mb_config.driver != "cloudflare_queues"
+    {
         return Err(anyhow::anyhow!(
             "Unsupported message broker driver: {}",
             mb_config.driver
@@ -240,6 +243,13 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             println!("Connecting to SqliteKvStore at {}...", sqlite_url);
             kv = std::sync::Arc::new(kv::SqliteKvStore::new(&sqlite_url, "talon_kv_store").await?);
             scheduler_database_url = Some(sqlite_url);
+        }
+        "cloudflare_d1" => {
+            println!("Connecting to CloudflareD1KvStore...");
+            let store = kv::CloudflareD1KvStore::from_env();
+            store.init().await?;
+            kv = std::sync::Arc::new(store);
+            scheduler_database_url = None;
         }
         #[cfg(feature = "rocksdb")]
         "rocksdb" => {
@@ -284,6 +294,10 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
                 socket_path.display()
             );
             std::sync::Arc::new(pubsub::LocalSocketMessagePublisher::new(socket_path).await?)
+        }
+        "cloudflare_queues" => {
+            println!("Initializing CloudflareQueuesPublisher...");
+            std::sync::Arc::new(pubsub::CloudflareQueuesPublisher::from_env())
         }
         other => {
             return Err(anyhow::anyhow!(
@@ -340,6 +354,9 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
                 } else {
                     std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
                 }
+            }
+            Some("cloudflare_alarms") => {
+                std::sync::Arc::new(scheduler::CloudflareAlarmsSchedulerBackend::from_env())
             }
             _ => match configured_scheduler(cp.scheduler.as_ref()) {
                 Some(crate::config::proto::SchedulerConfig {

@@ -1,0 +1,44 @@
+services:
+  cloudflare-dev:
+    build:
+      context: ../../..
+      dockerfile: infra/cf/dev/Dockerfile
+    working_dir: /repo/infra/cf/worker
+    command: sh -c "npm ci && npm run dev"
+    environment:
+      - WRANGLER_LOG=info
+    volumes:
+      - ../../..:/repo
+      - /var/run/docker.sock:/var/run/docker.sock
+      - cloudflare-node-modules:/repo/infra/cf/worker/node_modules
+      - cloudflare-wrangler:/repo/infra/cf/worker/.wrangler
+    ports:
+      - "8787:8787"
+    depends_on:
+      mock-llm:
+        condition: service_started
+
+  mock-llm:
+    image: python:3.12-slim
+    working_dir: /repo/tests
+    command: sh -c "pip install -r requirements.txt && uvicorn mock_llm:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ../../..:/repo
+    ports:
+      - "8000:8000"
+
+  e2e-tests:
+    image: python:3.12-slim
+    working_dir: /repo
+    command: sh -c "pip install requests && python tests/run_cloudflare_e2e.py"
+    environment:
+      - TALON_CLOUDFLARE_URL=http://cloudflare-dev:8787
+    volumes:
+      - ../../..:/repo
+    depends_on:
+      cloudflare-dev:
+        condition: service_started
+
+volumes:
+  cloudflare-node-modules:
+  cloudflare-wrangler:

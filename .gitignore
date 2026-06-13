@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 bench/results*/
 node_modules/
+**/.wrangler/
 packages/*/dist/
 packages/*/storybook-static/
 packages/*/storybook-screenshots/

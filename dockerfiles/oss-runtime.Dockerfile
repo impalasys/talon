@@ -58,13 +58,14 @@ COPY --from=builder /usr/src/talon/dist/talon-server /usr/local/bin/talon-server
 COPY --from=builder /usr/src/talon/dist/talon-worker /usr/local/bin/talon-worker
 COPY --from=builder /usr/src/talon/dist/talon-cli /usr/local/bin/talon-cli
 COPY --from=builder /usr/src/talon/dist/talon-node /usr/local/bin/talon-node
-COPY --from=builder /usr/src/talon/talon.yaml /data/talon/talon.yaml
-
 RUN mkdir -p /data/talon
+COPY --from=builder /usr/src/talon/talon.yaml /data/talon/talon.yaml
 
 ENV TALON_DATA_DIR=/data/talon
 ENV RUST_LOG=info
 
 WORKDIR /data/talon
+
+EXPOSE 50051 50052 8081
 
 CMD ["talon-server"]
