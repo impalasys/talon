@@ -5,6 +5,7 @@
 // This file is owned by: Agent 5 (Skills & Built-in Tools)
 
 pub mod loader;
+pub mod namespace;
 pub mod registry;
 
 pub use loader::{Skill, SkillLoader};

@@ -9,7 +9,7 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 
 - Service: `talon.gateway.GatewayService`
 - Transport modes: gRPC, gRPC-web, REST via `google.api.http` annotations, and the browser-oriented `/v1/ui/... ` stream path documented separately in the hand-written guides
-- Total RPC methods: **56**
+- Total RPC methods: **60**
 
 ## Agents
 
@@ -78,6 +78,31 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Request: `DeleteNamespaceKnowledgeRequest`
 - Response: `DeleteNamespaceKnowledgeResponse`
 - REST mapping: `DELETE /v1/namespaces/{ns}/knowledge/{name}`
+
+### `CreateNamespaceSkill`
+
+- Request: `CreateNamespaceSkillRequest`
+- Response: `NamespaceSkillResponse`
+- REST mapping: `POST /v1/namespaces/{ns}/skills`
+- REST body: `*`
+
+### `GetNamespaceSkill`
+
+- Request: `GetNamespaceSkillRequest`
+- Response: `NamespaceSkillResponse`
+- REST mapping: `GET /v1/namespaces/{ns}/skills/{name}`
+
+### `ListNamespaceSkills`
+
+- Request: `ListNamespaceSkillsRequest`
+- Response: `ListNamespaceSkillsResponse`
+- REST mapping: `GET /v1/namespaces/{ns}/skills`
+
+### `DeleteNamespaceSkill`
+
+- Request: `DeleteNamespaceSkillRequest`
+- Response: `DeleteNamespaceSkillResponse`
+- REST mapping: `DELETE /v1/namespaces/{ns}/skills/{name}`
 
 ## Sessions
 

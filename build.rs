@@ -14,6 +14,8 @@ fn main() -> std::io::Result<()> {
         ".talon.manifests.McpServerBindingSpec",
         ".talon.manifests.Knowledge",
         ".talon.manifests.KnowledgeSpec",
+        ".talon.manifests.Skill",
+        ".talon.manifests.SkillSpec",
         ".talon.manifests.ObjectMeta",
         ".talon.manifests.Model",
         ".talon.manifests.ThinkingConfig",

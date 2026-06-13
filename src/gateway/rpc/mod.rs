@@ -15,6 +15,7 @@ pub mod mcp_servers;
 pub mod namespaces;
 pub mod schedules;
 pub mod sessions;
+pub mod skills;
 pub mod templates;
 
 #[cfg(test)]
@@ -353,6 +354,32 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::DeleteNamespaceKnowledgeResponse>, tonic::Status>
     {
         self.handle_delete_namespace_knowledge(req).await
+    }
+    async fn create_namespace_skill(
+        &self,
+        req: tonic::Request<proto::CreateNamespaceSkillRequest>,
+    ) -> std::result::Result<tonic::Response<proto::NamespaceSkillResponse>, tonic::Status> {
+        self.handle_create_namespace_skill(req).await
+    }
+    async fn get_namespace_skill(
+        &self,
+        req: tonic::Request<proto::GetNamespaceSkillRequest>,
+    ) -> std::result::Result<tonic::Response<proto::NamespaceSkillResponse>, tonic::Status> {
+        self.handle_get_namespace_skill(req).await
+    }
+    async fn list_namespace_skills(
+        &self,
+        req: tonic::Request<proto::ListNamespaceSkillsRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListNamespaceSkillsResponse>, tonic::Status>
+    {
+        self.handle_list_namespace_skills(req).await
+    }
+    async fn delete_namespace_skill(
+        &self,
+        req: tonic::Request<proto::DeleteNamespaceSkillRequest>,
+    ) -> std::result::Result<tonic::Response<proto::DeleteNamespaceSkillResponse>, tonic::Status>
+    {
+        self.handle_delete_namespace_skill(req).await
     }
 
     // Namespaces

@@ -18,10 +18,11 @@ use talon::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use talon::gateway::rpc::proto::{
     CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest,
     CreateChannelSubscriptionRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest,
-    DeleteAgentTemplateRequest, DeleteChannelRequest, DeleteChannelSubscriptionRequest,
-    DeleteMcpServerRequest, DeleteNamespaceKnowledgeRequest, GetAgentTemplateRequest,
-    GetChannelRequest, GetChannelSubscriptionRequest, GetMcpServerRequest,
-    GetNamespaceKnowledgeRequest, GetScheduleRequest, ListNamespaceKnowledgeRequest,
+    CreateNamespaceSkillRequest, DeleteAgentTemplateRequest, DeleteChannelRequest,
+    DeleteChannelSubscriptionRequest, DeleteMcpServerRequest, DeleteNamespaceKnowledgeRequest,
+    DeleteNamespaceSkillRequest, GetAgentTemplateRequest, GetChannelRequest,
+    GetChannelSubscriptionRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest,
+    GetNamespaceSkillRequest, GetScheduleRequest, ListNamespaceKnowledgeRequest,
     ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest,
 };
 use tonic::metadata::MetadataValue;
@@ -435,6 +436,7 @@ fn manifest_json_payload(content: &str) -> Result<(String, serde_json::Value)> {
             "knowledge".to_string(),
             json!({ "knowledge": manifest_value }),
         )),
+        "Skill" => Ok(("skill".to_string(), json!({ "skill": manifest_value }))),
         "Channel" => {
             let channel = talon::manifest::parse_channel(content)?;
             Ok((
@@ -530,6 +532,19 @@ fn rest_get_path(
                 "knowledge",
             ))
         }
+        "skill" | "skills" => {
+            let ns = namespace
+                .as_ref()
+                .context("Skill get requires --namespace")?;
+            Ok((
+                format!(
+                    "/v1/namespaces/{}/skills/{}",
+                    urlencoding::encode(ns),
+                    urlencoding::encode(name)
+                ),
+                "skill",
+            ))
+        }
         "schedule" | "schedules" => {
             let ns = namespace
                 .as_ref()
@@ -615,6 +630,16 @@ fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Resul
                 .context("Knowledge delete requires --namespace")?;
             Ok(format!(
                 "/v1/namespaces/{}/knowledge/{}",
+                urlencoding::encode(ns),
+                urlencoding::encode(name)
+            ))
+        }
+        "skill" | "skills" => {
+            let ns = namespace
+                .as_ref()
+                .context("Skill delete requires --namespace")?;
+            Ok(format!(
+                "/v1/namespaces/{}/skills/{}",
                 urlencoding::encode(ns),
                 urlencoding::encode(name)
             ))
@@ -741,6 +766,13 @@ fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<
             let knowledge: talon::gateway::rpc::manifests::Knowledge =
                 serde_json::from_value(value).context("Failed to decode Knowledge JSON")?;
             talon::manifest::render_knowledge_yaml(&knowledge)
+        }
+        "skill" => {
+            let mut value = value;
+            normalize_manifest_metadata_maps(&mut value);
+            let skill: talon::gateway::rpc::manifests::Skill =
+                serde_json::from_value(value).context("Failed to decode Skill JSON")?;
+            talon::manifest::render_skill_yaml(&skill)
         }
         "template" => {
             let mut value = value;
@@ -1301,6 +1333,10 @@ enum GrpcGetTarget {
         ns: String,
         name: String,
     },
+    Skill {
+        ns: String,
+        name: String,
+    },
     Schedule {
         ns: String,
         name: String,
@@ -1325,6 +1361,10 @@ enum GrpcDeleteTarget {
         name: String,
     },
     Knowledge {
+        ns: String,
+        name: String,
+    },
+    Skill {
         ns: String,
         name: String,
     },
@@ -1359,6 +1399,11 @@ enum GrpcApplyPlan {
         ns: String,
         name: String,
         knowledge: talon::gateway::rpc::manifests::Knowledge,
+    },
+    Skill {
+        ns: String,
+        name: String,
+        skill: talon::gateway::rpc::manifests::Skill,
     },
     Channel {
         ns: String,
@@ -1506,6 +1551,22 @@ fn build_rest_apply_plan(
                 success_label: format!("Knowledge '{}/{}'", meta.namespace, meta.name),
             })
         }
+        "Skill" => {
+            let skill = talon::manifest::parse_skill(content)?;
+            let meta = skill.metadata.as_ref().context("Skill missing metadata")?;
+            if meta.namespace.is_empty() {
+                anyhow::bail!("Skill metadata.namespace is required");
+            }
+            Ok(RestApplyPlan {
+                method: reqwest::Method::POST,
+                path: format!(
+                    "/v1/namespaces/{}/skills",
+                    urlencoding::encode(&meta.namespace)
+                ),
+                payload,
+                success_label: format!("Skill '{}/{}'", meta.namespace, meta.name),
+            })
+        }
         "Channel" => {
             let channel = talon::manifest::parse_channel(content)?;
             Ok(RestApplyPlan {
@@ -1630,6 +1691,15 @@ fn grpc_get_target(kind: &str, name: &str, namespace: Option<&String>) -> Result
                 name: name.to_string(),
             })
         }
+        "skill" | "skills" => {
+            let ns = namespace
+                .cloned()
+                .context("Skill get requires --namespace")?;
+            Ok(GrpcGetTarget::Skill {
+                ns,
+                name: name.to_string(),
+            })
+        }
         "schedule" | "schedules" => {
             let ns = namespace
                 .cloned()
@@ -1685,6 +1755,15 @@ fn grpc_delete_target(
                 .cloned()
                 .context("Knowledge delete requires --namespace")?;
             Ok(GrpcDeleteTarget::Knowledge {
+                ns,
+                name: name.to_string(),
+            })
+        }
+        "skill" | "skills" => {
+            let ns = namespace
+                .cloned()
+                .context("Skill delete requires --namespace")?;
+            Ok(GrpcDeleteTarget::Skill {
                 ns,
                 name: name.to_string(),
             })
@@ -1773,6 +1852,18 @@ fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
                 knowledge,
             })
         }
+        "Skill" => {
+            let skill = talon::manifest::parse_skill(content)?;
+            let meta = skill.metadata.as_ref().context("Skill missing metadata")?;
+            if meta.namespace.is_empty() {
+                anyhow::bail!("Skill metadata.namespace is required");
+            }
+            Ok(GrpcApplyPlan::Skill {
+                ns: meta.namespace.clone(),
+                name: meta.name.clone(),
+                skill,
+            })
+        }
         "Channel" => {
             let channel = talon::manifest::parse_channel(content)?;
             Ok(GrpcApplyPlan::Channel {
@@ -1848,6 +1939,17 @@ async fn grpc_get_yaml(
                 .knowledge
                 .context("Knowledge not found.")?;
             talon::manifest::render_knowledge_yaml(&knowledge)
+        }
+        GrpcGetTarget::Skill { ns, name } => {
+            let resp = client
+                .get_namespace_skill(GetNamespaceSkillRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to fetch Skill '{}/{}'", ns, name))?;
+            let skill = resp.into_inner().skill.context("Skill not found.")?;
+            talon::manifest::render_skill_yaml(&skill)
         }
         GrpcGetTarget::Schedule { ns, name } => {
             let resp = client
@@ -1935,6 +2037,16 @@ async fn grpc_delete_resource(
                 "✓ Knowledge '{}/{}' deleted successfully.",
                 ns, name
             ))
+        }
+        GrpcDeleteTarget::Skill { ns, name } => {
+            client
+                .delete_namespace_skill(DeleteNamespaceSkillRequest {
+                    ns: ns.clone(),
+                    name: name.clone(),
+                })
+                .await
+                .with_context(|| format!("Failed to delete Skill '{}/{}'", ns, name))?;
+            Ok(format!("✓ Skill '{}/{}' deleted successfully.", ns, name))
         }
         GrpcDeleteTarget::Channel { ns, name } => {
             client
@@ -2051,6 +2163,16 @@ async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
                 "✓ Knowledge '{}/{}' applied successfully.",
                 ns, name
             ))
+        }
+        GrpcApplyPlan::Skill { ns, name, skill } => {
+            client
+                .create_namespace_skill(CreateNamespaceSkillRequest {
+                    ns: ns.clone(),
+                    skill: Some(skill),
+                })
+                .await
+                .with_context(|| format!("Gateway rejected Skill '{}/{}'", ns, name))?;
+            Ok(format!("✓ Skill '{}/{}' applied successfully.", ns, name))
         }
         GrpcApplyPlan::Channel { ns, name, channel } => {
             let existing = client
@@ -3026,6 +3148,13 @@ mod tests {
         assert_eq!(knowledge.0, "knowledge");
         assert_eq!(knowledge.1["knowledge"]["kind"], "Knowledge");
 
+        let skill = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Skill\nmetadata:\n  name: review\n  namespace: conic\nspec:\n  description: Review code\n  instructions: Check tests\n",
+        )
+        .unwrap();
+        assert_eq!(skill.0, "skill");
+        assert_eq!(skill.1["skill"]["kind"], "Skill");
+
         let binding = manifest_json_payload(
             "apiVersion: talon.impalasys.com/v1\nkind: McpServerBinding\nmetadata:\n  name: github\n  namespace: conic\nspec:\n  serverRef: github\n",
         )
@@ -3168,6 +3297,14 @@ mod tests {
             rest_delete_path("knowledge", "docs/guide.md", Some(&team)).unwrap(),
             "/v1/namespaces/team-a/knowledge/docs%2Fguide.md".to_string()
         );
+        assert_eq!(
+            rest_get_path("skill", "review", Some(&team)).unwrap(),
+            ("/v1/namespaces/team-a/skills/review".to_string(), "skill")
+        );
+        assert_eq!(
+            rest_delete_path("skill", "review", Some(&team)).unwrap(),
+            "/v1/namespaces/team-a/skills/review".to_string()
+        );
 
         let err = rest_get_path("mcpbinding", "writer-tools", None).unwrap_err();
         assert!(format!("{err:#}").contains("namespace is required"));
@@ -3221,6 +3358,20 @@ mod tests {
             GrpcDeleteTarget::Knowledge {
                 ns: "team-a".to_string(),
                 name: "docs/a.md".to_string()
+            }
+        );
+        assert_eq!(
+            grpc_get_target("skill", "review", Some(&team)).unwrap(),
+            GrpcGetTarget::Skill {
+                ns: "team-a".to_string(),
+                name: "review".to_string()
+            }
+        );
+        assert_eq!(
+            grpc_delete_target("skill", "review", Some(&team)).unwrap(),
+            GrpcDeleteTarget::Skill {
+                ns: "team-a".to_string(),
+                name: "review".to_string()
             }
         );
 
@@ -3344,6 +3495,19 @@ mod tests {
         .unwrap();
         assert_eq!(mcp_plan.path, "/v1/mcp-servers");
 
+        let (_, skill_payload) = manifest_json_payload(
+            "apiVersion: talon.impalasys.com/v1\nkind: Skill\nmetadata:\n  name: review\n  namespace: team-a\nspec:\n  description: Review code\n  instructions: Check tests\n",
+        )
+        .unwrap();
+        let skill_plan = build_rest_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Skill\nmetadata:\n  name: review\n  namespace: team-a\nspec:\n  description: Review code\n  instructions: Check tests\n",
+            skill_payload,
+            false,
+        )
+        .unwrap();
+        assert_eq!(skill_plan.path, "/v1/namespaces/team-a/skills");
+        assert_eq!(skill_plan.success_label, "Skill 'team-a/review'");
+
         let err = build_rest_apply_plan(
             "apiVersion: talon.impalasys.com/v1\nkind: McpServer\nmetadata:\n  name: docs\n  namespace: team-a\nspec:\n  transport: streamable-http\n  target: https://example.com/mcp\n",
             json!({}),
@@ -3427,6 +3591,22 @@ mod tests {
                 assert_eq!(
                     knowledge.metadata.as_ref().map(|m| m.namespace.as_str()),
                     Some("team-a")
+                );
+            }
+            other => panic!("unexpected plan: {other:?}"),
+        }
+
+        match build_grpc_apply_plan(
+            "apiVersion: talon.impalasys.com/v1\nkind: Skill\nmetadata:\n  name: review\n  namespace: team-a\nspec:\n  description: Review code\n  instructions: Check tests\n",
+        )
+        .unwrap()
+        {
+            GrpcApplyPlan::Skill { ns, name, skill } => {
+                assert_eq!(ns, "team-a");
+                assert_eq!(name, "review");
+                assert_eq!(
+                    skill.spec.as_ref().map(|spec| spec.instructions.as_str()),
+                    Some("Check tests")
                 );
             }
             other => panic!("unexpected plan: {other:?}"),
@@ -3833,7 +4013,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn grpc_apply_manifest_round_trips_knowledge_and_agent() {
+    async fn grpc_apply_manifest_round_trips_knowledge_skill_and_agent() {
         let (addr, kv) = serve_grpc_gateway().await;
         seed_namespace(&kv, "conic").await;
 
@@ -3856,6 +4036,25 @@ mod tests {
             .unwrap()
             .expect("knowledge should exist");
         assert_eq!(got.spec.as_ref().unwrap().content, "from apply");
+
+        let skill_message = grpc_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Skill\nmetadata:\n  name: review\n  namespace: conic\nspec:\n  description: Review code\n  instructions: Check tests before summarizing.\n",
+        )
+        .await
+        .unwrap();
+        assert!(skill_message.contains("Skill 'conic/review' applied successfully."));
+        let skill_yaml = grpc_get_yaml(&cli, "skill", "review", Some(&"conic".to_string()))
+            .await
+            .unwrap();
+        assert_eq!(parse_raw_manifest(&skill_yaml).unwrap().kind, "Skill");
+        assert!(skill_yaml.contains("description: Review code"));
+        assert!(skill_yaml.contains("instructions: Check tests before summarizing."));
+        let skill_deleted =
+            grpc_delete_resource(&cli, "skill", "review", Some(&"conic".to_string()))
+                .await
+                .unwrap();
+        assert!(skill_deleted.contains("Skill 'conic/review' deleted successfully."));
 
         let created = grpc_apply_manifest(
             &cli,
@@ -4142,6 +4341,7 @@ mod tests {
         struct RestState {
             namespaces: Arc<tokio::sync::Mutex<HashMap<String, serde_json::Value>>>,
             knowledge: Arc<tokio::sync::Mutex<HashMap<(String, String), serde_json::Value>>>,
+            skills: Arc<tokio::sync::Mutex<HashMap<(String, String), serde_json::Value>>>,
             bindings: Arc<tokio::sync::Mutex<HashMap<(String, String), serde_json::Value>>>,
             servers: Arc<tokio::sync::Mutex<HashMap<String, serde_json::Value>>>,
         }
@@ -4207,6 +4407,39 @@ mod tests {
                      AxumPath((ns, name)): AxumPath<(String, String)>| async move {
                         let key = (ns, urlencoding::decode(&name).unwrap().into_owned());
                         state.knowledge.lock().await.remove(&key);
+                        Json(json!({ "deleted": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/namespaces/:ns/skills",
+                post(
+                    |State(state): State<RestState>,
+                     AxumPath(ns): AxumPath<String>,
+                     Json(payload): Json<serde_json::Value>| async move {
+                        let skill = payload["skill"].clone();
+                        let name = skill["metadata"]["name"].as_str().unwrap().to_string();
+                        state.skills.lock().await.insert((ns, name), skill);
+                        Json(json!({ "ok": true }))
+                    },
+                ),
+            )
+            .route(
+                "/v1/namespaces/:ns/skills/:name",
+                get(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        let value = state.skills.lock().await.get(&(ns, name)).cloned();
+                        match value {
+                            Some(skill) => (StatusCode::OK, Json(json!({ "skill": skill }))),
+                            None => (StatusCode::NOT_FOUND, Json(json!({ "error": "missing" }))),
+                        }
+                    },
+                )
+                .delete(
+                    |State(state): State<RestState>,
+                     AxumPath((ns, name)): AxumPath<(String, String)>| async move {
+                        state.skills.lock().await.remove(&(ns, name));
                         Json(json!({ "deleted": true }))
                     },
                 ),
@@ -4322,6 +4555,25 @@ mod tests {
                 .await
                 .unwrap();
         assert!(knowledge_deleted.contains("deleted successfully"));
+
+        let skill_message = rest_apply_manifest(
+            &cli,
+            "apiVersion: talon.impalasys.com/v1\nkind: Skill\nmetadata:\n  name: review\n  namespace: conic\nspec:\n  description: Review code\n  instructions: Check tests before summarizing.\n",
+            false,
+        )
+        .await
+        .unwrap();
+        assert!(skill_message.contains("Skill 'conic/review' applied successfully."));
+        let skill_yaml = rest_get_yaml(&cli, "skill", "review", Some(&namespace))
+            .await
+            .unwrap();
+        assert_eq!(parse_raw_manifest(&skill_yaml).unwrap().kind, "Skill");
+        assert!(skill_yaml.contains("description: Review code"));
+        assert!(skill_yaml.contains("instructions: Check tests before summarizing."));
+        let skill_deleted = rest_delete_resource(&cli, "skill", "review", Some(&namespace))
+            .await
+            .unwrap();
+        assert!(skill_deleted.contains("skill 'review' deleted successfully."));
 
         let binding_message = rest_apply_manifest(
             &cli,

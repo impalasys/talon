@@ -197,6 +197,22 @@ Metadata for finding and grouping manifests
 | `path` | `string` | - |
 | `content` | `string` | - |
 
+## `Skill`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `api_version` | `string` | - |
+| `kind` | `string` | - |
+| `metadata` | `ObjectMeta` | - |
+| `spec` | `SkillSpec` | - |
+
+## `SkillSpec`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `description` | `string` | - |
+| `instructions` | `string` | - |
+
 ## `MemoryProvider`
 
 ----------------------------------------- Memory Provider -----------------------------------------

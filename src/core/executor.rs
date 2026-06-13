@@ -228,12 +228,24 @@ impl ExecutionSink for CaptureSink {
 #[derive(Clone)]
 pub struct ContextAssembler {
     pub base_dir: PathBuf,
+    pub skill_context: String,
 }
 
 impl ContextAssembler {
     pub fn new(base_dir: impl Into<PathBuf>) -> Self {
         Self {
             base_dir: base_dir.into(),
+            skill_context: String::new(),
+        }
+    }
+
+    pub fn new_with_skill_context(
+        base_dir: impl Into<PathBuf>,
+        skill_context: impl Into<String>,
+    ) -> Self {
+        Self {
+            base_dir: base_dir.into(),
+            skill_context: skill_context.into(),
         }
     }
 
@@ -248,10 +260,16 @@ impl ContextAssembler {
         let soul = self.read_file_or_default("SOUL.md").await;
         let user = self.read_file_or_default("USER.md").await;
         let agents = self.read_file_or_default("AGENTS.md").await;
-        Ok(format!(
+        let mut context = format!(
             "# IDENTITY & PERSONALITY (SOUL.md)\n{}\n\n# USER CONTEXT (USER.md)\n{}\n\n# OPERATIONAL RULES (AGENTS.md)\n{}\n",
             soul, user, agents
-        ))
+        );
+        if !self.skill_context.trim().is_empty() {
+            context.push('\n');
+            context.push_str(self.skill_context.trim());
+            context.push('\n');
+        }
+        Ok(context)
     }
 }
 

@@ -22827,6 +22827,1740 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface SkillOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.Skill)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string api_version = 1;</code>
+     * @return The apiVersion.
+     */
+    java.lang.String getApiVersion();
+    /**
+     * <code>string api_version = 1;</code>
+     * @return The bytes for apiVersion.
+     */
+    com.google.protobuf.ByteString
+        getApiVersionBytes();
+
+    /**
+     * <code>string kind = 2;</code>
+     * @return The kind.
+     */
+    java.lang.String getKind();
+    /**
+     * <code>string kind = 2;</code>
+     * @return The bytes for kind.
+     */
+    com.google.protobuf.ByteString
+        getKindBytes();
+
+    /**
+     * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+     * @return Whether the metadata field is set.
+     */
+    boolean hasMetadata();
+    /**
+     * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+     * @return The metadata.
+     */
+    talon.manifests.Manifests.ObjectMeta getMetadata();
+    /**
+     * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+     */
+    talon.manifests.Manifests.ObjectMetaOrBuilder getMetadataOrBuilder();
+
+    /**
+     * <code>.talon.manifests.SkillSpec spec = 4;</code>
+     * @return Whether the spec field is set.
+     */
+    boolean hasSpec();
+    /**
+     * <code>.talon.manifests.SkillSpec spec = 4;</code>
+     * @return The spec.
+     */
+    talon.manifests.Manifests.SkillSpec getSpec();
+    /**
+     * <code>.talon.manifests.SkillSpec spec = 4;</code>
+     */
+    talon.manifests.Manifests.SkillSpecOrBuilder getSpecOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.Skill}
+   */
+  public static final class Skill extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.Skill)
+      SkillOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Skill");
+    }
+    // Use Skill.newBuilder() to construct.
+    private Skill(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Skill() {
+      apiVersion_ = "";
+      kind_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_Skill_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_Skill_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_Skill_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.Skill.class, talon.manifests.Manifests.Skill.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int API_VERSION_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object apiVersion_ = "";
+    /**
+     * <code>string api_version = 1;</code>
+     * @return The apiVersion.
+     */
+    @java.lang.Override
+    public java.lang.String getApiVersion() {
+      java.lang.Object ref = apiVersion_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        apiVersion_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string api_version = 1;</code>
+     * @return The bytes for apiVersion.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getApiVersionBytes() {
+      java.lang.Object ref = apiVersion_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        apiVersion_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int KIND_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object kind_ = "";
+    /**
+     * <code>string kind = 2;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public java.lang.String getKind() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        kind_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string kind = 2;</code>
+     * @return The bytes for kind.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getKindBytes() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        kind_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int METADATA_FIELD_NUMBER = 3;
+    private talon.manifests.Manifests.ObjectMeta metadata_;
+    /**
+     * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+     * @return Whether the metadata field is set.
+     */
+    @java.lang.Override
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+     * @return The metadata.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ObjectMeta getMetadata() {
+      return metadata_ == null ? talon.manifests.Manifests.ObjectMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ObjectMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.manifests.Manifests.ObjectMeta.getDefaultInstance() : metadata_;
+    }
+
+    public static final int SPEC_FIELD_NUMBER = 4;
+    private talon.manifests.Manifests.SkillSpec spec_;
+    /**
+     * <code>.talon.manifests.SkillSpec spec = 4;</code>
+     * @return Whether the spec field is set.
+     */
+    @java.lang.Override
+    public boolean hasSpec() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.manifests.SkillSpec spec = 4;</code>
+     * @return The spec.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.SkillSpec getSpec() {
+      return spec_ == null ? talon.manifests.Manifests.SkillSpec.getDefaultInstance() : spec_;
+    }
+    /**
+     * <code>.talon.manifests.SkillSpec spec = 4;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.SkillSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.manifests.Manifests.SkillSpec.getDefaultInstance() : spec_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(apiVersion_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, apiVersion_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, kind_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(3, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(4, getSpec());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(apiVersion_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, apiVersion_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, kind_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getSpec());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.Skill)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.Skill other = (talon.manifests.Manifests.Skill) obj;
+
+      if (!getApiVersion()
+          .equals(other.getApiVersion())) return false;
+      if (!getKind()
+          .equals(other.getKind())) return false;
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + API_VERSION_FIELD_NUMBER;
+      hash = (53 * hash) + getApiVersion().hashCode();
+      hash = (37 * hash) + KIND_FIELD_NUMBER;
+      hash = (53 * hash) + getKind().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.Skill parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.Skill parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.Skill parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.Skill parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.Skill prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.Skill}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.Skill)
+        talon.manifests.Manifests.SkillOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_Skill_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_Skill_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.Skill.class, talon.manifests.Manifests.Skill.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.Skill.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
+          internalGetSpecFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        apiVersion_ = "";
+        kind_ = "";
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_Skill_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.Skill getDefaultInstanceForType() {
+        return talon.manifests.Manifests.Skill.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.Skill build() {
+        talon.manifests.Manifests.Skill result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.Skill buildPartial() {
+        talon.manifests.Manifests.Skill result = new talon.manifests.Manifests.Skill(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.Skill result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.apiVersion_ = apiVersion_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.kind_ = kind_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.Skill) {
+          return mergeFrom((talon.manifests.Manifests.Skill)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.Skill other) {
+        if (other == talon.manifests.Manifests.Skill.getDefaultInstance()) return this;
+        if (!other.getApiVersion().isEmpty()) {
+          apiVersion_ = other.apiVersion_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getKind().isEmpty()) {
+          kind_ = other.kind_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
+        }
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                apiVersion_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                kind_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object apiVersion_ = "";
+      /**
+       * <code>string api_version = 1;</code>
+       * @return The apiVersion.
+       */
+      public java.lang.String getApiVersion() {
+        java.lang.Object ref = apiVersion_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          apiVersion_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string api_version = 1;</code>
+       * @return The bytes for apiVersion.
+       */
+      public com.google.protobuf.ByteString
+          getApiVersionBytes() {
+        java.lang.Object ref = apiVersion_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          apiVersion_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string api_version = 1;</code>
+       * @param value The apiVersion to set.
+       * @return This builder for chaining.
+       */
+      public Builder setApiVersion(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        apiVersion_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string api_version = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearApiVersion() {
+        apiVersion_ = getDefaultInstance().getApiVersion();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string api_version = 1;</code>
+       * @param value The bytes for apiVersion to set.
+       * @return This builder for chaining.
+       */
+      public Builder setApiVersionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        apiVersion_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object kind_ = "";
+      /**
+       * <code>string kind = 2;</code>
+       * @return The kind.
+       */
+      public java.lang.String getKind() {
+        java.lang.Object ref = kind_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          kind_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @return The bytes for kind.
+       */
+      public com.google.protobuf.ByteString
+          getKindBytes() {
+        java.lang.Object ref = kind_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          kind_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        kind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        kind_ = getDefaultInstance().getKind();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @param value The bytes for kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKindBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        kind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private talon.manifests.Manifests.ObjectMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder> metadataBuilder_;
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       * @return Whether the metadata field is set.
+       */
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       * @return The metadata.
+       */
+      public talon.manifests.Manifests.ObjectMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.manifests.Manifests.ObjectMeta.getDefaultInstance() : metadata_;
+        } else {
+          return metadataBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       */
+      public Builder setMetadata(talon.manifests.Manifests.ObjectMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
+        } else {
+          metadataBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       */
+      public Builder setMetadata(
+          talon.manifests.Manifests.ObjectMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       */
+      public Builder mergeMetadata(talon.manifests.Manifests.ObjectMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.manifests.Manifests.ObjectMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       */
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       */
+      public talon.manifests.Manifests.ObjectMeta.Builder getMetadataBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       */
+      public talon.manifests.Manifests.ObjectMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
+        } else {
+          return metadata_ == null ?
+              talon.manifests.Manifests.ObjectMeta.getDefaultInstance() : metadata_;
+        }
+      }
+      /**
+       * <code>.talon.manifests.ObjectMeta metadata = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.ObjectMeta, talon.manifests.Manifests.ObjectMeta.Builder, talon.manifests.Manifests.ObjectMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
+        }
+        return metadataBuilder_;
+      }
+
+      private talon.manifests.Manifests.SkillSpec spec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.SkillSpec, talon.manifests.Manifests.SkillSpec.Builder, talon.manifests.Manifests.SkillSpecOrBuilder> specBuilder_;
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       * @return Whether the spec field is set.
+       */
+      public boolean hasSpec() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       * @return The spec.
+       */
+      public talon.manifests.Manifests.SkillSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.manifests.Manifests.SkillSpec.getDefaultInstance() : spec_;
+        } else {
+          return specBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       */
+      public Builder setSpec(talon.manifests.Manifests.SkillSpec value) {
+        if (specBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          spec_ = value;
+        } else {
+          specBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       */
+      public Builder setSpec(
+          talon.manifests.Manifests.SkillSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
+        } else {
+          specBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       */
+      public Builder mergeSpec(talon.manifests.Manifests.SkillSpec value) {
+        if (specBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) != 0) &&
+            spec_ != null &&
+            spec_ != talon.manifests.Manifests.SkillSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
+          } else {
+            spec_ = value;
+          }
+        } else {
+          specBuilder_.mergeFrom(value);
+        }
+        if (spec_ != null) {
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       */
+      public Builder clearSpec() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       */
+      public talon.manifests.Manifests.SkillSpec.Builder getSpecBuilder() {
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return internalGetSpecFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       */
+      public talon.manifests.Manifests.SkillSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
+        } else {
+          return spec_ == null ?
+              talon.manifests.Manifests.SkillSpec.getDefaultInstance() : spec_;
+        }
+      }
+      /**
+       * <code>.talon.manifests.SkillSpec spec = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.SkillSpec, talon.manifests.Manifests.SkillSpec.Builder, talon.manifests.Manifests.SkillSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.SkillSpec, talon.manifests.Manifests.SkillSpec.Builder, talon.manifests.Manifests.SkillSpecOrBuilder>(
+                  getSpec(),
+                  getParentForChildren(),
+                  isClean());
+          spec_ = null;
+        }
+        return specBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.Skill)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.Skill)
+    private static final talon.manifests.Manifests.Skill DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.Skill();
+    }
+
+    public static talon.manifests.Manifests.Skill getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Skill>
+        PARSER = new com.google.protobuf.AbstractParser<Skill>() {
+      @java.lang.Override
+      public Skill parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Skill> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Skill> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.Skill getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface SkillSpecOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.SkillSpec)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string description = 1;</code>
+     * @return The description.
+     */
+    java.lang.String getDescription();
+    /**
+     * <code>string description = 1;</code>
+     * @return The bytes for description.
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <code>string instructions = 2;</code>
+     * @return The instructions.
+     */
+    java.lang.String getInstructions();
+    /**
+     * <code>string instructions = 2;</code>
+     * @return The bytes for instructions.
+     */
+    com.google.protobuf.ByteString
+        getInstructionsBytes();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.SkillSpec}
+   */
+  public static final class SkillSpec extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.SkillSpec)
+      SkillSpecOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "SkillSpec");
+    }
+    // Use SkillSpec.newBuilder() to construct.
+    private SkillSpec(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private SkillSpec() {
+      description_ = "";
+      instructions_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_SkillSpec_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_SkillSpec_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_SkillSpec_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.SkillSpec.class, talon.manifests.Manifests.SkillSpec.Builder.class);
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object description_ = "";
+    /**
+     * <code>string description = 1;</code>
+     * @return The description.
+     */
+    @java.lang.Override
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        description_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string description = 1;</code>
+     * @return The bytes for description.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int INSTRUCTIONS_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object instructions_ = "";
+    /**
+     * <code>string instructions = 2;</code>
+     * @return The instructions.
+     */
+    @java.lang.Override
+    public java.lang.String getInstructions() {
+      java.lang.Object ref = instructions_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        instructions_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string instructions = 2;</code>
+     * @return The bytes for instructions.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getInstructionsBytes() {
+      java.lang.Object ref = instructions_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        instructions_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, description_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(instructions_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, instructions_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, description_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(instructions_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, instructions_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.SkillSpec)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.SkillSpec other = (talon.manifests.Manifests.SkillSpec) obj;
+
+      if (!getDescription()
+          .equals(other.getDescription())) return false;
+      if (!getInstructions()
+          .equals(other.getInstructions())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+      hash = (53 * hash) + getDescription().hashCode();
+      hash = (37 * hash) + INSTRUCTIONS_FIELD_NUMBER;
+      hash = (53 * hash) + getInstructions().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.SkillSpec parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.SkillSpec parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.SkillSpec parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.SkillSpec parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.SkillSpec prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.SkillSpec}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.SkillSpec)
+        talon.manifests.Manifests.SkillSpecOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_SkillSpec_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_SkillSpec_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.SkillSpec.class, talon.manifests.Manifests.SkillSpec.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.SkillSpec.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        description_ = "";
+        instructions_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_SkillSpec_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.SkillSpec getDefaultInstanceForType() {
+        return talon.manifests.Manifests.SkillSpec.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.SkillSpec build() {
+        talon.manifests.Manifests.SkillSpec result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.SkillSpec buildPartial() {
+        talon.manifests.Manifests.SkillSpec result = new talon.manifests.Manifests.SkillSpec(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.SkillSpec result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.description_ = description_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.instructions_ = instructions_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.SkillSpec) {
+          return mergeFrom((talon.manifests.Manifests.SkillSpec)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.SkillSpec other) {
+        if (other == talon.manifests.Manifests.SkillSpec.getDefaultInstance()) return this;
+        if (!other.getDescription().isEmpty()) {
+          description_ = other.description_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getInstructions().isEmpty()) {
+          instructions_ = other.instructions_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                description_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                instructions_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object description_ = "";
+      /**
+       * <code>string description = 1;</code>
+       * @return The description.
+       */
+      public java.lang.String getDescription() {
+        java.lang.Object ref = description_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          description_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string description = 1;</code>
+       * @return The bytes for description.
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string description = 1;</code>
+       * @param value The description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescription(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        description_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDescription() {
+        description_ = getDefaultInstance().getDescription();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 1;</code>
+       * @param value The bytes for description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        description_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object instructions_ = "";
+      /**
+       * <code>string instructions = 2;</code>
+       * @return The instructions.
+       */
+      public java.lang.String getInstructions() {
+        java.lang.Object ref = instructions_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          instructions_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string instructions = 2;</code>
+       * @return The bytes for instructions.
+       */
+      public com.google.protobuf.ByteString
+          getInstructionsBytes() {
+        java.lang.Object ref = instructions_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          instructions_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string instructions = 2;</code>
+       * @param value The instructions to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInstructions(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        instructions_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string instructions = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInstructions() {
+        instructions_ = getDefaultInstance().getInstructions();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string instructions = 2;</code>
+       * @param value The bytes for instructions to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInstructionsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        instructions_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.SkillSpec)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.SkillSpec)
+    private static final talon.manifests.Manifests.SkillSpec DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.SkillSpec();
+    }
+
+    public static talon.manifests.Manifests.SkillSpec getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<SkillSpec>
+        PARSER = new com.google.protobuf.AbstractParser<SkillSpec>() {
+      @java.lang.Override
+      public SkillSpec parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<SkillSpec> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<SkillSpec> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.SkillSpec getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface MemoryProviderOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.manifests.MemoryProvider)
       com.google.protobuf.MessageOrBuilder {
@@ -27503,6 +29237,16 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_KnowledgeSpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_Skill_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_Skill_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_SkillSpec_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_SkillSpec_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_MemoryProvider_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -27622,21 +29366,26 @@ java.lang.String defaultValue) {
       "\t\022-\n\010metadata\030\003 \001(\0132\033.talon.manifests.Ob" +
       "jectMeta\022,\n\004spec\030\004 \001(\0132\036.talon.manifests" +
       ".KnowledgeSpec\".\n\rKnowledgeSpec\022\014\n\004path\030" +
-      "\001 \001(\t\022\017\n\007content\030\002 \001(\t\"\225\001\n\016MemoryProvide" +
-      "r\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010" +
-      "metadata\030\003 \001(\0132\033.talon.manifests.ObjectM" +
-      "eta\0221\n\004spec\030\004 \001(\0132#.talon.manifests.Memo" +
-      "ryProviderSpec\"\212\001\n\022MemoryProviderSpec\022\016\n" +
-      "\006driver\030\001 \001(\t\0225\n\nconnection\030\002 \001(\0132!.talo" +
-      "n.manifests.ConnectionConfig\022-\n\006schema\030\003" +
-      " \001(\0132\035.talon.manifests.SchemaConfig\"f\n\020C" +
-      "onnectionConfig\022\'\n\003url\030\001 \001(\0132\032.talon.man" +
-      "ifests.EnvSecret\022)\n\004pool\030\002 \001(\0132\033.talon.m" +
-      "anifests.PoolConfig\"(\n\tEnvSecret\022\016\n\006sour" +
-      "ce\030\001 \001(\t\022\013\n\003key\030\002 \001(\t\"\\\n\nPoolConfig\022\027\n\017m" +
-      "ax_connections\030\001 \001(\005\022\027\n\017min_connections\030" +
-      "\002 \001(\005\022\034\n\024idle_timeout_seconds\030\003 \001(\005\"\034\n\014S" +
-      "chemaConfig\022\014\n\004name\030\001 \001(\tb\006proto3"
+      "\001 \001(\t\022\017\n\007content\030\002 \001(\t\"\203\001\n\005Skill\022\023\n\013api_" +
+      "version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030" +
+      "\003 \001(\0132\033.talon.manifests.ObjectMeta\022(\n\004sp" +
+      "ec\030\004 \001(\0132\032.talon.manifests.SkillSpec\"6\n\t" +
+      "SkillSpec\022\023\n\013description\030\001 \001(\t\022\024\n\014instru" +
+      "ctions\030\002 \001(\t\"\225\001\n\016MemoryProvider\022\023\n\013api_v" +
+      "ersion\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030\003" +
+      " \001(\0132\033.talon.manifests.ObjectMeta\0221\n\004spe" +
+      "c\030\004 \001(\0132#.talon.manifests.MemoryProvider" +
+      "Spec\"\212\001\n\022MemoryProviderSpec\022\016\n\006driver\030\001 " +
+      "\001(\t\0225\n\nconnection\030\002 \001(\0132!.talon.manifest" +
+      "s.ConnectionConfig\022-\n\006schema\030\003 \001(\0132\035.tal" +
+      "on.manifests.SchemaConfig\"f\n\020ConnectionC" +
+      "onfig\022\'\n\003url\030\001 \001(\0132\032.talon.manifests.Env" +
+      "Secret\022)\n\004pool\030\002 \001(\0132\033.talon.manifests.P" +
+      "oolConfig\"(\n\tEnvSecret\022\016\n\006source\030\001 \001(\t\022\013" +
+      "\n\003key\030\002 \001(\t\"\\\n\nPoolConfig\022\027\n\017max_connect" +
+      "ions\030\001 \001(\005\022\027\n\017min_connections\030\002 \001(\005\022\034\n\024i" +
+      "dle_timeout_seconds\030\003 \001(\005\"\034\n\014SchemaConfi" +
+      "g\022\014\n\004name\030\001 \001(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -27817,38 +29566,50 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_KnowledgeSpec_descriptor,
         new java.lang.String[] { "Path", "Content", });
-    internal_static_talon_manifests_MemoryProvider_descriptor =
+    internal_static_talon_manifests_Skill_descriptor =
       getDescriptor().getMessageType(23);
+    internal_static_talon_manifests_Skill_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_Skill_descriptor,
+        new java.lang.String[] { "ApiVersion", "Kind", "Metadata", "Spec", });
+    internal_static_talon_manifests_SkillSpec_descriptor =
+      getDescriptor().getMessageType(24);
+    internal_static_talon_manifests_SkillSpec_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_SkillSpec_descriptor,
+        new java.lang.String[] { "Description", "Instructions", });
+    internal_static_talon_manifests_MemoryProvider_descriptor =
+      getDescriptor().getMessageType(25);
     internal_static_talon_manifests_MemoryProvider_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_MemoryProvider_descriptor,
         new java.lang.String[] { "ApiVersion", "Kind", "Metadata", "Spec", });
     internal_static_talon_manifests_MemoryProviderSpec_descriptor =
-      getDescriptor().getMessageType(24);
+      getDescriptor().getMessageType(26);
     internal_static_talon_manifests_MemoryProviderSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_MemoryProviderSpec_descriptor,
         new java.lang.String[] { "Driver", "Connection", "Schema", });
     internal_static_talon_manifests_ConnectionConfig_descriptor =
-      getDescriptor().getMessageType(25);
+      getDescriptor().getMessageType(27);
     internal_static_talon_manifests_ConnectionConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_ConnectionConfig_descriptor,
         new java.lang.String[] { "Url", "Pool", });
     internal_static_talon_manifests_EnvSecret_descriptor =
-      getDescriptor().getMessageType(26);
+      getDescriptor().getMessageType(28);
     internal_static_talon_manifests_EnvSecret_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_EnvSecret_descriptor,
         new java.lang.String[] { "Source", "Key", });
     internal_static_talon_manifests_PoolConfig_descriptor =
-      getDescriptor().getMessageType(27);
+      getDescriptor().getMessageType(29);
     internal_static_talon_manifests_PoolConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_PoolConfig_descriptor,
         new java.lang.String[] { "MaxConnections", "MinConnections", "IdleTimeoutSeconds", });
     internal_static_talon_manifests_SchemaConfig_descriptor =
-      getDescriptor().getMessageType(28);
+      getDescriptor().getMessageType(30);
     internal_static_talon_manifests_SchemaConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_SchemaConfig_descriptor,
