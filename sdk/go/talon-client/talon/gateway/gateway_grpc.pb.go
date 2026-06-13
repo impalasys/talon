@@ -31,6 +31,10 @@ const (
 	GatewayService_GetNamespaceKnowledge_FullMethodName     = "/talon.gateway.GatewayService/GetNamespaceKnowledge"
 	GatewayService_ListNamespaceKnowledge_FullMethodName    = "/talon.gateway.GatewayService/ListNamespaceKnowledge"
 	GatewayService_DeleteNamespaceKnowledge_FullMethodName  = "/talon.gateway.GatewayService/DeleteNamespaceKnowledge"
+	GatewayService_CreateNamespaceSkill_FullMethodName      = "/talon.gateway.GatewayService/CreateNamespaceSkill"
+	GatewayService_GetNamespaceSkill_FullMethodName         = "/talon.gateway.GatewayService/GetNamespaceSkill"
+	GatewayService_ListNamespaceSkills_FullMethodName       = "/talon.gateway.GatewayService/ListNamespaceSkills"
+	GatewayService_DeleteNamespaceSkill_FullMethodName      = "/talon.gateway.GatewayService/DeleteNamespaceSkill"
 	GatewayService_CreateSession_FullMethodName             = "/talon.gateway.GatewayService/CreateSession"
 	GatewayService_GetSession_FullMethodName                = "/talon.gateway.GatewayService/GetSession"
 	GatewayService_ListSessionMessages_FullMethodName       = "/talon.gateway.GatewayService/ListSessionMessages"
@@ -105,6 +109,10 @@ type GatewayServiceClient interface {
 	GetNamespaceKnowledge(ctx context.Context, in *GetNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*NamespaceKnowledgeResponse, error)
 	ListNamespaceKnowledge(ctx context.Context, in *ListNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*ListNamespaceKnowledgeResponse, error)
 	DeleteNamespaceKnowledge(ctx context.Context, in *DeleteNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*DeleteNamespaceKnowledgeResponse, error)
+	CreateNamespaceSkill(ctx context.Context, in *CreateNamespaceSkillRequest, opts ...grpc.CallOption) (*NamespaceSkillResponse, error)
+	GetNamespaceSkill(ctx context.Context, in *GetNamespaceSkillRequest, opts ...grpc.CallOption) (*NamespaceSkillResponse, error)
+	ListNamespaceSkills(ctx context.Context, in *ListNamespaceSkillsRequest, opts ...grpc.CallOption) (*ListNamespaceSkillsResponse, error)
+	DeleteNamespaceSkill(ctx context.Context, in *DeleteNamespaceSkillRequest, opts ...grpc.CallOption) (*DeleteNamespaceSkillResponse, error)
 	// Agent Sessions
 	CreateSession(ctx context.Context, in *CreateSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
 	GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
@@ -273,6 +281,46 @@ func (c *gatewayServiceClient) DeleteNamespaceKnowledge(ctx context.Context, in 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteNamespaceKnowledgeResponse)
 	err := c.cc.Invoke(ctx, GatewayService_DeleteNamespaceKnowledge_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) CreateNamespaceSkill(ctx context.Context, in *CreateNamespaceSkillRequest, opts ...grpc.CallOption) (*NamespaceSkillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NamespaceSkillResponse)
+	err := c.cc.Invoke(ctx, GatewayService_CreateNamespaceSkill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) GetNamespaceSkill(ctx context.Context, in *GetNamespaceSkillRequest, opts ...grpc.CallOption) (*NamespaceSkillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(NamespaceSkillResponse)
+	err := c.cc.Invoke(ctx, GatewayService_GetNamespaceSkill_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) ListNamespaceSkills(ctx context.Context, in *ListNamespaceSkillsRequest, opts ...grpc.CallOption) (*ListNamespaceSkillsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListNamespaceSkillsResponse)
+	err := c.cc.Invoke(ctx, GatewayService_ListNamespaceSkills_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) DeleteNamespaceSkill(ctx context.Context, in *DeleteNamespaceSkillRequest, opts ...grpc.CallOption) (*DeleteNamespaceSkillResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteNamespaceSkillResponse)
+	err := c.cc.Invoke(ctx, GatewayService_DeleteNamespaceSkill_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -891,6 +939,10 @@ type GatewayServiceServer interface {
 	GetNamespaceKnowledge(context.Context, *GetNamespaceKnowledgeRequest) (*NamespaceKnowledgeResponse, error)
 	ListNamespaceKnowledge(context.Context, *ListNamespaceKnowledgeRequest) (*ListNamespaceKnowledgeResponse, error)
 	DeleteNamespaceKnowledge(context.Context, *DeleteNamespaceKnowledgeRequest) (*DeleteNamespaceKnowledgeResponse, error)
+	CreateNamespaceSkill(context.Context, *CreateNamespaceSkillRequest) (*NamespaceSkillResponse, error)
+	GetNamespaceSkill(context.Context, *GetNamespaceSkillRequest) (*NamespaceSkillResponse, error)
+	ListNamespaceSkills(context.Context, *ListNamespaceSkillsRequest) (*ListNamespaceSkillsResponse, error)
+	DeleteNamespaceSkill(context.Context, *DeleteNamespaceSkillRequest) (*DeleteNamespaceSkillResponse, error)
 	// Agent Sessions
 	CreateSession(context.Context, *CreateSessionRequest) (*SessionResponse, error)
 	GetSession(context.Context, *GetSessionRequest) (*SessionResponse, error)
@@ -994,6 +1046,18 @@ func (UnimplementedGatewayServiceServer) ListNamespaceKnowledge(context.Context,
 }
 func (UnimplementedGatewayServiceServer) DeleteNamespaceKnowledge(context.Context, *DeleteNamespaceKnowledgeRequest) (*DeleteNamespaceKnowledgeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteNamespaceKnowledge not implemented")
+}
+func (UnimplementedGatewayServiceServer) CreateNamespaceSkill(context.Context, *CreateNamespaceSkillRequest) (*NamespaceSkillResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateNamespaceSkill not implemented")
+}
+func (UnimplementedGatewayServiceServer) GetNamespaceSkill(context.Context, *GetNamespaceSkillRequest) (*NamespaceSkillResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNamespaceSkill not implemented")
+}
+func (UnimplementedGatewayServiceServer) ListNamespaceSkills(context.Context, *ListNamespaceSkillsRequest) (*ListNamespaceSkillsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaceSkills not implemented")
+}
+func (UnimplementedGatewayServiceServer) DeleteNamespaceSkill(context.Context, *DeleteNamespaceSkillRequest) (*DeleteNamespaceSkillResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteNamespaceSkill not implemented")
 }
 func (UnimplementedGatewayServiceServer) CreateSession(context.Context, *CreateSessionRequest) (*SessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSession not implemented")
@@ -1360,6 +1424,78 @@ func _GatewayService_DeleteNamespaceKnowledge_Handler(srv interface{}, ctx conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GatewayServiceServer).DeleteNamespaceKnowledge(ctx, req.(*DeleteNamespaceKnowledgeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_CreateNamespaceSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateNamespaceSkillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).CreateNamespaceSkill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_CreateNamespaceSkill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).CreateNamespaceSkill(ctx, req.(*CreateNamespaceSkillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_GetNamespaceSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNamespaceSkillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).GetNamespaceSkill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_GetNamespaceSkill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).GetNamespaceSkill(ctx, req.(*GetNamespaceSkillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_ListNamespaceSkills_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListNamespaceSkillsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).ListNamespaceSkills(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_ListNamespaceSkills_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).ListNamespaceSkills(ctx, req.(*ListNamespaceSkillsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_DeleteNamespaceSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteNamespaceSkillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).DeleteNamespaceSkill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_DeleteNamespaceSkill_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).DeleteNamespaceSkill(ctx, req.(*DeleteNamespaceSkillRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2390,6 +2526,22 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteNamespaceKnowledge",
 			Handler:    _GatewayService_DeleteNamespaceKnowledge_Handler,
+		},
+		{
+			MethodName: "CreateNamespaceSkill",
+			Handler:    _GatewayService_CreateNamespaceSkill_Handler,
+		},
+		{
+			MethodName: "GetNamespaceSkill",
+			Handler:    _GatewayService_GetNamespaceSkill_Handler,
+		},
+		{
+			MethodName: "ListNamespaceSkills",
+			Handler:    _GatewayService_ListNamespaceSkills_Handler,
+		},
+		{
+			MethodName: "DeleteNamespaceSkill",
+			Handler:    _GatewayService_DeleteNamespaceSkill_Handler,
 		},
 		{
 			MethodName: "CreateSession",

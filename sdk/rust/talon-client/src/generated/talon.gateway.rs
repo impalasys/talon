@@ -240,6 +240,47 @@ pub struct ListNamespaceKnowledgeResponse {
     pub knowledge: ::prost::alloc::vec::Vec<super::manifests::Knowledge>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateNamespaceSkillRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "2")]
+    pub skill: ::core::option::Option<super::manifests::Skill>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetNamespaceSkillRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListNamespaceSkillsRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteNamespaceSkillRequest {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct DeleteNamespaceSkillResponse {
+    #[prost(bool, tag = "1")]
+    pub success: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct NamespaceSkillResponse {
+    #[prost(message, optional, tag = "1")]
+    pub skill: ::core::option::Option<super::manifests::Skill>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListNamespaceSkillsResponse {
+    #[prost(message, repeated, tag = "1")]
+    pub skills: ::prost::alloc::vec::Vec<super::manifests::Skill>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateSessionRequest {
     #[prost(string, tag = "1")]
     pub agent: ::prost::alloc::string::String,
@@ -1193,6 +1234,119 @@ pub mod gateway_service_client {
                     GrpcMethod::new(
                         "talon.gateway.GatewayService",
                         "DeleteNamespaceKnowledge",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn create_namespace_skill(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateNamespaceSkillRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::NamespaceSkillResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/CreateNamespaceSkill",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "talon.gateway.GatewayService",
+                        "CreateNamespaceSkill",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_namespace_skill(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetNamespaceSkillRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::NamespaceSkillResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/GetNamespaceSkill",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("talon.gateway.GatewayService", "GetNamespaceSkill"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn list_namespace_skills(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListNamespaceSkillsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListNamespaceSkillsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/ListNamespaceSkills",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "talon.gateway.GatewayService",
+                        "ListNamespaceSkills",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn delete_namespace_skill(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteNamespaceSkillRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::DeleteNamespaceSkillResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::unknown(
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/talon.gateway.GatewayService/DeleteNamespaceSkill",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "talon.gateway.GatewayService",
+                        "DeleteNamespaceSkill",
                     ),
                 );
             self.inner.unary(req, path, codec).await

@@ -91,25 +91,22 @@ impl GrpcGatewayHandler {
     {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let mut skills = Vec::new();
-
-        for key in self
+        let keys = self
             .gateway
             .kv
             .list_keys(&keys::skill_prefix(&req.ns))
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to list skills: {}", e)))?
-        {
-            if let Some(skill) = self
-                .gateway
-                .kv
-                .get_msg::<manifests::Skill>(&key)
-                .await
-                .map_err(|e| tonic::Status::internal(format!("Failed to fetch skill: {}", e)))?
-            {
-                skills.push(skill);
-            }
-        }
+            .map_err(|e| tonic::Status::internal(format!("Failed to list skills: {}", e)))?;
+        let fetches = keys.into_iter().map(|key| {
+            let kv = self.gateway.kv.clone();
+            async move { kv.get_msg::<manifests::Skill>(&key).await }
+        });
+        let skills = futures::future::try_join_all(fetches)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch skills: {}", e)))?
+            .into_iter()
+            .flatten()
+            .collect();
 
         Ok(tonic::Response::new(proto::ListNamespaceSkillsResponse {
             skills,
