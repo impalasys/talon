@@ -32,6 +32,8 @@ import { TalonChannel, TalonCopilot, type TalonChatObjectRef, type TalonImageUpl
 import { NamespaceExplorer, type Selection } from '../components/Namespaces/NamespaceExplorer';
 import { updateGatewayClient, getGatewayClient } from '../lib/grpc';
 
+const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -1170,8 +1172,8 @@ function DebuggerPageContent() {
                 gatewayClient={getGatewayClient()}
                 historyPageSize={positiveIntParam(searchParams, 'historyPageSize')}
                 enabledBuiltInCommands={['clear']}
-                onImageUpload={uploadTalonImage}
-                objectUrlForRef={talonObjectUrl}
+                onImageUpload={isStaticExport ? undefined : uploadTalonImage}
+                objectUrlForRef={isStaticExport ? undefined : talonObjectUrl}
                 disabled={!isConnected}
                 onSessionChange={(nextSessionId) => {
                   handleSelectionChange({
