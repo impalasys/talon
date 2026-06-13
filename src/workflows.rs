@@ -413,6 +413,7 @@ pub async fn claim_run(
 }
 
 pub async fn advance_run(cp: &ControlPlane, mut run: models::WorkflowRun) -> Result<()> {
+    let claimed_run = run.clone();
     let spec = load_run_spec(cp.kv.as_ref(), &run).await?;
     let mut step_runs = load_step_runs(cp.kv.as_ref(), &run).await?;
 
@@ -586,18 +587,14 @@ pub async fn advance_run(cp: &ControlPlane, mut run: models::WorkflowRun) -> Res
         }
     }
 
-    if any_failed(&step_runs) {
+    let final_run_event = if any_failed(&step_runs) {
         run.status = STATUS_FAILED.to_string();
         run.error = first_error(&step_runs);
-        append_run_event(
-            cp,
-            &run,
-            "",
-            "run_failed",
-            "workflow run failed",
+        Some((
+            "run_failed".to_string(),
+            "workflow run failed".to_string(),
             json!({ "error": run.error }),
-        )
-        .await?;
+        ))
     } else if all_terminal(&spec, &step_runs) {
         let view = run_view(&run, &step_runs)?;
         let output_template = parse_json_or(&spec.output_json, Value::Object(Map::new()))?;
@@ -605,36 +602,44 @@ pub async fn advance_run(cp: &ControlPlane, mut run: models::WorkflowRun) -> Res
         validate_basic_json_schema("output", &spec.output_schema_json, &output)?;
         run.output_json = serde_json::to_string(&output)?;
         run.status = STATUS_COMPLETED.to_string();
-        append_run_event(
-            cp,
-            &run,
-            "",
-            "run_completed",
-            "workflow run completed",
+        Some((
+            "run_completed".to_string(),
+            "workflow run completed".to_string(),
             output,
-        )
-        .await?;
+        ))
     } else if suspended {
         run.status = STATUS_SUSPENDED.to_string();
+        None
     } else if waiting {
         run.status = STATUS_WAITING_CHILDREN.to_string();
+        None
     } else {
         run.status = STATUS_FAILED.to_string();
         run.error = "workflow made no progress and has pending steps".to_string();
-        append_run_event(
-            cp,
-            &run,
-            "",
-            "run_failed",
-            &run.error,
+        Some((
+            "run_failed".to_string(),
+            run.error.clone(),
             json!({ "error": run.error }),
-        )
-        .await?;
-    }
+        ))
+    };
 
     run.claim_expires_at = None;
     run.updated_at = Utc::now().timestamp_micros();
-    persist_run(cp.kv.as_ref(), &run).await?;
+    if !persist_claimed_run(cp.kv.as_ref(), &claimed_run, &run).await? {
+        tracing::warn!(
+            namespace = %run.ns,
+            workflow = %run.workflow,
+            run_id = %run.id,
+            claim_owner = %claimed_run.claim_owner,
+            claim_attempt = claimed_run.claim_attempt,
+            "Skipping workflow run persistence because the claim is no longer current"
+        );
+        return Ok(());
+    }
+
+    if let Some((event_type, message, payload)) = final_run_event {
+        append_run_event(cp, &run, "", &event_type, &message, payload).await?;
+    }
 
     if is_terminal(&run.status) {
         dispatch_parent_workflow_from_run_labels(cp, &run).await?;
@@ -1186,6 +1191,40 @@ pub async fn cancel_run(
 pub async fn persist_run(kv: &dyn KeyValueStore, run: &models::WorkflowRun) -> Result<()> {
     kv.set_msg(&keys::workflow_run(&run.ns, &run.workflow, &run.id), run)
         .await
+}
+
+async fn persist_claimed_run(
+    kv: &dyn KeyValueStore,
+    claimed: &models::WorkflowRun,
+    updated: &models::WorkflowRun,
+) -> Result<bool> {
+    let key = keys::workflow_run(&claimed.ns, &claimed.workflow, &claimed.id);
+    for _ in 0..MAX_CAS_RETRIES {
+        let Some(current_bytes) = kv.get(&key).await? else {
+            return Ok(false);
+        };
+        let current = models::WorkflowRun::decode(current_bytes.as_slice())?;
+        if current.status != STATUS_RUNNING
+            || current.claim_owner != claimed.claim_owner
+            || current.claim_attempt != claimed.claim_attempt
+            || current.claim_expires_at != claimed.claim_expires_at
+        {
+            return Ok(false);
+        }
+        if kv
+            .compare_and_swap(
+                &key,
+                Some(current_bytes.as_slice()),
+                &updated.encode_to_vec(),
+            )
+            .await?
+        {
+            return Ok(true);
+        }
+    }
+    Err(anyhow!(
+        "failed to persist workflow run after concurrent modifications"
+    ))
 }
 
 pub async fn load_step_runs(
@@ -2961,6 +3000,33 @@ mod tests {
                 .iter()
                 .any(|event| event == "run_cancelled")
         );
+
+        let claimed_cancel_run =
+            create_run(&handler.cp, &workflow, "{}".to_string(), HashMap::new())
+                .await
+                .unwrap();
+        let stale_claim = claim_run(
+            handler.cp.kv.as_ref(),
+            "default",
+            "once",
+            &claimed_cancel_run.id,
+            Utc::now(),
+            "test",
+        )
+        .await
+        .unwrap()
+        .expect("run should be claimable");
+        cancel_run(&handler.cp, "default", "once", &claimed_cancel_run.id)
+            .await
+            .unwrap();
+        advance_run(&handler.cp, stale_claim).await.unwrap();
+
+        let stored_cancelled = stored_run(&kv, "default", "once", &claimed_cancel_run.id).await;
+        assert_eq!(stored_cancelled.status, STATUS_CANCELLED);
+        let event_types =
+            workflow_event_types(&kv, "default", "once", &claimed_cancel_run.id).await;
+        assert!(event_types.iter().any(|event| event == "run_cancelled"));
+        assert!(!event_types.iter().any(|event| event == "run_completed"));
     }
 
     #[tokio::test]
