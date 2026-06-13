@@ -18,6 +18,7 @@ import shutil
 
 SESSION_DISPATCH_TOPIC = "talon.session.dispatch"
 RESOURCE_LIFECYCLE_TOPIC = "talon.resource.lifecycle"
+WORKFLOW_DISPATCH_TOPIC = "talon.workflow.dispatch"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ENVOY_PORT = int(os.environ.get("API_PORT", "18789"))
 GATEWAY_GRPC_PORT = int(os.environ.get("GRPC_PORT", "50051"))
@@ -240,6 +241,7 @@ def main():
         for topic, subscription in [
             (SESSION_DISPATCH_TOPIC, "talon-session-dispatch-sub"),
             (RESOURCE_LIFECYCLE_TOPIC, "talon-resource-lifecycle-sub"),
+            (WORKFLOW_DISPATCH_TOPIC, "talon-workflow-dispatch-sub"),
         ]:
             requests.put(
                 f"http://{pubsub_host}/v1/projects/talon-local/topics/{topic}",
