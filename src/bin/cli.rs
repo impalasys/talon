@@ -1708,21 +1708,35 @@ enum Commands {
         #[arg(long, default_value = "yaml")]
         format: RenderFormat,
     },
-    /// Retrieves a manifest from the gateway
+    /// Retrieves a manifest from the gateway.
+    ///
+    /// Supported resource kinds:
+    ///   agent, agent-card, template, mcp-server, knowledge, schedule, channel, channel-subscription
     Get {
-        /// Type of resource to get (e.g., config, agenttemplate)
+        /// Type of resource to get: agent, agent-card, template, mcp-server, knowledge, schedule, channel, channel-subscription
+        #[arg(value_name = "KIND")]
         kind: String,
         /// Name of the resource
+        ///
+        /// Channel subscriptions use '<channel>/<subscription>'.
+        #[arg(value_name = "NAME")]
         name: String,
         /// Namespace of the resource
         #[arg(short, long)]
         namespace: Option<String>,
     },
-    /// Deletes a manifest from the gateway
+    /// Deletes a manifest from the gateway.
+    ///
+    /// Supported resource kinds:
+    ///   agent-card, template, mcp-server, knowledge, channel, channel-subscription
     Delete {
-        /// Type of resource to delete (e.g., config, agenttemplate)
+        /// Type of resource to delete: agent-card, template, mcp-server, knowledge, channel, channel-subscription
+        #[arg(value_name = "KIND")]
         kind: String,
         /// Name of the resource
+        ///
+        /// Channel subscriptions use '<channel>/<subscription>'.
+        #[arg(value_name = "NAME")]
         name: String,
         /// Namespace of the resource
         #[arg(short, long)]
@@ -3350,6 +3364,7 @@ mod tests {
         routing::{delete, get, post},
         Json, Router,
     };
+    use clap::CommandFactory;
     use futures::{stream, Stream};
     use serde_json::json;
     use std::collections::HashMap;
@@ -4209,6 +4224,23 @@ mod tests {
 
         let err = grpc_get_target("unknown-kind", "writer", None).unwrap_err();
         assert!(format!("{err:#}").contains("Unsupported resource kind"));
+    }
+
+    #[test]
+    fn get_help_lists_supported_resource_kinds() {
+        let mut command = Cli::command();
+        let help = command
+            .find_subcommand_mut("get")
+            .expect("get subcommand should exist")
+            .render_long_help()
+            .to_string();
+
+        assert!(help.contains("agent-card"));
+        assert!(help.contains("mcp-server"));
+        assert!(help.contains("channel-subscription"));
+        assert!(help.contains("template"));
+        assert!(help.contains("knowledge"));
+        assert!(help.contains("schedule"));
     }
 
     #[test]
