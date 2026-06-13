@@ -2,7 +2,7 @@
 """Run the Talon 1000-agent benchmark with Docker Compose.
 
 Example:
-    python bench/benchmark_1000_agents.py --agents 1000 --latencies 0,50,250 --memory 512m
+    python bench/benchmark_1000_agents.py --agents 1000 --latencies 0,50,250 --memory 768m
 """
 
 from __future__ import annotations
@@ -1682,7 +1682,7 @@ async def amain() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--agents", type=int, default=1000)
     parser.add_argument("--latencies", default="0,50,250")
-    parser.add_argument("--memory", default="512m")
+    parser.add_argument("--memory", default="768m")
     parser.add_argument("--tokens-per-second", type=float, default=10.0)
     parser.add_argument("--response-tokens", type=int, default=50)
     parser.add_argument("--mock-request-backlog", type=int, default=4096)

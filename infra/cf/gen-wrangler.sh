@@ -10,7 +10,7 @@ export TALON_CF_PROD_WRANGLER="${TALON_CF_PROD_WRANGLER:-${SCRIPT_DIR}/worker/wr
 
 export TALON_CF_WORKER_NAME="${TALON_CF_WORKER_NAME:-talon-cloudflare}"
 export TALON_CF_COMPATIBILITY_DATE="${TALON_CF_COMPATIBILITY_DATE:-2026-06-13}"
-export TALON_CF_SCHEDULER_AUTH_TOKEN="${TALON_CF_SCHEDULER_AUTH_TOKEN:-cloudflare-local-scheduler-token}"
+export TALON_CF_DEV_SCHEDULER_AUTH_TOKEN="${TALON_CF_DEV_SCHEDULER_AUTH_TOKEN:-cloudflare-local-scheduler-token}"
 
 export TALON_CF_GATEWAY_CONTAINER_COUNT="${TALON_CF_GATEWAY_CONTAINER_COUNT:-1}"
 export TALON_CF_WORKER_CONTAINER_COUNT="${TALON_CF_WORKER_CONTAINER_COUNT:-1}"
@@ -39,8 +39,9 @@ export TALON_CF_DEV_RUNTIME_BUILD_CONTEXT="${TALON_CF_DEV_RUNTIME_BUILD_CONTEXT:
 export TALON_CF_DEV_ENVOY_IMAGE="${TALON_CF_DEV_ENVOY_IMAGE:-../dockerfiles/cloudflare-envoy.Dockerfile}"
 export TALON_CF_DEV_ENVOY_BUILD_CONTEXT="${TALON_CF_DEV_ENVOY_BUILD_CONTEXT:-../../../}"
 
-export TALON_CF_PROD_RUNTIME_IMAGE="${TALON_CF_PROD_RUNTIME_IMAGE:-ghcr.io/impalasys/talon-runtime:latest}"
-export TALON_CF_PROD_ENVOY_IMAGE="${TALON_CF_PROD_ENVOY_IMAGE:-ghcr.io/impalasys/talon-envoy-cloudflare:latest}"
+export TALON_CF_PROD_IMAGE_TAG="${TALON_CF_PROD_IMAGE_TAG:-sha-REPLACE_ME}"
+export TALON_CF_PROD_RUNTIME_IMAGE="${TALON_CF_PROD_RUNTIME_IMAGE:-ghcr.io/impalasys/talon-runtime:${TALON_CF_PROD_IMAGE_TAG}}"
+export TALON_CF_PROD_ENVOY_IMAGE="${TALON_CF_PROD_ENVOY_IMAGE:-ghcr.io/impalasys/talon-envoy-cloudflare:${TALON_CF_PROD_IMAGE_TAG}}"
 
 if [[ ! -f "${TALON_CF_CONFIG_YAML}" ]]; then
   echo "Talon Cloudflare config not found: ${TALON_CF_CONFIG_YAML}" >&2
@@ -57,20 +58,23 @@ config_yaml = Path(os.environ["TALON_CF_CONFIG_YAML"]).read_text()
 def env(name: str) -> str:
     return os.environ[name]
 
-def base_config(main: str) -> dict:
+def base_config(main: str, scheduler_auth_token: str | None) -> dict:
+    vars = {
+        "TALON_CONFIG_INLINE_YAML": config_yaml,
+        "TALON_GATEWAY_CONTAINER_COUNT": env("TALON_CF_GATEWAY_CONTAINER_COUNT"),
+        "TALON_WORKER_CONTAINER_COUNT": env("TALON_CF_WORKER_CONTAINER_COUNT"),
+        "TALON_ENVOY_CONTAINER_COUNT": env("TALON_CF_ENVOY_CONTAINER_COUNT"),
+    }
+    if scheduler_auth_token:
+        vars["TALON_SCHEDULER_AUTH_TOKEN"] = scheduler_auth_token
+
     return {
         "$schema": "https://workers.cloudflare.com/schema/wrangler.json",
         "name": env("TALON_CF_WORKER_NAME"),
         "main": main,
         "compatibility_date": env("TALON_CF_COMPATIBILITY_DATE"),
         "compatibility_flags": ["nodejs_compat"],
-        "vars": {
-            "TALON_CONFIG_INLINE_YAML": config_yaml,
-            "TALON_SCHEDULER_AUTH_TOKEN": env("TALON_CF_SCHEDULER_AUTH_TOKEN"),
-            "TALON_GATEWAY_CONTAINER_COUNT": env("TALON_CF_GATEWAY_CONTAINER_COUNT"),
-            "TALON_WORKER_CONTAINER_COUNT": env("TALON_CF_WORKER_CONTAINER_COUNT"),
-            "TALON_ENVOY_CONTAINER_COUNT": env("TALON_CF_ENVOY_CONTAINER_COUNT"),
-        },
+        "vars": vars,
         "d1_databases": [
             {
                 "binding": env("TALON_CF_D1_BINDING"),
@@ -132,7 +136,7 @@ def write_json(path: str, config: dict) -> None:
     target.write_text(json.dumps(config, indent=2) + "\n")
     print(f"wrote {target}")
 
-dev = base_config(env("TALON_CF_DEV_MAIN"))
+dev = base_config(env("TALON_CF_DEV_MAIN"), env("TALON_CF_DEV_SCHEDULER_AUTH_TOKEN"))
 dev["containers"] = [
     {
         "class_name": "GatewayContainer",
@@ -151,7 +155,7 @@ dev["containers"] = [
     },
 ]
 
-prod = base_config(env("TALON_CF_PROD_MAIN"))
+prod = base_config(env("TALON_CF_PROD_MAIN"), None)
 prod["containers"] = [
     {
         "class_name": "GatewayContainer",

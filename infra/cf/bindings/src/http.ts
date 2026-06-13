@@ -1,7 +1,11 @@
 import { TEXT_JSON } from "./constants";
 
 export function json(data: unknown, init: ResponseInit = {}) {
-  return Response.json(data, { ...init, headers: { ...TEXT_JSON, ...init.headers } });
+  const headers = new Headers(init.headers);
+  for (const [key, value] of Object.entries(TEXT_JSON)) {
+    if (!headers.has(key)) headers.set(key, value);
+  }
+  return Response.json(data, { ...init, headers });
 }
 
 export async function body<T>(request: Request): Promise<T> {

@@ -1,6 +1,6 @@
 # Talon Benchmark
 
-This benchmark runs Talon under a 1 vCPU and 512 MiB memory limit in a generated
+This benchmark runs Talon under a 1 vCPU and 768 MiB memory limit in a generated
 Docker Compose project, using SQLite by default and the local socket broker. It creates
 distinct agents, opens one stream per session, sends one message to each agent,
 and waits for terminal stream events.
@@ -21,25 +21,25 @@ Each run gets a Compose project name like `talon-a1b2c3`. Containers are named:
 Smoke run:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 10 --latencies 0 --memory 512m
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 10 --latencies 0 --memory 768m
 ```
 
 Full run:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 1000 --latencies 0,50,250 --memory 512m
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 1000 --latencies 0,50,250 --memory 768m
 ```
 
 Keep the final Compose stack up for OrbStack inspection:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 1000 --latencies 0,50,250 --memory 512m --keep-compose-up
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 1000 --latencies 0,50,250 --memory 768m --keep-compose-up
 ```
 
 Enable OpenTelemetry tracing with a Jaeger UI in the generated Compose project:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 1000 --latencies 0,50,250 --memory 512m --otel --keep-compose-up
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 1000 --latencies 0,50,250 --memory 768m --otel --keep-compose-up
 ```
 
 Inspect SQLite contention by comparing `SqliteKvStore.acquire_connection` and
@@ -52,19 +52,19 @@ result JSON and `summary.md`; raise `--jaeger-trace-limit` if you want more
 traces included in that aggregate.
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --sqlite-pool-size 5 --sqlite-busy-timeout-ms 5000
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 768m --otel --keep-compose-up --sqlite-pool-size 5 --sqlite-busy-timeout-ms 5000
 ```
 
 For a lock-contention probe, temporarily lower the busy timeout:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --sqlite-busy-timeout-ms 10
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 768m --otel --keep-compose-up --sqlite-busy-timeout-ms 10
 ```
 
 Run the same benchmark against Postgres instead of SQLite:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --skip-build --database postgres --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --mock-cpus 4 --mock-memory 2g
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --skip-build --database postgres --agents 250 --latencies 0 --memory 768m --otel --keep-compose-up --mock-cpus 4 --mock-memory 2g
 ```
 
 The harness prints a mapped Postgres URL. While the stack is up, connect with:
@@ -83,7 +83,7 @@ Talon's 1 vCPU / memory limit.
 Run the benchmark against the embedded RocksDB store:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --skip-build --database rocksdb --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --mock-cpus 4 --mock-memory 2g
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --skip-build --database rocksdb --agents 250 --latencies 0 --memory 768m --otel --keep-compose-up --mock-cpus 4 --mock-memory 2g
 ```
 
 RocksDB is an embedded store with a single read/write process lock. The harness
@@ -104,7 +104,7 @@ container.
 Use a fixed project name when you want a predictable OrbStack group:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --project-name talon-a1b2c3 --agents 1000 --latencies 0,50,250 --memory 512m
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --project-name talon-a1b2c3 --agents 1000 --latencies 0,50,250 --memory 768m
 ```
 
 Live inspection examples:
@@ -128,7 +128,7 @@ If the mock server becomes the bottleneck, raise its resources without changing
 Talon's limits:
 
 ```bash
-.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 512m --otel --keep-compose-up --sqlite-pool-size 20 --mock-cpus 4 --mock-memory 2g --mock-request-backlog 8192
+.venv-e2e/bin/python bench/benchmark_1000_agents.py --agents 250 --latencies 0 --memory 768m --otel --keep-compose-up --sqlite-pool-size 20 --mock-cpus 4 --mock-memory 2g --mock-request-backlog 8192
 ```
 
 The default benchmark image uses `bench/runtime.Dockerfile`, which avoids

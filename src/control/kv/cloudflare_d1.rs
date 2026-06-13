@@ -9,7 +9,7 @@ use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine as _};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use super::sqlite_sql::{
     compare_and_swap_query, create_table_statement, delete_query, get_query,
@@ -17,6 +17,7 @@ use super::sqlite_sql::{
 };
 
 const TABLE: &str = "talon_kv_store";
+const CLOUDFLARE_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
 pub struct CloudflareD1KvStore {
@@ -187,6 +188,7 @@ impl CloudflareD1KvStore {
         let response = self
             .client
             .post(format!("{}{}", self.endpoint, path))
+            .timeout(CLOUDFLARE_HTTP_TIMEOUT)
             .json(body)
             .send()
             .await?;
@@ -321,6 +323,9 @@ impl KeyValueStore for CloudflareD1KvStore {
         before_name: Option<&str>,
         limit: usize,
     ) -> Result<Vec<ResourceKey>> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
         let kind = list
             .kind
             .as_ref()
@@ -345,6 +350,9 @@ impl KeyValueStore for CloudflareD1KvStore {
         before_name: Option<&str>,
         limit: usize,
     ) -> Result<Vec<(ResourceKey, Vec<u8>)>> {
+        if limit == 0 {
+            return Ok(Vec::new());
+        }
         let kind = list
             .kind
             .as_ref()
