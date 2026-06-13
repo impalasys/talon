@@ -46,6 +46,11 @@ def artifact_text(event_dump):
     return "".join(part.get("text", "") for part in parts if isinstance(part, dict))
 
 
+def artifact_field(event_dump, snake_name, camel_name):
+    artifact = event_dump.get("artifact") or event_dump.get("artifactUpdate", {}).get("artifact") or {}
+    return get_field(artifact, snake_name, camel_name)
+
+
 def artifact_texts(task_dump):
     texts = []
     for artifact in task_dump.get("artifacts", []):
@@ -70,6 +75,11 @@ def status_message_text(event_dump):
 
 def get_field(value, snake_name, camel_name):
     return value.get(snake_name, value.get(camel_name))
+
+
+def bool_field(value, snake_name, camel_name):
+    field_value = get_field(value, snake_name, camel_name)
+    return bool(field_value)
 
 
 def apply_manifest(path):
@@ -221,6 +231,20 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
         assert artifact_events, "Talon did not stream A2A artifact updates"
         streamed_text = "".join(artifact_text(event) for event in artifact_events)
         assert "Hello! I am a mock LLM." in streamed_text
+        assert bool_field(artifact_events[0], "append", "append") is False
+        artifact_ids = {
+            artifact_field(event, "artifact_id", "artifactId")
+            for event in artifact_events
+        }
+        assert artifact_ids == {"response"}
+        for event in artifact_events[:-1]:
+            assert bool_field(event, "last_chunk", "lastChunk") is False
+        if len(artifact_events) > 1:
+            assert all(
+                bool_field(event, "append", "append")
+                for event in artifact_events[1:]
+            )
+        assert bool_field(artifact_events[-1], "last_chunk", "lastChunk") is True
         assert all("usage" not in str(event).lower() for event in events)
         assert all(status_message_text(event) == "" for event in events)
 

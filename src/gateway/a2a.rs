@@ -304,10 +304,20 @@ async fn stream_message(
         let timeout = tokio::time::sleep(A2A_STREAM_IDLE_TIMEOUT);
         tokio::pin!(timeout);
         let mut stream_artifact_started = false;
+        let mut pending_artifact_text: Option<String> = None;
 
         loop {
             tokio::select! {
                 _ = &mut timeout => {
+                    if let Some(text) = pending_artifact_text.take() {
+                        yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
+                            &stream_task_id,
+                            &stream_context_id,
+                            &text,
+                            stream_artifact_started,
+                            true,
+                        )));
+                    }
                     let final_status = match load_a2a_task(&stream_gateway, &stream_route, &stream_task_id).await {
                         Ok(task) => rest_v1_task_status_value(task),
                         Err(_) => json!({ "state": "TASK_STATE_UNKNOWN" }),
@@ -347,6 +357,15 @@ async fn stream_message(
                     if event.kind == SessionMessagePartEventKind::Done as i32 {
                         break;
                     } else if event.kind == SessionMessagePartEventKind::Error as i32 {
+                        if let Some(text) = pending_artifact_text.take() {
+                            yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
+                                &stream_task_id,
+                                &stream_context_id,
+                                &text,
+                                stream_artifact_started,
+                                true,
+                            )));
+                        }
                         let error_text = if content.is_empty() { "Stream error" } else { content };
                         yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_status_update_value(
                             &stream_task_id,
@@ -357,16 +376,29 @@ async fn stream_message(
                         )));
                         return;
                     } else if part_type == models::SessionMessagePartType::Text as i32 && !content.is_empty() {
-                        yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
-                            &stream_task_id,
-                            &stream_context_id,
-                            content,
-                            stream_artifact_started,
-                        )));
-                        stream_artifact_started = true;
+                        if let Some(text) = pending_artifact_text.replace(content.to_string()) {
+                            yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
+                                &stream_task_id,
+                                &stream_context_id,
+                                &text,
+                                stream_artifact_started,
+                                false,
+                            )));
+                            stream_artifact_started = true;
+                        }
                     }
                 }
             }
+        }
+
+        if let Some(text) = pending_artifact_text.take() {
+            yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
+                &stream_task_id,
+                &stream_context_id,
+                &text,
+                stream_artifact_started,
+                true,
+            )));
         }
 
         let final_status = match load_a2a_task(&stream_gateway, &stream_route, &stream_task_id).await {
@@ -769,6 +801,7 @@ fn a2a_stream_artifact_update_value(
     context_id: &str,
     text: &str,
     append: bool,
+    last_chunk: bool,
 ) -> Value {
     json!({
         "artifactUpdate": {
@@ -779,7 +812,8 @@ fn a2a_stream_artifact_update_value(
                 "name": "response",
                 "parts": [{ "text": text }]
             },
-            "append": append
+            "append": append,
+            "lastChunk": last_chunk
         }
     })
 }

@@ -901,6 +901,7 @@ mod tests {
         assert_eq!(events[0]["task"]["status"]["state"], "TASK_STATE_WORKING");
         assert!(events.iter().any(
             |event| event["artifactUpdate"]["artifact"]["parts"][0]["text"] == "streamed reply"
+                && event["artifactUpdate"]["lastChunk"] == serde_json::Value::Bool(true)
         ));
         assert_eq!(
             events.last().unwrap()["statusUpdate"]["final"],
