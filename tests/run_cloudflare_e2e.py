@@ -8,10 +8,11 @@ import requests
 BASE_URL = os.environ.get("TALON_CLOUDFLARE_URL", "http://127.0.0.1:8787").rstrip("/")
 SIGHTLINE_ORIGIN = os.environ.get("TALON_CLOUDFLARE_CORS_ORIGIN", "https://sightline.impala.systems")
 API_REQUEST_TIMEOUT_SECONDS = int(os.environ.get("TALON_CLOUDFLARE_API_TIMEOUT_SECONDS", "180"))
+HEALTH_TIMEOUT_SECONDS = int(os.environ.get("TALON_CLOUDFLARE_HEALTH_TIMEOUT_SECONDS", "1200"))
 
 
 def wait_for_health():
-    deadline = time.time() + 240
+    deadline = time.time() + HEALTH_TIMEOUT_SECONDS
     last_error = None
     while time.time() < deadline:
         try:

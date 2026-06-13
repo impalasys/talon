@@ -128,7 +128,7 @@ struct GcpPushPayload {
     subscription: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CloudflareQueueDispatchPayload {
     event_type: Option<String>,
@@ -823,9 +823,15 @@ async fn push_webhook(
 
 async fn cloudflare_queue_dispatch(
     State(handler): State<WorkerEventHandler>,
+    headers: HeaderMap,
     Json(payload): Json<CloudflareQueueDispatchPayload>,
 ) -> impl IntoResponse {
     use base64::{engine::general_purpose, Engine as _};
+
+    if let Err(err) = handler.scheduler_authenticator.authorize(&headers).await {
+        tracing::warn!(error = %err, "Rejected Cloudflare queue dispatch request");
+        return axum::http::StatusCode::UNAUTHORIZED;
+    }
 
     let raw_bytes = match general_purpose::STANDARD.decode(&payload.payload_base64) {
         Ok(bytes) => bytes,
@@ -924,13 +930,14 @@ async fn main() -> Result<()> {
 mod tests {
     use super::{
         build_worker_handler, fully_qualified_subscription, fully_qualified_topic,
-        handle_pull_message, maybe_spawn_pull_subscriptions, next_pull_error_backoff,
-        next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled, pull_subscription_specs,
-        push_webhook, resolved_pull_subscription_specs, run_pull_subscription_loop,
-        run_pull_subscription_with_backend, run_worker_main_with, run_worker_with, schedule_fire,
-        serve_worker_http, session_dispatch_concurrency, worker_bind_addr, worker_port,
-        worker_router, LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend,
-        PullSubscriptionBackend, ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
+        cloudflare_queue_dispatch, handle_pull_message, maybe_spawn_pull_subscriptions,
+        next_pull_error_backoff, next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled,
+        pull_subscription_specs, push_webhook, resolved_pull_subscription_specs,
+        run_pull_subscription_loop, run_pull_subscription_with_backend, run_worker_main_with,
+        run_worker_with, schedule_fire, serve_worker_http, session_dispatch_concurrency,
+        worker_bind_addr, worker_port, worker_router, CloudflareQueueDispatchPayload,
+        LocalSocketMessagePublisher, LocalSocketPullSubscriptionBackend, PullSubscriptionBackend,
+        ResolvedPullSubscriptionSpec, HEALTHY_PULL_RUNTIME_RESET,
     };
     use anyhow::Result;
     use axum::body::Bytes;
@@ -1494,6 +1501,43 @@ mod tests {
             .await
             .into_response();
         assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[tokio::test]
+    async fn cloudflare_queue_dispatch_requires_authentication() {
+        let payload = CloudflareQueueDispatchPayload {
+            event_type: Some("session_dispatch".to_string()),
+            subscription: None,
+            delivery_id: Some("delivery-1".to_string()),
+            payload_base64: general_purpose::STANDARD.encode(b"not-a-protobuf"),
+        };
+
+        let unauthorized = cloudflare_queue_dispatch(
+            State(handler_with_auth(
+                SchedulerRequestAuthenticator::shared_secret("secret".to_string()),
+            )),
+            HeaderMap::new(),
+            Json(payload.clone()),
+        )
+        .await
+        .into_response();
+        assert_eq!(unauthorized.status(), StatusCode::UNAUTHORIZED);
+
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::AUTHORIZATION,
+            HeaderValue::from_static("Bearer secret"),
+        );
+        let authenticated = cloudflare_queue_dispatch(
+            State(handler_with_auth(
+                SchedulerRequestAuthenticator::shared_secret("secret".to_string()),
+            )),
+            headers,
+            Json(payload),
+        )
+        .await
+        .into_response();
+        assert_eq!(authenticated.status(), StatusCode::INTERNAL_SERVER_ERROR);
     }
 
     #[tokio::test]
