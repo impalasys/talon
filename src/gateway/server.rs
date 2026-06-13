@@ -156,16 +156,18 @@ fn permissive_cors_layer() -> CorsLayer {
 mod tests {
     use super::Gateway;
     use crate::control::{
+        events::{SessionMessagePartEvent, SessionMessagePartEventKind},
         keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         KeyValueStore, MessagePublisher,
     };
     use crate::gateway::auth::AuthConfig;
+    use crate::gateway::rpc::models::{SessionMessagePart, SessionMessagePartType};
     use axum::body::Body;
     use axum::http::{header, Method, Request, StatusCode};
     use futures::stream;
     use prost::Message;
-    use std::collections::HashMap;
+    use std::collections::{HashMap, VecDeque};
     use std::net::SocketAddr;
     use std::pin::Pin;
     use std::sync::Arc;
@@ -227,7 +229,9 @@ mod tests {
     }
 
     #[derive(Default)]
-    struct MockPubSub;
+    struct MockPubSub {
+        batches: Mutex<HashMap<String, VecDeque<Vec<Vec<u8>>>>>,
+    }
 
     #[async_trait::async_trait]
     impl MessagePublisher for MockPubSub {
@@ -237,9 +241,16 @@ mod tests {
 
         async fn subscribe(
             &self,
-            _topic: &str,
+            topic: &str,
         ) -> anyhow::Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
-            Ok(Box::pin(stream::empty()))
+            let batch = self
+                .batches
+                .lock()
+                .await
+                .get_mut(topic)
+                .and_then(|entries| entries.pop_front())
+                .unwrap_or_default();
+            Ok(Box::pin(stream::iter(batch)))
         }
     }
 
@@ -247,7 +258,17 @@ mod tests {
         Gateway::new(
             None,
             Arc::new(MockKvStore::default()),
-            Arc::new(MockPubSub),
+            Arc::new(MockPubSub::default()),
+            Arc::new(NoopSchedulerBackend),
+            crate::control::object_store::default_object_store(),
+        )
+    }
+
+    fn gateway_with_pubsub(pubsub: Arc<MockPubSub>) -> Gateway {
+        Gateway::new(
+            None,
+            Arc::new(MockKvStore::default()),
+            pubsub,
             Arc::new(NoopSchedulerBackend),
             crate::control::object_store::default_object_store(),
         )
@@ -359,7 +380,7 @@ mod tests {
         let gateway = Gateway::new(
             Some(AuthConfig::tokens(vec!["secret-token".to_string()])),
             Arc::new(MockKvStore::default()),
-            Arc::new(MockPubSub),
+            Arc::new(MockPubSub::default()),
             Arc::new(NoopSchedulerBackend),
             crate::control::object_store::default_object_store(),
         );
@@ -503,7 +524,7 @@ mod tests {
         assert_eq!(value["url"], "http://support.example.com:8080");
         assert_eq!(value["protocolVersion"], "0.3.0");
         assert_eq!(value["preferredTransport"], "HTTP+JSON");
-        assert_eq!(value["capabilities"]["streaming"], false);
+        assert_eq!(value["capabilities"]["streaming"], true);
         assert_eq!(value["skills"][0]["id"], "answer_support_question");
         assert!(value.get("auth").is_none());
 
@@ -802,7 +823,109 @@ mod tests {
             )
             .await
             .unwrap();
-        assert_eq!(stream.status(), StatusCode::NOT_IMPLEMENTED);
+        assert_eq!(stream.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn http_ui_router_streams_external_a2a_messages() {
+        let task_id = "stream-task-1";
+        let topic = crate::control::topics::session_part_topic_for_shard(
+            crate::control::topics::session_part_shard(task_id),
+        );
+        let pubsub = Arc::new(MockPubSub::default());
+        pubsub.batches.lock().await.insert(
+            topic,
+            VecDeque::from(vec![vec![
+                SessionMessagePartEvent {
+                    session_id: task_id.to_string(),
+                    kind: SessionMessagePartEventKind::Delta as i32,
+                    part: Some(SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: SessionMessagePartType::Text as i32,
+                        content: "streamed reply".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 1,
+                        object: None,
+                    }),
+                    timestamp: 1,
+                    agent: "support-docs".to_string(),
+                    ns: "support".to_string(),
+                    message_id: "assistant-stream-msg".to_string(),
+                }
+                .encode_to_vec(),
+                SessionMessagePartEvent {
+                    session_id: task_id.to_string(),
+                    kind: SessionMessagePartEventKind::Done as i32,
+                    part: None,
+                    timestamp: 2,
+                    agent: "support-docs".to_string(),
+                    ns: "support".to_string(),
+                    message_id: "assistant-stream-msg".to_string(),
+                }
+                .encode_to_vec(),
+            ]]),
+        );
+        let gateway = gateway_with_pubsub(pubsub);
+        seed_agent_card(
+            &gateway,
+            "support",
+            "support-public",
+            "support-docs",
+            "support.example.com",
+        )
+        .await;
+
+        let response = gateway
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/v1/message:stream")
+                    .header(header::HOST, "support.example.com")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(format!(
+                        r#"{{
+                            "message": {{
+                                "messageId": "stream-user-msg",
+                                "role": "ROLE_USER",
+                                "taskId": "{task_id}",
+                                "contextId": "stream-context-1",
+                                "content": [{{ "text": "hello stream" }}]
+                            }}
+                        }}"#
+                    )))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(
+            response.headers().get(header::CONTENT_TYPE).unwrap(),
+            "text/event-stream; charset=utf-8"
+        );
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let body = String::from_utf8(body.to_vec()).unwrap();
+        let events = body
+            .split("\n\n")
+            .filter_map(|event| event.strip_prefix("data: "))
+            .map(|data| serde_json::from_str::<serde_json::Value>(data).unwrap())
+            .collect::<Vec<_>>();
+
+        assert!(events.iter().any(|event| {
+            event["statusUpdate"]["status"]["message"]["content"][0]["text"] == "streamed reply"
+        }));
+        assert_eq!(
+            events.last().unwrap()["statusUpdate"]["final"],
+            serde_json::Value::Bool(true)
+        );
+        assert_eq!(
+            events.last().unwrap()["statusUpdate"]["status"]["state"],
+            "TASK_STATE_COMPLETED"
+        );
     }
 
     #[tokio::test]

@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use std::collections::HashMap;
+use std::convert::Infallible;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use axum::{
     body::Bytes,
     extract::{Host, OriginalUri, Path, State},
-    http::{HeaderMap, StatusCode},
+    http::{header, HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     Json,
 };
@@ -18,17 +19,20 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use uuid::Uuid;
 
+use crate::control::events::SessionMessagePartEventKind;
 use crate::control::{
     events,
     keys::{self, ResourceKey},
     topics, ProtoKeyValueStoreExt,
 };
+use crate::gateway::rpc::models;
 use crate::gateway::rpc::{manifests, GrpcGatewayHandler};
 use crate::gateway::server::Gateway;
 use crate::scheduling;
 
 const A2A_BLOCKING_TIMEOUT: Duration = Duration::from_secs(60);
 const A2A_POLL_INTERVAL: Duration = Duration::from_millis(250);
+const A2A_STREAM_IDLE_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -190,13 +194,185 @@ pub async fn post_message_operation(
             send_message(gateway, host, body, response_encoding).await
         }
         "/message:stream" | "/v1/message:stream" => {
-            if let Err(response) = resolve_agent_card_route(&gateway, &host).await {
-                return response;
-            }
-            unsupported_operation("Message streaming is not supported by this AgentCard")
+            let body = match serde_json::from_slice::<SendMessageRequestJson>(&body) {
+                Ok(body) => body,
+                Err(err) => {
+                    return a2a_error(
+                        StatusCode::BAD_REQUEST,
+                        format!("invalid A2A SendMessage request: {err}"),
+                    );
+                }
+            };
+            stream_message(gateway, host, body).await
         }
         _ => a2a_error(StatusCode::NOT_FOUND, "A2A message operation not found"),
     }
+}
+
+async fn stream_message(
+    gateway: Arc<Gateway>,
+    host: String,
+    body: SendMessageRequestJson,
+) -> Response {
+    let route = match resolve_agent_card_route(&gateway, &host).await {
+        Ok(route) => route,
+        Err(response) => return response,
+    };
+    if !is_user_role(&body.message.role) {
+        return a2a_error(
+            StatusCode::BAD_REQUEST,
+            "A2A message.role must be ROLE_USER",
+        );
+    }
+
+    let task_id = body
+        .message
+        .task_id
+        .clone()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| Uuid::now_v7().to_string());
+    let context_id = body
+        .message
+        .context_id
+        .clone()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| task_id.clone());
+
+    if let Err(response) = ensure_a2a_session(&gateway, &route, &task_id, &context_id).await {
+        return response;
+    }
+
+    let mut receiver = match gateway
+        .session_streams
+        .subscribe(&route.ns, &route.agent, &task_id)
+        .await
+    {
+        Ok(receiver) => receiver,
+        Err(err) => {
+            tracing::error!(%err, "Failed to subscribe to A2A stream");
+            return a2a_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "failed to subscribe to task stream",
+            );
+        }
+    };
+
+    let now = chrono::Utc::now();
+    let message = match a2a_message_to_session_message(&body.message, now.timestamp_micros()) {
+        Ok(message) => message,
+        Err(response) => return response,
+    };
+    if let Err(err) = scheduling::send_session_message(
+        gateway.kv.as_ref(),
+        gateway.pubsub.as_ref(),
+        &route.ns,
+        &route.agent,
+        &task_id,
+        message,
+        now,
+    )
+    .await
+    {
+        return scheduling_error_response(err);
+    }
+
+    let stream_gateway = gateway.clone();
+    let stream_route = route.clone();
+    let stream_task_id = task_id.clone();
+    let stream_context_id = context_id.clone();
+    let stream = async_stream::stream! {
+        let timeout = tokio::time::sleep(A2A_STREAM_IDLE_TIMEOUT);
+        tokio::pin!(timeout);
+
+        loop {
+            tokio::select! {
+                _ = &mut timeout => {
+                    let final_status = match load_a2a_task(&stream_gateway, &stream_route, &stream_task_id).await {
+                        Ok(task) => rest_v1_task_status_value(task),
+                        Err(_) => json!({ "state": "TASK_STATE_UNKNOWN" }),
+                    };
+                    yield Ok::<_, Infallible>(a2a_sse_line(json!({
+                        "statusUpdate": {
+                            "taskId": stream_task_id,
+                            "contextId": stream_context_id,
+                            "status": final_status,
+                            "final": true
+                        }
+                    })));
+                    return;
+                }
+                event_result = receiver.recv() => {
+                    timeout.as_mut().reset(tokio::time::Instant::now() + A2A_STREAM_IDLE_TIMEOUT);
+                    let Some(event_result) = event_result else {
+                        break;
+                    };
+                    let event = match event_result {
+                        Ok(event) => event,
+                        Err(status) => {
+                            yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_status_update_value(
+                                &stream_task_id,
+                                &stream_context_id,
+                                "TASK_STATE_FAILED",
+                                Some(status.message()),
+                                true,
+                            )));
+                            return;
+                        }
+                    };
+
+                    let part = event.part.as_ref();
+                    let part_type = part.map(|part| part.part_type).unwrap_or_default();
+                    let content = part.map(|part| part.content.as_str()).unwrap_or_default();
+                    if event.kind == SessionMessagePartEventKind::Done as i32 {
+                        break;
+                    } else if event.kind == SessionMessagePartEventKind::Error as i32 {
+                        let error_text = if content.is_empty() { "Stream error" } else { content };
+                        yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_status_update_value(
+                            &stream_task_id,
+                            &stream_context_id,
+                            "TASK_STATE_FAILED",
+                            Some(error_text),
+                            true,
+                        )));
+                        return;
+                    } else if part_type == models::SessionMessagePartType::Text as i32 && !content.is_empty() {
+                        let message_id = if event.message_id.is_empty() {
+                            Uuid::now_v7().to_string()
+                        } else {
+                            event.message_id.clone()
+                        };
+                        yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_status_update_value_with_message_id(
+                            &stream_task_id,
+                            &stream_context_id,
+                            &message_id,
+                            "TASK_STATE_WORKING",
+                            content,
+                            false,
+                        )));
+                    }
+                }
+            }
+        }
+
+        let final_status = match load_a2a_task(&stream_gateway, &stream_route, &stream_task_id).await {
+            Ok(task) => rest_v1_final_task_status_value(task),
+            Err(_) => json!({ "state": "TASK_STATE_COMPLETED" }),
+        };
+        yield Ok::<_, Infallible>(a2a_sse_line(json!({
+            "statusUpdate": {
+                "taskId": stream_task_id,
+                "contextId": stream_context_id,
+                "status": final_status,
+                "final": true
+            }
+        })));
+    };
+
+    (
+        [(header::CONTENT_TYPE, "text/event-stream; charset=utf-8")],
+        axum::body::Body::from_stream(stream),
+    )
+        .into_response()
 }
 
 async fn send_message(
@@ -469,7 +645,7 @@ fn agent_card_json(
         protocol_version: "0.3.0".to_string(),
         preferred_transport: "HTTP+JSON".to_string(),
         capabilities: AgentCardCapabilitiesJson {
-            streaming: capabilities.map(|value| value.streaming).unwrap_or(false),
+            streaming: true,
             push_notifications: capabilities
                 .map(|value| value.push_notifications)
                 .unwrap_or(false),
@@ -505,6 +681,91 @@ fn rest_v1_task_value(task: A2aTaskJson) -> Value {
     let mut value = serde_json::to_value(task).unwrap_or_else(|_| json!({}));
     rename_message_parts_for_rest_v1(&mut value);
     value
+}
+
+fn rest_v1_task_status_value(task: A2aTaskJson) -> Value {
+    let mut value = serde_json::to_value(task.status).unwrap_or_else(|_| json!({}));
+    rename_message_parts_for_rest_v1(&mut value);
+    value
+}
+
+fn rest_v1_final_task_status_value(task: A2aTaskJson) -> Value {
+    let mut value = rest_v1_task_status_value(task);
+    let state = value
+        .get("state")
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .to_string();
+    if matches!(
+        state.as_str(),
+        "" | "TASK_STATE_SUBMITTED" | "TASK_STATE_WORKING"
+    ) {
+        value["state"] = Value::String("TASK_STATE_COMPLETED".to_string());
+    }
+    value
+}
+
+fn a2a_sse_line(value: Value) -> String {
+    format!(
+        "data: {}\n\n",
+        serde_json::to_string(&value).unwrap_or_else(|_| "{}".to_string())
+    )
+}
+
+fn a2a_stream_status_update_value(
+    task_id: &str,
+    context_id: &str,
+    state: &str,
+    text: Option<&str>,
+    final_event: bool,
+) -> Value {
+    let message_id = Uuid::now_v7().to_string();
+    if let Some(text) = text {
+        a2a_stream_status_update_value_with_message_id(
+            task_id,
+            context_id,
+            &message_id,
+            state,
+            text,
+            final_event,
+        )
+    } else {
+        json!({
+            "statusUpdate": {
+                "taskId": task_id,
+                "contextId": context_id,
+                "status": { "state": state },
+                "final": final_event
+            }
+        })
+    }
+}
+
+fn a2a_stream_status_update_value_with_message_id(
+    task_id: &str,
+    context_id: &str,
+    message_id: &str,
+    state: &str,
+    text: &str,
+    final_event: bool,
+) -> Value {
+    json!({
+        "statusUpdate": {
+            "taskId": task_id,
+            "contextId": context_id,
+            "status": {
+                "state": state,
+                "message": {
+                    "messageId": message_id,
+                    "contextId": context_id,
+                    "taskId": task_id,
+                    "role": "ROLE_AGENT",
+                    "content": [{ "text": text }]
+                }
+            },
+            "final": final_event
+        }
+    })
 }
 
 fn rename_message_parts_for_rest_v1(value: &mut Value) {
