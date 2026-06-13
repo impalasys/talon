@@ -359,12 +359,22 @@ impl TalonOpsServer {
                     .or_else(|| existing_spec.map(|spec| spec.timezone.clone()))
                     .unwrap_or_default(),
                 target: Some(models::ScheduleTarget {
-                    agent: if args.agent.is_empty() {
+                    agent: if !args.agent.is_empty() {
+                        args.agent.clone()
+                    } else if args.workflow.is_some() {
+                        String::new()
+                    } else {
                         existing_target
                             .map(|target| target.agent.clone())
                             .unwrap_or_default()
+                    },
+                    workflow: if !args.agent.is_empty() {
+                        String::new()
                     } else {
-                        args.agent.clone()
+                        args.workflow
+                            .clone()
+                            .or_else(|| existing_target.map(|target| target.workflow.clone()))
+                            .unwrap_or_default()
                     },
                     session_mode: crate::scheduling::normalize_session_mode(
                         &args
@@ -386,6 +396,11 @@ impl TalonOpsServer {
                 } else {
                     args.input_message.clone()
                 },
+                input_json: args
+                    .input_json
+                    .clone()
+                    .or_else(|| existing_spec.map(|spec| spec.input_json.clone()))
+                    .unwrap_or_default(),
                 enabled: args
                     .enabled
                     .or_else(|| existing_spec.map(|spec| spec.enabled))
@@ -546,9 +561,11 @@ struct PutScheduleArgs {
     run_at: Option<String>,
     timezone: Option<String>,
     agent: String,
+    workflow: Option<String>,
     session_mode: Option<String>,
     session_id: Option<String>,
     input_message: String,
+    input_json: Option<String>,
     enabled: Option<bool>,
 }
 
@@ -1502,10 +1519,12 @@ fn schedule_json(schedule: &models::Schedule) -> Value {
             "timezone": spec.timezone,
             "target": target.map(|target| json!({
                 "agent": target.agent,
+                "workflow": target.workflow,
                 "sessionMode": target.session_mode,
                 "sessionId": target.session_id,
             })),
             "inputMessage": spec.input_message,
+            "inputJson": spec.input_json,
             "enabled": spec.enabled,
         })),
         "status": status.map(|status| json!({
@@ -2186,11 +2205,13 @@ mod tests {
                 run_at: String::new(),
                 timezone: "UTC".to_string(),
                 target: Some(models::ScheduleTarget {
-                    agent: "ctl".to_string(),
+                    agent: String::new(),
+                    workflow: "retention-review".to_string(),
                     session_mode: "new".to_string(),
                     session_id: String::new(),
                 }),
                 input_message: "ping".to_string(),
+                input_json: r#"{"accountId":"acct_123"}"#.to_string(),
                 enabled: true,
             }),
             status: Some(models::ScheduleStatus {
@@ -2214,7 +2235,9 @@ mod tests {
 
         let json = schedule_json(&schedule);
         assert_eq!(json["name"], "nightly");
-        assert_eq!(json["spec"]["target"]["agent"], "ctl");
+        assert_eq!(json["spec"]["target"]["agent"], "");
+        assert_eq!(json["spec"]["target"]["workflow"], "retention-review");
+        assert_eq!(json["spec"]["inputJson"], r#"{"accountId":"acct_123"}"#);
         assert_eq!(json["status"]["backendHandle"], "handle-1");
         assert_eq!(json["status"]["recentEvents"][0]["phase"], "armed");
     }
@@ -2737,9 +2760,11 @@ mod tests {
                     run_at: None,
                     timezone: Some("UTC".to_string()),
                     agent: "alpha".to_string(),
+                    workflow: None,
                     session_mode: Some("new".to_string()),
                     session_id: None,
                     input_message: "ping".to_string(),
+                    input_json: None,
                     enabled: Some(true),
                 }),
             )
@@ -2748,6 +2773,7 @@ mod tests {
         let created_json: serde_json::Value = serde_json::from_str(&created).unwrap();
         assert_eq!(created_json["schedule"]["name"], "nightly");
         assert_eq!(created_json["schedule"]["spec"]["target"]["agent"], "alpha");
+        assert_eq!(created_json["schedule"]["spec"]["target"]["workflow"], "");
 
         let listed: String = server
             .list_schedules(
@@ -2777,9 +2803,11 @@ mod tests {
                     run_at: None,
                     timezone: None,
                     agent: "".to_string(),
+                    workflow: Some("retention-followup".to_string()),
                     session_mode: Some("reuse".to_string()),
                     session_id: Some("session-1".to_string()),
                     input_message: "".to_string(),
+                    input_json: Some(r#"{"accountId":"acct_456"}"#.to_string()),
                     enabled: Some(false),
                 }),
             )
@@ -2788,6 +2816,15 @@ mod tests {
         let updated_json: serde_json::Value = serde_json::from_str(&updated).unwrap();
         assert_eq!(updated_json["schedule"]["spec"]["intervalSeconds"], 7200);
         assert_eq!(updated_json["schedule"]["spec"]["enabled"], false);
+        assert_eq!(
+            updated_json["schedule"]["spec"]["target"]["workflow"],
+            "retention-followup"
+        );
+        assert_eq!(updated_json["schedule"]["spec"]["target"]["agent"], "");
+        assert_eq!(
+            updated_json["schedule"]["spec"]["inputJson"],
+            r#"{"accountId":"acct_456"}"#
+        );
 
         let fetched: String = server
             .get_schedule(

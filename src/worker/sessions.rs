@@ -3,6 +3,7 @@
 
 use anyhow::Result;
 use futures::FutureExt;
+use prost::Message;
 use std::panic::AssertUnwindSafe;
 
 use super::runtime::AgentRuntime;
@@ -14,6 +15,9 @@ use crate::core::executor::ExecutionSink;
 use crate::gateway::rpc::models;
 use tokio_util::sync::CancellationToken;
 use tracing::Instrument;
+
+const MAX_SESSION_RELEASE_CAS_RETRIES: usize = 8;
+const SESSION_RELEASE_CAS_BACKOFF_MS: u64 = 10;
 
 async fn execute_with_panic_boundary<F>(
     future: F,
@@ -165,11 +169,21 @@ impl WorkerEventHandler {
             .lock()
             .await
             .remove(&event.session_id);
-        self.release_session_lock(ns, &event.agent, &event.session_id)
-            .instrument(tracing::info_span!(
-                "WorkerEventHandler.release_session_lock"
-            ))
-            .await;
+        let completion_status = outcome
+            .as_ref()
+            .map(|(status, _)| *status)
+            .unwrap_or(SessionCompletionStatus::Errored);
+        self.release_session_lock(
+            ns,
+            &event.agent,
+            &event.session_id,
+            event.timestamp,
+            completion_status,
+        )
+        .instrument(tracing::info_span!(
+            "WorkerEventHandler.release_session_lock"
+        ))
+        .await;
 
         if let Ok((status, summary)) = &outcome {
             tracing::info!(
@@ -223,11 +237,86 @@ impl WorkerEventHandler {
         Ok(())
     }
 
-    async fn release_session_lock(&self, ns: &str, agent_id: &str, session_id: &str) {
+    async fn release_session_lock(
+        &self,
+        ns: &str,
+        agent_id: &str,
+        session_id: &str,
+        expected_last_active: i64,
+        completion_status: SessionCompletionStatus,
+    ) {
         let key = crate::control::keys::session(ns, agent_id, session_id);
-        if let Ok(Some(mut session)) = self.cp.kv.get_msg::<models::Session>(&key).await {
-            session.status = "IDLE".to_string();
-            let _ = self.cp.kv.set_msg(&key, &session).await;
+        let mut released_session = None;
+        let mut last_error = None;
+        for _ in 0..MAX_SESSION_RELEASE_CAS_RETRIES {
+            let current = match self.cp.kv.get(&key).await {
+                Ok(Some(current)) => current,
+                Ok(None) => return,
+                Err(err) => {
+                    last_error = Some(err.to_string());
+                    break;
+                }
+            };
+            let mut session = match models::Session::decode(current.as_slice()) {
+                Ok(session) => session,
+                Err(err) => {
+                    last_error = Some(err.to_string());
+                    break;
+                }
+            };
+            if session.status != "PROCESSING" || session.last_active != expected_last_active {
+                return;
+            }
+            session.status = match completion_status {
+                SessionCompletionStatus::Completed => "IDLE",
+                SessionCompletionStatus::Errored | SessionCompletionStatus::Panicked => "ERROR",
+            }
+            .to_string();
+            let updated = session.encode_to_vec();
+            match self
+                .cp
+                .kv
+                .compare_and_swap(&key, Some(current.as_slice()), &updated)
+                .await
+            {
+                Ok(true) => {
+                    released_session = Some(session);
+                    break;
+                }
+                Ok(false) => {
+                    let jitter = rand::random::<u64>() % (SESSION_RELEASE_CAS_BACKOFF_MS / 2 + 1);
+                    tokio::time::sleep(std::time::Duration::from_millis(
+                        SESSION_RELEASE_CAS_BACKOFF_MS + jitter,
+                    ))
+                    .await;
+                    continue;
+                }
+                Err(err) => {
+                    last_error = Some(err.to_string());
+                    break;
+                }
+            }
+        }
+        let Some(session) = released_session else {
+            tracing::error!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                error = last_error.as_deref().unwrap_or("compare-and-swap conflict"),
+                "failed to release session lock atomically"
+            );
+            return;
+        };
+        if let Err(err) =
+            crate::workflows::dispatch_workflow_from_session_labels(&self.cp, &session).await
+        {
+            tracing::warn!(
+                namespace = %ns,
+                agent = %agent_id,
+                session = %session_id,
+                error = %err,
+                "failed to dispatch workflow from completed child session"
+            );
         }
     }
 }
@@ -542,7 +631,13 @@ mod tests {
         .expect("session should persist");
 
         handler
-            .release_session_lock("conic:test", "assistant", "session-1")
+            .release_session_lock(
+                "conic:test",
+                "assistant",
+                "session-1",
+                123,
+                SessionCompletionStatus::Completed,
+            )
             .await;
 
         let updated = kv
@@ -555,6 +650,50 @@ mod tests {
             .expect("session should load")
             .expect("session should exist");
         assert_eq!(updated.status, "IDLE");
+    }
+
+    #[tokio::test]
+    async fn release_session_lock_does_not_release_stolen_lock() {
+        let kv = Arc::new(MockKvStore::default());
+        let handler = handler_with_kv(kv.clone());
+        let session = models::Session {
+            id: "session-1".to_string(),
+            agent: "assistant".to_string(),
+            ns: "conic:test".to_string(),
+            status: "PROCESSING".to_string(),
+            created_at: 0,
+            last_active: 456,
+            metadata: HashMap::new(),
+            labels: HashMap::new(),
+        };
+        kv.set_msg(
+            &crate::control::keys::session("conic:test", "assistant", "session-1"),
+            &session,
+        )
+        .await
+        .expect("session should persist");
+
+        handler
+            .release_session_lock(
+                "conic:test",
+                "assistant",
+                "session-1",
+                123,
+                SessionCompletionStatus::Completed,
+            )
+            .await;
+
+        let updated = kv
+            .get_msg::<models::Session>(&crate::control::keys::session(
+                "conic:test",
+                "assistant",
+                "session-1",
+            ))
+            .await
+            .expect("session should load")
+            .expect("session should exist");
+        assert_eq!(updated.status, "PROCESSING");
+        assert_eq!(updated.last_active, 456);
     }
 
     #[tokio::test]
@@ -649,7 +788,7 @@ mod tests {
                 message_id: "user-1".to_string(),
                 direction: MessageDirection::Inbound as i32,
                 message: "operator prompt".to_string(),
-                timestamp: 1,
+                timestamp: 123,
             })
             .await
             .expect("runtime build errors should be persisted and acked");
@@ -663,7 +802,7 @@ mod tests {
             .await
             .unwrap()
             .unwrap();
-        assert_eq!(session.status, "IDLE");
+        assert_eq!(session.status, "ERROR");
 
         let message_keys = kv
             .list_keys(&crate::control::keys::session_message_prefix(
@@ -774,7 +913,7 @@ mod tests {
                 message_id: "user-1".to_string(),
                 direction: MessageDirection::Inbound as i32,
                 message: "hello".to_string(),
-                timestamp: 1,
+                timestamp: 123,
             })
             .await
             .unwrap();

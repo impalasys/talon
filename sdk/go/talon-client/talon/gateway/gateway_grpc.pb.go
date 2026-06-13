@@ -9,6 +9,7 @@ package gateway
 import (
 	context "context"
 	events "github.com/impalasys/talon/sdk/go/talon-client/talon/events"
+	models "github.com/impalasys/talon/sdk/go/talon-client/talon/models"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -60,6 +61,16 @@ const (
 	GatewayService_ModifySchedule_FullMethodName            = "/talon.gateway.GatewayService/ModifySchedule"
 	GatewayService_ListSchedules_FullMethodName             = "/talon.gateway.GatewayService/ListSchedules"
 	GatewayService_DeleteSchedule_FullMethodName            = "/talon.gateway.GatewayService/DeleteSchedule"
+	GatewayService_CreateWorkflow_FullMethodName            = "/talon.gateway.GatewayService/CreateWorkflow"
+	GatewayService_GetWorkflow_FullMethodName               = "/talon.gateway.GatewayService/GetWorkflow"
+	GatewayService_ListWorkflows_FullMethodName             = "/talon.gateway.GatewayService/ListWorkflows"
+	GatewayService_DeleteWorkflow_FullMethodName            = "/talon.gateway.GatewayService/DeleteWorkflow"
+	GatewayService_CreateWorkflowRun_FullMethodName         = "/talon.gateway.GatewayService/CreateWorkflowRun"
+	GatewayService_GetWorkflowRun_FullMethodName            = "/talon.gateway.GatewayService/GetWorkflowRun"
+	GatewayService_ListWorkflowRuns_FullMethodName          = "/talon.gateway.GatewayService/ListWorkflowRuns"
+	GatewayService_ResumeWorkflowRun_FullMethodName         = "/talon.gateway.GatewayService/ResumeWorkflowRun"
+	GatewayService_CancelWorkflowRun_FullMethodName         = "/talon.gateway.GatewayService/CancelWorkflowRun"
+	GatewayService_StreamWorkflowEvents_FullMethodName      = "/talon.gateway.GatewayService/StreamWorkflowEvents"
 	GatewayService_CreateNamespace_FullMethodName           = "/talon.gateway.GatewayService/CreateNamespace"
 	GatewayService_GetNamespace_FullMethodName              = "/talon.gateway.GatewayService/GetNamespace"
 	GatewayService_DeleteNamespace_FullMethodName           = "/talon.gateway.GatewayService/DeleteNamespace"
@@ -128,6 +139,17 @@ type GatewayServiceClient interface {
 	ModifySchedule(ctx context.Context, in *ModifyScheduleRequest, opts ...grpc.CallOption) (*ScheduleResponse, error)
 	ListSchedules(ctx context.Context, in *ListSchedulesRequest, opts ...grpc.CallOption) (*ListSchedulesResponse, error)
 	DeleteSchedule(ctx context.Context, in *DeleteScheduleRequest, opts ...grpc.CallOption) (*DeleteScheduleResponse, error)
+	// Workflows
+	CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*WorkflowResponse, error)
+	GetWorkflow(ctx context.Context, in *GetWorkflowRequest, opts ...grpc.CallOption) (*WorkflowResponse, error)
+	ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error)
+	DeleteWorkflow(ctx context.Context, in *DeleteWorkflowRequest, opts ...grpc.CallOption) (*DeleteWorkflowResponse, error)
+	CreateWorkflowRun(ctx context.Context, in *CreateWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error)
+	GetWorkflowRun(ctx context.Context, in *GetWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error)
+	ListWorkflowRuns(ctx context.Context, in *ListWorkflowRunsRequest, opts ...grpc.CallOption) (*ListWorkflowRunsResponse, error)
+	ResumeWorkflowRun(ctx context.Context, in *ResumeWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error)
+	CancelWorkflowRun(ctx context.Context, in *CancelWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error)
+	StreamWorkflowEvents(ctx context.Context, in *StreamWorkflowEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[models.WorkflowRunEvent], error)
 	// Namespaces
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
@@ -584,6 +606,115 @@ func (c *gatewayServiceClient) DeleteSchedule(ctx context.Context, in *DeleteSch
 	return out, nil
 }
 
+func (c *gatewayServiceClient) CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*WorkflowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WorkflowResponse)
+	err := c.cc.Invoke(ctx, GatewayService_CreateWorkflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) GetWorkflow(ctx context.Context, in *GetWorkflowRequest, opts ...grpc.CallOption) (*WorkflowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WorkflowResponse)
+	err := c.cc.Invoke(ctx, GatewayService_GetWorkflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListWorkflowsResponse)
+	err := c.cc.Invoke(ctx, GatewayService_ListWorkflows_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) DeleteWorkflow(ctx context.Context, in *DeleteWorkflowRequest, opts ...grpc.CallOption) (*DeleteWorkflowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteWorkflowResponse)
+	err := c.cc.Invoke(ctx, GatewayService_DeleteWorkflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) CreateWorkflowRun(ctx context.Context, in *CreateWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WorkflowRunResponse)
+	err := c.cc.Invoke(ctx, GatewayService_CreateWorkflowRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) GetWorkflowRun(ctx context.Context, in *GetWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WorkflowRunResponse)
+	err := c.cc.Invoke(ctx, GatewayService_GetWorkflowRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) ListWorkflowRuns(ctx context.Context, in *ListWorkflowRunsRequest, opts ...grpc.CallOption) (*ListWorkflowRunsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListWorkflowRunsResponse)
+	err := c.cc.Invoke(ctx, GatewayService_ListWorkflowRuns_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) ResumeWorkflowRun(ctx context.Context, in *ResumeWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WorkflowRunResponse)
+	err := c.cc.Invoke(ctx, GatewayService_ResumeWorkflowRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) CancelWorkflowRun(ctx context.Context, in *CancelWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WorkflowRunResponse)
+	err := c.cc.Invoke(ctx, GatewayService_CancelWorkflowRun_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gatewayServiceClient) StreamWorkflowEvents(ctx context.Context, in *StreamWorkflowEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[models.WorkflowRunEvent], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &GatewayService_ServiceDesc.Streams[3], GatewayService_StreamWorkflowEvents_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamWorkflowEventsRequest, models.WorkflowRunEvent]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GatewayService_StreamWorkflowEventsClient = grpc.ServerStreamingClient[models.WorkflowRunEvent]
+
 func (c *gatewayServiceClient) CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(NamespaceResponse)
@@ -794,6 +925,17 @@ type GatewayServiceServer interface {
 	ModifySchedule(context.Context, *ModifyScheduleRequest) (*ScheduleResponse, error)
 	ListSchedules(context.Context, *ListSchedulesRequest) (*ListSchedulesResponse, error)
 	DeleteSchedule(context.Context, *DeleteScheduleRequest) (*DeleteScheduleResponse, error)
+	// Workflows
+	CreateWorkflow(context.Context, *CreateWorkflowRequest) (*WorkflowResponse, error)
+	GetWorkflow(context.Context, *GetWorkflowRequest) (*WorkflowResponse, error)
+	ListWorkflows(context.Context, *ListWorkflowsRequest) (*ListWorkflowsResponse, error)
+	DeleteWorkflow(context.Context, *DeleteWorkflowRequest) (*DeleteWorkflowResponse, error)
+	CreateWorkflowRun(context.Context, *CreateWorkflowRunRequest) (*WorkflowRunResponse, error)
+	GetWorkflowRun(context.Context, *GetWorkflowRunRequest) (*WorkflowRunResponse, error)
+	ListWorkflowRuns(context.Context, *ListWorkflowRunsRequest) (*ListWorkflowRunsResponse, error)
+	ResumeWorkflowRun(context.Context, *ResumeWorkflowRunRequest) (*WorkflowRunResponse, error)
+	CancelWorkflowRun(context.Context, *CancelWorkflowRunRequest) (*WorkflowRunResponse, error)
+	StreamWorkflowEvents(*StreamWorkflowEventsRequest, grpc.ServerStreamingServer[models.WorkflowRunEvent]) error
 	// Namespaces
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*NamespaceResponse, error)
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error)
@@ -942,6 +1084,36 @@ func (UnimplementedGatewayServiceServer) ListSchedules(context.Context, *ListSch
 }
 func (UnimplementedGatewayServiceServer) DeleteSchedule(context.Context, *DeleteScheduleRequest) (*DeleteScheduleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSchedule not implemented")
+}
+func (UnimplementedGatewayServiceServer) CreateWorkflow(context.Context, *CreateWorkflowRequest) (*WorkflowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateWorkflow not implemented")
+}
+func (UnimplementedGatewayServiceServer) GetWorkflow(context.Context, *GetWorkflowRequest) (*WorkflowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWorkflow not implemented")
+}
+func (UnimplementedGatewayServiceServer) ListWorkflows(context.Context, *ListWorkflowsRequest) (*ListWorkflowsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListWorkflows not implemented")
+}
+func (UnimplementedGatewayServiceServer) DeleteWorkflow(context.Context, *DeleteWorkflowRequest) (*DeleteWorkflowResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteWorkflow not implemented")
+}
+func (UnimplementedGatewayServiceServer) CreateWorkflowRun(context.Context, *CreateWorkflowRunRequest) (*WorkflowRunResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateWorkflowRun not implemented")
+}
+func (UnimplementedGatewayServiceServer) GetWorkflowRun(context.Context, *GetWorkflowRunRequest) (*WorkflowRunResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetWorkflowRun not implemented")
+}
+func (UnimplementedGatewayServiceServer) ListWorkflowRuns(context.Context, *ListWorkflowRunsRequest) (*ListWorkflowRunsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListWorkflowRuns not implemented")
+}
+func (UnimplementedGatewayServiceServer) ResumeWorkflowRun(context.Context, *ResumeWorkflowRunRequest) (*WorkflowRunResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResumeWorkflowRun not implemented")
+}
+func (UnimplementedGatewayServiceServer) CancelWorkflowRun(context.Context, *CancelWorkflowRunRequest) (*WorkflowRunResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelWorkflowRun not implemented")
+}
+func (UnimplementedGatewayServiceServer) StreamWorkflowEvents(*StreamWorkflowEventsRequest, grpc.ServerStreamingServer[models.WorkflowRunEvent]) error {
+	return status.Errorf(codes.Unimplemented, "method StreamWorkflowEvents not implemented")
 }
 func (UnimplementedGatewayServiceServer) CreateNamespace(context.Context, *CreateNamespaceRequest) (*NamespaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateNamespace not implemented")
@@ -1711,6 +1883,179 @@ func _GatewayService_DeleteSchedule_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GatewayService_CreateWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWorkflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).CreateWorkflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_CreateWorkflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).CreateWorkflow(ctx, req.(*CreateWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_GetWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).GetWorkflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_GetWorkflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).GetWorkflow(ctx, req.(*GetWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_ListWorkflows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWorkflowsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).ListWorkflows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_ListWorkflows_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).ListWorkflows(ctx, req.(*ListWorkflowsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_DeleteWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteWorkflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).DeleteWorkflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_DeleteWorkflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).DeleteWorkflow(ctx, req.(*DeleteWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_CreateWorkflowRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWorkflowRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).CreateWorkflowRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_CreateWorkflowRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).CreateWorkflowRun(ctx, req.(*CreateWorkflowRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_GetWorkflowRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkflowRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).GetWorkflowRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_GetWorkflowRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).GetWorkflowRun(ctx, req.(*GetWorkflowRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_ListWorkflowRuns_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWorkflowRunsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).ListWorkflowRuns(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_ListWorkflowRuns_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).ListWorkflowRuns(ctx, req.(*ListWorkflowRunsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_ResumeWorkflowRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResumeWorkflowRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).ResumeWorkflowRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_ResumeWorkflowRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).ResumeWorkflowRun(ctx, req.(*ResumeWorkflowRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_CancelWorkflowRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelWorkflowRunRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayServiceServer).CancelWorkflowRun(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayService_CancelWorkflowRun_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayServiceServer).CancelWorkflowRun(ctx, req.(*CancelWorkflowRunRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GatewayService_StreamWorkflowEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamWorkflowEventsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(GatewayServiceServer).StreamWorkflowEvents(m, &grpc.GenericServerStream[StreamWorkflowEventsRequest, models.WorkflowRunEvent]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type GatewayService_StreamWorkflowEventsServer = grpc.ServerStreamingServer[models.WorkflowRunEvent]
+
 func _GatewayService_CreateNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateNamespaceRequest)
 	if err := dec(in); err != nil {
@@ -2155,6 +2500,42 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GatewayService_DeleteSchedule_Handler,
 		},
 		{
+			MethodName: "CreateWorkflow",
+			Handler:    _GatewayService_CreateWorkflow_Handler,
+		},
+		{
+			MethodName: "GetWorkflow",
+			Handler:    _GatewayService_GetWorkflow_Handler,
+		},
+		{
+			MethodName: "ListWorkflows",
+			Handler:    _GatewayService_ListWorkflows_Handler,
+		},
+		{
+			MethodName: "DeleteWorkflow",
+			Handler:    _GatewayService_DeleteWorkflow_Handler,
+		},
+		{
+			MethodName: "CreateWorkflowRun",
+			Handler:    _GatewayService_CreateWorkflowRun_Handler,
+		},
+		{
+			MethodName: "GetWorkflowRun",
+			Handler:    _GatewayService_GetWorkflowRun_Handler,
+		},
+		{
+			MethodName: "ListWorkflowRuns",
+			Handler:    _GatewayService_ListWorkflowRuns_Handler,
+		},
+		{
+			MethodName: "ResumeWorkflowRun",
+			Handler:    _GatewayService_ResumeWorkflowRun_Handler,
+		},
+		{
+			MethodName: "CancelWorkflowRun",
+			Handler:    _GatewayService_CancelWorkflowRun_Handler,
+		},
+		{
 			MethodName: "CreateNamespace",
 			Handler:    _GatewayService_CreateNamespace_Handler,
 		},
@@ -2233,6 +2614,11 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "StreamChannelEvents",
 			Handler:       _GatewayService_StreamChannelEvents_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "StreamWorkflowEvents",
+			Handler:       _GatewayService_StreamWorkflowEvents_Handler,
 			ServerStreams: true,
 		},
 	},

@@ -199,6 +199,8 @@ pub struct ScheduleTarget {
     pub session_mode: ::prost::alloc::string::String,
     #[prost(string, tag = "3")]
     pub session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub workflow: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ScheduleSpec {
@@ -218,6 +220,8 @@ pub struct ScheduleSpec {
     pub input_message: ::prost::alloc::string::String,
     #[prost(bool, tag = "8")]
     pub enabled: bool,
+    #[prost(string, tag = "9")]
+    pub input_json: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ScheduleStatus {
@@ -313,6 +317,184 @@ pub struct KnowledgeSearchResult {
     pub timestamp: i64,
     #[prost(string, tag = "5")]
     pub namespace: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowStepOutputPolicy {
+    #[prost(string, tag = "1")]
+    pub format: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub schema_json: ::prost::alloc::string::String,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct WorkflowStepRetryPolicy {
+    #[prost(uint32, tag = "1")]
+    pub max_attempts: u32,
+    #[prost(int64, tag = "2")]
+    pub initial_backoff_seconds: i64,
+    #[prost(int64, tag = "3")]
+    pub max_backoff_seconds: i64,
+    #[prost(double, tag = "4")]
+    pub multiplier: f64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowStep {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub r#type: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "3")]
+    pub after: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, tag = "4")]
+    pub when_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub agent: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub prompt: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub tool: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub input_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "9")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "10")]
+    pub output: ::core::option::Option<WorkflowStepOutputPolicy>,
+    #[prost(string, tag = "11")]
+    pub resume_schema_json: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "12")]
+    pub retry: ::core::option::Option<WorkflowStepRetryPolicy>,
+    #[prost(string, tag = "13")]
+    pub timeout: ::prost::alloc::string::String,
+    #[prost(string, tag = "14")]
+    pub wait_duration: ::prost::alloc::string::String,
+    #[prost(string, tag = "15")]
+    pub wait_until: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowSpec {
+    #[prost(string, tag = "1")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub input_schema_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub output_schema_json: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "4")]
+    pub steps: ::prost::alloc::vec::Vec<WorkflowStep>,
+    #[prost(string, tag = "5")]
+    pub output_json: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "6")]
+    pub concurrency: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Workflow {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "3")]
+    pub spec: ::core::option::Option<WorkflowSpec>,
+    #[prost(map = "string, string", tag = "4")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowRun {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub status: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub input_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub state_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub output_json: ::prost::alloc::string::String,
+    #[prost(int64, tag = "8")]
+    pub created_at: i64,
+    #[prost(int64, tag = "9")]
+    pub updated_at: i64,
+    #[prost(map = "string, string", tag = "10")]
+    pub labels: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
+    #[prost(int64, optional, tag = "11")]
+    pub claim_expires_at: ::core::option::Option<i64>,
+    #[prost(string, tag = "12")]
+    pub error: ::prost::alloc::string::String,
+    #[prost(string, tag = "13")]
+    pub spec_json: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "14")]
+    pub workflow_revision: u64,
+    #[prost(string, tag = "15")]
+    pub claim_owner: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "16")]
+    pub claim_attempt: u32,
+    #[prost(string, tag = "17")]
+    pub last_dispatch_reason: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowStepRun {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub step_id: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "3")]
+    pub attempt: u32,
+    #[prost(string, tag = "4")]
+    pub status: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub input_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub output_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub error: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub child_session_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "9")]
+    pub child_workflow_run_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "10")]
+    pub resume_json: ::prost::alloc::string::String,
+    #[prost(string, tag = "11")]
+    pub suspend_json: ::prost::alloc::string::String,
+    #[prost(int64, tag = "12")]
+    pub created_at: i64,
+    #[prost(int64, tag = "13")]
+    pub updated_at: i64,
+    #[prost(int64, optional, tag = "14")]
+    pub next_retry_at: ::core::option::Option<i64>,
+    #[prost(int64, optional, tag = "15")]
+    pub timeout_at: ::core::option::Option<i64>,
+    #[prost(string, tag = "16")]
+    pub wait_wakeup_handle: ::prost::alloc::string::String,
+    #[prost(int64, optional, tag = "17")]
+    pub wait_until_at: ::core::option::Option<i64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowRunEvent {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub run_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub r#type: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub step_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
+    pub message: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub payload_json: ::prost::alloc::string::String,
+    #[prost(int64, tag = "9")]
+    pub timestamp: i64,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]

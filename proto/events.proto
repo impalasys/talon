@@ -81,3 +81,13 @@ message ChannelEvent {
     string error = 8;
     int64 timestamp = 9;
 }
+
+message WorkflowDispatchEvent {
+    string ns = 1;
+    string workflow = 2;
+    string run_id = 3;
+    string reason = 4;
+    string step_id = 5;
+    string child_session_id = 6;
+    int64 timestamp = 7;
+}

@@ -680,6 +680,98 @@ func (x *ChannelEvent) GetTimestamp() int64 {
 	return 0
 }
 
+type WorkflowDispatchEvent struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Ns             string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
+	Workflow       string                 `protobuf:"bytes,2,opt,name=workflow,proto3" json:"workflow,omitempty"`
+	RunId          string                 `protobuf:"bytes,3,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	Reason         string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	StepId         string                 `protobuf:"bytes,5,opt,name=step_id,json=stepId,proto3" json:"step_id,omitempty"`
+	ChildSessionId string                 `protobuf:"bytes,6,opt,name=child_session_id,json=childSessionId,proto3" json:"child_session_id,omitempty"`
+	Timestamp      int64                  `protobuf:"varint,7,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *WorkflowDispatchEvent) Reset() {
+	*x = WorkflowDispatchEvent{}
+	mi := &file_proto_events_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WorkflowDispatchEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WorkflowDispatchEvent) ProtoMessage() {}
+
+func (x *WorkflowDispatchEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_events_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WorkflowDispatchEvent.ProtoReflect.Descriptor instead.
+func (*WorkflowDispatchEvent) Descriptor() ([]byte, []int) {
+	return file_proto_events_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WorkflowDispatchEvent) GetNs() string {
+	if x != nil {
+		return x.Ns
+	}
+	return ""
+}
+
+func (x *WorkflowDispatchEvent) GetWorkflow() string {
+	if x != nil {
+		return x.Workflow
+	}
+	return ""
+}
+
+func (x *WorkflowDispatchEvent) GetRunId() string {
+	if x != nil {
+		return x.RunId
+	}
+	return ""
+}
+
+func (x *WorkflowDispatchEvent) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *WorkflowDispatchEvent) GetStepId() string {
+	if x != nil {
+		return x.StepId
+	}
+	return ""
+}
+
+func (x *WorkflowDispatchEvent) GetChildSessionId() string {
+	if x != nil {
+		return x.ChildSessionId
+	}
+	return ""
+}
+
+func (x *WorkflowDispatchEvent) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
 var File_proto_events_proto protoreflect.FileDescriptor
 
 const file_proto_events_proto_rawDesc = "" +
@@ -728,7 +820,15 @@ const file_proto_events_proto_rawDesc = "" +
 	"\x05agent\x18\x06 \x01(\tR\x05agent\x12\"\n" +
 	"\fsubscription\x18\a \x01(\tR\fsubscription\x12\x14\n" +
 	"\x05error\x18\b \x01(\tR\x05error\x12\x1c\n" +
-	"\ttimestamp\x18\t \x01(\x03R\ttimestamp*\xb0\x01\n" +
+	"\ttimestamp\x18\t \x01(\x03R\ttimestamp\"\xd3\x01\n" +
+	"\x15WorkflowDispatchEvent\x12\x0e\n" +
+	"\x02ns\x18\x01 \x01(\tR\x02ns\x12\x1a\n" +
+	"\bworkflow\x18\x02 \x01(\tR\bworkflow\x12\x15\n" +
+	"\x06run_id\x18\x03 \x01(\tR\x05runId\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x17\n" +
+	"\astep_id\x18\x05 \x01(\tR\x06stepId\x12(\n" +
+	"\x10child_session_id\x18\x06 \x01(\tR\x0echildSessionId\x12\x1c\n" +
+	"\ttimestamp\x18\a \x01(\x03R\ttimestamp*\xb0\x01\n" +
 	"\fSystemAction\x12\x1d\n" +
 	"\x19SYSTEM_ACTION_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14SYSTEM_ACTION_CREATE\x10\x01\x12\x18\n" +
@@ -765,7 +865,7 @@ func file_proto_events_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_events_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_events_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_events_proto_goTypes = []any{
 	(SystemAction)(0),                 // 0: talon.events.SystemAction
 	(MessageDirection)(0),             // 1: talon.events.MessageDirection
@@ -776,16 +876,17 @@ var file_proto_events_proto_goTypes = []any{
 	(*SessionControlEvent)(nil),       // 6: talon.events.SessionControlEvent
 	(*SessionMessagePartEvent)(nil),   // 7: talon.events.SessionMessagePartEvent
 	(*ChannelEvent)(nil),              // 8: talon.events.ChannelEvent
-	(*models.SessionMessagePart)(nil), // 9: talon.models.SessionMessagePart
-	(*models.ChannelMessage)(nil),     // 10: talon.models.ChannelMessage
+	(*WorkflowDispatchEvent)(nil),     // 9: talon.events.WorkflowDispatchEvent
+	(*models.SessionMessagePart)(nil), // 10: talon.models.SessionMessagePart
+	(*models.ChannelMessage)(nil),     // 11: talon.models.ChannelMessage
 }
 var file_proto_events_proto_depIdxs = []int32{
 	0,  // 0: talon.events.LifecycleEvent.action:type_name -> talon.events.SystemAction
 	1,  // 1: talon.events.SessionMessageEvent.direction:type_name -> talon.events.MessageDirection
 	2,  // 2: talon.events.SessionMessagePartEvent.kind:type_name -> talon.events.SessionMessagePartEventKind
-	9,  // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.models.SessionMessagePart
+	10, // 3: talon.events.SessionMessagePartEvent.part:type_name -> talon.models.SessionMessagePart
 	3,  // 4: talon.events.ChannelEvent.kind:type_name -> talon.events.ChannelEventKind
-	10, // 5: talon.events.ChannelEvent.message:type_name -> talon.models.ChannelMessage
+	11, // 5: talon.events.ChannelEvent.message:type_name -> talon.models.ChannelMessage
 	6,  // [6:6] is the sub-list for method output_type
 	6,  // [6:6] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
@@ -804,7 +905,7 @@ func file_proto_events_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_events_proto_rawDesc), len(file_proto_events_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

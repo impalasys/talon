@@ -92,6 +92,7 @@ fi
   "${PROTO_SRCS[@]}" \
   google/api/http.proto \
   google/api/annotations.proto
+find sdk/java/talon-client/src/main/java -name '*.java' -exec perl -pi -e 's/[ \t]+$//' {} +
 
 python3 - <<'PY'
 from pathlib import Path

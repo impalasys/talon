@@ -1,0 +1,183 @@
+name: Talon Sightline (Cloudflare)
+
+on:
+  pull_request:
+    paths:
+      - "ui/**"
+      - "packages/talon-chat/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/talon-sightline-cloudflare.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "ui/**"
+      - "packages/talon-chat/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/talon-sightline-cloudflare.yml"
+  workflow_dispatch:
+
+env:
+  CLOUDFLARE_PROJECT_NAME: talon-sightline
+
+jobs:
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Cloudflare preview credentials
+        id: cf_auth
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "${CLOUDFLARE_API_TOKEN:-}" ] && [ -n "${CLOUDFLARE_ACCOUNT_ID:-}" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure Pages project exists
+        id: cf_pages
+        if: steps.cf_auth.outputs.available == 'true'
+        working-directory: ui
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          project_check=$(curl -sS -o /tmp/talon-sightline-project.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${CLOUDFLARE_PROJECT_NAME}")
+
+          if [ "$project_check" = "404" ]; then
+            pnpm exec wrangler pages project create "${CLOUDFLARE_PROJECT_NAME}" --production-branch main
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          elif [ "$project_check" != "200" ]; then
+            if grep -q '"code":10000' /tmp/talon-sightline-project.json; then
+              echo "available=false" >> "$GITHUB_OUTPUT"
+              echo "Cloudflare API token is present but cannot access Pages for PR previews."
+              cat /tmp/talon-sightline-project.json
+              exit 0
+            fi
+            cat /tmp/talon-sightline-project.json
+            exit 1
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build Sightline
+        working-directory: ui
+        run: pnpm run build:cloudflare
+
+      - name: Skip preview deploy without Cloudflare access
+        if: steps.cf_auth.outputs.available != 'true' || steps.cf_pages.outputs.available != 'true'
+        run: echo "Cloudflare preview deploy skipped because credentials are unavailable or lack Pages access."
+
+      - name: Deploy preview to Cloudflare Pages
+        id: cf_preview
+        if: steps.cf_auth.outputs.available == 'true' && steps.cf_pages.outputs.available == 'true'
+        working-directory: ui
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          output=$(pnpm exec wrangler pages deploy out --project-name "${CLOUDFLARE_PROJECT_NAME}" --branch pr-${{ github.event.pull_request.number }} 2>&1)
+          echo "$output"
+          url=$(echo "$output" | grep -Eo 'https://[a-zA-Z0-9.-]+\.pages\.dev' | head -n 1 || true)
+          if [ -z "$url" ]; then
+            echo "Failed to extract preview URL from wrangler output" >&2
+            exit 1
+          fi
+          echo "preview_url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Comment preview URL on PR
+        if: steps.cf_auth.outputs.available == 'true' && steps.cf_pages.outputs.available == 'true'
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3
+        with:
+          message: |
+            Talon Sightline preview is ready:
+
+            ${{ steps.cf_preview.outputs.preview_url }}
+          comment-tag: talon_sightline_preview
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 10.17.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: "22"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Ensure Pages project exists
+        working-directory: ui
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          project_check=$(curl -sS -o /tmp/talon-sightline-project.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${CLOUDFLARE_PROJECT_NAME}")
+
+          if [ "$project_check" = "404" ]; then
+            pnpm exec wrangler pages project create "${CLOUDFLARE_PROJECT_NAME}" --production-branch main
+          elif [ "$project_check" != "200" ]; then
+            cat /tmp/talon-sightline-project.json
+            exit 1
+          fi
+
+      - name: Build Sightline
+        working-directory: ui
+        run: pnpm run build:cloudflare
+
+      - name: Deploy production to Cloudflare Pages
+        working-directory: ui
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID || secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler pages deploy out --project-name "${CLOUDFLARE_PROJECT_NAME}" --branch main

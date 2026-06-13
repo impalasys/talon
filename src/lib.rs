@@ -19,6 +19,7 @@ pub mod security;
 pub mod skills;
 pub mod telemetry;
 pub mod worker;
+pub mod workflows;
 pub use crate::core::executor::{
     AgentExecutor, CaptureSink, ExecutionContext, ExecutionSink, NullSink,
 };

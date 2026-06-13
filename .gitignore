@@ -23,9 +23,11 @@ tests/__pycache__/
 ui/.next/
 ui/coverage/
 ui/node_modules/
+ui/out/
 ui/playwright-report/
 ui/test-results/
 ui/tsconfig.tsbuildinfo
+ui/.cloudflare-export-disabled/
 build-storybook.log
 chromatic.log
 chromatic-build-*.xml

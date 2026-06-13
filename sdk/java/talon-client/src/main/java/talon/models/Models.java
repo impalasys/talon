@@ -14312,6 +14312,18 @@ java.lang.String defaultValue) {
      */
     com.google.protobuf.ByteString
         getSessionIdBytes();
+
+    /**
+     * <code>string workflow = 4;</code>
+     * @return The workflow.
+     */
+    java.lang.String getWorkflow();
+    /**
+     * <code>string workflow = 4;</code>
+     * @return The bytes for workflow.
+     */
+    com.google.protobuf.ByteString
+        getWorkflowBytes();
   }
   /**
    * Protobuf type {@code talon.models.ScheduleTarget}
@@ -14338,6 +14350,7 @@ java.lang.String defaultValue) {
       agent_ = "";
       sessionMode_ = "";
       sessionId_ = "";
+      workflow_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -14475,6 +14488,45 @@ java.lang.String defaultValue) {
       }
     }
 
+    public static final int WORKFLOW_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object workflow_ = "";
+    /**
+     * <code>string workflow = 4;</code>
+     * @return The workflow.
+     */
+    @java.lang.Override
+    public java.lang.String getWorkflow() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        workflow_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string workflow = 4;</code>
+     * @return The bytes for workflow.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWorkflowBytes() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        workflow_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -14498,6 +14550,9 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 3, sessionId_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, workflow_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -14515,6 +14570,9 @@ java.lang.String defaultValue) {
       }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(sessionId_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(3, sessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, workflow_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -14537,6 +14595,8 @@ java.lang.String defaultValue) {
           .equals(other.getSessionMode())) return false;
       if (!getSessionId()
           .equals(other.getSessionId())) return false;
+      if (!getWorkflow()
+          .equals(other.getWorkflow())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -14554,6 +14614,8 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getSessionMode().hashCode();
       hash = (37 * hash) + SESSION_ID_FIELD_NUMBER;
       hash = (53 * hash) + getSessionId().hashCode();
+      hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkflow().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -14688,6 +14750,7 @@ java.lang.String defaultValue) {
         agent_ = "";
         sessionMode_ = "";
         sessionId_ = "";
+        workflow_ = "";
         return this;
       }
 
@@ -14730,6 +14793,9 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000004) != 0)) {
           result.sessionId_ = sessionId_;
         }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.workflow_ = workflow_;
+        }
       }
 
       @java.lang.Override
@@ -14757,6 +14823,11 @@ java.lang.String defaultValue) {
         if (!other.getSessionId().isEmpty()) {
           sessionId_ = other.sessionId_;
           bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getWorkflow().isEmpty()) {
+          workflow_ = other.workflow_;
+          bitField0_ |= 0x00000008;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -14800,6 +14871,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
+              case 34: {
+                workflow_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -15033,6 +15109,78 @@ java.lang.String defaultValue) {
         return this;
       }
 
+      private java.lang.Object workflow_ = "";
+      /**
+       * <code>string workflow = 4;</code>
+       * @return The workflow.
+       */
+      public java.lang.String getWorkflow() {
+        java.lang.Object ref = workflow_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          workflow_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 4;</code>
+       * @return The bytes for workflow.
+       */
+      public com.google.protobuf.ByteString
+          getWorkflowBytes() {
+        java.lang.Object ref = workflow_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          workflow_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 4;</code>
+       * @param value The workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflow(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        workflow_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWorkflow() {
+        workflow_ = getDefaultInstance().getWorkflow();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 4;</code>
+       * @param value The bytes for workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflowBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        workflow_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:talon.models.ScheduleTarget)
     }
 
@@ -15174,6 +15322,18 @@ java.lang.String defaultValue) {
      * @return The enabled.
      */
     boolean getEnabled();
+
+    /**
+     * <code>string input_json = 9;</code>
+     * @return The inputJson.
+     */
+    java.lang.String getInputJson();
+    /**
+     * <code>string input_json = 9;</code>
+     * @return The bytes for inputJson.
+     */
+    com.google.protobuf.ByteString
+        getInputJsonBytes();
   }
   /**
    * Protobuf type {@code talon.models.ScheduleSpec}
@@ -15202,6 +15362,7 @@ java.lang.String defaultValue) {
       runAt_ = "";
       timezone_ = "";
       inputMessage_ = "";
+      inputJson_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -15466,6 +15627,45 @@ java.lang.String defaultValue) {
       return enabled_;
     }
 
+    public static final int INPUT_JSON_FIELD_NUMBER = 9;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object inputJson_ = "";
+    /**
+     * <code>string input_json = 9;</code>
+     * @return The inputJson.
+     */
+    @java.lang.Override
+    public java.lang.String getInputJson() {
+      java.lang.Object ref = inputJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        inputJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string input_json = 9;</code>
+     * @return The bytes for inputJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getInputJsonBytes() {
+      java.lang.Object ref = inputJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        inputJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -15504,6 +15704,9 @@ java.lang.String defaultValue) {
       if (enabled_ != false) {
         output.writeBool(8, enabled_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 9, inputJson_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -15540,6 +15743,9 @@ java.lang.String defaultValue) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(8, enabled_);
       }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, inputJson_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -15574,6 +15780,8 @@ java.lang.String defaultValue) {
           .equals(other.getInputMessage())) return false;
       if (getEnabled()
           != other.getEnabled()) return false;
+      if (!getInputJson()
+          .equals(other.getInputJson())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -15604,6 +15812,8 @@ java.lang.String defaultValue) {
       hash = (37 * hash) + ENABLED_FIELD_NUMBER;
       hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
           getEnabled());
+      hash = (37 * hash) + INPUT_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getInputJson().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -15753,6 +15963,7 @@ java.lang.String defaultValue) {
         }
         inputMessage_ = "";
         enabled_ = false;
+        inputJson_ = "";
         return this;
       }
 
@@ -15814,6 +16025,9 @@ java.lang.String defaultValue) {
         if (((from_bitField0_ & 0x00000080) != 0)) {
           result.enabled_ = enabled_;
         }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.inputJson_ = inputJson_;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -15862,6 +16076,11 @@ java.lang.String defaultValue) {
         }
         if (other.getEnabled() != false) {
           setEnabled(other.getEnabled());
+        }
+        if (!other.getInputJson().isEmpty()) {
+          inputJson_ = other.inputJson_;
+          bitField0_ |= 0x00000100;
+          onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -15931,6 +16150,11 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000080;
                 break;
               } // case 64
+              case 74: {
+                inputJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -16489,6 +16713,78 @@ java.lang.String defaultValue) {
       public Builder clearEnabled() {
         bitField0_ = (bitField0_ & ~0x00000080);
         enabled_ = false;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object inputJson_ = "";
+      /**
+       * <code>string input_json = 9;</code>
+       * @return The inputJson.
+       */
+      public java.lang.String getInputJson() {
+        java.lang.Object ref = inputJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          inputJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string input_json = 9;</code>
+       * @return The bytes for inputJson.
+       */
+      public com.google.protobuf.ByteString
+          getInputJsonBytes() {
+        java.lang.Object ref = inputJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          inputJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string input_json = 9;</code>
+       * @param value The inputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        inputJson_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_json = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputJson() {
+        inputJson_ = getDefaultInstance().getInputJson();
+        bitField0_ = (bitField0_ & ~0x00000100);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_json = 9;</code>
+       * @param value The bytes for inputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        inputJson_ = value;
+        bitField0_ |= 0x00000100;
         onChanged();
         return this;
       }
@@ -23837,6 +24133,13532 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface WorkflowStepOutputPolicyOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.models.WorkflowStepOutputPolicy)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string format = 1;</code>
+     * @return The format.
+     */
+    java.lang.String getFormat();
+    /**
+     * <code>string format = 1;</code>
+     * @return The bytes for format.
+     */
+    com.google.protobuf.ByteString
+        getFormatBytes();
+
+    /**
+     * <code>string schema_json = 2;</code>
+     * @return The schemaJson.
+     */
+    java.lang.String getSchemaJson();
+    /**
+     * <code>string schema_json = 2;</code>
+     * @return The bytes for schemaJson.
+     */
+    com.google.protobuf.ByteString
+        getSchemaJsonBytes();
+  }
+  /**
+   * Protobuf type {@code talon.models.WorkflowStepOutputPolicy}
+   */
+  public static final class WorkflowStepOutputPolicy extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.models.WorkflowStepOutputPolicy)
+      WorkflowStepOutputPolicyOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowStepOutputPolicy");
+    }
+    // Use WorkflowStepOutputPolicy.newBuilder() to construct.
+    private WorkflowStepOutputPolicy(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowStepOutputPolicy() {
+      format_ = "";
+      schemaJson_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepOutputPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepOutputPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepOutputPolicy_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.models.Models.WorkflowStepOutputPolicy.class, talon.models.Models.WorkflowStepOutputPolicy.Builder.class);
+    }
+
+    public static final int FORMAT_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object format_ = "";
+    /**
+     * <code>string format = 1;</code>
+     * @return The format.
+     */
+    @java.lang.Override
+    public java.lang.String getFormat() {
+      java.lang.Object ref = format_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        format_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string format = 1;</code>
+     * @return The bytes for format.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getFormatBytes() {
+      java.lang.Object ref = format_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        format_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SCHEMA_JSON_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object schemaJson_ = "";
+    /**
+     * <code>string schema_json = 2;</code>
+     * @return The schemaJson.
+     */
+    @java.lang.Override
+    public java.lang.String getSchemaJson() {
+      java.lang.Object ref = schemaJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        schemaJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string schema_json = 2;</code>
+     * @return The bytes for schemaJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSchemaJsonBytes() {
+      java.lang.Object ref = schemaJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        schemaJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(format_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, format_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(schemaJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, schemaJson_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(format_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, format_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(schemaJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, schemaJson_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.models.Models.WorkflowStepOutputPolicy)) {
+        return super.equals(obj);
+      }
+      talon.models.Models.WorkflowStepOutputPolicy other = (talon.models.Models.WorkflowStepOutputPolicy) obj;
+
+      if (!getFormat()
+          .equals(other.getFormat())) return false;
+      if (!getSchemaJson()
+          .equals(other.getSchemaJson())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + FORMAT_FIELD_NUMBER;
+      hash = (53 * hash) + getFormat().hashCode();
+      hash = (37 * hash) + SCHEMA_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getSchemaJson().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.models.Models.WorkflowStepOutputPolicy parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.models.Models.WorkflowStepOutputPolicy parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowStepOutputPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.models.Models.WorkflowStepOutputPolicy prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.models.WorkflowStepOutputPolicy}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.models.WorkflowStepOutputPolicy)
+        talon.models.Models.WorkflowStepOutputPolicyOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepOutputPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepOutputPolicy_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.models.Models.WorkflowStepOutputPolicy.class, talon.models.Models.WorkflowStepOutputPolicy.Builder.class);
+      }
+
+      // Construct using talon.models.Models.WorkflowStepOutputPolicy.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        format_ = "";
+        schemaJson_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepOutputPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepOutputPolicy getDefaultInstanceForType() {
+        return talon.models.Models.WorkflowStepOutputPolicy.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepOutputPolicy build() {
+        talon.models.Models.WorkflowStepOutputPolicy result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepOutputPolicy buildPartial() {
+        talon.models.Models.WorkflowStepOutputPolicy result = new talon.models.Models.WorkflowStepOutputPolicy(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.models.Models.WorkflowStepOutputPolicy result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.format_ = format_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.schemaJson_ = schemaJson_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.models.Models.WorkflowStepOutputPolicy) {
+          return mergeFrom((talon.models.Models.WorkflowStepOutputPolicy)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.models.Models.WorkflowStepOutputPolicy other) {
+        if (other == talon.models.Models.WorkflowStepOutputPolicy.getDefaultInstance()) return this;
+        if (!other.getFormat().isEmpty()) {
+          format_ = other.format_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getSchemaJson().isEmpty()) {
+          schemaJson_ = other.schemaJson_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                format_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                schemaJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object format_ = "";
+      /**
+       * <code>string format = 1;</code>
+       * @return The format.
+       */
+      public java.lang.String getFormat() {
+        java.lang.Object ref = format_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          format_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string format = 1;</code>
+       * @return The bytes for format.
+       */
+      public com.google.protobuf.ByteString
+          getFormatBytes() {
+        java.lang.Object ref = format_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          format_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string format = 1;</code>
+       * @param value The format to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFormat(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        format_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string format = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearFormat() {
+        format_ = getDefaultInstance().getFormat();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string format = 1;</code>
+       * @param value The bytes for format to set.
+       * @return This builder for chaining.
+       */
+      public Builder setFormatBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        format_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object schemaJson_ = "";
+      /**
+       * <code>string schema_json = 2;</code>
+       * @return The schemaJson.
+       */
+      public java.lang.String getSchemaJson() {
+        java.lang.Object ref = schemaJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          schemaJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string schema_json = 2;</code>
+       * @return The bytes for schemaJson.
+       */
+      public com.google.protobuf.ByteString
+          getSchemaJsonBytes() {
+        java.lang.Object ref = schemaJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          schemaJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string schema_json = 2;</code>
+       * @param value The schemaJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSchemaJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        schemaJson_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string schema_json = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSchemaJson() {
+        schemaJson_ = getDefaultInstance().getSchemaJson();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string schema_json = 2;</code>
+       * @param value The bytes for schemaJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSchemaJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        schemaJson_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.models.WorkflowStepOutputPolicy)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.models.WorkflowStepOutputPolicy)
+    private static final talon.models.Models.WorkflowStepOutputPolicy DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.models.Models.WorkflowStepOutputPolicy();
+    }
+
+    public static talon.models.Models.WorkflowStepOutputPolicy getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowStepOutputPolicy>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowStepOutputPolicy>() {
+      @java.lang.Override
+      public WorkflowStepOutputPolicy parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowStepOutputPolicy> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowStepOutputPolicy> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.models.Models.WorkflowStepOutputPolicy getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface WorkflowStepRetryPolicyOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.models.WorkflowStepRetryPolicy)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>uint32 max_attempts = 1;</code>
+     * @return The maxAttempts.
+     */
+    int getMaxAttempts();
+
+    /**
+     * <code>int64 initial_backoff_seconds = 2;</code>
+     * @return The initialBackoffSeconds.
+     */
+    long getInitialBackoffSeconds();
+
+    /**
+     * <code>int64 max_backoff_seconds = 3;</code>
+     * @return The maxBackoffSeconds.
+     */
+    long getMaxBackoffSeconds();
+
+    /**
+     * <code>double multiplier = 4;</code>
+     * @return The multiplier.
+     */
+    double getMultiplier();
+  }
+  /**
+   * Protobuf type {@code talon.models.WorkflowStepRetryPolicy}
+   */
+  public static final class WorkflowStepRetryPolicy extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.models.WorkflowStepRetryPolicy)
+      WorkflowStepRetryPolicyOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowStepRetryPolicy");
+    }
+    // Use WorkflowStepRetryPolicy.newBuilder() to construct.
+    private WorkflowStepRetryPolicy(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowStepRetryPolicy() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepRetryPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepRetryPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepRetryPolicy_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.models.Models.WorkflowStepRetryPolicy.class, talon.models.Models.WorkflowStepRetryPolicy.Builder.class);
+    }
+
+    public static final int MAX_ATTEMPTS_FIELD_NUMBER = 1;
+    private int maxAttempts_ = 0;
+    /**
+     * <code>uint32 max_attempts = 1;</code>
+     * @return The maxAttempts.
+     */
+    @java.lang.Override
+    public int getMaxAttempts() {
+      return maxAttempts_;
+    }
+
+    public static final int INITIAL_BACKOFF_SECONDS_FIELD_NUMBER = 2;
+    private long initialBackoffSeconds_ = 0L;
+    /**
+     * <code>int64 initial_backoff_seconds = 2;</code>
+     * @return The initialBackoffSeconds.
+     */
+    @java.lang.Override
+    public long getInitialBackoffSeconds() {
+      return initialBackoffSeconds_;
+    }
+
+    public static final int MAX_BACKOFF_SECONDS_FIELD_NUMBER = 3;
+    private long maxBackoffSeconds_ = 0L;
+    /**
+     * <code>int64 max_backoff_seconds = 3;</code>
+     * @return The maxBackoffSeconds.
+     */
+    @java.lang.Override
+    public long getMaxBackoffSeconds() {
+      return maxBackoffSeconds_;
+    }
+
+    public static final int MULTIPLIER_FIELD_NUMBER = 4;
+    private double multiplier_ = 0D;
+    /**
+     * <code>double multiplier = 4;</code>
+     * @return The multiplier.
+     */
+    @java.lang.Override
+    public double getMultiplier() {
+      return multiplier_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (maxAttempts_ != 0) {
+        output.writeUInt32(1, maxAttempts_);
+      }
+      if (initialBackoffSeconds_ != 0L) {
+        output.writeInt64(2, initialBackoffSeconds_);
+      }
+      if (maxBackoffSeconds_ != 0L) {
+        output.writeInt64(3, maxBackoffSeconds_);
+      }
+      if (java.lang.Double.doubleToRawLongBits(multiplier_) != 0) {
+        output.writeDouble(4, multiplier_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (maxAttempts_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(1, maxAttempts_);
+      }
+      if (initialBackoffSeconds_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, initialBackoffSeconds_);
+      }
+      if (maxBackoffSeconds_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, maxBackoffSeconds_);
+      }
+      if (java.lang.Double.doubleToRawLongBits(multiplier_) != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(4, multiplier_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.models.Models.WorkflowStepRetryPolicy)) {
+        return super.equals(obj);
+      }
+      talon.models.Models.WorkflowStepRetryPolicy other = (talon.models.Models.WorkflowStepRetryPolicy) obj;
+
+      if (getMaxAttempts()
+          != other.getMaxAttempts()) return false;
+      if (getInitialBackoffSeconds()
+          != other.getInitialBackoffSeconds()) return false;
+      if (getMaxBackoffSeconds()
+          != other.getMaxBackoffSeconds()) return false;
+      if (java.lang.Double.doubleToLongBits(getMultiplier())
+          != java.lang.Double.doubleToLongBits(
+              other.getMultiplier())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + MAX_ATTEMPTS_FIELD_NUMBER;
+      hash = (53 * hash) + getMaxAttempts();
+      hash = (37 * hash) + INITIAL_BACKOFF_SECONDS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getInitialBackoffSeconds());
+      hash = (37 * hash) + MAX_BACKOFF_SECONDS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getMaxBackoffSeconds());
+      hash = (37 * hash) + MULTIPLIER_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          java.lang.Double.doubleToLongBits(getMultiplier()));
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.models.Models.WorkflowStepRetryPolicy parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.models.Models.WorkflowStepRetryPolicy parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowStepRetryPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.models.Models.WorkflowStepRetryPolicy prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.models.WorkflowStepRetryPolicy}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.models.WorkflowStepRetryPolicy)
+        talon.models.Models.WorkflowStepRetryPolicyOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepRetryPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepRetryPolicy_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.models.Models.WorkflowStepRetryPolicy.class, talon.models.Models.WorkflowStepRetryPolicy.Builder.class);
+      }
+
+      // Construct using talon.models.Models.WorkflowStepRetryPolicy.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        maxAttempts_ = 0;
+        initialBackoffSeconds_ = 0L;
+        maxBackoffSeconds_ = 0L;
+        multiplier_ = 0D;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepRetryPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepRetryPolicy getDefaultInstanceForType() {
+        return talon.models.Models.WorkflowStepRetryPolicy.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepRetryPolicy build() {
+        talon.models.Models.WorkflowStepRetryPolicy result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepRetryPolicy buildPartial() {
+        talon.models.Models.WorkflowStepRetryPolicy result = new talon.models.Models.WorkflowStepRetryPolicy(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.models.Models.WorkflowStepRetryPolicy result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.maxAttempts_ = maxAttempts_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.initialBackoffSeconds_ = initialBackoffSeconds_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.maxBackoffSeconds_ = maxBackoffSeconds_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.multiplier_ = multiplier_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.models.Models.WorkflowStepRetryPolicy) {
+          return mergeFrom((talon.models.Models.WorkflowStepRetryPolicy)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.models.Models.WorkflowStepRetryPolicy other) {
+        if (other == talon.models.Models.WorkflowStepRetryPolicy.getDefaultInstance()) return this;
+        if (other.getMaxAttempts() != 0) {
+          setMaxAttempts(other.getMaxAttempts());
+        }
+        if (other.getInitialBackoffSeconds() != 0L) {
+          setInitialBackoffSeconds(other.getInitialBackoffSeconds());
+        }
+        if (other.getMaxBackoffSeconds() != 0L) {
+          setMaxBackoffSeconds(other.getMaxBackoffSeconds());
+        }
+        if (java.lang.Double.doubleToRawLongBits(other.getMultiplier()) != 0) {
+          setMultiplier(other.getMultiplier());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                maxAttempts_ = input.readUInt32();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                initialBackoffSeconds_ = input.readInt64();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                maxBackoffSeconds_ = input.readInt64();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 33: {
+                multiplier_ = input.readDouble();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 33
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private int maxAttempts_ ;
+      /**
+       * <code>uint32 max_attempts = 1;</code>
+       * @return The maxAttempts.
+       */
+      @java.lang.Override
+      public int getMaxAttempts() {
+        return maxAttempts_;
+      }
+      /**
+       * <code>uint32 max_attempts = 1;</code>
+       * @param value The maxAttempts to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaxAttempts(int value) {
+
+        maxAttempts_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 max_attempts = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaxAttempts() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        maxAttempts_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private long initialBackoffSeconds_ ;
+      /**
+       * <code>int64 initial_backoff_seconds = 2;</code>
+       * @return The initialBackoffSeconds.
+       */
+      @java.lang.Override
+      public long getInitialBackoffSeconds() {
+        return initialBackoffSeconds_;
+      }
+      /**
+       * <code>int64 initial_backoff_seconds = 2;</code>
+       * @param value The initialBackoffSeconds to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInitialBackoffSeconds(long value) {
+
+        initialBackoffSeconds_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 initial_backoff_seconds = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInitialBackoffSeconds() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        initialBackoffSeconds_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long maxBackoffSeconds_ ;
+      /**
+       * <code>int64 max_backoff_seconds = 3;</code>
+       * @return The maxBackoffSeconds.
+       */
+      @java.lang.Override
+      public long getMaxBackoffSeconds() {
+        return maxBackoffSeconds_;
+      }
+      /**
+       * <code>int64 max_backoff_seconds = 3;</code>
+       * @param value The maxBackoffSeconds to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaxBackoffSeconds(long value) {
+
+        maxBackoffSeconds_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 max_backoff_seconds = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaxBackoffSeconds() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        maxBackoffSeconds_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private double multiplier_ ;
+      /**
+       * <code>double multiplier = 4;</code>
+       * @return The multiplier.
+       */
+      @java.lang.Override
+      public double getMultiplier() {
+        return multiplier_;
+      }
+      /**
+       * <code>double multiplier = 4;</code>
+       * @param value The multiplier to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMultiplier(double value) {
+
+        multiplier_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>double multiplier = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMultiplier() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        multiplier_ = 0D;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.models.WorkflowStepRetryPolicy)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.models.WorkflowStepRetryPolicy)
+    private static final talon.models.Models.WorkflowStepRetryPolicy DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.models.Models.WorkflowStepRetryPolicy();
+    }
+
+    public static talon.models.Models.WorkflowStepRetryPolicy getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowStepRetryPolicy>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowStepRetryPolicy>() {
+      @java.lang.Override
+      public WorkflowStepRetryPolicy parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowStepRetryPolicy> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowStepRetryPolicy> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.models.Models.WorkflowStepRetryPolicy getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface WorkflowStepOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.models.WorkflowStep)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>string type = 2;</code>
+     * @return The type.
+     */
+    java.lang.String getType();
+    /**
+     * <code>string type = 2;</code>
+     * @return The bytes for type.
+     */
+    com.google.protobuf.ByteString
+        getTypeBytes();
+
+    /**
+     * <code>repeated string after = 3;</code>
+     * @return A list containing the after.
+     */
+    java.util.List<java.lang.String>
+        getAfterList();
+    /**
+     * <code>repeated string after = 3;</code>
+     * @return The count of after.
+     */
+    int getAfterCount();
+    /**
+     * <code>repeated string after = 3;</code>
+     * @param index The index of the element to return.
+     * @return The after at the given index.
+     */
+    java.lang.String getAfter(int index);
+    /**
+     * <code>repeated string after = 3;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the after at the given index.
+     */
+    com.google.protobuf.ByteString
+        getAfterBytes(int index);
+
+    /**
+     * <code>string when_json = 4;</code>
+     * @return The whenJson.
+     */
+    java.lang.String getWhenJson();
+    /**
+     * <code>string when_json = 4;</code>
+     * @return The bytes for whenJson.
+     */
+    com.google.protobuf.ByteString
+        getWhenJsonBytes();
+
+    /**
+     * <code>string agent = 5;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 5;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+
+    /**
+     * <code>string prompt = 6;</code>
+     * @return The prompt.
+     */
+    java.lang.String getPrompt();
+    /**
+     * <code>string prompt = 6;</code>
+     * @return The bytes for prompt.
+     */
+    com.google.protobuf.ByteString
+        getPromptBytes();
+
+    /**
+     * <code>string tool = 7;</code>
+     * @return The tool.
+     */
+    java.lang.String getTool();
+    /**
+     * <code>string tool = 7;</code>
+     * @return The bytes for tool.
+     */
+    com.google.protobuf.ByteString
+        getToolBytes();
+
+    /**
+     * <code>string input_json = 8;</code>
+     * @return The inputJson.
+     */
+    java.lang.String getInputJson();
+    /**
+     * <code>string input_json = 8;</code>
+     * @return The bytes for inputJson.
+     */
+    com.google.protobuf.ByteString
+        getInputJsonBytes();
+
+    /**
+     * <code>string workflow = 9;</code>
+     * @return The workflow.
+     */
+    java.lang.String getWorkflow();
+    /**
+     * <code>string workflow = 9;</code>
+     * @return The bytes for workflow.
+     */
+    com.google.protobuf.ByteString
+        getWorkflowBytes();
+
+    /**
+     * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+     * @return Whether the output field is set.
+     */
+    boolean hasOutput();
+    /**
+     * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+     * @return The output.
+     */
+    talon.models.Models.WorkflowStepOutputPolicy getOutput();
+    /**
+     * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+     */
+    talon.models.Models.WorkflowStepOutputPolicyOrBuilder getOutputOrBuilder();
+
+    /**
+     * <code>string resume_schema_json = 11;</code>
+     * @return The resumeSchemaJson.
+     */
+    java.lang.String getResumeSchemaJson();
+    /**
+     * <code>string resume_schema_json = 11;</code>
+     * @return The bytes for resumeSchemaJson.
+     */
+    com.google.protobuf.ByteString
+        getResumeSchemaJsonBytes();
+
+    /**
+     * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+     * @return Whether the retry field is set.
+     */
+    boolean hasRetry();
+    /**
+     * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+     * @return The retry.
+     */
+    talon.models.Models.WorkflowStepRetryPolicy getRetry();
+    /**
+     * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+     */
+    talon.models.Models.WorkflowStepRetryPolicyOrBuilder getRetryOrBuilder();
+
+    /**
+     * <code>string timeout = 13;</code>
+     * @return The timeout.
+     */
+    java.lang.String getTimeout();
+    /**
+     * <code>string timeout = 13;</code>
+     * @return The bytes for timeout.
+     */
+    com.google.protobuf.ByteString
+        getTimeoutBytes();
+
+    /**
+     * <code>string wait_duration = 14;</code>
+     * @return The waitDuration.
+     */
+    java.lang.String getWaitDuration();
+    /**
+     * <code>string wait_duration = 14;</code>
+     * @return The bytes for waitDuration.
+     */
+    com.google.protobuf.ByteString
+        getWaitDurationBytes();
+
+    /**
+     * <code>string wait_until = 15;</code>
+     * @return The waitUntil.
+     */
+    java.lang.String getWaitUntil();
+    /**
+     * <code>string wait_until = 15;</code>
+     * @return The bytes for waitUntil.
+     */
+    com.google.protobuf.ByteString
+        getWaitUntilBytes();
+  }
+  /**
+   * Protobuf type {@code talon.models.WorkflowStep}
+   */
+  public static final class WorkflowStep extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.models.WorkflowStep)
+      WorkflowStepOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowStep");
+    }
+    // Use WorkflowStep.newBuilder() to construct.
+    private WorkflowStep(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowStep() {
+      id_ = "";
+      type_ = "";
+      after_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      whenJson_ = "";
+      agent_ = "";
+      prompt_ = "";
+      tool_ = "";
+      inputJson_ = "";
+      workflow_ = "";
+      resumeSchemaJson_ = "";
+      timeout_ = "";
+      waitDuration_ = "";
+      waitUntil_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStep_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStep_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStep_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.models.Models.WorkflowStep.class, talon.models.Models.WorkflowStep.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TYPE_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object type_ = "";
+    /**
+     * <code>string type = 2;</code>
+     * @return The type.
+     */
+    @java.lang.Override
+    public java.lang.String getType() {
+      java.lang.Object ref = type_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        type_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string type = 2;</code>
+     * @return The bytes for type.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTypeBytes() {
+      java.lang.Object ref = type_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        type_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AFTER_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList after_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string after = 3;</code>
+     * @return A list containing the after.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getAfterList() {
+      return after_;
+    }
+    /**
+     * <code>repeated string after = 3;</code>
+     * @return The count of after.
+     */
+    public int getAfterCount() {
+      return after_.size();
+    }
+    /**
+     * <code>repeated string after = 3;</code>
+     * @param index The index of the element to return.
+     * @return The after at the given index.
+     */
+    public java.lang.String getAfter(int index) {
+      return after_.get(index);
+    }
+    /**
+     * <code>repeated string after = 3;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the after at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getAfterBytes(int index) {
+      return after_.getByteString(index);
+    }
+
+    public static final int WHEN_JSON_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object whenJson_ = "";
+    /**
+     * <code>string when_json = 4;</code>
+     * @return The whenJson.
+     */
+    @java.lang.Override
+    public java.lang.String getWhenJson() {
+      java.lang.Object ref = whenJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        whenJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string when_json = 4;</code>
+     * @return The bytes for whenJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWhenJsonBytes() {
+      java.lang.Object ref = whenJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        whenJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 5;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 5;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PROMPT_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object prompt_ = "";
+    /**
+     * <code>string prompt = 6;</code>
+     * @return The prompt.
+     */
+    @java.lang.Override
+    public java.lang.String getPrompt() {
+      java.lang.Object ref = prompt_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        prompt_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string prompt = 6;</code>
+     * @return The bytes for prompt.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPromptBytes() {
+      java.lang.Object ref = prompt_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        prompt_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TOOL_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object tool_ = "";
+    /**
+     * <code>string tool = 7;</code>
+     * @return The tool.
+     */
+    @java.lang.Override
+    public java.lang.String getTool() {
+      java.lang.Object ref = tool_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        tool_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string tool = 7;</code>
+     * @return The bytes for tool.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getToolBytes() {
+      java.lang.Object ref = tool_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        tool_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int INPUT_JSON_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object inputJson_ = "";
+    /**
+     * <code>string input_json = 8;</code>
+     * @return The inputJson.
+     */
+    @java.lang.Override
+    public java.lang.String getInputJson() {
+      java.lang.Object ref = inputJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        inputJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string input_json = 8;</code>
+     * @return The bytes for inputJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getInputJsonBytes() {
+      java.lang.Object ref = inputJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        inputJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int WORKFLOW_FIELD_NUMBER = 9;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object workflow_ = "";
+    /**
+     * <code>string workflow = 9;</code>
+     * @return The workflow.
+     */
+    @java.lang.Override
+    public java.lang.String getWorkflow() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        workflow_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string workflow = 9;</code>
+     * @return The bytes for workflow.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWorkflowBytes() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        workflow_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OUTPUT_FIELD_NUMBER = 10;
+    private talon.models.Models.WorkflowStepOutputPolicy output_;
+    /**
+     * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+     * @return Whether the output field is set.
+     */
+    @java.lang.Override
+    public boolean hasOutput() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+     * @return The output.
+     */
+    @java.lang.Override
+    public talon.models.Models.WorkflowStepOutputPolicy getOutput() {
+      return output_ == null ? talon.models.Models.WorkflowStepOutputPolicy.getDefaultInstance() : output_;
+    }
+    /**
+     * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+     */
+    @java.lang.Override
+    public talon.models.Models.WorkflowStepOutputPolicyOrBuilder getOutputOrBuilder() {
+      return output_ == null ? talon.models.Models.WorkflowStepOutputPolicy.getDefaultInstance() : output_;
+    }
+
+    public static final int RESUME_SCHEMA_JSON_FIELD_NUMBER = 11;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object resumeSchemaJson_ = "";
+    /**
+     * <code>string resume_schema_json = 11;</code>
+     * @return The resumeSchemaJson.
+     */
+    @java.lang.Override
+    public java.lang.String getResumeSchemaJson() {
+      java.lang.Object ref = resumeSchemaJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        resumeSchemaJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string resume_schema_json = 11;</code>
+     * @return The bytes for resumeSchemaJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getResumeSchemaJsonBytes() {
+      java.lang.Object ref = resumeSchemaJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        resumeSchemaJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RETRY_FIELD_NUMBER = 12;
+    private talon.models.Models.WorkflowStepRetryPolicy retry_;
+    /**
+     * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+     * @return Whether the retry field is set.
+     */
+    @java.lang.Override
+    public boolean hasRetry() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+     * @return The retry.
+     */
+    @java.lang.Override
+    public talon.models.Models.WorkflowStepRetryPolicy getRetry() {
+      return retry_ == null ? talon.models.Models.WorkflowStepRetryPolicy.getDefaultInstance() : retry_;
+    }
+    /**
+     * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+     */
+    @java.lang.Override
+    public talon.models.Models.WorkflowStepRetryPolicyOrBuilder getRetryOrBuilder() {
+      return retry_ == null ? talon.models.Models.WorkflowStepRetryPolicy.getDefaultInstance() : retry_;
+    }
+
+    public static final int TIMEOUT_FIELD_NUMBER = 13;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object timeout_ = "";
+    /**
+     * <code>string timeout = 13;</code>
+     * @return The timeout.
+     */
+    @java.lang.Override
+    public java.lang.String getTimeout() {
+      java.lang.Object ref = timeout_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        timeout_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string timeout = 13;</code>
+     * @return The bytes for timeout.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTimeoutBytes() {
+      java.lang.Object ref = timeout_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        timeout_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int WAIT_DURATION_FIELD_NUMBER = 14;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object waitDuration_ = "";
+    /**
+     * <code>string wait_duration = 14;</code>
+     * @return The waitDuration.
+     */
+    @java.lang.Override
+    public java.lang.String getWaitDuration() {
+      java.lang.Object ref = waitDuration_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        waitDuration_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string wait_duration = 14;</code>
+     * @return The bytes for waitDuration.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWaitDurationBytes() {
+      java.lang.Object ref = waitDuration_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        waitDuration_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int WAIT_UNTIL_FIELD_NUMBER = 15;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object waitUntil_ = "";
+    /**
+     * <code>string wait_until = 15;</code>
+     * @return The waitUntil.
+     */
+    @java.lang.Override
+    public java.lang.String getWaitUntil() {
+      java.lang.Object ref = waitUntil_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        waitUntil_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string wait_until = 15;</code>
+     * @return The bytes for waitUntil.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWaitUntilBytes() {
+      java.lang.Object ref = waitUntil_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        waitUntil_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(type_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, type_);
+      }
+      for (int i = 0; i < after_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, after_.getRaw(i));
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(whenJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, whenJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(prompt_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, prompt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tool_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, tool_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, inputJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 9, workflow_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(10, getOutput());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resumeSchemaJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 11, resumeSchemaJson_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(12, getRetry());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(timeout_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 13, timeout_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(waitDuration_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 14, waitDuration_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(waitUntil_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 15, waitUntil_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(type_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, type_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < after_.size(); i++) {
+          dataSize += computeStringSizeNoTag(after_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getAfterList().size();
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(whenJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, whenJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, agent_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(prompt_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, prompt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tool_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, tool_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, inputJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, workflow_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(10, getOutput());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resumeSchemaJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(11, resumeSchemaJson_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(12, getRetry());
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(timeout_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(13, timeout_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(waitDuration_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(14, waitDuration_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(waitUntil_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(15, waitUntil_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.models.Models.WorkflowStep)) {
+        return super.equals(obj);
+      }
+      talon.models.Models.WorkflowStep other = (talon.models.Models.WorkflowStep) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getType()
+          .equals(other.getType())) return false;
+      if (!getAfterList()
+          .equals(other.getAfterList())) return false;
+      if (!getWhenJson()
+          .equals(other.getWhenJson())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getPrompt()
+          .equals(other.getPrompt())) return false;
+      if (!getTool()
+          .equals(other.getTool())) return false;
+      if (!getInputJson()
+          .equals(other.getInputJson())) return false;
+      if (!getWorkflow()
+          .equals(other.getWorkflow())) return false;
+      if (hasOutput() != other.hasOutput()) return false;
+      if (hasOutput()) {
+        if (!getOutput()
+            .equals(other.getOutput())) return false;
+      }
+      if (!getResumeSchemaJson()
+          .equals(other.getResumeSchemaJson())) return false;
+      if (hasRetry() != other.hasRetry()) return false;
+      if (hasRetry()) {
+        if (!getRetry()
+            .equals(other.getRetry())) return false;
+      }
+      if (!getTimeout()
+          .equals(other.getTimeout())) return false;
+      if (!getWaitDuration()
+          .equals(other.getWaitDuration())) return false;
+      if (!getWaitUntil()
+          .equals(other.getWaitUntil())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getType().hashCode();
+      if (getAfterCount() > 0) {
+        hash = (37 * hash) + AFTER_FIELD_NUMBER;
+        hash = (53 * hash) + getAfterList().hashCode();
+      }
+      hash = (37 * hash) + WHEN_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getWhenJson().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (37 * hash) + PROMPT_FIELD_NUMBER;
+      hash = (53 * hash) + getPrompt().hashCode();
+      hash = (37 * hash) + TOOL_FIELD_NUMBER;
+      hash = (53 * hash) + getTool().hashCode();
+      hash = (37 * hash) + INPUT_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getInputJson().hashCode();
+      hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkflow().hashCode();
+      if (hasOutput()) {
+        hash = (37 * hash) + OUTPUT_FIELD_NUMBER;
+        hash = (53 * hash) + getOutput().hashCode();
+      }
+      hash = (37 * hash) + RESUME_SCHEMA_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getResumeSchemaJson().hashCode();
+      if (hasRetry()) {
+        hash = (37 * hash) + RETRY_FIELD_NUMBER;
+        hash = (53 * hash) + getRetry().hashCode();
+      }
+      hash = (37 * hash) + TIMEOUT_FIELD_NUMBER;
+      hash = (53 * hash) + getTimeout().hashCode();
+      hash = (37 * hash) + WAIT_DURATION_FIELD_NUMBER;
+      hash = (53 * hash) + getWaitDuration().hashCode();
+      hash = (37 * hash) + WAIT_UNTIL_FIELD_NUMBER;
+      hash = (53 * hash) + getWaitUntil().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.models.Models.WorkflowStep parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.models.Models.WorkflowStep parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.models.Models.WorkflowStep parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowStep parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.models.Models.WorkflowStep prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.models.WorkflowStep}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.models.WorkflowStep)
+        talon.models.Models.WorkflowStepOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStep_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStep_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.models.Models.WorkflowStep.class, talon.models.Models.WorkflowStep.Builder.class);
+      }
+
+      // Construct using talon.models.Models.WorkflowStep.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetOutputFieldBuilder();
+          internalGetRetryFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        type_ = "";
+        after_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        whenJson_ = "";
+        agent_ = "";
+        prompt_ = "";
+        tool_ = "";
+        inputJson_ = "";
+        workflow_ = "";
+        output_ = null;
+        if (outputBuilder_ != null) {
+          outputBuilder_.dispose();
+          outputBuilder_ = null;
+        }
+        resumeSchemaJson_ = "";
+        retry_ = null;
+        if (retryBuilder_ != null) {
+          retryBuilder_.dispose();
+          retryBuilder_ = null;
+        }
+        timeout_ = "";
+        waitDuration_ = "";
+        waitUntil_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStep_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStep getDefaultInstanceForType() {
+        return talon.models.Models.WorkflowStep.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStep build() {
+        talon.models.Models.WorkflowStep result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStep buildPartial() {
+        talon.models.Models.WorkflowStep result = new talon.models.Models.WorkflowStep(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.models.Models.WorkflowStep result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.type_ = type_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          after_.makeImmutable();
+          result.after_ = after_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.whenJson_ = whenJson_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.agent_ = agent_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.prompt_ = prompt_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.tool_ = tool_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.inputJson_ = inputJson_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.workflow_ = workflow_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.output_ = outputBuilder_ == null
+              ? output_
+              : outputBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000400) != 0)) {
+          result.resumeSchemaJson_ = resumeSchemaJson_;
+        }
+        if (((from_bitField0_ & 0x00000800) != 0)) {
+          result.retry_ = retryBuilder_ == null
+              ? retry_
+              : retryBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00001000) != 0)) {
+          result.timeout_ = timeout_;
+        }
+        if (((from_bitField0_ & 0x00002000) != 0)) {
+          result.waitDuration_ = waitDuration_;
+        }
+        if (((from_bitField0_ & 0x00004000) != 0)) {
+          result.waitUntil_ = waitUntil_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.models.Models.WorkflowStep) {
+          return mergeFrom((talon.models.Models.WorkflowStep)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.models.Models.WorkflowStep other) {
+        if (other == talon.models.Models.WorkflowStep.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getType().isEmpty()) {
+          type_ = other.type_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.after_.isEmpty()) {
+          if (after_.isEmpty()) {
+            after_ = other.after_;
+            bitField0_ |= 0x00000004;
+          } else {
+            ensureAfterIsMutable();
+            after_.addAll(other.after_);
+          }
+          onChanged();
+        }
+        if (!other.getWhenJson().isEmpty()) {
+          whenJson_ = other.whenJson_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.getPrompt().isEmpty()) {
+          prompt_ = other.prompt_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (!other.getTool().isEmpty()) {
+          tool_ = other.tool_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        if (!other.getInputJson().isEmpty()) {
+          inputJson_ = other.inputJson_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        if (!other.getWorkflow().isEmpty()) {
+          workflow_ = other.workflow_;
+          bitField0_ |= 0x00000100;
+          onChanged();
+        }
+        if (other.hasOutput()) {
+          mergeOutput(other.getOutput());
+        }
+        if (!other.getResumeSchemaJson().isEmpty()) {
+          resumeSchemaJson_ = other.resumeSchemaJson_;
+          bitField0_ |= 0x00000400;
+          onChanged();
+        }
+        if (other.hasRetry()) {
+          mergeRetry(other.getRetry());
+        }
+        if (!other.getTimeout().isEmpty()) {
+          timeout_ = other.timeout_;
+          bitField0_ |= 0x00001000;
+          onChanged();
+        }
+        if (!other.getWaitDuration().isEmpty()) {
+          waitDuration_ = other.waitDuration_;
+          bitField0_ |= 0x00002000;
+          onChanged();
+        }
+        if (!other.getWaitUntil().isEmpty()) {
+          waitUntil_ = other.waitUntil_;
+          bitField0_ |= 0x00004000;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                type_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                ensureAfterIsMutable();
+                after_.add(input.readStringRequireUtf8());
+                break;
+              } // case 26
+              case 34: {
+                whenJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                prompt_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 58: {
+                tool_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              case 66: {
+                inputJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              case 74: {
+                workflow_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
+              case 82: {
+                input.readMessage(
+                    internalGetOutputFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 82
+              case 90: {
+                resumeSchemaJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000400;
+                break;
+              } // case 90
+              case 98: {
+                input.readMessage(
+                    internalGetRetryFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000800;
+                break;
+              } // case 98
+              case 106: {
+                timeout_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00001000;
+                break;
+              } // case 106
+              case 114: {
+                waitDuration_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00002000;
+                break;
+              } // case 114
+              case 122: {
+                waitUntil_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00004000;
+                break;
+              } // case 122
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object type_ = "";
+      /**
+       * <code>string type = 2;</code>
+       * @return The type.
+       */
+      public java.lang.String getType() {
+        java.lang.Object ref = type_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          type_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string type = 2;</code>
+       * @return The bytes for type.
+       */
+      public com.google.protobuf.ByteString
+          getTypeBytes() {
+        java.lang.Object ref = type_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          type_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string type = 2;</code>
+       * @param value The type to set.
+       * @return This builder for chaining.
+       */
+      public Builder setType(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        type_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string type = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearType() {
+        type_ = getDefaultInstance().getType();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string type = 2;</code>
+       * @param value The bytes for type to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        type_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList after_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureAfterIsMutable() {
+        if (!after_.isModifiable()) {
+          after_ = new com.google.protobuf.LazyStringArrayList(after_);
+        }
+        bitField0_ |= 0x00000004;
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @return A list containing the after.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getAfterList() {
+        after_.makeImmutable();
+        return after_;
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @return The count of after.
+       */
+      public int getAfterCount() {
+        return after_.size();
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @param index The index of the element to return.
+       * @return The after at the given index.
+       */
+      public java.lang.String getAfter(int index) {
+        return after_.get(index);
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the after at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getAfterBytes(int index) {
+        return after_.getByteString(index);
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @param index The index to set the value at.
+       * @param value The after to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAfter(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureAfterIsMutable();
+        after_.set(index, value);
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @param value The after to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAfter(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureAfterIsMutable();
+        after_.add(value);
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @param values The after to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllAfter(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureAfterIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, after_);
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAfter() {
+        after_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000004);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string after = 3;</code>
+       * @param value The bytes of the after to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAfterBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureAfterIsMutable();
+        after_.add(value);
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object whenJson_ = "";
+      /**
+       * <code>string when_json = 4;</code>
+       * @return The whenJson.
+       */
+      public java.lang.String getWhenJson() {
+        java.lang.Object ref = whenJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          whenJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string when_json = 4;</code>
+       * @return The bytes for whenJson.
+       */
+      public com.google.protobuf.ByteString
+          getWhenJsonBytes() {
+        java.lang.Object ref = whenJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          whenJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string when_json = 4;</code>
+       * @param value The whenJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWhenJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        whenJson_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string when_json = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWhenJson() {
+        whenJson_ = getDefaultInstance().getWhenJson();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string when_json = 4;</code>
+       * @param value The bytes for whenJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWhenJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        whenJson_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 5;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 5;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 5;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 5;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object prompt_ = "";
+      /**
+       * <code>string prompt = 6;</code>
+       * @return The prompt.
+       */
+      public java.lang.String getPrompt() {
+        java.lang.Object ref = prompt_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          prompt_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string prompt = 6;</code>
+       * @return The bytes for prompt.
+       */
+      public com.google.protobuf.ByteString
+          getPromptBytes() {
+        java.lang.Object ref = prompt_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          prompt_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string prompt = 6;</code>
+       * @param value The prompt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPrompt(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        prompt_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string prompt = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPrompt() {
+        prompt_ = getDefaultInstance().getPrompt();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string prompt = 6;</code>
+       * @param value The bytes for prompt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPromptBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        prompt_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object tool_ = "";
+      /**
+       * <code>string tool = 7;</code>
+       * @return The tool.
+       */
+      public java.lang.String getTool() {
+        java.lang.Object ref = tool_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          tool_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string tool = 7;</code>
+       * @return The bytes for tool.
+       */
+      public com.google.protobuf.ByteString
+          getToolBytes() {
+        java.lang.Object ref = tool_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          tool_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string tool = 7;</code>
+       * @param value The tool to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTool(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        tool_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string tool = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTool() {
+        tool_ = getDefaultInstance().getTool();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string tool = 7;</code>
+       * @param value The bytes for tool to set.
+       * @return This builder for chaining.
+       */
+      public Builder setToolBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        tool_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object inputJson_ = "";
+      /**
+       * <code>string input_json = 8;</code>
+       * @return The inputJson.
+       */
+      public java.lang.String getInputJson() {
+        java.lang.Object ref = inputJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          inputJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string input_json = 8;</code>
+       * @return The bytes for inputJson.
+       */
+      public com.google.protobuf.ByteString
+          getInputJsonBytes() {
+        java.lang.Object ref = inputJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          inputJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string input_json = 8;</code>
+       * @param value The inputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        inputJson_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_json = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputJson() {
+        inputJson_ = getDefaultInstance().getInputJson();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_json = 8;</code>
+       * @param value The bytes for inputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        inputJson_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object workflow_ = "";
+      /**
+       * <code>string workflow = 9;</code>
+       * @return The workflow.
+       */
+      public java.lang.String getWorkflow() {
+        java.lang.Object ref = workflow_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          workflow_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 9;</code>
+       * @return The bytes for workflow.
+       */
+      public com.google.protobuf.ByteString
+          getWorkflowBytes() {
+        java.lang.Object ref = workflow_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          workflow_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 9;</code>
+       * @param value The workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflow(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        workflow_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWorkflow() {
+        workflow_ = getDefaultInstance().getWorkflow();
+        bitField0_ = (bitField0_ & ~0x00000100);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 9;</code>
+       * @param value The bytes for workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflowBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        workflow_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+
+      private talon.models.Models.WorkflowStepOutputPolicy output_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.models.Models.WorkflowStepOutputPolicy, talon.models.Models.WorkflowStepOutputPolicy.Builder, talon.models.Models.WorkflowStepOutputPolicyOrBuilder> outputBuilder_;
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       * @return Whether the output field is set.
+       */
+      public boolean hasOutput() {
+        return ((bitField0_ & 0x00000200) != 0);
+      }
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       * @return The output.
+       */
+      public talon.models.Models.WorkflowStepOutputPolicy getOutput() {
+        if (outputBuilder_ == null) {
+          return output_ == null ? talon.models.Models.WorkflowStepOutputPolicy.getDefaultInstance() : output_;
+        } else {
+          return outputBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       */
+      public Builder setOutput(talon.models.Models.WorkflowStepOutputPolicy value) {
+        if (outputBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          output_ = value;
+        } else {
+          outputBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       */
+      public Builder setOutput(
+          talon.models.Models.WorkflowStepOutputPolicy.Builder builderForValue) {
+        if (outputBuilder_ == null) {
+          output_ = builderForValue.build();
+        } else {
+          outputBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       */
+      public Builder mergeOutput(talon.models.Models.WorkflowStepOutputPolicy value) {
+        if (outputBuilder_ == null) {
+          if (((bitField0_ & 0x00000200) != 0) &&
+            output_ != null &&
+            output_ != talon.models.Models.WorkflowStepOutputPolicy.getDefaultInstance()) {
+            getOutputBuilder().mergeFrom(value);
+          } else {
+            output_ = value;
+          }
+        } else {
+          outputBuilder_.mergeFrom(value);
+        }
+        if (output_ != null) {
+          bitField0_ |= 0x00000200;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       */
+      public Builder clearOutput() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        output_ = null;
+        if (outputBuilder_ != null) {
+          outputBuilder_.dispose();
+          outputBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       */
+      public talon.models.Models.WorkflowStepOutputPolicy.Builder getOutputBuilder() {
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return internalGetOutputFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       */
+      public talon.models.Models.WorkflowStepOutputPolicyOrBuilder getOutputOrBuilder() {
+        if (outputBuilder_ != null) {
+          return outputBuilder_.getMessageOrBuilder();
+        } else {
+          return output_ == null ?
+              talon.models.Models.WorkflowStepOutputPolicy.getDefaultInstance() : output_;
+        }
+      }
+      /**
+       * <code>.talon.models.WorkflowStepOutputPolicy output = 10;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.models.Models.WorkflowStepOutputPolicy, talon.models.Models.WorkflowStepOutputPolicy.Builder, talon.models.Models.WorkflowStepOutputPolicyOrBuilder>
+          internalGetOutputFieldBuilder() {
+        if (outputBuilder_ == null) {
+          outputBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.models.Models.WorkflowStepOutputPolicy, talon.models.Models.WorkflowStepOutputPolicy.Builder, talon.models.Models.WorkflowStepOutputPolicyOrBuilder>(
+                  getOutput(),
+                  getParentForChildren(),
+                  isClean());
+          output_ = null;
+        }
+        return outputBuilder_;
+      }
+
+      private java.lang.Object resumeSchemaJson_ = "";
+      /**
+       * <code>string resume_schema_json = 11;</code>
+       * @return The resumeSchemaJson.
+       */
+      public java.lang.String getResumeSchemaJson() {
+        java.lang.Object ref = resumeSchemaJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          resumeSchemaJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string resume_schema_json = 11;</code>
+       * @return The bytes for resumeSchemaJson.
+       */
+      public com.google.protobuf.ByteString
+          getResumeSchemaJsonBytes() {
+        java.lang.Object ref = resumeSchemaJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          resumeSchemaJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string resume_schema_json = 11;</code>
+       * @param value The resumeSchemaJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResumeSchemaJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        resumeSchemaJson_ = value;
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resume_schema_json = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearResumeSchemaJson() {
+        resumeSchemaJson_ = getDefaultInstance().getResumeSchemaJson();
+        bitField0_ = (bitField0_ & ~0x00000400);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resume_schema_json = 11;</code>
+       * @param value The bytes for resumeSchemaJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResumeSchemaJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        resumeSchemaJson_ = value;
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+
+      private talon.models.Models.WorkflowStepRetryPolicy retry_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.models.Models.WorkflowStepRetryPolicy, talon.models.Models.WorkflowStepRetryPolicy.Builder, talon.models.Models.WorkflowStepRetryPolicyOrBuilder> retryBuilder_;
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       * @return Whether the retry field is set.
+       */
+      public boolean hasRetry() {
+        return ((bitField0_ & 0x00000800) != 0);
+      }
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       * @return The retry.
+       */
+      public talon.models.Models.WorkflowStepRetryPolicy getRetry() {
+        if (retryBuilder_ == null) {
+          return retry_ == null ? talon.models.Models.WorkflowStepRetryPolicy.getDefaultInstance() : retry_;
+        } else {
+          return retryBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       */
+      public Builder setRetry(talon.models.Models.WorkflowStepRetryPolicy value) {
+        if (retryBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          retry_ = value;
+        } else {
+          retryBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       */
+      public Builder setRetry(
+          talon.models.Models.WorkflowStepRetryPolicy.Builder builderForValue) {
+        if (retryBuilder_ == null) {
+          retry_ = builderForValue.build();
+        } else {
+          retryBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       */
+      public Builder mergeRetry(talon.models.Models.WorkflowStepRetryPolicy value) {
+        if (retryBuilder_ == null) {
+          if (((bitField0_ & 0x00000800) != 0) &&
+            retry_ != null &&
+            retry_ != talon.models.Models.WorkflowStepRetryPolicy.getDefaultInstance()) {
+            getRetryBuilder().mergeFrom(value);
+          } else {
+            retry_ = value;
+          }
+        } else {
+          retryBuilder_.mergeFrom(value);
+        }
+        if (retry_ != null) {
+          bitField0_ |= 0x00000800;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       */
+      public Builder clearRetry() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        retry_ = null;
+        if (retryBuilder_ != null) {
+          retryBuilder_.dispose();
+          retryBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       */
+      public talon.models.Models.WorkflowStepRetryPolicy.Builder getRetryBuilder() {
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return internalGetRetryFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       */
+      public talon.models.Models.WorkflowStepRetryPolicyOrBuilder getRetryOrBuilder() {
+        if (retryBuilder_ != null) {
+          return retryBuilder_.getMessageOrBuilder();
+        } else {
+          return retry_ == null ?
+              talon.models.Models.WorkflowStepRetryPolicy.getDefaultInstance() : retry_;
+        }
+      }
+      /**
+       * <code>.talon.models.WorkflowStepRetryPolicy retry = 12;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.models.Models.WorkflowStepRetryPolicy, talon.models.Models.WorkflowStepRetryPolicy.Builder, talon.models.Models.WorkflowStepRetryPolicyOrBuilder>
+          internalGetRetryFieldBuilder() {
+        if (retryBuilder_ == null) {
+          retryBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.models.Models.WorkflowStepRetryPolicy, talon.models.Models.WorkflowStepRetryPolicy.Builder, talon.models.Models.WorkflowStepRetryPolicyOrBuilder>(
+                  getRetry(),
+                  getParentForChildren(),
+                  isClean());
+          retry_ = null;
+        }
+        return retryBuilder_;
+      }
+
+      private java.lang.Object timeout_ = "";
+      /**
+       * <code>string timeout = 13;</code>
+       * @return The timeout.
+       */
+      public java.lang.String getTimeout() {
+        java.lang.Object ref = timeout_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          timeout_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string timeout = 13;</code>
+       * @return The bytes for timeout.
+       */
+      public com.google.protobuf.ByteString
+          getTimeoutBytes() {
+        java.lang.Object ref = timeout_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          timeout_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string timeout = 13;</code>
+       * @param value The timeout to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTimeout(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        timeout_ = value;
+        bitField0_ |= 0x00001000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string timeout = 13;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTimeout() {
+        timeout_ = getDefaultInstance().getTimeout();
+        bitField0_ = (bitField0_ & ~0x00001000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string timeout = 13;</code>
+       * @param value The bytes for timeout to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTimeoutBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        timeout_ = value;
+        bitField0_ |= 0x00001000;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object waitDuration_ = "";
+      /**
+       * <code>string wait_duration = 14;</code>
+       * @return The waitDuration.
+       */
+      public java.lang.String getWaitDuration() {
+        java.lang.Object ref = waitDuration_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          waitDuration_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string wait_duration = 14;</code>
+       * @return The bytes for waitDuration.
+       */
+      public com.google.protobuf.ByteString
+          getWaitDurationBytes() {
+        java.lang.Object ref = waitDuration_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          waitDuration_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string wait_duration = 14;</code>
+       * @param value The waitDuration to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWaitDuration(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        waitDuration_ = value;
+        bitField0_ |= 0x00002000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string wait_duration = 14;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWaitDuration() {
+        waitDuration_ = getDefaultInstance().getWaitDuration();
+        bitField0_ = (bitField0_ & ~0x00002000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string wait_duration = 14;</code>
+       * @param value The bytes for waitDuration to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWaitDurationBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        waitDuration_ = value;
+        bitField0_ |= 0x00002000;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object waitUntil_ = "";
+      /**
+       * <code>string wait_until = 15;</code>
+       * @return The waitUntil.
+       */
+      public java.lang.String getWaitUntil() {
+        java.lang.Object ref = waitUntil_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          waitUntil_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string wait_until = 15;</code>
+       * @return The bytes for waitUntil.
+       */
+      public com.google.protobuf.ByteString
+          getWaitUntilBytes() {
+        java.lang.Object ref = waitUntil_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          waitUntil_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string wait_until = 15;</code>
+       * @param value The waitUntil to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWaitUntil(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        waitUntil_ = value;
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string wait_until = 15;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWaitUntil() {
+        waitUntil_ = getDefaultInstance().getWaitUntil();
+        bitField0_ = (bitField0_ & ~0x00004000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string wait_until = 15;</code>
+       * @param value The bytes for waitUntil to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWaitUntilBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        waitUntil_ = value;
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.models.WorkflowStep)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.models.WorkflowStep)
+    private static final talon.models.Models.WorkflowStep DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.models.Models.WorkflowStep();
+    }
+
+    public static talon.models.Models.WorkflowStep getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowStep>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowStep>() {
+      @java.lang.Override
+      public WorkflowStep parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowStep> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowStep> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.models.Models.WorkflowStep getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface WorkflowSpecOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.models.WorkflowSpec)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string description = 1;</code>
+     * @return The description.
+     */
+    java.lang.String getDescription();
+    /**
+     * <code>string description = 1;</code>
+     * @return The bytes for description.
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <code>string input_schema_json = 2;</code>
+     * @return The inputSchemaJson.
+     */
+    java.lang.String getInputSchemaJson();
+    /**
+     * <code>string input_schema_json = 2;</code>
+     * @return The bytes for inputSchemaJson.
+     */
+    com.google.protobuf.ByteString
+        getInputSchemaJsonBytes();
+
+    /**
+     * <code>string output_schema_json = 3;</code>
+     * @return The outputSchemaJson.
+     */
+    java.lang.String getOutputSchemaJson();
+    /**
+     * <code>string output_schema_json = 3;</code>
+     * @return The bytes for outputSchemaJson.
+     */
+    com.google.protobuf.ByteString
+        getOutputSchemaJsonBytes();
+
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    java.util.List<talon.models.Models.WorkflowStep>
+        getStepsList();
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    talon.models.Models.WorkflowStep getSteps(int index);
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    int getStepsCount();
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    java.util.List<? extends talon.models.Models.WorkflowStepOrBuilder>
+        getStepsOrBuilderList();
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    talon.models.Models.WorkflowStepOrBuilder getStepsOrBuilder(
+        int index);
+
+    /**
+     * <code>string output_json = 5;</code>
+     * @return The outputJson.
+     */
+    java.lang.String getOutputJson();
+    /**
+     * <code>string output_json = 5;</code>
+     * @return The bytes for outputJson.
+     */
+    com.google.protobuf.ByteString
+        getOutputJsonBytes();
+
+    /**
+     * <code>uint32 concurrency = 6;</code>
+     * @return The concurrency.
+     */
+    int getConcurrency();
+  }
+  /**
+   * Protobuf type {@code talon.models.WorkflowSpec}
+   */
+  public static final class WorkflowSpec extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.models.WorkflowSpec)
+      WorkflowSpecOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowSpec");
+    }
+    // Use WorkflowSpec.newBuilder() to construct.
+    private WorkflowSpec(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowSpec() {
+      description_ = "";
+      inputSchemaJson_ = "";
+      outputSchemaJson_ = "";
+      steps_ = java.util.Collections.emptyList();
+      outputJson_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.models.Models.internal_static_talon_models_WorkflowSpec_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.models.Models.internal_static_talon_models_WorkflowSpec_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.models.Models.internal_static_talon_models_WorkflowSpec_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.models.Models.WorkflowSpec.class, talon.models.Models.WorkflowSpec.Builder.class);
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object description_ = "";
+    /**
+     * <code>string description = 1;</code>
+     * @return The description.
+     */
+    @java.lang.Override
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        description_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string description = 1;</code>
+     * @return The bytes for description.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int INPUT_SCHEMA_JSON_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object inputSchemaJson_ = "";
+    /**
+     * <code>string input_schema_json = 2;</code>
+     * @return The inputSchemaJson.
+     */
+    @java.lang.Override
+    public java.lang.String getInputSchemaJson() {
+      java.lang.Object ref = inputSchemaJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        inputSchemaJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string input_schema_json = 2;</code>
+     * @return The bytes for inputSchemaJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getInputSchemaJsonBytes() {
+      java.lang.Object ref = inputSchemaJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        inputSchemaJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OUTPUT_SCHEMA_JSON_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object outputSchemaJson_ = "";
+    /**
+     * <code>string output_schema_json = 3;</code>
+     * @return The outputSchemaJson.
+     */
+    @java.lang.Override
+    public java.lang.String getOutputSchemaJson() {
+      java.lang.Object ref = outputSchemaJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        outputSchemaJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string output_schema_json = 3;</code>
+     * @return The bytes for outputSchemaJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOutputSchemaJsonBytes() {
+      java.lang.Object ref = outputSchemaJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        outputSchemaJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STEPS_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.models.Models.WorkflowStep> steps_;
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.models.Models.WorkflowStep> getStepsList() {
+      return steps_;
+    }
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.models.Models.WorkflowStepOrBuilder>
+        getStepsOrBuilderList() {
+      return steps_;
+    }
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    @java.lang.Override
+    public int getStepsCount() {
+      return steps_.size();
+    }
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    @java.lang.Override
+    public talon.models.Models.WorkflowStep getSteps(int index) {
+      return steps_.get(index);
+    }
+    /**
+     * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+     */
+    @java.lang.Override
+    public talon.models.Models.WorkflowStepOrBuilder getStepsOrBuilder(
+        int index) {
+      return steps_.get(index);
+    }
+
+    public static final int OUTPUT_JSON_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object outputJson_ = "";
+    /**
+     * <code>string output_json = 5;</code>
+     * @return The outputJson.
+     */
+    @java.lang.Override
+    public java.lang.String getOutputJson() {
+      java.lang.Object ref = outputJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        outputJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string output_json = 5;</code>
+     * @return The bytes for outputJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOutputJsonBytes() {
+      java.lang.Object ref = outputJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        outputJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CONCURRENCY_FIELD_NUMBER = 6;
+    private int concurrency_ = 0;
+    /**
+     * <code>uint32 concurrency = 6;</code>
+     * @return The concurrency.
+     */
+    @java.lang.Override
+    public int getConcurrency() {
+      return concurrency_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, description_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputSchemaJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, inputSchemaJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outputSchemaJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, outputSchemaJson_);
+      }
+      for (int i = 0; i < steps_.size(); i++) {
+        output.writeMessage(4, steps_.get(i));
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outputJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, outputJson_);
+      }
+      if (concurrency_ != 0) {
+        output.writeUInt32(6, concurrency_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, description_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputSchemaJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, inputSchemaJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outputSchemaJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, outputSchemaJson_);
+      }
+
+          {
+            final int count = steps_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(steps_.get(i));
+            }
+            size += 1 * count;
+          }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outputJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, outputJson_);
+      }
+      if (concurrency_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(6, concurrency_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.models.Models.WorkflowSpec)) {
+        return super.equals(obj);
+      }
+      talon.models.Models.WorkflowSpec other = (talon.models.Models.WorkflowSpec) obj;
+
+      if (!getDescription()
+          .equals(other.getDescription())) return false;
+      if (!getInputSchemaJson()
+          .equals(other.getInputSchemaJson())) return false;
+      if (!getOutputSchemaJson()
+          .equals(other.getOutputSchemaJson())) return false;
+      if (!getStepsList()
+          .equals(other.getStepsList())) return false;
+      if (!getOutputJson()
+          .equals(other.getOutputJson())) return false;
+      if (getConcurrency()
+          != other.getConcurrency()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+      hash = (53 * hash) + getDescription().hashCode();
+      hash = (37 * hash) + INPUT_SCHEMA_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getInputSchemaJson().hashCode();
+      hash = (37 * hash) + OUTPUT_SCHEMA_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getOutputSchemaJson().hashCode();
+      if (getStepsCount() > 0) {
+        hash = (37 * hash) + STEPS_FIELD_NUMBER;
+        hash = (53 * hash) + getStepsList().hashCode();
+      }
+      hash = (37 * hash) + OUTPUT_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getOutputJson().hashCode();
+      hash = (37 * hash) + CONCURRENCY_FIELD_NUMBER;
+      hash = (53 * hash) + getConcurrency();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.models.Models.WorkflowSpec parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.models.Models.WorkflowSpec parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.models.Models.WorkflowSpec parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowSpec parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.models.Models.WorkflowSpec prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.models.WorkflowSpec}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.models.WorkflowSpec)
+        talon.models.Models.WorkflowSpecOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.models.Models.internal_static_talon_models_WorkflowSpec_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.models.Models.internal_static_talon_models_WorkflowSpec_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.models.Models.WorkflowSpec.class, talon.models.Models.WorkflowSpec.Builder.class);
+      }
+
+      // Construct using talon.models.Models.WorkflowSpec.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        description_ = "";
+        inputSchemaJson_ = "";
+        outputSchemaJson_ = "";
+        if (stepsBuilder_ == null) {
+          steps_ = java.util.Collections.emptyList();
+        } else {
+          steps_ = null;
+          stepsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000008);
+        outputJson_ = "";
+        concurrency_ = 0;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.models.Models.internal_static_talon_models_WorkflowSpec_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowSpec getDefaultInstanceForType() {
+        return talon.models.Models.WorkflowSpec.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowSpec build() {
+        talon.models.Models.WorkflowSpec result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowSpec buildPartial() {
+        talon.models.Models.WorkflowSpec result = new talon.models.Models.WorkflowSpec(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(talon.models.Models.WorkflowSpec result) {
+        if (stepsBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) != 0)) {
+            steps_ = java.util.Collections.unmodifiableList(steps_);
+            bitField0_ = (bitField0_ & ~0x00000008);
+          }
+          result.steps_ = steps_;
+        } else {
+          result.steps_ = stepsBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(talon.models.Models.WorkflowSpec result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.description_ = description_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.inputSchemaJson_ = inputSchemaJson_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.outputSchemaJson_ = outputSchemaJson_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.outputJson_ = outputJson_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.concurrency_ = concurrency_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.models.Models.WorkflowSpec) {
+          return mergeFrom((talon.models.Models.WorkflowSpec)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.models.Models.WorkflowSpec other) {
+        if (other == talon.models.Models.WorkflowSpec.getDefaultInstance()) return this;
+        if (!other.getDescription().isEmpty()) {
+          description_ = other.description_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getInputSchemaJson().isEmpty()) {
+          inputSchemaJson_ = other.inputSchemaJson_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getOutputSchemaJson().isEmpty()) {
+          outputSchemaJson_ = other.outputSchemaJson_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (stepsBuilder_ == null) {
+          if (!other.steps_.isEmpty()) {
+            if (steps_.isEmpty()) {
+              steps_ = other.steps_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+            } else {
+              ensureStepsIsMutable();
+              steps_.addAll(other.steps_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.steps_.isEmpty()) {
+            if (stepsBuilder_.isEmpty()) {
+              stepsBuilder_.dispose();
+              stepsBuilder_ = null;
+              steps_ = other.steps_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+              stepsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetStepsFieldBuilder() : null;
+            } else {
+              stepsBuilder_.addAllMessages(other.steps_);
+            }
+          }
+        }
+        if (!other.getOutputJson().isEmpty()) {
+          outputJson_ = other.outputJson_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (other.getConcurrency() != 0) {
+          setConcurrency(other.getConcurrency());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                description_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                inputSchemaJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                outputSchemaJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                talon.models.Models.WorkflowStep m =
+                    input.readMessage(
+                        talon.models.Models.WorkflowStep.parser(),
+                        extensionRegistry);
+                if (stepsBuilder_ == null) {
+                  ensureStepsIsMutable();
+                  steps_.add(m);
+                } else {
+                  stepsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 34
+              case 42: {
+                outputJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 48: {
+                concurrency_ = input.readUInt32();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object description_ = "";
+      /**
+       * <code>string description = 1;</code>
+       * @return The description.
+       */
+      public java.lang.String getDescription() {
+        java.lang.Object ref = description_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          description_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string description = 1;</code>
+       * @return The bytes for description.
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string description = 1;</code>
+       * @param value The description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescription(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        description_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDescription() {
+        description_ = getDefaultInstance().getDescription();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 1;</code>
+       * @param value The bytes for description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        description_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object inputSchemaJson_ = "";
+      /**
+       * <code>string input_schema_json = 2;</code>
+       * @return The inputSchemaJson.
+       */
+      public java.lang.String getInputSchemaJson() {
+        java.lang.Object ref = inputSchemaJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          inputSchemaJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string input_schema_json = 2;</code>
+       * @return The bytes for inputSchemaJson.
+       */
+      public com.google.protobuf.ByteString
+          getInputSchemaJsonBytes() {
+        java.lang.Object ref = inputSchemaJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          inputSchemaJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string input_schema_json = 2;</code>
+       * @param value The inputSchemaJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputSchemaJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        inputSchemaJson_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_schema_json = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputSchemaJson() {
+        inputSchemaJson_ = getDefaultInstance().getInputSchemaJson();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_schema_json = 2;</code>
+       * @param value The bytes for inputSchemaJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputSchemaJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        inputSchemaJson_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object outputSchemaJson_ = "";
+      /**
+       * <code>string output_schema_json = 3;</code>
+       * @return The outputSchemaJson.
+       */
+      public java.lang.String getOutputSchemaJson() {
+        java.lang.Object ref = outputSchemaJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          outputSchemaJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string output_schema_json = 3;</code>
+       * @return The bytes for outputSchemaJson.
+       */
+      public com.google.protobuf.ByteString
+          getOutputSchemaJsonBytes() {
+        java.lang.Object ref = outputSchemaJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          outputSchemaJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string output_schema_json = 3;</code>
+       * @param value The outputSchemaJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputSchemaJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        outputSchemaJson_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string output_schema_json = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputSchemaJson() {
+        outputSchemaJson_ = getDefaultInstance().getOutputSchemaJson();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string output_schema_json = 3;</code>
+       * @param value The bytes for outputSchemaJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputSchemaJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        outputSchemaJson_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<talon.models.Models.WorkflowStep> steps_ =
+        java.util.Collections.emptyList();
+      private void ensureStepsIsMutable() {
+        if (!((bitField0_ & 0x00000008) != 0)) {
+          steps_ = new java.util.ArrayList<talon.models.Models.WorkflowStep>(steps_);
+          bitField0_ |= 0x00000008;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.models.Models.WorkflowStep, talon.models.Models.WorkflowStep.Builder, talon.models.Models.WorkflowStepOrBuilder> stepsBuilder_;
+
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public java.util.List<talon.models.Models.WorkflowStep> getStepsList() {
+        if (stepsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(steps_);
+        } else {
+          return stepsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public int getStepsCount() {
+        if (stepsBuilder_ == null) {
+          return steps_.size();
+        } else {
+          return stepsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public talon.models.Models.WorkflowStep getSteps(int index) {
+        if (stepsBuilder_ == null) {
+          return steps_.get(index);
+        } else {
+          return stepsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder setSteps(
+          int index, talon.models.Models.WorkflowStep value) {
+        if (stepsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureStepsIsMutable();
+          steps_.set(index, value);
+          onChanged();
+        } else {
+          stepsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder setSteps(
+          int index, talon.models.Models.WorkflowStep.Builder builderForValue) {
+        if (stepsBuilder_ == null) {
+          ensureStepsIsMutable();
+          steps_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          stepsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder addSteps(talon.models.Models.WorkflowStep value) {
+        if (stepsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureStepsIsMutable();
+          steps_.add(value);
+          onChanged();
+        } else {
+          stepsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder addSteps(
+          int index, talon.models.Models.WorkflowStep value) {
+        if (stepsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureStepsIsMutable();
+          steps_.add(index, value);
+          onChanged();
+        } else {
+          stepsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder addSteps(
+          talon.models.Models.WorkflowStep.Builder builderForValue) {
+        if (stepsBuilder_ == null) {
+          ensureStepsIsMutable();
+          steps_.add(builderForValue.build());
+          onChanged();
+        } else {
+          stepsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder addSteps(
+          int index, talon.models.Models.WorkflowStep.Builder builderForValue) {
+        if (stepsBuilder_ == null) {
+          ensureStepsIsMutable();
+          steps_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          stepsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder addAllSteps(
+          java.lang.Iterable<? extends talon.models.Models.WorkflowStep> values) {
+        if (stepsBuilder_ == null) {
+          ensureStepsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, steps_);
+          onChanged();
+        } else {
+          stepsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder clearSteps() {
+        if (stepsBuilder_ == null) {
+          steps_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000008);
+          onChanged();
+        } else {
+          stepsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public Builder removeSteps(int index) {
+        if (stepsBuilder_ == null) {
+          ensureStepsIsMutable();
+          steps_.remove(index);
+          onChanged();
+        } else {
+          stepsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public talon.models.Models.WorkflowStep.Builder getStepsBuilder(
+          int index) {
+        return internalGetStepsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public talon.models.Models.WorkflowStepOrBuilder getStepsOrBuilder(
+          int index) {
+        if (stepsBuilder_ == null) {
+          return steps_.get(index);  } else {
+          return stepsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public java.util.List<? extends talon.models.Models.WorkflowStepOrBuilder>
+           getStepsOrBuilderList() {
+        if (stepsBuilder_ != null) {
+          return stepsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(steps_);
+        }
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public talon.models.Models.WorkflowStep.Builder addStepsBuilder() {
+        return internalGetStepsFieldBuilder().addBuilder(
+            talon.models.Models.WorkflowStep.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public talon.models.Models.WorkflowStep.Builder addStepsBuilder(
+          int index) {
+        return internalGetStepsFieldBuilder().addBuilder(
+            index, talon.models.Models.WorkflowStep.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.models.WorkflowStep steps = 4;</code>
+       */
+      public java.util.List<talon.models.Models.WorkflowStep.Builder>
+           getStepsBuilderList() {
+        return internalGetStepsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.models.Models.WorkflowStep, talon.models.Models.WorkflowStep.Builder, talon.models.Models.WorkflowStepOrBuilder>
+          internalGetStepsFieldBuilder() {
+        if (stepsBuilder_ == null) {
+          stepsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.models.Models.WorkflowStep, talon.models.Models.WorkflowStep.Builder, talon.models.Models.WorkflowStepOrBuilder>(
+                  steps_,
+                  ((bitField0_ & 0x00000008) != 0),
+                  getParentForChildren(),
+                  isClean());
+          steps_ = null;
+        }
+        return stepsBuilder_;
+      }
+
+      private java.lang.Object outputJson_ = "";
+      /**
+       * <code>string output_json = 5;</code>
+       * @return The outputJson.
+       */
+      public java.lang.String getOutputJson() {
+        java.lang.Object ref = outputJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          outputJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string output_json = 5;</code>
+       * @return The bytes for outputJson.
+       */
+      public com.google.protobuf.ByteString
+          getOutputJsonBytes() {
+        java.lang.Object ref = outputJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          outputJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string output_json = 5;</code>
+       * @param value The outputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        outputJson_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string output_json = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputJson() {
+        outputJson_ = getDefaultInstance().getOutputJson();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string output_json = 5;</code>
+       * @param value The bytes for outputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        outputJson_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private int concurrency_ ;
+      /**
+       * <code>uint32 concurrency = 6;</code>
+       * @return The concurrency.
+       */
+      @java.lang.Override
+      public int getConcurrency() {
+        return concurrency_;
+      }
+      /**
+       * <code>uint32 concurrency = 6;</code>
+       * @param value The concurrency to set.
+       * @return This builder for chaining.
+       */
+      public Builder setConcurrency(int value) {
+
+        concurrency_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 concurrency = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearConcurrency() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        concurrency_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.models.WorkflowSpec)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.models.WorkflowSpec)
+    private static final talon.models.Models.WorkflowSpec DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.models.Models.WorkflowSpec();
+    }
+
+    public static talon.models.Models.WorkflowSpec getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowSpec>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowSpec>() {
+      @java.lang.Override
+      public WorkflowSpec parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowSpec> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowSpec> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.models.Models.WorkflowSpec getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface WorkflowOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.models.Workflow)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string name = 1;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <code>string name = 1;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>string ns = 2;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 2;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+
+    /**
+     * <code>.talon.models.WorkflowSpec spec = 3;</code>
+     * @return Whether the spec field is set.
+     */
+    boolean hasSpec();
+    /**
+     * <code>.talon.models.WorkflowSpec spec = 3;</code>
+     * @return The spec.
+     */
+    talon.models.Models.WorkflowSpec getSpec();
+    /**
+     * <code>.talon.models.WorkflowSpec spec = 3;</code>
+     */
+    talon.models.Models.WorkflowSpecOrBuilder getSpecOrBuilder();
+
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    int getLabelsCount();
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    boolean containsLabels(
+        java.lang.String key);
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabels();
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabelsMap();
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    java.lang.String getLabelsOrThrow(
+        java.lang.String key);
+  }
+  /**
+   * Protobuf type {@code talon.models.Workflow}
+   */
+  public static final class Workflow extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.models.Workflow)
+      WorkflowOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Workflow");
+    }
+    // Use Workflow.newBuilder() to construct.
+    private Workflow(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Workflow() {
+      name_ = "";
+      ns_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.models.Models.internal_static_talon_models_Workflow_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.models.Models.internal_static_talon_models_Workflow_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 4:
+          return internalGetLabels();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.models.Models.internal_static_talon_models_Workflow_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.models.Models.Workflow.class, talon.models.Models.Workflow.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int NAME_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <code>string name = 1;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string name = 1;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NS_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 2;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 2;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SPEC_FIELD_NUMBER = 3;
+    private talon.models.Models.WorkflowSpec spec_;
+    /**
+     * <code>.talon.models.WorkflowSpec spec = 3;</code>
+     * @return Whether the spec field is set.
+     */
+    @java.lang.Override
+    public boolean hasSpec() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.models.WorkflowSpec spec = 3;</code>
+     * @return The spec.
+     */
+    @java.lang.Override
+    public talon.models.Models.WorkflowSpec getSpec() {
+      return spec_ == null ? talon.models.Models.WorkflowSpec.getDefaultInstance() : spec_;
+    }
+    /**
+     * <code>.talon.models.WorkflowSpec spec = 3;</code>
+     */
+    @java.lang.Override
+    public talon.models.Models.WorkflowSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.models.Models.WorkflowSpec.getDefaultInstance() : spec_;
+    }
+
+    public static final int LABELS_FIELD_NUMBER = 4;
+    private static final class LabelsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.models.Models.internal_static_talon_models_Workflow_LabelsEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> labels_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetLabels() {
+      if (labels_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            LabelsDefaultEntryHolder.defaultEntry);
+      }
+      return labels_;
+    }
+    public int getLabelsCount() {
+      return internalGetLabels().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    @java.lang.Override
+    public boolean containsLabels(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetLabels().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+      return getLabelsMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+      return internalGetLabels().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 4;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getLabelsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, ns_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(3, getSpec());
+      }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetLabels(),
+          LabelsDefaultEntryHolder.defaultEntry,
+          4);
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, ns_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getSpec());
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetLabels().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(4, labels__);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.models.Models.Workflow)) {
+        return super.equals(obj);
+      }
+      talon.models.Models.Workflow other = (talon.models.Models.Workflow) obj;
+
+      if (!getName()
+          .equals(other.getName())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
+      }
+      if (!internalGetLabels().equals(
+          other.internalGetLabels())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
+      }
+      if (!internalGetLabels().getMap().isEmpty()) {
+        hash = (37 * hash) + LABELS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetLabels().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.models.Models.Workflow parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.Workflow parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.Workflow parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.Workflow parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.Workflow parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.Workflow parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.Workflow parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.Workflow parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.models.Models.Workflow parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.models.Models.Workflow parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.models.Models.Workflow parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.Workflow parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.models.Models.Workflow prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.models.Workflow}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.models.Workflow)
+        talon.models.Models.WorkflowOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.models.Models.internal_static_talon_models_Workflow_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 4:
+            return internalGetLabels();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 4:
+            return internalGetMutableLabels();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.models.Models.internal_static_talon_models_Workflow_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.models.Models.Workflow.class, talon.models.Models.Workflow.Builder.class);
+      }
+
+      // Construct using talon.models.Models.Workflow.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetSpecFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        name_ = "";
+        ns_ = "";
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        internalGetMutableLabels().clear();
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.models.Models.internal_static_talon_models_Workflow_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.Workflow getDefaultInstanceForType() {
+        return talon.models.Models.Workflow.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.models.Models.Workflow build() {
+        talon.models.Models.Workflow result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.Workflow buildPartial() {
+        talon.models.Models.Workflow result = new talon.models.Models.Workflow(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.models.Models.Workflow result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.name_ = name_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.ns_ = ns_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.labels_ = internalGetLabels();
+          result.labels_.makeImmutable();
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.models.Models.Workflow) {
+          return mergeFrom((talon.models.Models.Workflow)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.models.Models.Workflow other) {
+        if (other == talon.models.Models.Workflow.getDefaultInstance()) return this;
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
+        }
+        internalGetMutableLabels().mergeFrom(
+            other.internalGetLabels());
+        bitField0_ |= 0x00000008;
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                labels__ = input.readMessage(
+                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableLabels().getMutableMap().put(
+                    labels__.getKey(), labels__.getValue());
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>string name = 1;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 2;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 2;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 2;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 2;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private talon.models.Models.WorkflowSpec spec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.models.Models.WorkflowSpec, talon.models.Models.WorkflowSpec.Builder, talon.models.Models.WorkflowSpecOrBuilder> specBuilder_;
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       * @return Whether the spec field is set.
+       */
+      public boolean hasSpec() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       * @return The spec.
+       */
+      public talon.models.Models.WorkflowSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.models.Models.WorkflowSpec.getDefaultInstance() : spec_;
+        } else {
+          return specBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       */
+      public Builder setSpec(talon.models.Models.WorkflowSpec value) {
+        if (specBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          spec_ = value;
+        } else {
+          specBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       */
+      public Builder setSpec(
+          talon.models.Models.WorkflowSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
+        } else {
+          specBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       */
+      public Builder mergeSpec(talon.models.Models.WorkflowSpec value) {
+        if (specBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            spec_ != null &&
+            spec_ != talon.models.Models.WorkflowSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
+          } else {
+            spec_ = value;
+          }
+        } else {
+          specBuilder_.mergeFrom(value);
+        }
+        if (spec_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       */
+      public Builder clearSpec() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       */
+      public talon.models.Models.WorkflowSpec.Builder getSpecBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetSpecFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       */
+      public talon.models.Models.WorkflowSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
+        } else {
+          return spec_ == null ?
+              talon.models.Models.WorkflowSpec.getDefaultInstance() : spec_;
+        }
+      }
+      /**
+       * <code>.talon.models.WorkflowSpec spec = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.models.Models.WorkflowSpec, talon.models.Models.WorkflowSpec.Builder, talon.models.Models.WorkflowSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.models.Models.WorkflowSpec, talon.models.Models.WorkflowSpec.Builder, talon.models.Models.WorkflowSpecOrBuilder>(
+                  getSpec(),
+                  getParentForChildren(),
+                  isClean());
+          spec_ = null;
+        }
+        return specBuilder_;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> labels_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetLabels() {
+        if (labels_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        return labels_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableLabels() {
+        if (labels_ == null) {
+          labels_ = com.google.protobuf.MapField.newMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        if (!labels_.isMutable()) {
+          labels_ = labels_.copy();
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return labels_;
+      }
+      public int getLabelsCount() {
+        return internalGetLabels().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 4;</code>
+       */
+      @java.lang.Override
+      public boolean containsLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetLabels().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getLabelsMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+        return getLabelsMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 4;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+        return internalGetLabels().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 4;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getLabelsOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 4;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getLabelsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearLabels() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        internalGetMutableLabels().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 4;</code>
+       */
+      public Builder removeLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableLabels().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableLabels() {
+        bitField0_ |= 0x00000008;
+        return internalGetMutableLabels().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 4;</code>
+       */
+      public Builder putLabels(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableLabels().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 4;</code>
+       */
+      public Builder putAllLabels(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableLabels().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00000008;
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.models.Workflow)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.models.Workflow)
+    private static final talon.models.Models.Workflow DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.models.Models.Workflow();
+    }
+
+    public static talon.models.Models.Workflow getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Workflow>
+        PARSER = new com.google.protobuf.AbstractParser<Workflow>() {
+      @java.lang.Override
+      public Workflow parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Workflow> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Workflow> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.models.Models.Workflow getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface WorkflowRunOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.models.WorkflowRun)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>string workflow = 2;</code>
+     * @return The workflow.
+     */
+    java.lang.String getWorkflow();
+    /**
+     * <code>string workflow = 2;</code>
+     * @return The bytes for workflow.
+     */
+    com.google.protobuf.ByteString
+        getWorkflowBytes();
+
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+
+    /**
+     * <code>string status = 4;</code>
+     * @return The status.
+     */
+    java.lang.String getStatus();
+    /**
+     * <code>string status = 4;</code>
+     * @return The bytes for status.
+     */
+    com.google.protobuf.ByteString
+        getStatusBytes();
+
+    /**
+     * <code>string input_json = 5;</code>
+     * @return The inputJson.
+     */
+    java.lang.String getInputJson();
+    /**
+     * <code>string input_json = 5;</code>
+     * @return The bytes for inputJson.
+     */
+    com.google.protobuf.ByteString
+        getInputJsonBytes();
+
+    /**
+     * <code>string state_json = 6;</code>
+     * @return The stateJson.
+     */
+    java.lang.String getStateJson();
+    /**
+     * <code>string state_json = 6;</code>
+     * @return The bytes for stateJson.
+     */
+    com.google.protobuf.ByteString
+        getStateJsonBytes();
+
+    /**
+     * <code>string output_json = 7;</code>
+     * @return The outputJson.
+     */
+    java.lang.String getOutputJson();
+    /**
+     * <code>string output_json = 7;</code>
+     * @return The bytes for outputJson.
+     */
+    com.google.protobuf.ByteString
+        getOutputJsonBytes();
+
+    /**
+     * <code>int64 created_at = 8;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+
+    /**
+     * <code>int64 updated_at = 9;</code>
+     * @return The updatedAt.
+     */
+    long getUpdatedAt();
+
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    int getLabelsCount();
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    boolean containsLabels(
+        java.lang.String key);
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Deprecated
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabels();
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    java.util.Map<java.lang.String, java.lang.String>
+    getLabelsMap();
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue);
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    java.lang.String getLabelsOrThrow(
+        java.lang.String key);
+
+    /**
+     * <code>optional int64 claim_expires_at = 11;</code>
+     * @return Whether the claimExpiresAt field is set.
+     */
+    boolean hasClaimExpiresAt();
+    /**
+     * <code>optional int64 claim_expires_at = 11;</code>
+     * @return The claimExpiresAt.
+     */
+    long getClaimExpiresAt();
+
+    /**
+     * <code>string error = 12;</code>
+     * @return The error.
+     */
+    java.lang.String getError();
+    /**
+     * <code>string error = 12;</code>
+     * @return The bytes for error.
+     */
+    com.google.protobuf.ByteString
+        getErrorBytes();
+
+    /**
+     * <code>string spec_json = 13;</code>
+     * @return The specJson.
+     */
+    java.lang.String getSpecJson();
+    /**
+     * <code>string spec_json = 13;</code>
+     * @return The bytes for specJson.
+     */
+    com.google.protobuf.ByteString
+        getSpecJsonBytes();
+
+    /**
+     * <code>uint64 workflow_revision = 14;</code>
+     * @return The workflowRevision.
+     */
+    long getWorkflowRevision();
+
+    /**
+     * <code>string claim_owner = 15;</code>
+     * @return The claimOwner.
+     */
+    java.lang.String getClaimOwner();
+    /**
+     * <code>string claim_owner = 15;</code>
+     * @return The bytes for claimOwner.
+     */
+    com.google.protobuf.ByteString
+        getClaimOwnerBytes();
+
+    /**
+     * <code>uint32 claim_attempt = 16;</code>
+     * @return The claimAttempt.
+     */
+    int getClaimAttempt();
+
+    /**
+     * <code>string last_dispatch_reason = 17;</code>
+     * @return The lastDispatchReason.
+     */
+    java.lang.String getLastDispatchReason();
+    /**
+     * <code>string last_dispatch_reason = 17;</code>
+     * @return The bytes for lastDispatchReason.
+     */
+    com.google.protobuf.ByteString
+        getLastDispatchReasonBytes();
+  }
+  /**
+   * Protobuf type {@code talon.models.WorkflowRun}
+   */
+  public static final class WorkflowRun extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.models.WorkflowRun)
+      WorkflowRunOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowRun");
+    }
+    // Use WorkflowRun.newBuilder() to construct.
+    private WorkflowRun(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowRun() {
+      id_ = "";
+      workflow_ = "";
+      ns_ = "";
+      status_ = "";
+      inputJson_ = "";
+      stateJson_ = "";
+      outputJson_ = "";
+      error_ = "";
+      specJson_ = "";
+      claimOwner_ = "";
+      lastDispatchReason_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.models.Models.internal_static_talon_models_WorkflowRun_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.models.Models.internal_static_talon_models_WorkflowRun_descriptor;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    @java.lang.Override
+    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+        int number) {
+      switch (number) {
+        case 10:
+          return internalGetLabels();
+        default:
+          throw new RuntimeException(
+              "Invalid map field number: " + number);
+      }
+    }
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.models.Models.internal_static_talon_models_WorkflowRun_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.models.Models.WorkflowRun.class, talon.models.Models.WorkflowRun.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int WORKFLOW_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object workflow_ = "";
+    /**
+     * <code>string workflow = 2;</code>
+     * @return The workflow.
+     */
+    @java.lang.Override
+    public java.lang.String getWorkflow() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        workflow_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string workflow = 2;</code>
+     * @return The bytes for workflow.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWorkflowBytes() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        workflow_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NS_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 3;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 3;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STATUS_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object status_ = "";
+    /**
+     * <code>string status = 4;</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public java.lang.String getStatus() {
+      java.lang.Object ref = status_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        status_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string status = 4;</code>
+     * @return The bytes for status.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getStatusBytes() {
+      java.lang.Object ref = status_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        status_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int INPUT_JSON_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object inputJson_ = "";
+    /**
+     * <code>string input_json = 5;</code>
+     * @return The inputJson.
+     */
+    @java.lang.Override
+    public java.lang.String getInputJson() {
+      java.lang.Object ref = inputJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        inputJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string input_json = 5;</code>
+     * @return The bytes for inputJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getInputJsonBytes() {
+      java.lang.Object ref = inputJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        inputJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STATE_JSON_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object stateJson_ = "";
+    /**
+     * <code>string state_json = 6;</code>
+     * @return The stateJson.
+     */
+    @java.lang.Override
+    public java.lang.String getStateJson() {
+      java.lang.Object ref = stateJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        stateJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string state_json = 6;</code>
+     * @return The bytes for stateJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getStateJsonBytes() {
+      java.lang.Object ref = stateJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        stateJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OUTPUT_JSON_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object outputJson_ = "";
+    /**
+     * <code>string output_json = 7;</code>
+     * @return The outputJson.
+     */
+    @java.lang.Override
+    public java.lang.String getOutputJson() {
+      java.lang.Object ref = outputJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        outputJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string output_json = 7;</code>
+     * @return The bytes for outputJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOutputJsonBytes() {
+      java.lang.Object ref = outputJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        outputJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 8;
+    private long createdAt_ = 0L;
+    /**
+     * <code>int64 created_at = 8;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    public static final int UPDATED_AT_FIELD_NUMBER = 9;
+    private long updatedAt_ = 0L;
+    /**
+     * <code>int64 updated_at = 9;</code>
+     * @return The updatedAt.
+     */
+    @java.lang.Override
+    public long getUpdatedAt() {
+      return updatedAt_;
+    }
+
+    public static final int LABELS_FIELD_NUMBER = 10;
+    private static final class LabelsDefaultEntryHolder {
+      static final com.google.protobuf.MapEntry<
+          java.lang.String, java.lang.String> defaultEntry =
+              com.google.protobuf.MapEntry
+              .<java.lang.String, java.lang.String>newDefaultInstance(
+                  talon.models.Models.internal_static_talon_models_WorkflowRun_LabelsEntry_descriptor,
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "",
+                  com.google.protobuf.WireFormat.FieldType.STRING,
+                  "");
+    }
+    @SuppressWarnings("serial")
+    private com.google.protobuf.MapField<
+        java.lang.String, java.lang.String> labels_;
+    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+    internalGetLabels() {
+      if (labels_ == null) {
+        return com.google.protobuf.MapField.emptyMapField(
+            LabelsDefaultEntryHolder.defaultEntry);
+      }
+      return labels_;
+    }
+    public int getLabelsCount() {
+      return internalGetLabels().getMap().size();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    @java.lang.Override
+    public boolean containsLabels(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetLabels().getMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getLabelsMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+      return getLabelsMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+      return internalGetLabels().getMap();
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+java.lang.String getLabelsOrDefault(
+        java.lang.String key,
+        /* nullable */
+java.lang.String defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      return map.containsKey(key) ? map.get(key) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, string&gt; labels = 10;</code>
+     */
+    @java.lang.Override
+    public java.lang.String getLabelsOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, java.lang.String> map =
+          internalGetLabels().getMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return map.get(key);
+    }
+
+    public static final int CLAIM_EXPIRES_AT_FIELD_NUMBER = 11;
+    private long claimExpiresAt_ = 0L;
+    /**
+     * <code>optional int64 claim_expires_at = 11;</code>
+     * @return Whether the claimExpiresAt field is set.
+     */
+    @java.lang.Override
+    public boolean hasClaimExpiresAt() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional int64 claim_expires_at = 11;</code>
+     * @return The claimExpiresAt.
+     */
+    @java.lang.Override
+    public long getClaimExpiresAt() {
+      return claimExpiresAt_;
+    }
+
+    public static final int ERROR_FIELD_NUMBER = 12;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object error_ = "";
+    /**
+     * <code>string error = 12;</code>
+     * @return The error.
+     */
+    @java.lang.Override
+    public java.lang.String getError() {
+      java.lang.Object ref = error_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        error_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string error = 12;</code>
+     * @return The bytes for error.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getErrorBytes() {
+      java.lang.Object ref = error_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        error_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SPEC_JSON_FIELD_NUMBER = 13;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object specJson_ = "";
+    /**
+     * <code>string spec_json = 13;</code>
+     * @return The specJson.
+     */
+    @java.lang.Override
+    public java.lang.String getSpecJson() {
+      java.lang.Object ref = specJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        specJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string spec_json = 13;</code>
+     * @return The bytes for specJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSpecJsonBytes() {
+      java.lang.Object ref = specJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        specJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int WORKFLOW_REVISION_FIELD_NUMBER = 14;
+    private long workflowRevision_ = 0L;
+    /**
+     * <code>uint64 workflow_revision = 14;</code>
+     * @return The workflowRevision.
+     */
+    @java.lang.Override
+    public long getWorkflowRevision() {
+      return workflowRevision_;
+    }
+
+    public static final int CLAIM_OWNER_FIELD_NUMBER = 15;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object claimOwner_ = "";
+    /**
+     * <code>string claim_owner = 15;</code>
+     * @return The claimOwner.
+     */
+    @java.lang.Override
+    public java.lang.String getClaimOwner() {
+      java.lang.Object ref = claimOwner_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        claimOwner_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string claim_owner = 15;</code>
+     * @return The bytes for claimOwner.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getClaimOwnerBytes() {
+      java.lang.Object ref = claimOwner_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        claimOwner_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CLAIM_ATTEMPT_FIELD_NUMBER = 16;
+    private int claimAttempt_ = 0;
+    /**
+     * <code>uint32 claim_attempt = 16;</code>
+     * @return The claimAttempt.
+     */
+    @java.lang.Override
+    public int getClaimAttempt() {
+      return claimAttempt_;
+    }
+
+    public static final int LAST_DISPATCH_REASON_FIELD_NUMBER = 17;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object lastDispatchReason_ = "";
+    /**
+     * <code>string last_dispatch_reason = 17;</code>
+     * @return The lastDispatchReason.
+     */
+    @java.lang.Override
+    public java.lang.String getLastDispatchReason() {
+      java.lang.Object ref = lastDispatchReason_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        lastDispatchReason_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string last_dispatch_reason = 17;</code>
+     * @return The bytes for lastDispatchReason.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getLastDispatchReasonBytes() {
+      java.lang.Object ref = lastDispatchReason_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        lastDispatchReason_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, workflow_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(status_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, status_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, inputJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(stateJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, stateJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outputJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, outputJson_);
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(8, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        output.writeInt64(9, updatedAt_);
+      }
+      com.google.protobuf.GeneratedMessage
+        .serializeStringMapTo(
+          output,
+          internalGetLabels(),
+          LabelsDefaultEntryHolder.defaultEntry,
+          10);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeInt64(11, claimExpiresAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(error_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 12, error_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(specJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 13, specJson_);
+      }
+      if (workflowRevision_ != 0L) {
+        output.writeUInt64(14, workflowRevision_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(claimOwner_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 15, claimOwner_);
+      }
+      if (claimAttempt_ != 0) {
+        output.writeUInt32(16, claimAttempt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(lastDispatchReason_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 17, lastDispatchReason_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, workflow_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(status_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, status_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, inputJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(stateJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, stateJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outputJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, outputJson_);
+      }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(8, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(9, updatedAt_);
+      }
+      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
+           : internalGetLabels().getMap().entrySet()) {
+        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .buildPartial();
+        size += com.google.protobuf.CodedOutputStream
+            .computeMessageSize(10, labels__);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(11, claimExpiresAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(error_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(12, error_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(specJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(13, specJson_);
+      }
+      if (workflowRevision_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(14, workflowRevision_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(claimOwner_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(15, claimOwner_);
+      }
+      if (claimAttempt_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(16, claimAttempt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(lastDispatchReason_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(17, lastDispatchReason_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.models.Models.WorkflowRun)) {
+        return super.equals(obj);
+      }
+      talon.models.Models.WorkflowRun other = (talon.models.Models.WorkflowRun) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getWorkflow()
+          .equals(other.getWorkflow())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getStatus()
+          .equals(other.getStatus())) return false;
+      if (!getInputJson()
+          .equals(other.getInputJson())) return false;
+      if (!getStateJson()
+          .equals(other.getStateJson())) return false;
+      if (!getOutputJson()
+          .equals(other.getOutputJson())) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (getUpdatedAt()
+          != other.getUpdatedAt()) return false;
+      if (!internalGetLabels().equals(
+          other.internalGetLabels())) return false;
+      if (hasClaimExpiresAt() != other.hasClaimExpiresAt()) return false;
+      if (hasClaimExpiresAt()) {
+        if (getClaimExpiresAt()
+            != other.getClaimExpiresAt()) return false;
+      }
+      if (!getError()
+          .equals(other.getError())) return false;
+      if (!getSpecJson()
+          .equals(other.getSpecJson())) return false;
+      if (getWorkflowRevision()
+          != other.getWorkflowRevision()) return false;
+      if (!getClaimOwner()
+          .equals(other.getClaimOwner())) return false;
+      if (getClaimAttempt()
+          != other.getClaimAttempt()) return false;
+      if (!getLastDispatchReason()
+          .equals(other.getLastDispatchReason())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkflow().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + STATUS_FIELD_NUMBER;
+      hash = (53 * hash) + getStatus().hashCode();
+      hash = (37 * hash) + INPUT_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getInputJson().hashCode();
+      hash = (37 * hash) + STATE_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getStateJson().hashCode();
+      hash = (37 * hash) + OUTPUT_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getOutputJson().hashCode();
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getUpdatedAt());
+      if (!internalGetLabels().getMap().isEmpty()) {
+        hash = (37 * hash) + LABELS_FIELD_NUMBER;
+        hash = (53 * hash) + internalGetLabels().hashCode();
+      }
+      if (hasClaimExpiresAt()) {
+        hash = (37 * hash) + CLAIM_EXPIRES_AT_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getClaimExpiresAt());
+      }
+      hash = (37 * hash) + ERROR_FIELD_NUMBER;
+      hash = (53 * hash) + getError().hashCode();
+      hash = (37 * hash) + SPEC_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getSpecJson().hashCode();
+      hash = (37 * hash) + WORKFLOW_REVISION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getWorkflowRevision());
+      hash = (37 * hash) + CLAIM_OWNER_FIELD_NUMBER;
+      hash = (53 * hash) + getClaimOwner().hashCode();
+      hash = (37 * hash) + CLAIM_ATTEMPT_FIELD_NUMBER;
+      hash = (53 * hash) + getClaimAttempt();
+      hash = (37 * hash) + LAST_DISPATCH_REASON_FIELD_NUMBER;
+      hash = (53 * hash) + getLastDispatchReason().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.models.Models.WorkflowRun parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.models.Models.WorkflowRun parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.models.Models.WorkflowRun parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowRun parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.models.Models.WorkflowRun prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.models.WorkflowRun}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.models.WorkflowRun)
+        talon.models.Models.WorkflowRunOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.models.Models.internal_static_talon_models_WorkflowRun_descriptor;
+      }
+
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 10:
+            return internalGetLabels();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @SuppressWarnings({"rawtypes"})
+      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
+          int number) {
+        switch (number) {
+          case 10:
+            return internalGetMutableLabels();
+          default:
+            throw new RuntimeException(
+                "Invalid map field number: " + number);
+        }
+      }
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.models.Models.internal_static_talon_models_WorkflowRun_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.models.Models.WorkflowRun.class, talon.models.Models.WorkflowRun.Builder.class);
+      }
+
+      // Construct using talon.models.Models.WorkflowRun.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        workflow_ = "";
+        ns_ = "";
+        status_ = "";
+        inputJson_ = "";
+        stateJson_ = "";
+        outputJson_ = "";
+        createdAt_ = 0L;
+        updatedAt_ = 0L;
+        internalGetMutableLabels().clear();
+        claimExpiresAt_ = 0L;
+        error_ = "";
+        specJson_ = "";
+        workflowRevision_ = 0L;
+        claimOwner_ = "";
+        claimAttempt_ = 0;
+        lastDispatchReason_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.models.Models.internal_static_talon_models_WorkflowRun_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowRun getDefaultInstanceForType() {
+        return talon.models.Models.WorkflowRun.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowRun build() {
+        talon.models.Models.WorkflowRun result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowRun buildPartial() {
+        talon.models.Models.WorkflowRun result = new talon.models.Models.WorkflowRun(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.models.Models.WorkflowRun result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.workflow_ = workflow_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.ns_ = ns_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.status_ = status_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.inputJson_ = inputJson_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.stateJson_ = stateJson_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.outputJson_ = outputJson_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.updatedAt_ = updatedAt_;
+        }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.labels_ = internalGetLabels();
+          result.labels_.makeImmutable();
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000400) != 0)) {
+          result.claimExpiresAt_ = claimExpiresAt_;
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000800) != 0)) {
+          result.error_ = error_;
+        }
+        if (((from_bitField0_ & 0x00001000) != 0)) {
+          result.specJson_ = specJson_;
+        }
+        if (((from_bitField0_ & 0x00002000) != 0)) {
+          result.workflowRevision_ = workflowRevision_;
+        }
+        if (((from_bitField0_ & 0x00004000) != 0)) {
+          result.claimOwner_ = claimOwner_;
+        }
+        if (((from_bitField0_ & 0x00008000) != 0)) {
+          result.claimAttempt_ = claimAttempt_;
+        }
+        if (((from_bitField0_ & 0x00010000) != 0)) {
+          result.lastDispatchReason_ = lastDispatchReason_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.models.Models.WorkflowRun) {
+          return mergeFrom((talon.models.Models.WorkflowRun)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.models.Models.WorkflowRun other) {
+        if (other == talon.models.Models.WorkflowRun.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getWorkflow().isEmpty()) {
+          workflow_ = other.workflow_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getStatus().isEmpty()) {
+          status_ = other.status_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getInputJson().isEmpty()) {
+          inputJson_ = other.inputJson_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.getStateJson().isEmpty()) {
+          stateJson_ = other.stateJson_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (!other.getOutputJson().isEmpty()) {
+          outputJson_ = other.outputJson_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        if (other.getUpdatedAt() != 0L) {
+          setUpdatedAt(other.getUpdatedAt());
+        }
+        internalGetMutableLabels().mergeFrom(
+            other.internalGetLabels());
+        bitField0_ |= 0x00000200;
+        if (other.hasClaimExpiresAt()) {
+          setClaimExpiresAt(other.getClaimExpiresAt());
+        }
+        if (!other.getError().isEmpty()) {
+          error_ = other.error_;
+          bitField0_ |= 0x00000800;
+          onChanged();
+        }
+        if (!other.getSpecJson().isEmpty()) {
+          specJson_ = other.specJson_;
+          bitField0_ |= 0x00001000;
+          onChanged();
+        }
+        if (other.getWorkflowRevision() != 0L) {
+          setWorkflowRevision(other.getWorkflowRevision());
+        }
+        if (!other.getClaimOwner().isEmpty()) {
+          claimOwner_ = other.claimOwner_;
+          bitField0_ |= 0x00004000;
+          onChanged();
+        }
+        if (other.getClaimAttempt() != 0) {
+          setClaimAttempt(other.getClaimAttempt());
+        }
+        if (!other.getLastDispatchReason().isEmpty()) {
+          lastDispatchReason_ = other.lastDispatchReason_;
+          bitField0_ |= 0x00010000;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                workflow_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                status_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                inputJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                stateJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 58: {
+                outputJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              case 64: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 64
+              case 72: {
+                updatedAt_ = input.readInt64();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 72
+              case 82: {
+                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
+                labels__ = input.readMessage(
+                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+                internalGetMutableLabels().getMutableMap().put(
+                    labels__.getKey(), labels__.getValue());
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 82
+              case 88: {
+                claimExpiresAt_ = input.readInt64();
+                bitField0_ |= 0x00000400;
+                break;
+              } // case 88
+              case 98: {
+                error_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000800;
+                break;
+              } // case 98
+              case 106: {
+                specJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00001000;
+                break;
+              } // case 106
+              case 112: {
+                workflowRevision_ = input.readUInt64();
+                bitField0_ |= 0x00002000;
+                break;
+              } // case 112
+              case 122: {
+                claimOwner_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00004000;
+                break;
+              } // case 122
+              case 128: {
+                claimAttempt_ = input.readUInt32();
+                bitField0_ |= 0x00008000;
+                break;
+              } // case 128
+              case 138: {
+                lastDispatchReason_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00010000;
+                break;
+              } // case 138
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object workflow_ = "";
+      /**
+       * <code>string workflow = 2;</code>
+       * @return The workflow.
+       */
+      public java.lang.String getWorkflow() {
+        java.lang.Object ref = workflow_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          workflow_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 2;</code>
+       * @return The bytes for workflow.
+       */
+      public com.google.protobuf.ByteString
+          getWorkflowBytes() {
+        java.lang.Object ref = workflow_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          workflow_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 2;</code>
+       * @param value The workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflow(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        workflow_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWorkflow() {
+        workflow_ = getDefaultInstance().getWorkflow();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 2;</code>
+       * @param value The bytes for workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflowBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        workflow_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 3;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 3;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object status_ = "";
+      /**
+       * <code>string status = 4;</code>
+       * @return The status.
+       */
+      public java.lang.String getStatus() {
+        java.lang.Object ref = status_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          status_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string status = 4;</code>
+       * @return The bytes for status.
+       */
+      public com.google.protobuf.ByteString
+          getStatusBytes() {
+        java.lang.Object ref = status_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          status_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string status = 4;</code>
+       * @param value The status to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStatus(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        status_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string status = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStatus() {
+        status_ = getDefaultInstance().getStatus();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string status = 4;</code>
+       * @param value The bytes for status to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStatusBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        status_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object inputJson_ = "";
+      /**
+       * <code>string input_json = 5;</code>
+       * @return The inputJson.
+       */
+      public java.lang.String getInputJson() {
+        java.lang.Object ref = inputJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          inputJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string input_json = 5;</code>
+       * @return The bytes for inputJson.
+       */
+      public com.google.protobuf.ByteString
+          getInputJsonBytes() {
+        java.lang.Object ref = inputJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          inputJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string input_json = 5;</code>
+       * @param value The inputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        inputJson_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_json = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputJson() {
+        inputJson_ = getDefaultInstance().getInputJson();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_json = 5;</code>
+       * @param value The bytes for inputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        inputJson_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object stateJson_ = "";
+      /**
+       * <code>string state_json = 6;</code>
+       * @return The stateJson.
+       */
+      public java.lang.String getStateJson() {
+        java.lang.Object ref = stateJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          stateJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string state_json = 6;</code>
+       * @return The bytes for stateJson.
+       */
+      public com.google.protobuf.ByteString
+          getStateJsonBytes() {
+        java.lang.Object ref = stateJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          stateJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string state_json = 6;</code>
+       * @param value The stateJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStateJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        stateJson_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string state_json = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStateJson() {
+        stateJson_ = getDefaultInstance().getStateJson();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string state_json = 6;</code>
+       * @param value The bytes for stateJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStateJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        stateJson_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object outputJson_ = "";
+      /**
+       * <code>string output_json = 7;</code>
+       * @return The outputJson.
+       */
+      public java.lang.String getOutputJson() {
+        java.lang.Object ref = outputJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          outputJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string output_json = 7;</code>
+       * @return The bytes for outputJson.
+       */
+      public com.google.protobuf.ByteString
+          getOutputJsonBytes() {
+        java.lang.Object ref = outputJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          outputJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string output_json = 7;</code>
+       * @param value The outputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        outputJson_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string output_json = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputJson() {
+        outputJson_ = getDefaultInstance().getOutputJson();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string output_json = 7;</code>
+       * @param value The bytes for outputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        outputJson_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <code>int64 created_at = 8;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <code>int64 created_at = 8;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 created_at = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long updatedAt_ ;
+      /**
+       * <code>int64 updated_at = 9;</code>
+       * @return The updatedAt.
+       */
+      @java.lang.Override
+      public long getUpdatedAt() {
+        return updatedAt_;
+      }
+      /**
+       * <code>int64 updated_at = 9;</code>
+       * @param value The updatedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdatedAt(long value) {
+
+        updatedAt_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 updated_at = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        updatedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.MapField<
+          java.lang.String, java.lang.String> labels_;
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetLabels() {
+        if (labels_ == null) {
+          return com.google.protobuf.MapField.emptyMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        return labels_;
+      }
+      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
+          internalGetMutableLabels() {
+        if (labels_ == null) {
+          labels_ = com.google.protobuf.MapField.newMapField(
+              LabelsDefaultEntryHolder.defaultEntry);
+        }
+        if (!labels_.isMutable()) {
+          labels_ = labels_.copy();
+        }
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return labels_;
+      }
+      public int getLabelsCount() {
+        return internalGetLabels().getMap().size();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 10;</code>
+       */
+      @java.lang.Override
+      public boolean containsLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        return internalGetLabels().getMap().containsKey(key);
+      }
+      /**
+       * Use {@link #getLabelsMap()} instead.
+       */
+      @java.lang.Override
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
+        return getLabelsMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 10;</code>
+       */
+      @java.lang.Override
+      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
+        return internalGetLabels().getMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 10;</code>
+       */
+      @java.lang.Override
+      public /* nullable */
+java.lang.String getLabelsOrDefault(
+          java.lang.String key,
+          /* nullable */
+java.lang.String defaultValue) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        return map.containsKey(key) ? map.get(key) : defaultValue;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 10;</code>
+       */
+      @java.lang.Override
+      public java.lang.String getLabelsOrThrow(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        java.util.Map<java.lang.String, java.lang.String> map =
+            internalGetLabels().getMap();
+        if (!map.containsKey(key)) {
+          throw new java.lang.IllegalArgumentException();
+        }
+        return map.get(key);
+      }
+      public Builder clearLabels() {
+        bitField0_ = (bitField0_ & ~0x00000200);
+        internalGetMutableLabels().getMutableMap()
+            .clear();
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 10;</code>
+       */
+      public Builder removeLabels(
+          java.lang.String key) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        internalGetMutableLabels().getMutableMap()
+            .remove(key);
+        return this;
+      }
+      /**
+       * Use alternate mutation accessors instead.
+       */
+      @java.lang.Deprecated
+      public java.util.Map<java.lang.String, java.lang.String>
+          getMutableLabels() {
+        bitField0_ |= 0x00000200;
+        return internalGetMutableLabels().getMutableMap();
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 10;</code>
+       */
+      public Builder putLabels(
+          java.lang.String key,
+          java.lang.String value) {
+        if (key == null) { throw new NullPointerException("map key"); }
+        if (value == null) { throw new NullPointerException("map value"); }
+        internalGetMutableLabels().getMutableMap()
+            .put(key, value);
+        bitField0_ |= 0x00000200;
+        return this;
+      }
+      /**
+       * <code>map&lt;string, string&gt; labels = 10;</code>
+       */
+      public Builder putAllLabels(
+          java.util.Map<java.lang.String, java.lang.String> values) {
+        internalGetMutableLabels().getMutableMap()
+            .putAll(values);
+        bitField0_ |= 0x00000200;
+        return this;
+      }
+
+      private long claimExpiresAt_ ;
+      /**
+       * <code>optional int64 claim_expires_at = 11;</code>
+       * @return Whether the claimExpiresAt field is set.
+       */
+      @java.lang.Override
+      public boolean hasClaimExpiresAt() {
+        return ((bitField0_ & 0x00000400) != 0);
+      }
+      /**
+       * <code>optional int64 claim_expires_at = 11;</code>
+       * @return The claimExpiresAt.
+       */
+      @java.lang.Override
+      public long getClaimExpiresAt() {
+        return claimExpiresAt_;
+      }
+      /**
+       * <code>optional int64 claim_expires_at = 11;</code>
+       * @param value The claimExpiresAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClaimExpiresAt(long value) {
+
+        claimExpiresAt_ = value;
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 claim_expires_at = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearClaimExpiresAt() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        claimExpiresAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object error_ = "";
+      /**
+       * <code>string error = 12;</code>
+       * @return The error.
+       */
+      public java.lang.String getError() {
+        java.lang.Object ref = error_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          error_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string error = 12;</code>
+       * @return The bytes for error.
+       */
+      public com.google.protobuf.ByteString
+          getErrorBytes() {
+        java.lang.Object ref = error_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          error_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string error = 12;</code>
+       * @param value The error to set.
+       * @return This builder for chaining.
+       */
+      public Builder setError(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        error_ = value;
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string error = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearError() {
+        error_ = getDefaultInstance().getError();
+        bitField0_ = (bitField0_ & ~0x00000800);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string error = 12;</code>
+       * @param value The bytes for error to set.
+       * @return This builder for chaining.
+       */
+      public Builder setErrorBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        error_ = value;
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object specJson_ = "";
+      /**
+       * <code>string spec_json = 13;</code>
+       * @return The specJson.
+       */
+      public java.lang.String getSpecJson() {
+        java.lang.Object ref = specJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          specJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string spec_json = 13;</code>
+       * @return The bytes for specJson.
+       */
+      public com.google.protobuf.ByteString
+          getSpecJsonBytes() {
+        java.lang.Object ref = specJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          specJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string spec_json = 13;</code>
+       * @param value The specJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSpecJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        specJson_ = value;
+        bitField0_ |= 0x00001000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string spec_json = 13;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSpecJson() {
+        specJson_ = getDefaultInstance().getSpecJson();
+        bitField0_ = (bitField0_ & ~0x00001000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string spec_json = 13;</code>
+       * @param value The bytes for specJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSpecJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        specJson_ = value;
+        bitField0_ |= 0x00001000;
+        onChanged();
+        return this;
+      }
+
+      private long workflowRevision_ ;
+      /**
+       * <code>uint64 workflow_revision = 14;</code>
+       * @return The workflowRevision.
+       */
+      @java.lang.Override
+      public long getWorkflowRevision() {
+        return workflowRevision_;
+      }
+      /**
+       * <code>uint64 workflow_revision = 14;</code>
+       * @param value The workflowRevision to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflowRevision(long value) {
+
+        workflowRevision_ = value;
+        bitField0_ |= 0x00002000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 workflow_revision = 14;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWorkflowRevision() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        workflowRevision_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object claimOwner_ = "";
+      /**
+       * <code>string claim_owner = 15;</code>
+       * @return The claimOwner.
+       */
+      public java.lang.String getClaimOwner() {
+        java.lang.Object ref = claimOwner_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          claimOwner_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string claim_owner = 15;</code>
+       * @return The bytes for claimOwner.
+       */
+      public com.google.protobuf.ByteString
+          getClaimOwnerBytes() {
+        java.lang.Object ref = claimOwner_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          claimOwner_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string claim_owner = 15;</code>
+       * @param value The claimOwner to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClaimOwner(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        claimOwner_ = value;
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string claim_owner = 15;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearClaimOwner() {
+        claimOwner_ = getDefaultInstance().getClaimOwner();
+        bitField0_ = (bitField0_ & ~0x00004000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string claim_owner = 15;</code>
+       * @param value The bytes for claimOwner to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClaimOwnerBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        claimOwner_ = value;
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return this;
+      }
+
+      private int claimAttempt_ ;
+      /**
+       * <code>uint32 claim_attempt = 16;</code>
+       * @return The claimAttempt.
+       */
+      @java.lang.Override
+      public int getClaimAttempt() {
+        return claimAttempt_;
+      }
+      /**
+       * <code>uint32 claim_attempt = 16;</code>
+       * @param value The claimAttempt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setClaimAttempt(int value) {
+
+        claimAttempt_ = value;
+        bitField0_ |= 0x00008000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 claim_attempt = 16;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearClaimAttempt() {
+        bitField0_ = (bitField0_ & ~0x00008000);
+        claimAttempt_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object lastDispatchReason_ = "";
+      /**
+       * <code>string last_dispatch_reason = 17;</code>
+       * @return The lastDispatchReason.
+       */
+      public java.lang.String getLastDispatchReason() {
+        java.lang.Object ref = lastDispatchReason_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          lastDispatchReason_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string last_dispatch_reason = 17;</code>
+       * @return The bytes for lastDispatchReason.
+       */
+      public com.google.protobuf.ByteString
+          getLastDispatchReasonBytes() {
+        java.lang.Object ref = lastDispatchReason_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          lastDispatchReason_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string last_dispatch_reason = 17;</code>
+       * @param value The lastDispatchReason to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLastDispatchReason(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        lastDispatchReason_ = value;
+        bitField0_ |= 0x00010000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string last_dispatch_reason = 17;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearLastDispatchReason() {
+        lastDispatchReason_ = getDefaultInstance().getLastDispatchReason();
+        bitField0_ = (bitField0_ & ~0x00010000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string last_dispatch_reason = 17;</code>
+       * @param value The bytes for lastDispatchReason to set.
+       * @return This builder for chaining.
+       */
+      public Builder setLastDispatchReasonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        lastDispatchReason_ = value;
+        bitField0_ |= 0x00010000;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.models.WorkflowRun)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.models.WorkflowRun)
+    private static final talon.models.Models.WorkflowRun DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.models.Models.WorkflowRun();
+    }
+
+    public static talon.models.Models.WorkflowRun getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowRun>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowRun>() {
+      @java.lang.Override
+      public WorkflowRun parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowRun> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowRun> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.models.Models.WorkflowRun getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface WorkflowStepRunOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.models.WorkflowStepRun)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>string step_id = 2;</code>
+     * @return The stepId.
+     */
+    java.lang.String getStepId();
+    /**
+     * <code>string step_id = 2;</code>
+     * @return The bytes for stepId.
+     */
+    com.google.protobuf.ByteString
+        getStepIdBytes();
+
+    /**
+     * <code>uint32 attempt = 3;</code>
+     * @return The attempt.
+     */
+    int getAttempt();
+
+    /**
+     * <code>string status = 4;</code>
+     * @return The status.
+     */
+    java.lang.String getStatus();
+    /**
+     * <code>string status = 4;</code>
+     * @return The bytes for status.
+     */
+    com.google.protobuf.ByteString
+        getStatusBytes();
+
+    /**
+     * <code>string input_json = 5;</code>
+     * @return The inputJson.
+     */
+    java.lang.String getInputJson();
+    /**
+     * <code>string input_json = 5;</code>
+     * @return The bytes for inputJson.
+     */
+    com.google.protobuf.ByteString
+        getInputJsonBytes();
+
+    /**
+     * <code>string output_json = 6;</code>
+     * @return The outputJson.
+     */
+    java.lang.String getOutputJson();
+    /**
+     * <code>string output_json = 6;</code>
+     * @return The bytes for outputJson.
+     */
+    com.google.protobuf.ByteString
+        getOutputJsonBytes();
+
+    /**
+     * <code>string error = 7;</code>
+     * @return The error.
+     */
+    java.lang.String getError();
+    /**
+     * <code>string error = 7;</code>
+     * @return The bytes for error.
+     */
+    com.google.protobuf.ByteString
+        getErrorBytes();
+
+    /**
+     * <code>string child_session_id = 8;</code>
+     * @return The childSessionId.
+     */
+    java.lang.String getChildSessionId();
+    /**
+     * <code>string child_session_id = 8;</code>
+     * @return The bytes for childSessionId.
+     */
+    com.google.protobuf.ByteString
+        getChildSessionIdBytes();
+
+    /**
+     * <code>string child_workflow_run_id = 9;</code>
+     * @return The childWorkflowRunId.
+     */
+    java.lang.String getChildWorkflowRunId();
+    /**
+     * <code>string child_workflow_run_id = 9;</code>
+     * @return The bytes for childWorkflowRunId.
+     */
+    com.google.protobuf.ByteString
+        getChildWorkflowRunIdBytes();
+
+    /**
+     * <code>string resume_json = 10;</code>
+     * @return The resumeJson.
+     */
+    java.lang.String getResumeJson();
+    /**
+     * <code>string resume_json = 10;</code>
+     * @return The bytes for resumeJson.
+     */
+    com.google.protobuf.ByteString
+        getResumeJsonBytes();
+
+    /**
+     * <code>string suspend_json = 11;</code>
+     * @return The suspendJson.
+     */
+    java.lang.String getSuspendJson();
+    /**
+     * <code>string suspend_json = 11;</code>
+     * @return The bytes for suspendJson.
+     */
+    com.google.protobuf.ByteString
+        getSuspendJsonBytes();
+
+    /**
+     * <code>int64 created_at = 12;</code>
+     * @return The createdAt.
+     */
+    long getCreatedAt();
+
+    /**
+     * <code>int64 updated_at = 13;</code>
+     * @return The updatedAt.
+     */
+    long getUpdatedAt();
+
+    /**
+     * <code>optional int64 next_retry_at = 14;</code>
+     * @return Whether the nextRetryAt field is set.
+     */
+    boolean hasNextRetryAt();
+    /**
+     * <code>optional int64 next_retry_at = 14;</code>
+     * @return The nextRetryAt.
+     */
+    long getNextRetryAt();
+
+    /**
+     * <code>optional int64 timeout_at = 15;</code>
+     * @return Whether the timeoutAt field is set.
+     */
+    boolean hasTimeoutAt();
+    /**
+     * <code>optional int64 timeout_at = 15;</code>
+     * @return The timeoutAt.
+     */
+    long getTimeoutAt();
+
+    /**
+     * <code>string wait_wakeup_handle = 16;</code>
+     * @return The waitWakeupHandle.
+     */
+    java.lang.String getWaitWakeupHandle();
+    /**
+     * <code>string wait_wakeup_handle = 16;</code>
+     * @return The bytes for waitWakeupHandle.
+     */
+    com.google.protobuf.ByteString
+        getWaitWakeupHandleBytes();
+
+    /**
+     * <code>optional int64 wait_until_at = 17;</code>
+     * @return Whether the waitUntilAt field is set.
+     */
+    boolean hasWaitUntilAt();
+    /**
+     * <code>optional int64 wait_until_at = 17;</code>
+     * @return The waitUntilAt.
+     */
+    long getWaitUntilAt();
+  }
+  /**
+   * Protobuf type {@code talon.models.WorkflowStepRun}
+   */
+  public static final class WorkflowStepRun extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.models.WorkflowStepRun)
+      WorkflowStepRunOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowStepRun");
+    }
+    // Use WorkflowStepRun.newBuilder() to construct.
+    private WorkflowStepRun(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowStepRun() {
+      id_ = "";
+      stepId_ = "";
+      status_ = "";
+      inputJson_ = "";
+      outputJson_ = "";
+      error_ = "";
+      childSessionId_ = "";
+      childWorkflowRunId_ = "";
+      resumeJson_ = "";
+      suspendJson_ = "";
+      waitWakeupHandle_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepRun_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepRun_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.models.Models.internal_static_talon_models_WorkflowStepRun_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.models.Models.WorkflowStepRun.class, talon.models.Models.WorkflowStepRun.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STEP_ID_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object stepId_ = "";
+    /**
+     * <code>string step_id = 2;</code>
+     * @return The stepId.
+     */
+    @java.lang.Override
+    public java.lang.String getStepId() {
+      java.lang.Object ref = stepId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        stepId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string step_id = 2;</code>
+     * @return The bytes for stepId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getStepIdBytes() {
+      java.lang.Object ref = stepId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        stepId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ATTEMPT_FIELD_NUMBER = 3;
+    private int attempt_ = 0;
+    /**
+     * <code>uint32 attempt = 3;</code>
+     * @return The attempt.
+     */
+    @java.lang.Override
+    public int getAttempt() {
+      return attempt_;
+    }
+
+    public static final int STATUS_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object status_ = "";
+    /**
+     * <code>string status = 4;</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public java.lang.String getStatus() {
+      java.lang.Object ref = status_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        status_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string status = 4;</code>
+     * @return The bytes for status.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getStatusBytes() {
+      java.lang.Object ref = status_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        status_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int INPUT_JSON_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object inputJson_ = "";
+    /**
+     * <code>string input_json = 5;</code>
+     * @return The inputJson.
+     */
+    @java.lang.Override
+    public java.lang.String getInputJson() {
+      java.lang.Object ref = inputJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        inputJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string input_json = 5;</code>
+     * @return The bytes for inputJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getInputJsonBytes() {
+      java.lang.Object ref = inputJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        inputJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int OUTPUT_JSON_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object outputJson_ = "";
+    /**
+     * <code>string output_json = 6;</code>
+     * @return The outputJson.
+     */
+    @java.lang.Override
+    public java.lang.String getOutputJson() {
+      java.lang.Object ref = outputJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        outputJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string output_json = 6;</code>
+     * @return The bytes for outputJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getOutputJsonBytes() {
+      java.lang.Object ref = outputJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        outputJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int ERROR_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object error_ = "";
+    /**
+     * <code>string error = 7;</code>
+     * @return The error.
+     */
+    @java.lang.Override
+    public java.lang.String getError() {
+      java.lang.Object ref = error_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        error_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string error = 7;</code>
+     * @return The bytes for error.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getErrorBytes() {
+      java.lang.Object ref = error_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        error_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CHILD_SESSION_ID_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object childSessionId_ = "";
+    /**
+     * <code>string child_session_id = 8;</code>
+     * @return The childSessionId.
+     */
+    @java.lang.Override
+    public java.lang.String getChildSessionId() {
+      java.lang.Object ref = childSessionId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        childSessionId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string child_session_id = 8;</code>
+     * @return The bytes for childSessionId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getChildSessionIdBytes() {
+      java.lang.Object ref = childSessionId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        childSessionId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CHILD_WORKFLOW_RUN_ID_FIELD_NUMBER = 9;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object childWorkflowRunId_ = "";
+    /**
+     * <code>string child_workflow_run_id = 9;</code>
+     * @return The childWorkflowRunId.
+     */
+    @java.lang.Override
+    public java.lang.String getChildWorkflowRunId() {
+      java.lang.Object ref = childWorkflowRunId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        childWorkflowRunId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string child_workflow_run_id = 9;</code>
+     * @return The bytes for childWorkflowRunId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getChildWorkflowRunIdBytes() {
+      java.lang.Object ref = childWorkflowRunId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        childWorkflowRunId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RESUME_JSON_FIELD_NUMBER = 10;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object resumeJson_ = "";
+    /**
+     * <code>string resume_json = 10;</code>
+     * @return The resumeJson.
+     */
+    @java.lang.Override
+    public java.lang.String getResumeJson() {
+      java.lang.Object ref = resumeJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        resumeJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string resume_json = 10;</code>
+     * @return The bytes for resumeJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getResumeJsonBytes() {
+      java.lang.Object ref = resumeJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        resumeJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SUSPEND_JSON_FIELD_NUMBER = 11;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object suspendJson_ = "";
+    /**
+     * <code>string suspend_json = 11;</code>
+     * @return The suspendJson.
+     */
+    @java.lang.Override
+    public java.lang.String getSuspendJson() {
+      java.lang.Object ref = suspendJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        suspendJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string suspend_json = 11;</code>
+     * @return The bytes for suspendJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSuspendJsonBytes() {
+      java.lang.Object ref = suspendJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        suspendJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CREATED_AT_FIELD_NUMBER = 12;
+    private long createdAt_ = 0L;
+    /**
+     * <code>int64 created_at = 12;</code>
+     * @return The createdAt.
+     */
+    @java.lang.Override
+    public long getCreatedAt() {
+      return createdAt_;
+    }
+
+    public static final int UPDATED_AT_FIELD_NUMBER = 13;
+    private long updatedAt_ = 0L;
+    /**
+     * <code>int64 updated_at = 13;</code>
+     * @return The updatedAt.
+     */
+    @java.lang.Override
+    public long getUpdatedAt() {
+      return updatedAt_;
+    }
+
+    public static final int NEXT_RETRY_AT_FIELD_NUMBER = 14;
+    private long nextRetryAt_ = 0L;
+    /**
+     * <code>optional int64 next_retry_at = 14;</code>
+     * @return Whether the nextRetryAt field is set.
+     */
+    @java.lang.Override
+    public boolean hasNextRetryAt() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional int64 next_retry_at = 14;</code>
+     * @return The nextRetryAt.
+     */
+    @java.lang.Override
+    public long getNextRetryAt() {
+      return nextRetryAt_;
+    }
+
+    public static final int TIMEOUT_AT_FIELD_NUMBER = 15;
+    private long timeoutAt_ = 0L;
+    /**
+     * <code>optional int64 timeout_at = 15;</code>
+     * @return Whether the timeoutAt field is set.
+     */
+    @java.lang.Override
+    public boolean hasTimeoutAt() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>optional int64 timeout_at = 15;</code>
+     * @return The timeoutAt.
+     */
+    @java.lang.Override
+    public long getTimeoutAt() {
+      return timeoutAt_;
+    }
+
+    public static final int WAIT_WAKEUP_HANDLE_FIELD_NUMBER = 16;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object waitWakeupHandle_ = "";
+    /**
+     * <code>string wait_wakeup_handle = 16;</code>
+     * @return The waitWakeupHandle.
+     */
+    @java.lang.Override
+    public java.lang.String getWaitWakeupHandle() {
+      java.lang.Object ref = waitWakeupHandle_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        waitWakeupHandle_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string wait_wakeup_handle = 16;</code>
+     * @return The bytes for waitWakeupHandle.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWaitWakeupHandleBytes() {
+      java.lang.Object ref = waitWakeupHandle_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        waitWakeupHandle_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int WAIT_UNTIL_AT_FIELD_NUMBER = 17;
+    private long waitUntilAt_ = 0L;
+    /**
+     * <code>optional int64 wait_until_at = 17;</code>
+     * @return Whether the waitUntilAt field is set.
+     */
+    @java.lang.Override
+    public boolean hasWaitUntilAt() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>optional int64 wait_until_at = 17;</code>
+     * @return The waitUntilAt.
+     */
+    @java.lang.Override
+    public long getWaitUntilAt() {
+      return waitUntilAt_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(stepId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, stepId_);
+      }
+      if (attempt_ != 0) {
+        output.writeUInt32(3, attempt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(status_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, status_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, inputJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outputJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, outputJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(error_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, error_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(childSessionId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, childSessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(childWorkflowRunId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 9, childWorkflowRunId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resumeJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 10, resumeJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(suspendJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 11, suspendJson_);
+      }
+      if (createdAt_ != 0L) {
+        output.writeInt64(12, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        output.writeInt64(13, updatedAt_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeInt64(14, nextRetryAt_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeInt64(15, timeoutAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(waitWakeupHandle_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 16, waitWakeupHandle_);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeInt64(17, waitUntilAt_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(stepId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, stepId_);
+      }
+      if (attempt_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(3, attempt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(status_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, status_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(inputJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, inputJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(outputJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, outputJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(error_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, error_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(childSessionId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, childSessionId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(childWorkflowRunId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(9, childWorkflowRunId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resumeJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(10, resumeJson_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(suspendJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(11, suspendJson_);
+      }
+      if (createdAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(12, createdAt_);
+      }
+      if (updatedAt_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(13, updatedAt_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(14, nextRetryAt_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(15, timeoutAt_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(waitWakeupHandle_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(16, waitWakeupHandle_);
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(17, waitUntilAt_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.models.Models.WorkflowStepRun)) {
+        return super.equals(obj);
+      }
+      talon.models.Models.WorkflowStepRun other = (talon.models.Models.WorkflowStepRun) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getStepId()
+          .equals(other.getStepId())) return false;
+      if (getAttempt()
+          != other.getAttempt()) return false;
+      if (!getStatus()
+          .equals(other.getStatus())) return false;
+      if (!getInputJson()
+          .equals(other.getInputJson())) return false;
+      if (!getOutputJson()
+          .equals(other.getOutputJson())) return false;
+      if (!getError()
+          .equals(other.getError())) return false;
+      if (!getChildSessionId()
+          .equals(other.getChildSessionId())) return false;
+      if (!getChildWorkflowRunId()
+          .equals(other.getChildWorkflowRunId())) return false;
+      if (!getResumeJson()
+          .equals(other.getResumeJson())) return false;
+      if (!getSuspendJson()
+          .equals(other.getSuspendJson())) return false;
+      if (getCreatedAt()
+          != other.getCreatedAt()) return false;
+      if (getUpdatedAt()
+          != other.getUpdatedAt()) return false;
+      if (hasNextRetryAt() != other.hasNextRetryAt()) return false;
+      if (hasNextRetryAt()) {
+        if (getNextRetryAt()
+            != other.getNextRetryAt()) return false;
+      }
+      if (hasTimeoutAt() != other.hasTimeoutAt()) return false;
+      if (hasTimeoutAt()) {
+        if (getTimeoutAt()
+            != other.getTimeoutAt()) return false;
+      }
+      if (!getWaitWakeupHandle()
+          .equals(other.getWaitWakeupHandle())) return false;
+      if (hasWaitUntilAt() != other.hasWaitUntilAt()) return false;
+      if (hasWaitUntilAt()) {
+        if (getWaitUntilAt()
+            != other.getWaitUntilAt()) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + STEP_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getStepId().hashCode();
+      hash = (37 * hash) + ATTEMPT_FIELD_NUMBER;
+      hash = (53 * hash) + getAttempt();
+      hash = (37 * hash) + STATUS_FIELD_NUMBER;
+      hash = (53 * hash) + getStatus().hashCode();
+      hash = (37 * hash) + INPUT_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getInputJson().hashCode();
+      hash = (37 * hash) + OUTPUT_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getOutputJson().hashCode();
+      hash = (37 * hash) + ERROR_FIELD_NUMBER;
+      hash = (53 * hash) + getError().hashCode();
+      hash = (37 * hash) + CHILD_SESSION_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getChildSessionId().hashCode();
+      hash = (37 * hash) + CHILD_WORKFLOW_RUN_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getChildWorkflowRunId().hashCode();
+      hash = (37 * hash) + RESUME_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getResumeJson().hashCode();
+      hash = (37 * hash) + SUSPEND_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getSuspendJson().hashCode();
+      hash = (37 * hash) + CREATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getCreatedAt());
+      hash = (37 * hash) + UPDATED_AT_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getUpdatedAt());
+      if (hasNextRetryAt()) {
+        hash = (37 * hash) + NEXT_RETRY_AT_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getNextRetryAt());
+      }
+      if (hasTimeoutAt()) {
+        hash = (37 * hash) + TIMEOUT_AT_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getTimeoutAt());
+      }
+      hash = (37 * hash) + WAIT_WAKEUP_HANDLE_FIELD_NUMBER;
+      hash = (53 * hash) + getWaitWakeupHandle().hashCode();
+      if (hasWaitUntilAt()) {
+        hash = (37 * hash) + WAIT_UNTIL_AT_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getWaitUntilAt());
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.models.Models.WorkflowStepRun parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.models.Models.WorkflowStepRun parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.models.Models.WorkflowStepRun parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowStepRun parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.models.Models.WorkflowStepRun prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.models.WorkflowStepRun}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.models.WorkflowStepRun)
+        talon.models.Models.WorkflowStepRunOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepRun_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepRun_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.models.Models.WorkflowStepRun.class, talon.models.Models.WorkflowStepRun.Builder.class);
+      }
+
+      // Construct using talon.models.Models.WorkflowStepRun.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        stepId_ = "";
+        attempt_ = 0;
+        status_ = "";
+        inputJson_ = "";
+        outputJson_ = "";
+        error_ = "";
+        childSessionId_ = "";
+        childWorkflowRunId_ = "";
+        resumeJson_ = "";
+        suspendJson_ = "";
+        createdAt_ = 0L;
+        updatedAt_ = 0L;
+        nextRetryAt_ = 0L;
+        timeoutAt_ = 0L;
+        waitWakeupHandle_ = "";
+        waitUntilAt_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.models.Models.internal_static_talon_models_WorkflowStepRun_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepRun getDefaultInstanceForType() {
+        return talon.models.Models.WorkflowStepRun.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepRun build() {
+        talon.models.Models.WorkflowStepRun result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowStepRun buildPartial() {
+        talon.models.Models.WorkflowStepRun result = new talon.models.Models.WorkflowStepRun(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.models.Models.WorkflowStepRun result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.stepId_ = stepId_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.attempt_ = attempt_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.status_ = status_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.inputJson_ = inputJson_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.outputJson_ = outputJson_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.error_ = error_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.childSessionId_ = childSessionId_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.childWorkflowRunId_ = childWorkflowRunId_;
+        }
+        if (((from_bitField0_ & 0x00000200) != 0)) {
+          result.resumeJson_ = resumeJson_;
+        }
+        if (((from_bitField0_ & 0x00000400) != 0)) {
+          result.suspendJson_ = suspendJson_;
+        }
+        if (((from_bitField0_ & 0x00000800) != 0)) {
+          result.createdAt_ = createdAt_;
+        }
+        if (((from_bitField0_ & 0x00001000) != 0)) {
+          result.updatedAt_ = updatedAt_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00002000) != 0)) {
+          result.nextRetryAt_ = nextRetryAt_;
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00004000) != 0)) {
+          result.timeoutAt_ = timeoutAt_;
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00008000) != 0)) {
+          result.waitWakeupHandle_ = waitWakeupHandle_;
+        }
+        if (((from_bitField0_ & 0x00010000) != 0)) {
+          result.waitUntilAt_ = waitUntilAt_;
+          to_bitField0_ |= 0x00000004;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.models.Models.WorkflowStepRun) {
+          return mergeFrom((talon.models.Models.WorkflowStepRun)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.models.Models.WorkflowStepRun other) {
+        if (other == talon.models.Models.WorkflowStepRun.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getStepId().isEmpty()) {
+          stepId_ = other.stepId_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (other.getAttempt() != 0) {
+          setAttempt(other.getAttempt());
+        }
+        if (!other.getStatus().isEmpty()) {
+          status_ = other.status_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getInputJson().isEmpty()) {
+          inputJson_ = other.inputJson_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.getOutputJson().isEmpty()) {
+          outputJson_ = other.outputJson_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (!other.getError().isEmpty()) {
+          error_ = other.error_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        if (!other.getChildSessionId().isEmpty()) {
+          childSessionId_ = other.childSessionId_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        if (!other.getChildWorkflowRunId().isEmpty()) {
+          childWorkflowRunId_ = other.childWorkflowRunId_;
+          bitField0_ |= 0x00000100;
+          onChanged();
+        }
+        if (!other.getResumeJson().isEmpty()) {
+          resumeJson_ = other.resumeJson_;
+          bitField0_ |= 0x00000200;
+          onChanged();
+        }
+        if (!other.getSuspendJson().isEmpty()) {
+          suspendJson_ = other.suspendJson_;
+          bitField0_ |= 0x00000400;
+          onChanged();
+        }
+        if (other.getCreatedAt() != 0L) {
+          setCreatedAt(other.getCreatedAt());
+        }
+        if (other.getUpdatedAt() != 0L) {
+          setUpdatedAt(other.getUpdatedAt());
+        }
+        if (other.hasNextRetryAt()) {
+          setNextRetryAt(other.getNextRetryAt());
+        }
+        if (other.hasTimeoutAt()) {
+          setTimeoutAt(other.getTimeoutAt());
+        }
+        if (!other.getWaitWakeupHandle().isEmpty()) {
+          waitWakeupHandle_ = other.waitWakeupHandle_;
+          bitField0_ |= 0x00008000;
+          onChanged();
+        }
+        if (other.hasWaitUntilAt()) {
+          setWaitUntilAt(other.getWaitUntilAt());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                stepId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 24: {
+                attempt_ = input.readUInt32();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              case 34: {
+                status_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                inputJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                outputJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 58: {
+                error_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              case 66: {
+                childSessionId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              case 74: {
+                childWorkflowRunId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 74
+              case 82: {
+                resumeJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000200;
+                break;
+              } // case 82
+              case 90: {
+                suspendJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000400;
+                break;
+              } // case 90
+              case 96: {
+                createdAt_ = input.readInt64();
+                bitField0_ |= 0x00000800;
+                break;
+              } // case 96
+              case 104: {
+                updatedAt_ = input.readInt64();
+                bitField0_ |= 0x00001000;
+                break;
+              } // case 104
+              case 112: {
+                nextRetryAt_ = input.readInt64();
+                bitField0_ |= 0x00002000;
+                break;
+              } // case 112
+              case 120: {
+                timeoutAt_ = input.readInt64();
+                bitField0_ |= 0x00004000;
+                break;
+              } // case 120
+              case 130: {
+                waitWakeupHandle_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00008000;
+                break;
+              } // case 130
+              case 136: {
+                waitUntilAt_ = input.readInt64();
+                bitField0_ |= 0x00010000;
+                break;
+              } // case 136
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object stepId_ = "";
+      /**
+       * <code>string step_id = 2;</code>
+       * @return The stepId.
+       */
+      public java.lang.String getStepId() {
+        java.lang.Object ref = stepId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          stepId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string step_id = 2;</code>
+       * @return The bytes for stepId.
+       */
+      public com.google.protobuf.ByteString
+          getStepIdBytes() {
+        java.lang.Object ref = stepId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          stepId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string step_id = 2;</code>
+       * @param value The stepId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStepId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        stepId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string step_id = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStepId() {
+        stepId_ = getDefaultInstance().getStepId();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string step_id = 2;</code>
+       * @param value The bytes for stepId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStepIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        stepId_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private int attempt_ ;
+      /**
+       * <code>uint32 attempt = 3;</code>
+       * @return The attempt.
+       */
+      @java.lang.Override
+      public int getAttempt() {
+        return attempt_;
+      }
+      /**
+       * <code>uint32 attempt = 3;</code>
+       * @param value The attempt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAttempt(int value) {
+
+        attempt_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 attempt = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAttempt() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        attempt_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object status_ = "";
+      /**
+       * <code>string status = 4;</code>
+       * @return The status.
+       */
+      public java.lang.String getStatus() {
+        java.lang.Object ref = status_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          status_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string status = 4;</code>
+       * @return The bytes for status.
+       */
+      public com.google.protobuf.ByteString
+          getStatusBytes() {
+        java.lang.Object ref = status_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          status_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string status = 4;</code>
+       * @param value The status to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStatus(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        status_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string status = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStatus() {
+        status_ = getDefaultInstance().getStatus();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string status = 4;</code>
+       * @param value The bytes for status to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStatusBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        status_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object inputJson_ = "";
+      /**
+       * <code>string input_json = 5;</code>
+       * @return The inputJson.
+       */
+      public java.lang.String getInputJson() {
+        java.lang.Object ref = inputJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          inputJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string input_json = 5;</code>
+       * @return The bytes for inputJson.
+       */
+      public com.google.protobuf.ByteString
+          getInputJsonBytes() {
+        java.lang.Object ref = inputJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          inputJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string input_json = 5;</code>
+       * @param value The inputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        inputJson_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_json = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputJson() {
+        inputJson_ = getDefaultInstance().getInputJson();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string input_json = 5;</code>
+       * @param value The bytes for inputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        inputJson_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object outputJson_ = "";
+      /**
+       * <code>string output_json = 6;</code>
+       * @return The outputJson.
+       */
+      public java.lang.String getOutputJson() {
+        java.lang.Object ref = outputJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          outputJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string output_json = 6;</code>
+       * @return The bytes for outputJson.
+       */
+      public com.google.protobuf.ByteString
+          getOutputJsonBytes() {
+        java.lang.Object ref = outputJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          outputJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string output_json = 6;</code>
+       * @param value The outputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        outputJson_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string output_json = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputJson() {
+        outputJson_ = getDefaultInstance().getOutputJson();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string output_json = 6;</code>
+       * @param value The bytes for outputJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        outputJson_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object error_ = "";
+      /**
+       * <code>string error = 7;</code>
+       * @return The error.
+       */
+      public java.lang.String getError() {
+        java.lang.Object ref = error_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          error_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string error = 7;</code>
+       * @return The bytes for error.
+       */
+      public com.google.protobuf.ByteString
+          getErrorBytes() {
+        java.lang.Object ref = error_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          error_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string error = 7;</code>
+       * @param value The error to set.
+       * @return This builder for chaining.
+       */
+      public Builder setError(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        error_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string error = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearError() {
+        error_ = getDefaultInstance().getError();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string error = 7;</code>
+       * @param value The bytes for error to set.
+       * @return This builder for chaining.
+       */
+      public Builder setErrorBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        error_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object childSessionId_ = "";
+      /**
+       * <code>string child_session_id = 8;</code>
+       * @return The childSessionId.
+       */
+      public java.lang.String getChildSessionId() {
+        java.lang.Object ref = childSessionId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          childSessionId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string child_session_id = 8;</code>
+       * @return The bytes for childSessionId.
+       */
+      public com.google.protobuf.ByteString
+          getChildSessionIdBytes() {
+        java.lang.Object ref = childSessionId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          childSessionId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string child_session_id = 8;</code>
+       * @param value The childSessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChildSessionId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        childSessionId_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string child_session_id = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearChildSessionId() {
+        childSessionId_ = getDefaultInstance().getChildSessionId();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string child_session_id = 8;</code>
+       * @param value The bytes for childSessionId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChildSessionIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        childSessionId_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object childWorkflowRunId_ = "";
+      /**
+       * <code>string child_workflow_run_id = 9;</code>
+       * @return The childWorkflowRunId.
+       */
+      public java.lang.String getChildWorkflowRunId() {
+        java.lang.Object ref = childWorkflowRunId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          childWorkflowRunId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string child_workflow_run_id = 9;</code>
+       * @return The bytes for childWorkflowRunId.
+       */
+      public com.google.protobuf.ByteString
+          getChildWorkflowRunIdBytes() {
+        java.lang.Object ref = childWorkflowRunId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          childWorkflowRunId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string child_workflow_run_id = 9;</code>
+       * @param value The childWorkflowRunId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChildWorkflowRunId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        childWorkflowRunId_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string child_workflow_run_id = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearChildWorkflowRunId() {
+        childWorkflowRunId_ = getDefaultInstance().getChildWorkflowRunId();
+        bitField0_ = (bitField0_ & ~0x00000100);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string child_workflow_run_id = 9;</code>
+       * @param value The bytes for childWorkflowRunId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChildWorkflowRunIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        childWorkflowRunId_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object resumeJson_ = "";
+      /**
+       * <code>string resume_json = 10;</code>
+       * @return The resumeJson.
+       */
+      public java.lang.String getResumeJson() {
+        java.lang.Object ref = resumeJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          resumeJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string resume_json = 10;</code>
+       * @return The bytes for resumeJson.
+       */
+      public com.google.protobuf.ByteString
+          getResumeJsonBytes() {
+        java.lang.Object ref = resumeJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          resumeJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string resume_json = 10;</code>
+       * @param value The resumeJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResumeJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        resumeJson_ = value;
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resume_json = 10;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearResumeJson() {
+        resumeJson_ = getDefaultInstance().getResumeJson();
+        bitField0_ = (bitField0_ & ~0x00000200);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resume_json = 10;</code>
+       * @param value The bytes for resumeJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResumeJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        resumeJson_ = value;
+        bitField0_ |= 0x00000200;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object suspendJson_ = "";
+      /**
+       * <code>string suspend_json = 11;</code>
+       * @return The suspendJson.
+       */
+      public java.lang.String getSuspendJson() {
+        java.lang.Object ref = suspendJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          suspendJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string suspend_json = 11;</code>
+       * @return The bytes for suspendJson.
+       */
+      public com.google.protobuf.ByteString
+          getSuspendJsonBytes() {
+        java.lang.Object ref = suspendJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          suspendJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string suspend_json = 11;</code>
+       * @param value The suspendJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSuspendJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        suspendJson_ = value;
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string suspend_json = 11;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSuspendJson() {
+        suspendJson_ = getDefaultInstance().getSuspendJson();
+        bitField0_ = (bitField0_ & ~0x00000400);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string suspend_json = 11;</code>
+       * @param value The bytes for suspendJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSuspendJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        suspendJson_ = value;
+        bitField0_ |= 0x00000400;
+        onChanged();
+        return this;
+      }
+
+      private long createdAt_ ;
+      /**
+       * <code>int64 created_at = 12;</code>
+       * @return The createdAt.
+       */
+      @java.lang.Override
+      public long getCreatedAt() {
+        return createdAt_;
+      }
+      /**
+       * <code>int64 created_at = 12;</code>
+       * @param value The createdAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCreatedAt(long value) {
+
+        createdAt_ = value;
+        bitField0_ |= 0x00000800;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 created_at = 12;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCreatedAt() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        createdAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long updatedAt_ ;
+      /**
+       * <code>int64 updated_at = 13;</code>
+       * @return The updatedAt.
+       */
+      @java.lang.Override
+      public long getUpdatedAt() {
+        return updatedAt_;
+      }
+      /**
+       * <code>int64 updated_at = 13;</code>
+       * @param value The updatedAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUpdatedAt(long value) {
+
+        updatedAt_ = value;
+        bitField0_ |= 0x00001000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 updated_at = 13;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUpdatedAt() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        updatedAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long nextRetryAt_ ;
+      /**
+       * <code>optional int64 next_retry_at = 14;</code>
+       * @return Whether the nextRetryAt field is set.
+       */
+      @java.lang.Override
+      public boolean hasNextRetryAt() {
+        return ((bitField0_ & 0x00002000) != 0);
+      }
+      /**
+       * <code>optional int64 next_retry_at = 14;</code>
+       * @return The nextRetryAt.
+       */
+      @java.lang.Override
+      public long getNextRetryAt() {
+        return nextRetryAt_;
+      }
+      /**
+       * <code>optional int64 next_retry_at = 14;</code>
+       * @param value The nextRetryAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNextRetryAt(long value) {
+
+        nextRetryAt_ = value;
+        bitField0_ |= 0x00002000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 next_retry_at = 14;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNextRetryAt() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        nextRetryAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private long timeoutAt_ ;
+      /**
+       * <code>optional int64 timeout_at = 15;</code>
+       * @return Whether the timeoutAt field is set.
+       */
+      @java.lang.Override
+      public boolean hasTimeoutAt() {
+        return ((bitField0_ & 0x00004000) != 0);
+      }
+      /**
+       * <code>optional int64 timeout_at = 15;</code>
+       * @return The timeoutAt.
+       */
+      @java.lang.Override
+      public long getTimeoutAt() {
+        return timeoutAt_;
+      }
+      /**
+       * <code>optional int64 timeout_at = 15;</code>
+       * @param value The timeoutAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTimeoutAt(long value) {
+
+        timeoutAt_ = value;
+        bitField0_ |= 0x00004000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 timeout_at = 15;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTimeoutAt() {
+        bitField0_ = (bitField0_ & ~0x00004000);
+        timeoutAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object waitWakeupHandle_ = "";
+      /**
+       * <code>string wait_wakeup_handle = 16;</code>
+       * @return The waitWakeupHandle.
+       */
+      public java.lang.String getWaitWakeupHandle() {
+        java.lang.Object ref = waitWakeupHandle_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          waitWakeupHandle_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string wait_wakeup_handle = 16;</code>
+       * @return The bytes for waitWakeupHandle.
+       */
+      public com.google.protobuf.ByteString
+          getWaitWakeupHandleBytes() {
+        java.lang.Object ref = waitWakeupHandle_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          waitWakeupHandle_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string wait_wakeup_handle = 16;</code>
+       * @param value The waitWakeupHandle to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWaitWakeupHandle(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        waitWakeupHandle_ = value;
+        bitField0_ |= 0x00008000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string wait_wakeup_handle = 16;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWaitWakeupHandle() {
+        waitWakeupHandle_ = getDefaultInstance().getWaitWakeupHandle();
+        bitField0_ = (bitField0_ & ~0x00008000);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string wait_wakeup_handle = 16;</code>
+       * @param value The bytes for waitWakeupHandle to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWaitWakeupHandleBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        waitWakeupHandle_ = value;
+        bitField0_ |= 0x00008000;
+        onChanged();
+        return this;
+      }
+
+      private long waitUntilAt_ ;
+      /**
+       * <code>optional int64 wait_until_at = 17;</code>
+       * @return Whether the waitUntilAt field is set.
+       */
+      @java.lang.Override
+      public boolean hasWaitUntilAt() {
+        return ((bitField0_ & 0x00010000) != 0);
+      }
+      /**
+       * <code>optional int64 wait_until_at = 17;</code>
+       * @return The waitUntilAt.
+       */
+      @java.lang.Override
+      public long getWaitUntilAt() {
+        return waitUntilAt_;
+      }
+      /**
+       * <code>optional int64 wait_until_at = 17;</code>
+       * @param value The waitUntilAt to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWaitUntilAt(long value) {
+
+        waitUntilAt_ = value;
+        bitField0_ |= 0x00010000;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 wait_until_at = 17;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWaitUntilAt() {
+        bitField0_ = (bitField0_ & ~0x00010000);
+        waitUntilAt_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.models.WorkflowStepRun)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.models.WorkflowStepRun)
+    private static final talon.models.Models.WorkflowStepRun DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.models.Models.WorkflowStepRun();
+    }
+
+    public static talon.models.Models.WorkflowStepRun getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowStepRun>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowStepRun>() {
+      @java.lang.Override
+      public WorkflowStepRun parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowStepRun> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowStepRun> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.models.Models.WorkflowStepRun getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface WorkflowRunEventOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.models.WorkflowRunEvent)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>string ns = 2;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 2;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+
+    /**
+     * <code>string workflow = 3;</code>
+     * @return The workflow.
+     */
+    java.lang.String getWorkflow();
+    /**
+     * <code>string workflow = 3;</code>
+     * @return The bytes for workflow.
+     */
+    com.google.protobuf.ByteString
+        getWorkflowBytes();
+
+    /**
+     * <code>string run_id = 4;</code>
+     * @return The runId.
+     */
+    java.lang.String getRunId();
+    /**
+     * <code>string run_id = 4;</code>
+     * @return The bytes for runId.
+     */
+    com.google.protobuf.ByteString
+        getRunIdBytes();
+
+    /**
+     * <code>string type = 5;</code>
+     * @return The type.
+     */
+    java.lang.String getType();
+    /**
+     * <code>string type = 5;</code>
+     * @return The bytes for type.
+     */
+    com.google.protobuf.ByteString
+        getTypeBytes();
+
+    /**
+     * <code>string step_id = 6;</code>
+     * @return The stepId.
+     */
+    java.lang.String getStepId();
+    /**
+     * <code>string step_id = 6;</code>
+     * @return The bytes for stepId.
+     */
+    com.google.protobuf.ByteString
+        getStepIdBytes();
+
+    /**
+     * <code>string message = 7;</code>
+     * @return The message.
+     */
+    java.lang.String getMessage();
+    /**
+     * <code>string message = 7;</code>
+     * @return The bytes for message.
+     */
+    com.google.protobuf.ByteString
+        getMessageBytes();
+
+    /**
+     * <code>string payload_json = 8;</code>
+     * @return The payloadJson.
+     */
+    java.lang.String getPayloadJson();
+    /**
+     * <code>string payload_json = 8;</code>
+     * @return The bytes for payloadJson.
+     */
+    com.google.protobuf.ByteString
+        getPayloadJsonBytes();
+
+    /**
+     * <code>int64 timestamp = 9;</code>
+     * @return The timestamp.
+     */
+    long getTimestamp();
+  }
+  /**
+   * Protobuf type {@code talon.models.WorkflowRunEvent}
+   */
+  public static final class WorkflowRunEvent extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.models.WorkflowRunEvent)
+      WorkflowRunEventOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "WorkflowRunEvent");
+    }
+    // Use WorkflowRunEvent.newBuilder() to construct.
+    private WorkflowRunEvent(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private WorkflowRunEvent() {
+      id_ = "";
+      ns_ = "";
+      workflow_ = "";
+      runId_ = "";
+      type_ = "";
+      stepId_ = "";
+      message_ = "";
+      payloadJson_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.models.Models.internal_static_talon_models_WorkflowRunEvent_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.models.Models.internal_static_talon_models_WorkflowRunEvent_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.models.Models.internal_static_talon_models_WorkflowRunEvent_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.models.Models.WorkflowRunEvent.class, talon.models.Models.WorkflowRunEvent.Builder.class);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NS_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 2;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 2;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int WORKFLOW_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object workflow_ = "";
+    /**
+     * <code>string workflow = 3;</code>
+     * @return The workflow.
+     */
+    @java.lang.Override
+    public java.lang.String getWorkflow() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        workflow_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string workflow = 3;</code>
+     * @return The bytes for workflow.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getWorkflowBytes() {
+      java.lang.Object ref = workflow_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        workflow_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RUN_ID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object runId_ = "";
+    /**
+     * <code>string run_id = 4;</code>
+     * @return The runId.
+     */
+    @java.lang.Override
+    public java.lang.String getRunId() {
+      java.lang.Object ref = runId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        runId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string run_id = 4;</code>
+     * @return The bytes for runId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getRunIdBytes() {
+      java.lang.Object ref = runId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        runId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TYPE_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object type_ = "";
+    /**
+     * <code>string type = 5;</code>
+     * @return The type.
+     */
+    @java.lang.Override
+    public java.lang.String getType() {
+      java.lang.Object ref = type_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        type_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string type = 5;</code>
+     * @return The bytes for type.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getTypeBytes() {
+      java.lang.Object ref = type_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        type_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int STEP_ID_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object stepId_ = "";
+    /**
+     * <code>string step_id = 6;</code>
+     * @return The stepId.
+     */
+    @java.lang.Override
+    public java.lang.String getStepId() {
+      java.lang.Object ref = stepId_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        stepId_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string step_id = 6;</code>
+     * @return The bytes for stepId.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getStepIdBytes() {
+      java.lang.Object ref = stepId_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        stepId_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MESSAGE_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object message_ = "";
+    /**
+     * <code>string message = 7;</code>
+     * @return The message.
+     */
+    @java.lang.Override
+    public java.lang.String getMessage() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        message_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string message = 7;</code>
+     * @return The bytes for message.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getMessageBytes() {
+      java.lang.Object ref = message_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        message_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int PAYLOAD_JSON_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object payloadJson_ = "";
+    /**
+     * <code>string payload_json = 8;</code>
+     * @return The payloadJson.
+     */
+    @java.lang.Override
+    public java.lang.String getPayloadJson() {
+      java.lang.Object ref = payloadJson_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        payloadJson_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string payload_json = 8;</code>
+     * @return The bytes for payloadJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getPayloadJsonBytes() {
+      java.lang.Object ref = payloadJson_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        payloadJson_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TIMESTAMP_FIELD_NUMBER = 9;
+    private long timestamp_ = 0L;
+    /**
+     * <code>int64 timestamp = 9;</code>
+     * @return The timestamp.
+     */
+    @java.lang.Override
+    public long getTimestamp() {
+      return timestamp_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, workflow_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(runId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, runId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(type_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, type_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(stepId_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, stepId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(message_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, message_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(payloadJson_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, payloadJson_);
+      }
+      if (timestamp_ != 0L) {
+        output.writeInt64(9, timestamp_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(workflow_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, workflow_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(runId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, runId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(type_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, type_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(stepId_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(6, stepId_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(message_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(7, message_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(payloadJson_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(8, payloadJson_);
+      }
+      if (timestamp_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(9, timestamp_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.models.Models.WorkflowRunEvent)) {
+        return super.equals(obj);
+      }
+      talon.models.Models.WorkflowRunEvent other = (talon.models.Models.WorkflowRunEvent) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getWorkflow()
+          .equals(other.getWorkflow())) return false;
+      if (!getRunId()
+          .equals(other.getRunId())) return false;
+      if (!getType()
+          .equals(other.getType())) return false;
+      if (!getStepId()
+          .equals(other.getStepId())) return false;
+      if (!getMessage()
+          .equals(other.getMessage())) return false;
+      if (!getPayloadJson()
+          .equals(other.getPayloadJson())) return false;
+      if (getTimestamp()
+          != other.getTimestamp()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + WORKFLOW_FIELD_NUMBER;
+      hash = (53 * hash) + getWorkflow().hashCode();
+      hash = (37 * hash) + RUN_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getRunId().hashCode();
+      hash = (37 * hash) + TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + getType().hashCode();
+      hash = (37 * hash) + STEP_ID_FIELD_NUMBER;
+      hash = (53 * hash) + getStepId().hashCode();
+      hash = (37 * hash) + MESSAGE_FIELD_NUMBER;
+      hash = (53 * hash) + getMessage().hashCode();
+      hash = (37 * hash) + PAYLOAD_JSON_FIELD_NUMBER;
+      hash = (53 * hash) + getPayloadJson().hashCode();
+      hash = (37 * hash) + TIMESTAMP_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTimestamp());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.models.Models.WorkflowRunEvent parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.models.Models.WorkflowRunEvent parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.models.Models.WorkflowRunEvent parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.models.Models.WorkflowRunEvent parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.models.Models.WorkflowRunEvent prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.models.WorkflowRunEvent}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.models.WorkflowRunEvent)
+        talon.models.Models.WorkflowRunEventOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.models.Models.internal_static_talon_models_WorkflowRunEvent_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.models.Models.internal_static_talon_models_WorkflowRunEvent_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.models.Models.WorkflowRunEvent.class, talon.models.Models.WorkflowRunEvent.Builder.class);
+      }
+
+      // Construct using talon.models.Models.WorkflowRunEvent.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        ns_ = "";
+        workflow_ = "";
+        runId_ = "";
+        type_ = "";
+        stepId_ = "";
+        message_ = "";
+        payloadJson_ = "";
+        timestamp_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.models.Models.internal_static_talon_models_WorkflowRunEvent_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowRunEvent getDefaultInstanceForType() {
+        return talon.models.Models.WorkflowRunEvent.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowRunEvent build() {
+        talon.models.Models.WorkflowRunEvent result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.models.Models.WorkflowRunEvent buildPartial() {
+        talon.models.Models.WorkflowRunEvent result = new talon.models.Models.WorkflowRunEvent(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.models.Models.WorkflowRunEvent result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.ns_ = ns_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.workflow_ = workflow_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.runId_ = runId_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.type_ = type_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.stepId_ = stepId_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.message_ = message_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.payloadJson_ = payloadJson_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.timestamp_ = timestamp_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.models.Models.WorkflowRunEvent) {
+          return mergeFrom((talon.models.Models.WorkflowRunEvent)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.models.Models.WorkflowRunEvent other) {
+        if (other == talon.models.Models.WorkflowRunEvent.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getWorkflow().isEmpty()) {
+          workflow_ = other.workflow_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getRunId().isEmpty()) {
+          runId_ = other.runId_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getType().isEmpty()) {
+          type_ = other.type_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (!other.getStepId().isEmpty()) {
+          stepId_ = other.stepId_;
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        if (!other.getMessage().isEmpty()) {
+          message_ = other.message_;
+          bitField0_ |= 0x00000040;
+          onChanged();
+        }
+        if (!other.getPayloadJson().isEmpty()) {
+          payloadJson_ = other.payloadJson_;
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        if (other.getTimestamp() != 0L) {
+          setTimestamp(other.getTimestamp());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                workflow_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                runId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                type_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 50: {
+                stepId_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 50
+              case 58: {
+                message_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 58
+              case 66: {
+                payloadJson_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              case 72: {
+                timestamp_ = input.readInt64();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 72
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 2;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 2;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 2;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 2;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object workflow_ = "";
+      /**
+       * <code>string workflow = 3;</code>
+       * @return The workflow.
+       */
+      public java.lang.String getWorkflow() {
+        java.lang.Object ref = workflow_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          workflow_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 3;</code>
+       * @return The bytes for workflow.
+       */
+      public com.google.protobuf.ByteString
+          getWorkflowBytes() {
+        java.lang.Object ref = workflow_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          workflow_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string workflow = 3;</code>
+       * @param value The workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflow(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        workflow_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearWorkflow() {
+        workflow_ = getDefaultInstance().getWorkflow();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string workflow = 3;</code>
+       * @param value The bytes for workflow to set.
+       * @return This builder for chaining.
+       */
+      public Builder setWorkflowBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        workflow_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object runId_ = "";
+      /**
+       * <code>string run_id = 4;</code>
+       * @return The runId.
+       */
+      public java.lang.String getRunId() {
+        java.lang.Object ref = runId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          runId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string run_id = 4;</code>
+       * @return The bytes for runId.
+       */
+      public com.google.protobuf.ByteString
+          getRunIdBytes() {
+        java.lang.Object ref = runId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          runId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string run_id = 4;</code>
+       * @param value The runId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRunId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        runId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string run_id = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearRunId() {
+        runId_ = getDefaultInstance().getRunId();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string run_id = 4;</code>
+       * @param value The bytes for runId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setRunIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        runId_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object type_ = "";
+      /**
+       * <code>string type = 5;</code>
+       * @return The type.
+       */
+      public java.lang.String getType() {
+        java.lang.Object ref = type_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          type_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string type = 5;</code>
+       * @return The bytes for type.
+       */
+      public com.google.protobuf.ByteString
+          getTypeBytes() {
+        java.lang.Object ref = type_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          type_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string type = 5;</code>
+       * @param value The type to set.
+       * @return This builder for chaining.
+       */
+      public Builder setType(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        type_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string type = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearType() {
+        type_ = getDefaultInstance().getType();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string type = 5;</code>
+       * @param value The bytes for type to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTypeBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        type_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object stepId_ = "";
+      /**
+       * <code>string step_id = 6;</code>
+       * @return The stepId.
+       */
+      public java.lang.String getStepId() {
+        java.lang.Object ref = stepId_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          stepId_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string step_id = 6;</code>
+       * @return The bytes for stepId.
+       */
+      public com.google.protobuf.ByteString
+          getStepIdBytes() {
+        java.lang.Object ref = stepId_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          stepId_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string step_id = 6;</code>
+       * @param value The stepId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStepId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        stepId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string step_id = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStepId() {
+        stepId_ = getDefaultInstance().getStepId();
+        bitField0_ = (bitField0_ & ~0x00000020);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string step_id = 6;</code>
+       * @param value The bytes for stepId to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStepIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        stepId_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object message_ = "";
+      /**
+       * <code>string message = 7;</code>
+       * @return The message.
+       */
+      public java.lang.String getMessage() {
+        java.lang.Object ref = message_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          message_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string message = 7;</code>
+       * @return The bytes for message.
+       */
+      public com.google.protobuf.ByteString
+          getMessageBytes() {
+        java.lang.Object ref = message_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          message_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string message = 7;</code>
+       * @param value The message to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessage(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        message_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string message = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMessage() {
+        message_ = getDefaultInstance().getMessage();
+        bitField0_ = (bitField0_ & ~0x00000040);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string message = 7;</code>
+       * @param value The bytes for message to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMessageBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        message_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object payloadJson_ = "";
+      /**
+       * <code>string payload_json = 8;</code>
+       * @return The payloadJson.
+       */
+      public java.lang.String getPayloadJson() {
+        java.lang.Object ref = payloadJson_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          payloadJson_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string payload_json = 8;</code>
+       * @return The bytes for payloadJson.
+       */
+      public com.google.protobuf.ByteString
+          getPayloadJsonBytes() {
+        java.lang.Object ref = payloadJson_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          payloadJson_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string payload_json = 8;</code>
+       * @param value The payloadJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPayloadJson(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        payloadJson_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string payload_json = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPayloadJson() {
+        payloadJson_ = getDefaultInstance().getPayloadJson();
+        bitField0_ = (bitField0_ & ~0x00000080);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string payload_json = 8;</code>
+       * @param value The bytes for payloadJson to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPayloadJsonBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        payloadJson_ = value;
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private long timestamp_ ;
+      /**
+       * <code>int64 timestamp = 9;</code>
+       * @return The timestamp.
+       */
+      @java.lang.Override
+      public long getTimestamp() {
+        return timestamp_;
+      }
+      /**
+       * <code>int64 timestamp = 9;</code>
+       * @param value The timestamp to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTimestamp(long value) {
+
+        timestamp_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 timestamp = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTimestamp() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        timestamp_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.models.WorkflowRunEvent)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.models.WorkflowRunEvent)
+    private static final talon.models.Models.WorkflowRunEvent DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.models.Models.WorkflowRunEvent();
+    }
+
+    public static talon.models.Models.WorkflowRunEvent getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<WorkflowRunEvent>
+        PARSER = new com.google.protobuf.AbstractParser<WorkflowRunEvent>() {
+      @java.lang.Override
+      public WorkflowRunEvent parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<WorkflowRunEvent> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<WorkflowRunEvent> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.models.Models.WorkflowRunEvent getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_models_Agent_descriptor;
   private static final
@@ -23982,6 +37804,56 @@ java.lang.String defaultValue) {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_models_KnowledgeSearchResult_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_WorkflowStepOutputPolicy_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_WorkflowStepOutputPolicy_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_WorkflowStepRetryPolicy_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_WorkflowStepRetryPolicy_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_WorkflowStep_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_WorkflowStep_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_WorkflowSpec_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_WorkflowSpec_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_Workflow_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_Workflow_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_Workflow_LabelsEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_Workflow_LabelsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_WorkflowRun_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_WorkflowRun_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_WorkflowRun_LabelsEntry_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_WorkflowRun_LabelsEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_WorkflowStepRun_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_WorkflowStepRun_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_models_WorkflowRunEvent_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_models_WorkflowRunEvent_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -24050,56 +37922,106 @@ java.lang.String defaultValue) {
       "iption.LabelsEntry\022\022\n\nreply_mode\030\n \001(\t\032/" +
       "\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
       "\001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
-      "alue\030\002 \001(\t:\0028\001\"I\n\016ScheduleTarget\022\r\n\005agen" +
+      "alue\030\002 \001(\t:\0028\001\"[\n\016ScheduleTarget\022\r\n\005agen" +
       "t\030\001 \001(\t\022\024\n\014session_mode\030\002 \001(\t\022\022\n\nsession" +
-      "_id\030\003 \001(\t\"\274\001\n\014ScheduleSpec\022\014\n\004kind\030\001 \001(\t" +
-      "\022\014\n\004cron\030\002 \001(\t\022\030\n\020interval_seconds\030\003 \001(\r" +
-      "\022\016\n\006run_at\030\004 \001(\t\022\020\n\010timezone\030\005 \001(\t\022,\n\006ta" +
-      "rget\030\006 \001(\0132\034.talon.models.ScheduleTarget" +
-      "\022\025\n\rinput_message\030\007 \001(\t\022\017\n\007enabled\030\010 \001(\010" +
-      "\"\257\003\n\016ScheduleStatus\022\020\n\010revision\030\001 \001(\004\022\030\n" +
-      "\013next_run_at\030\002 \001(\003H\000\210\001\001\022\033\n\016backend_handl" +
-      "e\030\003 \001(\tH\001\210\001\001\022\025\n\rbackend_armed\030\004 \001(\010\022\030\n\013l" +
-      "ast_run_at\030\005 \001(\003H\002\210\001\001\022\034\n\017last_session_id" +
-      "\030\006 \001(\tH\003\210\001\001\022\027\n\nlast_error\030\007 \001(\tH\004\210\001\001\022\033\n\016" +
-      "claimed_run_at\030\010 \001(\003H\005\210\001\001\022\035\n\020claim_expir" +
-      "es_at\030\t \001(\003H\006\210\001\001\0222\n\rrecent_events\030\n \003(\0132" +
-      "\033.talon.models.ScheduleEventB\016\n\014_next_ru" +
-      "n_atB\021\n\017_backend_handleB\016\n\014_last_run_atB" +
-      "\022\n\020_last_session_idB\r\n\013_last_errorB\021\n\017_c" +
-      "laimed_run_atB\023\n\021_claim_expires_at\"R\n\rSc" +
-      "heduleEvent\022\021\n\ttimestamp\030\001 \001(\003\022\r\n\005phase\030" +
-      "\002 \001(\t\022\017\n\007outcome\030\003 \001(\t\022\016\n\006detail\030\004 \001(\t\"\337" +
-      "\001\n\010Schedule\022\014\n\004name\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022(\n" +
-      "\004spec\030\003 \001(\0132\032.talon.models.ScheduleSpec\022" +
-      ",\n\006status\030\004 \001(\0132\034.talon.models.ScheduleS" +
-      "tatus\0222\n\006labels\030\005 \003(\0132\".talon.models.Sch" +
-      "edule.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\265\001\n\tNamespace\022\014" +
-      "\n\004name\030\001 \001(\t\022\016\n\006parent\030\002 \001(\t\022\022\n\nis_delet" +
-      "ed\030\003 \001(\010\022\022\n\ndeleted_at\030\004 \001(\003\0223\n\006labels\030\005" +
-      " \003(\0132#.talon.models.Namespace.LabelsEntr" +
-      "y\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
-      " \001(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007c" +
-      "ontent\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tname" +
-      "space\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSe" +
-      "archResult\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(" +
-      "\t\022\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tn" +
-      "amespace\030\005 \001(\t*W\n\013MessageRole\022\024\n\020ROLE_UN" +
-      "SPECIFIED\020\000\022\r\n\tROLE_USER\020\001\022\022\n\016ROLE_ASSIS" +
-      "TANT\020\002\022\017\n\013ROLE_SYSTEM\020\003*\301\003\n\026SessionMessa" +
-      "gePartType\022)\n%SESSION_MESSAGE_PART_TYPE_" +
-      "UNSPECIFIED\020\000\022\"\n\036SESSION_MESSAGE_PART_TY" +
-      "PE_TEXT\020\001\022\'\n#SESSION_MESSAGE_PART_TYPE_R" +
-      "EASONING\020\002\022\'\n#SESSION_MESSAGE_PART_TYPE_" +
-      "TOOL_CALL\020\003\022)\n%SESSION_MESSAGE_PART_TYPE" +
-      "_TOOL_RESULT\020\004\022#\n\037SESSION_MESSAGE_PART_T" +
-      "YPE_USAGE\020\005\022#\n\037SESSION_MESSAGE_PART_TYPE" +
-      "_ERROR\020\006\022#\n\037SESSION_MESSAGE_PART_TYPE_IM" +
-      "AGE\020\007\022#\n\037SESSION_MESSAGE_PART_TYPE_AUDIO" +
-      "\020\010\022#\n\037SESSION_MESSAGE_PART_TYPE_VIDEO\020\t\022" +
-      "\"\n\036SESSION_MESSAGE_PART_TYPE_FILE\020\nb\006pro" +
-      "to3"
+      "_id\030\003 \001(\t\022\020\n\010workflow\030\004 \001(\t\"\320\001\n\014Schedule" +
+      "Spec\022\014\n\004kind\030\001 \001(\t\022\014\n\004cron\030\002 \001(\t\022\030\n\020inte" +
+      "rval_seconds\030\003 \001(\r\022\016\n\006run_at\030\004 \001(\t\022\020\n\010ti" +
+      "mezone\030\005 \001(\t\022,\n\006target\030\006 \001(\0132\034.talon.mod" +
+      "els.ScheduleTarget\022\025\n\rinput_message\030\007 \001(" +
+      "\t\022\017\n\007enabled\030\010 \001(\010\022\022\n\ninput_json\030\t \001(\t\"\257" +
+      "\003\n\016ScheduleStatus\022\020\n\010revision\030\001 \001(\004\022\030\n\013n" +
+      "ext_run_at\030\002 \001(\003H\000\210\001\001\022\033\n\016backend_handle\030" +
+      "\003 \001(\tH\001\210\001\001\022\025\n\rbackend_armed\030\004 \001(\010\022\030\n\013las" +
+      "t_run_at\030\005 \001(\003H\002\210\001\001\022\034\n\017last_session_id\030\006" +
+      " \001(\tH\003\210\001\001\022\027\n\nlast_error\030\007 \001(\tH\004\210\001\001\022\033\n\016cl" +
+      "aimed_run_at\030\010 \001(\003H\005\210\001\001\022\035\n\020claim_expires" +
+      "_at\030\t \001(\003H\006\210\001\001\0222\n\rrecent_events\030\n \003(\0132\033." +
+      "talon.models.ScheduleEventB\016\n\014_next_run_" +
+      "atB\021\n\017_backend_handleB\016\n\014_last_run_atB\022\n" +
+      "\020_last_session_idB\r\n\013_last_errorB\021\n\017_cla" +
+      "imed_run_atB\023\n\021_claim_expires_at\"R\n\rSche" +
+      "duleEvent\022\021\n\ttimestamp\030\001 \001(\003\022\r\n\005phase\030\002 " +
+      "\001(\t\022\017\n\007outcome\030\003 \001(\t\022\016\n\006detail\030\004 \001(\t\"\337\001\n" +
+      "\010Schedule\022\014\n\004name\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022(\n\004s" +
+      "pec\030\003 \001(\0132\032.talon.models.ScheduleSpec\022,\n" +
+      "\006status\030\004 \001(\0132\034.talon.models.ScheduleSta" +
+      "tus\0222\n\006labels\030\005 \003(\0132\".talon.models.Sched" +
+      "ule.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 " +
+      "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\265\001\n\tNamespace\022\014\n\004" +
+      "name\030\001 \001(\t\022\016\n\006parent\030\002 \001(\t\022\022\n\nis_deleted" +
+      "\030\003 \001(\010\022\022\n\ndeleted_at\030\004 \001(\003\0223\n\006labels\030\005 \003" +
+      "(\0132#.talon.models.Namespace.LabelsEntry\032" +
+      "-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
+      "(\t:\0028\001\"_\n\tKnowledge\022\014\n\004path\030\001 \001(\t\022\017\n\007con" +
+      "tent\030\002 \001(\t\022\022\n\nupdated_at\030\003 \001(\003\022\021\n\tnamesp" +
+      "ace\030\004 \001(\t\022\014\n\004name\030\005 \001(\t\"k\n\025KnowledgeSear" +
+      "chResult\022\014\n\004path\030\001 \001(\t\022\017\n\007snippet\030\002 \001(\t\022" +
+      "\r\n\005score\030\003 \001(\002\022\021\n\ttimestamp\030\004 \001(\003\022\021\n\tnam" +
+      "espace\030\005 \001(\t\"?\n\030WorkflowStepOutputPolicy" +
+      "\022\016\n\006format\030\001 \001(\t\022\023\n\013schema_json\030\002 \001(\t\"\201\001" +
+      "\n\027WorkflowStepRetryPolicy\022\024\n\014max_attempt" +
+      "s\030\001 \001(\r\022\037\n\027initial_backoff_seconds\030\002 \001(\003" +
+      "\022\033\n\023max_backoff_seconds\030\003 \001(\003\022\022\n\nmultipl" +
+      "ier\030\004 \001(\001\"\343\002\n\014WorkflowStep\022\n\n\002id\030\001 \001(\t\022\014" +
+      "\n\004type\030\002 \001(\t\022\r\n\005after\030\003 \003(\t\022\021\n\twhen_json" +
+      "\030\004 \001(\t\022\r\n\005agent\030\005 \001(\t\022\016\n\006prompt\030\006 \001(\t\022\014\n" +
+      "\004tool\030\007 \001(\t\022\022\n\ninput_json\030\010 \001(\t\022\020\n\010workf" +
+      "low\030\t \001(\t\0226\n\006output\030\n \001(\0132&.talon.models" +
+      ".WorkflowStepOutputPolicy\022\032\n\022resume_sche" +
+      "ma_json\030\013 \001(\t\0224\n\005retry\030\014 \001(\0132%.talon.mod" +
+      "els.WorkflowStepRetryPolicy\022\017\n\007timeout\030\r" +
+      " \001(\t\022\025\n\rwait_duration\030\016 \001(\t\022\022\n\nwait_unti" +
+      "l\030\017 \001(\t\"\257\001\n\014WorkflowSpec\022\023\n\013description\030" +
+      "\001 \001(\t\022\031\n\021input_schema_json\030\002 \001(\t\022\032\n\022outp" +
+      "ut_schema_json\030\003 \001(\t\022)\n\005steps\030\004 \003(\0132\032.ta" +
+      "lon.models.WorkflowStep\022\023\n\013output_json\030\005" +
+      " \001(\t\022\023\n\013concurrency\030\006 \001(\r\"\261\001\n\010Workflow\022\014" +
+      "\n\004name\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022(\n\004spec\030\003 \001(\0132\032" +
+      ".talon.models.WorkflowSpec\0222\n\006labels\030\004 \003" +
+      "(\0132\".talon.models.Workflow.LabelsEntry\032-" +
+      "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
+      "\t:\0028\001\"\315\003\n\013WorkflowRun\022\n\n\002id\030\001 \001(\t\022\020\n\010wor" +
+      "kflow\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006status\030\004 \001(\t\022" +
+      "\022\n\ninput_json\030\005 \001(\t\022\022\n\nstate_json\030\006 \001(\t\022" +
+      "\023\n\013output_json\030\007 \001(\t\022\022\n\ncreated_at\030\010 \001(\003" +
+      "\022\022\n\nupdated_at\030\t \001(\003\0225\n\006labels\030\n \003(\0132%.t" +
+      "alon.models.WorkflowRun.LabelsEntry\022\035\n\020c" +
+      "laim_expires_at\030\013 \001(\003H\000\210\001\001\022\r\n\005error\030\014 \001(" +
+      "\t\022\021\n\tspec_json\030\r \001(\t\022\031\n\021workflow_revisio" +
+      "n\030\016 \001(\004\022\023\n\013claim_owner\030\017 \001(\t\022\025\n\rclaim_at" +
+      "tempt\030\020 \001(\r\022\034\n\024last_dispatch_reason\030\021 \001(" +
+      "\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002" +
+      " \001(\t:\0028\001B\023\n\021_claim_expires_at\"\263\003\n\017Workfl" +
+      "owStepRun\022\n\n\002id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017" +
+      "\n\007attempt\030\003 \001(\r\022\016\n\006status\030\004 \001(\t\022\022\n\ninput" +
+      "_json\030\005 \001(\t\022\023\n\013output_json\030\006 \001(\t\022\r\n\005erro" +
+      "r\030\007 \001(\t\022\030\n\020child_session_id\030\010 \001(\t\022\035\n\025chi" +
+      "ld_workflow_run_id\030\t \001(\t\022\023\n\013resume_json\030" +
+      "\n \001(\t\022\024\n\014suspend_json\030\013 \001(\t\022\022\n\ncreated_a" +
+      "t\030\014 \001(\003\022\022\n\nupdated_at\030\r \001(\003\022\032\n\rnext_retr" +
+      "y_at\030\016 \001(\003H\000\210\001\001\022\027\n\ntimeout_at\030\017 \001(\003H\001\210\001\001" +
+      "\022\032\n\022wait_wakeup_handle\030\020 \001(\t\022\032\n\rwait_unt" +
+      "il_at\030\021 \001(\003H\002\210\001\001B\020\n\016_next_retry_atB\r\n\013_t" +
+      "imeout_atB\020\n\016_wait_until_at\"\245\001\n\020Workflow" +
+      "RunEvent\022\n\n\002id\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\020\n\010work" +
+      "flow\030\003 \001(\t\022\016\n\006run_id\030\004 \001(\t\022\014\n\004type\030\005 \001(\t" +
+      "\022\017\n\007step_id\030\006 \001(\t\022\017\n\007message\030\007 \001(\t\022\024\n\014pa" +
+      "yload_json\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003*W\n\013M" +
+      "essageRole\022\024\n\020ROLE_UNSPECIFIED\020\000\022\r\n\tROLE" +
+      "_USER\020\001\022\022\n\016ROLE_ASSISTANT\020\002\022\017\n\013ROLE_SYST" +
+      "EM\020\003*\301\003\n\026SessionMessagePartType\022)\n%SESSI" +
+      "ON_MESSAGE_PART_TYPE_UNSPECIFIED\020\000\022\"\n\036SE" +
+      "SSION_MESSAGE_PART_TYPE_TEXT\020\001\022\'\n#SESSIO" +
+      "N_MESSAGE_PART_TYPE_REASONING\020\002\022\'\n#SESSI" +
+      "ON_MESSAGE_PART_TYPE_TOOL_CALL\020\003\022)\n%SESS" +
+      "ION_MESSAGE_PART_TYPE_TOOL_RESULT\020\004\022#\n\037S" +
+      "ESSION_MESSAGE_PART_TYPE_USAGE\020\005\022#\n\037SESS" +
+      "ION_MESSAGE_PART_TYPE_ERROR\020\006\022#\n\037SESSION" +
+      "_MESSAGE_PART_TYPE_IMAGE\020\007\022#\n\037SESSION_ME" +
+      "SSAGE_PART_TYPE_AUDIO\020\010\022#\n\037SESSION_MESSA" +
+      "GE_PART_TYPE_VIDEO\020\t\022\"\n\036SESSION_MESSAGE_" +
+      "PART_TYPE_FILE\020\nb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -24225,13 +38147,13 @@ java.lang.String defaultValue) {
     internal_static_talon_models_ScheduleTarget_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_models_ScheduleTarget_descriptor,
-        new java.lang.String[] { "Agent", "SessionMode", "SessionId", });
+        new java.lang.String[] { "Agent", "SessionMode", "SessionId", "Workflow", });
     internal_static_talon_models_ScheduleSpec_descriptor =
       getDescriptor().getMessageType(10);
     internal_static_talon_models_ScheduleSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_models_ScheduleSpec_descriptor,
-        new java.lang.String[] { "Kind", "Cron", "IntervalSeconds", "RunAt", "Timezone", "Target", "InputMessage", "Enabled", });
+        new java.lang.String[] { "Kind", "Cron", "IntervalSeconds", "RunAt", "Timezone", "Target", "InputMessage", "Enabled", "InputJson", });
     internal_static_talon_models_ScheduleStatus_descriptor =
       getDescriptor().getMessageType(11);
     internal_static_talon_models_ScheduleStatus_fieldAccessorTable = new
@@ -24280,6 +38202,66 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_models_KnowledgeSearchResult_descriptor,
         new java.lang.String[] { "Path", "Snippet", "Score", "Timestamp", "Namespace", });
+    internal_static_talon_models_WorkflowStepOutputPolicy_descriptor =
+      getDescriptor().getMessageType(17);
+    internal_static_talon_models_WorkflowStepOutputPolicy_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_WorkflowStepOutputPolicy_descriptor,
+        new java.lang.String[] { "Format", "SchemaJson", });
+    internal_static_talon_models_WorkflowStepRetryPolicy_descriptor =
+      getDescriptor().getMessageType(18);
+    internal_static_talon_models_WorkflowStepRetryPolicy_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_WorkflowStepRetryPolicy_descriptor,
+        new java.lang.String[] { "MaxAttempts", "InitialBackoffSeconds", "MaxBackoffSeconds", "Multiplier", });
+    internal_static_talon_models_WorkflowStep_descriptor =
+      getDescriptor().getMessageType(19);
+    internal_static_talon_models_WorkflowStep_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_WorkflowStep_descriptor,
+        new java.lang.String[] { "Id", "Type", "After", "WhenJson", "Agent", "Prompt", "Tool", "InputJson", "Workflow", "Output", "ResumeSchemaJson", "Retry", "Timeout", "WaitDuration", "WaitUntil", });
+    internal_static_talon_models_WorkflowSpec_descriptor =
+      getDescriptor().getMessageType(20);
+    internal_static_talon_models_WorkflowSpec_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_WorkflowSpec_descriptor,
+        new java.lang.String[] { "Description", "InputSchemaJson", "OutputSchemaJson", "Steps", "OutputJson", "Concurrency", });
+    internal_static_talon_models_Workflow_descriptor =
+      getDescriptor().getMessageType(21);
+    internal_static_talon_models_Workflow_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_Workflow_descriptor,
+        new java.lang.String[] { "Name", "Ns", "Spec", "Labels", });
+    internal_static_talon_models_Workflow_LabelsEntry_descriptor =
+      internal_static_talon_models_Workflow_descriptor.getNestedType(0);
+    internal_static_talon_models_Workflow_LabelsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_Workflow_LabelsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_models_WorkflowRun_descriptor =
+      getDescriptor().getMessageType(22);
+    internal_static_talon_models_WorkflowRun_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_WorkflowRun_descriptor,
+        new java.lang.String[] { "Id", "Workflow", "Ns", "Status", "InputJson", "StateJson", "OutputJson", "CreatedAt", "UpdatedAt", "Labels", "ClaimExpiresAt", "Error", "SpecJson", "WorkflowRevision", "ClaimOwner", "ClaimAttempt", "LastDispatchReason", });
+    internal_static_talon_models_WorkflowRun_LabelsEntry_descriptor =
+      internal_static_talon_models_WorkflowRun_descriptor.getNestedType(0);
+    internal_static_talon_models_WorkflowRun_LabelsEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_WorkflowRun_LabelsEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_talon_models_WorkflowStepRun_descriptor =
+      getDescriptor().getMessageType(23);
+    internal_static_talon_models_WorkflowStepRun_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_WorkflowStepRun_descriptor,
+        new java.lang.String[] { "Id", "StepId", "Attempt", "Status", "InputJson", "OutputJson", "Error", "ChildSessionId", "ChildWorkflowRunId", "ResumeJson", "SuspendJson", "CreatedAt", "UpdatedAt", "NextRetryAt", "TimeoutAt", "WaitWakeupHandle", "WaitUntilAt", });
+    internal_static_talon_models_WorkflowRunEvent_descriptor =
+      getDescriptor().getMessageType(24);
+    internal_static_talon_models_WorkflowRunEvent_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_models_WorkflowRunEvent_descriptor,
+        new java.lang.String[] { "Id", "Ns", "Workflow", "RunId", "Type", "StepId", "Message", "PayloadJson", "Timestamp", });
     descriptor.resolveAllFeaturesImmutable();
     talon.manifests.Manifests.getDescriptor();
   }

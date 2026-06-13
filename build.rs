@@ -38,6 +38,15 @@ fn main() -> std::io::Result<()> {
         ".talon.models.ChannelMessage",
         ".talon.models.ChannelContextPolicy",
         ".talon.models.ChannelSubscription",
+        ".talon.models.Workflow",
+        ".talon.models.WorkflowSpec",
+        ".talon.models.WorkflowStep",
+        ".talon.models.WorkflowStepOutputPolicy",
+        ".talon.models.WorkflowStepRetryPolicy",
+        ".talon.models.WorkflowRun",
+        ".talon.models.WorkflowStepRun",
+        ".talon.models.WorkflowRunEvent",
+        ".talon.events.WorkflowDispatchEvent",
     ];
     let serde_derive_only_types = [".talon.manifests.PromptDelta"];
 

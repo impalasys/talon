@@ -5414,6 +5414,7 @@ dependencies = [
  "prost-types 0.13.5",
  "protoc-gen-prost",
  "protoc-gen-tonic",
+ "rand 0.8.6",
  "redb",
  "reqwest 0.11.27",
  "rmcp",

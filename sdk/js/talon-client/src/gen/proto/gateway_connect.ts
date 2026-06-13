@@ -3,9 +3,10 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AgentResponse, AgentTemplateResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, ChannelMessageResponse, ChannelResponse, ChannelSubscriptionResponse, ClearSessionRequest, ClearSessionResponse, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest, CreateChannelSubscriptionRequest, CreateMcpServerBindingRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateNamespaceRequest, CreateScheduleRequest, CreateSessionRequest, DeleteAgentTemplateRequest, DeleteAgentTemplateResponse, DeleteChannelRequest, DeleteChannelResponse, DeleteChannelSubscriptionRequest, DeleteChannelSubscriptionResponse, DeleteMcpServerBindingRequest, DeleteMcpServerBindingResponse, DeleteMcpServerRequest, DeleteMcpServerResponse, DeleteNamespaceKnowledgeRequest, DeleteNamespaceKnowledgeResponse, DeleteNamespaceRequest, DeleteScheduleRequest, DeleteScheduleResponse, DeleteSessionRequest, DeleteSessionResponse, GetAgentRequest, GetAgentResponse, GetAgentTemplateRequest, GetChannelMessageRequest, GetChannelRequest, GetChannelSubscriptionRequest, GetKnowledgeRequest, GetMcpServerBindingRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetNamespaceRequest, GetScheduleRequest, GetSessionRequest, KnowledgeResponse, ListAgentsRequest, ListAgentsResponse, ListAgentTemplatesRequest, ListAgentTemplatesResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelSubscriptionsRequest, ListChannelSubscriptionsResponse, ListMcpServerBindingsRequest, ListMcpServerBindingsResponse, ListMcpServersRequest, ListMcpServersResponse, ListNamespaceKnowledgeRequest, ListNamespaceKnowledgeResponse, ListNamespacesRequest, ListNamespacesResponse, ListSchedulesRequest, ListSchedulesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, McpServerBindingResponse, McpServerResponse, ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest, ModifyScheduleRequest, NamespaceKnowledgeResponse, NamespaceResponse, PostChannelMessageRequest, PostChannelMessageResponse, ScheduleResponse, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest } from "./gateway_pb.js";
+import { AgentResponse, AgentTemplateResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ChannelResponse, ChannelSubscriptionResponse, ClearSessionRequest, ClearSessionResponse, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest, CreateChannelSubscriptionRequest, CreateMcpServerBindingRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateNamespaceRequest, CreateScheduleRequest, CreateSessionRequest, CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentTemplateRequest, DeleteAgentTemplateResponse, DeleteChannelRequest, DeleteChannelResponse, DeleteChannelSubscriptionRequest, DeleteChannelSubscriptionResponse, DeleteMcpServerBindingRequest, DeleteMcpServerBindingResponse, DeleteMcpServerRequest, DeleteMcpServerResponse, DeleteNamespaceKnowledgeRequest, DeleteNamespaceKnowledgeResponse, DeleteNamespaceRequest, DeleteScheduleRequest, DeleteScheduleResponse, DeleteSessionRequest, DeleteSessionResponse, DeleteWorkflowRequest, DeleteWorkflowResponse, GetAgentRequest, GetAgentResponse, GetAgentTemplateRequest, GetChannelMessageRequest, GetChannelRequest, GetChannelSubscriptionRequest, GetKnowledgeRequest, GetMcpServerBindingRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetNamespaceRequest, GetScheduleRequest, GetSessionRequest, GetWorkflowRequest, GetWorkflowRunRequest, KnowledgeResponse, ListAgentsRequest, ListAgentsResponse, ListAgentTemplatesRequest, ListAgentTemplatesResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelSubscriptionsRequest, ListChannelSubscriptionsResponse, ListMcpServerBindingsRequest, ListMcpServerBindingsResponse, ListMcpServersRequest, ListMcpServersResponse, ListNamespaceKnowledgeRequest, ListNamespaceKnowledgeResponse, ListNamespacesRequest, ListNamespacesResponse, ListSchedulesRequest, ListSchedulesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, ListWorkflowsRequest, ListWorkflowsResponse, McpServerBindingResponse, McpServerResponse, ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest, ModifyScheduleRequest, NamespaceKnowledgeResponse, NamespaceResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResumeWorkflowRunRequest, ScheduleResponse, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowResponse, WorkflowRunResponse } from "./gateway_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { ChannelEvent, SessionMessagePartEvent } from "./events_pb.js";
+import { WorkflowRunEvent } from "./models_pb.js";
 
 /**
  * @generated from service talon.gateway.GatewayService
@@ -384,6 +385,98 @@ export const GatewayService = {
       I: DeleteScheduleRequest,
       O: DeleteScheduleResponse,
       kind: MethodKind.Unary,
+    },
+    /**
+     * Workflows
+     *
+     * @generated from rpc talon.gateway.GatewayService.CreateWorkflow
+     */
+    createWorkflow: {
+      name: "CreateWorkflow",
+      I: CreateWorkflowRequest,
+      O: WorkflowResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.GetWorkflow
+     */
+    getWorkflow: {
+      name: "GetWorkflow",
+      I: GetWorkflowRequest,
+      O: WorkflowResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.ListWorkflows
+     */
+    listWorkflows: {
+      name: "ListWorkflows",
+      I: ListWorkflowsRequest,
+      O: ListWorkflowsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.DeleteWorkflow
+     */
+    deleteWorkflow: {
+      name: "DeleteWorkflow",
+      I: DeleteWorkflowRequest,
+      O: DeleteWorkflowResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.CreateWorkflowRun
+     */
+    createWorkflowRun: {
+      name: "CreateWorkflowRun",
+      I: CreateWorkflowRunRequest,
+      O: WorkflowRunResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.GetWorkflowRun
+     */
+    getWorkflowRun: {
+      name: "GetWorkflowRun",
+      I: GetWorkflowRunRequest,
+      O: WorkflowRunResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.ListWorkflowRuns
+     */
+    listWorkflowRuns: {
+      name: "ListWorkflowRuns",
+      I: ListWorkflowRunsRequest,
+      O: ListWorkflowRunsResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.ResumeWorkflowRun
+     */
+    resumeWorkflowRun: {
+      name: "ResumeWorkflowRun",
+      I: ResumeWorkflowRunRequest,
+      O: WorkflowRunResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.CancelWorkflowRun
+     */
+    cancelWorkflowRun: {
+      name: "CancelWorkflowRun",
+      I: CancelWorkflowRunRequest,
+      O: WorkflowRunResponse,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc talon.gateway.GatewayService.StreamWorkflowEvents
+     */
+    streamWorkflowEvents: {
+      name: "StreamWorkflowEvents",
+      I: StreamWorkflowEventsRequest,
+      O: WorkflowRunEvent,
+      kind: MethodKind.ServerStreaming,
     },
     /**
      * Namespaces

@@ -83,6 +83,23 @@ pub struct ChannelEvent {
     #[prost(int64, tag = "9")]
     pub timestamp: i64,
 }
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct WorkflowDispatchEvent {
+    #[prost(string, tag = "1")]
+    pub ns: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub workflow: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub run_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub reason: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub step_id: ::prost::alloc::string::String,
+    #[prost(string, tag = "6")]
+    pub child_session_id: ::prost::alloc::string::String,
+    #[prost(int64, tag = "7")]
+    pub timestamp: i64,
+}
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum SystemAction {
