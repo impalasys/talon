@@ -433,6 +433,9 @@ pub fn parse_skill(yaml: &str) -> Result<manifests::Skill> {
     if skill.kind != "Skill" {
         bail!("Expected kind 'Skill', got '{}'", skill.kind);
     }
+    if skill.metadata.namespace.trim().is_empty() {
+        bail!("Skill metadata.namespace is required");
+    }
 
     Ok(manifests::Skill {
         api_version: skill.api_version,
@@ -1434,6 +1437,26 @@ definition:
         .expect_err("missing namespace should fail");
 
         assert!(error.to_string().contains("metadata.namespace is required"));
+    }
+
+    #[test]
+    fn parse_skill_rejects_missing_namespace() {
+        let error = parse_skill(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Skill
+metadata:
+  name: review
+spec:
+  description: Review code
+  instructions: Check tests before summarizing.
+"#,
+        )
+        .expect_err("missing namespace should fail");
+
+        assert!(error
+            .to_string()
+            .contains("Skill metadata.namespace is required"));
     }
 
     #[test]
