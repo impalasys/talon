@@ -5,7 +5,9 @@ use crate::control::MessagePublisher;
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine as _};
 use serde::Serialize;
-use std::pin::Pin;
+use std::{pin::Pin, time::Duration};
+
+const CLOUDFLARE_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
 pub struct CloudflareQueuesPublisher {
@@ -41,6 +43,7 @@ impl MessagePublisher for CloudflareQueuesPublisher {
         let response = self
             .client
             .post(format!("{}/publish", self.endpoint))
+            .timeout(CLOUDFLARE_HTTP_TIMEOUT)
             .json(&PublishRequest {
                 topic,
                 payload_base64: general_purpose::STANDARD.encode(message),

@@ -1,7 +1,6 @@
 import { Container, ContainerProxy } from "@cloudflare/containers";
 import { env as workerEnv } from "cloudflare:workers";
 import {
-  DEFAULT_SCHEDULER_AUTH_TOKEN,
   ScheduleShard,
   dispatchQueueBatch,
   handleAlarms,
@@ -29,6 +28,9 @@ type Env = Omit<TalonCfBindingsEnv, "WORKER_CONTAINER"> & {
 const TALON_CONFIG_INLINE_YAML = (
   workerEnv as unknown as { TALON_CONFIG_INLINE_YAML?: string }
 ).TALON_CONFIG_INLINE_YAML;
+const TALON_SCHEDULER_AUTH_TOKEN = (
+  workerEnv as unknown as { TALON_SCHEDULER_AUTH_TOKEN?: string }
+).TALON_SCHEDULER_AUTH_TOKEN;
 
 function configuredCount(raw: string | undefined): number {
   const parsed = Number.parseInt(raw ?? "", 10);
@@ -131,7 +133,7 @@ export class GatewayContainer extends Container<Env> {
     NOVITA_API_KEY: "local-cloudflare-e2e",
     ...(TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML } : {}),
     TALON_SCHEDULER_DRIVER: "cloudflare_alarms",
-    TALON_SCHEDULER_AUTH_TOKEN: DEFAULT_SCHEDULER_AUTH_TOKEN,
+    ...(TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN } : {}),
   };
   static outboundByHost = outboundByHost;
 }
@@ -145,7 +147,7 @@ export class WorkerContainer extends Container<Env> {
     NOVITA_API_KEY: "local-cloudflare-e2e",
     ...(TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML } : {}),
     TALON_SCHEDULER_DRIVER: "cloudflare_alarms",
-    TALON_SCHEDULER_AUTH_TOKEN: DEFAULT_SCHEDULER_AUTH_TOKEN,
+    ...(TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN } : {}),
   };
   static outboundByHost = outboundByHost;
 }

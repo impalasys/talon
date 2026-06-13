@@ -4,8 +4,11 @@
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine as _};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 use super::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
+
+const CLOUDFLARE_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
 
 pub struct CloudflareAlarmsSchedulerBackend {
     client: reqwest::Client,
@@ -57,6 +60,7 @@ impl CloudflareAlarmsSchedulerBackend {
         let response = self
             .client
             .post(format!("{}{}", self.endpoint, path))
+            .timeout(CLOUDFLARE_HTTP_TIMEOUT)
             .json(body)
             .send()
             .await?;

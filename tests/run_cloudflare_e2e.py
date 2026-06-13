@@ -20,7 +20,7 @@ def wait_for_health():
             if response.status_code == 200 and response.json().get("ok"):
                 return
             last_error = f"HTTP {response.status_code}: {response.text}"
-        except Exception as err:
+        except (requests.RequestException, ValueError) as err:
             last_error = str(err)
         time.sleep(2)
     raise RuntimeError(f"Timed out waiting for Cloudflare Talon health: {last_error}")

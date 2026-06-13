@@ -23,7 +23,20 @@ function queueForTopic(env: TalonCfBindingsEnv, topic: string): { queue: Queue; 
 export async function handleQueues(request: Request, env: TalonCfBindingsEnv): Promise<Response> {
   const url = new URL(request.url);
   if (url.pathname !== "/publish") return new Response("not found", { status: 404 });
-  const payload = await body<QueuePayload>(request);
+  let payload: QueuePayload;
+  try {
+    payload = await body<QueuePayload>(request);
+  } catch {
+    return new Response("invalid JSON body", { status: 400 });
+  }
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    typeof payload.topic !== "string" ||
+    typeof payload.payloadBase64 !== "string"
+  ) {
+    return new Response("invalid queue payload", { status: 400 });
+  }
   const destination = queueForTopic(env, payload.topic);
   if (!destination) return new Response(`unknown topic: ${payload.topic}`, { status: 400 });
   await destination.queue.send({

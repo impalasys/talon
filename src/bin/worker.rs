@@ -962,8 +962,8 @@ async fn main() -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_worker_handler, decode_scheduler_fire_payload, fully_qualified_subscription,
-        fully_qualified_topic, cloudflare_queue_dispatch, handle_pull_message,
+        build_worker_handler, cloudflare_queue_dispatch, decode_scheduler_fire_payload,
+        fully_qualified_subscription, fully_qualified_topic, handle_pull_message,
         maybe_spawn_pull_subscriptions,
         next_pull_error_backoff, next_pull_reconnect_delay, pubsub_project_id, pull_mode_enabled,
         pull_subscription_specs, push_webhook, resolved_pull_subscription_specs,

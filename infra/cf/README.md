@@ -134,17 +134,18 @@ The production Worker package lives in `infra/cf/worker`.
 ```bash
 cd infra/cf/worker
 npm ci
+npx wrangler secret put TALON_SCHEDULER_AUTH_TOKEN --config wrangler.jsonc
 npx wrangler deploy --config wrangler.jsonc
 ```
 
-Production containers should use pinned images from CI, not local Dockerfile builds. The checked-in `worker/wrangler.jsonc` currently uses floating GHCR tags as placeholders:
+Production containers should use pinned images from CI, not local Dockerfile builds. The checked-in `worker/wrangler.jsonc` currently uses replacement GHCR tags as placeholders:
 
 ```text
-ghcr.io/impalasys/talon-runtime:latest
-ghcr.io/impalasys/talon-envoy-cloudflare:latest
+ghcr.io/impalasys/talon-runtime:sha-REPLACE_ME
+ghcr.io/impalasys/talon-envoy-cloudflare:sha-REPLACE_ME
 ```
 
-Before production deploys, replace these with immutable `sha-*` tags or image digests, and ensure the D1 database ID matches the Terraform-created D1 database.
+Before production deploys, set `TALON_CF_PROD_IMAGE_TAG`, `TALON_CF_PROD_RUNTIME_IMAGE`, or `TALON_CF_PROD_ENVOY_IMAGE`, then run `infra/cf/gen-wrangler.sh`. Use immutable `sha-*` tags or image digests, set `TALON_SCHEDULER_AUTH_TOKEN` with `wrangler secret put`, and ensure the D1 database ID matches the Terraform-created D1 database.
 
 Dry-run a deploy without publishing:
 

@@ -14,8 +14,12 @@ type AlarmScheduleRequest = {
 
 type StoredAlarmWakeup = AlarmScheduleRequest & {
   handle: string;
+  dueIndexKey: string;
   failedAttempts?: number;
 };
+
+const MAX_RETRY_ATTEMPTS = 10;
+const DUE_INDEX_PREFIX = "wakeup_due:";
 
 function microsToMillis(micros: number): number {
   return Math.max(0, Math.floor(micros / 1000));
@@ -60,15 +64,15 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
     if (path === "/schedule") {
       const req = await body<AlarmScheduleRequest>(request);
       const handle = crypto.randomUUID();
-      const wakeup: StoredAlarmWakeup = { ...req, handle };
-      await this.ctx.storage.put(this.wakeupKey(handle), wakeup);
+      const wakeup = this.withDueIndex({ ...req, handle, failedAttempts: 0 });
+      await this.putWakeup(wakeup);
       await this.armNextAlarm();
       return json({ handle, armed: true });
     }
 
     if (path === "/cancel") {
       const { handle } = await body<{ handle: string }>(request);
-      await this.ctx.storage.delete(this.wakeupKey(handle));
+      await this.deleteWakeup(handle);
       await this.armNextAlarm();
       return json({});
     }
@@ -95,11 +99,16 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${await response.text()}`);
         }
-        await this.ctx.storage.delete(this.wakeupKey(wakeup.handle));
+        await this.deleteWakeup(wakeup);
       } catch (error) {
         const failedAttempts = (wakeup.failedAttempts ?? 0) + 1;
         console.error(`schedule wakeup ${wakeup.handle} failed`, error);
-        await this.ctx.storage.put(this.wakeupKey(wakeup.handle), {
+        if (failedAttempts >= MAX_RETRY_ATTEMPTS) {
+          console.error(`schedule wakeup ${wakeup.handle} exceeded max retries, dropping`);
+          await this.deleteWakeup(wakeup);
+          continue;
+        }
+        await this.putWakeup({
           ...wakeup,
           failedAttempts,
           fireAtMicros: nowMicros() + retryDelayMicros(failedAttempts),
@@ -113,22 +122,54 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
     return `wakeup:${handle}`;
   }
 
-  private async allWakeups(): Promise<StoredAlarmWakeup[]> {
+  private dueIndexKey(fireAtMicros: number, handle: string): string {
+    const micros = Math.max(0, Math.trunc(fireAtMicros));
+    return `${DUE_INDEX_PREFIX}${micros.toString().padStart(20, "0")}:${handle}`;
+  }
+
+  private withDueIndex(wakeup: Omit<StoredAlarmWakeup, "dueIndexKey">): StoredAlarmWakeup {
+    return {
+      ...wakeup,
+      dueIndexKey: this.dueIndexKey(wakeup.fireAtMicros, wakeup.handle),
+    };
+  }
+
+  private async putWakeup(wakeup: StoredAlarmWakeup): Promise<void> {
+    const indexed = this.withDueIndex(wakeup);
+    if (wakeup.dueIndexKey && wakeup.dueIndexKey !== indexed.dueIndexKey) {
+      await this.ctx.storage.delete(wakeup.dueIndexKey);
+    }
+    await this.ctx.storage.put(this.wakeupKey(indexed.handle), indexed);
+    await this.ctx.storage.put(indexed.dueIndexKey, indexed);
+  }
+
+  private async deleteWakeup(wakeupOrHandle: StoredAlarmWakeup | string): Promise<void> {
+    const wakeup = typeof wakeupOrHandle === "string"
+      ? await this.ctx.storage.get<StoredAlarmWakeup>(this.wakeupKey(wakeupOrHandle))
+      : wakeupOrHandle;
+    if (wakeup) {
+      if (wakeup.dueIndexKey) await this.ctx.storage.delete(wakeup.dueIndexKey);
+      await this.ctx.storage.delete(this.wakeupKey(wakeup.handle));
+    } else if (typeof wakeupOrHandle === "string") {
+      await this.ctx.storage.delete(this.wakeupKey(wakeupOrHandle));
+    }
+  }
+
+  private async dueWakeups(now: number): Promise<StoredAlarmWakeup[]> {
     const rows = await this.ctx.storage.list<StoredAlarmWakeup>({
-      prefix: "wakeup:",
+      prefix: DUE_INDEX_PREFIX,
+      end: `${this.dueIndexKey(now, "")}\uffff`,
+      limit: 100,
     });
     return [...rows.values()];
   }
 
-  private async dueWakeups(now: number): Promise<StoredAlarmWakeup[]> {
-    return (await this.allWakeups())
-      .filter((wakeup) => wakeup.fireAtMicros <= now)
-      .sort((left, right) => left.fireAtMicros - right.fireAtMicros);
-  }
-
   private async nextWakeup(): Promise<StoredAlarmWakeup | undefined> {
-    return (await this.allWakeups())
-      .sort((left, right) => left.fireAtMicros - right.fireAtMicros)[0];
+    const rows = await this.ctx.storage.list<StoredAlarmWakeup>({
+      prefix: DUE_INDEX_PREFIX,
+      limit: 1,
+    });
+    return rows.values().next().value;
   }
 
   private async armNextAlarm(): Promise<void> {

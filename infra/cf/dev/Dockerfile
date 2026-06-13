@@ -18,4 +18,7 @@ RUN install -m 0755 -d /etc/apt/keyrings \
 
 WORKDIR /repo/infra/cf/worker
 
-CMD ["sh", "-c", "npm ci && npm run dev"]
+COPY infra/cf/dev/start-wrangler.sh /usr/local/bin/start-wrangler
+RUN chmod +x /usr/local/bin/start-wrangler
+
+CMD ["start-wrangler"]

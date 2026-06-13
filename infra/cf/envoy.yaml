@@ -26,9 +26,13 @@ static_resources:
                   timeout: 60s
               cors:
                 allow_origin_string_match:
+                - exact: "https://sightline.impala.systems"
+                - exact: "http://localhost:3000"
+                - exact: "http://localhost:5173"
+                - exact: "http://localhost:8787"
                 - safe_regex:
                     google_re2: {}
-                    regex: ".*"
+                    regex: "^https://([a-z0-9-]+\\.)?impala\\.systems$"
                 allow_methods: GET, PUT, DELETE, POST, OPTIONS
                 allow_headers: keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,connect-protocol-version,connect-timeout-ms,authorization
                 max_age: "1728000"

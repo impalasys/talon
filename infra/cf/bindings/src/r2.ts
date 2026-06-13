@@ -3,7 +3,13 @@ import type { TalonCfBindingsEnv } from "./types";
 
 export async function handleR2(request: Request, env: TalonCfBindingsEnv): Promise<Response> {
   const url = new URL(request.url);
-  const key = decodeURIComponent(url.pathname.replace(/^\/objects\//, ""));
+  const rawKey = url.pathname.replace(/^\/objects\//, "");
+  let key: string;
+  try {
+    key = decodeURIComponent(rawKey);
+  } catch {
+    return new Response("invalid object key encoding", { status: 400 });
+  }
   if (!key || key === url.pathname) return new Response("missing object key", { status: 400 });
 
   if (request.method === "PUT") {
