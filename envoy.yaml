@@ -20,6 +20,26 @@ static_resources:
                 route:
                   cluster: talon_ui_http_service
                   timeout: 60s
+              - match: { prefix: "/v1/message:" }
+                route:
+                  cluster: talon_ui_http_service
+                  timeout: 60s
+              - match: { prefix: "/v1/tasks" }
+                route:
+                  cluster: talon_ui_http_service
+                  timeout: 60s
+              - match: { prefix: "/message:" }
+                route:
+                  cluster: talon_ui_http_service
+                  timeout: 60s
+              - match: { prefix: "/tasks" }
+                route:
+                  cluster: talon_ui_http_service
+                  timeout: 60s
+              - match: { path: "/extendedAgentCard" }
+                route:
+                  cluster: talon_ui_http_service
+                  timeout: 60s
               - match: { prefix: "/v1/ui/" }
                 route:
                   cluster: talon_ui_http_service

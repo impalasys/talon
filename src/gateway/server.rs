@@ -61,9 +61,18 @@ impl Gateway {
                 "/message:operation",
                 post(crate::gateway::a2a::post_message_operation),
             )
+            .route(
+                "/v1/message:operation",
+                post(crate::gateway::a2a::post_message_operation),
+            )
             .route("/tasks", get(crate::gateway::a2a::list_tasks))
+            .route("/v1/tasks", get(crate::gateway::a2a::list_tasks))
             .route(
                 "/tasks/*tail",
+                get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
+            )
+            .route(
+                "/v1/tasks/*tail",
                 get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
             )
             .route(
@@ -492,6 +501,8 @@ mod tests {
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(value["name"], "Support Agent");
         assert_eq!(value["url"], "http://support.example.com:8080");
+        assert_eq!(value["protocolVersion"], "0.3.0");
+        assert_eq!(value["preferredTransport"], "HTTP+JSON");
         assert_eq!(value["capabilities"]["streaming"], false);
         assert_eq!(value["skills"][0]["id"], "answer_support_question");
         assert!(value.get("auth").is_none());
@@ -579,6 +590,44 @@ mod tests {
         assert_eq!(value["status"]["state"], "TASK_STATE_WORKING");
         assert_eq!(value["history"][0]["role"], "ROLE_USER");
         assert_eq!(value["history"][0]["parts"][0]["text"], "hello from A2A");
+
+        let v1_send = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/v1/message:send")
+                    .header(header::HOST, "support.example.com")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        r#"{
+                            "message": {
+                                "messageId": "msg-2",
+                                "role": "ROLE_USER",
+                                "taskId": "task-2",
+                                "contextId": "ctx-2",
+                                "content": [{ "text": "hello from A2A SDK" }]
+                            },
+                            "configuration": { "returnImmediately": true }
+                        }"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(v1_send.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(v1_send.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["task"]["id"], "task-2");
+        assert_eq!(value["task"]["contextId"], "ctx-2");
+        assert_eq!(value["task"]["history"][0]["role"], "ROLE_USER");
+        assert_eq!(
+            value["task"]["history"][0]["content"][0]["text"],
+            "hello from A2A SDK"
+        );
+        assert!(value["task"]["history"][0].get("parts").is_none());
 
         let session_key = crate::control::keys::session("support", "support-docs", "task-1");
         let mut session = crate::gateway::rpc::models::Session::decode(

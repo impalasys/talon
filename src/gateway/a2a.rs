@@ -37,6 +37,8 @@ struct AgentCardJson {
     description: String,
     version: String,
     url: String,
+    protocol_version: String,
+    preferred_transport: String,
     capabilities: AgentCardCapabilitiesJson,
     default_input_modes: Vec<String>,
     default_output_modes: Vec<String>,
@@ -91,7 +93,7 @@ struct A2aMessageJson {
     #[serde(default)]
     message_id: String,
     role: String,
-    #[serde(default)]
+    #[serde(default, alias = "content")]
     parts: Vec<A2aPartJson>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     task_id: Option<String>,
@@ -170,7 +172,7 @@ pub async fn post_message_operation(
     body: Bytes,
 ) -> Response {
     match uri.path() {
-        "/message:send" => {
+        "/message:send" | "/v1/message:send" => {
             let body = match serde_json::from_slice::<SendMessageRequestJson>(&body) {
                 Ok(body) => body,
                 Err(err) => {
@@ -180,9 +182,14 @@ pub async fn post_message_operation(
                     );
                 }
             };
-            send_message(gateway, host, body).await
+            let response_encoding = if uri.path().starts_with("/v1/") {
+                A2aResponseEncoding::RestV1
+            } else {
+                A2aResponseEncoding::Legacy
+            };
+            send_message(gateway, host, body, response_encoding).await
         }
-        "/message:stream" => {
+        "/message:stream" | "/v1/message:stream" => {
             if let Err(response) = resolve_agent_card_route(&gateway, &host).await {
                 return response;
             }
@@ -196,6 +203,7 @@ async fn send_message(
     gateway: Arc<Gateway>,
     host: String,
     body: SendMessageRequestJson,
+    response_encoding: A2aResponseEncoding,
 ) -> Response {
     let route = match resolve_agent_card_route(&gateway, &host).await {
         Ok(route) => route,
@@ -255,10 +263,19 @@ async fn send_message(
             Err(response) => return response,
         }
     };
-    Json(task).into_response()
+    match response_encoding {
+        A2aResponseEncoding::Legacy => Json(task).into_response(),
+        A2aResponseEncoding::RestV1 => {
+            Json(json!({ "task": rest_v1_task_value(task) })).into_response()
+        }
+    }
 }
 
-pub async fn list_tasks(State(gateway): State<Arc<Gateway>>, Host(host): Host) -> Response {
+pub async fn list_tasks(
+    State(gateway): State<Arc<Gateway>>,
+    Host(host): Host,
+    OriginalUri(uri): OriginalUri,
+) -> Response {
     let route = match resolve_agent_card_route(&gateway, &host).await {
         Ok(route) => route,
         Err(response) => return response,
@@ -295,13 +312,21 @@ pub async fn list_tasks(State(gateway): State<Arc<Gateway>>, Host(host): Host) -
             }
         }
     }
-    Json(ListTasksResponseJson { tasks }).into_response()
+    if uri.path().starts_with("/v1/") {
+        Json(json!({
+            "tasks": tasks.into_iter().map(rest_v1_task_value).collect::<Vec<_>>()
+        }))
+        .into_response()
+    } else {
+        Json(ListTasksResponseJson { tasks }).into_response()
+    }
 }
 
 pub async fn get_task(
     State(gateway): State<Arc<Gateway>>,
     Host(host): Host,
     Path(tail): Path<String>,
+    OriginalUri(uri): OriginalUri,
 ) -> Response {
     if tail.contains('/') || tail.ends_with(":cancel") || tail.ends_with(":subscribe") {
         return a2a_error(StatusCode::NOT_FOUND, "A2A task not found");
@@ -311,6 +336,9 @@ pub async fn get_task(
         Err(response) => return response,
     };
     match load_a2a_task(&gateway, &route, &tail).await {
+        Ok(task) if uri.path().starts_with("/v1/") => {
+            Json(rest_v1_task_value(task)).into_response()
+        }
         Ok(task) => Json(task).into_response(),
         Err(response) => response,
     }
@@ -320,6 +348,7 @@ pub async fn post_task_operation(
     State(gateway): State<Arc<Gateway>>,
     Host(host): Host,
     Path(tail): Path<String>,
+    OriginalUri(uri): OriginalUri,
 ) -> Response {
     let route = match resolve_agent_card_route(&gateway, &host).await {
         Ok(route) => route,
@@ -342,6 +371,9 @@ pub async fn post_task_operation(
         return response;
     }
     match load_a2a_task(&gateway, &route, task_id).await {
+        Ok(task) if uri.path().starts_with("/v1/") => {
+            Json(rest_v1_task_value(task)).into_response()
+        }
         Ok(task) => Json(task).into_response(),
         Err(response) => response,
     }
@@ -434,6 +466,8 @@ fn agent_card_json(
         description: spec.description.clone(),
         version: spec.version.clone(),
         url,
+        protocol_version: "0.3.0".to_string(),
+        preferred_transport: "HTTP+JSON".to_string(),
         capabilities: AgentCardCapabilitiesJson {
             streaming: capabilities.map(|value| value.streaming).unwrap_or(false),
             push_notifications: capabilities
@@ -459,6 +493,56 @@ fn agent_card_json(
             })
             .collect(),
     })
+}
+
+#[derive(Clone, Copy)]
+enum A2aResponseEncoding {
+    Legacy,
+    RestV1,
+}
+
+fn rest_v1_task_value(task: A2aTaskJson) -> Value {
+    let mut value = serde_json::to_value(task).unwrap_or_else(|_| json!({}));
+    rename_message_parts_for_rest_v1(&mut value);
+    value
+}
+
+fn rename_message_parts_for_rest_v1(value: &mut Value) {
+    match value {
+        Value::Object(object) => {
+            if let Some(parts) = object.remove("parts") {
+                object.insert("content".to_string(), rest_v1_content_value(parts));
+            }
+            for child in object.values_mut() {
+                rename_message_parts_for_rest_v1(child);
+            }
+        }
+        Value::Array(values) => {
+            for child in values {
+                rename_message_parts_for_rest_v1(child);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn rest_v1_content_value(parts: Value) -> Value {
+    match parts {
+        Value::Array(parts) => Value::Array(parts.into_iter().map(rest_v1_part_value).collect()),
+        other => other,
+    }
+}
+
+fn rest_v1_part_value(part: Value) -> Value {
+    match part {
+        Value::Object(mut object) => {
+            if let Some(data) = object.remove("data") {
+                object.insert("data".to_string(), json!({ "data": data }));
+            }
+            Value::Object(object)
+        }
+        other => other,
+    }
 }
 
 async fn resolve_agent_card_route(
