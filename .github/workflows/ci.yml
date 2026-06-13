@@ -293,11 +293,13 @@ jobs:
         run: docker compose -f infra/cf/dev/docker-compose.yaml config
 
       - name: Run Cloudflare local E2E
+        id: cloudflare-local-e2e
+        continue-on-error: true
         timeout-minutes: 35
         run: docker compose -f infra/cf/dev/docker-compose.yaml up --build --abort-on-container-exit --exit-code-from e2e-tests e2e-tests
 
       - name: Dump Cloudflare stack logs
-        if: failure()
+        if: always() && steps.cloudflare-local-e2e.outcome == 'failure'
         run: |
           docker compose -f infra/cf/dev/docker-compose.yaml ps
           docker compose -f infra/cf/dev/docker-compose.yaml logs --no-color --tail=400
