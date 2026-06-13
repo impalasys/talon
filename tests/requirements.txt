@@ -11,3 +11,5 @@ pytest-httpserver
 requests
 testcontainers[postgres]
 psycopg2-binary
+a2a-sdk[all]==0.3.10
+bazel-runfiles

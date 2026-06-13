@@ -250,6 +250,37 @@ jobs:
           pnpm --dir sdk/js typecheck
           pnpm --dir sdk/js test
 
+  a2a_compat:
+    name: A2A Compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pkg-config libssl-dev protobuf-compiler
+
+      - name: Build Talon binaries
+        run: cargo build --locked --bins
+
+      - name: Install Python test dependencies
+        run: python -m pip install -r tests/requirements.txt
+
+      - name: Run upstream A2A SDK compatibility test
+        run: pytest -q tests/test_a2a_compat.py
+
   binary_artifacts:
     name: Binary Artifacts
     if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
@@ -259,6 +290,7 @@ jobs:
       - envoy_image
       - ui
       - sdk
+      - a2a_compat
     strategy:
       fail-fast: false
       matrix:
