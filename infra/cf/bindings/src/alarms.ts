@@ -14,8 +14,7 @@ type AlarmScheduleRequest = {
 
 type StoredAlarmWakeup = AlarmScheduleRequest & {
   handle: string;
-  canceledAtMicros?: number;
-  deliveredAtMicros?: number;
+  failedAttempts?: number;
 };
 
 function microsToMillis(micros: number): number {
@@ -41,6 +40,11 @@ function workerInstanceName(key: string, count: number): string {
   return `worker-${stableHash(key) % count}`;
 }
 
+function retryDelayMicros(attempts: number): number {
+  const seconds = Math.min(60, 2 ** Math.min(attempts, 5));
+  return seconds * 1_000_000;
+}
+
 export async function handleAlarms(request: Request, env: TalonCfBindingsEnv): Promise<Response> {
   const shard = env.SCHEDULE_SHARD.get(env.SCHEDULE_SHARD.idFromName("default"));
   return shard.fetch(request);
@@ -64,14 +68,7 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
 
     if (path === "/cancel") {
       const { handle } = await body<{ handle: string }>(request);
-      const key = this.wakeupKey(handle);
-      const wakeup = await this.ctx.storage.get<StoredAlarmWakeup>(key);
-      if (wakeup && !wakeup.deliveredAtMicros) {
-        await this.ctx.storage.put(key, {
-          ...wakeup,
-          canceledAtMicros: nowMicros(),
-        });
-      }
+      await this.ctx.storage.delete(this.wakeupKey(handle));
       await this.armNextAlarm();
       return json({});
     }
@@ -86,23 +83,28 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
     for (const wakeup of due) {
       const workerName = workerInstanceName(`${wakeup.namespace}:${wakeup.scheduleId}`, workerCount);
       const worker = this.env.WORKER_CONTAINER.get(this.env.WORKER_CONTAINER.idFromName(workerName));
-      const response = await worker.fetch("http://worker/schedules/fire", {
-        method: "POST",
-        headers: {
-          ...TEXT_JSON,
-          "X-Talon-Scheduler-Token": this.env.TALON_SCHEDULER_AUTH_TOKEN ?? DEFAULT_SCHEDULER_AUTH_TOKEN,
-        },
-        body: decodeBase64(wakeup.payloadBase64),
-      });
-      if (!response.ok) {
-        throw new Error(
-          `schedule wakeup ${wakeup.handle} failed with HTTP ${response.status}: ${await response.text()}`,
-        );
+      try {
+        const response = await worker.fetch("http://worker/schedules/fire", {
+          method: "POST",
+          headers: {
+            ...TEXT_JSON,
+            "X-Talon-Scheduler-Token": this.env.TALON_SCHEDULER_AUTH_TOKEN ?? DEFAULT_SCHEDULER_AUTH_TOKEN,
+          },
+          body: decodeBase64(wakeup.payloadBase64),
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+        }
+        await this.ctx.storage.delete(this.wakeupKey(wakeup.handle));
+      } catch (error) {
+        const failedAttempts = (wakeup.failedAttempts ?? 0) + 1;
+        console.error(`schedule wakeup ${wakeup.handle} failed`, error);
+        await this.ctx.storage.put(this.wakeupKey(wakeup.handle), {
+          ...wakeup,
+          failedAttempts,
+          fireAtMicros: nowMicros() + retryDelayMicros(failedAttempts),
+        });
       }
-      await this.ctx.storage.put(this.wakeupKey(wakeup.handle), {
-        ...wakeup,
-        deliveredAtMicros: nowMicros(),
-      });
     }
     await this.armNextAlarm();
   }
@@ -120,16 +122,12 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
 
   private async dueWakeups(now: number): Promise<StoredAlarmWakeup[]> {
     return (await this.allWakeups())
-      .filter((wakeup) => !wakeup.canceledAtMicros)
-      .filter((wakeup) => !wakeup.deliveredAtMicros)
       .filter((wakeup) => wakeup.fireAtMicros <= now)
       .sort((left, right) => left.fireAtMicros - right.fireAtMicros);
   }
 
   private async nextWakeup(): Promise<StoredAlarmWakeup | undefined> {
     return (await this.allWakeups())
-      .filter((wakeup) => !wakeup.canceledAtMicros)
-      .filter((wakeup) => !wakeup.deliveredAtMicros)
       .sort((left, right) => left.fireAtMicros - right.fireAtMicros)[0];
   }
 

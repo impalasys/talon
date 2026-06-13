@@ -1,4 +1,4 @@
-import { TEXT_JSON, TOPICS } from "./constants";
+import { DEFAULT_SCHEDULER_AUTH_TOKEN, TEXT_JSON, TOPICS } from "./constants";
 import { body, json } from "./http";
 import type { BoundFetcher, QueueMessageBody, TalonCfBindingsEnv } from "./types";
 
@@ -40,12 +40,15 @@ export async function dispatchQueueBatch(
   env: TalonCfBindingsEnv,
   resolveWorker: QueueWorkerResolver = () => env.WORKER_CONTAINER.get(env.WORKER_CONTAINER.idFromName("default")),
 ) {
-  for (const [index, message] of batch.messages.entries()) {
+  await Promise.all(batch.messages.map(async (message, index) => {
     const worker = await resolveWorker(message, index);
     const payload = message.body as QueueMessageBody;
     const response = await worker.fetch("http://worker/cloudflare/queues/dispatch", {
       method: "POST",
-      headers: TEXT_JSON,
+      headers: {
+        ...TEXT_JSON,
+        authorization: `Bearer ${env.TALON_SCHEDULER_AUTH_TOKEN ?? DEFAULT_SCHEDULER_AUTH_TOKEN}`,
+      },
       body: JSON.stringify({
         eventType: payload.eventType,
         deliveryId: message.id,
@@ -57,5 +60,5 @@ export async function dispatchQueueBatch(
     } else {
       message.ack();
     }
-  }
+  }));
 }
