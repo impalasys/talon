@@ -1552,6 +1552,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: pubsub.clone(),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         };
         let workflow = models::Workflow {
             name: "retention-review".to_string(),

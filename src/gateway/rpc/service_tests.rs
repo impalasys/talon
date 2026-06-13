@@ -993,6 +993,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: pubsub.clone(),
             scheduler,
+            objects: crate::control::object_store::default_object_store(),
         };
         let claimed = crate::workflows::claim_run(
             cp.kv.as_ref(),

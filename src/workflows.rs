@@ -2196,6 +2196,7 @@ mod tests {
                 kv,
                 pubsub,
                 scheduler: Arc::new(NoopSchedulerBackend),
+                objects: crate::control::object_store::default_object_store(),
             }),
             config: Arc::new(Config {
                 providers: HashMap::from([(
@@ -2357,6 +2358,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: Arc::new(RecordingPubSub::default()),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         };
         let workflow = models::Workflow {
             name: "copy".to_string(),
@@ -2424,6 +2426,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: Arc::new(RecordingPubSub::default()),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         };
         let book = KvKnowledgeBook::new(kv.clone());
         book.write("default", "goals.md", "ship workflow support")
@@ -2613,6 +2616,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: Arc::new(RecordingPubSub::default()),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         };
         let mut workflow = models::Workflow {
             name: "snapshot".to_string(),
@@ -2670,6 +2674,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: Arc::new(RecordingPubSub::default()),
             scheduler: Arc::new(NoopSchedulerBackend),
+            objects: crate::control::object_store::default_object_store(),
         };
         for agent in ["a", "b"] {
             kv.set_msg(
@@ -2754,6 +2759,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: pubsub.clone(),
             scheduler: scheduler.clone(),
+            objects: crate::control::object_store::default_object_store(),
         };
         let workflow = models::Workflow {
             name: "timer".to_string(),
@@ -2832,6 +2838,7 @@ mod tests {
             kv: kv.clone(),
             pubsub: Arc::new(RecordingPubSub::default()),
             scheduler: scheduler.clone(),
+            objects: crate::control::object_store::default_object_store(),
         };
         let workflow = models::Workflow {
             name: "retrying".to_string(),
@@ -3417,6 +3424,7 @@ spec:
                     name: String::new(),
                     payload_json: String::new(),
                     created_at: 1,
+                    object: None,
                 }],
             },
         )

@@ -497,6 +497,7 @@ impl GatewayControlPlaneExt for crate::gateway::server::Gateway {
             kv: self.kv.clone(),
             pubsub: self.pubsub.clone(),
             scheduler: self.scheduler.clone(),
+            objects: self.objects.clone(),
         }
     }
 }
