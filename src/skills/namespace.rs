@@ -12,8 +12,8 @@ pub async fn load_effective_skills(
     kv: Arc<dyn crate::control::KeyValueStore>,
     namespace: &str,
 ) -> Result<Vec<manifests::Skill>> {
-    let mut skills = Vec::new();
     let mut seen_names = HashSet::new();
+    let mut keys_to_fetch = Vec::new();
 
     for candidate_ns in crate::control::ns::ancestry(namespace) {
         let prefix = keys::skill_prefix(&candidate_ns);
@@ -22,15 +22,21 @@ pub async fn load_effective_skills(
 
         for key in skill_keys {
             let name = key.name.clone();
-            if !seen_names.insert(name) {
-                continue;
-            }
-
-            if let Some(skill) = kv.get_msg::<manifests::Skill>(&key).await? {
-                skills.push(skill);
+            if seen_names.insert(name) {
+                keys_to_fetch.push(key);
             }
         }
     }
+
+    let fetches = keys_to_fetch.into_iter().map(|key| {
+        let kv = kv.clone();
+        async move { kv.get_msg::<manifests::Skill>(&key).await }
+    });
+    let mut skills: Vec<manifests::Skill> = futures::future::try_join_all(fetches)
+        .await?
+        .into_iter()
+        .flatten()
+        .collect();
 
     skills.sort_by(|left, right| {
         skill_name(left)
@@ -41,21 +47,14 @@ pub async fn load_effective_skills(
 }
 
 pub fn format_skill_context(skills: &[manifests::Skill]) -> String {
-    if skills.is_empty() {
-        return String::new();
-    }
-
-    let mut output = String::from("# INHERITED SKILLS\n");
-    output.push_str(
-        "These shared namespace skills are available as reusable prompt guidance. Follow any relevant skill instructions for this task.\n\n",
-    );
+    let mut formatted_skills = Vec::new();
 
     for skill in skills {
         let Some(spec) = skill.spec.as_ref() else {
             continue;
         };
-        output.push_str(&format!(
-            "## Skill: {}\nSource namespace: {}\nDescription: {}\n\n{}\n\n",
+        formatted_skills.push(format!(
+            "## Skill: {}\nSource namespace: {}\nDescription: {}\n\n{}",
             skill_name(skill),
             skill_namespace(skill),
             spec.description.trim(),
@@ -63,7 +62,16 @@ pub fn format_skill_context(skills: &[manifests::Skill]) -> String {
         ));
     }
 
-    output.trim_end().to_string()
+    if formatted_skills.is_empty() {
+        return String::new();
+    }
+
+    let mut output = String::from("# INHERITED SKILLS\n");
+    output.push_str(
+        "These shared namespace skills are available as reusable prompt guidance. Follow any relevant skill instructions for this task.\n\n",
+    );
+    output.push_str(&formatted_skills.join("\n\n"));
+    output
 }
 
 fn skill_name(skill: &manifests::Skill) -> String {
@@ -142,5 +150,13 @@ mod tests {
         assert!(rendered.contains("child"));
         assert!(!rendered.contains("parent"));
         assert!(!rendered.contains("sibling"));
+    }
+
+    #[test]
+    fn format_skill_context_omits_header_when_no_valid_skills_render() {
+        let mut invalid = skill("acme", "empty", "ignored");
+        invalid.spec = None;
+
+        assert_eq!(format_skill_context(&[invalid]), "");
     }
 }

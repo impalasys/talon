@@ -322,6 +322,130 @@ public final class GatewayServiceGrpc {
     return getDeleteNamespaceKnowledgeMethod;
   }
 
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceSkillRequest,
+      talon.gateway.Gateway.NamespaceSkillResponse> getCreateNamespaceSkillMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "CreateNamespaceSkill",
+      requestType = talon.gateway.Gateway.CreateNamespaceSkillRequest.class,
+      responseType = talon.gateway.Gateway.NamespaceSkillResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceSkillRequest,
+      talon.gateway.Gateway.NamespaceSkillResponse> getCreateNamespaceSkillMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateNamespaceSkillRequest, talon.gateway.Gateway.NamespaceSkillResponse> getCreateNamespaceSkillMethod;
+    if ((getCreateNamespaceSkillMethod = GatewayServiceGrpc.getCreateNamespaceSkillMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getCreateNamespaceSkillMethod = GatewayServiceGrpc.getCreateNamespaceSkillMethod) == null) {
+          GatewayServiceGrpc.getCreateNamespaceSkillMethod = getCreateNamespaceSkillMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.CreateNamespaceSkillRequest, talon.gateway.Gateway.NamespaceSkillResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "CreateNamespaceSkill"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.CreateNamespaceSkillRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.NamespaceSkillResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("CreateNamespaceSkill"))
+              .build();
+        }
+      }
+    }
+    return getCreateNamespaceSkillMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceSkillRequest,
+      talon.gateway.Gateway.NamespaceSkillResponse> getGetNamespaceSkillMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "GetNamespaceSkill",
+      requestType = talon.gateway.Gateway.GetNamespaceSkillRequest.class,
+      responseType = talon.gateway.Gateway.NamespaceSkillResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceSkillRequest,
+      talon.gateway.Gateway.NamespaceSkillResponse> getGetNamespaceSkillMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.GetNamespaceSkillRequest, talon.gateway.Gateway.NamespaceSkillResponse> getGetNamespaceSkillMethod;
+    if ((getGetNamespaceSkillMethod = GatewayServiceGrpc.getGetNamespaceSkillMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getGetNamespaceSkillMethod = GatewayServiceGrpc.getGetNamespaceSkillMethod) == null) {
+          GatewayServiceGrpc.getGetNamespaceSkillMethod = getGetNamespaceSkillMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.GetNamespaceSkillRequest, talon.gateway.Gateway.NamespaceSkillResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "GetNamespaceSkill"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.GetNamespaceSkillRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.NamespaceSkillResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("GetNamespaceSkill"))
+              .build();
+        }
+      }
+    }
+    return getGetNamespaceSkillMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceSkillsRequest,
+      talon.gateway.Gateway.ListNamespaceSkillsResponse> getListNamespaceSkillsMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "ListNamespaceSkills",
+      requestType = talon.gateway.Gateway.ListNamespaceSkillsRequest.class,
+      responseType = talon.gateway.Gateway.ListNamespaceSkillsResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceSkillsRequest,
+      talon.gateway.Gateway.ListNamespaceSkillsResponse> getListNamespaceSkillsMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.ListNamespaceSkillsRequest, talon.gateway.Gateway.ListNamespaceSkillsResponse> getListNamespaceSkillsMethod;
+    if ((getListNamespaceSkillsMethod = GatewayServiceGrpc.getListNamespaceSkillsMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getListNamespaceSkillsMethod = GatewayServiceGrpc.getListNamespaceSkillsMethod) == null) {
+          GatewayServiceGrpc.getListNamespaceSkillsMethod = getListNamespaceSkillsMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.ListNamespaceSkillsRequest, talon.gateway.Gateway.ListNamespaceSkillsResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "ListNamespaceSkills"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ListNamespaceSkillsRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.ListNamespaceSkillsResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("ListNamespaceSkills"))
+              .build();
+        }
+      }
+    }
+    return getListNamespaceSkillsMethod;
+  }
+
+  private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceSkillRequest,
+      talon.gateway.Gateway.DeleteNamespaceSkillResponse> getDeleteNamespaceSkillMethod;
+
+  @io.grpc.stub.annotations.RpcMethod(
+      fullMethodName = SERVICE_NAME + '/' + "DeleteNamespaceSkill",
+      requestType = talon.gateway.Gateway.DeleteNamespaceSkillRequest.class,
+      responseType = talon.gateway.Gateway.DeleteNamespaceSkillResponse.class,
+      methodType = io.grpc.MethodDescriptor.MethodType.UNARY)
+  public static io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceSkillRequest,
+      talon.gateway.Gateway.DeleteNamespaceSkillResponse> getDeleteNamespaceSkillMethod() {
+    io.grpc.MethodDescriptor<talon.gateway.Gateway.DeleteNamespaceSkillRequest, talon.gateway.Gateway.DeleteNamespaceSkillResponse> getDeleteNamespaceSkillMethod;
+    if ((getDeleteNamespaceSkillMethod = GatewayServiceGrpc.getDeleteNamespaceSkillMethod) == null) {
+      synchronized (GatewayServiceGrpc.class) {
+        if ((getDeleteNamespaceSkillMethod = GatewayServiceGrpc.getDeleteNamespaceSkillMethod) == null) {
+          GatewayServiceGrpc.getDeleteNamespaceSkillMethod = getDeleteNamespaceSkillMethod =
+              io.grpc.MethodDescriptor.<talon.gateway.Gateway.DeleteNamespaceSkillRequest, talon.gateway.Gateway.DeleteNamespaceSkillResponse>newBuilder()
+              .setType(io.grpc.MethodDescriptor.MethodType.UNARY)
+              .setFullMethodName(generateFullMethodName(SERVICE_NAME, "DeleteNamespaceSkill"))
+              .setSampledToLocalTracing(true)
+              .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.DeleteNamespaceSkillRequest.getDefaultInstance()))
+              .setResponseMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(
+                  talon.gateway.Gateway.DeleteNamespaceSkillResponse.getDefaultInstance()))
+              .setSchemaDescriptor(new GatewayServiceMethodDescriptorSupplier("DeleteNamespaceSkill"))
+              .build();
+        }
+      }
+    }
+    return getDeleteNamespaceSkillMethod;
+  }
+
   private static volatile io.grpc.MethodDescriptor<talon.gateway.Gateway.CreateSessionRequest,
       talon.gateway.Gateway.SessionResponse> getCreateSessionMethod;
 
@@ -1888,6 +2012,34 @@ public final class GatewayServiceGrpc {
     }
 
     /**
+     */
+    default void createNamespaceSkill(talon.gateway.Gateway.CreateNamespaceSkillRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getCreateNamespaceSkillMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void getNamespaceSkill(talon.gateway.Gateway.GetNamespaceSkillRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getGetNamespaceSkillMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void listNamespaceSkills(talon.gateway.Gateway.ListNamespaceSkillsRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceSkillsResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getListNamespaceSkillsMethod(), responseObserver);
+    }
+
+    /**
+     */
+    default void deleteNamespaceSkill(talon.gateway.Gateway.DeleteNamespaceSkillRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceSkillResponse> responseObserver) {
+      io.grpc.stub.ServerCalls.asyncUnimplementedUnaryCall(getDeleteNamespaceSkillMethod(), responseObserver);
+    }
+
+    /**
      * <pre>
      * Agent Sessions
      * </pre>
@@ -2342,6 +2494,38 @@ public final class GatewayServiceGrpc {
         io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse> responseObserver) {
       io.grpc.stub.ClientCalls.asyncUnaryCall(
           getChannel().newCall(getDeleteNamespaceKnowledgeMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void createNamespaceSkill(talon.gateway.Gateway.CreateNamespaceSkillRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getCreateNamespaceSkillMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void getNamespaceSkill(talon.gateway.Gateway.GetNamespaceSkillRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getGetNamespaceSkillMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void listNamespaceSkills(talon.gateway.Gateway.ListNamespaceSkillsRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceSkillsResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getListNamespaceSkillsMethod(), getCallOptions()), request, responseObserver);
+    }
+
+    /**
+     */
+    public void deleteNamespaceSkill(talon.gateway.Gateway.DeleteNamespaceSkillRequest request,
+        io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceSkillResponse> responseObserver) {
+      io.grpc.stub.ClientCalls.asyncUnaryCall(
+          getChannel().newCall(getDeleteNamespaceSkillMethod(), getCallOptions()), request, responseObserver);
     }
 
     /**
@@ -2827,6 +3011,34 @@ public final class GatewayServiceGrpc {
     }
 
     /**
+     */
+    public talon.gateway.Gateway.NamespaceSkillResponse createNamespaceSkill(talon.gateway.Gateway.CreateNamespaceSkillRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getCreateNamespaceSkillMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.NamespaceSkillResponse getNamespaceSkill(talon.gateway.Gateway.GetNamespaceSkillRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getGetNamespaceSkillMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.ListNamespaceSkillsResponse listNamespaceSkills(talon.gateway.Gateway.ListNamespaceSkillsRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getListNamespaceSkillsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.DeleteNamespaceSkillResponse deleteNamespaceSkill(talon.gateway.Gateway.DeleteNamespaceSkillRequest request) throws io.grpc.StatusException {
+      return io.grpc.stub.ClientCalls.blockingV2UnaryCall(
+          getChannel(), getDeleteNamespaceSkillMethod(), getCallOptions(), request);
+    }
+
+    /**
      * <pre>
      * Agent Sessions
      * </pre>
@@ -3266,6 +3478,34 @@ public final class GatewayServiceGrpc {
     public talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse deleteNamespaceKnowledge(talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest request) {
       return io.grpc.stub.ClientCalls.blockingUnaryCall(
           getChannel(), getDeleteNamespaceKnowledgeMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.NamespaceSkillResponse createNamespaceSkill(talon.gateway.Gateway.CreateNamespaceSkillRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getCreateNamespaceSkillMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.NamespaceSkillResponse getNamespaceSkill(talon.gateway.Gateway.GetNamespaceSkillRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getGetNamespaceSkillMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.ListNamespaceSkillsResponse listNamespaceSkills(talon.gateway.Gateway.ListNamespaceSkillsRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getListNamespaceSkillsMethod(), getCallOptions(), request);
+    }
+
+    /**
+     */
+    public talon.gateway.Gateway.DeleteNamespaceSkillResponse deleteNamespaceSkill(talon.gateway.Gateway.DeleteNamespaceSkillRequest request) {
+      return io.grpc.stub.ClientCalls.blockingUnaryCall(
+          getChannel(), getDeleteNamespaceSkillMethod(), getCallOptions(), request);
     }
 
     /**
@@ -3718,6 +3958,38 @@ public final class GatewayServiceGrpc {
     }
 
     /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.NamespaceSkillResponse> createNamespaceSkill(
+        talon.gateway.Gateway.CreateNamespaceSkillRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getCreateNamespaceSkillMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.NamespaceSkillResponse> getNamespaceSkill(
+        talon.gateway.Gateway.GetNamespaceSkillRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getGetNamespaceSkillMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.ListNamespaceSkillsResponse> listNamespaceSkills(
+        talon.gateway.Gateway.ListNamespaceSkillsRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getListNamespaceSkillsMethod(), getCallOptions()), request);
+    }
+
+    /**
+     */
+    public com.google.common.util.concurrent.ListenableFuture<talon.gateway.Gateway.DeleteNamespaceSkillResponse> deleteNamespaceSkill(
+        talon.gateway.Gateway.DeleteNamespaceSkillRequest request) {
+      return io.grpc.stub.ClientCalls.futureUnaryCall(
+          getChannel().newCall(getDeleteNamespaceSkillMethod(), getCallOptions()), request);
+    }
+
+    /**
      * <pre>
      * Agent Sessions
      * </pre>
@@ -4093,52 +4365,56 @@ public final class GatewayServiceGrpc {
   private static final int METHODID_GET_NAMESPACE_KNOWLEDGE = 7;
   private static final int METHODID_LIST_NAMESPACE_KNOWLEDGE = 8;
   private static final int METHODID_DELETE_NAMESPACE_KNOWLEDGE = 9;
-  private static final int METHODID_CREATE_SESSION = 10;
-  private static final int METHODID_GET_SESSION = 11;
-  private static final int METHODID_LIST_SESSION_MESSAGES = 12;
-  private static final int METHODID_LIST_SESSIONS = 13;
-  private static final int METHODID_DELETE_SESSION = 14;
-  private static final int METHODID_CLEAR_SESSION = 15;
-  private static final int METHODID_SEND_MESSAGE = 16;
-  private static final int METHODID_APPEND_SESSION_MESSAGE = 17;
-  private static final int METHODID_STOP_SESSION_GENERATION = 18;
-  private static final int METHODID_STREAM_SESSION_PARTS = 19;
-  private static final int METHODID_STREAM_SESSION_PARTS_BATCH = 20;
-  private static final int METHODID_CREATE_CHANNEL = 21;
-  private static final int METHODID_GET_CHANNEL = 22;
-  private static final int METHODID_MODIFY_CHANNEL = 23;
-  private static final int METHODID_LIST_CHANNELS = 24;
-  private static final int METHODID_DELETE_CHANNEL = 25;
-  private static final int METHODID_POST_CHANNEL_MESSAGE = 26;
-  private static final int METHODID_GET_CHANNEL_MESSAGE = 27;
-  private static final int METHODID_LIST_CHANNEL_MESSAGES = 28;
-  private static final int METHODID_CREATE_CHANNEL_SUBSCRIPTION = 29;
-  private static final int METHODID_GET_CHANNEL_SUBSCRIPTION = 30;
-  private static final int METHODID_MODIFY_CHANNEL_SUBSCRIPTION = 31;
-  private static final int METHODID_LIST_CHANNEL_SUBSCRIPTIONS = 32;
-  private static final int METHODID_DELETE_CHANNEL_SUBSCRIPTION = 33;
-  private static final int METHODID_STREAM_CHANNEL_EVENTS = 34;
-  private static final int METHODID_CREATE_SCHEDULE = 35;
-  private static final int METHODID_GET_SCHEDULE = 36;
-  private static final int METHODID_MODIFY_SCHEDULE = 37;
-  private static final int METHODID_LIST_SCHEDULES = 38;
-  private static final int METHODID_DELETE_SCHEDULE = 39;
-  private static final int METHODID_CREATE_NAMESPACE = 40;
-  private static final int METHODID_GET_NAMESPACE = 41;
-  private static final int METHODID_DELETE_NAMESPACE = 42;
-  private static final int METHODID_LIST_NAMESPACES = 43;
-  private static final int METHODID_CREATE_AGENT_TEMPLATE = 44;
-  private static final int METHODID_GET_AGENT_TEMPLATE = 45;
-  private static final int METHODID_LIST_AGENT_TEMPLATES = 46;
-  private static final int METHODID_DELETE_AGENT_TEMPLATE = 47;
-  private static final int METHODID_CREATE_MCP_SERVER = 48;
-  private static final int METHODID_GET_MCP_SERVER = 49;
-  private static final int METHODID_LIST_MCP_SERVERS = 50;
-  private static final int METHODID_DELETE_MCP_SERVER = 51;
-  private static final int METHODID_CREATE_MCP_SERVER_BINDING = 52;
-  private static final int METHODID_GET_MCP_SERVER_BINDING = 53;
-  private static final int METHODID_LIST_MCP_SERVER_BINDINGS = 54;
-  private static final int METHODID_DELETE_MCP_SERVER_BINDING = 55;
+  private static final int METHODID_CREATE_NAMESPACE_SKILL = 10;
+  private static final int METHODID_GET_NAMESPACE_SKILL = 11;
+  private static final int METHODID_LIST_NAMESPACE_SKILLS = 12;
+  private static final int METHODID_DELETE_NAMESPACE_SKILL = 13;
+  private static final int METHODID_CREATE_SESSION = 14;
+  private static final int METHODID_GET_SESSION = 15;
+  private static final int METHODID_LIST_SESSION_MESSAGES = 16;
+  private static final int METHODID_LIST_SESSIONS = 17;
+  private static final int METHODID_DELETE_SESSION = 18;
+  private static final int METHODID_CLEAR_SESSION = 19;
+  private static final int METHODID_SEND_MESSAGE = 20;
+  private static final int METHODID_APPEND_SESSION_MESSAGE = 21;
+  private static final int METHODID_STOP_SESSION_GENERATION = 22;
+  private static final int METHODID_STREAM_SESSION_PARTS = 23;
+  private static final int METHODID_STREAM_SESSION_PARTS_BATCH = 24;
+  private static final int METHODID_CREATE_CHANNEL = 25;
+  private static final int METHODID_GET_CHANNEL = 26;
+  private static final int METHODID_MODIFY_CHANNEL = 27;
+  private static final int METHODID_LIST_CHANNELS = 28;
+  private static final int METHODID_DELETE_CHANNEL = 29;
+  private static final int METHODID_POST_CHANNEL_MESSAGE = 30;
+  private static final int METHODID_GET_CHANNEL_MESSAGE = 31;
+  private static final int METHODID_LIST_CHANNEL_MESSAGES = 32;
+  private static final int METHODID_CREATE_CHANNEL_SUBSCRIPTION = 33;
+  private static final int METHODID_GET_CHANNEL_SUBSCRIPTION = 34;
+  private static final int METHODID_MODIFY_CHANNEL_SUBSCRIPTION = 35;
+  private static final int METHODID_LIST_CHANNEL_SUBSCRIPTIONS = 36;
+  private static final int METHODID_DELETE_CHANNEL_SUBSCRIPTION = 37;
+  private static final int METHODID_STREAM_CHANNEL_EVENTS = 38;
+  private static final int METHODID_CREATE_SCHEDULE = 39;
+  private static final int METHODID_GET_SCHEDULE = 40;
+  private static final int METHODID_MODIFY_SCHEDULE = 41;
+  private static final int METHODID_LIST_SCHEDULES = 42;
+  private static final int METHODID_DELETE_SCHEDULE = 43;
+  private static final int METHODID_CREATE_NAMESPACE = 44;
+  private static final int METHODID_GET_NAMESPACE = 45;
+  private static final int METHODID_DELETE_NAMESPACE = 46;
+  private static final int METHODID_LIST_NAMESPACES = 47;
+  private static final int METHODID_CREATE_AGENT_TEMPLATE = 48;
+  private static final int METHODID_GET_AGENT_TEMPLATE = 49;
+  private static final int METHODID_LIST_AGENT_TEMPLATES = 50;
+  private static final int METHODID_DELETE_AGENT_TEMPLATE = 51;
+  private static final int METHODID_CREATE_MCP_SERVER = 52;
+  private static final int METHODID_GET_MCP_SERVER = 53;
+  private static final int METHODID_LIST_MCP_SERVERS = 54;
+  private static final int METHODID_DELETE_MCP_SERVER = 55;
+  private static final int METHODID_CREATE_MCP_SERVER_BINDING = 56;
+  private static final int METHODID_GET_MCP_SERVER_BINDING = 57;
+  private static final int METHODID_LIST_MCP_SERVER_BINDINGS = 58;
+  private static final int METHODID_DELETE_MCP_SERVER_BINDING = 59;
 
   private static final class MethodHandlers<Req, Resp> implements
       io.grpc.stub.ServerCalls.UnaryMethod<Req, Resp>,
@@ -4196,6 +4472,22 @@ public final class GatewayServiceGrpc {
         case METHODID_DELETE_NAMESPACE_KNOWLEDGE:
           serviceImpl.deleteNamespaceKnowledge((talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest) request,
               (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse>) responseObserver);
+          break;
+        case METHODID_CREATE_NAMESPACE_SKILL:
+          serviceImpl.createNamespaceSkill((talon.gateway.Gateway.CreateNamespaceSkillRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse>) responseObserver);
+          break;
+        case METHODID_GET_NAMESPACE_SKILL:
+          serviceImpl.getNamespaceSkill((talon.gateway.Gateway.GetNamespaceSkillRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.NamespaceSkillResponse>) responseObserver);
+          break;
+        case METHODID_LIST_NAMESPACE_SKILLS:
+          serviceImpl.listNamespaceSkills((talon.gateway.Gateway.ListNamespaceSkillsRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.ListNamespaceSkillsResponse>) responseObserver);
+          break;
+        case METHODID_DELETE_NAMESPACE_SKILL:
+          serviceImpl.deleteNamespaceSkill((talon.gateway.Gateway.DeleteNamespaceSkillRequest) request,
+              (io.grpc.stub.StreamObserver<talon.gateway.Gateway.DeleteNamespaceSkillResponse>) responseObserver);
           break;
         case METHODID_CREATE_SESSION:
           serviceImpl.createSession((talon.gateway.Gateway.CreateSessionRequest) request,
@@ -4469,6 +4761,34 @@ public final class GatewayServiceGrpc {
               talon.gateway.Gateway.DeleteNamespaceKnowledgeRequest,
               talon.gateway.Gateway.DeleteNamespaceKnowledgeResponse>(
                 service, METHODID_DELETE_NAMESPACE_KNOWLEDGE)))
+        .addMethod(
+          getCreateNamespaceSkillMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.CreateNamespaceSkillRequest,
+              talon.gateway.Gateway.NamespaceSkillResponse>(
+                service, METHODID_CREATE_NAMESPACE_SKILL)))
+        .addMethod(
+          getGetNamespaceSkillMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.GetNamespaceSkillRequest,
+              talon.gateway.Gateway.NamespaceSkillResponse>(
+                service, METHODID_GET_NAMESPACE_SKILL)))
+        .addMethod(
+          getListNamespaceSkillsMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.ListNamespaceSkillsRequest,
+              talon.gateway.Gateway.ListNamespaceSkillsResponse>(
+                service, METHODID_LIST_NAMESPACE_SKILLS)))
+        .addMethod(
+          getDeleteNamespaceSkillMethod(),
+          io.grpc.stub.ServerCalls.asyncUnaryCall(
+            new MethodHandlers<
+              talon.gateway.Gateway.DeleteNamespaceSkillRequest,
+              talon.gateway.Gateway.DeleteNamespaceSkillResponse>(
+                service, METHODID_DELETE_NAMESPACE_SKILL)))
         .addMethod(
           getCreateSessionMethod(),
           io.grpc.stub.ServerCalls.asyncUnaryCall(
@@ -4849,6 +5169,10 @@ public final class GatewayServiceGrpc {
               .addMethod(getGetNamespaceKnowledgeMethod())
               .addMethod(getListNamespaceKnowledgeMethod())
               .addMethod(getDeleteNamespaceKnowledgeMethod())
+              .addMethod(getCreateNamespaceSkillMethod())
+              .addMethod(getGetNamespaceSkillMethod())
+              .addMethod(getListNamespaceSkillsMethod())
+              .addMethod(getDeleteNamespaceSkillMethod())
               .addMethod(getCreateSessionMethod())
               .addMethod(getGetSessionMethod())
               .addMethod(getListSessionMessagesMethod())

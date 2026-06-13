@@ -1181,6 +1181,104 @@ export class KnowledgeSpec extends Message<KnowledgeSpec> {
 }
 
 /**
+ * @generated from message talon.manifests.Skill
+ */
+export class Skill extends Message<Skill> {
+  /**
+   * @generated from field: string api_version = 1;
+   */
+  apiVersion = "";
+
+  /**
+   * @generated from field: string kind = 2;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: talon.manifests.ObjectMeta metadata = 3;
+   */
+  metadata?: ObjectMeta;
+
+  /**
+   * @generated from field: talon.manifests.SkillSpec spec = 4;
+   */
+  spec?: SkillSpec;
+
+  constructor(data?: PartialMessage<Skill>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.Skill";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "api_version", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "metadata", kind: "message", T: ObjectMeta },
+    { no: 4, name: "spec", kind: "message", T: SkillSpec },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Skill {
+    return new Skill().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Skill {
+    return new Skill().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Skill {
+    return new Skill().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Skill | PlainMessage<Skill> | undefined, b: Skill | PlainMessage<Skill> | undefined): boolean {
+    return proto3.util.equals(Skill, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.SkillSpec
+ */
+export class SkillSpec extends Message<SkillSpec> {
+  /**
+   * @generated from field: string description = 1;
+   */
+  description = "";
+
+  /**
+   * @generated from field: string instructions = 2;
+   */
+  instructions = "";
+
+  constructor(data?: PartialMessage<SkillSpec>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.SkillSpec";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "instructions", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SkillSpec {
+    return new SkillSpec().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SkillSpec {
+    return new SkillSpec().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SkillSpec {
+    return new SkillSpec().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SkillSpec | PlainMessage<SkillSpec> | undefined, b: SkillSpec | PlainMessage<SkillSpec> | undefined): boolean {
+    return proto3.util.equals(SkillSpec, a, b);
+  }
+}
+
+/**
  * @generated from message talon.manifests.MemoryProvider
  */
 export class MemoryProvider extends Message<MemoryProvider> {
