@@ -139,7 +139,7 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
           description: AgentCard used by the upstream A2A SDK compatibility test.
           version: 1.0.0
           capabilities:
-            streaming: false
+            streaming: true
             pushNotifications: false
             extendedAgentCard: false
           defaultInputModes:

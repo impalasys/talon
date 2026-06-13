@@ -130,11 +130,6 @@ async fn validate_agent_card(
     }
     let hostname = normalize_hostname(&spec.hostname)?;
     if let Some(capabilities) = spec.capabilities.as_ref() {
-        if capabilities.streaming {
-            return Err(tonic::Status::invalid_argument(
-                "AgentCard spec.capabilities.streaming is not supported yet",
-            ));
-        }
         if capabilities.push_notifications {
             return Err(tonic::Status::invalid_argument(
                 "AgentCard spec.capabilities.pushNotifications is not supported yet",

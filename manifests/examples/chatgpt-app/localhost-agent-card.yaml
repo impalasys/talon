@@ -1,0 +1,36 @@
+apiVersion: talon.impalasys.com/v1
+kind: AgentCard
+metadata:
+  name: localhost-support-docs
+  namespace: chatgpt-app
+  labels:
+    tutorial: chatgpt-app
+spec:
+  agentRef: support-docs-agent
+  hostname: localhost
+  name: Local Support Agent
+  description: Local AgentCard for testing external A2A routing.
+  version: 1.0.0
+  capabilities:
+    streaming: true
+    pushNotifications: false
+    extendedAgentCard: false
+  defaultInputModes:
+    - text/plain
+  defaultOutputModes:
+    - text/plain
+  skills:
+    - id: answer_support_question
+      name: Answer support question
+      description: Answers using the local support-docs agent.
+      tags:
+        - support
+      examples:
+        - How do I test A2A locally?
+      inputModes:
+        - text/plain
+      outputModes:
+        - text/plain
+  auth:
+    discovery: public
+    operations: public
