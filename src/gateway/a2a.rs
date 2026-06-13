@@ -1016,6 +1016,9 @@ fn session_message_to_a2a_message(
 fn session_part_to_a2a_part(
     part: &crate::gateway::rpc::models::SessionMessagePart,
 ) -> Option<A2aPartJson> {
+    if part.part_type == crate::gateway::rpc::models::SessionMessagePartType::Usage as i32 {
+        return None;
+    }
     if part.part_type == crate::gateway::rpc::models::SessionMessagePartType::Text as i32 {
         if part.content.is_empty() {
             None

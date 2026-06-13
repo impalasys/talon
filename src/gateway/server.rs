@@ -663,6 +663,15 @@ mod tests {
                     labels: HashMap::new(),
                     parts: vec![crate::gateway::rpc::models::SessionMessagePart {
                         id: "000000".to_string(),
+                        part_type: crate::gateway::rpc::models::SessionMessagePartType::Usage as i32,
+                        content: String::new(),
+                        name: String::new(),
+                        payload_json: r#"{"input_tokens":0,"output_tokens":0,"reasoning_tokens":0,"total_tokens":0}"#.to_string(),
+                        created_at: session.last_active,
+                        object: None,
+                    },
+                    crate::gateway::rpc::models::SessionMessagePart {
+                        id: "000001".to_string(),
                         part_type: crate::gateway::rpc::models::SessionMessagePartType::Text as i32,
                         content: "assistant reply".to_string(),
                         name: String::new(),
@@ -696,8 +705,53 @@ mod tests {
         assert_eq!(value["id"], "task-1");
         assert_eq!(value["status"]["state"], "TASK_STATE_COMPLETED");
         assert_eq!(value["status"]["message"]["role"], "ROLE_AGENT");
+        assert_eq!(
+            value["status"]["message"]["parts"]
+                .as_array()
+                .unwrap()
+                .len(),
+            1
+        );
+        assert_eq!(
+            value["status"]["message"]["parts"][0]["text"],
+            "assistant reply"
+        );
         assert_eq!(value["history"][0]["role"], "ROLE_USER");
         assert_eq!(value["history"][1]["role"], "ROLE_AGENT");
+        assert_eq!(value["history"][1]["parts"].as_array().unwrap().len(), 1);
+
+        let get_v1_task = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/v1/tasks/task-1")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(get_v1_task.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(get_v1_task.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["status"]["message"]["role"], "ROLE_AGENT");
+        assert_eq!(
+            value["status"]["message"]["content"]
+                .as_array()
+                .unwrap()
+                .len(),
+            1
+        );
+        assert_eq!(
+            value["status"]["message"]["content"][0]["text"],
+            "assistant reply"
+        );
+        assert!(value["status"]["message"]["content"][0]
+            .get("data")
+            .is_none());
 
         let list = router
             .clone()
