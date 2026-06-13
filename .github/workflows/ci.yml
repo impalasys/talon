@@ -300,7 +300,7 @@ jobs:
           cache-dependency-path: infra/cf/worker/package-lock.json
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df
+        uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5
 
       - name: Regenerate Wrangler configs
         run: infra/cf/gen-wrangler.sh
