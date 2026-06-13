@@ -1,4 +1,4 @@
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
@@ -11,6 +11,41 @@ const disabledRoot = path.join(projectRoot, '.cloudflare-export-disabled');
 const disabledApiDir = path.join(disabledRoot, 'api');
 
 let movedApi = false;
+let nextBuild;
+let cleanupPromise;
+
+async function cleanup() {
+  cleanupPromise ??= (async () => {
+    if (movedApi) {
+      await rename(disabledApiDir, apiDir);
+      movedApi = false;
+    }
+    await rm(disabledRoot, { recursive: true, force: true });
+  })();
+  return cleanupPromise;
+}
+
+async function handleSignal(signal, exitCode) {
+  if (nextBuild && !nextBuild.killed) {
+    nextBuild.kill(signal);
+  }
+
+  try {
+    await cleanup();
+  } catch (err) {
+    console.error('Failed to restore API directory:', err);
+  } finally {
+    process.exit(exitCode);
+  }
+}
+
+process.once('SIGINT', () => {
+  void handleSignal('SIGINT', 130);
+});
+
+process.once('SIGTERM', () => {
+  void handleSignal('SIGTERM', 143);
+});
 
 try {
   if (existsSync(apiDir)) {
@@ -22,7 +57,7 @@ try {
     movedApi = true;
   }
 
-  const result = spawnSync('next', ['build'], {
+  nextBuild = spawn('next', ['build'], {
     cwd: projectRoot,
     env: {
       ...process.env,
@@ -33,15 +68,14 @@ try {
     shell: process.platform === 'win32',
   });
 
-  if (result.error) {
-    throw result.error;
-  }
-  if (result.status !== 0) {
-    process.exitCode = result.status ?? 1;
+  const status = await new Promise((resolve, reject) => {
+    nextBuild.once('close', resolve);
+    nextBuild.once('error', reject);
+  });
+
+  if (status !== 0) {
+    process.exitCode = status ?? 1;
   }
 } finally {
-  if (movedApi) {
-    await rename(disabledApiDir, apiDir);
-  }
-  await rm(disabledRoot, { recursive: true, force: true });
+  await cleanup();
 }
