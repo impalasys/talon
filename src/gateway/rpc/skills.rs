@@ -4,6 +4,9 @@
 use crate::control::keys;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::gateway::rpc::{manifests, proto, GrpcGatewayHandler};
+use futures::stream::{self, StreamExt, TryStreamExt};
+
+const LIST_NAMESPACE_SKILLS_CONCURRENCY: usize = 32;
 
 impl GrpcGatewayHandler {
     pub async fn handle_create_namespace_skill(
@@ -101,12 +104,12 @@ impl GrpcGatewayHandler {
             let kv = self.gateway.kv.clone();
             async move { kv.get_msg::<manifests::Skill>(&key).await }
         });
-        let skills = futures::future::try_join_all(fetches)
+        let skills = stream::iter(fetches)
+            .buffered(LIST_NAMESPACE_SKILLS_CONCURRENCY)
+            .try_filter_map(|skill| async move { Ok(skill) })
+            .try_collect::<Vec<_>>()
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to fetch skills: {}", e)))?
-            .into_iter()
-            .flatten()
-            .collect();
+            .map_err(|e| tonic::Status::internal(format!("Failed to fetch skills: {}", e)))?;
 
         Ok(tonic::Response::new(proto::ListNamespaceSkillsResponse {
             skills,

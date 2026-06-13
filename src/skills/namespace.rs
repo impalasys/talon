@@ -30,10 +30,18 @@ pub async fn load_effective_skills(
 
     let fetches = keys_to_fetch.into_iter().map(|key| {
         let kv = kv.clone();
-        async move { kv.get_msg::<manifests::Skill>(&key).await }
+        async move {
+            match kv.get_msg::<manifests::Skill>(&key).await {
+                Ok(skill) => skill,
+                Err(err) => {
+                    tracing::warn!(key = %key, error = %err, "skipping unreadable namespace skill");
+                    None
+                }
+            }
+        }
     });
-    let mut skills: Vec<manifests::Skill> = futures::future::try_join_all(fetches)
-        .await?
+    let mut skills: Vec<manifests::Skill> = futures::future::join_all(fetches)
+        .await
         .into_iter()
         .flatten()
         .collect();
@@ -93,6 +101,7 @@ fn skill_namespace(skill: &manifests::Skill) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::KeyValueStore;
     use std::collections::HashMap;
 
     fn skill(ns: &str, name: &str, instructions: &str) -> manifests::Skill {
@@ -150,6 +159,25 @@ mod tests {
         assert!(rendered.contains("child"));
         assert!(!rendered.contains("parent"));
         assert!(!rendered.contains("sibling"));
+    }
+
+    #[tokio::test]
+    async fn effective_skills_skip_unreadable_records() {
+        let kv = Arc::new(crate::test_support::MockKvStore::default());
+        kv.set_msg(
+            &keys::skill("acme", "review"),
+            &skill("acme", "review", "valid"),
+        )
+        .await
+        .unwrap();
+        kv.set(&keys::skill("acme", "broken"), b"not-protobuf")
+            .await
+            .unwrap();
+
+        let skills = load_effective_skills(kv, "acme").await.unwrap();
+
+        assert_eq!(skills.len(), 1);
+        assert_eq!(skill_name(&skills[0]), "review");
     }
 
     #[test]
