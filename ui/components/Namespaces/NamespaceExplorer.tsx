@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
-import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio } from 'lucide-react';
+import { Box, Activity, ChevronRight, ChevronDown, Folder, Cpu, MessageSquare, Trash2, PlusCircle, Plug, Clock3, FileText, Hash, Radio, Network } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getGatewayClient } from '../../lib/grpc';
@@ -61,7 +61,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export type SelectionType = 'namespace' | 'agent' | 'session' | 'channel' | 'channel-subscription' | 'schedule' | 'template' | 'mcp-server' | 'mcp-binding' | 'knowledge';
+export type SelectionType = 'namespace' | 'agent' | 'session' | 'channel' | 'channel-subscription' | 'schedule' | 'template' | 'mcp-server' | 'mcp-binding' | 'knowledge' | 'agent-card';
 
 export type Selection = {
   type: SelectionType;
@@ -135,6 +135,31 @@ type ExplorerKnowledge = {
   };
 };
 
+type ExplorerAgentCard = {
+  metadata?: {
+    name?: string;
+    namespace?: string;
+    labels?: Record<string, string>;
+  };
+  spec?: {
+    agentRef?: string;
+    hostname?: string;
+    name?: string;
+    description?: string;
+    version?: string;
+    capabilities?: {
+      streaming?: boolean;
+      pushNotifications?: boolean;
+      extendedAgentCard?: boolean;
+    };
+    skills?: Array<{
+      id?: string;
+      name?: string;
+      tags?: string[];
+    }>;
+  };
+};
+
 type ExplorerChannel = {
   name?: string;
   ns?: string;
@@ -160,24 +185,38 @@ function namespaceLabel(labels?: Record<string, string>) {
   return labels?.workspace_name || labels?.workspace || labels?.display_name || labels?.name;
 }
 
+const emptyAgentCardForm = {
+  name: '',
+  agentRef: '',
+  hostname: '',
+  displayName: '',
+  description: '',
+  version: '1.0.0',
+  skillId: 'answer',
+  skillName: 'Answer request',
+  skillDescription: '',
+};
+
 function nodeSortWeight(node: TreeNode) {
   switch (node.selection.type) {
     case 'namespace':
       return 0;
     case 'agent':
       return 1;
-    case 'channel':
+    case 'agent-card':
       return 2;
-    case 'channel-subscription':
+    case 'channel':
       return 3;
-    case 'mcp-binding':
+    case 'channel-subscription':
       return 4;
-    case 'schedule':
+    case 'mcp-binding':
       return 5;
-    case 'session':
+    case 'schedule':
       return 6;
-    default:
+    case 'session':
       return 7;
+    default:
+      return 8;
   }
 }
 
@@ -371,7 +410,7 @@ function NamespaceNode({
   toggleExpanded: (id: string) => void
 }) {
   const childNodes = Object.values(node.children).sort(compareTreeNodes);
-  const hasChildrenOrCanHaveChildren = !['session', 'schedule', 'knowledge', 'mcp-binding', 'channel-subscription'].includes(node.selection.type);
+  const hasChildrenOrCanHaveChildren = !['session', 'schedule', 'knowledge', 'mcp-binding', 'channel-subscription', 'agent-card'].includes(node.selection.type);
   const isExpanded = expanded.has(node.id);
   const isSelected = selectedNodeId === node.id;
 
@@ -439,6 +478,7 @@ function NamespaceNode({
          {node.selection.type === 'schedule' && <Clock3 className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-amber-500")} />}
          {node.selection.type === 'mcp-binding' && <Plug className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-blue-500")} />}
          {node.selection.type === 'knowledge' && <FileText className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-violet-400")} />}
+         {node.selection.type === 'agent-card' && <Network className={cn("w-3.5 h-3.5", isSelected ? "text-foreground" : "text-sky-400")} />}
 
          <span className="truncate flex-1">{node.name}</span>
          {node.badge && (
@@ -515,9 +555,13 @@ export function NamespaceExplorer({
   const [mcpBindingsByNamespace, setMcpBindingsByNamespace] = useState<Record<string, ExplorerMcpBinding[]>>({});
   const [schedulesByNamespace, setSchedulesByNamespace] = useState<Record<string, ExplorerSchedule[]>>({});
   const [knowledgeByNamespace, setKnowledgeByNamespace] = useState<Record<string, ExplorerKnowledge[]>>({});
+  const [agentCardsByNamespace, setAgentCardsByNamespace] = useState<Record<string, ExplorerAgentCard[]>>({});
   const [channelsByNamespace, setChannelsByNamespace] = useState<Record<string, ExplorerChannel[]>>({});
   const [channelSubscriptionsByKey, setChannelSubscriptionsByKey] = useState<Record<string, ExplorerChannelSubscription[]>>({});
   const [isSubmittingAgent, setIsSubmittingAgent] = useState(false);
+  const [agentCardModalOpen, setAgentCardModalOpen] = useState<{ isOpen: boolean, ns: string }>({ isOpen: false, ns: '' });
+  const [agentCardForm, setAgentCardForm] = useState(emptyAgentCardForm);
+  const [isSubmittingAgentCard, setIsSubmittingAgentCard] = useState(false);
   const [channelModalOpen, setChannelModalOpen] = useState<{ isOpen: boolean, ns: string }>({ isOpen: false, ns: '' });
   const [channelForm, setChannelForm] = useState({ name: '', title: '' });
   const [isSubmittingChannel, setIsSubmittingChannel] = useState(false);
@@ -653,6 +697,24 @@ export function NamespaceExplorer({
               console.warn(`Could not fetch agents for ns ${ns}`, e);
             }
 
+            const namespaceAgentCards = agentCardsByNamespace[ns] || [];
+            for (const card of namespaceAgentCards) {
+              const cardName = card.metadata?.name || 'unknown-agent-card';
+              const cardId = `${ns}:agent-card:${cardName}`;
+              currentLevel.children[`agent-card:${cardName}`] = {
+                id: cardId,
+                name: cardName,
+                badge: card.spec?.hostname || card.spec?.agentRef || 'AgentCard',
+                selection: {
+                  type: 'agent-card',
+                  ns,
+                  resourceName: cardName,
+                  fullPath: cardId,
+                },
+                children: {},
+              };
+            }
+
             const namespaceChannels = channelsByNamespace[ns] || [];
             for (const channel of namespaceChannels) {
               const channelName = channel.name || 'unknown-channel';
@@ -760,7 +822,7 @@ export function NamespaceExplorer({
     } catch (e) {
       console.error(e);
     }
-  }, [channelSubscriptionsByKey, channelsByNamespace, isConnected, expanded, knowledgeByNamespace, mcpBindingsByNamespace, schedulesByNamespace, selectedNode]);
+  }, [agentCardsByNamespace, channelSubscriptionsByKey, channelsByNamespace, isConnected, expanded, knowledgeByNamespace, mcpBindingsByNamespace, schedulesByNamespace, selectedNode]);
 
   useEffect(() => {
     if (!selectedNode?.ns) return;
@@ -882,6 +944,32 @@ export function NamespaceExplorer({
     } catch (e) {
       console.warn('Could not list namespaces for knowledge', e);
       setKnowledgeByNamespace({});
+    }
+  }, [expanded, isConnected, selectedNode]);
+
+  const refreshAgentCards = useCallback(async () => {
+    if (!isConnected) {
+      setAgentCardsByNamespace({});
+      return;
+    }
+
+    try {
+      const namespaces = collectExpandedNamespaceIds(expanded, selectedNode);
+      const cardEntries = await Promise.all(
+        Array.from(namespaces).map(async (ns) => {
+          try {
+            const response = await getGatewayClient().listAgentCards({ ns });
+            return [ns, response.cards || []] as const;
+          } catch (e) {
+            console.warn(`Could not fetch AgentCards for ns ${ns}`, e);
+            return [ns, []] as const;
+          }
+        }),
+      );
+      setAgentCardsByNamespace(Object.fromEntries(cardEntries));
+    } catch (e) {
+      console.warn('Could not list namespaces for AgentCards', e);
+      setAgentCardsByNamespace({});
     }
   }, [expanded, isConnected, selectedNode]);
 
@@ -1013,6 +1101,12 @@ export function NamespaceExplorer({
   }, [refreshKnowledge]);
 
   useEffect(() => {
+    refreshAgentCards();
+    const interval = setInterval(refreshAgentCards, 5000);
+    return () => clearInterval(interval);
+  }, [refreshAgentCards]);
+
+  useEffect(() => {
     refreshChannels();
     const interval = setInterval(refreshChannels, 5000);
     return () => clearInterval(interval);
@@ -1093,6 +1187,98 @@ export function NamespaceExplorer({
       alert(e instanceof Error ? e.message : 'Error creating agent');
     } finally {
       setIsSubmittingAgent(false);
+    }
+  };
+
+  const openAgentCardModal = useCallback((ns: string, agentRef = '') => {
+    setAgentCardForm({
+      ...emptyAgentCardForm,
+      name: agentRef ? `${agentRef}-card` : '',
+      agentRef,
+      displayName: agentRef || '',
+    });
+    setAgentCardModalOpen({ isOpen: true, ns });
+  }, []);
+
+  const handleCreateAgentCardSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cardName = agentCardForm.name.trim();
+    const agentRef = agentCardForm.agentRef.trim();
+    const hostname = agentCardForm.hostname.trim().toLowerCase();
+    if (!cardName || !agentRef || !hostname) return;
+
+    setIsSubmittingAgentCard(true);
+    try {
+      const skillId = agentCardForm.skillId.trim();
+      const skillName = agentCardForm.skillName.trim();
+      const response = await getGatewayClient().createAgentCard({
+        ns: agentCardModalOpen.ns,
+        card: {
+          apiVersion: 'talon.impalasys.com/v1',
+          kind: 'AgentCard',
+          metadata: {
+            name: cardName,
+            namespace: agentCardModalOpen.ns,
+            labels: {},
+            annotations: {},
+          },
+          spec: {
+            agentRef,
+            hostname,
+            name: agentCardForm.displayName.trim() || cardName,
+            description: agentCardForm.description.trim(),
+            version: agentCardForm.version.trim() || '1.0.0',
+            capabilities: {
+              streaming: false,
+              pushNotifications: false,
+              extendedAgentCard: false,
+            },
+            defaultInputModes: ['text/plain'],
+            defaultOutputModes: ['text/plain'],
+            skills: skillId && skillName ? [{
+              id: skillId,
+              name: skillName,
+              description: agentCardForm.skillDescription.trim(),
+              tags: [],
+              examples: [],
+              inputModes: ['text/plain'],
+              outputModes: ['text/plain'],
+            }] : [],
+            auth: {
+              discovery: 'public',
+              operations: 'public',
+            },
+          },
+        },
+      });
+      const savedCard = response.card;
+      if (savedCard) {
+        setAgentCardsByNamespace(prev => {
+          const currentCards = prev[agentCardModalOpen.ns] || [];
+          const nextCards = currentCards.filter(card => card.metadata?.name !== cardName);
+          return {
+            ...prev,
+            [agentCardModalOpen.ns]: [...nextCards, savedCard],
+          };
+        });
+      }
+      const fullPath = `${agentCardModalOpen.ns}:agent-card:${cardName}`;
+      setExpanded(prev => new Set(prev).add(agentCardModalOpen.ns));
+      await refreshAgentCards();
+      await refreshData();
+      onSelect({
+        type: 'agent-card',
+        ns: agentCardModalOpen.ns,
+        resourceName: cardName,
+        fullPath,
+      });
+      setAgentCardModalOpen({ isOpen: false, ns: '' });
+      setAgentCardForm(emptyAgentCardForm);
+    } catch (e) {
+      console.error(e);
+      alert(e instanceof Error ? e.message : 'Error saving AgentCard');
+    } finally {
+      setIsSubmittingAgentCard(false);
     }
   };
 
@@ -1182,7 +1368,14 @@ export function NamespaceExplorer({
         });
       } else if (selection.type === 'schedule') {
         await getGatewayClient().deleteSchedule({ ns: selection.ns, name: selection.resourceName || '' });
+      } else if (selection.type === 'agent-card') {
+        await getGatewayClient().deleteAgentCard({ ns: selection.ns, name: selection.resourceName || '' });
+        setAgentCardsByNamespace(prev => ({
+          ...prev,
+          [selection.ns]: (prev[selection.ns] || []).filter(card => card.metadata?.name !== selection.resourceName),
+        }));
       }
+      await refreshAgentCards();
       await refreshChannels();
       await refreshData();
       setDeleteConfirm({ isOpen: false, node: null });
@@ -1418,6 +1611,21 @@ export function NamespaceExplorer({
 
           {menuNode?.selection.type === 'namespace' && (
              <DropdownItem
+               id="create_agent_card"
+               onAction={() => {
+                setContextMenu(null);
+                openAgentCardModal(menuNode.selection.ns);
+               }}
+             >
+               <div className="flex items-center gap-2">
+                 <Network className="w-4 h-4 text-muted-foreground"/>
+                 Create AgentCard
+               </div>
+             </DropdownItem>
+          )}
+
+          {menuNode?.selection.type === 'namespace' && (
+             <DropdownItem
                id="create_channel"
                onAction={() => {
                 setContextMenu(null);
@@ -1452,6 +1660,21 @@ export function NamespaceExplorer({
              </DropdownItem>
           )}
 
+          {menuNode?.selection.type === 'agent' && (
+             <DropdownItem
+               id="publish_agent_card"
+               onAction={() => {
+                setContextMenu(null);
+                openAgentCardModal(menuNode.selection.ns, menuNode.selection.agent || '');
+               }}
+             >
+               <div className="flex items-center gap-2">
+                 <Network className="w-4 h-4 text-muted-foreground"/>
+                 Publish AgentCard
+               </div>
+             </DropdownItem>
+          )}
+
           {menuNode?.selection.type === 'channel' && (
              <DropdownItem
                id="create_channel_subscription"
@@ -1467,6 +1690,41 @@ export function NamespaceExplorer({
                <div className="flex items-center gap-2">
                  <Radio className="w-4 h-4 text-muted-foreground"/>
                  Create Subscription
+               </div>
+             </DropdownItem>
+          )}
+
+          {menuNode?.selection.type === 'agent-card' && (
+             <DropdownItem
+               id="edit_agent_card"
+               onAction={async () => {
+                setContextMenu(null);
+                try {
+                  const response = await getGatewayClient().getAgentCard({
+                    ns: menuNode.selection.ns,
+                    name: menuNode.selection.resourceName || '',
+                  });
+                  const card = response.card;
+                  setAgentCardForm({
+                    name: card?.metadata?.name || menuNode.selection.resourceName || '',
+                    agentRef: card?.spec?.agentRef || '',
+                    hostname: card?.spec?.hostname || '',
+                    displayName: card?.spec?.name || '',
+                    description: card?.spec?.description || '',
+                    version: card?.spec?.version || '1.0.0',
+                    skillId: card?.spec?.skills?.[0]?.id || '',
+                    skillName: card?.spec?.skills?.[0]?.name || '',
+                    skillDescription: card?.spec?.skills?.[0]?.description || '',
+                  });
+                  setAgentCardModalOpen({ isOpen: true, ns: menuNode.selection.ns });
+                } catch (e) {
+                  alert(e instanceof Error ? e.message : 'Error loading AgentCard');
+                }
+               }}
+             >
+               <div className="flex items-center gap-2">
+                 <Network className="w-4 h-4 text-muted-foreground"/>
+                 Edit AgentCard
                </div>
              </DropdownItem>
           )}
@@ -1570,6 +1828,119 @@ export function NamespaceExplorer({
                 </Button>
               </ModalFooter>
             </>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={agentCardModalOpen.isOpen} onOpenChange={(open) => !open && setAgentCardModalOpen({ isOpen: false, ns: '' })}>
+        <ModalContent className="sm:max-w-lg">
+          <ModalHeader className="flex flex-col gap-1">AgentCard</ModalHeader>
+          <ModalBody>
+            <form id="create-agent-card-form" onSubmit={handleCreateAgentCardSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label className="block text-sm font-medium mb-1">Card Name</Label>
+                  <Input
+                    className="w-full"
+                    placeholder="support-public"
+                    value={agentCardForm.name}
+                    onChange={(e) => setAgentCardForm(prev => ({ ...prev, name: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label className="block text-sm font-medium mb-1">Agent Ref</Label>
+                  <Input
+                    className="w-full"
+                    placeholder="support-docs-agent"
+                    value={agentCardForm.agentRef}
+                    onChange={(e) => setAgentCardForm(prev => ({ ...prev, agentRef: e.target.value }))}
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="block text-sm font-medium mb-1">Hostname</Label>
+                <Input
+                  className="w-full"
+                  placeholder="support.example.com"
+                  value={agentCardForm.hostname}
+                  onChange={(e) => setAgentCardForm(prev => ({ ...prev, hostname: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_7rem]">
+                <div>
+                  <Label className="block text-sm font-medium mb-1">Display Name</Label>
+                  <Input
+                    className="w-full"
+                    placeholder="Support Agent"
+                    value={agentCardForm.displayName}
+                    onChange={(e) => setAgentCardForm(prev => ({ ...prev, displayName: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label className="block text-sm font-medium mb-1">Version</Label>
+                  <Input
+                    className="w-full"
+                    placeholder="1.0.0"
+                    value={agentCardForm.version}
+                    onChange={(e) => setAgentCardForm(prev => ({ ...prev, version: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="block text-sm font-medium mb-1">Description</Label>
+                <Input
+                  className="w-full"
+                  placeholder="Answers support questions"
+                  value={agentCardForm.description}
+                  onChange={(e) => setAgentCardForm(prev => ({ ...prev, description: e.target.value }))}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label className="block text-sm font-medium mb-1">Skill ID</Label>
+                  <Input
+                    className="w-full"
+                    placeholder="answer_support_question"
+                    value={agentCardForm.skillId}
+                    onChange={(e) => setAgentCardForm(prev => ({ ...prev, skillId: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label className="block text-sm font-medium mb-1">Skill Name</Label>
+                  <Input
+                    className="w-full"
+                    placeholder="Answer support question"
+                    value={agentCardForm.skillName}
+                    onChange={(e) => setAgentCardForm(prev => ({ ...prev, skillName: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label className="block text-sm font-medium mb-1">Skill Description</Label>
+                <Input
+                  className="w-full"
+                  placeholder="Answers using the target agent"
+                  value={agentCardForm.skillDescription}
+                  onChange={(e) => setAgentCardForm(prev => ({ ...prev, skillDescription: e.target.value }))}
+                />
+              </div>
+            </form>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" appearance="outline" onClick={() => setAgentCardModalOpen({ isOpen: false, ns: '' })}>
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              type="submit"
+              form="create-agent-card-form"
+              disabled={isSubmittingAgentCard || !agentCardForm.name.trim() || !agentCardForm.agentRef.trim() || !agentCardForm.hostname.trim()}
+            >
+              Save AgentCard
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
 
