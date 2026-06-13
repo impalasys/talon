@@ -580,6 +580,53 @@ mod tests {
         assert_eq!(value["history"][0]["role"], "ROLE_USER");
         assert_eq!(value["history"][0]["parts"][0]["text"], "hello from A2A");
 
+        let session_key = crate::control::keys::session("support", "support-docs", "task-1");
+        let mut session = crate::gateway::rpc::models::Session::decode(
+            gateway
+                .kv
+                .get(&session_key)
+                .await
+                .unwrap()
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
+        session.status = "IDLE".to_string();
+        session.last_active += 1;
+        gateway
+            .kv
+            .set(&session_key, &session.encode_to_vec())
+            .await
+            .unwrap();
+        gateway
+            .kv
+            .set(
+                &crate::control::keys::session_message(
+                    "support",
+                    "support-docs",
+                    "task-1",
+                    "000-agent",
+                ),
+                &crate::gateway::rpc::models::SessionMessage {
+                    id: "000-agent".to_string(),
+                    role: crate::gateway::rpc::models::MessageRole::RoleAssistant as i32,
+                    created_at: session.last_active,
+                    labels: HashMap::new(),
+                    parts: vec![crate::gateway::rpc::models::SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: crate::gateway::rpc::models::SessionMessagePartType::Text as i32,
+                        content: "assistant reply".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: session.last_active,
+                        object: None,
+                    }],
+                }
+                .encode_to_vec(),
+            )
+            .await
+            .unwrap();
+
         let get_task = router
             .clone()
             .oneshot(
@@ -598,6 +645,10 @@ mod tests {
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(value["id"], "task-1");
+        assert_eq!(value["status"]["state"], "TASK_STATE_COMPLETED");
+        assert_eq!(value["status"]["message"]["role"], "ROLE_AGENT");
+        assert_eq!(value["history"][0]["role"], "ROLE_USER");
+        assert_eq!(value["history"][1]["role"], "ROLE_AGENT");
 
         let list = router
             .clone()

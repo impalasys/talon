@@ -638,9 +638,7 @@ async fn load_a2a_task(
         })?;
     message_keys.sort();
 
-    let mut history = Vec::new();
-    let mut latest_message = None;
-    let mut latest_message_has_error = false;
+    let mut messages = Vec::new();
     for key in message_keys {
         let Some(message) = gateway
             .kv
@@ -656,6 +654,18 @@ async fn load_a2a_task(
         else {
             continue;
         };
+        messages.push(message);
+    }
+    messages.sort_by(|left, right| {
+        left.created_at
+            .cmp(&right.created_at)
+            .then_with(|| left.id.cmp(&right.id))
+    });
+
+    let mut history = Vec::new();
+    let mut latest_message = None;
+    let mut latest_message_has_error = false;
+    for message in messages {
         latest_message_has_error = message.parts.iter().any(|part| {
             part.part_type == crate::gateway::rpc::models::SessionMessagePartType::Error as i32
         });
