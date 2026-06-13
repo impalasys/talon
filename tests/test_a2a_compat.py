@@ -40,11 +40,18 @@ def dump_event(event):
     return event
 
 
-def status_message_text(event_dump):
-    status = event_dump.get("status") or event_dump.get("statusUpdate", {}).get("status") or {}
-    message = status.get("message") or {}
-    parts = message.get("parts") or message.get("content") or []
+def artifact_text(event_dump):
+    artifact = event_dump.get("artifact") or event_dump.get("artifactUpdate", {}).get("artifact") or {}
+    parts = artifact.get("parts") or []
     return "".join(part.get("text", "") for part in parts if isinstance(part, dict))
+
+
+def artifact_texts(task_dump):
+    texts = []
+    for artifact in task_dump.get("artifacts", []):
+        parts = artifact.get("parts") or []
+        texts.append("".join(part.get("text", "") for part in parts if isinstance(part, dict)))
+    return texts
 
 
 def task_history_texts(task_dump):
@@ -53,6 +60,12 @@ def task_history_texts(task_dump):
         parts = message.get("parts") or message.get("content") or []
         texts.append("".join(part.get("text", "") for part in parts if isinstance(part, dict)))
     return texts
+
+
+def status_message_text(event_dump):
+    message = event_dump.get("status", {}).get("message") or {}
+    parts = message.get("parts") or message.get("content") or []
+    return "".join(part.get("text", "") for part in parts if isinstance(part, dict))
 
 
 def get_field(value, snake_name, camel_name):
@@ -198,11 +211,21 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
             events.append(event_dump)
 
         assert events, "upstream A2A SDK did not receive any events from Talon"
-        streamed_text = "".join(status_message_text(event) for event in events)
+        assert get_field(events[0], "kind", "kind") == "task"
+        artifact_events = [
+            event
+            for event in events
+            if get_field(event, "kind", "kind") == "artifact-update"
+            or event.get("artifactUpdate")
+        ]
+        assert artifact_events, "Talon did not stream A2A artifact updates"
+        streamed_text = "".join(artifact_text(event) for event in artifact_events)
         assert "Hello! I am a mock LLM." in streamed_text
         assert all("usage" not in str(event).lower() for event in events)
+        assert all(status_message_text(event) == "" for event in events)
 
         final_event = events[-1]
+        assert get_field(final_event, "kind", "kind") == "status-update"
         assert final_event.get("final") is True
         assert get_field(final_event, "task_id", "taskId") == task_id
         assert get_field(final_event, "context_id", "contextId") == context_id
@@ -214,5 +237,7 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
         assert task["id"] == task_id
         assert task["contextId"] == context_id
         assert task["status"]["state"] == "TASK_STATE_COMPLETED"
+        assert task["status"].get("message") is None
+        assert "Hello! I am a mock LLM." in artifact_texts(task)[-1]
         assert "Hello from A2A compatibility CI" in task_history_texts(task)[0]
         assert "Hello! I am a mock LLM." in task_history_texts(task)[-1]

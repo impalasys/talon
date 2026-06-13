@@ -725,18 +725,10 @@ mod tests {
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(value["id"], "task-1");
         assert_eq!(value["status"]["state"], "TASK_STATE_COMPLETED");
-        assert_eq!(value["status"]["message"]["role"], "ROLE_AGENT");
-        assert_eq!(
-            value["status"]["message"]["parts"]
-                .as_array()
-                .unwrap()
-                .len(),
-            1
-        );
-        assert_eq!(
-            value["status"]["message"]["parts"][0]["text"],
-            "assistant reply"
-        );
+        assert!(value["status"].get("message").is_none());
+        assert_eq!(value["artifacts"][0]["artifactId"], "response");
+        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 1);
+        assert_eq!(value["artifacts"][0]["parts"][0]["text"], "assistant reply");
         assert_eq!(value["history"][0]["role"], "ROLE_USER");
         assert_eq!(value["history"][1]["role"], "ROLE_AGENT");
         assert_eq!(value["history"][1]["parts"].as_array().unwrap().len(), 1);
@@ -758,21 +750,11 @@ mod tests {
             .await
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(value["status"]["message"]["role"], "ROLE_AGENT");
-        assert_eq!(
-            value["status"]["message"]["content"]
-                .as_array()
-                .unwrap()
-                .len(),
-            1
-        );
-        assert_eq!(
-            value["status"]["message"]["content"][0]["text"],
-            "assistant reply"
-        );
-        assert!(value["status"]["message"]["content"][0]
-            .get("data")
-            .is_none());
+        assert!(value["status"].get("message").is_none());
+        assert_eq!(value["artifacts"][0]["artifactId"], "response");
+        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 1);
+        assert_eq!(value["artifacts"][0]["parts"][0]["text"], "assistant reply");
+        assert!(value["artifacts"][0]["parts"][0].get("content").is_none());
 
         let list = router
             .clone()
@@ -915,9 +897,11 @@ mod tests {
             .map(|data| serde_json::from_str::<serde_json::Value>(data).unwrap())
             .collect::<Vec<_>>();
 
-        assert!(events.iter().any(|event| {
-            event["statusUpdate"]["status"]["message"]["content"][0]["text"] == "streamed reply"
-        }));
+        assert_eq!(events[0]["task"]["id"], task_id);
+        assert_eq!(events[0]["task"]["status"]["state"], "TASK_STATE_WORKING");
+        assert!(events.iter().any(
+            |event| event["artifactUpdate"]["artifact"]["parts"][0]["text"] == "streamed reply"
+        ));
         assert_eq!(
             events.last().unwrap()["statusUpdate"]["final"],
             serde_json::Value::Bool(true)

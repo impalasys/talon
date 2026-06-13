@@ -123,7 +123,17 @@ struct A2aTaskJson {
     context_id: String,
     status: A2aTaskStatusJson,
     #[serde(skip_serializing_if = "Vec::is_empty")]
+    artifacts: Vec<A2aArtifactJson>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     history: Vec<A2aMessageJson>,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct A2aArtifactJson {
+    artifact_id: String,
+    name: String,
+    parts: Vec<A2aPartJson>,
 }
 
 #[derive(Serialize)]
@@ -281,8 +291,19 @@ async fn stream_message(
     let stream_task_id = task_id.clone();
     let stream_context_id = context_id.clone();
     let stream = async_stream::stream! {
+        let initial_task = match load_a2a_task(&stream_gateway, &stream_route, &stream_task_id).await {
+            Ok(task) => rest_v1_task_value(task),
+            Err(_) => json!({
+                "id": stream_task_id,
+                "contextId": stream_context_id,
+                "status": { "state": "TASK_STATE_WORKING" }
+            }),
+        };
+        yield Ok::<_, Infallible>(a2a_sse_line(json!({ "task": initial_task })));
+
         let timeout = tokio::time::sleep(A2A_STREAM_IDLE_TIMEOUT);
         tokio::pin!(timeout);
+        let mut stream_artifact_started = false;
 
         loop {
             tokio::select! {
@@ -336,19 +357,13 @@ async fn stream_message(
                         )));
                         return;
                     } else if part_type == models::SessionMessagePartType::Text as i32 && !content.is_empty() {
-                        let message_id = if event.message_id.is_empty() {
-                            Uuid::now_v7().to_string()
-                        } else {
-                            event.message_id.clone()
-                        };
-                        yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_status_update_value_with_message_id(
+                        yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
                             &stream_task_id,
                             &stream_context_id,
-                            &message_id,
-                            "TASK_STATE_WORKING",
                             content,
-                            false,
+                            stream_artifact_started,
                         )));
+                        stream_artifact_started = true;
                     }
                 }
             }
@@ -719,16 +734,24 @@ fn a2a_stream_status_update_value(
     text: Option<&str>,
     final_event: bool,
 ) -> Value {
-    let message_id = Uuid::now_v7().to_string();
     if let Some(text) = text {
-        a2a_stream_status_update_value_with_message_id(
-            task_id,
-            context_id,
-            &message_id,
-            state,
-            text,
-            final_event,
-        )
+        json!({
+            "statusUpdate": {
+                "taskId": task_id,
+                "contextId": context_id,
+                "status": {
+                    "state": state,
+                    "message": {
+                        "messageId": Uuid::now_v7().to_string(),
+                        "contextId": context_id,
+                        "taskId": task_id,
+                        "role": "ROLE_AGENT",
+                        "content": [{ "text": text }]
+                    }
+                },
+                "final": final_event
+            }
+        })
     } else {
         json!({
             "statusUpdate": {
@@ -741,29 +764,22 @@ fn a2a_stream_status_update_value(
     }
 }
 
-fn a2a_stream_status_update_value_with_message_id(
+fn a2a_stream_artifact_update_value(
     task_id: &str,
     context_id: &str,
-    message_id: &str,
-    state: &str,
     text: &str,
-    final_event: bool,
+    append: bool,
 ) -> Value {
     json!({
-        "statusUpdate": {
+        "artifactUpdate": {
             "taskId": task_id,
             "contextId": context_id,
-            "status": {
-                "state": state,
-                "message": {
-                    "messageId": message_id,
-                    "contextId": context_id,
-                    "taskId": task_id,
-                    "role": "ROLE_AGENT",
-                    "content": [{ "text": text }]
-                }
+            "artifact": {
+                "artifactId": "response",
+                "name": "response",
+                "parts": [{ "text": text }]
             },
-            "final": final_event
+            "append": append
         }
     })
 }
@@ -771,7 +787,8 @@ fn a2a_stream_status_update_value_with_message_id(
 fn rename_message_parts_for_rest_v1(value: &mut Value) {
     match value {
         Value::Object(object) => {
-            if let Some(parts) = object.remove("parts") {
+            if object.get("role").is_some() && object.get("parts").is_some() {
+                let parts = object.remove("parts").unwrap_or(Value::Array(Vec::new()));
                 object.insert("content".to_string(), rest_v1_content_value(parts));
             }
             for child in object.values_mut() {
@@ -1008,14 +1025,18 @@ async fn load_a2a_task(
     });
 
     let mut history = Vec::new();
-    let mut latest_message = None;
+    let mut artifacts = Vec::new();
     let mut latest_message_has_error = false;
     for message in messages {
         latest_message_has_error = message.parts.iter().any(|part| {
             part.part_type == crate::gateway::rpc::models::SessionMessagePartType::Error as i32
         });
         let a2a_message = session_message_to_a2a_message(&message, task_id, &session);
-        latest_message = Some(a2a_message.clone());
+        if message.role == crate::gateway::rpc::models::MessageRole::RoleAssistant as i32 {
+            if let Some(artifact) = session_message_to_a2a_artifact(&message) {
+                artifacts.push(artifact);
+            }
+        }
         history.push(a2a_message);
     }
 
@@ -1028,9 +1049,10 @@ async fn load_a2a_task(
             .unwrap_or_else(|| task_id.to_string()),
         status: A2aTaskStatusJson {
             state: a2a_task_state(&session, latest_message_has_error),
-            message: latest_message,
+            message: None,
             timestamp: timestamp_rfc3339(session.last_active),
         },
+        artifacts,
         history,
     })
 }
@@ -1271,6 +1293,25 @@ fn session_message_to_a2a_message(
                 .cloned()
                 .unwrap_or_else(|| task_id.to_string()),
         ),
+    }
+}
+
+fn session_message_to_a2a_artifact(
+    message: &crate::gateway::rpc::models::SessionMessage,
+) -> Option<A2aArtifactJson> {
+    let parts = message
+        .parts
+        .iter()
+        .filter_map(session_part_to_a2a_part)
+        .collect::<Vec<_>>();
+    if parts.is_empty() {
+        None
+    } else {
+        Some(A2aArtifactJson {
+            artifact_id: "response".to_string(),
+            name: "response".to_string(),
+            parts,
+        })
     }
 }
 
