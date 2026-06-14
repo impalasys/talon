@@ -103,7 +103,7 @@ The Worker does not build Talon SQL. Rust owns the schema, statements, parameter
 
 ### R2 Object Bridge
 
-Rust backend: `CloudflareR2ObjectStore`
+Rust backend: `R2ObjectStore`
 
 Worker host: `http://talon-r2.internal`
 

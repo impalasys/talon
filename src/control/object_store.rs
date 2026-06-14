@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::config::proto::{
-    object_store_config, CloudflareR2ObjectStoreConfig, GcsObjectStoreConfig,
-    LocalObjectStoreConfig, ObjectStoreConfig, S3ObjectStoreConfig,
+    object_store_config, GcsObjectStoreConfig, LocalObjectStoreConfig, ObjectStoreConfig,
+    R2ObjectStoreConfig, S3ObjectStoreConfig,
 };
 use crate::gateway::rpc::models;
 use anyhow::{anyhow, Context, Result};
@@ -66,9 +66,7 @@ pub async fn object_store_from_config(
         )),
         object_store_config::Backend::Gcs(gcs) => Ok(Arc::new(GcsObjectStore::new(gcs).await?)),
         object_store_config::Backend::S3(s3) => Ok(Arc::new(S3ObjectStore::new(s3).await?)),
-        object_store_config::Backend::CloudflareR2(r2) => {
-            Ok(Arc::new(CloudflareR2ObjectStore::new(r2)))
-        }
+        object_store_config::Backend::R2(r2) => Ok(Arc::new(R2ObjectStore::new(r2))),
     }
 }
 
@@ -200,19 +198,19 @@ impl ObjectStore for LocalFsObjectStore {
     }
 }
 
-pub struct CloudflareR2ObjectStore {
+pub struct R2ObjectStore {
     client: reqwest::Client,
     endpoint: String,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct CloudflareR2MetadataEnvelope {
+struct R2MetadataEnvelope {
     metadata: ObjectMetadata,
 }
 
-impl CloudflareR2ObjectStore {
-    pub fn new(cfg: &CloudflareR2ObjectStoreConfig) -> Self {
+impl R2ObjectStore {
+    pub fn new(cfg: &R2ObjectStoreConfig) -> Self {
         let endpoint = non_empty(&cfg.endpoint_url)
             .or_else(|| std::env::var("TALON_CLOUDFLARE_R2_URL").ok())
             .unwrap_or_else(|| "http://talon-r2.internal".to_string());
@@ -234,7 +232,7 @@ impl CloudflareR2ObjectStore {
     fn metadata_header(metadata: &ObjectMetadata) -> Result<String> {
         Ok(
             base64::engine::general_purpose::STANDARD.encode(serde_json::to_vec(
-                &CloudflareR2MetadataEnvelope {
+                &R2MetadataEnvelope {
                     metadata: metadata.clone(),
                 },
             )?),
@@ -251,14 +249,14 @@ impl CloudflareR2ObjectStore {
         base64::engine::general_purpose::STANDARD
             .decode(value)
             .ok()
-            .and_then(|bytes| serde_json::from_slice::<CloudflareR2MetadataEnvelope>(&bytes).ok())
+            .and_then(|bytes| serde_json::from_slice::<R2MetadataEnvelope>(&bytes).ok())
             .map(|envelope| envelope.metadata)
             .unwrap_or_default()
     }
 }
 
 #[async_trait]
-impl ObjectStore for CloudflareR2ObjectStore {
+impl ObjectStore for R2ObjectStore {
     async fn put(
         &self,
         key: &str,

@@ -924,27 +924,27 @@ func (x *S3ObjectStoreConfig) GetForcePathStyle() bool {
 	return false
 }
 
-type CloudflareR2ObjectStoreConfig struct {
+type R2ObjectStoreConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EndpointUrl   string                 `protobuf:"bytes,1,opt,name=endpoint_url,json=endpointUrl,proto3" json:"endpoint_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CloudflareR2ObjectStoreConfig) Reset() {
-	*x = CloudflareR2ObjectStoreConfig{}
+func (x *R2ObjectStoreConfig) Reset() {
+	*x = R2ObjectStoreConfig{}
 	mi := &file_proto_config_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CloudflareR2ObjectStoreConfig) String() string {
+func (x *R2ObjectStoreConfig) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CloudflareR2ObjectStoreConfig) ProtoMessage() {}
+func (*R2ObjectStoreConfig) ProtoMessage() {}
 
-func (x *CloudflareR2ObjectStoreConfig) ProtoReflect() protoreflect.Message {
+func (x *R2ObjectStoreConfig) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_config_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -956,12 +956,12 @@ func (x *CloudflareR2ObjectStoreConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CloudflareR2ObjectStoreConfig.ProtoReflect.Descriptor instead.
-func (*CloudflareR2ObjectStoreConfig) Descriptor() ([]byte, []int) {
+// Deprecated: Use R2ObjectStoreConfig.ProtoReflect.Descriptor instead.
+func (*R2ObjectStoreConfig) Descriptor() ([]byte, []int) {
 	return file_proto_config_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *CloudflareR2ObjectStoreConfig) GetEndpointUrl() string {
+func (x *R2ObjectStoreConfig) GetEndpointUrl() string {
 	if x != nil {
 		return x.EndpointUrl
 	}
@@ -975,7 +975,7 @@ type ObjectStoreConfig struct {
 	//	*ObjectStoreConfig_Local
 	//	*ObjectStoreConfig_Gcs
 	//	*ObjectStoreConfig_S3
-	//	*ObjectStoreConfig_CloudflareR2
+	//	*ObjectStoreConfig_R2
 	Backend       isObjectStoreConfig_Backend `protobuf_oneof:"backend"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1045,10 +1045,10 @@ func (x *ObjectStoreConfig) GetS3() *S3ObjectStoreConfig {
 	return nil
 }
 
-func (x *ObjectStoreConfig) GetCloudflareR2() *CloudflareR2ObjectStoreConfig {
+func (x *ObjectStoreConfig) GetR2() *R2ObjectStoreConfig {
 	if x != nil {
-		if x, ok := x.Backend.(*ObjectStoreConfig_CloudflareR2); ok {
-			return x.CloudflareR2
+		if x, ok := x.Backend.(*ObjectStoreConfig_R2); ok {
+			return x.R2
 		}
 	}
 	return nil
@@ -1070,8 +1070,8 @@ type ObjectStoreConfig_S3 struct {
 	S3 *S3ObjectStoreConfig `protobuf:"bytes,3,opt,name=s3,proto3,oneof"`
 }
 
-type ObjectStoreConfig_CloudflareR2 struct {
-	CloudflareR2 *CloudflareR2ObjectStoreConfig `protobuf:"bytes,4,opt,name=cloudflare_r2,json=cloudflareR2,proto3,oneof"`
+type ObjectStoreConfig_R2 struct {
+	R2 *R2ObjectStoreConfig `protobuf:"bytes,4,opt,name=r2,proto3,oneof"`
 }
 
 func (*ObjectStoreConfig_Local) isObjectStoreConfig_Backend() {}
@@ -1080,7 +1080,7 @@ func (*ObjectStoreConfig_Gcs) isObjectStoreConfig_Backend() {}
 
 func (*ObjectStoreConfig_S3) isObjectStoreConfig_Backend() {}
 
-func (*ObjectStoreConfig_CloudflareR2) isObjectStoreConfig_Backend() {}
+func (*ObjectStoreConfig_R2) isObjectStoreConfig_Backend() {}
 
 type SchedulerCallbackAuthConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1545,14 +1545,14 @@ const file_proto_config_proto_rawDesc = "" +
 	"\x06prefix\x18\x02 \x01(\tR\x06prefix\x12\x16\n" +
 	"\x06region\x18\x03 \x01(\tR\x06region\x12!\n" +
 	"\fendpoint_url\x18\x04 \x01(\tR\vendpointUrl\x12(\n" +
-	"\x10force_path_style\x18\x05 \x01(\bR\x0eforcePathStyle\"B\n" +
-	"\x1dCloudflareR2ObjectStoreConfig\x12!\n" +
-	"\fendpoint_url\x18\x01 \x01(\tR\vendpointUrl\"\x9d\x02\n" +
+	"\x10force_path_style\x18\x05 \x01(\bR\x0eforcePathStyle\"8\n" +
+	"\x13R2ObjectStoreConfig\x12!\n" +
+	"\fendpoint_url\x18\x01 \x01(\tR\vendpointUrl\"\xfe\x01\n" +
 	"\x11ObjectStoreConfig\x12<\n" +
 	"\x05local\x18\x01 \x01(\v2$.talon.config.LocalObjectStoreConfigH\x00R\x05local\x126\n" +
 	"\x03gcs\x18\x02 \x01(\v2\".talon.config.GcsObjectStoreConfigH\x00R\x03gcs\x123\n" +
-	"\x02s3\x18\x03 \x01(\v2!.talon.config.S3ObjectStoreConfigH\x00R\x02s3\x12R\n" +
-	"\rcloudflare_r2\x18\x04 \x01(\v2+.talon.config.CloudflareR2ObjectStoreConfigH\x00R\fcloudflareR2B\t\n" +
+	"\x02s3\x18\x03 \x01(\v2!.talon.config.S3ObjectStoreConfigH\x00R\x02s3\x123\n" +
+	"\x02r2\x18\x04 \x01(\v2!.talon.config.R2ObjectStoreConfigH\x00R\x02r2B\t\n" +
 	"\abackend\"\xa9\x01\n" +
 	"\x1bSchedulerCallbackAuthConfig\x12;\n" +
 	"\rshared_secret\x18\x01 \x01(\v2\x14.talon.config.SecretH\x00R\fsharedSecret\x12E\n" +
@@ -1598,29 +1598,29 @@ func file_proto_config_proto_rawDescGZIP() []byte {
 var file_proto_config_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_config_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_proto_config_proto_goTypes = []any{
-	(SecretRef_Source)(0),                 // 0: talon.config.SecretRef.Source
-	(*TalonConfig)(nil),                   // 1: talon.config.TalonConfig
-	(*LlmProviderConfig)(nil),             // 2: talon.config.LlmProviderConfig
-	(*OpenAiConfig)(nil),                  // 3: talon.config.OpenAiConfig
-	(*AnthropicConfig)(nil),               // 4: talon.config.AnthropicConfig
-	(*GoogleConfig)(nil),                  // 5: talon.config.GoogleConfig
-	(*GenericConfig)(nil),                 // 6: talon.config.GenericConfig
-	(*Secret)(nil),                        // 7: talon.config.Secret
-	(*SecretRef)(nil),                     // 8: talon.config.SecretRef
-	(*DatabaseConfig)(nil),                // 9: talon.config.DatabaseConfig
-	(*MessageBrokerConfig)(nil),           // 10: talon.config.MessageBrokerConfig
-	(*LocalObjectStoreConfig)(nil),        // 11: talon.config.LocalObjectStoreConfig
-	(*GcsObjectStoreConfig)(nil),          // 12: talon.config.GcsObjectStoreConfig
-	(*S3ObjectStoreConfig)(nil),           // 13: talon.config.S3ObjectStoreConfig
-	(*CloudflareR2ObjectStoreConfig)(nil), // 14: talon.config.CloudflareR2ObjectStoreConfig
-	(*ObjectStoreConfig)(nil),             // 15: talon.config.ObjectStoreConfig
-	(*SchedulerCallbackAuthConfig)(nil),   // 16: talon.config.SchedulerCallbackAuthConfig
-	(*GoogleOidcAuthConfig)(nil),          // 17: talon.config.GoogleOidcAuthConfig
-	(*CloudTasksSchedulerConfig)(nil),     // 18: talon.config.CloudTasksSchedulerConfig
-	(*SchedulerConfig)(nil),               // 19: talon.config.SchedulerConfig
-	(*ControlPlaneConfig)(nil),            // 20: talon.config.ControlPlaneConfig
-	(*ServerConfig)(nil),                  // 21: talon.config.ServerConfig
-	nil,                                   // 22: talon.config.TalonConfig.ProvidersEntry
+	(SecretRef_Source)(0),               // 0: talon.config.SecretRef.Source
+	(*TalonConfig)(nil),                 // 1: talon.config.TalonConfig
+	(*LlmProviderConfig)(nil),           // 2: talon.config.LlmProviderConfig
+	(*OpenAiConfig)(nil),                // 3: talon.config.OpenAiConfig
+	(*AnthropicConfig)(nil),             // 4: talon.config.AnthropicConfig
+	(*GoogleConfig)(nil),                // 5: talon.config.GoogleConfig
+	(*GenericConfig)(nil),               // 6: talon.config.GenericConfig
+	(*Secret)(nil),                      // 7: talon.config.Secret
+	(*SecretRef)(nil),                   // 8: talon.config.SecretRef
+	(*DatabaseConfig)(nil),              // 9: talon.config.DatabaseConfig
+	(*MessageBrokerConfig)(nil),         // 10: talon.config.MessageBrokerConfig
+	(*LocalObjectStoreConfig)(nil),      // 11: talon.config.LocalObjectStoreConfig
+	(*GcsObjectStoreConfig)(nil),        // 12: talon.config.GcsObjectStoreConfig
+	(*S3ObjectStoreConfig)(nil),         // 13: talon.config.S3ObjectStoreConfig
+	(*R2ObjectStoreConfig)(nil),         // 14: talon.config.R2ObjectStoreConfig
+	(*ObjectStoreConfig)(nil),           // 15: talon.config.ObjectStoreConfig
+	(*SchedulerCallbackAuthConfig)(nil), // 16: talon.config.SchedulerCallbackAuthConfig
+	(*GoogleOidcAuthConfig)(nil),        // 17: talon.config.GoogleOidcAuthConfig
+	(*CloudTasksSchedulerConfig)(nil),   // 18: talon.config.CloudTasksSchedulerConfig
+	(*SchedulerConfig)(nil),             // 19: talon.config.SchedulerConfig
+	(*ControlPlaneConfig)(nil),          // 20: talon.config.ControlPlaneConfig
+	(*ServerConfig)(nil),                // 21: talon.config.ServerConfig
+	nil,                                 // 22: talon.config.TalonConfig.ProvidersEntry
 }
 var file_proto_config_proto_depIdxs = []int32{
 	22, // 0: talon.config.TalonConfig.providers:type_name -> talon.config.TalonConfig.ProvidersEntry
@@ -1641,7 +1641,7 @@ var file_proto_config_proto_depIdxs = []int32{
 	11, // 15: talon.config.ObjectStoreConfig.local:type_name -> talon.config.LocalObjectStoreConfig
 	12, // 16: talon.config.ObjectStoreConfig.gcs:type_name -> talon.config.GcsObjectStoreConfig
 	13, // 17: talon.config.ObjectStoreConfig.s3:type_name -> talon.config.S3ObjectStoreConfig
-	14, // 18: talon.config.ObjectStoreConfig.cloudflare_r2:type_name -> talon.config.CloudflareR2ObjectStoreConfig
+	14, // 18: talon.config.ObjectStoreConfig.r2:type_name -> talon.config.R2ObjectStoreConfig
 	7,  // 19: talon.config.SchedulerCallbackAuthConfig.shared_secret:type_name -> talon.config.Secret
 	17, // 20: talon.config.SchedulerCallbackAuthConfig.google_oidc:type_name -> talon.config.GoogleOidcAuthConfig
 	16, // 21: talon.config.CloudTasksSchedulerConfig.callback_auth:type_name -> talon.config.SchedulerCallbackAuthConfig
@@ -1677,7 +1677,7 @@ func file_proto_config_proto_init() {
 		(*ObjectStoreConfig_Local)(nil),
 		(*ObjectStoreConfig_Gcs)(nil),
 		(*ObjectStoreConfig_S3)(nil),
-		(*ObjectStoreConfig_CloudflareR2)(nil),
+		(*ObjectStoreConfig_R2)(nil),
 	}
 	file_proto_config_proto_msgTypes[15].OneofWrappers = []any{
 		(*SchedulerCallbackAuthConfig_SharedSecret)(nil),

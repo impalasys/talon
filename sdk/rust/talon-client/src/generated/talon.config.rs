@@ -185,7 +185,7 @@ pub struct S3ObjectStoreConfig {
     pub force_path_style: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CloudflareR2ObjectStoreConfig {
+pub struct R2ObjectStoreConfig {
     #[prost(string, tag = "1")]
     pub endpoint_url: ::prost::alloc::string::String,
 }
@@ -205,7 +205,7 @@ pub mod object_store_config {
         #[prost(message, tag = "3")]
         S3(super::S3ObjectStoreConfig),
         #[prost(message, tag = "4")]
-        CloudflareR2(super::CloudflareR2ObjectStoreConfig),
+        R2(super::R2ObjectStoreConfig),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

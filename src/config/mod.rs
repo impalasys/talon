@@ -379,8 +379,8 @@ impl From<ObjectStoreConfigWrapper> for proto::ObjectStoreConfig {
                 )),
             },
             ObjectStoreConfigWrapper::R2 { endpoint_url } => Self {
-                backend: Some(proto::object_store_config::Backend::CloudflareR2(
-                    proto::CloudflareR2ObjectStoreConfig {
+                backend: Some(proto::object_store_config::Backend::R2(
+                    proto::R2ObjectStoreConfig {
                         endpoint_url: endpoint_url.unwrap_or_default(),
                     },
                 )),

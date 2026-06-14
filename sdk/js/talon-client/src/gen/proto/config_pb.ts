@@ -692,39 +692,39 @@ export class S3ObjectStoreConfig extends Message<S3ObjectStoreConfig> {
 }
 
 /**
- * @generated from message talon.config.CloudflareR2ObjectStoreConfig
+ * @generated from message talon.config.R2ObjectStoreConfig
  */
-export class CloudflareR2ObjectStoreConfig extends Message<CloudflareR2ObjectStoreConfig> {
+export class R2ObjectStoreConfig extends Message<R2ObjectStoreConfig> {
   /**
    * @generated from field: string endpoint_url = 1;
    */
   endpointUrl = "";
 
-  constructor(data?: PartialMessage<CloudflareR2ObjectStoreConfig>) {
+  constructor(data?: PartialMessage<R2ObjectStoreConfig>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.config.CloudflareR2ObjectStoreConfig";
+  static readonly typeName = "talon.config.R2ObjectStoreConfig";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "endpoint_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CloudflareR2ObjectStoreConfig {
-    return new CloudflareR2ObjectStoreConfig().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): R2ObjectStoreConfig {
+    return new R2ObjectStoreConfig().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CloudflareR2ObjectStoreConfig {
-    return new CloudflareR2ObjectStoreConfig().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): R2ObjectStoreConfig {
+    return new R2ObjectStoreConfig().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CloudflareR2ObjectStoreConfig {
-    return new CloudflareR2ObjectStoreConfig().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): R2ObjectStoreConfig {
+    return new R2ObjectStoreConfig().fromJsonString(jsonString, options);
   }
 
-  static equals(a: CloudflareR2ObjectStoreConfig | PlainMessage<CloudflareR2ObjectStoreConfig> | undefined, b: CloudflareR2ObjectStoreConfig | PlainMessage<CloudflareR2ObjectStoreConfig> | undefined): boolean {
-    return proto3.util.equals(CloudflareR2ObjectStoreConfig, a, b);
+  static equals(a: R2ObjectStoreConfig | PlainMessage<R2ObjectStoreConfig> | undefined, b: R2ObjectStoreConfig | PlainMessage<R2ObjectStoreConfig> | undefined): boolean {
+    return proto3.util.equals(R2ObjectStoreConfig, a, b);
   }
 }
 
@@ -755,10 +755,10 @@ export class ObjectStoreConfig extends Message<ObjectStoreConfig> {
     case: "s3";
   } | {
     /**
-     * @generated from field: talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;
+     * @generated from field: talon.config.R2ObjectStoreConfig r2 = 4;
      */
-    value: CloudflareR2ObjectStoreConfig;
-    case: "cloudflareR2";
+    value: R2ObjectStoreConfig;
+    case: "r2";
   } | { case: undefined; value?: undefined } = { case: undefined };
 
   constructor(data?: PartialMessage<ObjectStoreConfig>) {
@@ -772,7 +772,7 @@ export class ObjectStoreConfig extends Message<ObjectStoreConfig> {
     { no: 1, name: "local", kind: "message", T: LocalObjectStoreConfig, oneof: "backend" },
     { no: 2, name: "gcs", kind: "message", T: GcsObjectStoreConfig, oneof: "backend" },
     { no: 3, name: "s3", kind: "message", T: S3ObjectStoreConfig, oneof: "backend" },
-    { no: 4, name: "cloudflare_r2", kind: "message", T: CloudflareR2ObjectStoreConfig, oneof: "backend" },
+    { no: 4, name: "r2", kind: "message", T: R2ObjectStoreConfig, oneof: "backend" },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ObjectStoreConfig {
