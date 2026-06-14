@@ -20,7 +20,7 @@ const TABLE: &str = "talon_kv_store";
 const CLOUDFLARE_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
-pub struct CloudflareD1KvStore {
+pub struct D1KvStore {
     client: reqwest::Client,
     endpoint: String,
 }
@@ -118,7 +118,7 @@ impl D1Param {
     }
 }
 
-impl CloudflareD1KvStore {
+impl D1KvStore {
     pub fn from_env() -> Self {
         let endpoint = std::env::var("TALON_CLOUDFLARE_D1_URL")
             .unwrap_or_else(|_| "http://talon-d1.internal".to_string());
@@ -258,7 +258,7 @@ fn key_from_row(row: &D1Row) -> Result<ResourceKey> {
 }
 
 #[async_trait::async_trait]
-impl KeyValueStore for CloudflareD1KvStore {
+impl KeyValueStore for D1KvStore {
     async fn get(&self, key: &ResourceKey) -> Result<Option<Vec<u8>>> {
         let row = self
             .execute_first(get_query(TABLE), key_params(key))
@@ -332,7 +332,7 @@ impl KeyValueStore for CloudflareD1KvStore {
         let kind = list
             .kind
             .as_ref()
-            .ok_or_else(|| anyhow!("cloudflare_d1 list_keys_page requires a resource kind"))?;
+            .ok_or_else(|| anyhow!("d1 list_keys_page requires a resource kind"))?;
         let mut params = list_params(list);
         params.push(D1Param::text(kind.as_str()));
         params.push(match before_name {
@@ -359,7 +359,7 @@ impl KeyValueStore for CloudflareD1KvStore {
         let kind = list
             .kind
             .as_ref()
-            .ok_or_else(|| anyhow!("cloudflare_d1 list_entries_page requires a resource kind"))?;
+            .ok_or_else(|| anyhow!("d1 list_entries_page requires a resource kind"))?;
         let mut params = list_params(list);
         params.push(D1Param::text(kind.as_str()));
         params.push(match before_name {
@@ -408,7 +408,7 @@ mod tests {
             axum::serve(listener, app).await.unwrap();
         });
 
-        let store = CloudflareD1KvStore::new(format!("http://{addr}"));
+        let store = D1KvStore::new(format!("http://{addr}"));
         store
             .set(
                 &ResourceKey {

@@ -10,7 +10,7 @@ use std::{pin::Pin, time::Duration};
 const CLOUDFLARE_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
-pub struct CloudflareQueuesPublisher {
+pub struct CfQueuesPublisher {
     client: reqwest::Client,
     endpoint: String,
 }
@@ -22,7 +22,7 @@ struct PublishRequest<'a> {
     payload_base64: String,
 }
 
-impl CloudflareQueuesPublisher {
+impl CfQueuesPublisher {
     pub fn from_env() -> Self {
         let endpoint = std::env::var("TALON_CLOUDFLARE_QUEUES_URL")
             .unwrap_or_else(|_| "http://talon-queues.internal".to_string());
@@ -41,7 +41,7 @@ impl CloudflareQueuesPublisher {
 }
 
 #[async_trait::async_trait]
-impl MessagePublisher for CloudflareQueuesPublisher {
+impl MessagePublisher for CfQueuesPublisher {
     async fn publish(&self, topic: &str, message: &[u8]) -> Result<()> {
         let response = self
             .client
@@ -69,7 +69,7 @@ impl MessagePublisher for CloudflareQueuesPublisher {
     ) -> Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
         let _ = topic;
         Err(anyhow!(
-            "cloudflare_queues does not support pull subscribe; use Worker queue delivery"
+            "cf-queues does not support pull subscribe; use Worker queue delivery"
         ))
     }
 }

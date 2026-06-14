@@ -638,13 +638,13 @@ where
         message_broker_driver(handler.config.as_ref()),
         Some("local_socket")
     );
-    let use_cloudflare_queues = matches!(
+    let use_cf_queues = matches!(
         message_broker_driver(handler.config.as_ref()),
-        Some("cloudflare_queues")
+        Some("cf-queues")
     );
-    if use_cloudflare_queues {
+    if use_cf_queues {
         tracing::info!(
-            transport = "cloudflare_queues",
+            transport = "cf-queues",
             "Worker will receive events from the Cloudflare queue HTTP dispatch endpoint"
         );
         return Vec::new();

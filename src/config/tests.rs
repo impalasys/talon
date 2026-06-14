@@ -436,7 +436,7 @@ control_plane:
     }
 
     #[test]
-    fn test_cloudflare_r2_object_store_config_from_yaml() {
+    fn test_r2_object_store_config_from_yaml() {
         let file = NamedTempFile::new().expect("Failed to create temp file");
         let path = file.path().with_extension("yaml");
         std::fs::write(
@@ -444,11 +444,11 @@ control_plane:
             r#"
 control_plane:
   database:
-    driver: cloudflare_d1
+    driver: d1
   message_broker:
-    driver: cloudflare_queues
+    driver: cf-queues
   object_store:
-    driver: cloudflare_r2
+    driver: r2
     endpoint_url: http://talon-r2.internal
 "#,
         )

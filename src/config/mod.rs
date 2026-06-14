@@ -133,7 +133,7 @@ pub enum ObjectStoreConfigWrapper {
         endpoint_url: Option<String>,
         force_path_style: Option<bool>,
     },
-    CloudflareR2 {
+    R2 {
         endpoint_url: Option<String>,
     },
 }
@@ -378,7 +378,7 @@ impl From<ObjectStoreConfigWrapper> for proto::ObjectStoreConfig {
                     },
                 )),
             },
-            ObjectStoreConfigWrapper::CloudflareR2 { endpoint_url } => Self {
+            ObjectStoreConfigWrapper::R2 { endpoint_url } => Self {
                 backend: Some(proto::object_store_config::Backend::CloudflareR2(
                     proto::CloudflareR2ObjectStoreConfig {
                         endpoint_url: endpoint_url.unwrap_or_default(),

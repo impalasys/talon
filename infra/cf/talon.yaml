@@ -10,8 +10,8 @@ providers:
 default_provider: mock
 control_plane:
   database:
-    driver: cloudflare_d1
+    driver: d1
   message_broker:
-    driver: cloudflare_queues
+    driver: cf-queues
   object_store:
-    driver: cloudflare_r2
+    driver: r2
