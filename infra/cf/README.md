@@ -231,6 +231,9 @@ The local gateway URL is:
 http://localhost:8787
 ```
 
+`mock-llm` is private to the Compose network. The Worker reaches it through
+`http://mock-llm.internal`, which resolves internally to the `mock-llm` service.
+
 Useful checks:
 
 ```bash
