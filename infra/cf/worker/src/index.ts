@@ -8,6 +8,7 @@ import {
   handleQueues,
   handleR2,
   json,
+  TEXT_JSON,
   type TalonCfBindingsEnv,
 } from "@impalasys/talon-cf-bindings";
 
@@ -23,6 +24,10 @@ type Env = Omit<TalonCfBindingsEnv, "WORKER_CONTAINER"> & {
   TALON_WORKER_CONTAINER_COUNT?: string;
   TALON_ENVOY_CONTAINER_COUNT?: string;
   TALON_CONFIG_INLINE_YAML?: string;
+  TALON_CF_DEV_EXTERNAL_CONTAINERS?: string;
+  TALON_CF_DEV_GATEWAY_URL?: string;
+  TALON_CF_DEV_WORKER_URL?: string;
+  TALON_CF_DEV_ENVOY_URL?: string;
 };
 
 const RESERVED_CONTAINER_ENV = new Set([
@@ -89,6 +94,36 @@ function workerContainer(env: Env, key?: string) {
 
 function envoyContainer(env: Env, key?: string) {
   return containerFor(env.ENVOY_CONTAINER, "envoy", configuredCount(env.TALON_ENVOY_CONTAINER_COUNT), key);
+}
+
+function externalContainersEnabled(env: Env): boolean {
+  return env.TALON_CF_DEV_EXTERNAL_CONTAINERS === "true";
+}
+
+function requestToOrigin(request: Request, origin: string): Request {
+  const target = new URL(request.url);
+  const originUrl = new URL(origin);
+  target.protocol = originUrl.protocol;
+  target.host = originUrl.host;
+  return new Request(target.toString(), request);
+}
+
+function fetcherForOrigin(origin: string): { fetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> } {
+  return {
+    fetch(input, init) {
+      const request = new Request(input, init);
+      return fetch(requestToOrigin(request, origin));
+    },
+  };
+}
+
+async function serviceReady(origin: string, path: string, init?: RequestInit): Promise<boolean> {
+  try {
+    const response = await fetch(new URL(path, origin), init);
+    return response.status < 500;
+  } catch {
+    return false;
+  }
 }
 
 function shouldRouteThroughEnvoy(pathname: string): boolean {
@@ -179,17 +214,55 @@ export class EnvoyContainer extends Container<Env> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (shouldRouteThroughEnvoy(url.pathname)) {
-      const envoy = envoyContainer(env);
-      return await envoy.fetch(request);
-    }
-
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(request) });
     }
 
+    const outboundHandler = outboundByHost[url.hostname as keyof typeof outboundByHost];
+    if (outboundHandler) {
+      return withCors(await outboundHandler(request, env), request);
+    }
+
+    if (shouldRouteThroughEnvoy(url.pathname)) {
+      if (externalContainersEnabled(env)) {
+        return withCors(
+          await fetch(requestToOrigin(request, env.TALON_CF_DEV_ENVOY_URL ?? "http://envoy:8081")),
+          request,
+        );
+      }
+      const envoy = envoyContainer(env);
+      return await envoy.fetch(request);
+    }
+
     if (url.pathname === "/healthz") {
       await env.TALON_D1.prepare("SELECT 1 AS ok").first();
+      if (externalContainersEnabled(env)) {
+        const gatewayUrl = env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052";
+        const workerUrl = env.TALON_CF_DEV_WORKER_URL ?? "http://worker:8081";
+        const envoyUrl = env.TALON_CF_DEV_ENVOY_URL ?? "http://envoy:8081";
+        const [gatewayReady, workerReady, envoyReady] = await Promise.all([
+          serviceReady(gatewayUrl, "/"),
+          serviceReady(workerUrl, "/cloudflare/queues/dispatch", {
+            method: "POST",
+            headers: TEXT_JSON,
+            body: "{}",
+          }),
+          serviceReady(envoyUrl, "/v1/namespaces"),
+        ]);
+        const ok = gatewayReady && workerReady && envoyReady;
+        return withCors(
+          json({
+            ok,
+            mode: "external-compose",
+            services: {
+              gateway: gatewayReady,
+              worker: workerReady,
+              envoy: envoyReady,
+            },
+          }, { status: ok ? 200 : 503 }),
+          request,
+        );
+      }
       return withCors(
         json({
           ok: true,
@@ -203,11 +276,23 @@ export default {
       );
     }
 
+    if (externalContainersEnabled(env)) {
+      return withCors(
+        await fetch(requestToOrigin(request, env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052")),
+        request,
+      );
+    }
+
     const gateway = gatewayContainer(env);
     return withCors(await gateway.fetch(request), request);
   },
 
   async queue(batch: MessageBatch, env: Env): Promise<void> {
-    await dispatchQueueBatch(batch, env, (message) => workerContainer(env, message.id));
+    await dispatchQueueBatch(batch, env, (message) => {
+      if (externalContainersEnabled(env)) {
+        return fetcherForOrigin(env.TALON_CF_DEV_WORKER_URL ?? "http://worker:8081");
+      }
+      return workerContainer(env, message.id);
+    });
   },
 };

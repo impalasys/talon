@@ -41,6 +41,11 @@ export TALON_CF_SESSION_CONTROL_BINDING="${TALON_CF_SESSION_CONTROL_BINDING:-SES
 export TALON_CF_DEV_MAIN="${TALON_CF_DEV_MAIN:-../worker/src/index.ts}"
 export TALON_CF_PROD_MAIN="${TALON_CF_PROD_MAIN:-src/index.ts}"
 
+export TALON_CF_DEV_EXTERNAL_CONTAINERS="${TALON_CF_DEV_EXTERNAL_CONTAINERS:-true}"
+export TALON_CF_DEV_GATEWAY_URL="${TALON_CF_DEV_GATEWAY_URL:-http://gateway:50052}"
+export TALON_CF_DEV_WORKER_URL="${TALON_CF_DEV_WORKER_URL:-http://worker:8081}"
+export TALON_CF_DEV_ENVOY_URL="${TALON_CF_DEV_ENVOY_URL:-http://envoy:8081}"
+
 export TALON_CF_DEV_RUNTIME_IMAGE="${TALON_CF_DEV_RUNTIME_IMAGE:-../../../dockerfiles/oss-runtime.Dockerfile}"
 export TALON_CF_DEV_RUNTIME_BUILD_CONTEXT="${TALON_CF_DEV_RUNTIME_BUILD_CONTEXT:-../../../}"
 export TALON_CF_DEV_ENVOY_IMAGE="${TALON_CF_DEV_ENVOY_IMAGE:-../dockerfiles/cloudflare-envoy.Dockerfile}"
@@ -88,7 +93,29 @@ def config_env_keys(config_yaml: str) -> list[str]:
                 break
     return sorted(set(keys))
 
-def base_config(main: str, config_yaml: str, scheduler_auth_token: str | None) -> dict:
+def durable_object_bindings(include_container_classes: bool) -> list[dict]:
+    bindings = [{"name": "SCHEDULE_SHARD", "class_name": "ScheduleShard"}]
+    if include_container_classes:
+        bindings = [
+            {"name": "GATEWAY_CONTAINER", "class_name": "GatewayContainer"},
+            {"name": "WORKER_CONTAINER", "class_name": "WorkerContainer"},
+            {"name": "ENVOY_CONTAINER", "class_name": "EnvoyContainer"},
+            *bindings,
+        ]
+    return bindings
+
+def durable_object_classes(include_container_classes: bool) -> list[str]:
+    classes = ["ScheduleShard"]
+    if include_container_classes:
+        classes = ["GatewayContainer", "WorkerContainer", "EnvoyContainer", *classes]
+    return classes
+
+def base_config(
+    main: str,
+    config_yaml: str,
+    scheduler_auth_token: str | None,
+    include_container_classes: bool,
+) -> dict:
     vars = {
         "TALON_CONFIG_INLINE_YAML": config_yaml,
         "TALON_GATEWAY_CONTAINER_COUNT": env("TALON_CF_GATEWAY_CONTAINER_COUNT"),
@@ -140,22 +167,12 @@ def base_config(main: str, config_yaml: str, scheduler_auth_token: str | None) -
             ],
         },
         "durable_objects": {
-            "bindings": [
-                {"name": "GATEWAY_CONTAINER", "class_name": "GatewayContainer"},
-                {"name": "WORKER_CONTAINER", "class_name": "WorkerContainer"},
-                {"name": "ENVOY_CONTAINER", "class_name": "EnvoyContainer"},
-                {"name": "SCHEDULE_SHARD", "class_name": "ScheduleShard"},
-            ]
+            "bindings": durable_object_bindings(include_container_classes)
         },
         "migrations": [
             {
                 "tag": "v1",
-                "new_sqlite_classes": [
-                    "GatewayContainer",
-                    "WorkerContainer",
-                    "EnvoyContainer",
-                    "ScheduleShard",
-                ],
+                "new_sqlite_classes": durable_object_classes(include_container_classes),
             }
         ],
     }
@@ -166,28 +183,40 @@ def write_json(path: str, config: dict) -> None:
     target.write_text(json.dumps(config, indent=2) + "\n")
     print(f"wrote {target}")
 
-dev = base_config(env("TALON_CF_DEV_MAIN"), dev_config_yaml, env("TALON_CF_DEV_SCHEDULER_AUTH_TOKEN"))
+dev_external_containers = env("TALON_CF_DEV_EXTERNAL_CONTAINERS").lower() == "true"
+
+dev = base_config(
+    env("TALON_CF_DEV_MAIN"),
+    dev_config_yaml,
+    env("TALON_CF_DEV_SCHEDULER_AUTH_TOKEN"),
+    not dev_external_containers,
+)
+dev["vars"]["TALON_CF_DEV_EXTERNAL_CONTAINERS"] = str(dev_external_containers).lower()
+dev["vars"]["TALON_CF_DEV_GATEWAY_URL"] = env("TALON_CF_DEV_GATEWAY_URL")
+dev["vars"]["TALON_CF_DEV_WORKER_URL"] = env("TALON_CF_DEV_WORKER_URL")
+dev["vars"]["TALON_CF_DEV_ENVOY_URL"] = env("TALON_CF_DEV_ENVOY_URL")
 for key in config_env_keys(dev_config_yaml):
     dev["vars"].setdefault(key, os.environ.get(key, "local-cloudflare-e2e"))
-dev["containers"] = [
-    {
-        "class_name": "GatewayContainer",
-        "image": env("TALON_CF_DEV_RUNTIME_IMAGE"),
-        "image_build_context": env("TALON_CF_DEV_RUNTIME_BUILD_CONTEXT"),
-    },
-    {
-        "class_name": "WorkerContainer",
-        "image": env("TALON_CF_DEV_RUNTIME_IMAGE"),
-        "image_build_context": env("TALON_CF_DEV_RUNTIME_BUILD_CONTEXT"),
-    },
-    {
-        "class_name": "EnvoyContainer",
-        "image": env("TALON_CF_DEV_ENVOY_IMAGE"),
-        "image_build_context": env("TALON_CF_DEV_ENVOY_BUILD_CONTEXT"),
-    },
-]
+if not dev_external_containers:
+    dev["containers"] = [
+        {
+            "class_name": "GatewayContainer",
+            "image": env("TALON_CF_DEV_RUNTIME_IMAGE"),
+            "image_build_context": env("TALON_CF_DEV_RUNTIME_BUILD_CONTEXT"),
+        },
+        {
+            "class_name": "WorkerContainer",
+            "image": env("TALON_CF_DEV_RUNTIME_IMAGE"),
+            "image_build_context": env("TALON_CF_DEV_RUNTIME_BUILD_CONTEXT"),
+        },
+        {
+            "class_name": "EnvoyContainer",
+            "image": env("TALON_CF_DEV_ENVOY_IMAGE"),
+            "image_build_context": env("TALON_CF_DEV_ENVOY_BUILD_CONTEXT"),
+        },
+    ]
 
-prod = base_config(env("TALON_CF_PROD_MAIN"), prod_config_yaml, None)
+prod = base_config(env("TALON_CF_PROD_MAIN"), prod_config_yaml, None, True)
 prod["containers"] = [
     {
         "class_name": "GatewayContainer",

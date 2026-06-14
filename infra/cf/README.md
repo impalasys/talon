@@ -222,7 +222,7 @@ Successful delivery deletes the wakeup. Failed delivery is retried per wakeup wi
 Start the Cloudflare dev stack:
 
 ```bash
-docker compose -f infra/cf/dev/docker-compose.yaml up --build -d cloudflare-dev mock-llm
+docker compose -f infra/cf/dev/docker-compose.yaml up --build -d cloudflare-dev gateway worker envoy mock-llm
 ```
 
 The local gateway URL is:
@@ -231,8 +231,11 @@ The local gateway URL is:
 http://localhost:8787
 ```
 
-`mock-llm` is private to the Compose network. The Worker reaches it through
-`http://mock-llm.internal`, which resolves internally to the `mock-llm` service.
+`gateway`, `worker`, `envoy`, and `mock-llm` are private to the Compose network.
+Only the Worker endpoint is published on the host. The Rust services reach the
+Cloudflare binding bridge through internal aliases such as
+`http://talon-d1.internal:8787`, and the mock LLM is available internally at
+`http://mock-llm.internal:8000`.
 
 Useful checks:
 
@@ -255,9 +258,23 @@ Run the local E2E test container:
 docker compose -f infra/cf/dev/docker-compose.yaml up --build --abort-on-container-exit --exit-code-from e2e-tests e2e-tests
 ```
 
-Local development uses `wrangler dev` inside the `cloudflare-dev` service. The service mounts the repo and Docker socket so Wrangler can build and run Cloudflare Containers locally. Wrangler/Miniflare creates local-only D1/R2/Queue resources from the bindings; it does not touch production resources.
+Local development uses `wrangler dev` inside the `cloudflare-dev` service for
+local D1/R2/Queue resources and Durable Object alarms. By default,
+`dev/wrangler.jsonc` sets `TALON_CF_DEV_EXTERNAL_CONTAINERS=true`, so the Talon
+gateway, worker, and Envoy run as ordinary private Compose services instead of
+Wrangler-managed local Containers. This avoids Wrangler's current local
+Containers path forcing `linux/amd64`, which is brittle on Apple Silicon.
 
-The first startup can be slow because Wrangler builds the Talon runtime image. Later runs should reuse Docker layers.
+Production still uses real Cloudflare Containers from `worker/wrangler.jsonc`.
+If you want to try Wrangler-managed local Containers on an amd64 Docker host,
+regenerate dev config with:
+
+```bash
+TALON_CF_DEV_EXTERNAL_CONTAINERS=false infra/cf/gen-wrangler.sh
+```
+
+The first startup can be slow because Compose builds the Talon runtime image.
+Later runs should reuse Docker layers.
 
 ## Production Provisioning
 
@@ -366,7 +383,7 @@ infra/cf/worker/wrangler.jsonc
 
 `infra/cf/talon.yaml` is the production source config. It defaults to OpenAI's API URL and reads `OPENAI_API_KEY` through Talon's env secret loader.
 
-`infra/cf/dev/talon.yaml` is the local/E2E source config. It points at the Docker Compose `mock-llm` service and reads `MOCK_LLM_API_KEY`, which `gen-wrangler.sh` fills with a local placeholder in `dev/wrangler.jsonc`.
+`infra/cf/dev/talon.yaml` is the local/E2E source config. It points at the Docker Compose `mock-llm` service on `mock-llm.internal:8000` and reads `MOCK_LLM_API_KEY`, which `gen-wrangler.sh` fills with a local placeholder in `dev/wrangler.jsonc`.
 
 Regenerate both Wrangler configs after editing either file:
 

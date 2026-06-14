@@ -7,11 +7,15 @@
     "nodejs_compat"
   ],
   "vars": {
-    "TALON_CONFIG_INLINE_YAML": "providers:\n  mock:\n    type: openai_compatible\n    name: mock\n    base_url: \"http://mock-llm.internal\"\n    model: minimax/minimax-m2.7\n    api_key:\n      source: env\n      key: MOCK_LLM_API_KEY\ndefault_provider: mock\ncontrol_plane:\n  database:\n    driver: d1\n  message_broker:\n    driver: cf_queues\n  object_store:\n    driver: r2\n",
+    "TALON_CONFIG_INLINE_YAML": "providers:\n  mock:\n    type: openai_compatible\n    name: mock\n    base_url: \"http://mock-llm.internal:8000\"\n    model: minimax/minimax-m2.7\n    api_key:\n      source: env\n      key: MOCK_LLM_API_KEY\ndefault_provider: mock\ncontrol_plane:\n  database:\n    driver: d1\n  message_broker:\n    driver: cf_queues\n  object_store:\n    driver: r2\n",
     "TALON_GATEWAY_CONTAINER_COUNT": "1",
     "TALON_WORKER_CONTAINER_COUNT": "1",
     "TALON_ENVOY_CONTAINER_COUNT": "1",
     "TALON_SCHEDULER_AUTH_TOKEN": "cloudflare-local-scheduler-token",
+    "TALON_CF_DEV_EXTERNAL_CONTAINERS": "true",
+    "TALON_CF_DEV_GATEWAY_URL": "http://gateway:50052",
+    "TALON_CF_DEV_WORKER_URL": "http://worker:8081",
+    "TALON_CF_DEV_ENVOY_URL": "http://envoy:8081",
     "MOCK_LLM_API_KEY": "local-cloudflare-e2e"
   },
   "d1_databases": [
@@ -60,18 +64,6 @@
   "durable_objects": {
     "bindings": [
       {
-        "name": "GATEWAY_CONTAINER",
-        "class_name": "GatewayContainer"
-      },
-      {
-        "name": "WORKER_CONTAINER",
-        "class_name": "WorkerContainer"
-      },
-      {
-        "name": "ENVOY_CONTAINER",
-        "class_name": "EnvoyContainer"
-      },
-      {
         "name": "SCHEDULE_SHARD",
         "class_name": "ScheduleShard"
       }
@@ -81,28 +73,8 @@
     {
       "tag": "v1",
       "new_sqlite_classes": [
-        "GatewayContainer",
-        "WorkerContainer",
-        "EnvoyContainer",
         "ScheduleShard"
       ]
-    }
-  ],
-  "containers": [
-    {
-      "class_name": "GatewayContainer",
-      "image": "../../../dockerfiles/oss-runtime.Dockerfile",
-      "image_build_context": "../../../"
-    },
-    {
-      "class_name": "WorkerContainer",
-      "image": "../../../dockerfiles/oss-runtime.Dockerfile",
-      "image_build_context": "../../../"
-    },
-    {
-      "class_name": "EnvoyContainer",
-      "image": "../dockerfiles/cloudflare-envoy.Dockerfile",
-      "image_build_context": "../../../"
     }
   ]
 }
