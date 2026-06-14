@@ -285,6 +285,10 @@ jobs:
         working-directory: infra/cf/worker
         run: npm run typecheck
 
+      - name: Test Cloudflare bindings
+        working-directory: infra/cf/worker
+        run: npm run test:bindings
+
       - name: Wrangler dry-run dev deploy
         run: infra/cf/worker/node_modules/.bin/wrangler deploy --dry-run --config infra/cf/dev/wrangler.jsonc --outdir /tmp/talon-cloudflare-dev-dry-run --containers-rollout=none
 
@@ -296,7 +300,6 @@ jobs:
 
       - name: Run Cloudflare local E2E
         id: cloudflare-local-e2e
-        continue-on-error: true
         timeout-minutes: 35
         run: docker compose -f infra/cf/dev/docker-compose.yaml up --build --abort-on-container-exit --exit-code-from e2e-tests e2e-tests
 

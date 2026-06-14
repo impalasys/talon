@@ -236,6 +236,7 @@ Useful checks:
 curl http://localhost:8787/healthz
 docker compose -f infra/cf/dev/docker-compose.yaml logs -f cloudflare-dev
 docker compose -f infra/cf/dev/docker-compose.yaml ps
+cd infra/cf/worker && npm run typecheck && npm run test:bindings
 ```
 
 Stop the stack:
@@ -247,7 +248,7 @@ docker compose -f infra/cf/dev/docker-compose.yaml down
 Run the local E2E test container:
 
 ```bash
-docker compose -f infra/cf/dev/docker-compose.yaml up --build --abort-on-container-exit e2e-tests
+docker compose -f infra/cf/dev/docker-compose.yaml up --build --abort-on-container-exit --exit-code-from e2e-tests e2e-tests
 ```
 
 Local development uses `wrangler dev` inside the `cloudflare-dev` service. The service mounts the repo and Docker socket so Wrangler can build and run Cloudflare Containers locally. Wrangler/Miniflare creates local-only D1/R2/Queue resources from the bindings; it does not touch production resources.
