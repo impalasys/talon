@@ -72,6 +72,10 @@
       {
         "name": "SCHEDULE_SHARD",
         "class_name": "ScheduleShard"
+      },
+      {
+        "name": "SESSION_STREAMS",
+        "class_name": "SessionStreamShard"
       }
     ]
   },
@@ -82,7 +86,8 @@
         "GatewayContainer",
         "WorkerContainer",
         "EnvoyContainer",
-        "ScheduleShard"
+        "ScheduleShard",
+        "SessionStreamShard"
       ]
     }
   ],

@@ -2,6 +2,7 @@ import { Container, ContainerProxy } from "@cloudflare/containers";
 import { env as workerEnv } from "cloudflare:workers";
 import {
   ScheduleShard,
+  SessionStreamShard,
   dispatchQueueBatch,
   handleAlarms,
   handleD1,
@@ -12,7 +13,7 @@ import {
   type TalonCfBindingsEnv,
 } from "@impalasys/talon-cf-bindings";
 
-export { ContainerProxy, ScheduleShard };
+export { ContainerProxy, ScheduleShard, SessionStreamShard };
 
 type WorkerContainerNamespace = DurableObjectNamespace<Container<Env>>;
 
@@ -126,8 +127,12 @@ async function serviceReady(origin: string, path: string, init?: RequestInit): P
   }
 }
 
+function isGatewayUiPath(pathname: string): boolean {
+  return pathname.startsWith("/v1/ui/");
+}
+
 function shouldRouteThroughEnvoy(pathname: string): boolean {
-  return pathname.startsWith("/v1/") || pathname.startsWith("/talon.gateway.");
+  return (pathname.startsWith("/v1/") && !isGatewayUiPath(pathname)) || pathname.startsWith("/talon.gateway.");
 }
 
 const CORS_ALLOW_METHODS = "GET,PUT,DELETE,POST,OPTIONS";
@@ -221,6 +226,17 @@ export default {
     const outboundHandler = outboundByHost[url.hostname as keyof typeof outboundByHost];
     if (outboundHandler) {
       return withCors(await outboundHandler(request, env), request);
+    }
+
+    if (isGatewayUiPath(url.pathname)) {
+      if (externalContainersEnabled(env)) {
+        return withCors(
+          await fetch(requestToOrigin(request, env.TALON_CF_DEV_GATEWAY_URL ?? "http://gateway:50052")),
+          request,
+        );
+      }
+      const gateway = gatewayContainer(env, url.pathname);
+      return withCors(await gateway.fetch(request), request);
     }
 
     if (shouldRouteThroughEnvoy(url.pathname)) {
