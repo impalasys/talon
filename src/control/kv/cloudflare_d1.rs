@@ -127,7 +127,10 @@ impl CloudflareD1KvStore {
 
     pub fn new(endpoint: impl Into<String>) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: reqwest::Client::builder()
+                .timeout(CLOUDFLARE_HTTP_TIMEOUT)
+                .build()
+                .expect("Cloudflare D1 HTTP client should build"),
             endpoint: endpoint.into().trim_end_matches('/').to_string(),
         }
     }
