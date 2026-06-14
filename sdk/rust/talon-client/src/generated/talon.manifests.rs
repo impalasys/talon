@@ -305,8 +305,6 @@ pub struct AgentCard {
     pub default_output_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     #[prost(message, repeated, tag = "7")]
     pub skills: ::prost::alloc::vec::Vec<AgentCardSkill>,
-    #[prost(message, optional, tag = "8")]
-    pub auth: ::core::option::Option<AgentCardAuth>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct AgentCardCapabilities {
@@ -333,13 +331,6 @@ pub struct AgentCardSkill {
     pub input_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     #[prost(string, repeated, tag = "7")]
     pub output_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AgentCardAuth {
-    #[prost(string, tag = "1")]
-    pub discovery: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub operations: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct McpAuthBrokerSpec {

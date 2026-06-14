@@ -11,7 +11,6 @@ fn main() -> std::io::Result<()> {
         ".talon.manifests.AgentCard",
         ".talon.manifests.AgentCardCapabilities",
         ".talon.manifests.AgentCardSkill",
-        ".talon.manifests.AgentCardAuth",
         ".talon.manifests.McpServer",
         ".talon.manifests.McpServerSpec",
         ".talon.manifests.McpServerBinding",

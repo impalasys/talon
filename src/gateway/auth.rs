@@ -145,12 +145,21 @@ pub fn check_auth(
     agent: Option<&str>,
     session: Option<&str>,
 ) -> Result<(), Status> {
+    let auth_header = metadata.get("authorization").and_then(|v| v.to_str().ok());
+    check_auth_header(auth_header, auth_config, ns, agent, session)
+}
+
+pub fn check_auth_header(
+    auth_header: Option<&str>,
+    auth_config: &AuthConfig,
+    ns: &str,
+    agent: Option<&str>,
+    session: Option<&str>,
+) -> Result<(), Status> {
     match auth_config.mode {
         AuthMode::Open => Ok(()),
         AuthMode::Token => {
-            let auth_header = metadata
-                .get("authorization")
-                .and_then(|v| v.to_str().ok())
+            let auth_header = auth_header
                 .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
 
             let token = bearer_token(auth_header)?;
@@ -162,9 +171,7 @@ pub fn check_auth(
             }
         }
         AuthMode::Jwt => {
-            let auth_header = metadata
-                .get("authorization")
-                .and_then(|v| v.to_str().ok())
+            let auth_header = auth_header
                 .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
 
             if check_basic_password(auth_header, auth_config.jwt_secret.as_ref())? {
@@ -182,9 +189,7 @@ pub fn check_auth(
             check_claim_scope(&claims, ns, agent, session, None)
         }
         AuthMode::Password => {
-            let auth_header = metadata
-                .get("authorization")
-                .and_then(|v| v.to_str().ok())
+            let auth_header = auth_header
                 .ok_or_else(|| Status::unauthenticated("Missing authorization header"))?;
 
             if !auth_header.starts_with("Basic ") {

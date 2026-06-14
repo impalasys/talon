@@ -380,20 +380,6 @@ fn validate_a2a_agent_card(agent_card: &manifests::AgentCard) -> Result<()> {
             bail!("A2A agentCard capabilities.extendedAgentCard is not supported yet");
         }
     }
-    if let Some(auth) = agent_card.auth.as_ref() {
-        let discovery = auth.discovery.trim();
-        if !discovery.is_empty() && discovery != "public" {
-            bail!(
-                "A2A agentCard auth.discovery must be 'public'; authenticated discovery is not supported yet"
-            );
-        }
-        let operations = auth.operations.trim();
-        if !operations.is_empty() && operations != "public" {
-            bail!(
-                "A2A agentCard auth.operations must be 'public'; authenticated A2A operations are not supported yet"
-            );
-        }
-    }
     Ok(())
 }
 

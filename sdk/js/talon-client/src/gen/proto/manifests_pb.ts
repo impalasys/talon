@@ -1373,11 +1373,6 @@ export class AgentCard extends Message<AgentCard> {
    */
   skills: AgentCardSkill[] = [];
 
-  /**
-   * @generated from field: talon.manifests.AgentCardAuth auth = 8;
-   */
-  auth?: AgentCardAuth;
-
   constructor(data?: PartialMessage<AgentCard>) {
     super();
     proto3.util.initPartial(data, this);
@@ -1393,7 +1388,6 @@ export class AgentCard extends Message<AgentCard> {
     { no: 5, name: "default_input_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 6, name: "default_output_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 7, name: "skills", kind: "message", T: AgentCardSkill, repeated: true },
-    { no: 8, name: "auth", kind: "message", T: AgentCardAuth },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentCard {
@@ -1532,49 +1526,6 @@ export class AgentCardSkill extends Message<AgentCardSkill> {
 
   static equals(a: AgentCardSkill | PlainMessage<AgentCardSkill> | undefined, b: AgentCardSkill | PlainMessage<AgentCardSkill> | undefined): boolean {
     return proto3.util.equals(AgentCardSkill, a, b);
-  }
-}
-
-/**
- * @generated from message talon.manifests.AgentCardAuth
- */
-export class AgentCardAuth extends Message<AgentCardAuth> {
-  /**
-   * @generated from field: string discovery = 1;
-   */
-  discovery = "";
-
-  /**
-   * @generated from field: string operations = 2;
-   */
-  operations = "";
-
-  constructor(data?: PartialMessage<AgentCardAuth>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.manifests.AgentCardAuth";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "discovery", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "operations", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentCardAuth {
-    return new AgentCardAuth().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AgentCardAuth {
-    return new AgentCardAuth().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AgentCardAuth {
-    return new AgentCardAuth().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: AgentCardAuth | PlainMessage<AgentCardAuth> | undefined, b: AgentCardAuth | PlainMessage<AgentCardAuth> | undefined): boolean {
-    return proto3.util.equals(AgentCardAuth, a, b);
   }
 }
 

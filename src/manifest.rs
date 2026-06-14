@@ -261,7 +261,6 @@ struct AgentCardManifest {
     default_input_modes: Vec<String>,
     default_output_modes: Vec<String>,
     skills: Vec<AgentCardSkillManifest>,
-    auth: Option<AgentCardAuthManifest>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -282,13 +281,6 @@ struct AgentCardSkillManifest {
     examples: Vec<String>,
     input_modes: Vec<String>,
     output_modes: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase", default)]
-struct AgentCardAuthManifest {
-    discovery: String,
-    operations: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -1088,7 +1080,6 @@ impl AgentCardManifest {
                 .into_iter()
                 .map(AgentCardSkillManifest::into_proto)
                 .collect(),
-            auth: self.auth.map(AgentCardAuthManifest::into_proto),
         }
     }
 
@@ -1108,7 +1099,6 @@ impl AgentCardManifest {
                 .iter()
                 .map(AgentCardSkillManifest::from_proto)
                 .collect(),
-            auth: spec.auth.as_ref().map(AgentCardAuthManifest::from_proto),
         }
     }
 }
@@ -1153,22 +1143,6 @@ impl AgentCardSkillManifest {
             examples: skill.examples.clone(),
             input_modes: skill.input_modes.clone(),
             output_modes: skill.output_modes.clone(),
-        }
-    }
-}
-
-impl AgentCardAuthManifest {
-    fn into_proto(self) -> manifests::AgentCardAuth {
-        manifests::AgentCardAuth {
-            discovery: self.discovery,
-            operations: self.operations,
-        }
-    }
-
-    fn from_proto(auth: &manifests::AgentCardAuth) -> Self {
-        Self {
-            discovery: auth.discovery.clone(),
-            operations: auth.operations.clone(),
         }
     }
 }

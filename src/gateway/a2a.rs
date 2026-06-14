@@ -17,6 +17,7 @@ use chrono::TimeZone;
 use prost::Message;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use tonic::Code;
 use uuid::Uuid;
 
 use crate::control::events::SessionMessagePartEventKind;
@@ -25,6 +26,7 @@ use crate::control::{
     keys::{self, ResourceKey},
     topics, ProtoKeyValueStoreExt,
 };
+use crate::gateway::auth::{self, AuthConfig, AuthMode};
 use crate::gateway::rpc::manifests;
 use crate::gateway::rpc::models;
 use crate::gateway::server::Gateway;
@@ -43,6 +45,10 @@ struct AgentCardJson {
     url: String,
     protocol_version: String,
     preferred_transport: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    security_schemes: Option<HashMap<String, Value>>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    security: Vec<HashMap<String, Vec<String>>>,
     capabilities: AgentCardCapabilitiesJson,
     default_input_modes: Vec<String>,
     default_output_modes: Vec<String>,
@@ -170,6 +176,7 @@ pub async fn get_agent_card(
         &external_host,
         &route.ns,
         &route.agent,
+        gateway.auth_config.as_ref(),
     ) {
         Ok(payload) => Json(payload).into_response(),
         Err(response) => response,
@@ -178,16 +185,13 @@ pub async fn get_agent_card(
 
 pub async fn post_message_operation(
     State(gateway): State<Arc<Gateway>>,
+    headers: HeaderMap,
     Path((ns, agent)): Path<(String, String)>,
     OriginalUri(uri): OriginalUri,
     body: Bytes,
 ) -> Response {
-    let route = match resolve_agent_card_route(&gateway, &ns, &agent).await {
-        Ok(route) => route,
-        Err(response) => return response,
-    };
     match scoped_a2a_operation_path(uri.path(), &ns, &agent) {
-        Some("/message:send" | "/v1/message:send") => {
+        Some(path @ ("/message:send" | "/v1/message:send")) => {
             let body = match serde_json::from_slice::<SendMessageRequestJson>(&body) {
                 Ok(body) => body,
                 Err(err) => {
@@ -197,9 +201,21 @@ pub async fn post_message_operation(
                     );
                 }
             };
-            let response_encoding = if scoped_a2a_operation_path(uri.path(), &ns, &agent)
-                .is_some_and(|path| path.starts_with("/v1/"))
+            let session = body
+                .message
+                .task_id
+                .as_deref()
+                .filter(|value| !value.trim().is_empty());
+            if let Err(response) =
+                ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, session)
             {
+                return response;
+            }
+            let route = match resolve_agent_card_route(&gateway, &ns, &agent).await {
+                Ok(route) => route,
+                Err(response) => return response,
+            };
+            let response_encoding = if path.starts_with("/v1/") {
                 A2aResponseEncoding::RestV1
             } else {
                 A2aResponseEncoding::Legacy
@@ -216,9 +232,29 @@ pub async fn post_message_operation(
                     );
                 }
             };
+            let session = body
+                .message
+                .task_id
+                .as_deref()
+                .filter(|value| !value.trim().is_empty());
+            if let Err(response) =
+                ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, session)
+            {
+                return response;
+            }
+            let route = match resolve_agent_card_route(&gateway, &ns, &agent).await {
+                Ok(route) => route,
+                Err(response) => return response,
+            };
             stream_message(gateway, route, body).await
         }
-        _ => a2a_error(StatusCode::NOT_FOUND, "A2A message operation not found"),
+        _ => {
+            if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, None)
+            {
+                return response;
+            }
+            a2a_error(StatusCode::NOT_FOUND, "A2A message operation not found")
+        }
     }
 }
 
@@ -491,9 +527,13 @@ async fn send_message(
 
 pub async fn list_tasks(
     State(gateway): State<Arc<Gateway>>,
+    headers: HeaderMap,
     Path((ns, agent)): Path<(String, String)>,
     OriginalUri(uri): OriginalUri,
 ) -> Response {
+    if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, None) {
+        return response;
+    }
     let route = match resolve_agent_card_route(&gateway, &ns, &agent).await {
         Ok(route) => route,
         Err(response) => return response,
@@ -544,9 +584,16 @@ pub async fn list_tasks(
 
 pub async fn get_task(
     State(gateway): State<Arc<Gateway>>,
+    headers: HeaderMap,
     Path((ns, agent, tail)): Path<(String, String, String)>,
     OriginalUri(uri): OriginalUri,
 ) -> Response {
+    let session =
+        (!tail.contains('/') && !tail.ends_with(":cancel") && !tail.ends_with(":subscribe"))
+            .then_some(tail.as_str());
+    if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, session) {
+        return response;
+    }
     if tail.contains('/') || tail.ends_with(":cancel") || tail.ends_with(":subscribe") {
         return a2a_error(StatusCode::NOT_FOUND, "A2A task not found");
     }
@@ -568,22 +615,33 @@ pub async fn get_task(
 
 pub async fn post_task_operation(
     State(gateway): State<Arc<Gateway>>,
+    headers: HeaderMap,
     Path((ns, agent, tail)): Path<(String, String, String)>,
     OriginalUri(uri): OriginalUri,
 ) -> Response {
-    let route = match resolve_agent_card_route(&gateway, &ns, &agent).await {
-        Ok(route) => route,
-        Err(response) => return response,
-    };
     let Some(task_id) = tail.strip_suffix(":cancel") else {
+        if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, None) {
+            return response;
+        }
         if tail.ends_with(":subscribe") {
             return unsupported_operation("Task subscription is not supported by this A2A agent");
         }
         return a2a_error(StatusCode::NOT_FOUND, "A2A task operation not found");
     };
     if task_id.is_empty() || task_id.contains('/') {
+        if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, None) {
+            return response;
+        }
         return a2a_error(StatusCode::NOT_FOUND, "A2A task not found");
     }
+    if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, Some(task_id))
+    {
+        return response;
+    }
+    let route = match resolve_agent_card_route(&gateway, &ns, &agent).await {
+        Ok(route) => route,
+        Err(response) => return response,
+    };
 
     if let Err(response) = publish_stop_generation(&gateway, &route, task_id).await {
         return response;
@@ -605,8 +663,12 @@ pub async fn post_task_operation(
 
 pub async fn unsupported_a2a_operation(
     State(gateway): State<Arc<Gateway>>,
+    headers: HeaderMap,
     Path((ns, agent)): Path<(String, String)>,
 ) -> Response {
+    if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, None) {
+        return response;
+    }
     if let Err(response) = resolve_agent_card_route(&gateway, &ns, &agent).await {
         return response;
     }
@@ -680,8 +742,10 @@ fn agent_card_json(
     host: &str,
     ns: &str,
     agent: &str,
+    auth_config: Option<&AuthConfig>,
 ) -> Result<AgentCardJson, Response> {
     let capabilities = agent_card.capabilities.as_ref();
+    let (security_schemes, security) = agent_card_security(auth_config);
     Ok(AgentCardJson {
         name: agent_card.name.clone(),
         description: agent_card.description.clone(),
@@ -689,6 +753,8 @@ fn agent_card_json(
         url: a2a_card_base_url(scheme, host, ns, agent),
         protocol_version: "0.3.0".to_string(),
         preferred_transport: "HTTP+JSON".to_string(),
+        security_schemes,
+        security,
         capabilities: AgentCardCapabilitiesJson {
             streaming: true,
             push_notifications: capabilities
@@ -714,6 +780,66 @@ fn agent_card_json(
             })
             .collect(),
     })
+}
+
+fn agent_card_security(
+    auth_config: Option<&AuthConfig>,
+) -> (
+    Option<HashMap<String, Value>>,
+    Vec<HashMap<String, Vec<String>>>,
+) {
+    let Some(auth_config) = auth_config else {
+        return (None, Vec::new());
+    };
+    if auth_config.mode == AuthMode::Open {
+        return (None, Vec::new());
+    }
+
+    let scheme = match auth_config.mode {
+        AuthMode::Open => return (None, Vec::new()),
+        AuthMode::Password => json!({
+            "type": "http",
+            "scheme": "basic"
+        }),
+        AuthMode::Token => json!({
+            "type": "http",
+            "scheme": "bearer"
+        }),
+        AuthMode::Jwt => json!({
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+        }),
+    };
+    let mut schemes = HashMap::new();
+    schemes.insert("talon".to_string(), scheme);
+    let mut requirement = HashMap::new();
+    requirement.insert("talon".to_string(), Vec::new());
+    (Some(schemes), vec![requirement])
+}
+
+fn ensure_a2a_operation_auth(
+    gateway: &Gateway,
+    headers: &HeaderMap,
+    ns: &str,
+    agent: &str,
+    session: Option<&str>,
+) -> Result<(), Response> {
+    let auth_config = gateway.auth_config.clone().unwrap_or_else(AuthConfig::open);
+    let auth_header = headers
+        .get(header::AUTHORIZATION)
+        .and_then(|value| value.to_str().ok());
+    auth::check_auth_header(auth_header, &auth_config, ns, Some(agent), session)
+        .map_err(a2a_auth_error)
+}
+
+fn a2a_auth_error(status: tonic::Status) -> Response {
+    let http_status = match status.code() {
+        Code::Unauthenticated => StatusCode::UNAUTHORIZED,
+        Code::PermissionDenied => StatusCode::FORBIDDEN,
+        _ => StatusCode::INTERNAL_SERVER_ERROR,
+    };
+    a2a_error(http_status, status.message())
 }
 
 #[derive(Clone, Copy)]
@@ -898,19 +1024,6 @@ async fn resolve_agent_card_route(
             ));
         }
     }
-    if let Some(auth) = agent_card.auth.as_ref() {
-        let discovery = auth.discovery.trim();
-        let operations = auth.operations.trim();
-        if (!discovery.is_empty() && discovery != "public")
-            || (!operations.is_empty() && operations != "public")
-        {
-            return Err(a2a_error(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "A2A agentCard contains unsupported auth policy",
-            ));
-        }
-    }
-
     Ok(AgentCardRoute {
         ns: agent.ns,
         agent: agent.name,
@@ -1091,12 +1204,14 @@ async fn load_a2a_task(
     let mut history = Vec::new();
     let mut artifacts = Vec::new();
     let mut latest_message_has_error = false;
+    let mut has_agent_response = false;
     for message in messages {
         latest_message_has_error = message.parts.iter().any(|part| {
             part.part_type == crate::gateway::rpc::models::SessionMessagePartType::Error as i32
         });
         let a2a_message = session_message_to_a2a_message(&message, task_id, &session);
         if message.role == crate::gateway::rpc::models::MessageRole::RoleAssistant as i32 {
+            has_agent_response = true;
             if let Some(artifact) = session_message_to_a2a_artifact(&message) {
                 artifacts.push(artifact);
             }
@@ -1112,7 +1227,7 @@ async fn load_a2a_task(
             .cloned()
             .unwrap_or_else(|| task_id.to_string()),
         status: A2aTaskStatusJson {
-            state: a2a_task_state(&session, latest_message_has_error),
+            state: a2a_task_state(&session, latest_message_has_error, has_agent_response),
             message: None,
             timestamp: timestamp_rfc3339(session.last_active),
         },
@@ -1425,6 +1540,7 @@ fn session_part_to_a2a_part(
 fn a2a_task_state(
     session: &crate::gateway::rpc::models::Session,
     latest_message_has_error: bool,
+    has_agent_response: bool,
 ) -> &'static str {
     if session
         .labels
@@ -1435,7 +1551,7 @@ fn a2a_task_state(
         "TASK_STATE_CANCELED"
     } else if latest_message_has_error {
         "TASK_STATE_FAILED"
-    } else if session.status == "PROCESSING" {
+    } else if session.status == "PROCESSING" && !has_agent_response {
         "TASK_STATE_WORKING"
     } else {
         "TASK_STATE_COMPLETED"

@@ -184,7 +184,6 @@ message AgentCard {
   repeated string default_input_modes = 5;
   repeated string default_output_modes = 6;
   repeated AgentCardSkill skills = 7;
-  AgentCardAuth auth = 8;
 }
 
 message AgentCardCapabilities {
@@ -201,11 +200,6 @@ message AgentCardSkill {
   repeated string examples = 5;
   repeated string input_modes = 6;
   repeated string output_modes = 7;
-}
-
-message AgentCardAuth {
-  string discovery = 1;
-  string operations = 2;
 }
 
 message McpAuthBrokerSpec {

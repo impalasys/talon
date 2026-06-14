@@ -167,11 +167,12 @@ mod tests {
         scheduler::NoopSchedulerBackend,
         KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
-    use crate::gateway::auth::AuthConfig;
+    use crate::gateway::auth::{AuthConfig, Claims};
     use crate::gateway::rpc::models::{SessionMessagePart, SessionMessagePartType};
     use axum::body::Body;
     use axum::http::{header, Method, Request, StatusCode};
     use futures::stream;
+    use jsonwebtoken::{encode, EncodingKey, Header};
     use prost::Message;
     use std::collections::{HashMap, VecDeque};
     use std::net::SocketAddr;
@@ -270,6 +271,16 @@ mod tests {
         )
     }
 
+    fn gateway_with_auth(auth_config: AuthConfig) -> Gateway {
+        Gateway::new(
+            Some(auth_config),
+            Arc::new(MockKvStore::default()),
+            Arc::new(MockPubSub::default()),
+            Arc::new(NoopSchedulerBackend),
+            crate::control::object_store::default_object_store(),
+        )
+    }
+
     fn gateway_with_pubsub(pubsub: Arc<MockPubSub>) -> Gateway {
         Gateway::new(
             None,
@@ -335,10 +346,6 @@ mod tests {
                 input_modes: Vec::new(),
                 output_modes: Vec::new(),
             }],
-            auth: Some(crate::gateway::rpc::manifests::AgentCardAuth {
-                discovery: "public".to_string(),
-                operations: "public".to_string(),
-            }),
         }
     }
 
@@ -396,6 +403,30 @@ mod tests {
             )
             .await
             .unwrap();
+    }
+
+    fn mint_jwt(
+        secret: &str,
+        ns: Option<&str>,
+        agent: Option<&str>,
+        session: Option<&str>,
+    ) -> String {
+        crate::security::install_jwt_crypto_provider();
+        let claims = Claims {
+            sub: "test-user".to_string(),
+            aud: "talon".to_string(),
+            exp: 10_000_000_000,
+            ns: ns.map(ToString::to_string),
+            agent: agent.map(ToString::to_string),
+            session: session.map(ToString::to_string),
+            channel: None,
+        };
+        encode(
+            &Header::default(),
+            &claims,
+            &EncodingKey::from_secret(secret.as_ref()),
+        )
+        .unwrap()
     }
 
     #[test]
@@ -518,6 +549,163 @@ mod tests {
             value["url"],
             "http://localhost:8080/a2a/support/support-docs"
         );
+    }
+
+    #[tokio::test]
+    async fn http_ui_router_keeps_a2a_card_public_and_requires_auth_for_operations() {
+        let gateway = gateway_with_auth(AuthConfig::tokens(vec!["secret-token".to_string()]));
+        seed_published_agent(&gateway, "support", "support-docs").await;
+        let router = gateway.http_ui_router();
+
+        let card = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/a2a/support/support-docs/agent-card.json")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(card.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(card.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["securitySchemes"]["talon"]["type"], "http");
+        assert_eq!(value["securitySchemes"]["talon"]["scheme"], "bearer");
+        assert_eq!(value["security"][0]["talon"], serde_json::json!([]));
+        assert!(value.get("auth").is_none());
+
+        let send_body = r#"{
+            "message": {
+                "messageId": "msg-1",
+                "role": "ROLE_USER",
+                "taskId": "task-1",
+                "parts": [{ "text": "hello" }]
+            },
+            "configuration": { "returnImmediately": true }
+        }"#;
+
+        let unauthorized_send = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/a2a/support/support-docs/message:send")
+                    .header(header::HOST, "support.example.com")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(send_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(unauthorized_send.status(), StatusCode::UNAUTHORIZED);
+
+        let authorized_send = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/a2a/support/support-docs/message:send")
+                    .header(header::HOST, "support.example.com")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .header(header::AUTHORIZATION, "Bearer secret-token")
+                    .body(Body::from(send_body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(authorized_send.status(), StatusCode::OK);
+
+        let unauthorized_task = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/a2a/support/support-docs/tasks/task-1")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(unauthorized_task.status(), StatusCode::UNAUTHORIZED);
+
+        let authorized_task = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/a2a/support/support-docs/tasks/task-1")
+                    .header(header::HOST, "support.example.com")
+                    .header(header::AUTHORIZATION, "Bearer secret-token")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(authorized_task.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn http_ui_router_accepts_scoped_jwt_for_a2a_operation() {
+        let gateway = gateway_with_auth(AuthConfig::jwt("jwt-secret".to_string()));
+        seed_published_agent(&gateway, "support", "support-docs").await;
+        let router = gateway.http_ui_router();
+        let token = mint_jwt(
+            "jwt-secret",
+            Some("support"),
+            Some("support-docs"),
+            Some("task-1"),
+        );
+
+        let card = router
+            .clone()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/a2a/support/support-docs/agent-card.json")
+                    .header(header::HOST, "support.example.com")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(card.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(card.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(value["securitySchemes"]["talon"]["scheme"], "bearer");
+        assert_eq!(value["securitySchemes"]["talon"]["bearerFormat"], "JWT");
+
+        let authorized_send = router
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/a2a/support/support-docs/message:send")
+                    .header(header::HOST, "support.example.com")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .header(header::AUTHORIZATION, format!("Bearer {token}"))
+                    .body(Body::from(
+                        r#"{
+                            "message": {
+                                "messageId": "msg-1",
+                                "role": "ROLE_USER",
+                                "taskId": "task-1",
+                                "parts": [{ "text": "hello" }]
+                            },
+                            "configuration": { "returnImmediately": true }
+                        }"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(authorized_send.status(), StatusCode::OK);
     }
 
     #[tokio::test]
@@ -853,34 +1041,6 @@ mod tests {
             events.last().unwrap()["statusUpdate"]["status"]["state"],
             "TASK_STATE_COMPLETED"
         );
-    }
-
-    #[tokio::test]
-    async fn agent_rejects_non_public_a2a_agent_card_auth() {
-        let gateway = gateway();
-        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let mut agent_card = a2a_agent_card();
-        agent_card.auth = Some(crate::gateway::rpc::manifests::AgentCardAuth {
-            discovery: "bearer".to_string(),
-            operations: "bearer".to_string(),
-        });
-
-        let err = crate::gateway::rpc::GrpcGatewayHandler {
-            gateway: Arc::new(gateway),
-        }
-        .handle_create_agent(tonic::Request::new(
-            crate::gateway::rpc::proto::CreateAgentRequest {
-                ns: "support".to_string(),
-                name: Some("support-docs".to_string()),
-                definition: Some(published_agent_definition(agent_card)),
-                labels: HashMap::new(),
-            },
-        ))
-        .await
-        .unwrap_err();
-
-        assert_eq!(err.code(), tonic::Code::InvalidArgument);
-        assert!(err.message().contains("authenticated discovery"));
     }
 
     #[tokio::test]

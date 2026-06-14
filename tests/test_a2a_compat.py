@@ -153,9 +153,6 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
                       - text/plain
                     outputModes:
                       - text/plain
-                auth:
-                  discovery: public
-                  operations: public
         """,
     )
     apply_manifest(agent_path)
