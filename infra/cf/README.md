@@ -394,7 +394,7 @@ The Worker sets:
 
 ```text
 TALON_CONFIG_INLINE_YAML=<Cloudflare Talon YAML>
-TALON_SCHEDULER_DRIVER=cf-alarms
+TALON_SCHEDULER_DRIVER=cf_alarms
 ```
 
 Secrets should remain environment-backed. Any string Worker variables and secrets are forwarded into the Talon containers, while Cloudflare control variables such as container counts and inline config remain Worker-owned. For production, configure the OpenAI key referenced by `infra/cf/talon.yaml`:

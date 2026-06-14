@@ -150,7 +150,7 @@ export class GatewayContainer extends Container<Env> {
     GRPC_ADDR: "0.0.0.0:50051",
     GATEWAY_UI_ADDR: "0.0.0.0:50052",
     ...(TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML } : {}),
-    TALON_SCHEDULER_DRIVER: "cf-alarms",
+    TALON_SCHEDULER_DRIVER: "cf_alarms",
     ...(TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN } : {}),
   };
   static outboundByHost = outboundByHost;
@@ -164,7 +164,7 @@ export class WorkerContainer extends Container<Env> {
     ...FORWARDED_WORKER_ENV,
     PORT: "8081",
     ...(TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML } : {}),
-    TALON_SCHEDULER_DRIVER: "cf-alarms",
+    TALON_SCHEDULER_DRIVER: "cf_alarms",
     ...(TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN } : {}),
   };
   static outboundByHost = outboundByHost;

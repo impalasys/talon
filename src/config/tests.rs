@@ -446,7 +446,7 @@ control_plane:
   database:
     driver: d1
   message_broker:
-    driver: cf-queues
+    driver: cf_queues
   object_store:
     driver: r2
     endpoint_url: http://talon-r2.internal

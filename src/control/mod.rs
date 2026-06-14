@@ -203,7 +203,7 @@ fn message_broker_config(
         .ok_or_else(|| anyhow::anyhow!("control_plane.message_broker configuration is missing"))?;
     if mb_config.driver != "gcp_pubsub"
         && mb_config.driver != "local_socket"
-        && mb_config.driver != "cf-queues"
+        && mb_config.driver != "cf_queues"
     {
         return Err(anyhow::anyhow!(
             "Unsupported message broker driver: {}",
@@ -295,7 +295,7 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
             );
             std::sync::Arc::new(pubsub::LocalSocketMessagePublisher::new(socket_path).await?)
         }
-        "cf-queues" => {
+        "cf_queues" => {
             println!("Initializing CfQueuesPublisher...");
             std::sync::Arc::new(pubsub::CfQueuesPublisher::from_env())
         }
@@ -355,7 +355,7 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
                     std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
                 }
             }
-            Some("cf-alarms") => {
+            Some("cf_alarms") => {
                 std::sync::Arc::new(scheduler::CfAlarmsSchedulerBackend::from_env())
             }
             _ => match configured_scheduler(cp.scheduler.as_ref()) {
