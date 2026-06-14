@@ -31,7 +31,10 @@ impl CloudflareQueuesPublisher {
 
     pub fn new(endpoint: impl Into<String>) -> Self {
         Self {
-            client: reqwest::Client::new(),
+            client: reqwest::Client::builder()
+                .timeout(CLOUDFLARE_HTTP_TIMEOUT)
+                .build()
+                .expect("Cloudflare Queues HTTP client should build"),
             endpoint: endpoint.into().trim_end_matches('/').to_string(),
         }
     }
