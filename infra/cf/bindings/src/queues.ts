@@ -78,13 +78,16 @@ export async function dispatchQueueBatch(
         }),
       });
       if (!response.ok) {
-        message.retry();
-      } else {
-        message.ack();
+        throw new Error(`worker returned HTTP ${response.status}`);
       }
+      message.ack();
     } catch (error) {
       console.error(`failed to dispatch queue message ${message.id}`, error);
-      message.retry();
+      try {
+        message.retry();
+      } catch (retryError) {
+        console.error(`failed to retry queue message ${message.id}`, retryError);
+      }
     }
   }));
 }
