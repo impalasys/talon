@@ -19,7 +19,7 @@ RUN protoc \
     --descriptor_set_out=/tmp/talon_gateway_proto-descriptor-set.proto.bin \
     proto/gateway.proto
 
-FROM envoyproxy/envoy:v1.33-latest@sha256:f91c972d5c99bc133233a079b5663b903e7d56b3b0b0216398924f7b80d09e47
+FROM envoyproxy/envoy:v1.33-latest
 
 COPY --from=descriptor /tmp/talon_gateway_proto-descriptor-set.proto.bin /etc/envoy/talon_gateway_proto-descriptor-set.proto.bin
 COPY infra/cf/envoy.yaml /etc/envoy/envoy.yaml

@@ -2,7 +2,7 @@ providers:
   mock:
     type: openai_compatible
     name: mock
-    base_url: "http://mock-llm.internal"
+    base_url: "http://mock-llm.internal:8000"
     model: minimax/minimax-m2.7
     api_key:
       source: env

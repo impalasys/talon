@@ -67,7 +67,7 @@ def message_text(message):
     return "".join(
         part.get("content", "")
         for part in message.get("parts", [])
-        if part.get("partType") in (1, "PART_TYPE_TEXT")
+        if part.get("partType") in (1, "PART_TYPE_TEXT", "SESSION_MESSAGE_PART_TYPE_TEXT")
     )
 
 
