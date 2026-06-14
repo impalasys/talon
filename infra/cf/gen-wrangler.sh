@@ -51,12 +51,32 @@ fi
 python3 - <<'PY'
 import json
 import os
+import re
 from pathlib import Path
 
 config_yaml = Path(os.environ["TALON_CF_CONFIG_YAML"]).read_text()
 
 def env(name: str) -> str:
     return os.environ[name]
+
+def config_env_keys() -> list[str]:
+    keys: list[str] = []
+    lines = config_yaml.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() != "source: env":
+            continue
+        source_indent = len(line) - len(line.lstrip())
+        for next_line in lines[index + 1:]:
+            if not next_line.strip():
+                continue
+            next_indent = len(next_line) - len(next_line.lstrip())
+            if next_indent < source_indent:
+                break
+            match = re.match(r"\s*key:\s*[\"']?([A-Za-z_][A-Za-z0-9_]*)[\"']?\s*$", next_line)
+            if match:
+                keys.append(match.group(1))
+                break
+    return sorted(set(keys))
 
 def base_config(main: str, scheduler_auth_token: str | None) -> dict:
     vars = {
@@ -137,6 +157,8 @@ def write_json(path: str, config: dict) -> None:
     print(f"wrote {target}")
 
 dev = base_config(env("TALON_CF_DEV_MAIN"), env("TALON_CF_DEV_SCHEDULER_AUTH_TOKEN"))
+for key in config_env_keys():
+    dev["vars"].setdefault(key, os.environ.get(key, "local-cloudflare-e2e"))
 dev["containers"] = [
     {
         "class_name": "GatewayContainer",
