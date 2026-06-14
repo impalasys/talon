@@ -20,6 +20,17 @@ function queueForTopic(env: TalonCfBindingsEnv, topic: string): { queue: Queue; 
   return null;
 }
 
+/**
+ * Handles the internal Queue publish bridge used by Rust `CfQueuesPublisher`.
+ *
+ * Contract:
+ * - `POST /publish`
+ * - JSON body: `{ topic: string, payloadBase64: string }`
+ * - topic must be one of Talon's canonical topic names from `TOPICS`
+ *
+ * The Worker maps Talon topic names to concrete Cloudflare Queue bindings and
+ * stores a queue body containing `{ eventType, payloadBase64 }`.
+ */
 export async function handleQueues(request: Request, env: TalonCfBindingsEnv): Promise<Response> {
   const url = new URL(request.url);
   if (url.pathname !== "/publish") return new Response("not found", { status: 404 });
@@ -48,6 +59,18 @@ export async function handleQueues(request: Request, env: TalonCfBindingsEnv): P
 
 export type QueueWorkerResolver = (message: Message, index: number) => BoundFetcher | Promise<BoundFetcher>;
 
+/**
+ * Forwards Cloudflare Queue batches into a Rust worker container.
+ *
+ * Contract with Rust worker:
+ * - `POST http://worker/cloudflare/queues/dispatch`
+ * - `authorization: Bearer <TALON_SCHEDULER_AUTH_TOKEN>`
+ * - JSON body: `{ eventType, deliveryId, payloadBase64 }`
+ *
+ * Each Cloudflare message is handled independently. A malformed message,
+ * worker lookup failure, non-2xx response, or thrown error retries only that
+ * message and does not reject the whole Queue batch.
+ */
 export async function dispatchQueueBatch(
   batch: MessageBatch,
   env: TalonCfBindingsEnv,

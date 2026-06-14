@@ -57,6 +57,18 @@ function encodeRow(row: Record<string, unknown>): Record<string, D1Cell> {
   return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, encodeCell(value)]));
 }
 
+/**
+ * Handles the internal D1 SQL bridge used by Rust `D1KvStore`.
+ *
+ * Contract:
+ * - `POST /execute`
+ * - JSON body: `{ mode: "run" | "all" | "first", sql: string, params?: D1Param[] }`
+ * - params are tagged JSON values; bytes use `{ type: "bytes", valueBase64 }`
+ * - responses are tagged JSON rows/cells so Rust can recover D1 value types
+ *
+ * This handler deliberately does not know Talon KV semantics. Rust owns the
+ * schema, SQL text, parameter ordering, CAS logic, and pagination behavior.
+ */
 export async function handleD1(request: Request, env: TalonCfBindingsEnv): Promise<Response> {
   const path = new URL(request.url).pathname;
   if (path !== "/execute") return new Response("not found", { status: 404 });

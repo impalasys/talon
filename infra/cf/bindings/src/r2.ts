@@ -1,6 +1,19 @@
 import { json } from "./http";
 import type { TalonCfBindingsEnv } from "./types";
 
+/**
+ * Handles the internal R2 object bridge used by Rust `CloudflareR2ObjectStore`.
+ *
+ * Contract:
+ * - `PUT /objects/{percent-encoded-key}` stores the request body in R2
+ * - `GET /objects/{percent-encoded-key}` returns the object body or 404
+ * - `DELETE /objects/{percent-encoded-key}` deletes the object
+ * - `content-type` is preserved through R2 HTTP metadata
+ * - `x-talon-object-metadata` is preserved in `customMetadata.talon`
+ *
+ * The Rust side owns object key naming and metadata envelope encoding. The
+ * Worker only maps HTTP requests onto the R2 binding.
+ */
 export async function handleR2(request: Request, env: TalonCfBindingsEnv): Promise<Response> {
   const url = new URL(request.url);
   const rawKey = url.pathname.replace(/^\/objects\//, "");

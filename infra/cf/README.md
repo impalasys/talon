@@ -60,6 +60,162 @@ http://talon-alarms.internal   -> Durable Object alarm bridge
 
 Rust owns Talon storage semantics. The TypeScript D1 binding is intentionally a small prepared-statement bridge rather than a duplicate KV implementation.
 
+## Binding API Contracts
+
+The Rust gateway/worker containers do not receive Cloudflare bindings directly. They call Worker outbound handlers through virtual hostnames, and the TypeScript bindings package translates those HTTP calls into D1, R2, Queues, or Durable Object APIs.
+
+### D1 SQL Bridge
+
+Rust backend: `D1KvStore`
+
+Worker host: `http://talon-d1.internal`
+
+```text
+POST /execute
+content-type: application/json
+```
+
+Request:
+
+```json
+{
+  "mode": "run | all | first",
+  "sql": "SELECT ... WHERE namespace = ?1",
+  "params": [
+    { "type": "text", "value": "default" },
+    { "type": "bytes", "valueBase64": "..." },
+    { "type": "number", "value": 1 },
+    { "type": "bool", "value": true },
+    { "type": "null" }
+  ]
+}
+```
+
+Responses:
+
+```json
+{ "meta": { "...": "D1 run metadata" } }
+{ "row": { "column": { "type": "text", "value": "..." } } }
+{ "results": [{ "column": { "type": "bytes", "valueBase64": "..." } }], "meta": {} }
+```
+
+The Worker does not build Talon SQL. Rust owns the schema, statements, parameter order, CAS behavior, pagination, and row decoding. The bridge only calls `env.TALON_D1.prepare(sql).bind(...params)` and encodes D1 values into tagged JSON cells.
+
+### R2 Object Bridge
+
+Rust backend: `CloudflareR2ObjectStore`
+
+Worker host: `http://talon-r2.internal`
+
+```text
+PUT /objects/{percent-encoded-key}
+GET /objects/{percent-encoded-key}
+DELETE /objects/{percent-encoded-key}
+```
+
+Headers:
+
+```text
+content-type: <object media type>
+x-talon-object-metadata: <base64 JSON metadata envelope>
+```
+
+`PUT` stores bytes in R2 under the decoded key. The metadata header is stored in R2 `customMetadata.talon`, not as a second metadata object. `GET` returns the object body, content type, and metadata header. `DELETE` is idempotent from Rust's perspective.
+
+### Queue Publish And Delivery Bridge
+
+Rust publisher: `CfQueuesPublisher`
+
+Worker host: `http://talon-queues.internal`
+
+```text
+POST /publish
+content-type: application/json
+```
+
+Request:
+
+```json
+{
+  "topic": "talon.session.dispatch | talon.resource.lifecycle | talon.session.control",
+  "payloadBase64": "..."
+}
+```
+
+The Worker maps Talon topic names to the configured Cloudflare Queue bindings and sends a queue body:
+
+```json
+{
+  "eventType": "session_dispatch | resource_lifecycle | session_control",
+  "payloadBase64": "..."
+}
+```
+
+Queue consumption is Worker-owned. The Worker `queue()` handler forwards each message to a selected worker container:
+
+```text
+POST http://worker/cloudflare/queues/dispatch
+authorization: Bearer <TALON_SCHEDULER_AUTH_TOKEN>
+content-type: application/json
+```
+
+Body:
+
+```json
+{
+  "eventType": "session_dispatch",
+  "deliveryId": "<Cloudflare message id>",
+  "payloadBase64": "..."
+}
+```
+
+The Rust worker validates the bearer token with the same scheduler authenticator used by `/schedules/fire`. Non-2xx responses or per-message dispatch failures cause that individual queue message to be retried.
+
+### Durable Object Alarm Bridge
+
+Rust scheduler backend: `CfAlarmsSchedulerBackend`
+
+Worker host: `http://talon-alarms.internal`
+
+```text
+POST /schedule
+POST /cancel
+GET /healthz
+```
+
+Schedule request:
+
+```json
+{
+  "namespace": "default",
+  "scheduleId": "...",
+  "revision": 1,
+  "fireAtMicros": 1760000000000000,
+  "payloadBase64": "..."
+}
+```
+
+Schedule response:
+
+```json
+{ "handle": "<opaque alarm handle>", "armed": true }
+```
+
+Cancel request:
+
+```json
+{ "handle": "<opaque alarm handle>" }
+```
+
+`ScheduleShard` stores active wakeups in Durable Object storage with a due-time index. When the DO alarm fires, it posts the decoded payload to:
+
+```text
+POST http://worker/schedules/fire
+X-Talon-Scheduler-Token: <TALON_SCHEDULER_AUTH_TOKEN>
+```
+
+Successful delivery deletes the wakeup. Failed delivery is retried per wakeup with bounded backoff and a max retry count, so one failed schedule does not block the entire shard.
+
 ## Local Development
 
 Start the Cloudflare dev stack:
