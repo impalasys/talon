@@ -34,7 +34,7 @@ on:
       memory:
         description: "SQLite Talon container memory limit"
         required: true
-        default: "768m"
+        default: "512m"
       rocksdb_memory:
         description: "RocksDB Talon container memory limit"
         required: true
@@ -60,7 +60,7 @@ jobs:
     timeout-minutes: 45
     env:
       BENCH_AGENTS: ${{ github.event_name == 'workflow_dispatch' && inputs.agents || '7000' }}
-      BENCH_MEMORY: ${{ github.event_name == 'workflow_dispatch' && inputs.memory || '768m' }}
+      BENCH_MEMORY: ${{ github.event_name == 'workflow_dispatch' && inputs.memory || '512m' }}
       BENCH_ROCKSDB_MEMORY: ${{ github.event_name == 'workflow_dispatch' && inputs.rocksdb_memory || '768m' }}
       BENCH_TIMEOUT_SECONDS: ${{ github.event_name == 'workflow_dispatch' && inputs.timeout_seconds || '900' }}
       BENCH_IMAGE_TAG: talon-bench-runtime:${{ github.sha }}
