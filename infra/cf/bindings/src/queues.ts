@@ -54,24 +54,37 @@ export async function dispatchQueueBatch(
   resolveWorker: QueueWorkerResolver = () => env.WORKER_CONTAINER.get(env.WORKER_CONTAINER.idFromName("default")),
 ) {
   await Promise.all(batch.messages.map(async (message, index) => {
-    const worker = await resolveWorker(message, index);
-    const payload = message.body as QueueMessageBody;
-    const response = await worker.fetch("http://worker/cloudflare/queues/dispatch", {
-      method: "POST",
-      headers: {
-        ...TEXT_JSON,
-        authorization: `Bearer ${env.TALON_SCHEDULER_AUTH_TOKEN ?? DEFAULT_SCHEDULER_AUTH_TOKEN}`,
-      },
-      body: JSON.stringify({
-        eventType: payload.eventType,
-        deliveryId: message.id,
-        payloadBase64: payload.payloadBase64,
-      }),
-    });
-    if (!response.ok) {
+    try {
+      const worker = await resolveWorker(message, index);
+      const payload = message.body as QueueMessageBody;
+      if (
+        typeof payload !== "object" ||
+        payload === null ||
+        typeof payload.eventType !== "string" ||
+        typeof payload.payloadBase64 !== "string"
+      ) {
+        throw new Error("malformed queue message body");
+      }
+      const response = await worker.fetch("http://worker/cloudflare/queues/dispatch", {
+        method: "POST",
+        headers: {
+          ...TEXT_JSON,
+          authorization: `Bearer ${env.TALON_SCHEDULER_AUTH_TOKEN ?? DEFAULT_SCHEDULER_AUTH_TOKEN}`,
+        },
+        body: JSON.stringify({
+          eventType: payload.eventType,
+          deliveryId: message.id,
+          payloadBase64: payload.payloadBase64,
+        }),
+      });
+      if (!response.ok) {
+        message.retry();
+      } else {
+        message.ack();
+      }
+    } catch (error) {
+      console.error(`failed to dispatch queue message ${message.id}`, error);
       message.retry();
-    } else {
-      message.ack();
     }
   }));
 }

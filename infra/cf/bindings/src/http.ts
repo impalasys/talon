@@ -1,5 +1,14 @@
 import { TEXT_JSON } from "./constants";
 
+type BufferLike = Uint8Array & {
+  toString(encoding: "base64"): string;
+};
+
+declare const Buffer: {
+  from(value: string, encoding: "base64"): Uint8Array;
+  from(value: ArrayBuffer | Uint8Array): BufferLike;
+};
+
 export function json(data: unknown, init: ResponseInit = {}) {
   const headers = new Headers(init.headers);
   for (const [key, value] of Object.entries(TEXT_JSON)) {
@@ -13,15 +22,12 @@ export async function body<T>(request: Request): Promise<T> {
 }
 
 export function decodeBase64(value: string): Uint8Array {
-  return Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+  return Buffer.from(value, "base64");
 }
 
 export function encodeBase64(value: ArrayBuffer | Uint8Array | null): string | null {
   if (value === null) return null;
-  const bytes = value instanceof Uint8Array ? value : new Uint8Array(value);
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary);
+  return Buffer.from(value).toString("base64");
 }
 
 export function nowMicros(): number {

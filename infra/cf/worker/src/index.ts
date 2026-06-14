@@ -161,6 +161,11 @@ export class EnvoyContainer extends Container<Env> {
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    if (shouldRouteThroughEnvoy(url.pathname)) {
+      const envoy = envoyContainer(env);
+      return await envoy.fetch(request);
+    }
+
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(request) });
     }
@@ -178,11 +183,6 @@ export default {
         }),
         request,
       );
-    }
-
-    if (shouldRouteThroughEnvoy(url.pathname)) {
-      const envoy = envoyContainer(env);
-      return withCors(await envoy.fetch(request), request);
     }
 
     const gateway = gatewayContainer(env);
