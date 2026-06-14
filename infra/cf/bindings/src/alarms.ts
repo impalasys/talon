@@ -99,7 +99,6 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${await response.text()}`);
         }
-        await this.deleteWakeup(wakeup);
       } catch (error) {
         const failedAttempts = (wakeup.failedAttempts ?? 0) + 1;
         console.error(`schedule wakeup ${wakeup.handle} failed`, error);
@@ -113,7 +112,9 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
           failedAttempts,
           fireAtMicros: nowMicros() + retryDelayMicros(failedAttempts),
         });
+        continue;
       }
+      await this.deleteWakeup(wakeup);
     }
     await this.armNextAlarm();
   }
