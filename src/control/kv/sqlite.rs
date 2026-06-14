@@ -79,14 +79,6 @@ fn delete_query(table: &str) -> String {
     )
 }
 
-fn compare_and_delete_query(table: &str) -> String {
-    format!(
-        "DELETE FROM {}
-         WHERE namespace = ?1 AND parent_path = ?2 AND kind = ?3 AND name = ?4 AND value = ?5",
-        quoted_identifier(table)
-    )
-}
-
 fn list_keys_query(table: &str, has_kind: bool) -> String {
     let kind_clause = if has_kind { "AND kind = ?3" } else { "" };
     format!(
@@ -534,50 +526,6 @@ impl KeyValueStore for SqliteKvStore {
         Ok(())
     }
 
-    async fn compare_and_delete(&self, key: &ResourceKey, expected: &[u8]) -> Result<bool> {
-        let query = compare_and_delete_query(&self.table);
-        let span = tracing::debug_span!(
-            "SqliteKvStore.compare_and_delete",
-            "db.system" = "sqlite",
-            "db.operation" = "compare_and_delete",
-            "talon.kv.table" = %self.table,
-            "talon.resource.kind" = %key.kind,
-            "sqlite.pool.max_connections" = u64::from(self.settings.max_connections),
-            "sqlite.busy_timeout_ms" = busy_timeout_ms(self.settings),
-            "sqlite.pool.size_before" = field::Empty,
-            "sqlite.pool.idle_before" = field::Empty,
-            "sqlite.pool.size_after" = field::Empty,
-            "sqlite.pool.idle_after" = field::Empty,
-            pool_wait_us = field::Empty,
-            query_elapsed_us = field::Empty,
-            rows_affected = field::Empty,
-            expected_bytes = expected.len(),
-        );
-        let mut conn = acquire_connection(&self.pool, self.settings, &span).await?;
-        let query_span = tracing::debug_span!(
-            parent: &span,
-            "SqliteKvStore.query",
-            query_elapsed_us = field::Empty,
-            rows_affected = field::Empty,
-        );
-        let query_started_at = Instant::now();
-        let rows_affected = sqlx::query(&query)
-            .bind(&key.namespace)
-            .bind(&key.parent_path)
-            .bind(&key.kind)
-            .bind(&key.name)
-            .bind(expected)
-            .execute(&mut *conn)
-            .instrument(query_span.clone())
-            .instrument(span.clone())
-            .await?
-            .rows_affected();
-        record_query_elapsed(&query_span, &span, query_started_at);
-        query_span.record("rows_affected", rows_affected);
-        span.record("rows_affected", rows_affected);
-        Ok(rows_affected == 1)
-    }
-
     async fn list_keys(&self, list: &ResourceList) -> Result<Vec<ResourceKey>> {
         let query = list_keys_query(&self.table, list.kind.is_some());
         let span = tracing::debug_span!(
@@ -808,9 +756,9 @@ impl KeyValueStore for SqliteKvStore {
 #[cfg(test)]
 mod tests {
     use super::{
-        compare_and_delete_query, compare_and_swap_query, create_table_statement, delete_query,
-        get_query, list_entries_page_query, list_entries_query, list_keys_page_query,
-        list_keys_query, set_query, sqlite_pool, SqliteKvStore,
+        compare_and_swap_query, create_table_statement, delete_query, get_query,
+        list_entries_page_query, list_entries_query, list_keys_page_query, list_keys_query,
+        set_query, sqlite_pool, SqliteKvStore,
     };
     use crate::control::kv::sqlite_url_for_path;
     use crate::control::{keys, KeyValueStore};
@@ -828,7 +776,6 @@ mod tests {
         assert!(compare_and_swap_query("talon_kv", true).contains("AND value = ?6"));
         assert!(compare_and_swap_query("talon_kv", false).contains("DO NOTHING"));
         assert!(delete_query("talon_kv").contains("WHERE namespace = ?1"));
-        assert!(compare_and_delete_query("talon_kv").contains("AND value = ?5"));
         assert!(list_keys_query("talon_kv", true).contains("AND kind = ?3"));
         assert!(list_keys_page_query("talon_kv").contains("ORDER BY name DESC"));
         assert!(list_entries_page_query("talon_kv")
