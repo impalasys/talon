@@ -234,6 +234,7 @@ TALON_SCHEDULER_DRIVER=cloudflare_alarms
 ```
 
 Secrets should remain environment-backed. The checked-in `talon.yaml` references `NOVITA_API_KEY` through Talon's existing env secret loader.
+Any string Worker variables and secrets are forwarded into the Talon containers, while Cloudflare control variables such as container counts and inline config remain Worker-owned. For production, configure provider keys referenced by `talon.yaml` with `wrangler secret put`.
 
 ## Validation
 

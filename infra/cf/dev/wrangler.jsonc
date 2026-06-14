@@ -11,7 +11,8 @@
     "TALON_GATEWAY_CONTAINER_COUNT": "1",
     "TALON_WORKER_CONTAINER_COUNT": "1",
     "TALON_ENVOY_CONTAINER_COUNT": "1",
-    "TALON_SCHEDULER_AUTH_TOKEN": "cloudflare-local-scheduler-token"
+    "TALON_SCHEDULER_AUTH_TOKEN": "cloudflare-local-scheduler-token",
+    "NOVITA_API_KEY": "local-cloudflare-e2e"
   },
   "d1_databases": [
     {
