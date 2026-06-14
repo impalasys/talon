@@ -583,7 +583,6 @@ mod tests {
             "message": {
                 "messageId": "msg-1",
                 "role": "ROLE_USER",
-                "taskId": "task-1",
                 "parts": [{ "text": "hello" }]
             },
             "configuration": { "returnImmediately": true }
@@ -619,13 +618,18 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(authorized_send.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(authorized_send.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        let task_id = value["id"].as_str().unwrap();
 
         let unauthorized_task = router
             .clone()
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/support-docs/tasks/task-1")
+                    .uri(format!("/a2a/support/support-docs/tasks/{task_id}"))
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -639,7 +643,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/support-docs/tasks/task-1")
+                    .uri(format!("/a2a/support/support-docs/tasks/{task_id}"))
                     .header(header::HOST, "support.example.com")
                     .header(header::AUTHORIZATION, "Bearer secret-token")
                     .body(Body::empty())
@@ -659,7 +663,7 @@ mod tests {
             "jwt-secret",
             Some("support"),
             Some("support-docs"),
-            Some("task-1"),
+            Some("019ec3ec-b223-7e70-b2c7-20c4d2fe2eb6"),
         );
 
         let card = router
@@ -695,7 +699,7 @@ mod tests {
                             "message": {
                                 "messageId": "msg-1",
                                 "role": "ROLE_USER",
-                                "taskId": "task-1",
+                                "contextId": "019ec3ec-b223-7e70-b2c7-20c4d2fe2eb6",
                                 "parts": [{ "text": "hello" }]
                             },
                             "configuration": { "returnImmediately": true }
@@ -727,8 +731,7 @@ mod tests {
                             "message": {
                                 "messageId": "msg-1",
                                 "role": "ROLE_USER",
-                                "taskId": "task-1",
-                                "contextId": "ctx-1",
+                                "contextId": "019ec3f4-9fbd-7293-8269-8f6eb406cf0a",
                                 "parts": [{ "text": "hello from A2A" }]
                             },
                             "configuration": { "returnImmediately": true }
@@ -743,8 +746,8 @@ mod tests {
             .await
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(value["id"], "task-1");
-        assert_eq!(value["contextId"], "ctx-1");
+        let task_id = value["id"].as_str().unwrap().to_string();
+        assert_eq!(value["contextId"], "019ec3f4-9fbd-7293-8269-8f6eb406cf0a");
         assert_eq!(value["status"]["state"], "TASK_STATE_WORKING");
         assert_eq!(value["history"][0]["role"], "ROLE_USER");
         assert_eq!(value["history"][0]["parts"][0]["text"], "hello from A2A");
@@ -762,8 +765,7 @@ mod tests {
                             "message": {
                                 "messageId": "msg-2",
                                 "role": "ROLE_USER",
-                                "taskId": "task-2",
-                                "contextId": "ctx-2",
+                                "contextId": "019ec3f4-9fbd-7293-8269-8f6eb406cf0b",
                                 "content": [{ "text": "hello from A2A SDK" }]
                             },
                             "configuration": { "returnImmediately": true }
@@ -778,8 +780,11 @@ mod tests {
             .await
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(value["task"]["id"], "task-2");
-        assert_eq!(value["task"]["contextId"], "ctx-2");
+        assert!(value["task"]["id"].as_str().unwrap().len() > 40);
+        assert_eq!(
+            value["task"]["contextId"],
+            "019ec3f4-9fbd-7293-8269-8f6eb406cf0b"
+        );
         assert_eq!(value["task"]["history"][0]["role"], "ROLE_USER");
         assert_eq!(
             value["task"]["history"][0]["content"][0]["text"],
@@ -787,7 +792,11 @@ mod tests {
         );
         assert!(value["task"]["history"][0].get("parts").is_none());
 
-        let session_key = crate::control::keys::session("support", "support-docs", "task-1");
+        let session_key = crate::control::keys::session(
+            "support",
+            "support-docs",
+            "019ec3f4-9fbd-7293-8269-8f6eb406cf0a",
+        );
         let mut session = crate::gateway::rpc::models::Session::decode(
             gateway
                 .kv
@@ -811,7 +820,7 @@ mod tests {
                 &crate::control::keys::session_message(
                     "support",
                     "support-docs",
-                    "task-1",
+                    "019ec3f4-9fbd-7293-8269-8f6eb406cf0a",
                     "000-agent",
                 ),
                 &crate::gateway::rpc::models::SessionMessage {
@@ -848,7 +857,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/support-docs/tasks/task-1")
+                    .uri(format!("/a2a/support/support-docs/tasks/{task_id}"))
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -860,7 +869,7 @@ mod tests {
             .await
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(value["id"], "task-1");
+        assert_eq!(value["id"], task_id);
         assert_eq!(value["status"]["state"], "TASK_STATE_COMPLETED");
         assert!(value["status"].get("message").is_none());
         assert_eq!(value["artifacts"][0]["artifactId"], "response");
@@ -875,7 +884,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/support-docs/v1/tasks/task-1")
+                    .uri(format!("/a2a/support/support-docs/v1/tasks/{task_id}"))
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -910,14 +919,14 @@ mod tests {
             .await
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(value["tasks"][0]["id"], "task-1");
+        assert_eq!(value["tasks"][0]["id"], task_id);
 
         let cancel = router
             .clone()
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/a2a/support/support-docs/tasks/task-1:cancel")
+                    .uri(format!("/a2a/support/support-docs/tasks/{task_id}:cancel"))
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -947,16 +956,16 @@ mod tests {
 
     #[tokio::test]
     async fn http_ui_router_streams_external_a2a_messages() {
-        let task_id = "stream-task-1";
+        let context_id = "019ec3f4-9fbd-7293-8269-8f6eb406cf0c";
         let topic = crate::control::topics::session_part_topic_for_shard(
-            crate::control::topics::session_part_shard(task_id),
+            crate::control::topics::session_part_shard(context_id),
         );
         let pubsub = Arc::new(MockPubSub::default());
         pubsub.batches.lock().await.insert(
             topic,
             VecDeque::from(vec![vec![
                 SessionMessagePartEvent {
-                    session_id: task_id.to_string(),
+                    session_id: context_id.to_string(),
                     kind: SessionMessagePartEventKind::Delta as i32,
                     part: Some(SessionMessagePart {
                         id: "000000".to_string(),
@@ -974,7 +983,7 @@ mod tests {
                 }
                 .encode_to_vec(),
                 SessionMessagePartEvent {
-                    session_id: task_id.to_string(),
+                    session_id: context_id.to_string(),
                     kind: SessionMessagePartEventKind::Done as i32,
                     part: None,
                     timestamp: 2,
@@ -996,17 +1005,16 @@ mod tests {
                     .uri("/a2a/support/support-docs/v1/message:stream")
                     .header(header::HOST, "support.example.com")
                     .header(header::CONTENT_TYPE, "application/json")
-                    .body(Body::from(format!(
-                        r#"{{
-                            "message": {{
+                    .body(Body::from(
+                        r#"{
+                            "message": {
                                 "messageId": "stream-user-msg",
                                 "role": "ROLE_USER",
-                                "taskId": "{task_id}",
-                                "contextId": "stream-context-1",
-                                "content": [{{ "text": "hello stream" }}]
-                            }}
-                        }}"#
-                    )))
+                                "contextId": "019ec3f4-9fbd-7293-8269-8f6eb406cf0c",
+                                "content": [{ "text": "hello stream" }]
+                            }
+                        }"#,
+                    ))
                     .unwrap(),
             )
             .await
@@ -1027,7 +1035,8 @@ mod tests {
             .map(|data| serde_json::from_str::<serde_json::Value>(data).unwrap())
             .collect::<Vec<_>>();
 
-        assert_eq!(events[0]["task"]["id"], task_id);
+        let task_id = events[0]["task"]["id"].as_str().unwrap();
+        assert!(task_id.len() > 40);
         assert_eq!(events[0]["task"]["status"]["state"], "TASK_STATE_WORKING");
         assert!(events.iter().any(
             |event| event["artifactUpdate"]["artifact"]["parts"][0]["text"] == "streamed reply"

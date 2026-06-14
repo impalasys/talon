@@ -13,6 +13,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use chrono::TimeZone;
 use prost::Message;
 use serde::{Deserialize, Serialize};
@@ -158,6 +159,33 @@ struct ListTasksResponseJson {
     tasks: Vec<A2aTaskJson>,
 }
 
+#[derive(Clone, PartialEq, Message)]
+struct A2ATaskKey {
+    #[prost(oneof = "a2a_task_key::Kind", tags = "1")]
+    kind: Option<a2a_task_key::Kind>,
+}
+
+mod a2a_task_key {
+    #[derive(Clone, PartialEq, prost::Oneof)]
+    pub enum Kind {
+        #[prost(message, tag = "1")]
+        SessionMessage(super::A2ASessionMessageTaskKey),
+    }
+}
+
+#[derive(Clone, PartialEq, Message)]
+struct A2ASessionMessageTaskKey {
+    #[prost(bytes = "vec", tag = "1")]
+    session_id: Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    message_id: Vec<u8>,
+}
+
+struct DecodedA2ATaskKey {
+    session_id: String,
+    message_id: String,
+}
+
 pub async fn get_agent_card(
     State(gateway): State<Arc<Gateway>>,
     headers: HeaderMap,
@@ -201,13 +229,12 @@ pub async fn post_message_operation(
                     );
                 }
             };
-            let session = body
-                .message
-                .task_id
-                .as_deref()
-                .filter(|value| !value.trim().is_empty());
+            let session_hint = match a2a_session_hint(&body.message) {
+                Ok(session_hint) => session_hint,
+                Err(response) => return response,
+            };
             if let Err(response) =
-                ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, session)
+                ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, session_hint.as_deref())
             {
                 return response;
             }
@@ -232,13 +259,12 @@ pub async fn post_message_operation(
                     );
                 }
             };
-            let session = body
-                .message
-                .task_id
-                .as_deref()
-                .filter(|value| !value.trim().is_empty());
+            let session_hint = match a2a_session_hint(&body.message) {
+                Ok(session_hint) => session_hint,
+                Err(response) => return response,
+            };
             if let Err(response) =
-                ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, session)
+                ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, session_hint.as_deref())
             {
                 return response;
             }
@@ -270,26 +296,20 @@ async fn stream_message(
         );
     }
 
-    let task_id = body
-        .message
-        .task_id
-        .clone()
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| Uuid::now_v7().to_string());
-    let context_id = body
-        .message
-        .context_id
-        .clone()
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| task_id.clone());
+    let now = chrono::Utc::now();
+    let (context_id, task_id, message) =
+        match prepare_a2a_session_message(&body.message, now.timestamp_micros()) {
+            Ok(identity) => identity,
+            Err(response) => return response,
+        };
 
-    if let Err(response) = ensure_a2a_session(&gateway, &route, &task_id, &context_id).await {
+    if let Err(response) = ensure_a2a_session(&gateway, &route, &context_id, &task_id).await {
         return response;
     }
 
     let mut receiver = match gateway
         .session_streams
-        .subscribe(&route.ns, &route.agent, &task_id)
+        .subscribe(&route.ns, &route.agent, &context_id)
         .await
     {
         Ok(receiver) => receiver,
@@ -302,17 +322,12 @@ async fn stream_message(
         }
     };
 
-    let now = chrono::Utc::now();
-    let message = match a2a_message_to_session_message(&body.message, now.timestamp_micros()) {
-        Ok(message) => message,
-        Err(response) => return response,
-    };
     if let Err(err) = scheduling::send_session_message(
         gateway.kv.as_ref(),
         gateway.pubsub.as_ref(),
         &route.ns,
         &route.agent,
-        &task_id,
+        &context_id,
         message,
         now,
     )
@@ -326,7 +341,12 @@ async fn stream_message(
     let stream_task_id = task_id.clone();
     let stream_context_id = context_id.clone();
     let stream = async_stream::stream! {
-        let initial_task = match load_a2a_task(&stream_gateway, &stream_route, &stream_task_id).await {
+        let initial_task = match load_a2a_task_for_session(
+            &stream_gateway,
+            &stream_route,
+            &stream_context_id,
+            &stream_task_id,
+        ).await {
             Ok(task) => rest_v1_task_value(task),
             Err(_) => json!({
                 "id": stream_task_id,
@@ -353,7 +373,12 @@ async fn stream_message(
                             true,
                         )));
                     }
-                    let final_status = match load_a2a_task(&stream_gateway, &stream_route, &stream_task_id).await {
+                    let final_status = match load_a2a_task_for_session(
+                        &stream_gateway,
+                        &stream_route,
+                        &stream_context_id,
+                        &stream_task_id,
+                    ).await {
                         Ok(task) => rest_v1_task_status_value(task),
                         Err(_) => json!({ "state": "TASK_STATE_UNKNOWN" }),
                     };
@@ -436,7 +461,12 @@ async fn stream_message(
             )));
         }
 
-        let final_status = match load_a2a_task(&stream_gateway, &stream_route, &stream_task_id).await {
+        let final_status = match load_a2a_task_for_session(
+            &stream_gateway,
+            &stream_route,
+            &stream_context_id,
+            &stream_task_id,
+        ).await {
             Ok(task) => rest_v1_final_task_status_value(task),
             Err(_) => json!({ "state": "TASK_STATE_COMPLETED" }),
         };
@@ -470,34 +500,23 @@ async fn send_message(
         );
     }
 
-    let task_id = body
-        .message
-        .task_id
-        .clone()
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| Uuid::now_v7().to_string());
-    let context_id = body
-        .message
-        .context_id
-        .clone()
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| task_id.clone());
+    let now = chrono::Utc::now();
+    let (context_id, task_id, message) =
+        match prepare_a2a_session_message(&body.message, now.timestamp_micros()) {
+            Ok(identity) => identity,
+            Err(response) => return response,
+        };
 
-    if let Err(response) = ensure_a2a_session(&gateway, &route, &task_id, &context_id).await {
+    if let Err(response) = ensure_a2a_session(&gateway, &route, &context_id, &task_id).await {
         return response;
     }
 
-    let now = chrono::Utc::now();
-    let message = match a2a_message_to_session_message(&body.message, now.timestamp_micros()) {
-        Ok(message) => message,
-        Err(response) => return response,
-    };
     if let Err(err) = scheduling::send_session_message(
         gateway.kv.as_ref(),
         gateway.pubsub.as_ref(),
         &route.ns,
         &route.agent,
-        &task_id,
+        &context_id,
         message,
         now,
     )
@@ -507,12 +526,12 @@ async fn send_message(
     }
 
     let task = if body.configuration.return_immediately {
-        match load_a2a_task(&gateway, &route, &task_id).await {
+        match load_a2a_task_for_session(&gateway, &route, &context_id, &task_id).await {
             Ok(task) => task,
             Err(response) => return response,
         }
     } else {
-        match wait_for_a2a_task(&gateway, &route, &task_id).await {
+        match wait_for_a2a_task(&gateway, &route, &context_id, &task_id).await {
             Ok(task) => task,
             Err(response) => return response,
         }
@@ -564,9 +583,16 @@ pub async fn list_tasks(
             .get("a2a.task")
             .is_some_and(|value| value == "true")
         {
-            match load_a2a_task(&gateway, &route, &session_id).await {
-                Ok(task) => tasks.push(task),
-                Err(response) => return response,
+            let task_ids =
+                match list_a2a_session_task_ids(&gateway, &route, &session_id, &session).await {
+                    Ok(task_ids) => task_ids,
+                    Err(response) => return response,
+                };
+            for task_id in task_ids {
+                match load_a2a_task_for_session(&gateway, &route, &session_id, &task_id).await {
+                    Ok(task) => tasks.push(task),
+                    Err(response) => return response,
+                }
             }
         }
     }
@@ -588,20 +614,26 @@ pub async fn get_task(
     Path((ns, agent, tail)): Path<(String, String, String)>,
     OriginalUri(uri): OriginalUri,
 ) -> Response {
-    let session =
-        (!tail.contains('/') && !tail.ends_with(":cancel") && !tail.ends_with(":subscribe"))
-            .then_some(tail.as_str());
-    if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, session) {
-        return response;
-    }
     if tail.contains('/') || tail.ends_with(":cancel") || tail.ends_with(":subscribe") {
+        if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, None) {
+            return response;
+        }
         return a2a_error(StatusCode::NOT_FOUND, "A2A task not found");
     }
     let route = match resolve_agent_card_route(&gateway, &ns, &agent).await {
         Ok(route) => route,
         Err(response) => return response,
     };
-    match load_a2a_task(&gateway, &route, &tail).await {
+    let task_ref = match find_a2a_task_session(&gateway, &route, &tail).await {
+        Ok(task_ref) => task_ref,
+        Err(response) => return response,
+    };
+    if let Err(response) =
+        ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, Some(&task_ref.session_id))
+    {
+        return response;
+    }
+    match load_a2a_task_from_session(&gateway, &route, &task_ref, &tail).await {
         Ok(task)
             if scoped_a2a_operation_path(uri.path(), &ns, &agent)
                 .is_some_and(|path| path.starts_with("/v1/")) =>
@@ -634,22 +666,27 @@ pub async fn post_task_operation(
         }
         return a2a_error(StatusCode::NOT_FOUND, "A2A task not found");
     }
-    if let Err(response) = ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, Some(task_id))
-    {
-        return response;
-    }
     let route = match resolve_agent_card_route(&gateway, &ns, &agent).await {
         Ok(route) => route,
         Err(response) => return response,
     };
+    let task_ref = match find_a2a_task_session(&gateway, &route, task_id).await {
+        Ok(task_ref) => task_ref,
+        Err(response) => return response,
+    };
+    if let Err(response) =
+        ensure_a2a_operation_auth(&gateway, &headers, &ns, &agent, Some(&task_ref.session_id))
+    {
+        return response;
+    }
 
-    if let Err(response) = publish_stop_generation(&gateway, &route, task_id).await {
+    if let Err(response) = publish_stop_generation(&gateway, &route, &task_ref.session_id).await {
         return response;
     }
-    if let Err(response) = mark_a2a_task_canceled(&gateway, &route, task_id).await {
+    if let Err(response) = mark_a2a_task_canceled(&gateway, &route, &task_ref.session_id).await {
         return response;
     }
-    match load_a2a_task(&gateway, &route, task_id).await {
+    match load_a2a_task_for_session(&gateway, &route, &task_ref.session_id, task_id).await {
         Ok(task)
             if scoped_a2a_operation_path(uri.path(), &ns, &agent)
                 .is_some_and(|path| path.starts_with("/v1/")) =>
@@ -1046,13 +1083,145 @@ fn scoped_a2a_operation_path<'a>(path: &'a str, ns: &str, agent: &str) -> Option
     })
 }
 
+fn a2a_context_id(message: &A2aMessageJson) -> String {
+    message
+        .context_id
+        .clone()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| Uuid::now_v7().to_string())
+}
+
+fn a2a_session_hint(message: &A2aMessageJson) -> Result<Option<String>, Response> {
+    if let Some(context_id) = message
+        .context_id
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+    {
+        return Ok(Some(context_id.to_string()));
+    }
+    if let Some(task_id) = message
+        .task_id
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+    {
+        return decode_a2a_task_id(task_id).map(|key| Some(key.session_id));
+    }
+    Ok(None)
+}
+
+fn prepare_a2a_session_message(
+    message: &A2aMessageJson,
+    timestamp: i64,
+) -> Result<(String, String, crate::gateway::rpc::models::SessionMessage), Response> {
+    let mut session_message = a2a_message_to_session_message(message, timestamp)?;
+    let (context_id, task_id) = if let Some(task_id) = message
+        .task_id
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+    {
+        let decoded = decode_a2a_task_id(task_id)?;
+        if let Some(context_id) = message
+            .context_id
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            if context_id != decoded.session_id {
+                return Err(a2a_error(
+                    StatusCode::BAD_REQUEST,
+                    "A2A message.contextId does not match taskId",
+                ));
+            }
+        }
+        (decoded.session_id, task_id.to_string())
+    } else {
+        let context_id = a2a_context_id(message);
+        let task_id = encode_a2a_task_id(&context_id, &session_message.id)?;
+        (context_id, task_id)
+    };
+
+    session_message
+        .labels
+        .insert("a2a.task_id".to_string(), task_id.clone());
+    session_message
+        .labels
+        .insert("a2a.context_id".to_string(), context_id.clone());
+    Ok((context_id, task_id, session_message))
+}
+
+fn encode_a2a_task_id(session_id: &str, message_id: &str) -> Result<String, Response> {
+    let session_uuid = Uuid::parse_str(session_id).map_err(|_| {
+        a2a_error(
+            StatusCode::BAD_REQUEST,
+            "A2A contextId must be a Talon-generated UUID",
+        )
+    })?;
+    let message_uuid = Uuid::parse_str(message_id).map_err(|_| {
+        a2a_error(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "failed to encode A2A task id",
+        )
+    })?;
+    let key = A2ATaskKey {
+        kind: Some(a2a_task_key::Kind::SessionMessage(
+            A2ASessionMessageTaskKey {
+                session_id: session_uuid.as_bytes().to_vec(),
+                message_id: message_uuid.as_bytes().to_vec(),
+            },
+        )),
+    };
+    Ok(URL_SAFE_NO_PAD.encode(key.encode_to_vec()))
+}
+
+fn decode_a2a_task_id(task_id: &str) -> Result<DecodedA2ATaskKey, Response> {
+    let bytes = URL_SAFE_NO_PAD.decode(task_id).map_err(|_| {
+        a2a_error(
+            StatusCode::BAD_REQUEST,
+            "A2A taskId is not a valid Talon A2ATaskKey",
+        )
+    })?;
+    let key = A2ATaskKey::decode(bytes.as_slice()).map_err(|_| {
+        a2a_error(
+            StatusCode::BAD_REQUEST,
+            "A2A taskId is not a valid Talon A2ATaskKey",
+        )
+    })?;
+    let Some(a2a_task_key::Kind::SessionMessage(key)) = key.kind else {
+        return Err(a2a_error(
+            StatusCode::BAD_REQUEST,
+            "A2A taskId uses an unsupported Talon A2ATaskKey variant",
+        ));
+    };
+    if key.session_id.len() != 16 || key.message_id.len() != 16 {
+        return Err(a2a_error(
+            StatusCode::BAD_REQUEST,
+            "A2A taskId contains an invalid Talon A2ATaskKey UUID",
+        ));
+    }
+    let session_uuid = Uuid::from_slice(&key.session_id).map_err(|_| {
+        a2a_error(
+            StatusCode::BAD_REQUEST,
+            "A2A taskId contains an invalid Talon session id",
+        )
+    })?;
+    let message_uuid = Uuid::from_slice(&key.message_id).map_err(|_| {
+        a2a_error(
+            StatusCode::BAD_REQUEST,
+            "A2A taskId contains an invalid Talon session message id",
+        )
+    })?;
+    Ok(DecodedA2ATaskKey {
+        session_id: session_uuid.to_string(),
+        message_id: message_uuid.to_string(),
+    })
+}
+
 async fn ensure_a2a_session(
     gateway: &Arc<Gateway>,
     route: &AgentCardRoute,
-    task_id: &str,
     context_id: &str,
+    task_id: &str,
 ) -> Result<(), Response> {
-    let session_key = keys::session(&route.ns, &route.agent, task_id);
+    let session_key = keys::session(&route.ns, &route.agent, context_id);
     if let Some(session) = gateway
         .kv
         .get_msg::<crate::gateway::rpc::models::Session>(&session_key)
@@ -1069,9 +1238,15 @@ async fn ensure_a2a_session(
         {
             return Err(a2a_error(
                 StatusCode::CONFLICT,
-                "task id conflicts with a non-A2A session",
+                "context id conflicts with a non-A2A session",
             ));
         }
+        update_session(&gateway.kv, &session_key, |session| {
+            session
+                .labels
+                .insert("a2a.task_id".to_string(), task_id.to_string());
+        })
+        .await?;
         return Ok(());
     }
 
@@ -1096,9 +1271,10 @@ async fn ensure_a2a_session(
     let mut labels = HashMap::new();
     labels.insert("a2a.task".to_string(), "true".to_string());
     labels.insert("a2a.context_id".to_string(), context_id.to_string());
+    labels.insert("a2a.task_id".to_string(), task_id.to_string());
     labels.insert("a2a.agent".to_string(), route.agent.clone());
     let session = crate::gateway::rpc::models::Session {
-        id: task_id.to_string(),
+        id: context_id.to_string(),
         agent: route.agent.clone(),
         ns: route.ns.clone(),
         status: "IDLE".to_string(),
@@ -1121,7 +1297,7 @@ async fn ensure_a2a_session(
 
     let event = events::LifecycleEvent {
         resource_type: "Session".to_string(),
-        name: task_id.to_string(),
+        name: context_id.to_string(),
         ns: route.ns.clone(),
         action: events::SystemAction::Create as i32,
         timestamp: now,
@@ -1137,12 +1313,227 @@ async fn ensure_a2a_session(
     Ok(())
 }
 
-async fn load_a2a_task(
+struct A2aTaskSession {
+    session_id: String,
+    session: crate::gateway::rpc::models::Session,
+}
+
+async fn list_a2a_session_task_ids(
+    gateway: &Arc<Gateway>,
+    route: &AgentCardRoute,
+    session_id: &str,
+    session: &crate::gateway::rpc::models::Session,
+) -> Result<Vec<String>, Response> {
+    let mut message_keys = gateway
+        .kv
+        .list_keys(&keys::session_message_prefix(
+            &route.ns,
+            &route.agent,
+            session_id,
+        ))
+        .await
+        .map_err(|err| {
+            tracing::error!(%err, "Failed to list A2A task messages");
+            a2a_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "failed to load task messages",
+            )
+        })?;
+    message_keys.sort();
+
+    let mut task_ids = Vec::new();
+    for key in message_keys {
+        let Some(message) = gateway
+            .kv
+            .get_msg::<crate::gateway::rpc::models::SessionMessage>(&key)
+            .await
+            .map_err(|err| {
+                tracing::error!(%err, "Failed to fetch A2A task message");
+                a2a_error(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "failed to load task message",
+                )
+            })?
+        else {
+            continue;
+        };
+        if let Some(task_id) = message.labels.get("a2a.task_id") {
+            if task_ids.last() != Some(task_id) {
+                task_ids.push(task_id.clone());
+            }
+        }
+    }
+
+    if task_ids.is_empty() {
+        if let Some(task_id) = session.labels.get("a2a.task_id") {
+            task_ids.push(task_id.clone());
+        }
+    }
+
+    Ok(task_ids)
+}
+
+async fn find_a2a_task_session(
     gateway: &Arc<Gateway>,
     route: &AgentCardRoute,
     task_id: &str,
+) -> Result<A2aTaskSession, Response> {
+    if let Ok(decoded) = decode_a2a_task_id(task_id) {
+        let session_key = keys::session(&route.ns, &route.agent, &decoded.session_id);
+        let Some(session) = gateway
+            .kv
+            .get_msg::<crate::gateway::rpc::models::Session>(&session_key)
+            .await
+            .map_err(|err| {
+                tracing::error!(%err, "Failed to fetch A2A task session");
+                a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to load task")
+            })?
+        else {
+            return Err(a2a_error(StatusCode::NOT_FOUND, "task not found"));
+        };
+        if !session
+            .labels
+            .get("a2a.task")
+            .is_some_and(|value| value == "true")
+        {
+            return Err(a2a_error(StatusCode::NOT_FOUND, "task not found"));
+        }
+        let message_key = keys::session_message(
+            &route.ns,
+            &route.agent,
+            &decoded.session_id,
+            &decoded.message_id,
+        );
+        let has_anchor = gateway
+            .kv
+            .get_msg::<crate::gateway::rpc::models::SessionMessage>(&message_key)
+            .await
+            .map_err(|err| {
+                tracing::error!(%err, "Failed to fetch A2A task anchor message");
+                a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to load task")
+            })?
+            .is_some_and(|message| {
+                message
+                    .labels
+                    .get("a2a.task_id")
+                    .is_some_and(|value| value == task_id)
+            });
+        if !has_anchor {
+            return Err(a2a_error(StatusCode::NOT_FOUND, "task not found"));
+        }
+        return Ok(A2aTaskSession {
+            session_id: decoded.session_id,
+            session,
+        });
+    }
+
+    let prefix = keys::session_prefix(&route.ns, &route.agent);
+    let session_keys = gateway.kv.list_keys(&prefix).await.map_err(|err| {
+        tracing::error!(%err, "Failed to list A2A sessions");
+        a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to load task")
+    })?;
+
+    let mut fallback = None;
+    for key in session_keys {
+        let Some(session_id) = keys::direct_child_name(&prefix, &key) else {
+            continue;
+        };
+        let Some(session) = gateway
+            .kv
+            .get_msg::<crate::gateway::rpc::models::Session>(&key)
+            .await
+            .map_err(|err| {
+                tracing::error!(%err, "Failed to fetch A2A session");
+                a2a_error(StatusCode::INTERNAL_SERVER_ERROR, "failed to load task")
+            })?
+        else {
+            continue;
+        };
+        if !session
+            .labels
+            .get("a2a.task")
+            .is_some_and(|value| value == "true")
+        {
+            continue;
+        }
+        if session
+            .labels
+            .get("a2a.task_id")
+            .is_some_and(|value| value == task_id)
+            || session_id == task_id
+        {
+            return Ok(A2aTaskSession {
+                session_id,
+                session,
+            });
+        }
+        if fallback.is_none()
+            && session_contains_a2a_task_message(gateway, route, &session_id, task_id).await?
+        {
+            fallback = Some(A2aTaskSession {
+                session_id,
+                session,
+            });
+        }
+    }
+
+    fallback.ok_or_else(|| a2a_error(StatusCode::NOT_FOUND, "task not found"))
+}
+
+async fn session_contains_a2a_task_message(
+    gateway: &Arc<Gateway>,
+    route: &AgentCardRoute,
+    session_id: &str,
+    task_id: &str,
+) -> Result<bool, Response> {
+    let message_keys = gateway
+        .kv
+        .list_keys(&keys::session_message_prefix(
+            &route.ns,
+            &route.agent,
+            session_id,
+        ))
+        .await
+        .map_err(|err| {
+            tracing::error!(%err, "Failed to list A2A task messages");
+            a2a_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "failed to load task messages",
+            )
+        })?;
+    for key in message_keys {
+        let Some(message) = gateway
+            .kv
+            .get_msg::<crate::gateway::rpc::models::SessionMessage>(&key)
+            .await
+            .map_err(|err| {
+                tracing::error!(%err, "Failed to fetch A2A task message");
+                a2a_error(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "failed to load task message",
+                )
+            })?
+        else {
+            continue;
+        };
+        if message
+            .labels
+            .get("a2a.task_id")
+            .is_some_and(|value| value == task_id)
+        {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+async fn load_a2a_task_for_session(
+    gateway: &Arc<Gateway>,
+    route: &AgentCardRoute,
+    session_id: &str,
+    task_id: &str,
 ) -> Result<A2aTaskJson, Response> {
-    let session_key = keys::session(&route.ns, &route.agent, task_id);
+    let session_key = keys::session(&route.ns, &route.agent, session_id);
     let session = gateway
         .kv
         .get_msg::<crate::gateway::rpc::models::Session>(&session_key)
@@ -1159,13 +1550,31 @@ async fn load_a2a_task(
     {
         return Err(a2a_error(StatusCode::NOT_FOUND, "task not found"));
     }
+    load_a2a_task_from_session(
+        gateway,
+        route,
+        &A2aTaskSession {
+            session_id: session_id.to_string(),
+            session,
+        },
+        task_id,
+    )
+    .await
+}
 
+async fn load_a2a_task_from_session(
+    gateway: &Arc<Gateway>,
+    route: &AgentCardRoute,
+    task_ref: &A2aTaskSession,
+    task_id: &str,
+) -> Result<A2aTaskJson, Response> {
+    let session = &task_ref.session;
     let mut message_keys = gateway
         .kv
         .list_keys(&keys::session_message_prefix(
             &route.ns,
             &route.agent,
-            task_id,
+            &task_ref.session_id,
         ))
         .await
         .map_err(|err| {
@@ -1201,11 +1610,29 @@ async fn load_a2a_task(
             .then_with(|| left.id.cmp(&right.id))
     });
 
+    let has_task_anchor = messages.iter().any(|message| {
+        message
+            .labels
+            .get("a2a.task_id")
+            .is_some_and(|value| value == task_id)
+    });
+    let mut include_task_messages = !has_task_anchor;
     let mut history = Vec::new();
     let mut artifacts = Vec::new();
     let mut latest_message_has_error = false;
     let mut has_agent_response = false;
     for message in messages {
+        if has_task_anchor
+            && message.role == crate::gateway::rpc::models::MessageRole::RoleUser as i32
+        {
+            include_task_messages = message
+                .labels
+                .get("a2a.task_id")
+                .is_some_and(|value| value == task_id);
+        }
+        if !include_task_messages {
+            continue;
+        }
         latest_message_has_error = message.parts.iter().any(|part| {
             part.part_type == crate::gateway::rpc::models::SessionMessagePartType::Error as i32
         });
@@ -1221,11 +1648,7 @@ async fn load_a2a_task(
 
     Ok(A2aTaskJson {
         id: task_id.to_string(),
-        context_id: session
-            .labels
-            .get("a2a.context_id")
-            .cloned()
-            .unwrap_or_else(|| task_id.to_string()),
+        context_id: session_context_id(session),
         status: A2aTaskStatusJson {
             state: a2a_task_state(&session, latest_message_has_error, has_agent_response),
             message: None,
@@ -1239,11 +1662,12 @@ async fn load_a2a_task(
 async fn wait_for_a2a_task(
     gateway: &Arc<Gateway>,
     route: &AgentCardRoute,
+    session_id: &str,
     task_id: &str,
 ) -> Result<A2aTaskJson, Response> {
     let deadline = Instant::now() + A2A_BLOCKING_TIMEOUT;
     loop {
-        let task = load_a2a_task(gateway, route, task_id).await?;
+        let task = load_a2a_task_for_session(gateway, route, session_id, task_id).await?;
         let terminal = matches!(
             task.status.state,
             "TASK_STATE_COMPLETED"
@@ -1377,15 +1801,16 @@ fn a2a_message_to_session_message(
             "A2A message.parts must contain at least one non-empty part",
         ));
     }
+    let mut labels = HashMap::new();
+    if !message.message_id.trim().is_empty() {
+        labels.insert("a2a.message_id".to_string(), message.message_id.clone());
+    }
+
     Ok(crate::gateway::rpc::models::SessionMessage {
-        id: if message.message_id.trim().is_empty() {
-            Uuid::now_v7().to_string()
-        } else {
-            message.message_id.clone()
-        },
+        id: Uuid::now_v7().to_string(),
         role: crate::gateway::rpc::models::MessageRole::RoleUser as i32,
         created_at: timestamp,
-        labels: HashMap::new(),
+        labels,
         parts,
     })
 }
@@ -1464,15 +1889,30 @@ fn session_message_to_a2a_message(
             .iter()
             .filter_map(session_part_to_a2a_part)
             .collect(),
-        task_id: Some(task_id.to_string()),
-        context_id: Some(
-            session
+        task_id: Some(
+            message
                 .labels
-                .get("a2a.context_id")
+                .get("a2a.task_id")
                 .cloned()
                 .unwrap_or_else(|| task_id.to_string()),
         ),
+        context_id: Some(
+            message
+                .labels
+                .get("a2a.context_id")
+                .cloned()
+                .or_else(|| session.labels.get("a2a.context_id").cloned())
+                .unwrap_or_else(|| session.id.clone()),
+        ),
     }
+}
+
+fn session_context_id(session: &crate::gateway::rpc::models::Session) -> String {
+    session
+        .labels
+        .get("a2a.context_id")
+        .cloned()
+        .unwrap_or_else(|| session.id.clone())
 }
 
 fn session_message_to_a2a_artifact(

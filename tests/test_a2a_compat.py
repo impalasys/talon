@@ -1,3 +1,4 @@
+import asyncio
 import os
 import subprocess
 import sys
@@ -188,13 +189,11 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
         )
         client = ClientFactory(config).create(card)
 
-        task_id = str(uuid.uuid4())
         context_id = str(uuid.uuid4())
         message = Message(
             role=Role.user,
             parts=[TextPart(text="Hello from A2A compatibility CI")],
             message_id=str(uuid.uuid4()),
-            task_id=task_id,
             context_id=context_id,
         )
 
@@ -234,13 +233,21 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
         final_event = events[-1]
         assert get_field(final_event, "kind", "kind") == "status-update"
         assert final_event.get("final") is True
+        task_id = get_field(final_event, "task_id", "taskId")
+        assert task_id
         assert get_field(final_event, "task_id", "taskId") == task_id
         assert get_field(final_event, "context_id", "contextId") == context_id
         assert final_event.get("status", {}).get("state") == "completed"
 
-        task_response = await http_client.get(f"{card.url}/v1/tasks/{task_id}")
-        task_response.raise_for_status()
-        task = task_response.json()
+        task = None
+        for _ in range(20):
+            task_response = await http_client.get(f"{card.url}/v1/tasks/{task_id}")
+            task_response.raise_for_status()
+            task = task_response.json()
+            if task["status"]["state"] == "TASK_STATE_COMPLETED":
+                break
+            await asyncio.sleep(0.25)
+        assert task is not None
         assert task["id"] == task_id
         assert task["contextId"] == context_id
         assert task["status"]["state"] == "TASK_STATE_COMPLETED"

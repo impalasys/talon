@@ -16,6 +16,7 @@ services:
       - OPENAI_API_KEY
       - NOVITA_API_KEY
       - ANTHROPIC_API_KEY
+      - GATEWAY_JWT_SECRET=${GATEWAY_JWT_SECRET:-local-dev-talon-jwt}
       - GATEWAY_UI_ADDR=0.0.0.0:50052
       - TALON_CONFIG_PATH=/data/talon/talon.compose.yaml
     env_file:
