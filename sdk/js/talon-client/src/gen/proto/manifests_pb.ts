@@ -147,6 +147,11 @@ export class AgentSpec extends Message<AgentSpec> {
    */
   capabilities: { [key: string]: ListValue } = {};
 
+  /**
+   * @generated from field: talon.manifests.A2A a2a = 7;
+   */
+  a2a?: A2A;
+
   constructor(data?: PartialMessage<AgentSpec>) {
     super();
     proto3.util.initPartial(data, this);
@@ -160,6 +165,7 @@ export class AgentSpec extends Message<AgentSpec> {
     { no: 3, name: "system_prompt", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 4, name: "mcp_server_refs", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
     { no: 6, name: "capabilities", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "message", T: ListValue} },
+    { no: 7, name: "a2a", kind: "message", T: A2A },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentSpec {
@@ -301,6 +307,11 @@ export class AgentSpecDelta extends Message<AgentSpecDelta> {
    */
   capabilities?: CapabilitiesPolicyDelta;
 
+  /**
+   * @generated from field: talon.manifests.A2A a2a = 7;
+   */
+  a2a?: A2A;
+
   constructor(data?: PartialMessage<AgentSpecDelta>) {
     super();
     proto3.util.initPartial(data, this);
@@ -314,6 +325,7 @@ export class AgentSpecDelta extends Message<AgentSpecDelta> {
     { no: 3, name: "features", kind: "message", T: FeatureSetDelta },
     { no: 4, name: "mcp_server_refs", kind: "message", T: StringListDelta },
     { no: 6, name: "capabilities", kind: "message", T: CapabilitiesPolicyDelta },
+    { no: 7, name: "a2a", kind: "message", T: A2A },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentSpecDelta {
@@ -1024,6 +1036,496 @@ export class McpServerBindingSpec extends Message<McpServerBindingSpec> {
 
   static equals(a: McpServerBindingSpec | PlainMessage<McpServerBindingSpec> | undefined, b: McpServerBindingSpec | PlainMessage<McpServerBindingSpec> | undefined): boolean {
     return proto3.util.equals(McpServerBindingSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.A2A
+ */
+export class A2A extends Message<A2A> {
+  /**
+   * @generated from field: repeated talon.manifests.Connection connections = 1;
+   */
+  connections: Connection[] = [];
+
+  /**
+   * @generated from field: talon.manifests.AgentCard agent_card = 2;
+   */
+  agentCard?: AgentCard;
+
+  constructor(data?: PartialMessage<A2A>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.A2A";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "connections", kind: "message", T: Connection, repeated: true },
+    { no: 2, name: "agent_card", kind: "message", T: AgentCard },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2A {
+    return new A2A().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): A2A {
+    return new A2A().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): A2A {
+    return new A2A().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: A2A | PlainMessage<A2A> | undefined, b: A2A | PlainMessage<A2A> | undefined): boolean {
+    return proto3.util.equals(A2A, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.Connection
+ */
+export class Connection extends Message<Connection> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string description = 2;
+   */
+  description = "";
+
+  /**
+   * @generated from field: talon.manifests.ConnectionRef target = 3;
+   */
+  target?: ConnectionRef;
+
+  /**
+   * @generated from field: repeated string input_modes = 4;
+   */
+  inputModes: string[] = [];
+
+  /**
+   * @generated from field: repeated string output_modes = 5;
+   */
+  outputModes: string[] = [];
+
+  /**
+   * @generated from field: uint32 timeout_seconds = 6;
+   */
+  timeoutSeconds = 0;
+
+  /**
+   * @generated from field: uint32 max_depth = 7;
+   */
+  maxDepth = 0;
+
+  /**
+   * @generated from field: talon.manifests.ConnectionAuth auth = 8;
+   */
+  auth?: ConnectionAuth;
+
+  constructor(data?: PartialMessage<Connection>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.Connection";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "target", kind: "message", T: ConnectionRef },
+    { no: 4, name: "input_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "output_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "timeout_seconds", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 7, name: "max_depth", kind: "scalar", T: 13 /* ScalarType.UINT32 */ },
+    { no: 8, name: "auth", kind: "message", T: ConnectionAuth },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Connection {
+    return new Connection().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Connection {
+    return new Connection().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Connection {
+    return new Connection().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Connection | PlainMessage<Connection> | undefined, b: Connection | PlainMessage<Connection> | undefined): boolean {
+    return proto3.util.equals(Connection, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.ConnectionRef
+ */
+export class ConnectionRef extends Message<ConnectionRef> {
+  /**
+   * @generated from oneof talon.manifests.ConnectionRef.target
+   */
+  target: {
+    /**
+     * @generated from field: talon.manifests.InternalConnectionRef internal = 1;
+     */
+    value: InternalConnectionRef;
+    case: "internal";
+  } | {
+    /**
+     * @generated from field: talon.manifests.ExternalConnectionRef external = 2;
+     */
+    value: ExternalConnectionRef;
+    case: "external";
+  } | { case: undefined; value?: undefined } = { case: undefined };
+
+  constructor(data?: PartialMessage<ConnectionRef>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.ConnectionRef";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "internal", kind: "message", T: InternalConnectionRef, oneof: "target" },
+    { no: 2, name: "external", kind: "message", T: ExternalConnectionRef, oneof: "target" },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionRef {
+    return new ConnectionRef().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionRef {
+    return new ConnectionRef().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionRef {
+    return new ConnectionRef().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectionRef | PlainMessage<ConnectionRef> | undefined, b: ConnectionRef | PlainMessage<ConnectionRef> | undefined): boolean {
+    return proto3.util.equals(ConnectionRef, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.InternalConnectionRef
+ */
+export class InternalConnectionRef extends Message<InternalConnectionRef> {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace = "";
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent = "";
+
+  constructor(data?: PartialMessage<InternalConnectionRef>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.InternalConnectionRef";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "namespace", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): InternalConnectionRef {
+    return new InternalConnectionRef().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): InternalConnectionRef {
+    return new InternalConnectionRef().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): InternalConnectionRef {
+    return new InternalConnectionRef().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: InternalConnectionRef | PlainMessage<InternalConnectionRef> | undefined, b: InternalConnectionRef | PlainMessage<InternalConnectionRef> | undefined): boolean {
+    return proto3.util.equals(InternalConnectionRef, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.ExternalConnectionRef
+ */
+export class ExternalConnectionRef extends Message<ExternalConnectionRef> {
+  /**
+   * @generated from field: string agent_card_url = 1;
+   */
+  agentCardUrl = "";
+
+  constructor(data?: PartialMessage<ExternalConnectionRef>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.ExternalConnectionRef";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "agent_card_url", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ExternalConnectionRef {
+    return new ExternalConnectionRef().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ExternalConnectionRef {
+    return new ExternalConnectionRef().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ExternalConnectionRef {
+    return new ExternalConnectionRef().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ExternalConnectionRef | PlainMessage<ExternalConnectionRef> | undefined, b: ExternalConnectionRef | PlainMessage<ExternalConnectionRef> | undefined): boolean {
+    return proto3.util.equals(ExternalConnectionRef, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.ConnectionAuth
+ */
+export class ConnectionAuth extends Message<ConnectionAuth> {
+  /**
+   * @generated from field: string kind = 1;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string secret_ref = 2;
+   */
+  secretRef = "";
+
+  constructor(data?: PartialMessage<ConnectionAuth>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.ConnectionAuth";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "secret_ref", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ConnectionAuth {
+    return new ConnectionAuth().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ConnectionAuth {
+    return new ConnectionAuth().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ConnectionAuth {
+    return new ConnectionAuth().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ConnectionAuth | PlainMessage<ConnectionAuth> | undefined, b: ConnectionAuth | PlainMessage<ConnectionAuth> | undefined): boolean {
+    return proto3.util.equals(ConnectionAuth, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.AgentCard
+ */
+export class AgentCard extends Message<AgentCard> {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string description = 2;
+   */
+  description = "";
+
+  /**
+   * @generated from field: string version = 3;
+   */
+  version = "";
+
+  /**
+   * @generated from field: talon.manifests.AgentCardCapabilities capabilities = 4;
+   */
+  capabilities?: AgentCardCapabilities;
+
+  /**
+   * @generated from field: repeated string default_input_modes = 5;
+   */
+  defaultInputModes: string[] = [];
+
+  /**
+   * @generated from field: repeated string default_output_modes = 6;
+   */
+  defaultOutputModes: string[] = [];
+
+  /**
+   * @generated from field: repeated talon.manifests.AgentCardSkill skills = 7;
+   */
+  skills: AgentCardSkill[] = [];
+
+  constructor(data?: PartialMessage<AgentCard>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.AgentCard";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "version", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "capabilities", kind: "message", T: AgentCardCapabilities },
+    { no: 5, name: "default_input_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "default_output_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "skills", kind: "message", T: AgentCardSkill, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentCard {
+    return new AgentCard().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AgentCard {
+    return new AgentCard().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AgentCard {
+    return new AgentCard().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AgentCard | PlainMessage<AgentCard> | undefined, b: AgentCard | PlainMessage<AgentCard> | undefined): boolean {
+    return proto3.util.equals(AgentCard, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.AgentCardCapabilities
+ */
+export class AgentCardCapabilities extends Message<AgentCardCapabilities> {
+  /**
+   * @generated from field: bool streaming = 1;
+   */
+  streaming = false;
+
+  /**
+   * @generated from field: bool push_notifications = 2;
+   */
+  pushNotifications = false;
+
+  /**
+   * @generated from field: bool extended_agent_card = 3;
+   */
+  extendedAgentCard = false;
+
+  constructor(data?: PartialMessage<AgentCardCapabilities>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.AgentCardCapabilities";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "streaming", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 2, name: "push_notifications", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+    { no: 3, name: "extended_agent_card", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentCardCapabilities {
+    return new AgentCardCapabilities().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AgentCardCapabilities {
+    return new AgentCardCapabilities().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AgentCardCapabilities {
+    return new AgentCardCapabilities().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AgentCardCapabilities | PlainMessage<AgentCardCapabilities> | undefined, b: AgentCardCapabilities | PlainMessage<AgentCardCapabilities> | undefined): boolean {
+    return proto3.util.equals(AgentCardCapabilities, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.manifests.AgentCardSkill
+ */
+export class AgentCardSkill extends Message<AgentCardSkill> {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  /**
+   * @generated from field: string description = 3;
+   */
+  description = "";
+
+  /**
+   * @generated from field: repeated string tags = 4;
+   */
+  tags: string[] = [];
+
+  /**
+   * @generated from field: repeated string examples = 5;
+   */
+  examples: string[] = [];
+
+  /**
+   * @generated from field: repeated string input_modes = 6;
+   */
+  inputModes: string[] = [];
+
+  /**
+   * @generated from field: repeated string output_modes = 7;
+   */
+  outputModes: string[] = [];
+
+  constructor(data?: PartialMessage<AgentCardSkill>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.manifests.AgentCardSkill";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "id", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 4, name: "tags", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 5, name: "examples", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 6, name: "input_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 7, name: "output_modes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentCardSkill {
+    return new AgentCardSkill().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AgentCardSkill {
+    return new AgentCardSkill().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AgentCardSkill {
+    return new AgentCardSkill().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: AgentCardSkill | PlainMessage<AgentCardSkill> | undefined, b: AgentCardSkill | PlainMessage<AgentCardSkill> | undefined): boolean {
+    return proto3.util.equals(AgentCardSkill, a, b);
   }
 }
 

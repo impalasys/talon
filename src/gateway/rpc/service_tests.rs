@@ -115,6 +115,7 @@ mod tests {
                     system_prompt: "You are helpful.".to_string(),
                     mcp_server_refs: Vec::new(),
                     capabilities: HashMap::new(),
+                    a2a: None,
                 },
             )),
         }

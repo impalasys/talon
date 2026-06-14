@@ -526,6 +526,7 @@ mod tests {
                         .collect(),
                 },
             )]),
+            a2a: None,
         }
     }
 

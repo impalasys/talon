@@ -58,6 +58,7 @@ tower-http = { version = "0.5", features = ["cors"] }
 toml = "0.8"
 serde_yaml = "0.9"
 minijinja = "2.12"
+url = "2"
 google-cloud-secretmanager-v1 = "1.7"
 google-cloud-auth = "1.8"
 aws-config = "1.8"

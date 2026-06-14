@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/manifests.proto.
  */
 export const file_proto_manifests: GenFile = /*@__PURE__*/
-  fileDesc("ChVwcm90by9tYW5pZmVzdHMucHJvdG8SD3RhbG9uLm1hbmlmZXN0cyKMAgoKT2JqZWN0TWV0YRIMCgRuYW1lGAEgASgJEhEKCW5hbWVzcGFjZRgCIAEoCRI3CgZsYWJlbHMYAyADKAsyJy50YWxvbi5tYW5pZmVzdHMuT2JqZWN0TWV0YS5MYWJlbHNFbnRyeRJBCgthbm5vdGF0aW9ucxgEIAMoCzIsLnRhbG9uLm1hbmlmZXN0cy5PYmplY3RNZXRhLkFubm90YXRpb25zRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEilwEKDUFnZW50VGVtcGxhdGUSEwoLYXBpX3ZlcnNpb24YASABKAkSDAoEa2luZBgCIAEoCRItCghtZXRhZGF0YRgDIAEoCzIbLnRhbG9uLm1hbmlmZXN0cy5PYmplY3RNZXRhEjQKCmRlZmluaXRpb24YBCABKAsyIC50YWxvbi5tYW5pZmVzdHMuQWdlbnREZWZpbml0aW9uIrACCglBZ2VudFNwZWMSKgoIZmVhdHVyZXMYASADKAsyGC50YWxvbi5tYW5pZmVzdHMuRmVhdHVyZRIyCgxtb2RlbF9wb2xpY3kYAiABKAsyHC50YWxvbi5tYW5pZmVzdHMuTW9kZWxQb2xpY3kSFQoNc3lzdGVtX3Byb21wdBgDIAEoCRIXCg9tY3Bfc2VydmVyX3JlZnMYBCADKAkSQgoMY2FwYWJpbGl0aWVzGAYgAygLMiwudGFsb24ubWFuaWZlc3RzLkFnZW50U3BlYy5DYXBhYmlsaXRpZXNFbnRyeRpPChFDYXBhYmlsaXRpZXNFbnRyeRILCgNrZXkYASABKAkSKQoFdmFsdWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuTGlzdFZhbHVlOgI4ASKIAQoPQWdlbnREZWZpbml0aW9uEjEKC2N1c3RvbV9zcGVjGAEgASgLMhoudGFsb24ubWFuaWZlc3RzLkFnZW50U3BlY0gAEjgKCXRlbXBsYXRlZBgCIAEoCzIjLnRhbG9uLm1hbmlmZXN0cy5UZW1wbGF0ZWRBZ2VudFNwZWNIAEIICgZzb3VyY2UiWwoSVGVtcGxhdGVkQWdlbnRTcGVjEhUKDXRlbXBsYXRlX25hbWUYASABKAkSLgoFZGVsdGEYAiABKAsyHy50YWxvbi5tYW5pZmVzdHMuQWdlbnRTcGVjRGVsdGEirQIKDkFnZW50U3BlY0RlbHRhEjcKDG1vZGVsX3BvbGljeRgBIAEoCzIhLnRhbG9uLm1hbmlmZXN0cy5Nb2RlbFBvbGljeURlbHRhEjMKDXN5c3RlbV9wcm9tcHQYAiABKAsyHC50YWxvbi5tYW5pZmVzdHMuUHJvbXB0RGVsdGESMgoIZmVhdHVyZXMYAyABKAsyIC50YWxvbi5tYW5pZmVzdHMuRmVhdHVyZVNldERlbHRhEjkKD21jcF9zZXJ2ZXJfcmVmcxgEIAEoCzIgLnRhbG9uLm1hbmlmZXN0cy5TdHJpbmdMaXN0RGVsdGESPgoMY2FwYWJpbGl0aWVzGAYgASgLMigudGFsb24ubWFuaWZlc3RzLkNhcGFiaWxpdGllc1BvbGljeURlbHRhIlIKC1Byb21wdERlbHRhEhEKB3JlcGxhY2UYASABKAlIABIRCgdwcmVwZW5kGAIgASgJSAASEAoGYXBwZW5kGAMgASgJSABCCwoJb3BlcmF0aW9uIksKD0ZlYXR1cmVTZXREZWx0YRIoCgZ1cHNlcnQYASADKAsyGC50YWxvbi5tYW5pZmVzdHMuRmVhdHVyZRIOCgZyZW1vdmUYAiADKAkiPwoPU3RyaW5nTGlzdERlbHRhEg8KB3JlcGxhY2UYASADKAkSCwoDYWRkGAIgAygJEg4KBnJlbW92ZRgDIAMoCSKtAQoXQ2FwYWJpbGl0aWVzUG9saWN5RGVsdGESRgoHcmVwbGFjZRgBIAMoCzI1LnRhbG9uLm1hbmlmZXN0cy5DYXBhYmlsaXRpZXNQb2xpY3lEZWx0YS5SZXBsYWNlRW50cnkaSgoMUmVwbGFjZUVudHJ5EgsKA2tleRgBIAEoCRIpCgV2YWx1ZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5MaXN0VmFsdWU6AjgBIjcKB0ZlYXR1cmUSDAoEbmFtZRgBIAEoCRIMCgR0eXBlGAIgASgJEhAKCHJlcXVpcmVkGAMgASgIIm8KBU1vZGVsEhAKCHByb3ZpZGVyGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLdGVtcGVyYXR1cmUYAyABKAISMQoIdGhpbmtpbmcYBCABKAsyHy50YWxvbi5tYW5pZmVzdHMuVGhpbmtpbmdDb25maWciXwoOVGhpbmtpbmdDb25maWcSDwoHZW5hYmxlZBgBIAEoCBIaCg1idWRnZXRfdG9rZW5zGAIgASgNSACIAQESDgoGZWZmb3J0GAMgASgJQhAKDl9idWRnZXRfdG9rZW5zIkMKDE1vZGVsUHJvZmlsZRIMCgRuYW1lGAEgASgJEiUKBW1vZGVsGAIgASgLMhYudGFsb24ubWFuaWZlc3RzLk1vZGVsIj4KC01vZGVsUG9saWN5Ei8KCHByb2ZpbGVzGAEgAygLMh0udGFsb24ubWFuaWZlc3RzLk1vZGVsUHJvZmlsZSJBChBNb2RlbFBvbGljeURlbHRhEi0KBnVwc2VydBgBIAMoCzIdLnRhbG9uLm1hbmlmZXN0cy5Nb2RlbFByb2ZpbGUiiwEKCU1jcFNlcnZlchITCgthcGlfdmVyc2lvbhgBIAEoCRIMCgRraW5kGAIgASgJEi0KCG1ldGFkYXRhGAMgASgLMhsudGFsb24ubWFuaWZlc3RzLk9iamVjdE1ldGESLAoEc3BlYxgEIAEoCzIeLnRhbG9uLm1hbmlmZXN0cy5NY3BTZXJ2ZXJTcGVjIsABCg1NY3BTZXJ2ZXJTcGVjEhEKCXRyYW5zcG9ydBgBIAEoCRIOCgZ0YXJnZXQYAiABKAkSDAoEYXJncxgDIAMoCRI8CgdoZWFkZXJzGAQgAygLMisudGFsb24ubWFuaWZlc3RzLk1jcFNlcnZlclNwZWMuSGVhZGVyc0VudHJ5EhAKCGRpc2FibGVkGAUgASgIGi4KDEhlYWRlcnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIpkBChBNY3BTZXJ2ZXJCaW5kaW5nEhMKC2FwaV92ZXJzaW9uGAEgASgJEgwKBGtpbmQYAiABKAkSLQoIbWV0YWRhdGEYAyABKAsyGy50YWxvbi5tYW5pZmVzdHMuT2JqZWN0TWV0YRIzCgRzcGVjGAQgASgLMiUudGFsb24ubWFuaWZlc3RzLk1jcFNlcnZlckJpbmRpbmdTcGVjIpQCChRNY3BTZXJ2ZXJCaW5kaW5nU3BlYxISCgpzZXJ2ZXJfcmVmGAEgASgJEgwKBGFyZ3MYAiADKAkSQwoHaGVhZGVycxgDIAMoCzIyLnRhbG9uLm1hbmlmZXN0cy5NY3BTZXJ2ZXJCaW5kaW5nU3BlYy5IZWFkZXJzRW50cnkSEAoIZGlzYWJsZWQYBCABKAgSNwoLYXV0aF9icm9rZXIYBSABKAsyIi50YWxvbi5tYW5pZmVzdHMuTWNwQXV0aEJyb2tlclNwZWMSGgoSYWxsb3dlZF90b29sX25hbWVzGAYgAygJGi4KDEhlYWRlcnNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIlsKEU1jcEF1dGhCcm9rZXJTcGVjEgwKBGtpbmQYASABKAkSCwoDdXJsGAIgASgJEhkKEWNhY2hlX3R0bF9zZWNvbmRzGAMgASgFEhAKCGF1ZGllbmNlGAQgASgJIosBCglLbm93bGVkZ2USEwoLYXBpX3ZlcnNpb24YASABKAkSDAoEa2luZBgCIAEoCRItCghtZXRhZGF0YRgDIAEoCzIbLnRhbG9uLm1hbmlmZXN0cy5PYmplY3RNZXRhEiwKBHNwZWMYBCABKAsyHi50YWxvbi5tYW5pZmVzdHMuS25vd2xlZGdlU3BlYyIuCg1Lbm93bGVkZ2VTcGVjEgwKBHBhdGgYASABKAkSDwoHY29udGVudBgCIAEoCSKVAQoOTWVtb3J5UHJvdmlkZXISEwoLYXBpX3ZlcnNpb24YASABKAkSDAoEa2luZBgCIAEoCRItCghtZXRhZGF0YRgDIAEoCzIbLnRhbG9uLm1hbmlmZXN0cy5PYmplY3RNZXRhEjEKBHNwZWMYBCABKAsyIy50YWxvbi5tYW5pZmVzdHMuTWVtb3J5UHJvdmlkZXJTcGVjIooBChJNZW1vcnlQcm92aWRlclNwZWMSDgoGZHJpdmVyGAEgASgJEjUKCmNvbm5lY3Rpb24YAiABKAsyIS50YWxvbi5tYW5pZmVzdHMuQ29ubmVjdGlvbkNvbmZpZxItCgZzY2hlbWEYAyABKAsyHS50YWxvbi5tYW5pZmVzdHMuU2NoZW1hQ29uZmlnImYKEENvbm5lY3Rpb25Db25maWcSJwoDdXJsGAEgASgLMhoudGFsb24ubWFuaWZlc3RzLkVudlNlY3JldBIpCgRwb29sGAIgASgLMhsudGFsb24ubWFuaWZlc3RzLlBvb2xDb25maWciKAoJRW52U2VjcmV0Eg4KBnNvdXJjZRgBIAEoCRILCgNrZXkYAiABKAkiXAoKUG9vbENvbmZpZxIXCg9tYXhfY29ubmVjdGlvbnMYASABKAUSFwoPbWluX2Nvbm5lY3Rpb25zGAIgASgFEhwKFGlkbGVfdGltZW91dF9zZWNvbmRzGAMgASgFIhwKDFNjaGVtYUNvbmZpZxIMCgRuYW1lGAEgASgJYgZwcm90bzM", [file_google_protobuf_struct]);
+  fileDesc("ChVwcm90by9tYW5pZmVzdHMucHJvdG8SD3RhbG9uLm1hbmlmZXN0cyKMAgoKT2JqZWN0TWV0YRIMCgRuYW1lGAEgASgJEhEKCW5hbWVzcGFjZRgCIAEoCRI3CgZsYWJlbHMYAyADKAsyJy50YWxvbi5tYW5pZmVzdHMuT2JqZWN0TWV0YS5MYWJlbHNFbnRyeRJBCgthbm5vdGF0aW9ucxgEIAMoCzIsLnRhbG9uLm1hbmlmZXN0cy5PYmplY3RNZXRhLkFubm90YXRpb25zRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARoyChBBbm5vdGF0aW9uc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEilwEKDUFnZW50VGVtcGxhdGUSEwoLYXBpX3ZlcnNpb24YASABKAkSDAoEa2luZBgCIAEoCRItCghtZXRhZGF0YRgDIAEoCzIbLnRhbG9uLm1hbmlmZXN0cy5PYmplY3RNZXRhEjQKCmRlZmluaXRpb24YBCABKAsyIC50YWxvbi5tYW5pZmVzdHMuQWdlbnREZWZpbml0aW9uItMCCglBZ2VudFNwZWMSKgoIZmVhdHVyZXMYASADKAsyGC50YWxvbi5tYW5pZmVzdHMuRmVhdHVyZRIyCgxtb2RlbF9wb2xpY3kYAiABKAsyHC50YWxvbi5tYW5pZmVzdHMuTW9kZWxQb2xpY3kSFQoNc3lzdGVtX3Byb21wdBgDIAEoCRIXCg9tY3Bfc2VydmVyX3JlZnMYBCADKAkSQgoMY2FwYWJpbGl0aWVzGAYgAygLMiwudGFsb24ubWFuaWZlc3RzLkFnZW50U3BlYy5DYXBhYmlsaXRpZXNFbnRyeRIhCgNhMmEYByABKAsyFC50YWxvbi5tYW5pZmVzdHMuQTJBGk8KEUNhcGFiaWxpdGllc0VudHJ5EgsKA2tleRgBIAEoCRIpCgV2YWx1ZRgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5MaXN0VmFsdWU6AjgBIogBCg9BZ2VudERlZmluaXRpb24SMQoLY3VzdG9tX3NwZWMYASABKAsyGi50YWxvbi5tYW5pZmVzdHMuQWdlbnRTcGVjSAASOAoJdGVtcGxhdGVkGAIgASgLMiMudGFsb24ubWFuaWZlc3RzLlRlbXBsYXRlZEFnZW50U3BlY0gAQggKBnNvdXJjZSJbChJUZW1wbGF0ZWRBZ2VudFNwZWMSFQoNdGVtcGxhdGVfbmFtZRgBIAEoCRIuCgVkZWx0YRgCIAEoCzIfLnRhbG9uLm1hbmlmZXN0cy5BZ2VudFNwZWNEZWx0YSLQAgoOQWdlbnRTcGVjRGVsdGESNwoMbW9kZWxfcG9saWN5GAEgASgLMiEudGFsb24ubWFuaWZlc3RzLk1vZGVsUG9saWN5RGVsdGESMwoNc3lzdGVtX3Byb21wdBgCIAEoCzIcLnRhbG9uLm1hbmlmZXN0cy5Qcm9tcHREZWx0YRIyCghmZWF0dXJlcxgDIAEoCzIgLnRhbG9uLm1hbmlmZXN0cy5GZWF0dXJlU2V0RGVsdGESOQoPbWNwX3NlcnZlcl9yZWZzGAQgASgLMiAudGFsb24ubWFuaWZlc3RzLlN0cmluZ0xpc3REZWx0YRI+CgxjYXBhYmlsaXRpZXMYBiABKAsyKC50YWxvbi5tYW5pZmVzdHMuQ2FwYWJpbGl0aWVzUG9saWN5RGVsdGESIQoDYTJhGAcgASgLMhQudGFsb24ubWFuaWZlc3RzLkEyQSJSCgtQcm9tcHREZWx0YRIRCgdyZXBsYWNlGAEgASgJSAASEQoHcHJlcGVuZBgCIAEoCUgAEhAKBmFwcGVuZBgDIAEoCUgAQgsKCW9wZXJhdGlvbiJLCg9GZWF0dXJlU2V0RGVsdGESKAoGdXBzZXJ0GAEgAygLMhgudGFsb24ubWFuaWZlc3RzLkZlYXR1cmUSDgoGcmVtb3ZlGAIgAygJIj8KD1N0cmluZ0xpc3REZWx0YRIPCgdyZXBsYWNlGAEgAygJEgsKA2FkZBgCIAMoCRIOCgZyZW1vdmUYAyADKAkirQEKF0NhcGFiaWxpdGllc1BvbGljeURlbHRhEkYKB3JlcGxhY2UYASADKAsyNS50YWxvbi5tYW5pZmVzdHMuQ2FwYWJpbGl0aWVzUG9saWN5RGVsdGEuUmVwbGFjZUVudHJ5GkoKDFJlcGxhY2VFbnRyeRILCgNrZXkYASABKAkSKQoFdmFsdWUYAiABKAsyGi5nb29nbGUucHJvdG9idWYuTGlzdFZhbHVlOgI4ASI3CgdGZWF0dXJlEgwKBG5hbWUYASABKAkSDAoEdHlwZRgCIAEoCRIQCghyZXF1aXJlZBgDIAEoCCJvCgVNb2RlbBIQCghwcm92aWRlchgBIAEoCRIMCgRuYW1lGAIgASgJEhMKC3RlbXBlcmF0dXJlGAMgASgCEjEKCHRoaW5raW5nGAQgASgLMh8udGFsb24ubWFuaWZlc3RzLlRoaW5raW5nQ29uZmlnIl8KDlRoaW5raW5nQ29uZmlnEg8KB2VuYWJsZWQYASABKAgSGgoNYnVkZ2V0X3Rva2VucxgCIAEoDUgAiAEBEg4KBmVmZm9ydBgDIAEoCUIQCg5fYnVkZ2V0X3Rva2VucyJDCgxNb2RlbFByb2ZpbGUSDAoEbmFtZRgBIAEoCRIlCgVtb2RlbBgCIAEoCzIWLnRhbG9uLm1hbmlmZXN0cy5Nb2RlbCI+CgtNb2RlbFBvbGljeRIvCghwcm9maWxlcxgBIAMoCzIdLnRhbG9uLm1hbmlmZXN0cy5Nb2RlbFByb2ZpbGUiQQoQTW9kZWxQb2xpY3lEZWx0YRItCgZ1cHNlcnQYASADKAsyHS50YWxvbi5tYW5pZmVzdHMuTW9kZWxQcm9maWxlIosBCglNY3BTZXJ2ZXISEwoLYXBpX3ZlcnNpb24YASABKAkSDAoEa2luZBgCIAEoCRItCghtZXRhZGF0YRgDIAEoCzIbLnRhbG9uLm1hbmlmZXN0cy5PYmplY3RNZXRhEiwKBHNwZWMYBCABKAsyHi50YWxvbi5tYW5pZmVzdHMuTWNwU2VydmVyU3BlYyLAAQoNTWNwU2VydmVyU3BlYxIRCgl0cmFuc3BvcnQYASABKAkSDgoGdGFyZ2V0GAIgASgJEgwKBGFyZ3MYAyADKAkSPAoHaGVhZGVycxgEIAMoCzIrLnRhbG9uLm1hbmlmZXN0cy5NY3BTZXJ2ZXJTcGVjLkhlYWRlcnNFbnRyeRIQCghkaXNhYmxlZBgFIAEoCBouCgxIZWFkZXJzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKZAQoQTWNwU2VydmVyQmluZGluZxITCgthcGlfdmVyc2lvbhgBIAEoCRIMCgRraW5kGAIgASgJEi0KCG1ldGFkYXRhGAMgASgLMhsudGFsb24ubWFuaWZlc3RzLk9iamVjdE1ldGESMwoEc3BlYxgEIAEoCzIlLnRhbG9uLm1hbmlmZXN0cy5NY3BTZXJ2ZXJCaW5kaW5nU3BlYyKUAgoUTWNwU2VydmVyQmluZGluZ1NwZWMSEgoKc2VydmVyX3JlZhgBIAEoCRIMCgRhcmdzGAIgAygJEkMKB2hlYWRlcnMYAyADKAsyMi50YWxvbi5tYW5pZmVzdHMuTWNwU2VydmVyQmluZGluZ1NwZWMuSGVhZGVyc0VudHJ5EhAKCGRpc2FibGVkGAQgASgIEjcKC2F1dGhfYnJva2VyGAUgASgLMiIudGFsb24ubWFuaWZlc3RzLk1jcEF1dGhCcm9rZXJTcGVjEhoKEmFsbG93ZWRfdG9vbF9uYW1lcxgGIAMoCRouCgxIZWFkZXJzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJnCgNBMkESMAoLY29ubmVjdGlvbnMYASADKAsyGy50YWxvbi5tYW5pZmVzdHMuQ29ubmVjdGlvbhIuCgphZ2VudF9jYXJkGAIgASgLMhoudGFsb24ubWFuaWZlc3RzLkFnZW50Q2FyZCLlAQoKQ29ubmVjdGlvbhIMCgRuYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEi4KBnRhcmdldBgDIAEoCzIeLnRhbG9uLm1hbmlmZXN0cy5Db25uZWN0aW9uUmVmEhMKC2lucHV0X21vZGVzGAQgAygJEhQKDG91dHB1dF9tb2RlcxgFIAMoCRIXCg90aW1lb3V0X3NlY29uZHMYBiABKA0SEQoJbWF4X2RlcHRoGAcgASgNEi0KBGF1dGgYCCABKAsyHy50YWxvbi5tYW5pZmVzdHMuQ29ubmVjdGlvbkF1dGgikQEKDUNvbm5lY3Rpb25SZWYSOgoIaW50ZXJuYWwYASABKAsyJi50YWxvbi5tYW5pZmVzdHMuSW50ZXJuYWxDb25uZWN0aW9uUmVmSAASOgoIZXh0ZXJuYWwYAiABKAsyJi50YWxvbi5tYW5pZmVzdHMuRXh0ZXJuYWxDb25uZWN0aW9uUmVmSABCCAoGdGFyZ2V0IjkKFUludGVybmFsQ29ubmVjdGlvblJlZhIRCgluYW1lc3BhY2UYASABKAkSDQoFYWdlbnQYAiABKAkiLwoVRXh0ZXJuYWxDb25uZWN0aW9uUmVmEhYKDmFnZW50X2NhcmRfdXJsGAEgASgJIjIKDkNvbm5lY3Rpb25BdXRoEgwKBGtpbmQYASABKAkSEgoKc2VjcmV0X3JlZhgCIAEoCSLpAQoJQWdlbnRDYXJkEgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSDwoHdmVyc2lvbhgDIAEoCRI8CgxjYXBhYmlsaXRpZXMYBCABKAsyJi50YWxvbi5tYW5pZmVzdHMuQWdlbnRDYXJkQ2FwYWJpbGl0aWVzEhsKE2RlZmF1bHRfaW5wdXRfbW9kZXMYBSADKAkSHAoUZGVmYXVsdF9vdXRwdXRfbW9kZXMYBiADKAkSLwoGc2tpbGxzGAcgAygLMh8udGFsb24ubWFuaWZlc3RzLkFnZW50Q2FyZFNraWxsImMKFUFnZW50Q2FyZENhcGFiaWxpdGllcxIRCglzdHJlYW1pbmcYASABKAgSGgoScHVzaF9ub3RpZmljYXRpb25zGAIgASgIEhsKE2V4dGVuZGVkX2FnZW50X2NhcmQYAyABKAgiigEKDkFnZW50Q2FyZFNraWxsEgoKAmlkGAEgASgJEgwKBG5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSDAoEdGFncxgEIAMoCRIQCghleGFtcGxlcxgFIAMoCRITCgtpbnB1dF9tb2RlcxgGIAMoCRIUCgxvdXRwdXRfbW9kZXMYByADKAkiWwoRTWNwQXV0aEJyb2tlclNwZWMSDAoEa2luZBgBIAEoCRILCgN1cmwYAiABKAkSGQoRY2FjaGVfdHRsX3NlY29uZHMYAyABKAUSEAoIYXVkaWVuY2UYBCABKAkiiwEKCUtub3dsZWRnZRITCgthcGlfdmVyc2lvbhgBIAEoCRIMCgRraW5kGAIgASgJEi0KCG1ldGFkYXRhGAMgASgLMhsudGFsb24ubWFuaWZlc3RzLk9iamVjdE1ldGESLAoEc3BlYxgEIAEoCzIeLnRhbG9uLm1hbmlmZXN0cy5Lbm93bGVkZ2VTcGVjIi4KDUtub3dsZWRnZVNwZWMSDAoEcGF0aBgBIAEoCRIPCgdjb250ZW50GAIgASgJIpUBCg5NZW1vcnlQcm92aWRlchITCgthcGlfdmVyc2lvbhgBIAEoCRIMCgRraW5kGAIgASgJEi0KCG1ldGFkYXRhGAMgASgLMhsudGFsb24ubWFuaWZlc3RzLk9iamVjdE1ldGESMQoEc3BlYxgEIAEoCzIjLnRhbG9uLm1hbmlmZXN0cy5NZW1vcnlQcm92aWRlclNwZWMiigEKEk1lbW9yeVByb3ZpZGVyU3BlYxIOCgZkcml2ZXIYASABKAkSNQoKY29ubmVjdGlvbhgCIAEoCzIhLnRhbG9uLm1hbmlmZXN0cy5Db25uZWN0aW9uQ29uZmlnEi0KBnNjaGVtYRgDIAEoCzIdLnRhbG9uLm1hbmlmZXN0cy5TY2hlbWFDb25maWciZgoQQ29ubmVjdGlvbkNvbmZpZxInCgN1cmwYASABKAsyGi50YWxvbi5tYW5pZmVzdHMuRW52U2VjcmV0EikKBHBvb2wYAiABKAsyGy50YWxvbi5tYW5pZmVzdHMuUG9vbENvbmZpZyIoCglFbnZTZWNyZXQSDgoGc291cmNlGAEgASgJEgsKA2tleRgCIAEoCSJcCgpQb29sQ29uZmlnEhcKD21heF9jb25uZWN0aW9ucxgBIAEoBRIXCg9taW5fY29ubmVjdGlvbnMYAiABKAUSHAoUaWRsZV90aW1lb3V0X3NlY29uZHMYAyABKAUiHAoMU2NoZW1hQ29uZmlnEgwKBG5hbWUYASABKAliBnByb3RvMw", [file_google_protobuf_struct]);
 
 /**
  * Metadata for finding and grouping manifests
@@ -108,6 +108,11 @@ export type AgentSpec = Message<"talon.manifests.AgentSpec"> & {
    * @generated from field: map<string, google.protobuf.ListValue> capabilities = 6;
    */
   capabilities: { [key: string]: ListValue };
+
+  /**
+   * @generated from field: talon.manifests.A2A a2a = 7;
+   */
+  a2a?: A2A;
 };
 
 /**
@@ -196,6 +201,11 @@ export type AgentSpecDelta = Message<"talon.manifests.AgentSpecDelta"> & {
    * @generated from field: talon.manifests.CapabilitiesPolicyDelta capabilities = 6;
    */
   capabilities?: CapabilitiesPolicyDelta;
+
+  /**
+   * @generated from field: talon.manifests.A2A a2a = 7;
+   */
+  a2a?: A2A;
 };
 
 /**
@@ -592,6 +602,291 @@ export const McpServerBindingSpecSchema: GenMessage<McpServerBindingSpec> = /*@_
   messageDesc(file_proto_manifests, 19);
 
 /**
+ * @generated from message talon.manifests.A2A
+ */
+export type A2A = Message<"talon.manifests.A2A"> & {
+  /**
+   * @generated from field: repeated talon.manifests.Connection connections = 1;
+   */
+  connections: Connection[];
+
+  /**
+   * @generated from field: talon.manifests.AgentCard agent_card = 2;
+   */
+  agentCard?: AgentCard;
+};
+
+/**
+ * Describes the message talon.manifests.A2A.
+ * Use `create(A2ASchema)` to create a new message.
+ */
+export const A2ASchema: GenMessage<A2A> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 20);
+
+/**
+ * @generated from message talon.manifests.Connection
+ */
+export type Connection = Message<"talon.manifests.Connection"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string description = 2;
+   */
+  description: string;
+
+  /**
+   * @generated from field: talon.manifests.ConnectionRef target = 3;
+   */
+  target?: ConnectionRef;
+
+  /**
+   * @generated from field: repeated string input_modes = 4;
+   */
+  inputModes: string[];
+
+  /**
+   * @generated from field: repeated string output_modes = 5;
+   */
+  outputModes: string[];
+
+  /**
+   * @generated from field: uint32 timeout_seconds = 6;
+   */
+  timeoutSeconds: number;
+
+  /**
+   * @generated from field: uint32 max_depth = 7;
+   */
+  maxDepth: number;
+
+  /**
+   * @generated from field: talon.manifests.ConnectionAuth auth = 8;
+   */
+  auth?: ConnectionAuth;
+};
+
+/**
+ * Describes the message talon.manifests.Connection.
+ * Use `create(ConnectionSchema)` to create a new message.
+ */
+export const ConnectionSchema: GenMessage<Connection> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 21);
+
+/**
+ * @generated from message talon.manifests.ConnectionRef
+ */
+export type ConnectionRef = Message<"talon.manifests.ConnectionRef"> & {
+  /**
+   * @generated from oneof talon.manifests.ConnectionRef.target
+   */
+  target: {
+    /**
+     * @generated from field: talon.manifests.InternalConnectionRef internal = 1;
+     */
+    value: InternalConnectionRef;
+    case: "internal";
+  } | {
+    /**
+     * @generated from field: talon.manifests.ExternalConnectionRef external = 2;
+     */
+    value: ExternalConnectionRef;
+    case: "external";
+  } | { case: undefined; value?: undefined };
+};
+
+/**
+ * Describes the message talon.manifests.ConnectionRef.
+ * Use `create(ConnectionRefSchema)` to create a new message.
+ */
+export const ConnectionRefSchema: GenMessage<ConnectionRef> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 22);
+
+/**
+ * @generated from message talon.manifests.InternalConnectionRef
+ */
+export type InternalConnectionRef = Message<"talon.manifests.InternalConnectionRef"> & {
+  /**
+   * @generated from field: string namespace = 1;
+   */
+  namespace: string;
+
+  /**
+   * @generated from field: string agent = 2;
+   */
+  agent: string;
+};
+
+/**
+ * Describes the message talon.manifests.InternalConnectionRef.
+ * Use `create(InternalConnectionRefSchema)` to create a new message.
+ */
+export const InternalConnectionRefSchema: GenMessage<InternalConnectionRef> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 23);
+
+/**
+ * @generated from message talon.manifests.ExternalConnectionRef
+ */
+export type ExternalConnectionRef = Message<"talon.manifests.ExternalConnectionRef"> & {
+  /**
+   * @generated from field: string agent_card_url = 1;
+   */
+  agentCardUrl: string;
+};
+
+/**
+ * Describes the message talon.manifests.ExternalConnectionRef.
+ * Use `create(ExternalConnectionRefSchema)` to create a new message.
+ */
+export const ExternalConnectionRefSchema: GenMessage<ExternalConnectionRef> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 24);
+
+/**
+ * @generated from message talon.manifests.ConnectionAuth
+ */
+export type ConnectionAuth = Message<"talon.manifests.ConnectionAuth"> & {
+  /**
+   * @generated from field: string kind = 1;
+   */
+  kind: string;
+
+  /**
+   * @generated from field: string secret_ref = 2;
+   */
+  secretRef: string;
+};
+
+/**
+ * Describes the message talon.manifests.ConnectionAuth.
+ * Use `create(ConnectionAuthSchema)` to create a new message.
+ */
+export const ConnectionAuthSchema: GenMessage<ConnectionAuth> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 25);
+
+/**
+ * @generated from message talon.manifests.AgentCard
+ */
+export type AgentCard = Message<"talon.manifests.AgentCard"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string description = 2;
+   */
+  description: string;
+
+  /**
+   * @generated from field: string version = 3;
+   */
+  version: string;
+
+  /**
+   * @generated from field: talon.manifests.AgentCardCapabilities capabilities = 4;
+   */
+  capabilities?: AgentCardCapabilities;
+
+  /**
+   * @generated from field: repeated string default_input_modes = 5;
+   */
+  defaultInputModes: string[];
+
+  /**
+   * @generated from field: repeated string default_output_modes = 6;
+   */
+  defaultOutputModes: string[];
+
+  /**
+   * @generated from field: repeated talon.manifests.AgentCardSkill skills = 7;
+   */
+  skills: AgentCardSkill[];
+};
+
+/**
+ * Describes the message talon.manifests.AgentCard.
+ * Use `create(AgentCardSchema)` to create a new message.
+ */
+export const AgentCardSchema: GenMessage<AgentCard> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 26);
+
+/**
+ * @generated from message talon.manifests.AgentCardCapabilities
+ */
+export type AgentCardCapabilities = Message<"talon.manifests.AgentCardCapabilities"> & {
+  /**
+   * @generated from field: bool streaming = 1;
+   */
+  streaming: boolean;
+
+  /**
+   * @generated from field: bool push_notifications = 2;
+   */
+  pushNotifications: boolean;
+
+  /**
+   * @generated from field: bool extended_agent_card = 3;
+   */
+  extendedAgentCard: boolean;
+};
+
+/**
+ * Describes the message talon.manifests.AgentCardCapabilities.
+ * Use `create(AgentCardCapabilitiesSchema)` to create a new message.
+ */
+export const AgentCardCapabilitiesSchema: GenMessage<AgentCardCapabilities> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 27);
+
+/**
+ * @generated from message talon.manifests.AgentCardSkill
+ */
+export type AgentCardSkill = Message<"talon.manifests.AgentCardSkill"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * @generated from field: string description = 3;
+   */
+  description: string;
+
+  /**
+   * @generated from field: repeated string tags = 4;
+   */
+  tags: string[];
+
+  /**
+   * @generated from field: repeated string examples = 5;
+   */
+  examples: string[];
+
+  /**
+   * @generated from field: repeated string input_modes = 6;
+   */
+  inputModes: string[];
+
+  /**
+   * @generated from field: repeated string output_modes = 7;
+   */
+  outputModes: string[];
+};
+
+/**
+ * Describes the message talon.manifests.AgentCardSkill.
+ * Use `create(AgentCardSkillSchema)` to create a new message.
+ */
+export const AgentCardSkillSchema: GenMessage<AgentCardSkill> = /*@__PURE__*/
+  messageDesc(file_proto_manifests, 28);
+
+/**
  * @generated from message talon.manifests.McpAuthBrokerSpec
  */
 export type McpAuthBrokerSpec = Message<"talon.manifests.McpAuthBrokerSpec"> & {
@@ -621,7 +916,7 @@ export type McpAuthBrokerSpec = Message<"talon.manifests.McpAuthBrokerSpec"> & {
  * Use `create(McpAuthBrokerSpecSchema)` to create a new message.
  */
 export const McpAuthBrokerSpecSchema: GenMessage<McpAuthBrokerSpec> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 20);
+  messageDesc(file_proto_manifests, 29);
 
 /**
  * @generated from message talon.manifests.Knowledge
@@ -653,7 +948,7 @@ export type Knowledge = Message<"talon.manifests.Knowledge"> & {
  * Use `create(KnowledgeSchema)` to create a new message.
  */
 export const KnowledgeSchema: GenMessage<Knowledge> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 21);
+  messageDesc(file_proto_manifests, 30);
 
 /**
  * @generated from message talon.manifests.KnowledgeSpec
@@ -675,7 +970,7 @@ export type KnowledgeSpec = Message<"talon.manifests.KnowledgeSpec"> & {
  * Use `create(KnowledgeSpecSchema)` to create a new message.
  */
 export const KnowledgeSpecSchema: GenMessage<KnowledgeSpec> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 22);
+  messageDesc(file_proto_manifests, 31);
 
 /**
  * @generated from message talon.manifests.MemoryProvider
@@ -707,7 +1002,7 @@ export type MemoryProvider = Message<"talon.manifests.MemoryProvider"> & {
  * Use `create(MemoryProviderSchema)` to create a new message.
  */
 export const MemoryProviderSchema: GenMessage<MemoryProvider> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 23);
+  messageDesc(file_proto_manifests, 32);
 
 /**
  * @generated from message talon.manifests.MemoryProviderSpec
@@ -734,7 +1029,7 @@ export type MemoryProviderSpec = Message<"talon.manifests.MemoryProviderSpec"> &
  * Use `create(MemoryProviderSpecSchema)` to create a new message.
  */
 export const MemoryProviderSpecSchema: GenMessage<MemoryProviderSpec> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 24);
+  messageDesc(file_proto_manifests, 33);
 
 /**
  * @generated from message talon.manifests.ConnectionConfig
@@ -756,7 +1051,7 @@ export type ConnectionConfig = Message<"talon.manifests.ConnectionConfig"> & {
  * Use `create(ConnectionConfigSchema)` to create a new message.
  */
 export const ConnectionConfigSchema: GenMessage<ConnectionConfig> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 25);
+  messageDesc(file_proto_manifests, 34);
 
 /**
  * @generated from message talon.manifests.EnvSecret
@@ -778,7 +1073,7 @@ export type EnvSecret = Message<"talon.manifests.EnvSecret"> & {
  * Use `create(EnvSecretSchema)` to create a new message.
  */
 export const EnvSecretSchema: GenMessage<EnvSecret> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 26);
+  messageDesc(file_proto_manifests, 35);
 
 /**
  * @generated from message talon.manifests.PoolConfig
@@ -805,7 +1100,7 @@ export type PoolConfig = Message<"talon.manifests.PoolConfig"> & {
  * Use `create(PoolConfigSchema)` to create a new message.
  */
 export const PoolConfigSchema: GenMessage<PoolConfig> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 27);
+  messageDesc(file_proto_manifests, 36);
 
 /**
  * @generated from message talon.manifests.SchemaConfig
@@ -822,5 +1117,5 @@ export type SchemaConfig = Message<"talon.manifests.SchemaConfig"> & {
  * Use `create(SchemaConfigSchema)` to create a new message.
  */
 export const SchemaConfigSchema: GenMessage<SchemaConfig> = /*@__PURE__*/
-  messageDesc(file_proto_manifests, 28);
+  messageDesc(file_proto_manifests, 37);
 

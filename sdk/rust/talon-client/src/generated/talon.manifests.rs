@@ -46,6 +46,8 @@ pub struct AgentSpec {
         ::prost::alloc::string::String,
         ::prost_types::ListValue,
     >,
+    #[prost(message, optional, tag = "7")]
+    pub a2a: ::core::option::Option<A2a>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AgentDefinition {
@@ -81,6 +83,8 @@ pub struct AgentSpecDelta {
     pub mcp_server_refs: ::core::option::Option<StringListDelta>,
     #[prost(message, optional, tag = "6")]
     pub capabilities: ::core::option::Option<CapabilitiesPolicyDelta>,
+    #[prost(message, optional, tag = "7")]
+    pub a2a: ::core::option::Option<A2a>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PromptDelta {
@@ -224,6 +228,109 @@ pub struct McpServerBindingSpec {
     pub auth_broker: ::core::option::Option<McpAuthBrokerSpec>,
     #[prost(string, repeated, tag = "6")]
     pub allowed_tool_names: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct A2a {
+    #[prost(message, repeated, tag = "1")]
+    pub connections: ::prost::alloc::vec::Vec<Connection>,
+    #[prost(message, optional, tag = "2")]
+    pub agent_card: ::core::option::Option<AgentCard>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Connection {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "3")]
+    pub target: ::core::option::Option<ConnectionRef>,
+    #[prost(string, repeated, tag = "4")]
+    pub input_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "5")]
+    pub output_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(uint32, tag = "6")]
+    pub timeout_seconds: u32,
+    #[prost(uint32, tag = "7")]
+    pub max_depth: u32,
+    #[prost(message, optional, tag = "8")]
+    pub auth: ::core::option::Option<ConnectionAuth>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectionRef {
+    #[prost(oneof = "connection_ref::Target", tags = "1, 2")]
+    pub target: ::core::option::Option<connection_ref::Target>,
+}
+/// Nested message and enum types in `ConnectionRef`.
+pub mod connection_ref {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Target {
+        #[prost(message, tag = "1")]
+        Internal(super::InternalConnectionRef),
+        #[prost(message, tag = "2")]
+        External(super::ExternalConnectionRef),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InternalConnectionRef {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub agent: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExternalConnectionRef {
+    #[prost(string, tag = "1")]
+    pub agent_card_url: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ConnectionAuth {
+    #[prost(string, tag = "1")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub secret_ref: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AgentCard {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub version: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "4")]
+    pub capabilities: ::core::option::Option<AgentCardCapabilities>,
+    #[prost(string, repeated, tag = "5")]
+    pub default_input_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "6")]
+    pub default_output_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(message, repeated, tag = "7")]
+    pub skills: ::prost::alloc::vec::Vec<AgentCardSkill>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct AgentCardCapabilities {
+    #[prost(bool, tag = "1")]
+    pub streaming: bool,
+    #[prost(bool, tag = "2")]
+    pub push_notifications: bool,
+    #[prost(bool, tag = "3")]
+    pub extended_agent_card: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct AgentCardSkill {
+    #[prost(string, tag = "1")]
+    pub id: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(string, repeated, tag = "4")]
+    pub tags: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "5")]
+    pub examples: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "6")]
+    pub input_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "7")]
+    pub output_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct McpAuthBrokerSpec {

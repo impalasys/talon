@@ -2479,6 +2479,21 @@ com.google.protobuf.ListValue defaultValue);
      */
     com.google.protobuf.ListValue getCapabilitiesOrThrow(
         java.lang.String key);
+
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     * @return Whether the a2a field is set.
+     */
+    boolean hasA2A();
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     * @return The a2a.
+     */
+    talon.manifests.Manifests.A2A getA2A();
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     */
+    talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder();
   }
   /**
    * Protobuf type {@code talon.manifests.AgentSpec}
@@ -2761,6 +2776,32 @@ com.google.protobuf.ListValue defaultValue) {
       return map.get(key);
     }
 
+    public static final int A2A_FIELD_NUMBER = 7;
+    private talon.manifests.Manifests.A2A a2A_;
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     * @return Whether the a2a field is set.
+     */
+    @java.lang.Override
+    public boolean hasA2A() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     * @return The a2a.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.A2A getA2A() {
+      return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
+    }
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder() {
+      return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -2793,6 +2834,9 @@ com.google.protobuf.ListValue defaultValue) {
           internalGetCapabilities(),
           CapabilitiesDefaultEntryHolder.defaultEntry,
           6);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(7, getA2A());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -2836,6 +2880,10 @@ com.google.protobuf.ListValue defaultValue) {
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(6, capabilities__);
       }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, getA2A());
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -2864,6 +2912,11 @@ com.google.protobuf.ListValue defaultValue) {
           .equals(other.getMcpServerRefsList())) return false;
       if (!internalGetCapabilities().equals(
           other.internalGetCapabilities())) return false;
+      if (hasA2A() != other.hasA2A()) return false;
+      if (hasA2A()) {
+        if (!getA2A()
+            .equals(other.getA2A())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -2892,6 +2945,10 @@ com.google.protobuf.ListValue defaultValue) {
       if (!internalGetCapabilities().getMap().isEmpty()) {
         hash = (37 * hash) + CAPABILITIES_FIELD_NUMBER;
         hash = (53 * hash) + internalGetCapabilities().hashCode();
+      }
+      if (hasA2A()) {
+        hash = (37 * hash) + A2A_FIELD_NUMBER;
+        hash = (53 * hash) + getA2A().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -3047,6 +3104,7 @@ com.google.protobuf.ListValue defaultValue) {
                 .alwaysUseFieldBuilders) {
           internalGetFeaturesFieldBuilder();
           internalGetModelPolicyFieldBuilder();
+          internalGetA2AFieldBuilder();
         }
       }
       @java.lang.Override
@@ -3069,6 +3127,11 @@ com.google.protobuf.ListValue defaultValue) {
         mcpServerRefs_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
         internalGetMutableCapabilities().clear();
+        a2A_ = null;
+        if (a2ABuilder_ != null) {
+          a2ABuilder_.dispose();
+          a2ABuilder_ = null;
+        }
         return this;
       }
 
@@ -3132,6 +3195,12 @@ com.google.protobuf.ListValue defaultValue) {
         if (((from_bitField0_ & 0x00000010) != 0)) {
           result.capabilities_ = internalGetCapabilities().build(CapabilitiesDefaultEntryHolder.defaultEntry);
         }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.a2A_ = a2ABuilder_ == null
+              ? a2A_
+              : a2ABuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -3194,6 +3263,9 @@ com.google.protobuf.ListValue defaultValue) {
         internalGetMutableCapabilities().mergeFrom(
             other.internalGetCapabilities());
         bitField0_ |= 0x00000010;
+        if (other.hasA2A()) {
+          mergeA2A(other.getA2A());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -3259,6 +3331,13 @@ com.google.protobuf.ListValue defaultValue) {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 50
+              case 58: {
+                input.readMessage(
+                    internalGetA2AFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 58
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -3973,6 +4052,127 @@ com.google.protobuf.ListValue defaultValue) {
           builderMap.put(key, entry);
         }
         return (com.google.protobuf.ListValue.Builder) entry;
+      }
+
+      private talon.manifests.Manifests.A2A a2A_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder> a2ABuilder_;
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       * @return Whether the a2a field is set.
+       */
+      public boolean hasA2A() {
+        return ((bitField0_ & 0x00000020) != 0);
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       * @return The a2a.
+       */
+      public talon.manifests.Manifests.A2A getA2A() {
+        if (a2ABuilder_ == null) {
+          return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
+        } else {
+          return a2ABuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public Builder setA2A(talon.manifests.Manifests.A2A value) {
+        if (a2ABuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          a2A_ = value;
+        } else {
+          a2ABuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public Builder setA2A(
+          talon.manifests.Manifests.A2A.Builder builderForValue) {
+        if (a2ABuilder_ == null) {
+          a2A_ = builderForValue.build();
+        } else {
+          a2ABuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public Builder mergeA2A(talon.manifests.Manifests.A2A value) {
+        if (a2ABuilder_ == null) {
+          if (((bitField0_ & 0x00000020) != 0) &&
+            a2A_ != null &&
+            a2A_ != talon.manifests.Manifests.A2A.getDefaultInstance()) {
+            getA2ABuilder().mergeFrom(value);
+          } else {
+            a2A_ = value;
+          }
+        } else {
+          a2ABuilder_.mergeFrom(value);
+        }
+        if (a2A_ != null) {
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public Builder clearA2A() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        a2A_ = null;
+        if (a2ABuilder_ != null) {
+          a2ABuilder_.dispose();
+          a2ABuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public talon.manifests.Manifests.A2A.Builder getA2ABuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return internalGetA2AFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder() {
+        if (a2ABuilder_ != null) {
+          return a2ABuilder_.getMessageOrBuilder();
+        } else {
+          return a2A_ == null ?
+              talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
+        }
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder>
+          internalGetA2AFieldBuilder() {
+        if (a2ABuilder_ == null) {
+          a2ABuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder>(
+                  getA2A(),
+                  getParentForChildren(),
+                  isClean());
+          a2A_ = null;
+        }
+        return a2ABuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.manifests.AgentSpec)
@@ -5717,6 +5917,21 @@ com.google.protobuf.ListValue defaultValue) {
      * <code>.talon.manifests.CapabilitiesPolicyDelta capabilities = 6;</code>
      */
     talon.manifests.Manifests.CapabilitiesPolicyDeltaOrBuilder getCapabilitiesOrBuilder();
+
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     * @return Whether the a2a field is set.
+     */
+    boolean hasA2A();
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     * @return The a2a.
+     */
+    talon.manifests.Manifests.A2A getA2A();
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     */
+    talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder();
   }
   /**
    * Protobuf type {@code talon.manifests.AgentSpecDelta}
@@ -5891,6 +6106,32 @@ com.google.protobuf.ListValue defaultValue) {
       return capabilities_ == null ? talon.manifests.Manifests.CapabilitiesPolicyDelta.getDefaultInstance() : capabilities_;
     }
 
+    public static final int A2A_FIELD_NUMBER = 7;
+    private talon.manifests.Manifests.A2A a2A_;
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     * @return Whether the a2a field is set.
+     */
+    @java.lang.Override
+    public boolean hasA2A() {
+      return ((bitField0_ & 0x00000020) != 0);
+    }
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     * @return The a2a.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.A2A getA2A() {
+      return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
+    }
+    /**
+     * <code>.talon.manifests.A2A a2a = 7;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder() {
+      return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -5920,6 +6161,9 @@ com.google.protobuf.ListValue defaultValue) {
       if (((bitField0_ & 0x00000010) != 0)) {
         output.writeMessage(6, getCapabilities());
       }
+      if (((bitField0_ & 0x00000020) != 0)) {
+        output.writeMessage(7, getA2A());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -5948,6 +6192,10 @@ com.google.protobuf.ListValue defaultValue) {
       if (((bitField0_ & 0x00000010) != 0)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(6, getCapabilities());
+      }
+      if (((bitField0_ & 0x00000020) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, getA2A());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -5989,6 +6237,11 @@ com.google.protobuf.ListValue defaultValue) {
         if (!getCapabilities()
             .equals(other.getCapabilities())) return false;
       }
+      if (hasA2A() != other.hasA2A()) return false;
+      if (hasA2A()) {
+        if (!getA2A()
+            .equals(other.getA2A())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -6019,6 +6272,10 @@ com.google.protobuf.ListValue defaultValue) {
       if (hasCapabilities()) {
         hash = (37 * hash) + CAPABILITIES_FIELD_NUMBER;
         hash = (53 * hash) + getCapabilities().hashCode();
+      }
+      if (hasA2A()) {
+        hash = (37 * hash) + A2A_FIELD_NUMBER;
+        hash = (53 * hash) + getA2A().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -6155,6 +6412,7 @@ com.google.protobuf.ListValue defaultValue) {
           internalGetFeaturesFieldBuilder();
           internalGetMcpServerRefsFieldBuilder();
           internalGetCapabilitiesFieldBuilder();
+          internalGetA2AFieldBuilder();
         }
       }
       @java.lang.Override
@@ -6185,6 +6443,11 @@ com.google.protobuf.ListValue defaultValue) {
         if (capabilitiesBuilder_ != null) {
           capabilitiesBuilder_.dispose();
           capabilitiesBuilder_ = null;
+        }
+        a2A_ = null;
+        if (a2ABuilder_ != null) {
+          a2ABuilder_.dispose();
+          a2ABuilder_ = null;
         }
         return this;
       }
@@ -6250,6 +6513,12 @@ com.google.protobuf.ListValue defaultValue) {
               : capabilitiesBuilder_.build();
           to_bitField0_ |= 0x00000010;
         }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.a2A_ = a2ABuilder_ == null
+              ? a2A_
+              : a2ABuilder_.build();
+          to_bitField0_ |= 0x00000020;
+        }
         result.bitField0_ |= to_bitField0_;
       }
 
@@ -6279,6 +6548,9 @@ com.google.protobuf.ListValue defaultValue) {
         }
         if (other.hasCapabilities()) {
           mergeCapabilities(other.getCapabilities());
+        }
+        if (other.hasA2A()) {
+          mergeA2A(other.getA2A());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -6341,6 +6613,13 @@ com.google.protobuf.ListValue defaultValue) {
                 bitField0_ |= 0x00000010;
                 break;
               } // case 50
+              case 58: {
+                input.readMessage(
+                    internalGetA2AFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 58
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -6961,6 +7240,127 @@ com.google.protobuf.ListValue defaultValue) {
           capabilities_ = null;
         }
         return capabilitiesBuilder_;
+      }
+
+      private talon.manifests.Manifests.A2A a2A_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder> a2ABuilder_;
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       * @return Whether the a2a field is set.
+       */
+      public boolean hasA2A() {
+        return ((bitField0_ & 0x00000020) != 0);
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       * @return The a2a.
+       */
+      public talon.manifests.Manifests.A2A getA2A() {
+        if (a2ABuilder_ == null) {
+          return a2A_ == null ? talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
+        } else {
+          return a2ABuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public Builder setA2A(talon.manifests.Manifests.A2A value) {
+        if (a2ABuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          a2A_ = value;
+        } else {
+          a2ABuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public Builder setA2A(
+          talon.manifests.Manifests.A2A.Builder builderForValue) {
+        if (a2ABuilder_ == null) {
+          a2A_ = builderForValue.build();
+        } else {
+          a2ABuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public Builder mergeA2A(talon.manifests.Manifests.A2A value) {
+        if (a2ABuilder_ == null) {
+          if (((bitField0_ & 0x00000020) != 0) &&
+            a2A_ != null &&
+            a2A_ != talon.manifests.Manifests.A2A.getDefaultInstance()) {
+            getA2ABuilder().mergeFrom(value);
+          } else {
+            a2A_ = value;
+          }
+        } else {
+          a2ABuilder_.mergeFrom(value);
+        }
+        if (a2A_ != null) {
+          bitField0_ |= 0x00000020;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public Builder clearA2A() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        a2A_ = null;
+        if (a2ABuilder_ != null) {
+          a2ABuilder_.dispose();
+          a2ABuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public talon.manifests.Manifests.A2A.Builder getA2ABuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return internalGetA2AFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      public talon.manifests.Manifests.A2AOrBuilder getA2AOrBuilder() {
+        if (a2ABuilder_ != null) {
+          return a2ABuilder_.getMessageOrBuilder();
+        } else {
+          return a2A_ == null ?
+              talon.manifests.Manifests.A2A.getDefaultInstance() : a2A_;
+        }
+      }
+      /**
+       * <code>.talon.manifests.A2A a2a = 7;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder>
+          internalGetA2AFieldBuilder() {
+        if (a2ABuilder_ == null) {
+          a2ABuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.A2A, talon.manifests.Manifests.A2A.Builder, talon.manifests.Manifests.A2AOrBuilder>(
+                  getA2A(),
+                  getParentForChildren(),
+                  isClean());
+          a2A_ = null;
+        }
+        return a2ABuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.manifests.AgentSpecDelta)
@@ -20210,6 +20610,9415 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface A2AOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.A2A)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    java.util.List<talon.manifests.Manifests.Connection>
+        getConnectionsList();
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    talon.manifests.Manifests.Connection getConnections(int index);
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    int getConnectionsCount();
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    java.util.List<? extends talon.manifests.Manifests.ConnectionOrBuilder>
+        getConnectionsOrBuilderList();
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    talon.manifests.Manifests.ConnectionOrBuilder getConnectionsOrBuilder(
+        int index);
+
+    /**
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     * @return Whether the agentCard field is set.
+     */
+    boolean hasAgentCard();
+    /**
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     * @return The agentCard.
+     */
+    talon.manifests.Manifests.AgentCard getAgentCard();
+    /**
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     */
+    talon.manifests.Manifests.AgentCardOrBuilder getAgentCardOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.A2A}
+   */
+  public static final class A2A extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.A2A)
+      A2AOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "A2A");
+    }
+    // Use A2A.newBuilder() to construct.
+    private A2A(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private A2A() {
+      connections_ = java.util.Collections.emptyList();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_A2A_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_A2A_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_A2A_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.A2A.class, talon.manifests.Manifests.A2A.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int CONNECTIONS_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.manifests.Manifests.Connection> connections_;
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.manifests.Manifests.Connection> getConnectionsList() {
+      return connections_;
+    }
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.manifests.Manifests.ConnectionOrBuilder>
+        getConnectionsOrBuilderList() {
+      return connections_;
+    }
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    @java.lang.Override
+    public int getConnectionsCount() {
+      return connections_.size();
+    }
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.Connection getConnections(int index) {
+      return connections_.get(index);
+    }
+    /**
+     * <code>repeated .talon.manifests.Connection connections = 1;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ConnectionOrBuilder getConnectionsOrBuilder(
+        int index) {
+      return connections_.get(index);
+    }
+
+    public static final int AGENT_CARD_FIELD_NUMBER = 2;
+    private talon.manifests.Manifests.AgentCard agentCard_;
+    /**
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     * @return Whether the agentCard field is set.
+     */
+    @java.lang.Override
+    public boolean hasAgentCard() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     * @return The agentCard.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCard getAgentCard() {
+      return agentCard_ == null ? talon.manifests.Manifests.AgentCard.getDefaultInstance() : agentCard_;
+    }
+    /**
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCardOrBuilder getAgentCardOrBuilder() {
+      return agentCard_ == null ? talon.manifests.Manifests.AgentCard.getDefaultInstance() : agentCard_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < connections_.size(); i++) {
+        output.writeMessage(1, connections_.get(i));
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(2, getAgentCard());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+
+          {
+            final int count = connections_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(connections_.get(i));
+            }
+            size += 1 * count;
+          }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getAgentCard());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.A2A)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.A2A other = (talon.manifests.Manifests.A2A) obj;
+
+      if (!getConnectionsList()
+          .equals(other.getConnectionsList())) return false;
+      if (hasAgentCard() != other.hasAgentCard()) return false;
+      if (hasAgentCard()) {
+        if (!getAgentCard()
+            .equals(other.getAgentCard())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getConnectionsCount() > 0) {
+        hash = (37 * hash) + CONNECTIONS_FIELD_NUMBER;
+        hash = (53 * hash) + getConnectionsList().hashCode();
+      }
+      if (hasAgentCard()) {
+        hash = (37 * hash) + AGENT_CARD_FIELD_NUMBER;
+        hash = (53 * hash) + getAgentCard().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.A2A parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.A2A parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.A2A parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.A2A parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.A2A prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.A2A}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.A2A)
+        talon.manifests.Manifests.A2AOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_A2A_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_A2A_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.A2A.class, talon.manifests.Manifests.A2A.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.A2A.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetConnectionsFieldBuilder();
+          internalGetAgentCardFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        if (connectionsBuilder_ == null) {
+          connections_ = java.util.Collections.emptyList();
+        } else {
+          connections_ = null;
+          connectionsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000001);
+        agentCard_ = null;
+        if (agentCardBuilder_ != null) {
+          agentCardBuilder_.dispose();
+          agentCardBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_A2A_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.A2A getDefaultInstanceForType() {
+        return talon.manifests.Manifests.A2A.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.A2A build() {
+        talon.manifests.Manifests.A2A result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.A2A buildPartial() {
+        talon.manifests.Manifests.A2A result = new talon.manifests.Manifests.A2A(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(talon.manifests.Manifests.A2A result) {
+        if (connectionsBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0)) {
+            connections_ = java.util.Collections.unmodifiableList(connections_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.connections_ = connections_;
+        } else {
+          result.connections_ = connectionsBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.A2A result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agentCard_ = agentCardBuilder_ == null
+              ? agentCard_
+              : agentCardBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.A2A) {
+          return mergeFrom((talon.manifests.Manifests.A2A)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.A2A other) {
+        if (other == talon.manifests.Manifests.A2A.getDefaultInstance()) return this;
+        if (connectionsBuilder_ == null) {
+          if (!other.connections_.isEmpty()) {
+            if (connections_.isEmpty()) {
+              connections_ = other.connections_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureConnectionsIsMutable();
+              connections_.addAll(other.connections_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.connections_.isEmpty()) {
+            if (connectionsBuilder_.isEmpty()) {
+              connectionsBuilder_.dispose();
+              connectionsBuilder_ = null;
+              connections_ = other.connections_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              connectionsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetConnectionsFieldBuilder() : null;
+            } else {
+              connectionsBuilder_.addAllMessages(other.connections_);
+            }
+          }
+        }
+        if (other.hasAgentCard()) {
+          mergeAgentCard(other.getAgentCard());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                talon.manifests.Manifests.Connection m =
+                    input.readMessage(
+                        talon.manifests.Manifests.Connection.parser(),
+                        extensionRegistry);
+                if (connectionsBuilder_ == null) {
+                  ensureConnectionsIsMutable();
+                  connections_.add(m);
+                } else {
+                  connectionsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetAgentCardFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<talon.manifests.Manifests.Connection> connections_ =
+        java.util.Collections.emptyList();
+      private void ensureConnectionsIsMutable() {
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          connections_ = new java.util.ArrayList<talon.manifests.Manifests.Connection>(connections_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.manifests.Manifests.Connection, talon.manifests.Manifests.Connection.Builder, talon.manifests.Manifests.ConnectionOrBuilder> connectionsBuilder_;
+
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public java.util.List<talon.manifests.Manifests.Connection> getConnectionsList() {
+        if (connectionsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(connections_);
+        } else {
+          return connectionsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public int getConnectionsCount() {
+        if (connectionsBuilder_ == null) {
+          return connections_.size();
+        } else {
+          return connectionsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public talon.manifests.Manifests.Connection getConnections(int index) {
+        if (connectionsBuilder_ == null) {
+          return connections_.get(index);
+        } else {
+          return connectionsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder setConnections(
+          int index, talon.manifests.Manifests.Connection value) {
+        if (connectionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConnectionsIsMutable();
+          connections_.set(index, value);
+          onChanged();
+        } else {
+          connectionsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder setConnections(
+          int index, talon.manifests.Manifests.Connection.Builder builderForValue) {
+        if (connectionsBuilder_ == null) {
+          ensureConnectionsIsMutable();
+          connections_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          connectionsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder addConnections(talon.manifests.Manifests.Connection value) {
+        if (connectionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConnectionsIsMutable();
+          connections_.add(value);
+          onChanged();
+        } else {
+          connectionsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder addConnections(
+          int index, talon.manifests.Manifests.Connection value) {
+        if (connectionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureConnectionsIsMutable();
+          connections_.add(index, value);
+          onChanged();
+        } else {
+          connectionsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder addConnections(
+          talon.manifests.Manifests.Connection.Builder builderForValue) {
+        if (connectionsBuilder_ == null) {
+          ensureConnectionsIsMutable();
+          connections_.add(builderForValue.build());
+          onChanged();
+        } else {
+          connectionsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder addConnections(
+          int index, talon.manifests.Manifests.Connection.Builder builderForValue) {
+        if (connectionsBuilder_ == null) {
+          ensureConnectionsIsMutable();
+          connections_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          connectionsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder addAllConnections(
+          java.lang.Iterable<? extends talon.manifests.Manifests.Connection> values) {
+        if (connectionsBuilder_ == null) {
+          ensureConnectionsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, connections_);
+          onChanged();
+        } else {
+          connectionsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder clearConnections() {
+        if (connectionsBuilder_ == null) {
+          connections_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          connectionsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public Builder removeConnections(int index) {
+        if (connectionsBuilder_ == null) {
+          ensureConnectionsIsMutable();
+          connections_.remove(index);
+          onChanged();
+        } else {
+          connectionsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public talon.manifests.Manifests.Connection.Builder getConnectionsBuilder(
+          int index) {
+        return internalGetConnectionsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public talon.manifests.Manifests.ConnectionOrBuilder getConnectionsOrBuilder(
+          int index) {
+        if (connectionsBuilder_ == null) {
+          return connections_.get(index);  } else {
+          return connectionsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public java.util.List<? extends talon.manifests.Manifests.ConnectionOrBuilder>
+           getConnectionsOrBuilderList() {
+        if (connectionsBuilder_ != null) {
+          return connectionsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(connections_);
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public talon.manifests.Manifests.Connection.Builder addConnectionsBuilder() {
+        return internalGetConnectionsFieldBuilder().addBuilder(
+            talon.manifests.Manifests.Connection.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public talon.manifests.Manifests.Connection.Builder addConnectionsBuilder(
+          int index) {
+        return internalGetConnectionsFieldBuilder().addBuilder(
+            index, talon.manifests.Manifests.Connection.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.manifests.Connection connections = 1;</code>
+       */
+      public java.util.List<talon.manifests.Manifests.Connection.Builder>
+           getConnectionsBuilderList() {
+        return internalGetConnectionsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.manifests.Manifests.Connection, talon.manifests.Manifests.Connection.Builder, talon.manifests.Manifests.ConnectionOrBuilder>
+          internalGetConnectionsFieldBuilder() {
+        if (connectionsBuilder_ == null) {
+          connectionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.manifests.Manifests.Connection, talon.manifests.Manifests.Connection.Builder, talon.manifests.Manifests.ConnectionOrBuilder>(
+                  connections_,
+                  ((bitField0_ & 0x00000001) != 0),
+                  getParentForChildren(),
+                  isClean());
+          connections_ = null;
+        }
+        return connectionsBuilder_;
+      }
+
+      private talon.manifests.Manifests.AgentCard agentCard_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.AgentCard, talon.manifests.Manifests.AgentCard.Builder, talon.manifests.Manifests.AgentCardOrBuilder> agentCardBuilder_;
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       * @return Whether the agentCard field is set.
+       */
+      public boolean hasAgentCard() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       * @return The agentCard.
+       */
+      public talon.manifests.Manifests.AgentCard getAgentCard() {
+        if (agentCardBuilder_ == null) {
+          return agentCard_ == null ? talon.manifests.Manifests.AgentCard.getDefaultInstance() : agentCard_;
+        } else {
+          return agentCardBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       */
+      public Builder setAgentCard(talon.manifests.Manifests.AgentCard value) {
+        if (agentCardBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          agentCard_ = value;
+        } else {
+          agentCardBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       */
+      public Builder setAgentCard(
+          talon.manifests.Manifests.AgentCard.Builder builderForValue) {
+        if (agentCardBuilder_ == null) {
+          agentCard_ = builderForValue.build();
+        } else {
+          agentCardBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       */
+      public Builder mergeAgentCard(talon.manifests.Manifests.AgentCard value) {
+        if (agentCardBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            agentCard_ != null &&
+            agentCard_ != talon.manifests.Manifests.AgentCard.getDefaultInstance()) {
+            getAgentCardBuilder().mergeFrom(value);
+          } else {
+            agentCard_ = value;
+          }
+        } else {
+          agentCardBuilder_.mergeFrom(value);
+        }
+        if (agentCard_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       */
+      public Builder clearAgentCard() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        agentCard_ = null;
+        if (agentCardBuilder_ != null) {
+          agentCardBuilder_.dispose();
+          agentCardBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       */
+      public talon.manifests.Manifests.AgentCard.Builder getAgentCardBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return internalGetAgentCardFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       */
+      public talon.manifests.Manifests.AgentCardOrBuilder getAgentCardOrBuilder() {
+        if (agentCardBuilder_ != null) {
+          return agentCardBuilder_.getMessageOrBuilder();
+        } else {
+          return agentCard_ == null ?
+              talon.manifests.Manifests.AgentCard.getDefaultInstance() : agentCard_;
+        }
+      }
+      /**
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.AgentCard, talon.manifests.Manifests.AgentCard.Builder, talon.manifests.Manifests.AgentCardOrBuilder>
+          internalGetAgentCardFieldBuilder() {
+        if (agentCardBuilder_ == null) {
+          agentCardBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.AgentCard, talon.manifests.Manifests.AgentCard.Builder, talon.manifests.Manifests.AgentCardOrBuilder>(
+                  getAgentCard(),
+                  getParentForChildren(),
+                  isClean());
+          agentCard_ = null;
+        }
+        return agentCardBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.A2A)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.A2A)
+    private static final talon.manifests.Manifests.A2A DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.A2A();
+    }
+
+    public static talon.manifests.Manifests.A2A getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<A2A>
+        PARSER = new com.google.protobuf.AbstractParser<A2A>() {
+      @java.lang.Override
+      public A2A parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<A2A> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<A2A> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.A2A getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ConnectionOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.Connection)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string name = 1;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <code>string name = 1;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>string description = 2;</code>
+     * @return The description.
+     */
+    java.lang.String getDescription();
+    /**
+     * <code>string description = 2;</code>
+     * @return The bytes for description.
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
+     * @return Whether the target field is set.
+     */
+    boolean hasTarget();
+    /**
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
+     * @return The target.
+     */
+    talon.manifests.Manifests.ConnectionRef getTarget();
+    /**
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
+     */
+    talon.manifests.Manifests.ConnectionRefOrBuilder getTargetOrBuilder();
+
+    /**
+     * <code>repeated string input_modes = 4;</code>
+     * @return A list containing the inputModes.
+     */
+    java.util.List<java.lang.String>
+        getInputModesList();
+    /**
+     * <code>repeated string input_modes = 4;</code>
+     * @return The count of inputModes.
+     */
+    int getInputModesCount();
+    /**
+     * <code>repeated string input_modes = 4;</code>
+     * @param index The index of the element to return.
+     * @return The inputModes at the given index.
+     */
+    java.lang.String getInputModes(int index);
+    /**
+     * <code>repeated string input_modes = 4;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the inputModes at the given index.
+     */
+    com.google.protobuf.ByteString
+        getInputModesBytes(int index);
+
+    /**
+     * <code>repeated string output_modes = 5;</code>
+     * @return A list containing the outputModes.
+     */
+    java.util.List<java.lang.String>
+        getOutputModesList();
+    /**
+     * <code>repeated string output_modes = 5;</code>
+     * @return The count of outputModes.
+     */
+    int getOutputModesCount();
+    /**
+     * <code>repeated string output_modes = 5;</code>
+     * @param index The index of the element to return.
+     * @return The outputModes at the given index.
+     */
+    java.lang.String getOutputModes(int index);
+    /**
+     * <code>repeated string output_modes = 5;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the outputModes at the given index.
+     */
+    com.google.protobuf.ByteString
+        getOutputModesBytes(int index);
+
+    /**
+     * <code>uint32 timeout_seconds = 6;</code>
+     * @return The timeoutSeconds.
+     */
+    int getTimeoutSeconds();
+
+    /**
+     * <code>uint32 max_depth = 7;</code>
+     * @return The maxDepth.
+     */
+    int getMaxDepth();
+
+    /**
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+     * @return Whether the auth field is set.
+     */
+    boolean hasAuth();
+    /**
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+     * @return The auth.
+     */
+    talon.manifests.Manifests.ConnectionAuth getAuth();
+    /**
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+     */
+    talon.manifests.Manifests.ConnectionAuthOrBuilder getAuthOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.Connection}
+   */
+  public static final class Connection extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.Connection)
+      ConnectionOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Connection");
+    }
+    // Use Connection.newBuilder() to construct.
+    private Connection(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Connection() {
+      name_ = "";
+      description_ = "";
+      inputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      outputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_Connection_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_Connection_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_Connection_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.Connection.class, talon.manifests.Manifests.Connection.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int NAME_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <code>string name = 1;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string name = 1;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object description_ = "";
+    /**
+     * <code>string description = 2;</code>
+     * @return The description.
+     */
+    @java.lang.Override
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        description_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string description = 2;</code>
+     * @return The bytes for description.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TARGET_FIELD_NUMBER = 3;
+    private talon.manifests.Manifests.ConnectionRef target_;
+    /**
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
+     * @return Whether the target field is set.
+     */
+    @java.lang.Override
+    public boolean hasTarget() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
+     * @return The target.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ConnectionRef getTarget() {
+      return target_ == null ? talon.manifests.Manifests.ConnectionRef.getDefaultInstance() : target_;
+    }
+    /**
+     * <code>.talon.manifests.ConnectionRef target = 3;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ConnectionRefOrBuilder getTargetOrBuilder() {
+      return target_ == null ? talon.manifests.Manifests.ConnectionRef.getDefaultInstance() : target_;
+    }
+
+    public static final int INPUT_MODES_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList inputModes_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string input_modes = 4;</code>
+     * @return A list containing the inputModes.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getInputModesList() {
+      return inputModes_;
+    }
+    /**
+     * <code>repeated string input_modes = 4;</code>
+     * @return The count of inputModes.
+     */
+    public int getInputModesCount() {
+      return inputModes_.size();
+    }
+    /**
+     * <code>repeated string input_modes = 4;</code>
+     * @param index The index of the element to return.
+     * @return The inputModes at the given index.
+     */
+    public java.lang.String getInputModes(int index) {
+      return inputModes_.get(index);
+    }
+    /**
+     * <code>repeated string input_modes = 4;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the inputModes at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getInputModesBytes(int index) {
+      return inputModes_.getByteString(index);
+    }
+
+    public static final int OUTPUT_MODES_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList outputModes_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string output_modes = 5;</code>
+     * @return A list containing the outputModes.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getOutputModesList() {
+      return outputModes_;
+    }
+    /**
+     * <code>repeated string output_modes = 5;</code>
+     * @return The count of outputModes.
+     */
+    public int getOutputModesCount() {
+      return outputModes_.size();
+    }
+    /**
+     * <code>repeated string output_modes = 5;</code>
+     * @param index The index of the element to return.
+     * @return The outputModes at the given index.
+     */
+    public java.lang.String getOutputModes(int index) {
+      return outputModes_.get(index);
+    }
+    /**
+     * <code>repeated string output_modes = 5;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the outputModes at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getOutputModesBytes(int index) {
+      return outputModes_.getByteString(index);
+    }
+
+    public static final int TIMEOUT_SECONDS_FIELD_NUMBER = 6;
+    private int timeoutSeconds_ = 0;
+    /**
+     * <code>uint32 timeout_seconds = 6;</code>
+     * @return The timeoutSeconds.
+     */
+    @java.lang.Override
+    public int getTimeoutSeconds() {
+      return timeoutSeconds_;
+    }
+
+    public static final int MAX_DEPTH_FIELD_NUMBER = 7;
+    private int maxDepth_ = 0;
+    /**
+     * <code>uint32 max_depth = 7;</code>
+     * @return The maxDepth.
+     */
+    @java.lang.Override
+    public int getMaxDepth() {
+      return maxDepth_;
+    }
+
+    public static final int AUTH_FIELD_NUMBER = 8;
+    private talon.manifests.Manifests.ConnectionAuth auth_;
+    /**
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+     * @return Whether the auth field is set.
+     */
+    @java.lang.Override
+    public boolean hasAuth() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+     * @return The auth.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ConnectionAuth getAuth() {
+      return auth_ == null ? talon.manifests.Manifests.ConnectionAuth.getDefaultInstance() : auth_;
+    }
+    /**
+     * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ConnectionAuthOrBuilder getAuthOrBuilder() {
+      return auth_ == null ? talon.manifests.Manifests.ConnectionAuth.getDefaultInstance() : auth_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, description_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(3, getTarget());
+      }
+      for (int i = 0; i < inputModes_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, inputModes_.getRaw(i));
+      }
+      for (int i = 0; i < outputModes_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, outputModes_.getRaw(i));
+      }
+      if (timeoutSeconds_ != 0) {
+        output.writeUInt32(6, timeoutSeconds_);
+      }
+      if (maxDepth_ != 0) {
+        output.writeUInt32(7, maxDepth_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(8, getAuth());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, description_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getTarget());
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < inputModes_.size(); i++) {
+          dataSize += computeStringSizeNoTag(inputModes_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getInputModesList().size();
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < outputModes_.size(); i++) {
+          dataSize += computeStringSizeNoTag(outputModes_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getOutputModesList().size();
+      }
+      if (timeoutSeconds_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(6, timeoutSeconds_);
+      }
+      if (maxDepth_ != 0) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt32Size(7, maxDepth_);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(8, getAuth());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.Connection)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.Connection other = (talon.manifests.Manifests.Connection) obj;
+
+      if (!getName()
+          .equals(other.getName())) return false;
+      if (!getDescription()
+          .equals(other.getDescription())) return false;
+      if (hasTarget() != other.hasTarget()) return false;
+      if (hasTarget()) {
+        if (!getTarget()
+            .equals(other.getTarget())) return false;
+      }
+      if (!getInputModesList()
+          .equals(other.getInputModesList())) return false;
+      if (!getOutputModesList()
+          .equals(other.getOutputModesList())) return false;
+      if (getTimeoutSeconds()
+          != other.getTimeoutSeconds()) return false;
+      if (getMaxDepth()
+          != other.getMaxDepth()) return false;
+      if (hasAuth() != other.hasAuth()) return false;
+      if (hasAuth()) {
+        if (!getAuth()
+            .equals(other.getAuth())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+      hash = (53 * hash) + getDescription().hashCode();
+      if (hasTarget()) {
+        hash = (37 * hash) + TARGET_FIELD_NUMBER;
+        hash = (53 * hash) + getTarget().hashCode();
+      }
+      if (getInputModesCount() > 0) {
+        hash = (37 * hash) + INPUT_MODES_FIELD_NUMBER;
+        hash = (53 * hash) + getInputModesList().hashCode();
+      }
+      if (getOutputModesCount() > 0) {
+        hash = (37 * hash) + OUTPUT_MODES_FIELD_NUMBER;
+        hash = (53 * hash) + getOutputModesList().hashCode();
+      }
+      hash = (37 * hash) + TIMEOUT_SECONDS_FIELD_NUMBER;
+      hash = (53 * hash) + getTimeoutSeconds();
+      hash = (37 * hash) + MAX_DEPTH_FIELD_NUMBER;
+      hash = (53 * hash) + getMaxDepth();
+      if (hasAuth()) {
+        hash = (37 * hash) + AUTH_FIELD_NUMBER;
+        hash = (53 * hash) + getAuth().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.Connection parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.Connection parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.Connection parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.Connection parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.Connection prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.Connection}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.Connection)
+        talon.manifests.Manifests.ConnectionOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_Connection_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_Connection_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.Connection.class, talon.manifests.Manifests.Connection.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.Connection.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetTargetFieldBuilder();
+          internalGetAuthFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        name_ = "";
+        description_ = "";
+        target_ = null;
+        if (targetBuilder_ != null) {
+          targetBuilder_.dispose();
+          targetBuilder_ = null;
+        }
+        inputModes_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        outputModes_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        timeoutSeconds_ = 0;
+        maxDepth_ = 0;
+        auth_ = null;
+        if (authBuilder_ != null) {
+          authBuilder_.dispose();
+          authBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_Connection_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.Connection getDefaultInstanceForType() {
+        return talon.manifests.Manifests.Connection.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.Connection build() {
+        talon.manifests.Manifests.Connection result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.Connection buildPartial() {
+        talon.manifests.Manifests.Connection result = new talon.manifests.Manifests.Connection(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.Connection result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.name_ = name_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.description_ = description_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.target_ = targetBuilder_ == null
+              ? target_
+              : targetBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          inputModes_.makeImmutable();
+          result.inputModes_ = inputModes_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          outputModes_.makeImmutable();
+          result.outputModes_ = outputModes_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.timeoutSeconds_ = timeoutSeconds_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.maxDepth_ = maxDepth_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          result.auth_ = authBuilder_ == null
+              ? auth_
+              : authBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.Connection) {
+          return mergeFrom((talon.manifests.Manifests.Connection)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.Connection other) {
+        if (other == talon.manifests.Manifests.Connection.getDefaultInstance()) return this;
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getDescription().isEmpty()) {
+          description_ = other.description_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (other.hasTarget()) {
+          mergeTarget(other.getTarget());
+        }
+        if (!other.inputModes_.isEmpty()) {
+          if (inputModes_.isEmpty()) {
+            inputModes_ = other.inputModes_;
+            bitField0_ |= 0x00000008;
+          } else {
+            ensureInputModesIsMutable();
+            inputModes_.addAll(other.inputModes_);
+          }
+          onChanged();
+        }
+        if (!other.outputModes_.isEmpty()) {
+          if (outputModes_.isEmpty()) {
+            outputModes_ = other.outputModes_;
+            bitField0_ |= 0x00000010;
+          } else {
+            ensureOutputModesIsMutable();
+            outputModes_.addAll(other.outputModes_);
+          }
+          onChanged();
+        }
+        if (other.getTimeoutSeconds() != 0) {
+          setTimeoutSeconds(other.getTimeoutSeconds());
+        }
+        if (other.getMaxDepth() != 0) {
+          setMaxDepth(other.getMaxDepth());
+        }
+        if (other.hasAuth()) {
+          mergeAuth(other.getAuth());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                description_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetTargetFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                ensureInputModesIsMutable();
+                inputModes_.add(input.readStringRequireUtf8());
+                break;
+              } // case 34
+              case 42: {
+                ensureOutputModesIsMutable();
+                outputModes_.add(input.readStringRequireUtf8());
+                break;
+              } // case 42
+              case 48: {
+                timeoutSeconds_ = input.readUInt32();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
+              case 56: {
+                maxDepth_ = input.readUInt32();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              case 66: {
+                input.readMessage(
+                    internalGetAuthFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000080;
+                break;
+              } // case 66
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>string name = 1;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object description_ = "";
+      /**
+       * <code>string description = 2;</code>
+       * @return The description.
+       */
+      public java.lang.String getDescription() {
+        java.lang.Object ref = description_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          description_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string description = 2;</code>
+       * @return The bytes for description.
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string description = 2;</code>
+       * @param value The description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescription(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        description_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDescription() {
+        description_ = getDefaultInstance().getDescription();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 2;</code>
+       * @param value The bytes for description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        description_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private talon.manifests.Manifests.ConnectionRef target_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.ConnectionRef, talon.manifests.Manifests.ConnectionRef.Builder, talon.manifests.Manifests.ConnectionRefOrBuilder> targetBuilder_;
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       * @return Whether the target field is set.
+       */
+      public boolean hasTarget() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       * @return The target.
+       */
+      public talon.manifests.Manifests.ConnectionRef getTarget() {
+        if (targetBuilder_ == null) {
+          return target_ == null ? talon.manifests.Manifests.ConnectionRef.getDefaultInstance() : target_;
+        } else {
+          return targetBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       */
+      public Builder setTarget(talon.manifests.Manifests.ConnectionRef value) {
+        if (targetBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          target_ = value;
+        } else {
+          targetBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       */
+      public Builder setTarget(
+          talon.manifests.Manifests.ConnectionRef.Builder builderForValue) {
+        if (targetBuilder_ == null) {
+          target_ = builderForValue.build();
+        } else {
+          targetBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       */
+      public Builder mergeTarget(talon.manifests.Manifests.ConnectionRef value) {
+        if (targetBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            target_ != null &&
+            target_ != talon.manifests.Manifests.ConnectionRef.getDefaultInstance()) {
+            getTargetBuilder().mergeFrom(value);
+          } else {
+            target_ = value;
+          }
+        } else {
+          targetBuilder_.mergeFrom(value);
+        }
+        if (target_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       */
+      public Builder clearTarget() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        target_ = null;
+        if (targetBuilder_ != null) {
+          targetBuilder_.dispose();
+          targetBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       */
+      public talon.manifests.Manifests.ConnectionRef.Builder getTargetBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetTargetFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       */
+      public talon.manifests.Manifests.ConnectionRefOrBuilder getTargetOrBuilder() {
+        if (targetBuilder_ != null) {
+          return targetBuilder_.getMessageOrBuilder();
+        } else {
+          return target_ == null ?
+              talon.manifests.Manifests.ConnectionRef.getDefaultInstance() : target_;
+        }
+      }
+      /**
+       * <code>.talon.manifests.ConnectionRef target = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.ConnectionRef, talon.manifests.Manifests.ConnectionRef.Builder, talon.manifests.Manifests.ConnectionRefOrBuilder>
+          internalGetTargetFieldBuilder() {
+        if (targetBuilder_ == null) {
+          targetBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.ConnectionRef, talon.manifests.Manifests.ConnectionRef.Builder, talon.manifests.Manifests.ConnectionRefOrBuilder>(
+                  getTarget(),
+                  getParentForChildren(),
+                  isClean());
+          target_ = null;
+        }
+        return targetBuilder_;
+      }
+
+      private com.google.protobuf.LazyStringArrayList inputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureInputModesIsMutable() {
+        if (!inputModes_.isModifiable()) {
+          inputModes_ = new com.google.protobuf.LazyStringArrayList(inputModes_);
+        }
+        bitField0_ |= 0x00000008;
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @return A list containing the inputModes.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getInputModesList() {
+        inputModes_.makeImmutable();
+        return inputModes_;
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @return The count of inputModes.
+       */
+      public int getInputModesCount() {
+        return inputModes_.size();
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @param index The index of the element to return.
+       * @return The inputModes at the given index.
+       */
+      public java.lang.String getInputModes(int index) {
+        return inputModes_.get(index);
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the inputModes at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getInputModesBytes(int index) {
+        return inputModes_.getByteString(index);
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @param index The index to set the value at.
+       * @param value The inputModes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputModes(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureInputModesIsMutable();
+        inputModes_.set(index, value);
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @param value The inputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addInputModes(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureInputModesIsMutable();
+        inputModes_.add(value);
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @param values The inputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllInputModes(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureInputModesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, inputModes_);
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputModes() {
+        inputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string input_modes = 4;</code>
+       * @param value The bytes of the inputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addInputModesBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureInputModesIsMutable();
+        inputModes_.add(value);
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList outputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureOutputModesIsMutable() {
+        if (!outputModes_.isModifiable()) {
+          outputModes_ = new com.google.protobuf.LazyStringArrayList(outputModes_);
+        }
+        bitField0_ |= 0x00000010;
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @return A list containing the outputModes.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getOutputModesList() {
+        outputModes_.makeImmutable();
+        return outputModes_;
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @return The count of outputModes.
+       */
+      public int getOutputModesCount() {
+        return outputModes_.size();
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @param index The index of the element to return.
+       * @return The outputModes at the given index.
+       */
+      public java.lang.String getOutputModes(int index) {
+        return outputModes_.get(index);
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the outputModes at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getOutputModesBytes(int index) {
+        return outputModes_.getByteString(index);
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @param index The index to set the value at.
+       * @param value The outputModes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputModes(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOutputModesIsMutable();
+        outputModes_.set(index, value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @param value The outputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOutputModes(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOutputModesIsMutable();
+        outputModes_.add(value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @param values The outputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllOutputModes(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureOutputModesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, outputModes_);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputModes() {
+        outputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000010);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string output_modes = 5;</code>
+       * @param value The bytes of the outputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOutputModesBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureOutputModesIsMutable();
+        outputModes_.add(value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private int timeoutSeconds_ ;
+      /**
+       * <code>uint32 timeout_seconds = 6;</code>
+       * @return The timeoutSeconds.
+       */
+      @java.lang.Override
+      public int getTimeoutSeconds() {
+        return timeoutSeconds_;
+      }
+      /**
+       * <code>uint32 timeout_seconds = 6;</code>
+       * @param value The timeoutSeconds to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTimeoutSeconds(int value) {
+
+        timeoutSeconds_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 timeout_seconds = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTimeoutSeconds() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        timeoutSeconds_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int maxDepth_ ;
+      /**
+       * <code>uint32 max_depth = 7;</code>
+       * @return The maxDepth.
+       */
+      @java.lang.Override
+      public int getMaxDepth() {
+        return maxDepth_;
+      }
+      /**
+       * <code>uint32 max_depth = 7;</code>
+       * @param value The maxDepth to set.
+       * @return This builder for chaining.
+       */
+      public Builder setMaxDepth(int value) {
+
+        maxDepth_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint32 max_depth = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearMaxDepth() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        maxDepth_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private talon.manifests.Manifests.ConnectionAuth auth_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.ConnectionAuth, talon.manifests.Manifests.ConnectionAuth.Builder, talon.manifests.Manifests.ConnectionAuthOrBuilder> authBuilder_;
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       * @return Whether the auth field is set.
+       */
+      public boolean hasAuth() {
+        return ((bitField0_ & 0x00000080) != 0);
+      }
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       * @return The auth.
+       */
+      public talon.manifests.Manifests.ConnectionAuth getAuth() {
+        if (authBuilder_ == null) {
+          return auth_ == null ? talon.manifests.Manifests.ConnectionAuth.getDefaultInstance() : auth_;
+        } else {
+          return authBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       */
+      public Builder setAuth(talon.manifests.Manifests.ConnectionAuth value) {
+        if (authBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          auth_ = value;
+        } else {
+          authBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       */
+      public Builder setAuth(
+          talon.manifests.Manifests.ConnectionAuth.Builder builderForValue) {
+        if (authBuilder_ == null) {
+          auth_ = builderForValue.build();
+        } else {
+          authBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       */
+      public Builder mergeAuth(talon.manifests.Manifests.ConnectionAuth value) {
+        if (authBuilder_ == null) {
+          if (((bitField0_ & 0x00000080) != 0) &&
+            auth_ != null &&
+            auth_ != talon.manifests.Manifests.ConnectionAuth.getDefaultInstance()) {
+            getAuthBuilder().mergeFrom(value);
+          } else {
+            auth_ = value;
+          }
+        } else {
+          authBuilder_.mergeFrom(value);
+        }
+        if (auth_ != null) {
+          bitField0_ |= 0x00000080;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       */
+      public Builder clearAuth() {
+        bitField0_ = (bitField0_ & ~0x00000080);
+        auth_ = null;
+        if (authBuilder_ != null) {
+          authBuilder_.dispose();
+          authBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       */
+      public talon.manifests.Manifests.ConnectionAuth.Builder getAuthBuilder() {
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return internalGetAuthFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       */
+      public talon.manifests.Manifests.ConnectionAuthOrBuilder getAuthOrBuilder() {
+        if (authBuilder_ != null) {
+          return authBuilder_.getMessageOrBuilder();
+        } else {
+          return auth_ == null ?
+              talon.manifests.Manifests.ConnectionAuth.getDefaultInstance() : auth_;
+        }
+      }
+      /**
+       * <code>.talon.manifests.ConnectionAuth auth = 8;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.ConnectionAuth, talon.manifests.Manifests.ConnectionAuth.Builder, talon.manifests.Manifests.ConnectionAuthOrBuilder>
+          internalGetAuthFieldBuilder() {
+        if (authBuilder_ == null) {
+          authBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.ConnectionAuth, talon.manifests.Manifests.ConnectionAuth.Builder, talon.manifests.Manifests.ConnectionAuthOrBuilder>(
+                  getAuth(),
+                  getParentForChildren(),
+                  isClean());
+          auth_ = null;
+        }
+        return authBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.Connection)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.Connection)
+    private static final talon.manifests.Manifests.Connection DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.Connection();
+    }
+
+    public static talon.manifests.Manifests.Connection getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Connection>
+        PARSER = new com.google.protobuf.AbstractParser<Connection>() {
+      @java.lang.Override
+      public Connection parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Connection> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Connection> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.Connection getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ConnectionRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.ConnectionRef)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+     * @return Whether the internal field is set.
+     */
+    boolean hasInternal();
+    /**
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+     * @return The internal.
+     */
+    talon.manifests.Manifests.InternalConnectionRef getInternal();
+    /**
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+     */
+    talon.manifests.Manifests.InternalConnectionRefOrBuilder getInternalOrBuilder();
+
+    /**
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+     * @return Whether the external field is set.
+     */
+    boolean hasExternal();
+    /**
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+     * @return The external.
+     */
+    talon.manifests.Manifests.ExternalConnectionRef getExternal();
+    /**
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+     */
+    talon.manifests.Manifests.ExternalConnectionRefOrBuilder getExternalOrBuilder();
+
+    talon.manifests.Manifests.ConnectionRef.TargetCase getTargetCase();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.ConnectionRef}
+   */
+  public static final class ConnectionRef extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.ConnectionRef)
+      ConnectionRefOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ConnectionRef");
+    }
+    // Use ConnectionRef.newBuilder() to construct.
+    private ConnectionRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ConnectionRef() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.ConnectionRef.class, talon.manifests.Manifests.ConnectionRef.Builder.class);
+    }
+
+    private int targetCase_ = 0;
+    @SuppressWarnings("serial")
+    private java.lang.Object target_;
+    public enum TargetCase
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
+      INTERNAL(1),
+      EXTERNAL(2),
+      TARGET_NOT_SET(0);
+      private final int value;
+      private TargetCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static TargetCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static TargetCase forNumber(int value) {
+        switch (value) {
+          case 1: return INTERNAL;
+          case 2: return EXTERNAL;
+          case 0: return TARGET_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public TargetCase
+    getTargetCase() {
+      return TargetCase.forNumber(
+          targetCase_);
+    }
+
+    public static final int INTERNAL_FIELD_NUMBER = 1;
+    /**
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+     * @return Whether the internal field is set.
+     */
+    @java.lang.Override
+    public boolean hasInternal() {
+      return targetCase_ == 1;
+    }
+    /**
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+     * @return The internal.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.InternalConnectionRef getInternal() {
+      if (targetCase_ == 1) {
+         return (talon.manifests.Manifests.InternalConnectionRef) target_;
+      }
+      return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.InternalConnectionRefOrBuilder getInternalOrBuilder() {
+      if (targetCase_ == 1) {
+         return (talon.manifests.Manifests.InternalConnectionRef) target_;
+      }
+      return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
+    }
+
+    public static final int EXTERNAL_FIELD_NUMBER = 2;
+    /**
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+     * @return Whether the external field is set.
+     */
+    @java.lang.Override
+    public boolean hasExternal() {
+      return targetCase_ == 2;
+    }
+    /**
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+     * @return The external.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ExternalConnectionRef getExternal() {
+      if (targetCase_ == 2) {
+         return (talon.manifests.Manifests.ExternalConnectionRef) target_;
+      }
+      return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
+    }
+    /**
+     * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.ExternalConnectionRefOrBuilder getExternalOrBuilder() {
+      if (targetCase_ == 2) {
+         return (talon.manifests.Manifests.ExternalConnectionRef) target_;
+      }
+      return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (targetCase_ == 1) {
+        output.writeMessage(1, (talon.manifests.Manifests.InternalConnectionRef) target_);
+      }
+      if (targetCase_ == 2) {
+        output.writeMessage(2, (talon.manifests.Manifests.ExternalConnectionRef) target_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (targetCase_ == 1) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, (talon.manifests.Manifests.InternalConnectionRef) target_);
+      }
+      if (targetCase_ == 2) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, (talon.manifests.Manifests.ExternalConnectionRef) target_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.ConnectionRef)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.ConnectionRef other = (talon.manifests.Manifests.ConnectionRef) obj;
+
+      if (!getTargetCase().equals(other.getTargetCase())) return false;
+      switch (targetCase_) {
+        case 1:
+          if (!getInternal()
+              .equals(other.getInternal())) return false;
+          break;
+        case 2:
+          if (!getExternal()
+              .equals(other.getExternal())) return false;
+          break;
+        case 0:
+        default:
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      switch (targetCase_) {
+        case 1:
+          hash = (37 * hash) + INTERNAL_FIELD_NUMBER;
+          hash = (53 * hash) + getInternal().hashCode();
+          break;
+        case 2:
+          hash = (37 * hash) + EXTERNAL_FIELD_NUMBER;
+          hash = (53 * hash) + getExternal().hashCode();
+          break;
+        case 0:
+        default:
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.ConnectionRef parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.ConnectionRef parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.ConnectionRef parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.ConnectionRef prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.ConnectionRef}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.ConnectionRef)
+        talon.manifests.Manifests.ConnectionRefOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.ConnectionRef.class, talon.manifests.Manifests.ConnectionRef.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.ConnectionRef.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        if (internalBuilder_ != null) {
+          internalBuilder_.clear();
+        }
+        if (externalBuilder_ != null) {
+          externalBuilder_.clear();
+        }
+        targetCase_ = 0;
+        target_ = null;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionRef_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ConnectionRef getDefaultInstanceForType() {
+        return talon.manifests.Manifests.ConnectionRef.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ConnectionRef build() {
+        talon.manifests.Manifests.ConnectionRef result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ConnectionRef buildPartial() {
+        talon.manifests.Manifests.ConnectionRef result = new talon.manifests.Manifests.ConnectionRef(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        buildPartialOneofs(result);
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.ConnectionRef result) {
+        int from_bitField0_ = bitField0_;
+      }
+
+      private void buildPartialOneofs(talon.manifests.Manifests.ConnectionRef result) {
+        result.targetCase_ = targetCase_;
+        result.target_ = this.target_;
+        if (targetCase_ == 1 &&
+            internalBuilder_ != null) {
+          result.target_ = internalBuilder_.build();
+        }
+        if (targetCase_ == 2 &&
+            externalBuilder_ != null) {
+          result.target_ = externalBuilder_.build();
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.ConnectionRef) {
+          return mergeFrom((talon.manifests.Manifests.ConnectionRef)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.ConnectionRef other) {
+        if (other == talon.manifests.Manifests.ConnectionRef.getDefaultInstance()) return this;
+        switch (other.getTargetCase()) {
+          case INTERNAL: {
+            mergeInternal(other.getInternal());
+            break;
+          }
+          case EXTERNAL: {
+            mergeExternal(other.getExternal());
+            break;
+          }
+          case TARGET_NOT_SET: {
+            break;
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetInternalFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                targetCase_ = 1;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetExternalFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                targetCase_ = 2;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int targetCase_ = 0;
+      private java.lang.Object target_;
+      public TargetCase
+          getTargetCase() {
+        return TargetCase.forNumber(
+            targetCase_);
+      }
+
+      public Builder clearTarget() {
+        targetCase_ = 0;
+        target_ = null;
+        onChanged();
+        return this;
+      }
+
+      private int bitField0_;
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.InternalConnectionRef, talon.manifests.Manifests.InternalConnectionRef.Builder, talon.manifests.Manifests.InternalConnectionRefOrBuilder> internalBuilder_;
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       * @return Whether the internal field is set.
+       */
+      @java.lang.Override
+      public boolean hasInternal() {
+        return targetCase_ == 1;
+      }
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       * @return The internal.
+       */
+      @java.lang.Override
+      public talon.manifests.Manifests.InternalConnectionRef getInternal() {
+        if (internalBuilder_ == null) {
+          if (targetCase_ == 1) {
+            return (talon.manifests.Manifests.InternalConnectionRef) target_;
+          }
+          return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
+        } else {
+          if (targetCase_ == 1) {
+            return internalBuilder_.getMessage();
+          }
+          return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       */
+      public Builder setInternal(talon.manifests.Manifests.InternalConnectionRef value) {
+        if (internalBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          target_ = value;
+          onChanged();
+        } else {
+          internalBuilder_.setMessage(value);
+        }
+        targetCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       */
+      public Builder setInternal(
+          talon.manifests.Manifests.InternalConnectionRef.Builder builderForValue) {
+        if (internalBuilder_ == null) {
+          target_ = builderForValue.build();
+          onChanged();
+        } else {
+          internalBuilder_.setMessage(builderForValue.build());
+        }
+        targetCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       */
+      public Builder mergeInternal(talon.manifests.Manifests.InternalConnectionRef value) {
+        if (internalBuilder_ == null) {
+          if (targetCase_ == 1 &&
+              target_ != talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance()) {
+            target_ = talon.manifests.Manifests.InternalConnectionRef.newBuilder((talon.manifests.Manifests.InternalConnectionRef) target_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            target_ = value;
+          }
+          onChanged();
+        } else {
+          if (targetCase_ == 1) {
+            internalBuilder_.mergeFrom(value);
+          } else {
+            internalBuilder_.setMessage(value);
+          }
+        }
+        targetCase_ = 1;
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       */
+      public Builder clearInternal() {
+        if (internalBuilder_ == null) {
+          if (targetCase_ == 1) {
+            targetCase_ = 0;
+            target_ = null;
+            onChanged();
+          }
+        } else {
+          if (targetCase_ == 1) {
+            targetCase_ = 0;
+            target_ = null;
+          }
+          internalBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       */
+      public talon.manifests.Manifests.InternalConnectionRef.Builder getInternalBuilder() {
+        return internalGetInternalFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       */
+      @java.lang.Override
+      public talon.manifests.Manifests.InternalConnectionRefOrBuilder getInternalOrBuilder() {
+        if ((targetCase_ == 1) && (internalBuilder_ != null)) {
+          return internalBuilder_.getMessageOrBuilder();
+        } else {
+          if (targetCase_ == 1) {
+            return (talon.manifests.Manifests.InternalConnectionRef) target_;
+          }
+          return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.manifests.InternalConnectionRef internal = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.InternalConnectionRef, talon.manifests.Manifests.InternalConnectionRef.Builder, talon.manifests.Manifests.InternalConnectionRefOrBuilder>
+          internalGetInternalFieldBuilder() {
+        if (internalBuilder_ == null) {
+          if (!(targetCase_ == 1)) {
+            target_ = talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
+          }
+          internalBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.InternalConnectionRef, talon.manifests.Manifests.InternalConnectionRef.Builder, talon.manifests.Manifests.InternalConnectionRefOrBuilder>(
+                  (talon.manifests.Manifests.InternalConnectionRef) target_,
+                  getParentForChildren(),
+                  isClean());
+          target_ = null;
+        }
+        targetCase_ = 1;
+        onChanged();
+        return internalBuilder_;
+      }
+
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.ExternalConnectionRef, talon.manifests.Manifests.ExternalConnectionRef.Builder, talon.manifests.Manifests.ExternalConnectionRefOrBuilder> externalBuilder_;
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       * @return Whether the external field is set.
+       */
+      @java.lang.Override
+      public boolean hasExternal() {
+        return targetCase_ == 2;
+      }
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       * @return The external.
+       */
+      @java.lang.Override
+      public talon.manifests.Manifests.ExternalConnectionRef getExternal() {
+        if (externalBuilder_ == null) {
+          if (targetCase_ == 2) {
+            return (talon.manifests.Manifests.ExternalConnectionRef) target_;
+          }
+          return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
+        } else {
+          if (targetCase_ == 2) {
+            return externalBuilder_.getMessage();
+          }
+          return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       */
+      public Builder setExternal(talon.manifests.Manifests.ExternalConnectionRef value) {
+        if (externalBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          target_ = value;
+          onChanged();
+        } else {
+          externalBuilder_.setMessage(value);
+        }
+        targetCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       */
+      public Builder setExternal(
+          talon.manifests.Manifests.ExternalConnectionRef.Builder builderForValue) {
+        if (externalBuilder_ == null) {
+          target_ = builderForValue.build();
+          onChanged();
+        } else {
+          externalBuilder_.setMessage(builderForValue.build());
+        }
+        targetCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       */
+      public Builder mergeExternal(talon.manifests.Manifests.ExternalConnectionRef value) {
+        if (externalBuilder_ == null) {
+          if (targetCase_ == 2 &&
+              target_ != talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance()) {
+            target_ = talon.manifests.Manifests.ExternalConnectionRef.newBuilder((talon.manifests.Manifests.ExternalConnectionRef) target_)
+                .mergeFrom(value).buildPartial();
+          } else {
+            target_ = value;
+          }
+          onChanged();
+        } else {
+          if (targetCase_ == 2) {
+            externalBuilder_.mergeFrom(value);
+          } else {
+            externalBuilder_.setMessage(value);
+          }
+        }
+        targetCase_ = 2;
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       */
+      public Builder clearExternal() {
+        if (externalBuilder_ == null) {
+          if (targetCase_ == 2) {
+            targetCase_ = 0;
+            target_ = null;
+            onChanged();
+          }
+        } else {
+          if (targetCase_ == 2) {
+            targetCase_ = 0;
+            target_ = null;
+          }
+          externalBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       */
+      public talon.manifests.Manifests.ExternalConnectionRef.Builder getExternalBuilder() {
+        return internalGetExternalFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       */
+      @java.lang.Override
+      public talon.manifests.Manifests.ExternalConnectionRefOrBuilder getExternalOrBuilder() {
+        if ((targetCase_ == 2) && (externalBuilder_ != null)) {
+          return externalBuilder_.getMessageOrBuilder();
+        } else {
+          if (targetCase_ == 2) {
+            return (talon.manifests.Manifests.ExternalConnectionRef) target_;
+          }
+          return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
+        }
+      }
+      /**
+       * <code>.talon.manifests.ExternalConnectionRef external = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.ExternalConnectionRef, talon.manifests.Manifests.ExternalConnectionRef.Builder, talon.manifests.Manifests.ExternalConnectionRefOrBuilder>
+          internalGetExternalFieldBuilder() {
+        if (externalBuilder_ == null) {
+          if (!(targetCase_ == 2)) {
+            target_ = talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
+          }
+          externalBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.ExternalConnectionRef, talon.manifests.Manifests.ExternalConnectionRef.Builder, talon.manifests.Manifests.ExternalConnectionRefOrBuilder>(
+                  (talon.manifests.Manifests.ExternalConnectionRef) target_,
+                  getParentForChildren(),
+                  isClean());
+          target_ = null;
+        }
+        targetCase_ = 2;
+        onChanged();
+        return externalBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.ConnectionRef)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.ConnectionRef)
+    private static final talon.manifests.Manifests.ConnectionRef DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.ConnectionRef();
+    }
+
+    public static talon.manifests.Manifests.ConnectionRef getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ConnectionRef>
+        PARSER = new com.google.protobuf.AbstractParser<ConnectionRef>() {
+      @java.lang.Override
+      public ConnectionRef parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ConnectionRef> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ConnectionRef> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.ConnectionRef getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface InternalConnectionRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.InternalConnectionRef)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    java.lang.String getAgent();
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    com.google.protobuf.ByteString
+        getAgentBytes();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.InternalConnectionRef}
+   */
+  public static final class InternalConnectionRef extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.InternalConnectionRef)
+      InternalConnectionRefOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "InternalConnectionRef");
+    }
+    // Use InternalConnectionRef.newBuilder() to construct.
+    private InternalConnectionRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private InternalConnectionRef() {
+      namespace_ = "";
+      agent_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.InternalConnectionRef.class, talon.manifests.Manifests.InternalConnectionRef.Builder.class);
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int AGENT_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agent_ = "";
+    /**
+     * <code>string agent = 2;</code>
+     * @return The agent.
+     */
+    @java.lang.Override
+    public java.lang.String getAgent() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agent_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent = 2;</code>
+     * @return The bytes for agent.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentBytes() {
+      java.lang.Object ref = agent_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agent_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, agent_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agent_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, agent_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.InternalConnectionRef)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.InternalConnectionRef other = (talon.manifests.Manifests.InternalConnectionRef) obj;
+
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getAgent()
+          .equals(other.getAgent())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + AGENT_FIELD_NUMBER;
+      hash = (53 * hash) + getAgent().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.InternalConnectionRef parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.InternalConnectionRef parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.InternalConnectionRef parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.InternalConnectionRef prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.InternalConnectionRef}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.InternalConnectionRef)
+        talon.manifests.Manifests.InternalConnectionRefOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.InternalConnectionRef.class, talon.manifests.Manifests.InternalConnectionRef.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.InternalConnectionRef.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        namespace_ = "";
+        agent_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_InternalConnectionRef_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.InternalConnectionRef getDefaultInstanceForType() {
+        return talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.InternalConnectionRef build() {
+        talon.manifests.Manifests.InternalConnectionRef result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.InternalConnectionRef buildPartial() {
+        talon.manifests.Manifests.InternalConnectionRef result = new talon.manifests.Manifests.InternalConnectionRef(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.InternalConnectionRef result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.agent_ = agent_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.InternalConnectionRef) {
+          return mergeFrom((talon.manifests.Manifests.InternalConnectionRef)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.InternalConnectionRef other) {
+        if (other == talon.manifests.Manifests.InternalConnectionRef.getDefaultInstance()) return this;
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getAgent().isEmpty()) {
+          agent_ = other.agent_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                agent_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object agent_ = "";
+      /**
+       * <code>string agent = 2;</code>
+       * @return The agent.
+       */
+      public java.lang.String getAgent() {
+        java.lang.Object ref = agent_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agent_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return The bytes for agent.
+       */
+      public com.google.protobuf.ByteString
+          getAgentBytes() {
+        java.lang.Object ref = agent_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agent_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgent(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgent() {
+        agent_ = getDefaultInstance().getAgent();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent = 2;</code>
+       * @param value The bytes for agent to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agent_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.InternalConnectionRef)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.InternalConnectionRef)
+    private static final talon.manifests.Manifests.InternalConnectionRef DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.InternalConnectionRef();
+    }
+
+    public static talon.manifests.Manifests.InternalConnectionRef getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<InternalConnectionRef>
+        PARSER = new com.google.protobuf.AbstractParser<InternalConnectionRef>() {
+      @java.lang.Override
+      public InternalConnectionRef parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<InternalConnectionRef> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<InternalConnectionRef> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.InternalConnectionRef getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ExternalConnectionRefOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.ExternalConnectionRef)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string agent_card_url = 1;</code>
+     * @return The agentCardUrl.
+     */
+    java.lang.String getAgentCardUrl();
+    /**
+     * <code>string agent_card_url = 1;</code>
+     * @return The bytes for agentCardUrl.
+     */
+    com.google.protobuf.ByteString
+        getAgentCardUrlBytes();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.ExternalConnectionRef}
+   */
+  public static final class ExternalConnectionRef extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.ExternalConnectionRef)
+      ExternalConnectionRefOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ExternalConnectionRef");
+    }
+    // Use ExternalConnectionRef.newBuilder() to construct.
+    private ExternalConnectionRef(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ExternalConnectionRef() {
+      agentCardUrl_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.ExternalConnectionRef.class, talon.manifests.Manifests.ExternalConnectionRef.Builder.class);
+    }
+
+    public static final int AGENT_CARD_URL_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object agentCardUrl_ = "";
+    /**
+     * <code>string agent_card_url = 1;</code>
+     * @return The agentCardUrl.
+     */
+    @java.lang.Override
+    public java.lang.String getAgentCardUrl() {
+      java.lang.Object ref = agentCardUrl_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        agentCardUrl_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string agent_card_url = 1;</code>
+     * @return The bytes for agentCardUrl.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getAgentCardUrlBytes() {
+      java.lang.Object ref = agentCardUrl_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        agentCardUrl_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agentCardUrl_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, agentCardUrl_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(agentCardUrl_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, agentCardUrl_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.ExternalConnectionRef)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.ExternalConnectionRef other = (talon.manifests.Manifests.ExternalConnectionRef) obj;
+
+      if (!getAgentCardUrl()
+          .equals(other.getAgentCardUrl())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + AGENT_CARD_URL_FIELD_NUMBER;
+      hash = (53 * hash) + getAgentCardUrl().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.ExternalConnectionRef parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.ExternalConnectionRef parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.ExternalConnectionRef parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.ExternalConnectionRef prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.ExternalConnectionRef}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.ExternalConnectionRef)
+        talon.manifests.Manifests.ExternalConnectionRefOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.ExternalConnectionRef.class, talon.manifests.Manifests.ExternalConnectionRef.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.ExternalConnectionRef.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        agentCardUrl_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ExternalConnectionRef_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ExternalConnectionRef getDefaultInstanceForType() {
+        return talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ExternalConnectionRef build() {
+        talon.manifests.Manifests.ExternalConnectionRef result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ExternalConnectionRef buildPartial() {
+        talon.manifests.Manifests.ExternalConnectionRef result = new talon.manifests.Manifests.ExternalConnectionRef(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.ExternalConnectionRef result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.agentCardUrl_ = agentCardUrl_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.ExternalConnectionRef) {
+          return mergeFrom((talon.manifests.Manifests.ExternalConnectionRef)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.ExternalConnectionRef other) {
+        if (other == talon.manifests.Manifests.ExternalConnectionRef.getDefaultInstance()) return this;
+        if (!other.getAgentCardUrl().isEmpty()) {
+          agentCardUrl_ = other.agentCardUrl_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                agentCardUrl_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object agentCardUrl_ = "";
+      /**
+       * <code>string agent_card_url = 1;</code>
+       * @return The agentCardUrl.
+       */
+      public java.lang.String getAgentCardUrl() {
+        java.lang.Object ref = agentCardUrl_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          agentCardUrl_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string agent_card_url = 1;</code>
+       * @return The bytes for agentCardUrl.
+       */
+      public com.google.protobuf.ByteString
+          getAgentCardUrlBytes() {
+        java.lang.Object ref = agentCardUrl_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          agentCardUrl_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string agent_card_url = 1;</code>
+       * @param value The agentCardUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentCardUrl(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        agentCardUrl_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent_card_url = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearAgentCardUrl() {
+        agentCardUrl_ = getDefaultInstance().getAgentCardUrl();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string agent_card_url = 1;</code>
+       * @param value The bytes for agentCardUrl to set.
+       * @return This builder for chaining.
+       */
+      public Builder setAgentCardUrlBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        agentCardUrl_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.ExternalConnectionRef)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.ExternalConnectionRef)
+    private static final talon.manifests.Manifests.ExternalConnectionRef DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.ExternalConnectionRef();
+    }
+
+    public static talon.manifests.Manifests.ExternalConnectionRef getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ExternalConnectionRef>
+        PARSER = new com.google.protobuf.AbstractParser<ExternalConnectionRef>() {
+      @java.lang.Override
+      public ExternalConnectionRef parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ExternalConnectionRef> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ExternalConnectionRef> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.ExternalConnectionRef getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ConnectionAuthOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.ConnectionAuth)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string kind = 1;</code>
+     * @return The kind.
+     */
+    java.lang.String getKind();
+    /**
+     * <code>string kind = 1;</code>
+     * @return The bytes for kind.
+     */
+    com.google.protobuf.ByteString
+        getKindBytes();
+
+    /**
+     * <code>string secret_ref = 2;</code>
+     * @return The secretRef.
+     */
+    java.lang.String getSecretRef();
+    /**
+     * <code>string secret_ref = 2;</code>
+     * @return The bytes for secretRef.
+     */
+    com.google.protobuf.ByteString
+        getSecretRefBytes();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.ConnectionAuth}
+   */
+  public static final class ConnectionAuth extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.ConnectionAuth)
+      ConnectionAuthOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ConnectionAuth");
+    }
+    // Use ConnectionAuth.newBuilder() to construct.
+    private ConnectionAuth(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ConnectionAuth() {
+      kind_ = "";
+      secretRef_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.ConnectionAuth.class, talon.manifests.Manifests.ConnectionAuth.Builder.class);
+    }
+
+    public static final int KIND_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object kind_ = "";
+    /**
+     * <code>string kind = 1;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public java.lang.String getKind() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        kind_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string kind = 1;</code>
+     * @return The bytes for kind.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getKindBytes() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        kind_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int SECRET_REF_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object secretRef_ = "";
+    /**
+     * <code>string secret_ref = 2;</code>
+     * @return The secretRef.
+     */
+    @java.lang.Override
+    public java.lang.String getSecretRef() {
+      java.lang.Object ref = secretRef_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        secretRef_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string secret_ref = 2;</code>
+     * @return The bytes for secretRef.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getSecretRefBytes() {
+      java.lang.Object ref = secretRef_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        secretRef_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, kind_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(secretRef_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, secretRef_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, kind_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(secretRef_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, secretRef_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.ConnectionAuth)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.ConnectionAuth other = (talon.manifests.Manifests.ConnectionAuth) obj;
+
+      if (!getKind()
+          .equals(other.getKind())) return false;
+      if (!getSecretRef()
+          .equals(other.getSecretRef())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + KIND_FIELD_NUMBER;
+      hash = (53 * hash) + getKind().hashCode();
+      hash = (37 * hash) + SECRET_REF_FIELD_NUMBER;
+      hash = (53 * hash) + getSecretRef().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.ConnectionAuth parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.ConnectionAuth parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.ConnectionAuth parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.ConnectionAuth prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.ConnectionAuth}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.ConnectionAuth)
+        talon.manifests.Manifests.ConnectionAuthOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.ConnectionAuth.class, talon.manifests.Manifests.ConnectionAuth.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.ConnectionAuth.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        kind_ = "";
+        secretRef_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_ConnectionAuth_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ConnectionAuth getDefaultInstanceForType() {
+        return talon.manifests.Manifests.ConnectionAuth.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ConnectionAuth build() {
+        talon.manifests.Manifests.ConnectionAuth result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.ConnectionAuth buildPartial() {
+        talon.manifests.Manifests.ConnectionAuth result = new talon.manifests.Manifests.ConnectionAuth(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.ConnectionAuth result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.kind_ = kind_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.secretRef_ = secretRef_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.ConnectionAuth) {
+          return mergeFrom((talon.manifests.Manifests.ConnectionAuth)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.ConnectionAuth other) {
+        if (other == talon.manifests.Manifests.ConnectionAuth.getDefaultInstance()) return this;
+        if (!other.getKind().isEmpty()) {
+          kind_ = other.kind_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getSecretRef().isEmpty()) {
+          secretRef_ = other.secretRef_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                kind_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                secretRef_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object kind_ = "";
+      /**
+       * <code>string kind = 1;</code>
+       * @return The kind.
+       */
+      public java.lang.String getKind() {
+        java.lang.Object ref = kind_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          kind_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string kind = 1;</code>
+       * @return The bytes for kind.
+       */
+      public com.google.protobuf.ByteString
+          getKindBytes() {
+        java.lang.Object ref = kind_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          kind_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string kind = 1;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        kind_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        kind_ = getDefaultInstance().getKind();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 1;</code>
+       * @param value The bytes for kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKindBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        kind_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object secretRef_ = "";
+      /**
+       * <code>string secret_ref = 2;</code>
+       * @return The secretRef.
+       */
+      public java.lang.String getSecretRef() {
+        java.lang.Object ref = secretRef_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          secretRef_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string secret_ref = 2;</code>
+       * @return The bytes for secretRef.
+       */
+      public com.google.protobuf.ByteString
+          getSecretRefBytes() {
+        java.lang.Object ref = secretRef_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          secretRef_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string secret_ref = 2;</code>
+       * @param value The secretRef to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSecretRef(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        secretRef_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string secret_ref = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearSecretRef() {
+        secretRef_ = getDefaultInstance().getSecretRef();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string secret_ref = 2;</code>
+       * @param value The bytes for secretRef to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSecretRefBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        secretRef_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.ConnectionAuth)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.ConnectionAuth)
+    private static final talon.manifests.Manifests.ConnectionAuth DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.ConnectionAuth();
+    }
+
+    public static talon.manifests.Manifests.ConnectionAuth getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ConnectionAuth>
+        PARSER = new com.google.protobuf.AbstractParser<ConnectionAuth>() {
+      @java.lang.Override
+      public ConnectionAuth parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ConnectionAuth> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ConnectionAuth> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.ConnectionAuth getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface AgentCardOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.AgentCard)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string name = 1;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <code>string name = 1;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>string description = 2;</code>
+     * @return The description.
+     */
+    java.lang.String getDescription();
+    /**
+     * <code>string description = 2;</code>
+     * @return The bytes for description.
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <code>string version = 3;</code>
+     * @return The version.
+     */
+    java.lang.String getVersion();
+    /**
+     * <code>string version = 3;</code>
+     * @return The bytes for version.
+     */
+    com.google.protobuf.ByteString
+        getVersionBytes();
+
+    /**
+     * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+     * @return Whether the capabilities field is set.
+     */
+    boolean hasCapabilities();
+    /**
+     * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+     * @return The capabilities.
+     */
+    talon.manifests.Manifests.AgentCardCapabilities getCapabilities();
+    /**
+     * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+     */
+    talon.manifests.Manifests.AgentCardCapabilitiesOrBuilder getCapabilitiesOrBuilder();
+
+    /**
+     * <code>repeated string default_input_modes = 5;</code>
+     * @return A list containing the defaultInputModes.
+     */
+    java.util.List<java.lang.String>
+        getDefaultInputModesList();
+    /**
+     * <code>repeated string default_input_modes = 5;</code>
+     * @return The count of defaultInputModes.
+     */
+    int getDefaultInputModesCount();
+    /**
+     * <code>repeated string default_input_modes = 5;</code>
+     * @param index The index of the element to return.
+     * @return The defaultInputModes at the given index.
+     */
+    java.lang.String getDefaultInputModes(int index);
+    /**
+     * <code>repeated string default_input_modes = 5;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the defaultInputModes at the given index.
+     */
+    com.google.protobuf.ByteString
+        getDefaultInputModesBytes(int index);
+
+    /**
+     * <code>repeated string default_output_modes = 6;</code>
+     * @return A list containing the defaultOutputModes.
+     */
+    java.util.List<java.lang.String>
+        getDefaultOutputModesList();
+    /**
+     * <code>repeated string default_output_modes = 6;</code>
+     * @return The count of defaultOutputModes.
+     */
+    int getDefaultOutputModesCount();
+    /**
+     * <code>repeated string default_output_modes = 6;</code>
+     * @param index The index of the element to return.
+     * @return The defaultOutputModes at the given index.
+     */
+    java.lang.String getDefaultOutputModes(int index);
+    /**
+     * <code>repeated string default_output_modes = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the defaultOutputModes at the given index.
+     */
+    com.google.protobuf.ByteString
+        getDefaultOutputModesBytes(int index);
+
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    java.util.List<talon.manifests.Manifests.AgentCardSkill>
+        getSkillsList();
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    talon.manifests.Manifests.AgentCardSkill getSkills(int index);
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    int getSkillsCount();
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    java.util.List<? extends talon.manifests.Manifests.AgentCardSkillOrBuilder>
+        getSkillsOrBuilderList();
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    talon.manifests.Manifests.AgentCardSkillOrBuilder getSkillsOrBuilder(
+        int index);
+  }
+  /**
+   * Protobuf type {@code talon.manifests.AgentCard}
+   */
+  public static final class AgentCard extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.AgentCard)
+      AgentCardOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "AgentCard");
+    }
+    // Use AgentCard.newBuilder() to construct.
+    private AgentCard(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private AgentCard() {
+      name_ = "";
+      description_ = "";
+      version_ = "";
+      defaultInputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      defaultOutputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      skills_ = java.util.Collections.emptyList();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.AgentCard.class, talon.manifests.Manifests.AgentCard.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int NAME_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <code>string name = 1;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string name = 1;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object description_ = "";
+    /**
+     * <code>string description = 2;</code>
+     * @return The description.
+     */
+    @java.lang.Override
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        description_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string description = 2;</code>
+     * @return The bytes for description.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int VERSION_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object version_ = "";
+    /**
+     * <code>string version = 3;</code>
+     * @return The version.
+     */
+    @java.lang.Override
+    public java.lang.String getVersion() {
+      java.lang.Object ref = version_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        version_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string version = 3;</code>
+     * @return The bytes for version.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getVersionBytes() {
+      java.lang.Object ref = version_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        version_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int CAPABILITIES_FIELD_NUMBER = 4;
+    private talon.manifests.Manifests.AgentCardCapabilities capabilities_;
+    /**
+     * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+     * @return Whether the capabilities field is set.
+     */
+    @java.lang.Override
+    public boolean hasCapabilities() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+     * @return The capabilities.
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCardCapabilities getCapabilities() {
+      return capabilities_ == null ? talon.manifests.Manifests.AgentCardCapabilities.getDefaultInstance() : capabilities_;
+    }
+    /**
+     * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCardCapabilitiesOrBuilder getCapabilitiesOrBuilder() {
+      return capabilities_ == null ? talon.manifests.Manifests.AgentCardCapabilities.getDefaultInstance() : capabilities_;
+    }
+
+    public static final int DEFAULT_INPUT_MODES_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList defaultInputModes_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string default_input_modes = 5;</code>
+     * @return A list containing the defaultInputModes.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getDefaultInputModesList() {
+      return defaultInputModes_;
+    }
+    /**
+     * <code>repeated string default_input_modes = 5;</code>
+     * @return The count of defaultInputModes.
+     */
+    public int getDefaultInputModesCount() {
+      return defaultInputModes_.size();
+    }
+    /**
+     * <code>repeated string default_input_modes = 5;</code>
+     * @param index The index of the element to return.
+     * @return The defaultInputModes at the given index.
+     */
+    public java.lang.String getDefaultInputModes(int index) {
+      return defaultInputModes_.get(index);
+    }
+    /**
+     * <code>repeated string default_input_modes = 5;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the defaultInputModes at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getDefaultInputModesBytes(int index) {
+      return defaultInputModes_.getByteString(index);
+    }
+
+    public static final int DEFAULT_OUTPUT_MODES_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList defaultOutputModes_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string default_output_modes = 6;</code>
+     * @return A list containing the defaultOutputModes.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getDefaultOutputModesList() {
+      return defaultOutputModes_;
+    }
+    /**
+     * <code>repeated string default_output_modes = 6;</code>
+     * @return The count of defaultOutputModes.
+     */
+    public int getDefaultOutputModesCount() {
+      return defaultOutputModes_.size();
+    }
+    /**
+     * <code>repeated string default_output_modes = 6;</code>
+     * @param index The index of the element to return.
+     * @return The defaultOutputModes at the given index.
+     */
+    public java.lang.String getDefaultOutputModes(int index) {
+      return defaultOutputModes_.get(index);
+    }
+    /**
+     * <code>repeated string default_output_modes = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the defaultOutputModes at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getDefaultOutputModesBytes(int index) {
+      return defaultOutputModes_.getByteString(index);
+    }
+
+    public static final int SKILLS_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.manifests.Manifests.AgentCardSkill> skills_;
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.manifests.Manifests.AgentCardSkill> getSkillsList() {
+      return skills_;
+    }
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.manifests.Manifests.AgentCardSkillOrBuilder>
+        getSkillsOrBuilderList() {
+      return skills_;
+    }
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    @java.lang.Override
+    public int getSkillsCount() {
+      return skills_.size();
+    }
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCardSkill getSkills(int index) {
+      return skills_.get(index);
+    }
+    /**
+     * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+     */
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCardSkillOrBuilder getSkillsOrBuilder(
+        int index) {
+      return skills_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, description_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(version_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, version_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(4, getCapabilities());
+      }
+      for (int i = 0; i < defaultInputModes_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, defaultInputModes_.getRaw(i));
+      }
+      for (int i = 0; i < defaultOutputModes_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, defaultOutputModes_.getRaw(i));
+      }
+      for (int i = 0; i < skills_.size(); i++) {
+        output.writeMessage(7, skills_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, description_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(version_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, version_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, getCapabilities());
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < defaultInputModes_.size(); i++) {
+          dataSize += computeStringSizeNoTag(defaultInputModes_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getDefaultInputModesList().size();
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < defaultOutputModes_.size(); i++) {
+          dataSize += computeStringSizeNoTag(defaultOutputModes_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getDefaultOutputModesList().size();
+      }
+
+          {
+            final int count = skills_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(skills_.get(i));
+            }
+            size += 1 * count;
+          }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.AgentCard)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.AgentCard other = (talon.manifests.Manifests.AgentCard) obj;
+
+      if (!getName()
+          .equals(other.getName())) return false;
+      if (!getDescription()
+          .equals(other.getDescription())) return false;
+      if (!getVersion()
+          .equals(other.getVersion())) return false;
+      if (hasCapabilities() != other.hasCapabilities()) return false;
+      if (hasCapabilities()) {
+        if (!getCapabilities()
+            .equals(other.getCapabilities())) return false;
+      }
+      if (!getDefaultInputModesList()
+          .equals(other.getDefaultInputModesList())) return false;
+      if (!getDefaultOutputModesList()
+          .equals(other.getDefaultOutputModesList())) return false;
+      if (!getSkillsList()
+          .equals(other.getSkillsList())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+      hash = (53 * hash) + getDescription().hashCode();
+      hash = (37 * hash) + VERSION_FIELD_NUMBER;
+      hash = (53 * hash) + getVersion().hashCode();
+      if (hasCapabilities()) {
+        hash = (37 * hash) + CAPABILITIES_FIELD_NUMBER;
+        hash = (53 * hash) + getCapabilities().hashCode();
+      }
+      if (getDefaultInputModesCount() > 0) {
+        hash = (37 * hash) + DEFAULT_INPUT_MODES_FIELD_NUMBER;
+        hash = (53 * hash) + getDefaultInputModesList().hashCode();
+      }
+      if (getDefaultOutputModesCount() > 0) {
+        hash = (37 * hash) + DEFAULT_OUTPUT_MODES_FIELD_NUMBER;
+        hash = (53 * hash) + getDefaultOutputModesList().hashCode();
+      }
+      if (getSkillsCount() > 0) {
+        hash = (37 * hash) + SKILLS_FIELD_NUMBER;
+        hash = (53 * hash) + getSkillsList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.AgentCard parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.AgentCard parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.AgentCard parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.AgentCard parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.AgentCard prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.AgentCard}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.AgentCard)
+        talon.manifests.Manifests.AgentCardOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.AgentCard.class, talon.manifests.Manifests.AgentCard.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.AgentCard.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetCapabilitiesFieldBuilder();
+          internalGetSkillsFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        name_ = "";
+        description_ = "";
+        version_ = "";
+        capabilities_ = null;
+        if (capabilitiesBuilder_ != null) {
+          capabilitiesBuilder_.dispose();
+          capabilitiesBuilder_ = null;
+        }
+        defaultInputModes_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        defaultOutputModes_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        if (skillsBuilder_ == null) {
+          skills_ = java.util.Collections.emptyList();
+        } else {
+          skills_ = null;
+          skillsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000040);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCard getDefaultInstanceForType() {
+        return talon.manifests.Manifests.AgentCard.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCard build() {
+        talon.manifests.Manifests.AgentCard result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCard buildPartial() {
+        talon.manifests.Manifests.AgentCard result = new talon.manifests.Manifests.AgentCard(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(talon.manifests.Manifests.AgentCard result) {
+        if (skillsBuilder_ == null) {
+          if (((bitField0_ & 0x00000040) != 0)) {
+            skills_ = java.util.Collections.unmodifiableList(skills_);
+            bitField0_ = (bitField0_ & ~0x00000040);
+          }
+          result.skills_ = skills_;
+        } else {
+          result.skills_ = skillsBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.AgentCard result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.name_ = name_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.description_ = description_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.version_ = version_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.capabilities_ = capabilitiesBuilder_ == null
+              ? capabilities_
+              : capabilitiesBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          defaultInputModes_.makeImmutable();
+          result.defaultInputModes_ = defaultInputModes_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          defaultOutputModes_.makeImmutable();
+          result.defaultOutputModes_ = defaultOutputModes_;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.AgentCard) {
+          return mergeFrom((talon.manifests.Manifests.AgentCard)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.AgentCard other) {
+        if (other == talon.manifests.Manifests.AgentCard.getDefaultInstance()) return this;
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getDescription().isEmpty()) {
+          description_ = other.description_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getVersion().isEmpty()) {
+          version_ = other.version_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (other.hasCapabilities()) {
+          mergeCapabilities(other.getCapabilities());
+        }
+        if (!other.defaultInputModes_.isEmpty()) {
+          if (defaultInputModes_.isEmpty()) {
+            defaultInputModes_ = other.defaultInputModes_;
+            bitField0_ |= 0x00000010;
+          } else {
+            ensureDefaultInputModesIsMutable();
+            defaultInputModes_.addAll(other.defaultInputModes_);
+          }
+          onChanged();
+        }
+        if (!other.defaultOutputModes_.isEmpty()) {
+          if (defaultOutputModes_.isEmpty()) {
+            defaultOutputModes_ = other.defaultOutputModes_;
+            bitField0_ |= 0x00000020;
+          } else {
+            ensureDefaultOutputModesIsMutable();
+            defaultOutputModes_.addAll(other.defaultOutputModes_);
+          }
+          onChanged();
+        }
+        if (skillsBuilder_ == null) {
+          if (!other.skills_.isEmpty()) {
+            if (skills_.isEmpty()) {
+              skills_ = other.skills_;
+              bitField0_ = (bitField0_ & ~0x00000040);
+            } else {
+              ensureSkillsIsMutable();
+              skills_.addAll(other.skills_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.skills_.isEmpty()) {
+            if (skillsBuilder_.isEmpty()) {
+              skillsBuilder_.dispose();
+              skillsBuilder_ = null;
+              skills_ = other.skills_;
+              bitField0_ = (bitField0_ & ~0x00000040);
+              skillsBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetSkillsFieldBuilder() : null;
+            } else {
+              skillsBuilder_.addAllMessages(other.skills_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                description_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                version_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                input.readMessage(
+                    internalGetCapabilitiesFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                ensureDefaultInputModesIsMutable();
+                defaultInputModes_.add(input.readStringRequireUtf8());
+                break;
+              } // case 42
+              case 50: {
+                ensureDefaultOutputModesIsMutable();
+                defaultOutputModes_.add(input.readStringRequireUtf8());
+                break;
+              } // case 50
+              case 58: {
+                talon.manifests.Manifests.AgentCardSkill m =
+                    input.readMessage(
+                        talon.manifests.Manifests.AgentCardSkill.parser(),
+                        extensionRegistry);
+                if (skillsBuilder_ == null) {
+                  ensureSkillsIsMutable();
+                  skills_.add(m);
+                } else {
+                  skillsBuilder_.addMessage(m);
+                }
+                break;
+              } // case 58
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>string name = 1;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 1;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object description_ = "";
+      /**
+       * <code>string description = 2;</code>
+       * @return The description.
+       */
+      public java.lang.String getDescription() {
+        java.lang.Object ref = description_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          description_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string description = 2;</code>
+       * @return The bytes for description.
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string description = 2;</code>
+       * @param value The description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescription(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        description_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDescription() {
+        description_ = getDefaultInstance().getDescription();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 2;</code>
+       * @param value The bytes for description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        description_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object version_ = "";
+      /**
+       * <code>string version = 3;</code>
+       * @return The version.
+       */
+      public java.lang.String getVersion() {
+        java.lang.Object ref = version_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          version_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string version = 3;</code>
+       * @return The bytes for version.
+       */
+      public com.google.protobuf.ByteString
+          getVersionBytes() {
+        java.lang.Object ref = version_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          version_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string version = 3;</code>
+       * @param value The version to set.
+       * @return This builder for chaining.
+       */
+      public Builder setVersion(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        version_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string version = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearVersion() {
+        version_ = getDefaultInstance().getVersion();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string version = 3;</code>
+       * @param value The bytes for version to set.
+       * @return This builder for chaining.
+       */
+      public Builder setVersionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        version_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private talon.manifests.Manifests.AgentCardCapabilities capabilities_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.AgentCardCapabilities, talon.manifests.Manifests.AgentCardCapabilities.Builder, talon.manifests.Manifests.AgentCardCapabilitiesOrBuilder> capabilitiesBuilder_;
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       * @return Whether the capabilities field is set.
+       */
+      public boolean hasCapabilities() {
+        return ((bitField0_ & 0x00000008) != 0);
+      }
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       * @return The capabilities.
+       */
+      public talon.manifests.Manifests.AgentCardCapabilities getCapabilities() {
+        if (capabilitiesBuilder_ == null) {
+          return capabilities_ == null ? talon.manifests.Manifests.AgentCardCapabilities.getDefaultInstance() : capabilities_;
+        } else {
+          return capabilitiesBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       */
+      public Builder setCapabilities(talon.manifests.Manifests.AgentCardCapabilities value) {
+        if (capabilitiesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          capabilities_ = value;
+        } else {
+          capabilitiesBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       */
+      public Builder setCapabilities(
+          talon.manifests.Manifests.AgentCardCapabilities.Builder builderForValue) {
+        if (capabilitiesBuilder_ == null) {
+          capabilities_ = builderForValue.build();
+        } else {
+          capabilitiesBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       */
+      public Builder mergeCapabilities(talon.manifests.Manifests.AgentCardCapabilities value) {
+        if (capabilitiesBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) != 0) &&
+            capabilities_ != null &&
+            capabilities_ != talon.manifests.Manifests.AgentCardCapabilities.getDefaultInstance()) {
+            getCapabilitiesBuilder().mergeFrom(value);
+          } else {
+            capabilities_ = value;
+          }
+        } else {
+          capabilitiesBuilder_.mergeFrom(value);
+        }
+        if (capabilities_ != null) {
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       */
+      public Builder clearCapabilities() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        capabilities_ = null;
+        if (capabilitiesBuilder_ != null) {
+          capabilitiesBuilder_.dispose();
+          capabilitiesBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       */
+      public talon.manifests.Manifests.AgentCardCapabilities.Builder getCapabilitiesBuilder() {
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return internalGetCapabilitiesFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       */
+      public talon.manifests.Manifests.AgentCardCapabilitiesOrBuilder getCapabilitiesOrBuilder() {
+        if (capabilitiesBuilder_ != null) {
+          return capabilitiesBuilder_.getMessageOrBuilder();
+        } else {
+          return capabilities_ == null ?
+              talon.manifests.Manifests.AgentCardCapabilities.getDefaultInstance() : capabilities_;
+        }
+      }
+      /**
+       * <code>.talon.manifests.AgentCardCapabilities capabilities = 4;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.manifests.Manifests.AgentCardCapabilities, talon.manifests.Manifests.AgentCardCapabilities.Builder, talon.manifests.Manifests.AgentCardCapabilitiesOrBuilder>
+          internalGetCapabilitiesFieldBuilder() {
+        if (capabilitiesBuilder_ == null) {
+          capabilitiesBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.AgentCardCapabilities, talon.manifests.Manifests.AgentCardCapabilities.Builder, talon.manifests.Manifests.AgentCardCapabilitiesOrBuilder>(
+                  getCapabilities(),
+                  getParentForChildren(),
+                  isClean());
+          capabilities_ = null;
+        }
+        return capabilitiesBuilder_;
+      }
+
+      private com.google.protobuf.LazyStringArrayList defaultInputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureDefaultInputModesIsMutable() {
+        if (!defaultInputModes_.isModifiable()) {
+          defaultInputModes_ = new com.google.protobuf.LazyStringArrayList(defaultInputModes_);
+        }
+        bitField0_ |= 0x00000010;
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @return A list containing the defaultInputModes.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getDefaultInputModesList() {
+        defaultInputModes_.makeImmutable();
+        return defaultInputModes_;
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @return The count of defaultInputModes.
+       */
+      public int getDefaultInputModesCount() {
+        return defaultInputModes_.size();
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @param index The index of the element to return.
+       * @return The defaultInputModes at the given index.
+       */
+      public java.lang.String getDefaultInputModes(int index) {
+        return defaultInputModes_.get(index);
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the defaultInputModes at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getDefaultInputModesBytes(int index) {
+        return defaultInputModes_.getByteString(index);
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @param index The index to set the value at.
+       * @param value The defaultInputModes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDefaultInputModes(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureDefaultInputModesIsMutable();
+        defaultInputModes_.set(index, value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @param value The defaultInputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addDefaultInputModes(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureDefaultInputModesIsMutable();
+        defaultInputModes_.add(value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @param values The defaultInputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllDefaultInputModes(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureDefaultInputModesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, defaultInputModes_);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDefaultInputModes() {
+        defaultInputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000010);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string default_input_modes = 5;</code>
+       * @param value The bytes of the defaultInputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addDefaultInputModesBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureDefaultInputModesIsMutable();
+        defaultInputModes_.add(value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList defaultOutputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureDefaultOutputModesIsMutable() {
+        if (!defaultOutputModes_.isModifiable()) {
+          defaultOutputModes_ = new com.google.protobuf.LazyStringArrayList(defaultOutputModes_);
+        }
+        bitField0_ |= 0x00000020;
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @return A list containing the defaultOutputModes.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getDefaultOutputModesList() {
+        defaultOutputModes_.makeImmutable();
+        return defaultOutputModes_;
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @return The count of defaultOutputModes.
+       */
+      public int getDefaultOutputModesCount() {
+        return defaultOutputModes_.size();
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @param index The index of the element to return.
+       * @return The defaultOutputModes at the given index.
+       */
+      public java.lang.String getDefaultOutputModes(int index) {
+        return defaultOutputModes_.get(index);
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the defaultOutputModes at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getDefaultOutputModesBytes(int index) {
+        return defaultOutputModes_.getByteString(index);
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @param index The index to set the value at.
+       * @param value The defaultOutputModes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDefaultOutputModes(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureDefaultOutputModesIsMutable();
+        defaultOutputModes_.set(index, value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @param value The defaultOutputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addDefaultOutputModes(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureDefaultOutputModesIsMutable();
+        defaultOutputModes_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @param values The defaultOutputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllDefaultOutputModes(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureDefaultOutputModesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, defaultOutputModes_);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDefaultOutputModes() {
+        defaultOutputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000020);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string default_output_modes = 6;</code>
+       * @param value The bytes of the defaultOutputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addDefaultOutputModesBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureDefaultOutputModesIsMutable();
+        defaultOutputModes_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private java.util.List<talon.manifests.Manifests.AgentCardSkill> skills_ =
+        java.util.Collections.emptyList();
+      private void ensureSkillsIsMutable() {
+        if (!((bitField0_ & 0x00000040) != 0)) {
+          skills_ = new java.util.ArrayList<talon.manifests.Manifests.AgentCardSkill>(skills_);
+          bitField0_ |= 0x00000040;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.manifests.Manifests.AgentCardSkill, talon.manifests.Manifests.AgentCardSkill.Builder, talon.manifests.Manifests.AgentCardSkillOrBuilder> skillsBuilder_;
+
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public java.util.List<talon.manifests.Manifests.AgentCardSkill> getSkillsList() {
+        if (skillsBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(skills_);
+        } else {
+          return skillsBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public int getSkillsCount() {
+        if (skillsBuilder_ == null) {
+          return skills_.size();
+        } else {
+          return skillsBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public talon.manifests.Manifests.AgentCardSkill getSkills(int index) {
+        if (skillsBuilder_ == null) {
+          return skills_.get(index);
+        } else {
+          return skillsBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder setSkills(
+          int index, talon.manifests.Manifests.AgentCardSkill value) {
+        if (skillsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureSkillsIsMutable();
+          skills_.set(index, value);
+          onChanged();
+        } else {
+          skillsBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder setSkills(
+          int index, talon.manifests.Manifests.AgentCardSkill.Builder builderForValue) {
+        if (skillsBuilder_ == null) {
+          ensureSkillsIsMutable();
+          skills_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          skillsBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder addSkills(talon.manifests.Manifests.AgentCardSkill value) {
+        if (skillsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureSkillsIsMutable();
+          skills_.add(value);
+          onChanged();
+        } else {
+          skillsBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder addSkills(
+          int index, talon.manifests.Manifests.AgentCardSkill value) {
+        if (skillsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureSkillsIsMutable();
+          skills_.add(index, value);
+          onChanged();
+        } else {
+          skillsBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder addSkills(
+          talon.manifests.Manifests.AgentCardSkill.Builder builderForValue) {
+        if (skillsBuilder_ == null) {
+          ensureSkillsIsMutable();
+          skills_.add(builderForValue.build());
+          onChanged();
+        } else {
+          skillsBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder addSkills(
+          int index, talon.manifests.Manifests.AgentCardSkill.Builder builderForValue) {
+        if (skillsBuilder_ == null) {
+          ensureSkillsIsMutable();
+          skills_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          skillsBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder addAllSkills(
+          java.lang.Iterable<? extends talon.manifests.Manifests.AgentCardSkill> values) {
+        if (skillsBuilder_ == null) {
+          ensureSkillsIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, skills_);
+          onChanged();
+        } else {
+          skillsBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder clearSkills() {
+        if (skillsBuilder_ == null) {
+          skills_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000040);
+          onChanged();
+        } else {
+          skillsBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public Builder removeSkills(int index) {
+        if (skillsBuilder_ == null) {
+          ensureSkillsIsMutable();
+          skills_.remove(index);
+          onChanged();
+        } else {
+          skillsBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public talon.manifests.Manifests.AgentCardSkill.Builder getSkillsBuilder(
+          int index) {
+        return internalGetSkillsFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public talon.manifests.Manifests.AgentCardSkillOrBuilder getSkillsOrBuilder(
+          int index) {
+        if (skillsBuilder_ == null) {
+          return skills_.get(index);  } else {
+          return skillsBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public java.util.List<? extends talon.manifests.Manifests.AgentCardSkillOrBuilder>
+           getSkillsOrBuilderList() {
+        if (skillsBuilder_ != null) {
+          return skillsBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(skills_);
+        }
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public talon.manifests.Manifests.AgentCardSkill.Builder addSkillsBuilder() {
+        return internalGetSkillsFieldBuilder().addBuilder(
+            talon.manifests.Manifests.AgentCardSkill.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public talon.manifests.Manifests.AgentCardSkill.Builder addSkillsBuilder(
+          int index) {
+        return internalGetSkillsFieldBuilder().addBuilder(
+            index, talon.manifests.Manifests.AgentCardSkill.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.manifests.AgentCardSkill skills = 7;</code>
+       */
+      public java.util.List<talon.manifests.Manifests.AgentCardSkill.Builder>
+           getSkillsBuilderList() {
+        return internalGetSkillsFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.manifests.Manifests.AgentCardSkill, talon.manifests.Manifests.AgentCardSkill.Builder, talon.manifests.Manifests.AgentCardSkillOrBuilder>
+          internalGetSkillsFieldBuilder() {
+        if (skillsBuilder_ == null) {
+          skillsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.manifests.Manifests.AgentCardSkill, talon.manifests.Manifests.AgentCardSkill.Builder, talon.manifests.Manifests.AgentCardSkillOrBuilder>(
+                  skills_,
+                  ((bitField0_ & 0x00000040) != 0),
+                  getParentForChildren(),
+                  isClean());
+          skills_ = null;
+        }
+        return skillsBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.AgentCard)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.AgentCard)
+    private static final talon.manifests.Manifests.AgentCard DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.AgentCard();
+    }
+
+    public static talon.manifests.Manifests.AgentCard getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<AgentCard>
+        PARSER = new com.google.protobuf.AbstractParser<AgentCard>() {
+      @java.lang.Override
+      public AgentCard parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<AgentCard> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AgentCard> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCard getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface AgentCardCapabilitiesOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.AgentCardCapabilities)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>bool streaming = 1;</code>
+     * @return The streaming.
+     */
+    boolean getStreaming();
+
+    /**
+     * <code>bool push_notifications = 2;</code>
+     * @return The pushNotifications.
+     */
+    boolean getPushNotifications();
+
+    /**
+     * <code>bool extended_agent_card = 3;</code>
+     * @return The extendedAgentCard.
+     */
+    boolean getExtendedAgentCard();
+  }
+  /**
+   * Protobuf type {@code talon.manifests.AgentCardCapabilities}
+   */
+  public static final class AgentCardCapabilities extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.AgentCardCapabilities)
+      AgentCardCapabilitiesOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "AgentCardCapabilities");
+    }
+    // Use AgentCardCapabilities.newBuilder() to construct.
+    private AgentCardCapabilities(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private AgentCardCapabilities() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardCapabilities_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardCapabilities_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardCapabilities_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.AgentCardCapabilities.class, talon.manifests.Manifests.AgentCardCapabilities.Builder.class);
+    }
+
+    public static final int STREAMING_FIELD_NUMBER = 1;
+    private boolean streaming_ = false;
+    /**
+     * <code>bool streaming = 1;</code>
+     * @return The streaming.
+     */
+    @java.lang.Override
+    public boolean getStreaming() {
+      return streaming_;
+    }
+
+    public static final int PUSH_NOTIFICATIONS_FIELD_NUMBER = 2;
+    private boolean pushNotifications_ = false;
+    /**
+     * <code>bool push_notifications = 2;</code>
+     * @return The pushNotifications.
+     */
+    @java.lang.Override
+    public boolean getPushNotifications() {
+      return pushNotifications_;
+    }
+
+    public static final int EXTENDED_AGENT_CARD_FIELD_NUMBER = 3;
+    private boolean extendedAgentCard_ = false;
+    /**
+     * <code>bool extended_agent_card = 3;</code>
+     * @return The extendedAgentCard.
+     */
+    @java.lang.Override
+    public boolean getExtendedAgentCard() {
+      return extendedAgentCard_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (streaming_ != false) {
+        output.writeBool(1, streaming_);
+      }
+      if (pushNotifications_ != false) {
+        output.writeBool(2, pushNotifications_);
+      }
+      if (extendedAgentCard_ != false) {
+        output.writeBool(3, extendedAgentCard_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (streaming_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, streaming_);
+      }
+      if (pushNotifications_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, pushNotifications_);
+      }
+      if (extendedAgentCard_ != false) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(3, extendedAgentCard_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.AgentCardCapabilities)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.AgentCardCapabilities other = (talon.manifests.Manifests.AgentCardCapabilities) obj;
+
+      if (getStreaming()
+          != other.getStreaming()) return false;
+      if (getPushNotifications()
+          != other.getPushNotifications()) return false;
+      if (getExtendedAgentCard()
+          != other.getExtendedAgentCard()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + STREAMING_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getStreaming());
+      hash = (37 * hash) + PUSH_NOTIFICATIONS_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getPushNotifications());
+      hash = (37 * hash) + EXTENDED_AGENT_CARD_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+          getExtendedAgentCard());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.AgentCardCapabilities parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.AgentCardCapabilities parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.AgentCardCapabilities parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.AgentCardCapabilities prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.AgentCardCapabilities}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.AgentCardCapabilities)
+        talon.manifests.Manifests.AgentCardCapabilitiesOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardCapabilities_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardCapabilities_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.AgentCardCapabilities.class, talon.manifests.Manifests.AgentCardCapabilities.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.AgentCardCapabilities.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        streaming_ = false;
+        pushNotifications_ = false;
+        extendedAgentCard_ = false;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardCapabilities_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCardCapabilities getDefaultInstanceForType() {
+        return talon.manifests.Manifests.AgentCardCapabilities.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCardCapabilities build() {
+        talon.manifests.Manifests.AgentCardCapabilities result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCardCapabilities buildPartial() {
+        talon.manifests.Manifests.AgentCardCapabilities result = new talon.manifests.Manifests.AgentCardCapabilities(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.AgentCardCapabilities result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.streaming_ = streaming_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.pushNotifications_ = pushNotifications_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.extendedAgentCard_ = extendedAgentCard_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.AgentCardCapabilities) {
+          return mergeFrom((talon.manifests.Manifests.AgentCardCapabilities)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.AgentCardCapabilities other) {
+        if (other == talon.manifests.Manifests.AgentCardCapabilities.getDefaultInstance()) return this;
+        if (other.getStreaming() != false) {
+          setStreaming(other.getStreaming());
+        }
+        if (other.getPushNotifications() != false) {
+          setPushNotifications(other.getPushNotifications());
+        }
+        if (other.getExtendedAgentCard() != false) {
+          setExtendedAgentCard(other.getExtendedAgentCard());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 8: {
+                streaming_ = input.readBool();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 8
+              case 16: {
+                pushNotifications_ = input.readBool();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 16
+              case 24: {
+                extendedAgentCard_ = input.readBool();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 24
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private boolean streaming_ ;
+      /**
+       * <code>bool streaming = 1;</code>
+       * @return The streaming.
+       */
+      @java.lang.Override
+      public boolean getStreaming() {
+        return streaming_;
+      }
+      /**
+       * <code>bool streaming = 1;</code>
+       * @param value The streaming to set.
+       * @return This builder for chaining.
+       */
+      public Builder setStreaming(boolean value) {
+
+        streaming_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool streaming = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearStreaming() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        streaming_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean pushNotifications_ ;
+      /**
+       * <code>bool push_notifications = 2;</code>
+       * @return The pushNotifications.
+       */
+      @java.lang.Override
+      public boolean getPushNotifications() {
+        return pushNotifications_;
+      }
+      /**
+       * <code>bool push_notifications = 2;</code>
+       * @param value The pushNotifications to set.
+       * @return This builder for chaining.
+       */
+      public Builder setPushNotifications(boolean value) {
+
+        pushNotifications_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool push_notifications = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearPushNotifications() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        pushNotifications_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean extendedAgentCard_ ;
+      /**
+       * <code>bool extended_agent_card = 3;</code>
+       * @return The extendedAgentCard.
+       */
+      @java.lang.Override
+      public boolean getExtendedAgentCard() {
+        return extendedAgentCard_;
+      }
+      /**
+       * <code>bool extended_agent_card = 3;</code>
+       * @param value The extendedAgentCard to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExtendedAgentCard(boolean value) {
+
+        extendedAgentCard_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool extended_agent_card = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExtendedAgentCard() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        extendedAgentCard_ = false;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.AgentCardCapabilities)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.AgentCardCapabilities)
+    private static final talon.manifests.Manifests.AgentCardCapabilities DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.AgentCardCapabilities();
+    }
+
+    public static talon.manifests.Manifests.AgentCardCapabilities getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<AgentCardCapabilities>
+        PARSER = new com.google.protobuf.AbstractParser<AgentCardCapabilities>() {
+      @java.lang.Override
+      public AgentCardCapabilities parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<AgentCardCapabilities> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AgentCardCapabilities> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCardCapabilities getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface AgentCardSkillOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.AgentCardSkill)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    java.lang.String getId();
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    com.google.protobuf.ByteString
+        getIdBytes();
+
+    /**
+     * <code>string name = 2;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <code>string name = 2;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>string description = 3;</code>
+     * @return The description.
+     */
+    java.lang.String getDescription();
+    /**
+     * <code>string description = 3;</code>
+     * @return The bytes for description.
+     */
+    com.google.protobuf.ByteString
+        getDescriptionBytes();
+
+    /**
+     * <code>repeated string tags = 4;</code>
+     * @return A list containing the tags.
+     */
+    java.util.List<java.lang.String>
+        getTagsList();
+    /**
+     * <code>repeated string tags = 4;</code>
+     * @return The count of tags.
+     */
+    int getTagsCount();
+    /**
+     * <code>repeated string tags = 4;</code>
+     * @param index The index of the element to return.
+     * @return The tags at the given index.
+     */
+    java.lang.String getTags(int index);
+    /**
+     * <code>repeated string tags = 4;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the tags at the given index.
+     */
+    com.google.protobuf.ByteString
+        getTagsBytes(int index);
+
+    /**
+     * <code>repeated string examples = 5;</code>
+     * @return A list containing the examples.
+     */
+    java.util.List<java.lang.String>
+        getExamplesList();
+    /**
+     * <code>repeated string examples = 5;</code>
+     * @return The count of examples.
+     */
+    int getExamplesCount();
+    /**
+     * <code>repeated string examples = 5;</code>
+     * @param index The index of the element to return.
+     * @return The examples at the given index.
+     */
+    java.lang.String getExamples(int index);
+    /**
+     * <code>repeated string examples = 5;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the examples at the given index.
+     */
+    com.google.protobuf.ByteString
+        getExamplesBytes(int index);
+
+    /**
+     * <code>repeated string input_modes = 6;</code>
+     * @return A list containing the inputModes.
+     */
+    java.util.List<java.lang.String>
+        getInputModesList();
+    /**
+     * <code>repeated string input_modes = 6;</code>
+     * @return The count of inputModes.
+     */
+    int getInputModesCount();
+    /**
+     * <code>repeated string input_modes = 6;</code>
+     * @param index The index of the element to return.
+     * @return The inputModes at the given index.
+     */
+    java.lang.String getInputModes(int index);
+    /**
+     * <code>repeated string input_modes = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the inputModes at the given index.
+     */
+    com.google.protobuf.ByteString
+        getInputModesBytes(int index);
+
+    /**
+     * <code>repeated string output_modes = 7;</code>
+     * @return A list containing the outputModes.
+     */
+    java.util.List<java.lang.String>
+        getOutputModesList();
+    /**
+     * <code>repeated string output_modes = 7;</code>
+     * @return The count of outputModes.
+     */
+    int getOutputModesCount();
+    /**
+     * <code>repeated string output_modes = 7;</code>
+     * @param index The index of the element to return.
+     * @return The outputModes at the given index.
+     */
+    java.lang.String getOutputModes(int index);
+    /**
+     * <code>repeated string output_modes = 7;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the outputModes at the given index.
+     */
+    com.google.protobuf.ByteString
+        getOutputModesBytes(int index);
+  }
+  /**
+   * Protobuf type {@code talon.manifests.AgentCardSkill}
+   */
+  public static final class AgentCardSkill extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.manifests.AgentCardSkill)
+      AgentCardSkillOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "AgentCardSkill");
+    }
+    // Use AgentCardSkill.newBuilder() to construct.
+    private AgentCardSkill(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private AgentCardSkill() {
+      id_ = "";
+      name_ = "";
+      description_ = "";
+      tags_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      examples_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      inputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      outputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardSkill_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardSkill_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardSkill_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.manifests.Manifests.AgentCardSkill.class, talon.manifests.Manifests.AgentCardSkill.Builder.class);
+    }
+
+    public static final int ID_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object id_ = "";
+    /**
+     * <code>string id = 1;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public java.lang.String getId() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        id_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string id = 1;</code>
+     * @return The bytes for id.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getIdBytes() {
+      java.lang.Object ref = id_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        id_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAME_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <code>string name = 2;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string name = 2;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int DESCRIPTION_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object description_ = "";
+    /**
+     * <code>string description = 3;</code>
+     * @return The description.
+     */
+    @java.lang.Override
+    public java.lang.String getDescription() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        description_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string description = 3;</code>
+     * @return The bytes for description.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getDescriptionBytes() {
+      java.lang.Object ref = description_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        description_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TAGS_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList tags_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string tags = 4;</code>
+     * @return A list containing the tags.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getTagsList() {
+      return tags_;
+    }
+    /**
+     * <code>repeated string tags = 4;</code>
+     * @return The count of tags.
+     */
+    public int getTagsCount() {
+      return tags_.size();
+    }
+    /**
+     * <code>repeated string tags = 4;</code>
+     * @param index The index of the element to return.
+     * @return The tags at the given index.
+     */
+    public java.lang.String getTags(int index) {
+      return tags_.get(index);
+    }
+    /**
+     * <code>repeated string tags = 4;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the tags at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getTagsBytes(int index) {
+      return tags_.getByteString(index);
+    }
+
+    public static final int EXAMPLES_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList examples_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string examples = 5;</code>
+     * @return A list containing the examples.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getExamplesList() {
+      return examples_;
+    }
+    /**
+     * <code>repeated string examples = 5;</code>
+     * @return The count of examples.
+     */
+    public int getExamplesCount() {
+      return examples_.size();
+    }
+    /**
+     * <code>repeated string examples = 5;</code>
+     * @param index The index of the element to return.
+     * @return The examples at the given index.
+     */
+    public java.lang.String getExamples(int index) {
+      return examples_.get(index);
+    }
+    /**
+     * <code>repeated string examples = 5;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the examples at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getExamplesBytes(int index) {
+      return examples_.getByteString(index);
+    }
+
+    public static final int INPUT_MODES_FIELD_NUMBER = 6;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList inputModes_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string input_modes = 6;</code>
+     * @return A list containing the inputModes.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getInputModesList() {
+      return inputModes_;
+    }
+    /**
+     * <code>repeated string input_modes = 6;</code>
+     * @return The count of inputModes.
+     */
+    public int getInputModesCount() {
+      return inputModes_.size();
+    }
+    /**
+     * <code>repeated string input_modes = 6;</code>
+     * @param index The index of the element to return.
+     * @return The inputModes at the given index.
+     */
+    public java.lang.String getInputModes(int index) {
+      return inputModes_.get(index);
+    }
+    /**
+     * <code>repeated string input_modes = 6;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the inputModes at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getInputModesBytes(int index) {
+      return inputModes_.getByteString(index);
+    }
+
+    public static final int OUTPUT_MODES_FIELD_NUMBER = 7;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList outputModes_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string output_modes = 7;</code>
+     * @return A list containing the outputModes.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getOutputModesList() {
+      return outputModes_;
+    }
+    /**
+     * <code>repeated string output_modes = 7;</code>
+     * @return The count of outputModes.
+     */
+    public int getOutputModesCount() {
+      return outputModes_.size();
+    }
+    /**
+     * <code>repeated string output_modes = 7;</code>
+     * @param index The index of the element to return.
+     * @return The outputModes at the given index.
+     */
+    public java.lang.String getOutputModes(int index) {
+      return outputModes_.get(index);
+    }
+    /**
+     * <code>repeated string output_modes = 7;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the outputModes at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getOutputModesBytes(int index) {
+      return outputModes_.getByteString(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, description_);
+      }
+      for (int i = 0; i < tags_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, tags_.getRaw(i));
+      }
+      for (int i = 0; i < examples_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, examples_.getRaw(i));
+      }
+      for (int i = 0; i < inputModes_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 6, inputModes_.getRaw(i));
+      }
+      for (int i = 0; i < outputModes_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 7, outputModes_.getRaw(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(id_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, id_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(description_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, description_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < tags_.size(); i++) {
+          dataSize += computeStringSizeNoTag(tags_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getTagsList().size();
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < examples_.size(); i++) {
+          dataSize += computeStringSizeNoTag(examples_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getExamplesList().size();
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < inputModes_.size(); i++) {
+          dataSize += computeStringSizeNoTag(inputModes_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getInputModesList().size();
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < outputModes_.size(); i++) {
+          dataSize += computeStringSizeNoTag(outputModes_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getOutputModesList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.manifests.Manifests.AgentCardSkill)) {
+        return super.equals(obj);
+      }
+      talon.manifests.Manifests.AgentCardSkill other = (talon.manifests.Manifests.AgentCardSkill) obj;
+
+      if (!getId()
+          .equals(other.getId())) return false;
+      if (!getName()
+          .equals(other.getName())) return false;
+      if (!getDescription()
+          .equals(other.getDescription())) return false;
+      if (!getTagsList()
+          .equals(other.getTagsList())) return false;
+      if (!getExamplesList()
+          .equals(other.getExamplesList())) return false;
+      if (!getInputModesList()
+          .equals(other.getInputModesList())) return false;
+      if (!getOutputModesList()
+          .equals(other.getOutputModesList())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + ID_FIELD_NUMBER;
+      hash = (53 * hash) + getId().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + DESCRIPTION_FIELD_NUMBER;
+      hash = (53 * hash) + getDescription().hashCode();
+      if (getTagsCount() > 0) {
+        hash = (37 * hash) + TAGS_FIELD_NUMBER;
+        hash = (53 * hash) + getTagsList().hashCode();
+      }
+      if (getExamplesCount() > 0) {
+        hash = (37 * hash) + EXAMPLES_FIELD_NUMBER;
+        hash = (53 * hash) + getExamplesList().hashCode();
+      }
+      if (getInputModesCount() > 0) {
+        hash = (37 * hash) + INPUT_MODES_FIELD_NUMBER;
+        hash = (53 * hash) + getInputModesList().hashCode();
+      }
+      if (getOutputModesCount() > 0) {
+        hash = (37 * hash) + OUTPUT_MODES_FIELD_NUMBER;
+        hash = (53 * hash) + getOutputModesList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.manifests.Manifests.AgentCardSkill parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.manifests.Manifests.AgentCardSkill parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.manifests.Manifests.AgentCardSkill parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.manifests.Manifests.AgentCardSkill prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.manifests.AgentCardSkill}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.manifests.AgentCardSkill)
+        talon.manifests.Manifests.AgentCardSkillOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardSkill_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardSkill_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.manifests.Manifests.AgentCardSkill.class, talon.manifests.Manifests.AgentCardSkill.Builder.class);
+      }
+
+      // Construct using talon.manifests.Manifests.AgentCardSkill.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        id_ = "";
+        name_ = "";
+        description_ = "";
+        tags_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        examples_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        inputModes_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        outputModes_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCardSkill_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCardSkill getDefaultInstanceForType() {
+        return talon.manifests.Manifests.AgentCardSkill.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCardSkill build() {
+        talon.manifests.Manifests.AgentCardSkill result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.manifests.Manifests.AgentCardSkill buildPartial() {
+        talon.manifests.Manifests.AgentCardSkill result = new talon.manifests.Manifests.AgentCardSkill(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.manifests.Manifests.AgentCardSkill result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.id_ = id_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.name_ = name_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.description_ = description_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          tags_.makeImmutable();
+          result.tags_ = tags_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          examples_.makeImmutable();
+          result.examples_ = examples_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          inputModes_.makeImmutable();
+          result.inputModes_ = inputModes_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          outputModes_.makeImmutable();
+          result.outputModes_ = outputModes_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.manifests.Manifests.AgentCardSkill) {
+          return mergeFrom((talon.manifests.Manifests.AgentCardSkill)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.manifests.Manifests.AgentCardSkill other) {
+        if (other == talon.manifests.Manifests.AgentCardSkill.getDefaultInstance()) return this;
+        if (!other.getId().isEmpty()) {
+          id_ = other.id_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getDescription().isEmpty()) {
+          description_ = other.description_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.tags_.isEmpty()) {
+          if (tags_.isEmpty()) {
+            tags_ = other.tags_;
+            bitField0_ |= 0x00000008;
+          } else {
+            ensureTagsIsMutable();
+            tags_.addAll(other.tags_);
+          }
+          onChanged();
+        }
+        if (!other.examples_.isEmpty()) {
+          if (examples_.isEmpty()) {
+            examples_ = other.examples_;
+            bitField0_ |= 0x00000010;
+          } else {
+            ensureExamplesIsMutable();
+            examples_.addAll(other.examples_);
+          }
+          onChanged();
+        }
+        if (!other.inputModes_.isEmpty()) {
+          if (inputModes_.isEmpty()) {
+            inputModes_ = other.inputModes_;
+            bitField0_ |= 0x00000020;
+          } else {
+            ensureInputModesIsMutable();
+            inputModes_.addAll(other.inputModes_);
+          }
+          onChanged();
+        }
+        if (!other.outputModes_.isEmpty()) {
+          if (outputModes_.isEmpty()) {
+            outputModes_ = other.outputModes_;
+            bitField0_ |= 0x00000040;
+          } else {
+            ensureOutputModesIsMutable();
+            outputModes_.addAll(other.outputModes_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                id_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                description_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                ensureTagsIsMutable();
+                tags_.add(input.readStringRequireUtf8());
+                break;
+              } // case 34
+              case 42: {
+                ensureExamplesIsMutable();
+                examples_.add(input.readStringRequireUtf8());
+                break;
+              } // case 42
+              case 50: {
+                ensureInputModesIsMutable();
+                inputModes_.add(input.readStringRequireUtf8());
+                break;
+              } // case 50
+              case 58: {
+                ensureOutputModesIsMutable();
+                outputModes_.add(input.readStringRequireUtf8());
+                break;
+              } // case 58
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object id_ = "";
+      /**
+       * <code>string id = 1;</code>
+       * @return The id.
+       */
+      public java.lang.String getId() {
+        java.lang.Object ref = id_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          id_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return The bytes for id.
+       */
+      public com.google.protobuf.ByteString
+          getIdBytes() {
+        java.lang.Object ref = id_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          id_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setId(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearId() {
+        id_ = getDefaultInstance().getId();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string id = 1;</code>
+       * @param value The bytes for id to set.
+       * @return This builder for chaining.
+       */
+      public Builder setIdBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        id_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>string name = 2;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string name = 2;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string name = 2;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 2;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object description_ = "";
+      /**
+       * <code>string description = 3;</code>
+       * @return The description.
+       */
+      public java.lang.String getDescription() {
+        java.lang.Object ref = description_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          description_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string description = 3;</code>
+       * @return The bytes for description.
+       */
+      public com.google.protobuf.ByteString
+          getDescriptionBytes() {
+        java.lang.Object ref = description_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          description_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string description = 3;</code>
+       * @param value The description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescription(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        description_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearDescription() {
+        description_ = getDefaultInstance().getDescription();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string description = 3;</code>
+       * @param value The bytes for description to set.
+       * @return This builder for chaining.
+       */
+      public Builder setDescriptionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        description_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList tags_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureTagsIsMutable() {
+        if (!tags_.isModifiable()) {
+          tags_ = new com.google.protobuf.LazyStringArrayList(tags_);
+        }
+        bitField0_ |= 0x00000008;
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @return A list containing the tags.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getTagsList() {
+        tags_.makeImmutable();
+        return tags_;
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @return The count of tags.
+       */
+      public int getTagsCount() {
+        return tags_.size();
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @param index The index of the element to return.
+       * @return The tags at the given index.
+       */
+      public java.lang.String getTags(int index) {
+        return tags_.get(index);
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the tags at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getTagsBytes(int index) {
+        return tags_.getByteString(index);
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @param index The index to set the value at.
+       * @param value The tags to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTags(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureTagsIsMutable();
+        tags_.set(index, value);
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @param value The tags to add.
+       * @return This builder for chaining.
+       */
+      public Builder addTags(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureTagsIsMutable();
+        tags_.add(value);
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @param values The tags to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllTags(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureTagsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, tags_);
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTags() {
+        tags_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string tags = 4;</code>
+       * @param value The bytes of the tags to add.
+       * @return This builder for chaining.
+       */
+      public Builder addTagsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureTagsIsMutable();
+        tags_.add(value);
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList examples_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureExamplesIsMutable() {
+        if (!examples_.isModifiable()) {
+          examples_ = new com.google.protobuf.LazyStringArrayList(examples_);
+        }
+        bitField0_ |= 0x00000010;
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @return A list containing the examples.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getExamplesList() {
+        examples_.makeImmutable();
+        return examples_;
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @return The count of examples.
+       */
+      public int getExamplesCount() {
+        return examples_.size();
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @param index The index of the element to return.
+       * @return The examples at the given index.
+       */
+      public java.lang.String getExamples(int index) {
+        return examples_.get(index);
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the examples at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getExamplesBytes(int index) {
+        return examples_.getByteString(index);
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @param index The index to set the value at.
+       * @param value The examples to set.
+       * @return This builder for chaining.
+       */
+      public Builder setExamples(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureExamplesIsMutable();
+        examples_.set(index, value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @param value The examples to add.
+       * @return This builder for chaining.
+       */
+      public Builder addExamples(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureExamplesIsMutable();
+        examples_.add(value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @param values The examples to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllExamples(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureExamplesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, examples_);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearExamples() {
+        examples_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000010);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string examples = 5;</code>
+       * @param value The bytes of the examples to add.
+       * @return This builder for chaining.
+       */
+      public Builder addExamplesBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureExamplesIsMutable();
+        examples_.add(value);
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList inputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureInputModesIsMutable() {
+        if (!inputModes_.isModifiable()) {
+          inputModes_ = new com.google.protobuf.LazyStringArrayList(inputModes_);
+        }
+        bitField0_ |= 0x00000020;
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @return A list containing the inputModes.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getInputModesList() {
+        inputModes_.makeImmutable();
+        return inputModes_;
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @return The count of inputModes.
+       */
+      public int getInputModesCount() {
+        return inputModes_.size();
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @param index The index of the element to return.
+       * @return The inputModes at the given index.
+       */
+      public java.lang.String getInputModes(int index) {
+        return inputModes_.get(index);
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the inputModes at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getInputModesBytes(int index) {
+        return inputModes_.getByteString(index);
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @param index The index to set the value at.
+       * @param value The inputModes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setInputModes(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureInputModesIsMutable();
+        inputModes_.set(index, value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @param value The inputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addInputModes(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureInputModesIsMutable();
+        inputModes_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @param values The inputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllInputModes(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureInputModesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, inputModes_);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearInputModes() {
+        inputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000020);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string input_modes = 6;</code>
+       * @param value The bytes of the inputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addInputModesBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureInputModesIsMutable();
+        inputModes_.add(value);
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList outputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureOutputModesIsMutable() {
+        if (!outputModes_.isModifiable()) {
+          outputModes_ = new com.google.protobuf.LazyStringArrayList(outputModes_);
+        }
+        bitField0_ |= 0x00000040;
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @return A list containing the outputModes.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getOutputModesList() {
+        outputModes_.makeImmutable();
+        return outputModes_;
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @return The count of outputModes.
+       */
+      public int getOutputModesCount() {
+        return outputModes_.size();
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @param index The index of the element to return.
+       * @return The outputModes at the given index.
+       */
+      public java.lang.String getOutputModes(int index) {
+        return outputModes_.get(index);
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the outputModes at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getOutputModesBytes(int index) {
+        return outputModes_.getByteString(index);
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @param index The index to set the value at.
+       * @param value The outputModes to set.
+       * @return This builder for chaining.
+       */
+      public Builder setOutputModes(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOutputModesIsMutable();
+        outputModes_.set(index, value);
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @param value The outputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOutputModes(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureOutputModesIsMutable();
+        outputModes_.add(value);
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @param values The outputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllOutputModes(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureOutputModesIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, outputModes_);
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearOutputModes() {
+        outputModes_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000040);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string output_modes = 7;</code>
+       * @param value The bytes of the outputModes to add.
+       * @return This builder for chaining.
+       */
+      public Builder addOutputModesBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureOutputModesIsMutable();
+        outputModes_.add(value);
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.manifests.AgentCardSkill)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.manifests.AgentCardSkill)
+    private static final talon.manifests.Manifests.AgentCardSkill DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.AgentCardSkill();
+    }
+
+    public static talon.manifests.Manifests.AgentCardSkill getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<AgentCardSkill>
+        PARSER = new com.google.protobuf.AbstractParser<AgentCardSkill>() {
+      @java.lang.Override
+      public AgentCardSkill parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<AgentCardSkill> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AgentCardSkill> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.manifests.Manifests.AgentCardSkill getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface McpAuthBrokerSpecOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.manifests.McpAuthBrokerSpec)
       com.google.protobuf.MessageOrBuilder {
@@ -27488,6 +37297,51 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_McpServerBindingSpec_HeadersEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_A2A_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_A2A_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_Connection_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_Connection_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_ConnectionRef_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_ConnectionRef_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_InternalConnectionRef_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_InternalConnectionRef_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_ExternalConnectionRef_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_ExternalConnectionRef_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_ConnectionAuth_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_AgentCard_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_AgentCard_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_AgentCardCapabilities_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_AgentCardCapabilities_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_manifests_AgentCardSkill_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_manifests_AgentCardSkill_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_McpAuthBrokerSpec_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -27553,90 +37407,120 @@ java.lang.String defaultValue) {
       "\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010me" +
       "tadata\030\003 \001(\0132\033.talon.manifests.ObjectMet" +
       "a\0224\n\ndefinition\030\004 \001(\0132 .talon.manifests." +
-      "AgentDefinition\"\260\002\n\tAgentSpec\022*\n\010feature" +
+      "AgentDefinition\"\323\002\n\tAgentSpec\022*\n\010feature" +
       "s\030\001 \003(\0132\030.talon.manifests.Feature\0222\n\014mod" +
       "el_policy\030\002 \001(\0132\034.talon.manifests.ModelP" +
       "olicy\022\025\n\rsystem_prompt\030\003 \001(\t\022\027\n\017mcp_serv" +
       "er_refs\030\004 \003(\t\022B\n\014capabilities\030\006 \003(\0132,.ta" +
       "lon.manifests.AgentSpec.CapabilitiesEntr" +
-      "y\032O\n\021CapabilitiesEntry\022\013\n\003key\030\001 \001(\t\022)\n\005v" +
-      "alue\030\002 \001(\0132\032.google.protobuf.ListValue:\002" +
-      "8\001\"\210\001\n\017AgentDefinition\0221\n\013custom_spec\030\001 " +
-      "\001(\0132\032.talon.manifests.AgentSpecH\000\0228\n\ttem" +
-      "plated\030\002 \001(\0132#.talon.manifests.Templated" +
-      "AgentSpecH\000B\010\n\006source\"[\n\022TemplatedAgentS" +
-      "pec\022\025\n\rtemplate_name\030\001 \001(\t\022.\n\005delta\030\002 \001(" +
-      "\0132\037.talon.manifests.AgentSpecDelta\"\255\002\n\016A" +
-      "gentSpecDelta\0227\n\014model_policy\030\001 \001(\0132!.ta" +
-      "lon.manifests.ModelPolicyDelta\0223\n\rsystem" +
-      "_prompt\030\002 \001(\0132\034.talon.manifests.PromptDe" +
-      "lta\0222\n\010features\030\003 \001(\0132 .talon.manifests." +
-      "FeatureSetDelta\0229\n\017mcp_server_refs\030\004 \001(\013" +
-      "2 .talon.manifests.StringListDelta\022>\n\014ca" +
-      "pabilities\030\006 \001(\0132(.talon.manifests.Capab" +
-      "ilitiesPolicyDelta\"R\n\013PromptDelta\022\021\n\007rep" +
-      "lace\030\001 \001(\tH\000\022\021\n\007prepend\030\002 \001(\tH\000\022\020\n\006appen" +
-      "d\030\003 \001(\tH\000B\013\n\toperation\"K\n\017FeatureSetDelt" +
-      "a\022(\n\006upsert\030\001 \003(\0132\030.talon.manifests.Feat" +
-      "ure\022\016\n\006remove\030\002 \003(\t\"?\n\017StringListDelta\022\017" +
-      "\n\007replace\030\001 \003(\t\022\013\n\003add\030\002 \003(\t\022\016\n\006remove\030\003" +
-      " \003(\t\"\255\001\n\027CapabilitiesPolicyDelta\022F\n\007repl" +
-      "ace\030\001 \003(\01325.talon.manifests.Capabilities" +
-      "PolicyDelta.ReplaceEntry\032J\n\014ReplaceEntry" +
-      "\022\013\n\003key\030\001 \001(\t\022)\n\005value\030\002 \001(\0132\032.google.pr" +
-      "otobuf.ListValue:\0028\001\"7\n\007Feature\022\014\n\004name\030" +
-      "\001 \001(\t\022\014\n\004type\030\002 \001(\t\022\020\n\010required\030\003 \001(\010\"o\n" +
-      "\005Model\022\020\n\010provider\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023" +
-      "\n\013temperature\030\003 \001(\002\0221\n\010thinking\030\004 \001(\0132\037." +
-      "talon.manifests.ThinkingConfig\"_\n\016Thinki" +
-      "ngConfig\022\017\n\007enabled\030\001 \001(\010\022\032\n\rbudget_toke" +
-      "ns\030\002 \001(\rH\000\210\001\001\022\016\n\006effort\030\003 \001(\tB\020\n\016_budget" +
-      "_tokens\"C\n\014ModelProfile\022\014\n\004name\030\001 \001(\t\022%\n" +
-      "\005model\030\002 \001(\0132\026.talon.manifests.Model\">\n\013" +
-      "ModelPolicy\022/\n\010profiles\030\001 \003(\0132\035.talon.ma" +
-      "nifests.ModelProfile\"A\n\020ModelPolicyDelta" +
-      "\022-\n\006upsert\030\001 \003(\0132\035.talon.manifests.Model" +
-      "Profile\"\213\001\n\tMcpServer\022\023\n\013api_version\030\001 \001" +
-      "(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132\033.tal" +
-      "on.manifests.ObjectMeta\022,\n\004spec\030\004 \001(\0132\036." +
-      "talon.manifests.McpServerSpec\"\300\001\n\rMcpSer" +
-      "verSpec\022\021\n\ttransport\030\001 \001(\t\022\016\n\006target\030\002 \001" +
-      "(\t\022\014\n\004args\030\003 \003(\t\022<\n\007headers\030\004 \003(\0132+.talo" +
-      "n.manifests.McpServerSpec.HeadersEntry\022\020" +
-      "\n\010disabled\030\005 \001(\010\032.\n\014HeadersEntry\022\013\n\003key\030" +
-      "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\231\001\n\020McpServerBi" +
-      "nding\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t" +
-      "\022-\n\010metadata\030\003 \001(\0132\033.talon.manifests.Obj" +
-      "ectMeta\0223\n\004spec\030\004 \001(\0132%.talon.manifests." +
-      "McpServerBindingSpec\"\224\002\n\024McpServerBindin" +
-      "gSpec\022\022\n\nserver_ref\030\001 \001(\t\022\014\n\004args\030\002 \003(\t\022" +
-      "C\n\007headers\030\003 \003(\01322.talon.manifests.McpSe" +
-      "rverBindingSpec.HeadersEntry\022\020\n\010disabled" +
-      "\030\004 \001(\010\0227\n\013auth_broker\030\005 \001(\0132\".talon.mani" +
-      "fests.McpAuthBrokerSpec\022\032\n\022allowed_tool_" +
-      "names\030\006 \003(\t\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(\t" +
-      "\022\r\n\005value\030\002 \001(\t:\0028\001\"[\n\021McpAuthBrokerSpec" +
-      "\022\014\n\004kind\030\001 \001(\t\022\013\n\003url\030\002 \001(\t\022\031\n\021cache_ttl" +
-      "_seconds\030\003 \001(\005\022\020\n\010audience\030\004 \001(\t\"\213\001\n\tKno" +
-      "wledge\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(" +
-      "\t\022-\n\010metadata\030\003 \001(\0132\033.talon.manifests.Ob" +
-      "jectMeta\022,\n\004spec\030\004 \001(\0132\036.talon.manifests" +
-      ".KnowledgeSpec\".\n\rKnowledgeSpec\022\014\n\004path\030" +
-      "\001 \001(\t\022\017\n\007content\030\002 \001(\t\"\225\001\n\016MemoryProvide" +
-      "r\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010" +
-      "metadata\030\003 \001(\0132\033.talon.manifests.ObjectM" +
-      "eta\0221\n\004spec\030\004 \001(\0132#.talon.manifests.Memo" +
-      "ryProviderSpec\"\212\001\n\022MemoryProviderSpec\022\016\n" +
-      "\006driver\030\001 \001(\t\0225\n\nconnection\030\002 \001(\0132!.talo" +
-      "n.manifests.ConnectionConfig\022-\n\006schema\030\003" +
-      " \001(\0132\035.talon.manifests.SchemaConfig\"f\n\020C" +
-      "onnectionConfig\022\'\n\003url\030\001 \001(\0132\032.talon.man" +
-      "ifests.EnvSecret\022)\n\004pool\030\002 \001(\0132\033.talon.m" +
-      "anifests.PoolConfig\"(\n\tEnvSecret\022\016\n\006sour" +
-      "ce\030\001 \001(\t\022\013\n\003key\030\002 \001(\t\"\\\n\nPoolConfig\022\027\n\017m" +
-      "ax_connections\030\001 \001(\005\022\027\n\017min_connections\030" +
-      "\002 \001(\005\022\034\n\024idle_timeout_seconds\030\003 \001(\005\"\034\n\014S" +
-      "chemaConfig\022\014\n\004name\030\001 \001(\tb\006proto3"
+      "y\022!\n\003a2a\030\007 \001(\0132\024.talon.manifests.A2A\032O\n\021" +
+      "CapabilitiesEntry\022\013\n\003key\030\001 \001(\t\022)\n\005value\030" +
+      "\002 \001(\0132\032.google.protobuf.ListValue:\0028\001\"\210\001" +
+      "\n\017AgentDefinition\0221\n\013custom_spec\030\001 \001(\0132\032" +
+      ".talon.manifests.AgentSpecH\000\0228\n\ttemplate" +
+      "d\030\002 \001(\0132#.talon.manifests.TemplatedAgent" +
+      "SpecH\000B\010\n\006source\"[\n\022TemplatedAgentSpec\022\025" +
+      "\n\rtemplate_name\030\001 \001(\t\022.\n\005delta\030\002 \001(\0132\037.t" +
+      "alon.manifests.AgentSpecDelta\"\320\002\n\016AgentS" +
+      "pecDelta\0227\n\014model_policy\030\001 \001(\0132!.talon.m" +
+      "anifests.ModelPolicyDelta\0223\n\rsystem_prom" +
+      "pt\030\002 \001(\0132\034.talon.manifests.PromptDelta\0222" +
+      "\n\010features\030\003 \001(\0132 .talon.manifests.Featu" +
+      "reSetDelta\0229\n\017mcp_server_refs\030\004 \001(\0132 .ta" +
+      "lon.manifests.StringListDelta\022>\n\014capabil" +
+      "ities\030\006 \001(\0132(.talon.manifests.Capabiliti" +
+      "esPolicyDelta\022!\n\003a2a\030\007 \001(\0132\024.talon.manif" +
+      "ests.A2A\"R\n\013PromptDelta\022\021\n\007replace\030\001 \001(\t" +
+      "H\000\022\021\n\007prepend\030\002 \001(\tH\000\022\020\n\006append\030\003 \001(\tH\000B" +
+      "\013\n\toperation\"K\n\017FeatureSetDelta\022(\n\006upser" +
+      "t\030\001 \003(\0132\030.talon.manifests.Feature\022\016\n\006rem" +
+      "ove\030\002 \003(\t\"?\n\017StringListDelta\022\017\n\007replace\030" +
+      "\001 \003(\t\022\013\n\003add\030\002 \003(\t\022\016\n\006remove\030\003 \003(\t\"\255\001\n\027C" +
+      "apabilitiesPolicyDelta\022F\n\007replace\030\001 \003(\0132" +
+      "5.talon.manifests.CapabilitiesPolicyDelt" +
+      "a.ReplaceEntry\032J\n\014ReplaceEntry\022\013\n\003key\030\001 " +
+      "\001(\t\022)\n\005value\030\002 \001(\0132\032.google.protobuf.Lis" +
+      "tValue:\0028\001\"7\n\007Feature\022\014\n\004name\030\001 \001(\t\022\014\n\004t" +
+      "ype\030\002 \001(\t\022\020\n\010required\030\003 \001(\010\"o\n\005Model\022\020\n\010" +
+      "provider\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013temperat" +
+      "ure\030\003 \001(\002\0221\n\010thinking\030\004 \001(\0132\037.talon.mani" +
+      "fests.ThinkingConfig\"_\n\016ThinkingConfig\022\017" +
+      "\n\007enabled\030\001 \001(\010\022\032\n\rbudget_tokens\030\002 \001(\rH\000" +
+      "\210\001\001\022\016\n\006effort\030\003 \001(\tB\020\n\016_budget_tokens\"C\n" +
+      "\014ModelProfile\022\014\n\004name\030\001 \001(\t\022%\n\005model\030\002 \001" +
+      "(\0132\026.talon.manifests.Model\">\n\013ModelPolic" +
+      "y\022/\n\010profiles\030\001 \003(\0132\035.talon.manifests.Mo" +
+      "delProfile\"A\n\020ModelPolicyDelta\022-\n\006upsert" +
+      "\030\001 \003(\0132\035.talon.manifests.ModelProfile\"\213\001" +
+      "\n\tMcpServer\022\023\n\013api_version\030\001 \001(\t\022\014\n\004kind" +
+      "\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132\033.talon.manifes" +
+      "ts.ObjectMeta\022,\n\004spec\030\004 \001(\0132\036.talon.mani" +
+      "fests.McpServerSpec\"\300\001\n\rMcpServerSpec\022\021\n" +
+      "\ttransport\030\001 \001(\t\022\016\n\006target\030\002 \001(\t\022\014\n\004args" +
+      "\030\003 \003(\t\022<\n\007headers\030\004 \003(\0132+.talon.manifest" +
+      "s.McpServerSpec.HeadersEntry\022\020\n\010disabled" +
+      "\030\005 \001(\010\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005v" +
+      "alue\030\002 \001(\t:\0028\001\"\231\001\n\020McpServerBinding\022\023\n\013a" +
+      "pi_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metada" +
+      "ta\030\003 \001(\0132\033.talon.manifests.ObjectMeta\0223\n" +
+      "\004spec\030\004 \001(\0132%.talon.manifests.McpServerB" +
+      "indingSpec\"\224\002\n\024McpServerBindingSpec\022\022\n\ns" +
+      "erver_ref\030\001 \001(\t\022\014\n\004args\030\002 \003(\t\022C\n\007headers" +
+      "\030\003 \003(\01322.talon.manifests.McpServerBindin" +
+      "gSpec.HeadersEntry\022\020\n\010disabled\030\004 \001(\010\0227\n\013" +
+      "auth_broker\030\005 \001(\0132\".talon.manifests.McpA" +
+      "uthBrokerSpec\022\032\n\022allowed_tool_names\030\006 \003(" +
+      "\t\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
+      "\002 \001(\t:\0028\001\"g\n\003A2A\0220\n\013connections\030\001 \003(\0132\033." +
+      "talon.manifests.Connection\022.\n\nagent_card" +
+      "\030\002 \001(\0132\032.talon.manifests.AgentCard\"\345\001\n\nC" +
+      "onnection\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002" +
+      " \001(\t\022.\n\006target\030\003 \001(\0132\036.talon.manifests.C" +
+      "onnectionRef\022\023\n\013input_modes\030\004 \003(\t\022\024\n\014out" +
+      "put_modes\030\005 \003(\t\022\027\n\017timeout_seconds\030\006 \001(\r" +
+      "\022\021\n\tmax_depth\030\007 \001(\r\022-\n\004auth\030\010 \001(\0132\037.talo" +
+      "n.manifests.ConnectionAuth\"\221\001\n\rConnectio" +
+      "nRef\022:\n\010internal\030\001 \001(\0132&.talon.manifests" +
+      ".InternalConnectionRefH\000\022:\n\010external\030\002 \001" +
+      "(\0132&.talon.manifests.ExternalConnectionR" +
+      "efH\000B\010\n\006target\"9\n\025InternalConnectionRef\022" +
+      "\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"/\n\025Ext" +
+      "ernalConnectionRef\022\026\n\016agent_card_url\030\001 \001" +
+      "(\t\"2\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n\nse" +
+      "cret_ref\030\002 \001(\t\"\351\001\n\tAgentCard\022\014\n\004name\030\001 \001" +
+      "(\t\022\023\n\013description\030\002 \001(\t\022\017\n\007version\030\003 \001(\t" +
+      "\022<\n\014capabilities\030\004 \001(\0132&.talon.manifests" +
+      ".AgentCardCapabilities\022\033\n\023default_input_" +
+      "modes\030\005 \003(\t\022\034\n\024default_output_modes\030\006 \003(" +
+      "\t\022/\n\006skills\030\007 \003(\0132\037.talon.manifests.Agen" +
+      "tCardSkill\"c\n\025AgentCardCapabilities\022\021\n\ts" +
+      "treaming\030\001 \001(\010\022\032\n\022push_notifications\030\002 \001" +
+      "(\010\022\033\n\023extended_agent_card\030\003 \001(\010\"\212\001\n\016Agen" +
+      "tCardSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013" +
+      "description\030\003 \001(\t\022\014\n\004tags\030\004 \003(\t\022\020\n\010examp" +
+      "les\030\005 \003(\t\022\023\n\013input_modes\030\006 \003(\t\022\024\n\014output" +
+      "_modes\030\007 \003(\t\"[\n\021McpAuthBrokerSpec\022\014\n\004kin" +
+      "d\030\001 \001(\t\022\013\n\003url\030\002 \001(\t\022\031\n\021cache_ttl_second" +
+      "s\030\003 \001(\005\022\020\n\010audience\030\004 \001(\t\"\213\001\n\tKnowledge\022" +
+      "\023\n\013api_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010me" +
+      "tadata\030\003 \001(\0132\033.talon.manifests.ObjectMet" +
+      "a\022,\n\004spec\030\004 \001(\0132\036.talon.manifests.Knowle" +
+      "dgeSpec\".\n\rKnowledgeSpec\022\014\n\004path\030\001 \001(\t\022\017" +
+      "\n\007content\030\002 \001(\t\"\225\001\n\016MemoryProvider\022\023\n\013ap" +
+      "i_version\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadat" +
+      "a\030\003 \001(\0132\033.talon.manifests.ObjectMeta\0221\n\004" +
+      "spec\030\004 \001(\0132#.talon.manifests.MemoryProvi" +
+      "derSpec\"\212\001\n\022MemoryProviderSpec\022\016\n\006driver" +
+      "\030\001 \001(\t\0225\n\nconnection\030\002 \001(\0132!.talon.manif" +
+      "ests.ConnectionConfig\022-\n\006schema\030\003 \001(\0132\035." +
+      "talon.manifests.SchemaConfig\"f\n\020Connecti" +
+      "onConfig\022\'\n\003url\030\001 \001(\0132\032.talon.manifests." +
+      "EnvSecret\022)\n\004pool\030\002 \001(\0132\033.talon.manifest" +
+      "s.PoolConfig\"(\n\tEnvSecret\022\016\n\006source\030\001 \001(" +
+      "\t\022\013\n\003key\030\002 \001(\t\"\\\n\nPoolConfig\022\027\n\017max_conn" +
+      "ections\030\001 \001(\005\022\027\n\017min_connections\030\002 \001(\005\022\034" +
+      "\n\024idle_timeout_seconds\030\003 \001(\005\"\034\n\014SchemaCo" +
+      "nfig\022\014\n\004name\030\001 \001(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -27672,7 +37556,7 @@ java.lang.String defaultValue) {
     internal_static_talon_manifests_AgentSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_AgentSpec_descriptor,
-        new java.lang.String[] { "Features", "ModelPolicy", "SystemPrompt", "McpServerRefs", "Capabilities", });
+        new java.lang.String[] { "Features", "ModelPolicy", "SystemPrompt", "McpServerRefs", "Capabilities", "A2A", });
     internal_static_talon_manifests_AgentSpec_CapabilitiesEntry_descriptor =
       internal_static_talon_manifests_AgentSpec_descriptor.getNestedType(0);
     internal_static_talon_manifests_AgentSpec_CapabilitiesEntry_fieldAccessorTable = new
@@ -27696,7 +37580,7 @@ java.lang.String defaultValue) {
     internal_static_talon_manifests_AgentSpecDelta_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_AgentSpecDelta_descriptor,
-        new java.lang.String[] { "ModelPolicy", "SystemPrompt", "Features", "McpServerRefs", "Capabilities", });
+        new java.lang.String[] { "ModelPolicy", "SystemPrompt", "Features", "McpServerRefs", "Capabilities", "A2A", });
     internal_static_talon_manifests_PromptDelta_descriptor =
       getDescriptor().getMessageType(6);
     internal_static_talon_manifests_PromptDelta_fieldAccessorTable = new
@@ -27799,56 +37683,110 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_McpServerBindingSpec_HeadersEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_manifests_McpAuthBrokerSpec_descriptor =
+    internal_static_talon_manifests_A2A_descriptor =
       getDescriptor().getMessageType(20);
+    internal_static_talon_manifests_A2A_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_A2A_descriptor,
+        new java.lang.String[] { "Connections", "AgentCard", });
+    internal_static_talon_manifests_Connection_descriptor =
+      getDescriptor().getMessageType(21);
+    internal_static_talon_manifests_Connection_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_Connection_descriptor,
+        new java.lang.String[] { "Name", "Description", "Target", "InputModes", "OutputModes", "TimeoutSeconds", "MaxDepth", "Auth", });
+    internal_static_talon_manifests_ConnectionRef_descriptor =
+      getDescriptor().getMessageType(22);
+    internal_static_talon_manifests_ConnectionRef_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_ConnectionRef_descriptor,
+        new java.lang.String[] { "Internal", "External", "Target", });
+    internal_static_talon_manifests_InternalConnectionRef_descriptor =
+      getDescriptor().getMessageType(23);
+    internal_static_talon_manifests_InternalConnectionRef_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_InternalConnectionRef_descriptor,
+        new java.lang.String[] { "Namespace", "Agent", });
+    internal_static_talon_manifests_ExternalConnectionRef_descriptor =
+      getDescriptor().getMessageType(24);
+    internal_static_talon_manifests_ExternalConnectionRef_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_ExternalConnectionRef_descriptor,
+        new java.lang.String[] { "AgentCardUrl", });
+    internal_static_talon_manifests_ConnectionAuth_descriptor =
+      getDescriptor().getMessageType(25);
+    internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_ConnectionAuth_descriptor,
+        new java.lang.String[] { "Kind", "SecretRef", });
+    internal_static_talon_manifests_AgentCard_descriptor =
+      getDescriptor().getMessageType(26);
+    internal_static_talon_manifests_AgentCard_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_AgentCard_descriptor,
+        new java.lang.String[] { "Name", "Description", "Version", "Capabilities", "DefaultInputModes", "DefaultOutputModes", "Skills", });
+    internal_static_talon_manifests_AgentCardCapabilities_descriptor =
+      getDescriptor().getMessageType(27);
+    internal_static_talon_manifests_AgentCardCapabilities_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_AgentCardCapabilities_descriptor,
+        new java.lang.String[] { "Streaming", "PushNotifications", "ExtendedAgentCard", });
+    internal_static_talon_manifests_AgentCardSkill_descriptor =
+      getDescriptor().getMessageType(28);
+    internal_static_talon_manifests_AgentCardSkill_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_manifests_AgentCardSkill_descriptor,
+        new java.lang.String[] { "Id", "Name", "Description", "Tags", "Examples", "InputModes", "OutputModes", });
+    internal_static_talon_manifests_McpAuthBrokerSpec_descriptor =
+      getDescriptor().getMessageType(29);
     internal_static_talon_manifests_McpAuthBrokerSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_McpAuthBrokerSpec_descriptor,
         new java.lang.String[] { "Kind", "Url", "CacheTtlSeconds", "Audience", });
     internal_static_talon_manifests_Knowledge_descriptor =
-      getDescriptor().getMessageType(21);
+      getDescriptor().getMessageType(30);
     internal_static_talon_manifests_Knowledge_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_Knowledge_descriptor,
         new java.lang.String[] { "ApiVersion", "Kind", "Metadata", "Spec", });
     internal_static_talon_manifests_KnowledgeSpec_descriptor =
-      getDescriptor().getMessageType(22);
+      getDescriptor().getMessageType(31);
     internal_static_talon_manifests_KnowledgeSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_KnowledgeSpec_descriptor,
         new java.lang.String[] { "Path", "Content", });
     internal_static_talon_manifests_MemoryProvider_descriptor =
-      getDescriptor().getMessageType(23);
+      getDescriptor().getMessageType(32);
     internal_static_talon_manifests_MemoryProvider_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_MemoryProvider_descriptor,
         new java.lang.String[] { "ApiVersion", "Kind", "Metadata", "Spec", });
     internal_static_talon_manifests_MemoryProviderSpec_descriptor =
-      getDescriptor().getMessageType(24);
+      getDescriptor().getMessageType(33);
     internal_static_talon_manifests_MemoryProviderSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_MemoryProviderSpec_descriptor,
         new java.lang.String[] { "Driver", "Connection", "Schema", });
     internal_static_talon_manifests_ConnectionConfig_descriptor =
-      getDescriptor().getMessageType(25);
+      getDescriptor().getMessageType(34);
     internal_static_talon_manifests_ConnectionConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_ConnectionConfig_descriptor,
         new java.lang.String[] { "Url", "Pool", });
     internal_static_talon_manifests_EnvSecret_descriptor =
-      getDescriptor().getMessageType(26);
+      getDescriptor().getMessageType(35);
     internal_static_talon_manifests_EnvSecret_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_EnvSecret_descriptor,
         new java.lang.String[] { "Source", "Key", });
     internal_static_talon_manifests_PoolConfig_descriptor =
-      getDescriptor().getMessageType(27);
+      getDescriptor().getMessageType(36);
     internal_static_talon_manifests_PoolConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_PoolConfig_descriptor,
         new java.lang.String[] { "MaxConnections", "MinConnections", "IdleTimeoutSeconds", });
     internal_static_talon_manifests_SchemaConfig_descriptor =
-      getDescriptor().getMessageType(28);
+      getDescriptor().getMessageType(37);
     internal_static_talon_manifests_SchemaConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_SchemaConfig_descriptor,

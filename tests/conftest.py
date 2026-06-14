@@ -11,7 +11,10 @@ import tempfile
 try:
     from python.runfiles import runfiles
 except ModuleNotFoundError:
-    runfiles = None
+    try:
+        import runfiles
+    except ModuleNotFoundError:
+        runfiles = None
 
 # Important: Add generated protos to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "generated")))
@@ -230,6 +233,16 @@ control_plane:
 def mock_llm_server():
     """Starts the FastAPI mock LLM server before the test suite runs and tears it down after."""
     print("\nStarting mock LLM server...")
+    import socket
+
+    try:
+        with socket.create_connection(("127.0.0.1", 8000), timeout=1):
+            print("\nReusing existing mock LLM server on 127.0.0.1:8000")
+            yield
+            return
+    except Exception:
+        pass
+
     import threading
     import uvicorn
     from mock_llm import app
@@ -243,7 +256,6 @@ def mock_llm_server():
     server_thread.start()
     
     # Wait for the server to be healthy
-    import socket
     for _ in range(10):
         try:
             with socket.create_connection(("127.0.0.1", MOCK_LLM_PORT), timeout=1):

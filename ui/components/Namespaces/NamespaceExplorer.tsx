@@ -177,7 +177,7 @@ function nodeSortWeight(node: TreeNode) {
     case 'session':
       return 6;
     default:
-      return 7;
+      return 8;
   }
 }
 

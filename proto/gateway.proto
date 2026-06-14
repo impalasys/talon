@@ -391,6 +391,7 @@ service GatewayService {
       delete: "/v1/namespaces/{ns}/mcp-bindings/{name}"
     };
   }
+
 }
 
 // ---------------------------------------------------------
