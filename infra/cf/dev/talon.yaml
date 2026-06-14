@@ -1,13 +1,13 @@
 providers:
-  openai:
+  mock:
     type: openai_compatible
-    name: openai
-    base_url: "https://api.openai.com/v1"
-    model: gpt-4o-mini
+    name: mock
+    base_url: "http://mock-llm.internal"
+    model: minimax/minimax-m2.7
     api_key:
       source: env
-      key: OPENAI_API_KEY
-default_provider: openai
+      key: MOCK_LLM_API_KEY
+default_provider: mock
 control_plane:
   database:
     driver: d1
