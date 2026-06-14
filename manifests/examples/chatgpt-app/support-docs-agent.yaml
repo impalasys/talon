@@ -10,7 +10,7 @@ definition:
     templateName: support-docs-template
     delta:
       a2a:
-        publication:
+        agentCard:
           name: Local Support Agent
           description: Local AgentCard for testing external A2A routing.
           version: 1.0.0

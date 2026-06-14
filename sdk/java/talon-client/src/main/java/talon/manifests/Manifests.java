@@ -20639,19 +20639,19 @@ java.lang.String defaultValue) {
         int index);
 
     /**
-     * <code>.talon.manifests.Publication publication = 2;</code>
-     * @return Whether the publication field is set.
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     * @return Whether the agentCard field is set.
      */
-    boolean hasPublication();
+    boolean hasAgentCard();
     /**
-     * <code>.talon.manifests.Publication publication = 2;</code>
-     * @return The publication.
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     * @return The agentCard.
      */
-    talon.manifests.Manifests.Publication getPublication();
+    talon.manifests.Manifests.AgentCard getAgentCard();
     /**
-     * <code>.talon.manifests.Publication publication = 2;</code>
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
      */
-    talon.manifests.Manifests.PublicationOrBuilder getPublicationOrBuilder();
+    talon.manifests.Manifests.AgentCardOrBuilder getAgentCardOrBuilder();
   }
   /**
    * Protobuf type {@code talon.manifests.A2A}
@@ -20738,30 +20738,30 @@ java.lang.String defaultValue) {
       return connections_.get(index);
     }
 
-    public static final int PUBLICATION_FIELD_NUMBER = 2;
-    private talon.manifests.Manifests.Publication publication_;
+    public static final int AGENT_CARD_FIELD_NUMBER = 2;
+    private talon.manifests.Manifests.AgentCard agentCard_;
     /**
-     * <code>.talon.manifests.Publication publication = 2;</code>
-     * @return Whether the publication field is set.
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     * @return Whether the agentCard field is set.
      */
     @java.lang.Override
-    public boolean hasPublication() {
+    public boolean hasAgentCard() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.Publication publication = 2;</code>
-     * @return The publication.
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+     * @return The agentCard.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.Publication getPublication() {
-      return publication_ == null ? talon.manifests.Manifests.Publication.getDefaultInstance() : publication_;
+    public talon.manifests.Manifests.AgentCard getAgentCard() {
+      return agentCard_ == null ? talon.manifests.Manifests.AgentCard.getDefaultInstance() : agentCard_;
     }
     /**
-     * <code>.talon.manifests.Publication publication = 2;</code>
+     * <code>.talon.manifests.AgentCard agent_card = 2;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.PublicationOrBuilder getPublicationOrBuilder() {
-      return publication_ == null ? talon.manifests.Manifests.Publication.getDefaultInstance() : publication_;
+    public talon.manifests.Manifests.AgentCardOrBuilder getAgentCardOrBuilder() {
+      return agentCard_ == null ? talon.manifests.Manifests.AgentCard.getDefaultInstance() : agentCard_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -20782,7 +20782,7 @@ java.lang.String defaultValue) {
         output.writeMessage(1, connections_.get(i));
       }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(2, getPublication());
+        output.writeMessage(2, getAgentCard());
       }
       getUnknownFields().writeTo(output);
     }
@@ -20804,7 +20804,7 @@ java.lang.String defaultValue) {
           }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, getPublication());
+          .computeMessageSize(2, getAgentCard());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -20823,10 +20823,10 @@ java.lang.String defaultValue) {
 
       if (!getConnectionsList()
           .equals(other.getConnectionsList())) return false;
-      if (hasPublication() != other.hasPublication()) return false;
-      if (hasPublication()) {
-        if (!getPublication()
-            .equals(other.getPublication())) return false;
+      if (hasAgentCard() != other.hasAgentCard()) return false;
+      if (hasAgentCard()) {
+        if (!getAgentCard()
+            .equals(other.getAgentCard())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -20843,9 +20843,9 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + CONNECTIONS_FIELD_NUMBER;
         hash = (53 * hash) + getConnectionsList().hashCode();
       }
-      if (hasPublication()) {
-        hash = (37 * hash) + PUBLICATION_FIELD_NUMBER;
-        hash = (53 * hash) + getPublication().hashCode();
+      if (hasAgentCard()) {
+        hash = (37 * hash) + AGENT_CARD_FIELD_NUMBER;
+        hash = (53 * hash) + getAgentCard().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -20978,7 +20978,7 @@ java.lang.String defaultValue) {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
           internalGetConnectionsFieldBuilder();
-          internalGetPublicationFieldBuilder();
+          internalGetAgentCardFieldBuilder();
         }
       }
       @java.lang.Override
@@ -20992,10 +20992,10 @@ java.lang.String defaultValue) {
           connectionsBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000001);
-        publication_ = null;
-        if (publicationBuilder_ != null) {
-          publicationBuilder_.dispose();
-          publicationBuilder_ = null;
+        agentCard_ = null;
+        if (agentCardBuilder_ != null) {
+          agentCardBuilder_.dispose();
+          agentCardBuilder_ = null;
         }
         return this;
       }
@@ -21045,9 +21045,9 @@ java.lang.String defaultValue) {
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.publication_ = publicationBuilder_ == null
-              ? publication_
-              : publicationBuilder_.build();
+          result.agentCard_ = agentCardBuilder_ == null
+              ? agentCard_
+              : agentCardBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
         result.bitField0_ |= to_bitField0_;
@@ -21091,8 +21091,8 @@ java.lang.String defaultValue) {
             }
           }
         }
-        if (other.hasPublication()) {
-          mergePublication(other.getPublication());
+        if (other.hasAgentCard()) {
+          mergeAgentCard(other.getAgentCard());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -21135,7 +21135,7 @@ java.lang.String defaultValue) {
               } // case 10
               case 18: {
                 input.readMessage(
-                    internalGetPublicationFieldBuilder().getBuilder(),
+                    internalGetAgentCardFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000002;
                 break;
@@ -21397,125 +21397,125 @@ java.lang.String defaultValue) {
         return connectionsBuilder_;
       }
 
-      private talon.manifests.Manifests.Publication publication_;
+      private talon.manifests.Manifests.AgentCard agentCard_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Publication, talon.manifests.Manifests.Publication.Builder, talon.manifests.Manifests.PublicationOrBuilder> publicationBuilder_;
+          talon.manifests.Manifests.AgentCard, talon.manifests.Manifests.AgentCard.Builder, talon.manifests.Manifests.AgentCardOrBuilder> agentCardBuilder_;
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
-       * @return Whether the publication field is set.
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       * @return Whether the agentCard field is set.
        */
-      public boolean hasPublication() {
+      public boolean hasAgentCard() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
-       * @return The publication.
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
+       * @return The agentCard.
        */
-      public talon.manifests.Manifests.Publication getPublication() {
-        if (publicationBuilder_ == null) {
-          return publication_ == null ? talon.manifests.Manifests.Publication.getDefaultInstance() : publication_;
+      public talon.manifests.Manifests.AgentCard getAgentCard() {
+        if (agentCardBuilder_ == null) {
+          return agentCard_ == null ? talon.manifests.Manifests.AgentCard.getDefaultInstance() : agentCard_;
         } else {
-          return publicationBuilder_.getMessage();
+          return agentCardBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
        */
-      public Builder setPublication(talon.manifests.Manifests.Publication value) {
-        if (publicationBuilder_ == null) {
+      public Builder setAgentCard(talon.manifests.Manifests.AgentCard value) {
+        if (agentCardBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          publication_ = value;
+          agentCard_ = value;
         } else {
-          publicationBuilder_.setMessage(value);
+          agentCardBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
        */
-      public Builder setPublication(
-          talon.manifests.Manifests.Publication.Builder builderForValue) {
-        if (publicationBuilder_ == null) {
-          publication_ = builderForValue.build();
+      public Builder setAgentCard(
+          talon.manifests.Manifests.AgentCard.Builder builderForValue) {
+        if (agentCardBuilder_ == null) {
+          agentCard_ = builderForValue.build();
         } else {
-          publicationBuilder_.setMessage(builderForValue.build());
+          agentCardBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
        */
-      public Builder mergePublication(talon.manifests.Manifests.Publication value) {
-        if (publicationBuilder_ == null) {
+      public Builder mergeAgentCard(talon.manifests.Manifests.AgentCard value) {
+        if (agentCardBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
-            publication_ != null &&
-            publication_ != talon.manifests.Manifests.Publication.getDefaultInstance()) {
-            getPublicationBuilder().mergeFrom(value);
+            agentCard_ != null &&
+            agentCard_ != talon.manifests.Manifests.AgentCard.getDefaultInstance()) {
+            getAgentCardBuilder().mergeFrom(value);
           } else {
-            publication_ = value;
+            agentCard_ = value;
           }
         } else {
-          publicationBuilder_.mergeFrom(value);
+          agentCardBuilder_.mergeFrom(value);
         }
-        if (publication_ != null) {
+        if (agentCard_ != null) {
           bitField0_ |= 0x00000002;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
        */
-      public Builder clearPublication() {
+      public Builder clearAgentCard() {
         bitField0_ = (bitField0_ & ~0x00000002);
-        publication_ = null;
-        if (publicationBuilder_ != null) {
-          publicationBuilder_.dispose();
-          publicationBuilder_ = null;
+        agentCard_ = null;
+        if (agentCardBuilder_ != null) {
+          agentCardBuilder_.dispose();
+          agentCardBuilder_ = null;
         }
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
        */
-      public talon.manifests.Manifests.Publication.Builder getPublicationBuilder() {
+      public talon.manifests.Manifests.AgentCard.Builder getAgentCardBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
-        return internalGetPublicationFieldBuilder().getBuilder();
+        return internalGetAgentCardFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
        */
-      public talon.manifests.Manifests.PublicationOrBuilder getPublicationOrBuilder() {
-        if (publicationBuilder_ != null) {
-          return publicationBuilder_.getMessageOrBuilder();
+      public talon.manifests.Manifests.AgentCardOrBuilder getAgentCardOrBuilder() {
+        if (agentCardBuilder_ != null) {
+          return agentCardBuilder_.getMessageOrBuilder();
         } else {
-          return publication_ == null ?
-              talon.manifests.Manifests.Publication.getDefaultInstance() : publication_;
+          return agentCard_ == null ?
+              talon.manifests.Manifests.AgentCard.getDefaultInstance() : agentCard_;
         }
       }
       /**
-       * <code>.talon.manifests.Publication publication = 2;</code>
+       * <code>.talon.manifests.AgentCard agent_card = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Publication, talon.manifests.Manifests.Publication.Builder, talon.manifests.Manifests.PublicationOrBuilder>
-          internalGetPublicationFieldBuilder() {
-        if (publicationBuilder_ == null) {
-          publicationBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.Publication, talon.manifests.Manifests.Publication.Builder, talon.manifests.Manifests.PublicationOrBuilder>(
-                  getPublication(),
+          talon.manifests.Manifests.AgentCard, talon.manifests.Manifests.AgentCard.Builder, talon.manifests.Manifests.AgentCardOrBuilder>
+          internalGetAgentCardFieldBuilder() {
+        if (agentCardBuilder_ == null) {
+          agentCardBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.manifests.Manifests.AgentCard, talon.manifests.Manifests.AgentCard.Builder, talon.manifests.Manifests.AgentCardOrBuilder>(
+                  getAgentCard(),
                   getParentForChildren(),
                   isClean());
-          publication_ = null;
+          agentCard_ = null;
         }
-        return publicationBuilder_;
+        return agentCardBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.manifests.A2A)
@@ -25941,8 +25941,8 @@ java.lang.String defaultValue) {
 
   }
 
-  public interface PublicationOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.manifests.Publication)
+  public interface AgentCardOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.manifests.AgentCard)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -26086,12 +26086,12 @@ java.lang.String defaultValue) {
     talon.manifests.Manifests.AgentCardAuthOrBuilder getAuthOrBuilder();
   }
   /**
-   * Protobuf type {@code talon.manifests.Publication}
+   * Protobuf type {@code talon.manifests.AgentCard}
    */
-  public static final class Publication extends
+  public static final class AgentCard extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.manifests.Publication)
-      PublicationOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.manifests.AgentCard)
+      AgentCardOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -26100,13 +26100,13 @@ java.lang.String defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "Publication");
+        "AgentCard");
     }
-    // Use Publication.newBuilder() to construct.
-    private Publication(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use AgentCard.newBuilder() to construct.
+    private AgentCard(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private Publication() {
+    private AgentCard() {
       name_ = "";
       description_ = "";
       version_ = "";
@@ -26119,20 +26119,20 @@ java.lang.String defaultValue) {
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_Publication_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_Publication_descriptor;
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.manifests.Manifests.internal_static_talon_manifests_Publication_fieldAccessorTable
+      return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.manifests.Manifests.Publication.class, talon.manifests.Manifests.Publication.Builder.class);
+              talon.manifests.Manifests.AgentCard.class, talon.manifests.Manifests.AgentCard.Builder.class);
     }
 
     private int bitField0_;
@@ -26519,10 +26519,10 @@ java.lang.String defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.manifests.Manifests.Publication)) {
+      if (!(obj instanceof talon.manifests.Manifests.AgentCard)) {
         return super.equals(obj);
       }
-      talon.manifests.Manifests.Publication other = (talon.manifests.Manifests.Publication) obj;
+      talon.manifests.Manifests.AgentCard other = (talon.manifests.Manifests.AgentCard) obj;
 
       if (!getName()
           .equals(other.getName())) return false;
@@ -26588,44 +26588,44 @@ java.lang.String defaultValue) {
       return hash;
     }
 
-    public static talon.manifests.Manifests.Publication parseFrom(
+    public static talon.manifests.Manifests.AgentCard parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(
+    public static talon.manifests.Manifests.AgentCard parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(
+    public static talon.manifests.Manifests.AgentCard parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(
+    public static talon.manifests.Manifests.AgentCard parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(byte[] data)
+    public static talon.manifests.Manifests.AgentCard parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(
+    public static talon.manifests.Manifests.AgentCard parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.AgentCard parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(
+    public static talon.manifests.Manifests.AgentCard parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -26633,26 +26633,26 @@ java.lang.String defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.manifests.Manifests.Publication parseDelimitedFrom(java.io.InputStream input)
+    public static talon.manifests.Manifests.AgentCard parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.manifests.Manifests.Publication parseDelimitedFrom(
+    public static talon.manifests.Manifests.AgentCard parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(
+    public static talon.manifests.Manifests.AgentCard parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.manifests.Manifests.Publication parseFrom(
+    public static talon.manifests.Manifests.AgentCard parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -26665,7 +26665,7 @@ java.lang.String defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.manifests.Manifests.Publication prototype) {
+    public static Builder newBuilder(talon.manifests.Manifests.AgentCard prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -26681,26 +26681,26 @@ java.lang.String defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.manifests.Publication}
+     * Protobuf type {@code talon.manifests.AgentCard}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.manifests.Publication)
-        talon.manifests.Manifests.PublicationOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.manifests.AgentCard)
+        talon.manifests.Manifests.AgentCardOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_Publication_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_Publication_fieldAccessorTable
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.manifests.Manifests.Publication.class, talon.manifests.Manifests.Publication.Builder.class);
+                talon.manifests.Manifests.AgentCard.class, talon.manifests.Manifests.AgentCard.Builder.class);
       }
 
-      // Construct using talon.manifests.Manifests.Publication.newBuilder()
+      // Construct using talon.manifests.Manifests.AgentCard.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -26752,17 +26752,17 @@ java.lang.String defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.manifests.Manifests.internal_static_talon_manifests_Publication_descriptor;
+        return talon.manifests.Manifests.internal_static_talon_manifests_AgentCard_descriptor;
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.Publication getDefaultInstanceForType() {
-        return talon.manifests.Manifests.Publication.getDefaultInstance();
+      public talon.manifests.Manifests.AgentCard getDefaultInstanceForType() {
+        return talon.manifests.Manifests.AgentCard.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.Publication build() {
-        talon.manifests.Manifests.Publication result = buildPartial();
+      public talon.manifests.Manifests.AgentCard build() {
+        talon.manifests.Manifests.AgentCard result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -26770,15 +26770,15 @@ java.lang.String defaultValue) {
       }
 
       @java.lang.Override
-      public talon.manifests.Manifests.Publication buildPartial() {
-        talon.manifests.Manifests.Publication result = new talon.manifests.Manifests.Publication(this);
+      public talon.manifests.Manifests.AgentCard buildPartial() {
+        talon.manifests.Manifests.AgentCard result = new talon.manifests.Manifests.AgentCard(this);
         buildPartialRepeatedFields(result);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartialRepeatedFields(talon.manifests.Manifests.Publication result) {
+      private void buildPartialRepeatedFields(talon.manifests.Manifests.AgentCard result) {
         if (skillsBuilder_ == null) {
           if (((bitField0_ & 0x00000040) != 0)) {
             skills_ = java.util.Collections.unmodifiableList(skills_);
@@ -26790,7 +26790,7 @@ java.lang.String defaultValue) {
         }
       }
 
-      private void buildPartial0(talon.manifests.Manifests.Publication result) {
+      private void buildPartial0(talon.manifests.Manifests.AgentCard result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.name_ = name_;
@@ -26827,16 +26827,16 @@ java.lang.String defaultValue) {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.manifests.Manifests.Publication) {
-          return mergeFrom((talon.manifests.Manifests.Publication)other);
+        if (other instanceof talon.manifests.Manifests.AgentCard) {
+          return mergeFrom((talon.manifests.Manifests.AgentCard)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.manifests.Manifests.Publication other) {
-        if (other == talon.manifests.Manifests.Publication.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.manifests.Manifests.AgentCard other) {
+        if (other == talon.manifests.Manifests.AgentCard.getDefaultInstance()) return this;
         if (!other.getName().isEmpty()) {
           name_ = other.name_;
           bitField0_ |= 0x00000001;
@@ -27919,23 +27919,23 @@ java.lang.String defaultValue) {
         return authBuilder_;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.manifests.Publication)
+      // @@protoc_insertion_point(builder_scope:talon.manifests.AgentCard)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.manifests.Publication)
-    private static final talon.manifests.Manifests.Publication DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.manifests.AgentCard)
+    private static final talon.manifests.Manifests.AgentCard DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.manifests.Manifests.Publication();
+      DEFAULT_INSTANCE = new talon.manifests.Manifests.AgentCard();
     }
 
-    public static talon.manifests.Manifests.Publication getDefaultInstance() {
+    public static talon.manifests.Manifests.AgentCard getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<Publication>
-        PARSER = new com.google.protobuf.AbstractParser<Publication>() {
+    private static final com.google.protobuf.Parser<AgentCard>
+        PARSER = new com.google.protobuf.AbstractParser<AgentCard>() {
       @java.lang.Override
-      public Publication parsePartialFrom(
+      public AgentCard parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -27954,17 +27954,17 @@ java.lang.String defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<Publication> parser() {
+    public static com.google.protobuf.Parser<AgentCard> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<Publication> getParserForType() {
+    public com.google.protobuf.Parser<AgentCard> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.manifests.Manifests.Publication getDefaultInstanceForType() {
+    public talon.manifests.Manifests.AgentCard getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -38190,10 +38190,10 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_manifests_ConnectionAuth_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_manifests_Publication_descriptor;
+    internal_static_talon_manifests_AgentCard_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_manifests_Publication_fieldAccessorTable;
+      internal_static_talon_manifests_AgentCard_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_manifests_AgentCardCapabilities_descriptor;
   private static final
@@ -38339,59 +38339,59 @@ java.lang.String defaultValue) {
       "auth_broker\030\005 \001(\0132\".talon.manifests.McpA" +
       "uthBrokerSpec\022\032\n\022allowed_tool_names\030\006 \003(" +
       "\t\032.\n\014HeadersEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
-      "\002 \001(\t:\0028\001\"j\n\003A2A\0220\n\013connections\030\001 \003(\0132\033." +
-      "talon.manifests.Connection\0221\n\013publicatio" +
-      "n\030\002 \001(\0132\034.talon.manifests.Publication\"\345\001" +
-      "\n\nConnection\022\014\n\004name\030\001 \001(\t\022\023\n\013descriptio" +
-      "n\030\002 \001(\t\022.\n\006target\030\003 \001(\0132\036.talon.manifest" +
-      "s.ConnectionRef\022\023\n\013input_modes\030\004 \003(\t\022\024\n\014" +
-      "output_modes\030\005 \003(\t\022\027\n\017timeout_seconds\030\006 " +
-      "\001(\r\022\021\n\tmax_depth\030\007 \001(\r\022-\n\004auth\030\010 \001(\0132\037.t" +
-      "alon.manifests.ConnectionAuth\"\221\001\n\rConnec" +
-      "tionRef\022:\n\010internal\030\001 \001(\0132&.talon.manife" +
-      "sts.InternalConnectionRefH\000\022:\n\010external\030" +
-      "\002 \001(\0132&.talon.manifests.ExternalConnecti" +
-      "onRefH\000B\010\n\006target\"9\n\025InternalConnectionR" +
-      "ef\022\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"/\n\025" +
-      "ExternalConnectionRef\022\026\n\016agent_card_url\030" +
-      "\001 \001(\t\"2\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n" +
-      "\nsecret_ref\030\002 \001(\t\"\231\002\n\013Publication\022\014\n\004nam" +
-      "e\030\001 \001(\t\022\023\n\013description\030\002 \001(\t\022\017\n\007version\030" +
-      "\003 \001(\t\022<\n\014capabilities\030\004 \001(\0132&.talon.mani" +
-      "fests.AgentCardCapabilities\022\033\n\023default_i" +
-      "nput_modes\030\005 \003(\t\022\034\n\024default_output_modes" +
-      "\030\006 \003(\t\022/\n\006skills\030\007 \003(\0132\037.talon.manifests" +
-      ".AgentCardSkill\022,\n\004auth\030\010 \001(\0132\036.talon.ma" +
-      "nifests.AgentCardAuth\"c\n\025AgentCardCapabi" +
-      "lities\022\021\n\tstreaming\030\001 \001(\010\022\032\n\022push_notifi" +
-      "cations\030\002 \001(\010\022\033\n\023extended_agent_card\030\003 \001" +
-      "(\010\"\212\001\n\016AgentCardSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004nam" +
-      "e\030\002 \001(\t\022\023\n\013description\030\003 \001(\t\022\014\n\004tags\030\004 \003" +
-      "(\t\022\020\n\010examples\030\005 \003(\t\022\023\n\013input_modes\030\006 \003(" +
-      "\t\022\024\n\014output_modes\030\007 \003(\t\"6\n\rAgentCardAuth" +
-      "\022\021\n\tdiscovery\030\001 \001(\t\022\022\n\noperations\030\002 \001(\t\"" +
-      "[\n\021McpAuthBrokerSpec\022\014\n\004kind\030\001 \001(\t\022\013\n\003ur" +
-      "l\030\002 \001(\t\022\031\n\021cache_ttl_seconds\030\003 \001(\005\022\020\n\010au" +
-      "dience\030\004 \001(\t\"\213\001\n\tKnowledge\022\023\n\013api_versio" +
-      "n\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132" +
-      "\033.talon.manifests.ObjectMeta\022,\n\004spec\030\004 \001" +
-      "(\0132\036.talon.manifests.KnowledgeSpec\".\n\rKn" +
-      "owledgeSpec\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001" +
-      "(\t\"\225\001\n\016MemoryProvider\022\023\n\013api_version\030\001 \001" +
+      "\002 \001(\t:\0028\001\"g\n\003A2A\0220\n\013connections\030\001 \003(\0132\033." +
+      "talon.manifests.Connection\022.\n\nagent_card" +
+      "\030\002 \001(\0132\032.talon.manifests.AgentCard\"\345\001\n\nC" +
+      "onnection\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002" +
+      " \001(\t\022.\n\006target\030\003 \001(\0132\036.talon.manifests.C" +
+      "onnectionRef\022\023\n\013input_modes\030\004 \003(\t\022\024\n\014out" +
+      "put_modes\030\005 \003(\t\022\027\n\017timeout_seconds\030\006 \001(\r" +
+      "\022\021\n\tmax_depth\030\007 \001(\r\022-\n\004auth\030\010 \001(\0132\037.talo" +
+      "n.manifests.ConnectionAuth\"\221\001\n\rConnectio" +
+      "nRef\022:\n\010internal\030\001 \001(\0132&.talon.manifests" +
+      ".InternalConnectionRefH\000\022:\n\010external\030\002 \001" +
+      "(\0132&.talon.manifests.ExternalConnectionR" +
+      "efH\000B\010\n\006target\"9\n\025InternalConnectionRef\022" +
+      "\021\n\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"/\n\025Ext" +
+      "ernalConnectionRef\022\026\n\016agent_card_url\030\001 \001" +
+      "(\t\"2\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n\nse" +
+      "cret_ref\030\002 \001(\t\"\227\002\n\tAgentCard\022\014\n\004name\030\001 \001" +
+      "(\t\022\023\n\013description\030\002 \001(\t\022\017\n\007version\030\003 \001(\t" +
+      "\022<\n\014capabilities\030\004 \001(\0132&.talon.manifests" +
+      ".AgentCardCapabilities\022\033\n\023default_input_" +
+      "modes\030\005 \003(\t\022\034\n\024default_output_modes\030\006 \003(" +
+      "\t\022/\n\006skills\030\007 \003(\0132\037.talon.manifests.Agen" +
+      "tCardSkill\022,\n\004auth\030\010 \001(\0132\036.talon.manifes" +
+      "ts.AgentCardAuth\"c\n\025AgentCardCapabilitie" +
+      "s\022\021\n\tstreaming\030\001 \001(\010\022\032\n\022push_notificatio" +
+      "ns\030\002 \001(\010\022\033\n\023extended_agent_card\030\003 \001(\010\"\212\001" +
+      "\n\016AgentCardSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001" +
+      "(\t\022\023\n\013description\030\003 \001(\t\022\014\n\004tags\030\004 \003(\t\022\020\n" +
+      "\010examples\030\005 \003(\t\022\023\n\013input_modes\030\006 \003(\t\022\024\n\014" +
+      "output_modes\030\007 \003(\t\"6\n\rAgentCardAuth\022\021\n\td" +
+      "iscovery\030\001 \001(\t\022\022\n\noperations\030\002 \001(\t\"[\n\021Mc" +
+      "pAuthBrokerSpec\022\014\n\004kind\030\001 \001(\t\022\013\n\003url\030\002 \001" +
+      "(\t\022\031\n\021cache_ttl_seconds\030\003 \001(\005\022\020\n\010audienc" +
+      "e\030\004 \001(\t\"\213\001\n\tKnowledge\022\023\n\013api_version\030\001 \001" +
       "(\t\022\014\n\004kind\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132\033.tal" +
-      "on.manifests.ObjectMeta\0221\n\004spec\030\004 \001(\0132#." +
-      "talon.manifests.MemoryProviderSpec\"\212\001\n\022M" +
-      "emoryProviderSpec\022\016\n\006driver\030\001 \001(\t\0225\n\ncon" +
-      "nection\030\002 \001(\0132!.talon.manifests.Connecti" +
-      "onConfig\022-\n\006schema\030\003 \001(\0132\035.talon.manifes" +
-      "ts.SchemaConfig\"f\n\020ConnectionConfig\022\'\n\003u" +
-      "rl\030\001 \001(\0132\032.talon.manifests.EnvSecret\022)\n\004" +
-      "pool\030\002 \001(\0132\033.talon.manifests.PoolConfig\"" +
-      "(\n\tEnvSecret\022\016\n\006source\030\001 \001(\t\022\013\n\003key\030\002 \001(" +
-      "\t\"\\\n\nPoolConfig\022\027\n\017max_connections\030\001 \001(\005" +
-      "\022\027\n\017min_connections\030\002 \001(\005\022\034\n\024idle_timeou" +
-      "t_seconds\030\003 \001(\005\"\034\n\014SchemaConfig\022\014\n\004name\030" +
-      "\001 \001(\tb\006proto3"
+      "on.manifests.ObjectMeta\022,\n\004spec\030\004 \001(\0132\036." +
+      "talon.manifests.KnowledgeSpec\".\n\rKnowled" +
+      "geSpec\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(\t\"\225\001" +
+      "\n\016MemoryProvider\022\023\n\013api_version\030\001 \001(\t\022\014\n" +
+      "\004kind\030\002 \001(\t\022-\n\010metadata\030\003 \001(\0132\033.talon.ma" +
+      "nifests.ObjectMeta\0221\n\004spec\030\004 \001(\0132#.talon" +
+      ".manifests.MemoryProviderSpec\"\212\001\n\022Memory" +
+      "ProviderSpec\022\016\n\006driver\030\001 \001(\t\0225\n\nconnecti" +
+      "on\030\002 \001(\0132!.talon.manifests.ConnectionCon" +
+      "fig\022-\n\006schema\030\003 \001(\0132\035.talon.manifests.Sc" +
+      "hemaConfig\"f\n\020ConnectionConfig\022\'\n\003url\030\001 " +
+      "\001(\0132\032.talon.manifests.EnvSecret\022)\n\004pool\030" +
+      "\002 \001(\0132\033.talon.manifests.PoolConfig\"(\n\tEn" +
+      "vSecret\022\016\n\006source\030\001 \001(\t\022\013\n\003key\030\002 \001(\t\"\\\n\n" +
+      "PoolConfig\022\027\n\017max_connections\030\001 \001(\005\022\027\n\017m" +
+      "in_connections\030\002 \001(\005\022\034\n\024idle_timeout_sec" +
+      "onds\030\003 \001(\005\"\034\n\014SchemaConfig\022\014\n\004name\030\001 \001(\t" +
+      "b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -38559,7 +38559,7 @@ java.lang.String defaultValue) {
     internal_static_talon_manifests_A2A_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_A2A_descriptor,
-        new java.lang.String[] { "Connections", "Publication", });
+        new java.lang.String[] { "Connections", "AgentCard", });
     internal_static_talon_manifests_Connection_descriptor =
       getDescriptor().getMessageType(21);
     internal_static_talon_manifests_Connection_fieldAccessorTable = new
@@ -38590,11 +38590,11 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_manifests_ConnectionAuth_descriptor,
         new java.lang.String[] { "Kind", "SecretRef", });
-    internal_static_talon_manifests_Publication_descriptor =
+    internal_static_talon_manifests_AgentCard_descriptor =
       getDescriptor().getMessageType(26);
-    internal_static_talon_manifests_Publication_fieldAccessorTable = new
+    internal_static_talon_manifests_AgentCard_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_manifests_Publication_descriptor,
+        internal_static_talon_manifests_AgentCard_descriptor,
         new java.lang.String[] { "Name", "Description", "Version", "Capabilities", "DefaultInputModes", "DefaultOutputModes", "Skills", "Auth", });
     internal_static_talon_manifests_AgentCardCapabilities_descriptor =
       getDescriptor().getMessageType(27);

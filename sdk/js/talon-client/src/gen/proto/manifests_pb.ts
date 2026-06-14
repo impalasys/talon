@@ -1049,9 +1049,9 @@ export class A2A extends Message<A2A> {
   connections: Connection[] = [];
 
   /**
-   * @generated from field: talon.manifests.Publication publication = 2;
+   * @generated from field: talon.manifests.AgentCard agent_card = 2;
    */
-  publication?: Publication;
+  agentCard?: AgentCard;
 
   constructor(data?: PartialMessage<A2A>) {
     super();
@@ -1062,7 +1062,7 @@ export class A2A extends Message<A2A> {
   static readonly typeName = "talon.manifests.A2A";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "connections", kind: "message", T: Connection, repeated: true },
-    { no: 2, name: "publication", kind: "message", T: Publication },
+    { no: 2, name: "agent_card", kind: "message", T: AgentCard },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): A2A {
@@ -1335,9 +1335,9 @@ export class ConnectionAuth extends Message<ConnectionAuth> {
 }
 
 /**
- * @generated from message talon.manifests.Publication
+ * @generated from message talon.manifests.AgentCard
  */
-export class Publication extends Message<Publication> {
+export class AgentCard extends Message<AgentCard> {
   /**
    * @generated from field: string name = 1;
    */
@@ -1378,13 +1378,13 @@ export class Publication extends Message<Publication> {
    */
   auth?: AgentCardAuth;
 
-  constructor(data?: PartialMessage<Publication>) {
+  constructor(data?: PartialMessage<AgentCard>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.manifests.Publication";
+  static readonly typeName = "talon.manifests.AgentCard";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "description", kind: "scalar", T: 9 /* ScalarType.STRING */ },
@@ -1396,20 +1396,20 @@ export class Publication extends Message<Publication> {
     { no: 8, name: "auth", kind: "message", T: AgentCardAuth },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Publication {
-    return new Publication().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentCard {
+    return new AgentCard().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Publication {
-    return new Publication().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AgentCard {
+    return new AgentCard().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Publication {
-    return new Publication().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AgentCard {
+    return new AgentCard().fromJsonString(jsonString, options);
   }
 
-  static equals(a: Publication | PlainMessage<Publication> | undefined, b: Publication | PlainMessage<Publication> | undefined): boolean {
-    return proto3.util.equals(Publication, a, b);
+  static equals(a: AgentCard | PlainMessage<AgentCard> | undefined, b: AgentCard | PlainMessage<AgentCard> | undefined): boolean {
+    return proto3.util.equals(AgentCard, a, b);
   }
 }
 

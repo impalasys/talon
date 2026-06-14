@@ -289,8 +289,8 @@ fn validate_agent_spec(spec: &manifests::AgentSpec) -> Result<()> {
 }
 
 fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {
-    if let Some(publication) = a2a.publication.as_ref() {
-        validate_a2a_publication(publication)?;
+    if let Some(agent_card) = a2a.agent_card.as_ref() {
+        validate_a2a_agent_card(agent_card)?;
     }
 
     let mut seen_connections = HashSet::new();
@@ -368,29 +368,29 @@ fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {
     Ok(())
 }
 
-fn validate_a2a_publication(publication: &manifests::Publication) -> Result<()> {
-    if publication.name.trim().is_empty() {
-        bail!("A2A publication name is required");
+fn validate_a2a_agent_card(agent_card: &manifests::AgentCard) -> Result<()> {
+    if agent_card.name.trim().is_empty() {
+        bail!("A2A agentCard name is required");
     }
-    if let Some(capabilities) = publication.capabilities.as_ref() {
+    if let Some(capabilities) = agent_card.capabilities.as_ref() {
         if capabilities.push_notifications {
-            bail!("A2A publication capabilities.pushNotifications is not supported yet");
+            bail!("A2A agentCard capabilities.pushNotifications is not supported yet");
         }
         if capabilities.extended_agent_card {
-            bail!("A2A publication capabilities.extendedAgentCard is not supported yet");
+            bail!("A2A agentCard capabilities.extendedAgentCard is not supported yet");
         }
     }
-    if let Some(auth) = publication.auth.as_ref() {
+    if let Some(auth) = agent_card.auth.as_ref() {
         let discovery = auth.discovery.trim();
         if !discovery.is_empty() && discovery != "public" {
             bail!(
-                "A2A publication auth.discovery must be 'public'; authenticated discovery is not supported yet"
+                "A2A agentCard auth.discovery must be 'public'; authenticated discovery is not supported yet"
             );
         }
         let operations = auth.operations.trim();
         if !operations.is_empty() && operations != "public" {
             bail!(
-                "A2A publication auth.operations must be 'public'; authenticated A2A operations are not supported yet"
+                "A2A agentCard auth.operations must be 'public'; authenticated A2A operations are not supported yet"
             );
         }
     }
@@ -1081,7 +1081,7 @@ mod tests {
                 name: "policy".to_string(),
                 ..Default::default()
             }],
-            publication: None,
+            agent_card: None,
         });
         let err = validate_agent_spec(&missing_target).unwrap_err();
         assert!(err.to_string().contains("must set a target"));
@@ -1114,7 +1114,7 @@ mod tests {
                     ..Default::default()
                 },
             ],
-            publication: None,
+            agent_card: None,
         });
         let err = validate_agent_spec(&duplicate).unwrap_err();
         assert!(err.to_string().contains("Duplicate A2A connection"));
@@ -1132,7 +1132,7 @@ mod tests {
                 }),
                 ..Default::default()
             }],
-            publication: None,
+            agent_card: None,
         });
         let err = validate_agent_spec(&invalid_url).unwrap_err();
         assert!(err.to_string().contains("http(s) URL"));
@@ -1155,15 +1155,15 @@ mod tests {
                 }),
                 ..Default::default()
             }],
-            publication: None,
+            agent_card: None,
         });
         let err = validate_agent_spec(&invalid_auth).unwrap_err();
         assert!(err.to_string().contains("bearer auth requires secret_ref"));
 
-        let mut invalid_publication = valid_agent_spec();
-        invalid_publication.a2a = Some(manifests::A2a {
+        let mut invalid_agent_card = valid_agent_spec();
+        invalid_agent_card.a2a = Some(manifests::A2a {
             connections: Vec::new(),
-            publication: Some(manifests::Publication {
+            agent_card: Some(manifests::AgentCard {
                 name: "Support".to_string(),
                 capabilities: Some(manifests::AgentCardCapabilities {
                     streaming: true,
@@ -1173,7 +1173,7 @@ mod tests {
                 ..Default::default()
             }),
         });
-        let err = validate_agent_spec(&invalid_publication).unwrap_err();
+        let err = validate_agent_spec(&invalid_agent_card).unwrap_err();
         assert!(err.to_string().contains("pushNotifications"));
     }
 

@@ -73,7 +73,7 @@ struct AgentCardSkillJson {
 struct AgentCardRoute {
     ns: String,
     agent: String,
-    publication: manifests::Publication,
+    agent_card: manifests::AgentCard,
 }
 
 #[derive(Deserialize)]
@@ -165,7 +165,7 @@ pub async fn get_agent_card(
     let external_host = external_host_from_headers(&headers, &host);
     let scheme = scheme_from_headers(&headers, &external_host);
     match agent_card_json(
-        &route.publication,
+        &route.agent_card,
         scheme,
         &external_host,
         &route.ns,
@@ -675,17 +675,17 @@ fn a2a_card_base_url(scheme: &str, host: &str, ns: &str, agent: &str) -> String 
 }
 
 fn agent_card_json(
-    publication: &manifests::Publication,
+    agent_card: &manifests::AgentCard,
     scheme: &str,
     host: &str,
     ns: &str,
     agent: &str,
 ) -> Result<AgentCardJson, Response> {
-    let capabilities = publication.capabilities.as_ref();
+    let capabilities = agent_card.capabilities.as_ref();
     Ok(AgentCardJson {
-        name: publication.name.clone(),
-        description: publication.description.clone(),
-        version: publication.version.clone(),
+        name: agent_card.name.clone(),
+        description: agent_card.description.clone(),
+        version: agent_card.version.clone(),
         url: a2a_card_base_url(scheme, host, ns, agent),
         protocol_version: "0.3.0".to_string(),
         preferred_transport: "HTTP+JSON".to_string(),
@@ -698,9 +698,9 @@ fn agent_card_json(
                 .map(|value| value.extended_agent_card)
                 .unwrap_or(false),
         },
-        default_input_modes: publication.default_input_modes.clone(),
-        default_output_modes: publication.default_output_modes.clone(),
-        skills: publication
+        default_input_modes: agent_card.default_input_modes.clone(),
+        default_output_modes: agent_card.default_output_modes.clone(),
+        skills: agent_card
             .skills
             .iter()
             .map(|skill| AgentCardSkillJson {
@@ -872,11 +872,11 @@ async fn resolve_agent_card_route(
             )
         })?
         .ok_or_else(|| a2a_error(StatusCode::NOT_FOUND, "agent not found"))?;
-    let publication = agent
+    let agent_card = agent
         .effective_spec
         .as_ref()
         .and_then(|spec| spec.a2a.as_ref())
-        .and_then(|a2a| a2a.publication.as_ref())
+        .and_then(|a2a| a2a.agent_card.as_ref())
         .ok_or_else(|| {
             a2a_error(
                 StatusCode::NOT_FOUND,
@@ -884,21 +884,21 @@ async fn resolve_agent_card_route(
             )
         })?
         .clone();
-    if publication.name.trim().is_empty() {
+    if agent_card.name.trim().is_empty() {
         return Err(a2a_error(
             StatusCode::INTERNAL_SERVER_ERROR,
-            "A2A publication is missing name",
+            "A2A agentCard is missing name",
         ));
     }
-    if let Some(capabilities) = publication.capabilities.as_ref() {
+    if let Some(capabilities) = agent_card.capabilities.as_ref() {
         if capabilities.push_notifications || capabilities.extended_agent_card {
             return Err(a2a_error(
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "A2A publication contains unsupported capabilities",
+                "A2A agentCard contains unsupported capabilities",
             ));
         }
     }
-    if let Some(auth) = publication.auth.as_ref() {
+    if let Some(auth) = agent_card.auth.as_ref() {
         let discovery = auth.discovery.trim();
         let operations = auth.operations.trim();
         if (!discovery.is_empty() && discovery != "public")
@@ -906,7 +906,7 @@ async fn resolve_agent_card_route(
         {
             return Err(a2a_error(
                 StatusCode::INTERNAL_SERVER_ERROR,
-                "A2A publication contains unsupported auth policy",
+                "A2A agentCard contains unsupported auth policy",
             ));
         }
     }
@@ -914,7 +914,7 @@ async fn resolve_agent_card_route(
     Ok(AgentCardRoute {
         ns: agent.ns,
         agent: agent.name,
-        publication,
+        agent_card,
     })
 }
 

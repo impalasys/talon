@@ -234,7 +234,7 @@ pub struct A2a {
     #[prost(message, repeated, tag = "1")]
     pub connections: ::prost::alloc::vec::Vec<Connection>,
     #[prost(message, optional, tag = "2")]
-    pub publication: ::core::option::Option<Publication>,
+    pub agent_card: ::core::option::Option<AgentCard>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Connection {
@@ -290,7 +290,7 @@ pub struct ConnectionAuth {
     pub secret_ref: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct Publication {
+pub struct AgentCard {
     #[prost(string, tag = "1")]
     pub name: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]

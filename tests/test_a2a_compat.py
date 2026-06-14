@@ -129,7 +129,7 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
                     temperature: 0
             systemPrompt: You are a deterministic A2A compatibility test agent.
             a2a:
-              publication:
+              agentCard:
                 name: A2A Compatibility Agent
                 description: AgentCard used by the upstream A2A SDK compatibility test.
                 version: 1.0.0

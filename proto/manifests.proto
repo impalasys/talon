@@ -141,7 +141,7 @@ message McpServerBindingSpec {
 
 message A2A {
   repeated Connection connections = 1;
-  Publication publication = 2;
+  AgentCard agent_card = 2;
 }
 
 message Connection {
@@ -176,7 +176,7 @@ message ConnectionAuth {
   string secret_ref = 2;
 }
 
-message Publication {
+message AgentCard {
   string name = 1;
   string description = 2;
   string version = 3;

@@ -314,8 +314,8 @@ mod tests {
             .unwrap();
     }
 
-    fn a2a_publication() -> crate::gateway::rpc::manifests::Publication {
-        crate::gateway::rpc::manifests::Publication {
+    fn a2a_agent_card() -> crate::gateway::rpc::manifests::AgentCard {
+        crate::gateway::rpc::manifests::AgentCard {
             name: "Support Agent".to_string(),
             description: "Answers support questions.".to_string(),
             version: "1.0.0".to_string(),
@@ -343,7 +343,7 @@ mod tests {
     }
 
     fn published_agent_definition(
-        publication: crate::gateway::rpc::manifests::Publication,
+        agent_card: crate::gateway::rpc::manifests::AgentCard,
     ) -> crate::gateway::rpc::manifests::AgentDefinition {
         crate::gateway::rpc::manifests::AgentDefinition {
             source: Some(
@@ -366,7 +366,7 @@ mod tests {
                         capabilities: HashMap::new(),
                         a2a: Some(crate::gateway::rpc::manifests::A2a {
                             connections: Vec::new(),
-                            publication: Some(publication),
+                            agent_card: Some(agent_card),
                         }),
                     },
                 ),
@@ -376,7 +376,7 @@ mod tests {
 
     async fn seed_published_agent(gateway: &Gateway, ns: &str, agent: &str) {
         seed_namespace_and_agent(gateway, ns, agent).await;
-        let definition = published_agent_definition(a2a_publication());
+        let definition = published_agent_definition(a2a_agent_card());
         let resolved =
             crate::agents::resolver::resolve_agent_definition(gateway.kv.as_ref(), &definition)
                 .await
@@ -856,11 +856,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_rejects_non_public_a2a_publication_auth() {
+    async fn agent_rejects_non_public_a2a_agent_card_auth() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let mut publication = a2a_publication();
-        publication.auth = Some(crate::gateway::rpc::manifests::AgentCardAuth {
+        let mut agent_card = a2a_agent_card();
+        agent_card.auth = Some(crate::gateway::rpc::manifests::AgentCardAuth {
             discovery: "bearer".to_string(),
             operations: "bearer".to_string(),
         });
@@ -872,7 +872,7 @@ mod tests {
             crate::gateway::rpc::proto::CreateAgentRequest {
                 ns: "support".to_string(),
                 name: Some("support-docs".to_string()),
-                definition: Some(published_agent_definition(publication)),
+                definition: Some(published_agent_definition(agent_card)),
                 labels: HashMap::new(),
             },
         ))
@@ -884,11 +884,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_rejects_unsupported_a2a_publication_capabilities() {
+    async fn agent_rejects_unsupported_a2a_agent_card_capabilities() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let mut publication = a2a_publication();
-        publication.capabilities = Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
+        let mut agent_card = a2a_agent_card();
+        agent_card.capabilities = Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
             streaming: false,
             push_notifications: true,
             extended_agent_card: false,
@@ -901,7 +901,7 @@ mod tests {
             crate::gateway::rpc::proto::CreateAgentRequest {
                 ns: "support".to_string(),
                 name: Some("support-docs".to_string()),
-                definition: Some(published_agent_definition(publication)),
+                definition: Some(published_agent_definition(agent_card)),
                 labels: HashMap::new(),
             },
         ))

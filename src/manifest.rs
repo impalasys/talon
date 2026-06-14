@@ -208,7 +208,7 @@ struct McpServerBindingSpecManifest {
 #[serde(rename_all = "camelCase", default)]
 struct A2AManifest {
     connections: Vec<ConnectionManifest>,
-    publication: Option<PublicationManifest>,
+    agent_card: Option<AgentCardManifest>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -253,7 +253,7 @@ struct ConnectionAuthManifest {
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-struct PublicationManifest {
+struct AgentCardManifest {
     name: String,
     description: String,
     version: String,
@@ -952,7 +952,7 @@ impl A2AManifest {
                 .into_iter()
                 .map(ConnectionManifest::into_proto)
                 .collect::<Result<Vec<_>>>()?,
-            publication: self.publication.map(PublicationManifest::into_proto),
+            agent_card: self.agent_card.map(AgentCardManifest::into_proto),
         })
     }
 
@@ -963,10 +963,7 @@ impl A2AManifest {
                 .iter()
                 .map(ConnectionManifest::from_proto)
                 .collect(),
-            publication: spec
-                .publication
-                .as_ref()
-                .map(PublicationManifest::from_proto),
+            agent_card: spec.agent_card.as_ref().map(AgentCardManifest::from_proto),
         }
     }
 }
@@ -1075,9 +1072,9 @@ impl ConnectionAuthManifest {
     }
 }
 
-impl PublicationManifest {
-    fn into_proto(self) -> manifests::Publication {
-        manifests::Publication {
+impl AgentCardManifest {
+    fn into_proto(self) -> manifests::AgentCard {
+        manifests::AgentCard {
             name: self.name,
             description: self.description,
             version: self.version,
@@ -1095,7 +1092,7 @@ impl PublicationManifest {
         }
     }
 
-    fn from_proto(spec: &manifests::Publication) -> Self {
+    fn from_proto(spec: &manifests::AgentCard) -> Self {
         Self {
             name: spec.name.clone(),
             description: spec.description.clone(),
@@ -1877,7 +1874,7 @@ definition:
     }
 
     #[test]
-    fn parse_and_render_agent_manifest_with_a2a_publication() {
+    fn parse_and_render_agent_manifest_with_a2a_agent_card() {
         let agent = parse_agent(
             r#"
 apiVersion: talon.impalasys.com/v1
@@ -1896,7 +1893,7 @@ definition:
             name: test
             temperature: 0
     a2a:
-      publication:
+      agentCard:
         name: Support Agent
         description: Answers support questions.
         version: 1.0.0
@@ -1919,24 +1916,24 @@ definition:
         .expect("Agent manifest should parse");
 
         let definition = agent.definition.as_ref().expect("definition should exist");
-        let publication = match definition.source.as_ref().expect("source should exist") {
+        let agent_card = match definition.source.as_ref().expect("source should exist") {
             manifests::agent_definition::Source::CustomSpec(spec) => spec
                 .a2a
                 .as_ref()
-                .and_then(|a2a| a2a.publication.as_ref())
-                .expect("publication should exist"),
+                .and_then(|a2a| a2a.agent_card.as_ref())
+                .expect("agent card should exist"),
             other => panic!("expected customSpec, got {other:?}"),
         };
-        assert!(publication
+        assert!(agent_card
             .capabilities
             .as_ref()
             .is_some_and(|caps| caps.streaming));
-        assert_eq!(publication.skills[0].id, "answer_support_question");
+        assert_eq!(agent_card.skills[0].id, "answer_support_question");
 
         let rendered = render_agent_yaml(&agent).expect("Agent yaml should render");
         let reparsed = parse_agent(&rendered).expect("rendered agent should parse");
         assert_eq!(reparsed.name, "support-docs");
-        assert!(rendered.contains("publication:"));
+        assert!(rendered.contains("agentCard:"));
         assert!(rendered.contains("answer_support_question"));
     }
 
