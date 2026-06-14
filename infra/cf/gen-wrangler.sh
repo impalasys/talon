@@ -4,7 +4,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
-export TALON_CF_CONFIG_YAML="${1:-${TALON_CF_CONFIG_YAML:-${SCRIPT_DIR}/talon.yaml}}"
+CONFIG_ARG="${1:-}"
+if [[ -n "${CONFIG_ARG}" ]]; then
+  export TALON_CF_DEV_CONFIG_YAML="${CONFIG_ARG}"
+  export TALON_CF_PROD_CONFIG_YAML="${CONFIG_ARG}"
+else
+  export TALON_CF_DEV_CONFIG_YAML="${TALON_CF_DEV_CONFIG_YAML:-${TALON_CF_CONFIG_YAML:-${SCRIPT_DIR}/dev/talon.yaml}}"
+  export TALON_CF_PROD_CONFIG_YAML="${TALON_CF_PROD_CONFIG_YAML:-${TALON_CF_CONFIG_YAML:-${SCRIPT_DIR}/talon.yaml}}"
+fi
 export TALON_CF_DEV_WRANGLER="${TALON_CF_DEV_WRANGLER:-${SCRIPT_DIR}/dev/wrangler.jsonc}"
 export TALON_CF_PROD_WRANGLER="${TALON_CF_PROD_WRANGLER:-${SCRIPT_DIR}/worker/wrangler.jsonc}"
 
@@ -43,10 +50,12 @@ export TALON_CF_PROD_IMAGE_TAG="${TALON_CF_PROD_IMAGE_TAG:-sha-REPLACE_ME}"
 export TALON_CF_PROD_RUNTIME_IMAGE="${TALON_CF_PROD_RUNTIME_IMAGE:-ghcr.io/impalasys/talon-runtime:${TALON_CF_PROD_IMAGE_TAG}}"
 export TALON_CF_PROD_ENVOY_IMAGE="${TALON_CF_PROD_ENVOY_IMAGE:-ghcr.io/impalasys/talon-envoy-cloudflare:${TALON_CF_PROD_IMAGE_TAG}}"
 
-if [[ ! -f "${TALON_CF_CONFIG_YAML}" ]]; then
-  echo "Talon Cloudflare config not found: ${TALON_CF_CONFIG_YAML}" >&2
-  exit 1
-fi
+for config_path in "${TALON_CF_DEV_CONFIG_YAML}" "${TALON_CF_PROD_CONFIG_YAML}"; do
+  if [[ ! -f "${config_path}" ]]; then
+    echo "Talon Cloudflare config not found: ${config_path}" >&2
+    exit 1
+  fi
+done
 
 python3 - <<'PY'
 import json
@@ -54,12 +63,13 @@ import os
 import re
 from pathlib import Path
 
-config_yaml = Path(os.environ["TALON_CF_CONFIG_YAML"]).read_text()
+dev_config_yaml = Path(os.environ["TALON_CF_DEV_CONFIG_YAML"]).read_text()
+prod_config_yaml = Path(os.environ["TALON_CF_PROD_CONFIG_YAML"]).read_text()
 
 def env(name: str) -> str:
     return os.environ[name]
 
-def config_env_keys() -> list[str]:
+def config_env_keys(config_yaml: str) -> list[str]:
     keys: list[str] = []
     lines = config_yaml.splitlines()
     for index, line in enumerate(lines):
@@ -78,7 +88,7 @@ def config_env_keys() -> list[str]:
                 break
     return sorted(set(keys))
 
-def base_config(main: str, scheduler_auth_token: str | None) -> dict:
+def base_config(main: str, config_yaml: str, scheduler_auth_token: str | None) -> dict:
     vars = {
         "TALON_CONFIG_INLINE_YAML": config_yaml,
         "TALON_GATEWAY_CONTAINER_COUNT": env("TALON_CF_GATEWAY_CONTAINER_COUNT"),
@@ -156,8 +166,8 @@ def write_json(path: str, config: dict) -> None:
     target.write_text(json.dumps(config, indent=2) + "\n")
     print(f"wrote {target}")
 
-dev = base_config(env("TALON_CF_DEV_MAIN"), env("TALON_CF_DEV_SCHEDULER_AUTH_TOKEN"))
-for key in config_env_keys():
+dev = base_config(env("TALON_CF_DEV_MAIN"), dev_config_yaml, env("TALON_CF_DEV_SCHEDULER_AUTH_TOKEN"))
+for key in config_env_keys(dev_config_yaml):
     dev["vars"].setdefault(key, os.environ.get(key, "local-cloudflare-e2e"))
 dev["containers"] = [
     {
@@ -177,7 +187,7 @@ dev["containers"] = [
     },
 ]
 
-prod = base_config(env("TALON_CF_PROD_MAIN"), None)
+prod = base_config(env("TALON_CF_PROD_MAIN"), prod_config_yaml, None)
 prod["containers"] = [
     {
         "class_name": "GatewayContainer",

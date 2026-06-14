@@ -7,7 +7,7 @@ Cloudflare-native deployment assets for Talon. This target runs Talon's Rust gat
 ```text
 infra/cf/
   README.md
-  talon.yaml                         # readable source for the Cloudflare Talon runtime config
+  talon.yaml                         # production Talon runtime config, rendered into worker/wrangler.jsonc
   envoy.yaml                         # Envoy config for the Cloudflare Envoy container
   bindings/                          # @impalasys/talon-cf-bindings package
     src/
@@ -19,6 +19,7 @@ infra/cf/
     src/index.ts                     # Worker entrypoint and Container classes
     wrangler.jsonc                   # production-oriented Wrangler config
   dev/                               # local development harness
+    talon.yaml                       # local/mock Talon runtime config, rendered into dev/wrangler.jsonc
     Dockerfile                       # Node/Wrangler/Docker CLI tooling image
     docker-compose.yaml              # local E2E/dev stack
     wrangler.jsonc                   # local Wrangler config using Dockerfile-built containers
@@ -360,17 +361,23 @@ infra/cf/dev/wrangler.jsonc
 infra/cf/worker/wrangler.jsonc
 ```
 
-`infra/cf/talon.yaml` is the readable source for that YAML. Regenerate both Wrangler configs after editing it:
+`infra/cf/talon.yaml` is the production source config. It defaults to OpenAI's API URL and reads `OPENAI_API_KEY` through Talon's env secret loader.
+
+`infra/cf/dev/talon.yaml` is the local/E2E source config. It points at the Docker Compose `mock-llm` service and reads `MOCK_LLM_API_KEY`, which `gen-wrangler.sh` fills with a local placeholder in `dev/wrangler.jsonc`.
+
+Regenerate both Wrangler configs after editing either file:
 
 ```bash
 infra/cf/gen-wrangler.sh
 ```
 
-The script also accepts a config path:
+The script also accepts a single config path, which renders both dev and production from the same YAML:
 
 ```bash
 infra/cf/gen-wrangler.sh infra/cf/talon.yaml
 ```
+
+To override only one side, set `TALON_CF_DEV_CONFIG_YAML` or `TALON_CF_PROD_CONFIG_YAML`.
 
 The generated configs should not be hand-edited for values owned by the script. Override generation defaults with environment variables, for example:
 
@@ -390,8 +397,12 @@ TALON_CONFIG_INLINE_YAML=<Cloudflare Talon YAML>
 TALON_SCHEDULER_DRIVER=cf-alarms
 ```
 
-Secrets should remain environment-backed. The checked-in `talon.yaml` references `NOVITA_API_KEY` through Talon's existing env secret loader.
-Any string Worker variables and secrets are forwarded into the Talon containers, while Cloudflare control variables such as container counts and inline config remain Worker-owned. For production, configure provider keys referenced by `talon.yaml` with `wrangler secret put`.
+Secrets should remain environment-backed. Any string Worker variables and secrets are forwarded into the Talon containers, while Cloudflare control variables such as container counts and inline config remain Worker-owned. For production, configure the OpenAI key referenced by `infra/cf/talon.yaml`:
+
+```bash
+cd infra/cf/worker
+npx wrangler secret put OPENAI_API_KEY --config wrangler.jsonc
+```
 
 ## Validation
 
