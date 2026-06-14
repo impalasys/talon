@@ -140,8 +140,10 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
     if (wakeup.dueIndexKey && wakeup.dueIndexKey !== indexed.dueIndexKey) {
       await this.ctx.storage.delete(wakeup.dueIndexKey);
     }
-    await this.ctx.storage.put(this.wakeupKey(indexed.handle), indexed);
-    await this.ctx.storage.put(indexed.dueIndexKey, indexed);
+    await this.ctx.storage.put({
+      [this.wakeupKey(indexed.handle)]: indexed,
+      [indexed.dueIndexKey]: indexed,
+    });
   }
 
   private async deleteWakeup(wakeupOrHandle: StoredAlarmWakeup | string): Promise<void> {
@@ -149,8 +151,9 @@ export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
       ? await this.ctx.storage.get<StoredAlarmWakeup>(this.wakeupKey(wakeupOrHandle))
       : wakeupOrHandle;
     if (wakeup) {
-      if (wakeup.dueIndexKey) await this.ctx.storage.delete(wakeup.dueIndexKey);
-      await this.ctx.storage.delete(this.wakeupKey(wakeup.handle));
+      const keys = [this.wakeupKey(wakeup.handle)];
+      if (wakeup.dueIndexKey) keys.push(wakeup.dueIndexKey);
+      await this.ctx.storage.delete(keys);
     } else if (typeof wakeupOrHandle === "string") {
       await this.ctx.storage.delete(this.wakeupKey(wakeupOrHandle));
     }

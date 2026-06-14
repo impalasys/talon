@@ -23,6 +23,7 @@ type Env = Omit<TalonCfBindingsEnv, "WORKER_CONTAINER"> & {
   TALON_WORKER_CONTAINER_COUNT?: string;
   TALON_ENVOY_CONTAINER_COUNT?: string;
   TALON_CONFIG_INLINE_YAML?: string;
+  NOVITA_API_KEY?: string;
 };
 
 const TALON_CONFIG_INLINE_YAML = (
@@ -31,6 +32,9 @@ const TALON_CONFIG_INLINE_YAML = (
 const TALON_SCHEDULER_AUTH_TOKEN = (
   workerEnv as unknown as { TALON_SCHEDULER_AUTH_TOKEN?: string }
 ).TALON_SCHEDULER_AUTH_TOKEN;
+const NOVITA_API_KEY = (
+  workerEnv as unknown as { NOVITA_API_KEY?: string }
+).NOVITA_API_KEY ?? "local-cloudflare-e2e";
 
 function configuredCount(raw: string | undefined): number {
   const parsed = Number.parseInt(raw ?? "", 10);
@@ -130,7 +134,7 @@ export class GatewayContainer extends Container<Env> {
   envVars = {
     GRPC_ADDR: "0.0.0.0:50051",
     GATEWAY_UI_ADDR: "0.0.0.0:50052",
-    NOVITA_API_KEY: "local-cloudflare-e2e",
+    NOVITA_API_KEY,
     ...(TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML } : {}),
     TALON_SCHEDULER_DRIVER: "cloudflare_alarms",
     ...(TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN } : {}),
@@ -144,7 +148,7 @@ export class WorkerContainer extends Container<Env> {
   entrypoint = ["talon-worker"];
   envVars = {
     PORT: "8081",
-    NOVITA_API_KEY: "local-cloudflare-e2e",
+    NOVITA_API_KEY,
     ...(TALON_CONFIG_INLINE_YAML ? { TALON_CONFIG_INLINE_YAML } : {}),
     TALON_SCHEDULER_DRIVER: "cloudflare_alarms",
     ...(TALON_SCHEDULER_AUTH_TOKEN ? { TALON_SCHEDULER_AUTH_TOKEN } : {}),

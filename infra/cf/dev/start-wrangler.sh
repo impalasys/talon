@@ -9,7 +9,7 @@ if [ "$(id -u)" = "0" ]; then
   fi
   mkdir -p /repo/infra/cf/worker/node_modules /repo/infra/cf/worker/.wrangler
   chown -R node:node /repo/infra/cf/worker/node_modules /repo/infra/cf/worker/.wrangler
-  exec su node -s /bin/sh -c "cd /repo/infra/cf/worker && npm ci && npm run dev"
+  exec su node -s /bin/sh -c "cd /repo/infra/cf/worker && if [ ! -x node_modules/.bin/wrangler ]; then npm ci; fi; npm run dev"
 fi
 
-exec sh -c "npm ci && npm run dev"
+exec sh -c "if [ ! -x node_modules/.bin/wrangler ]; then npm ci; fi; npm run dev"
