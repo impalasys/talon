@@ -970,7 +970,7 @@ mod tests {
                     part: Some(SessionMessagePart {
                         id: "000000".to_string(),
                         part_type: SessionMessagePartType::Text as i32,
-                        content: "streamed reply".to_string(),
+                        content: "First paragraph.".to_string(),
                         name: String::new(),
                         payload_json: String::new(),
                         created_at: 1,
@@ -984,9 +984,45 @@ mod tests {
                 .encode_to_vec(),
                 SessionMessagePartEvent {
                     session_id: context_id.to_string(),
+                    kind: SessionMessagePartEventKind::Delta as i32,
+                    part: Some(SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: SessionMessagePartType::Text as i32,
+                        content: "\n\nSecond ".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 2,
+                        object: None,
+                    }),
+                    timestamp: 2,
+                    agent: "support-docs".to_string(),
+                    ns: "support".to_string(),
+                    message_id: "assistant-stream-msg".to_string(),
+                }
+                .encode_to_vec(),
+                SessionMessagePartEvent {
+                    session_id: context_id.to_string(),
+                    kind: SessionMessagePartEventKind::Delta as i32,
+                    part: Some(SessionMessagePart {
+                        id: "000000".to_string(),
+                        part_type: SessionMessagePartType::Text as i32,
+                        content: "paragraph.".to_string(),
+                        name: String::new(),
+                        payload_json: String::new(),
+                        created_at: 3,
+                        object: None,
+                    }),
+                    timestamp: 3,
+                    agent: "support-docs".to_string(),
+                    ns: "support".to_string(),
+                    message_id: "assistant-stream-msg".to_string(),
+                }
+                .encode_to_vec(),
+                SessionMessagePartEvent {
+                    session_id: context_id.to_string(),
                     kind: SessionMessagePartEventKind::Done as i32,
                     part: None,
-                    timestamp: 2,
+                    timestamp: 4,
                     agent: "support-docs".to_string(),
                     ns: "support".to_string(),
                     message_id: "assistant-stream-msg".to_string(),
@@ -1038,10 +1074,35 @@ mod tests {
         let task_id = events[0]["task"]["id"].as_str().unwrap();
         assert!(task_id.len() > 40);
         assert_eq!(events[0]["task"]["status"]["state"], "TASK_STATE_WORKING");
-        assert!(events.iter().any(
-            |event| event["artifactUpdate"]["artifact"]["parts"][0]["text"] == "streamed reply"
-                && event["artifactUpdate"]["lastChunk"] == serde_json::Value::Bool(true)
-        ));
+        let artifact_events = events
+            .iter()
+            .filter(|event| event.get("artifactUpdate").is_some())
+            .collect::<Vec<_>>();
+        assert_eq!(artifact_events.len(), 2);
+        assert_eq!(
+            artifact_events[0]["artifactUpdate"]["artifact"]["parts"][0]["text"],
+            "First paragraph.\n\n"
+        );
+        assert_eq!(
+            artifact_events[0]["artifactUpdate"]["append"],
+            serde_json::Value::Bool(false)
+        );
+        assert_eq!(
+            artifact_events[0]["artifactUpdate"]["lastChunk"],
+            serde_json::Value::Bool(false)
+        );
+        assert_eq!(
+            artifact_events[1]["artifactUpdate"]["artifact"]["parts"][0]["text"],
+            "Second paragraph."
+        );
+        assert_eq!(
+            artifact_events[1]["artifactUpdate"]["append"],
+            serde_json::Value::Bool(true)
+        );
+        assert_eq!(
+            artifact_events[1]["artifactUpdate"]["lastChunk"],
+            serde_json::Value::Bool(true)
+        );
         assert_eq!(
             events.last().unwrap()["statusUpdate"]["final"],
             serde_json::Value::Bool(true)

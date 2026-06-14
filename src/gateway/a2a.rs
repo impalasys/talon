@@ -359,12 +359,13 @@ async fn stream_message(
         let timeout = tokio::time::sleep(A2A_STREAM_IDLE_TIMEOUT);
         tokio::pin!(timeout);
         let mut stream_artifact_started = false;
-        let mut pending_artifact_text: Option<String> = None;
+        let mut pending_artifact_text = String::new();
 
         loop {
             tokio::select! {
                 _ = &mut timeout => {
-                    if let Some(text) = pending_artifact_text.take() {
+                    if !pending_artifact_text.is_empty() {
+                        let text = std::mem::take(&mut pending_artifact_text);
                         yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
                             &stream_task_id,
                             &stream_context_id,
@@ -417,7 +418,8 @@ async fn stream_message(
                     if event.kind == SessionMessagePartEventKind::Done as i32 {
                         break;
                     } else if event.kind == SessionMessagePartEventKind::Error as i32 {
-                        if let Some(text) = pending_artifact_text.take() {
+                        if !pending_artifact_text.is_empty() {
+                            let text = std::mem::take(&mut pending_artifact_text);
                             yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
                                 &stream_task_id,
                                 &stream_context_id,
@@ -436,7 +438,8 @@ async fn stream_message(
                         )));
                         return;
                     } else if part_type == models::SessionMessagePartType::Text as i32 && !content.is_empty() {
-                        if let Some(text) = pending_artifact_text.replace(content.to_string()) {
+                        pending_artifact_text.push_str(content);
+                        for text in a2a_drain_complete_paragraphs(&mut pending_artifact_text) {
                             yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
                                 &stream_task_id,
                                 &stream_context_id,
@@ -451,7 +454,8 @@ async fn stream_message(
             }
         }
 
-        if let Some(text) = pending_artifact_text.take() {
+        if !pending_artifact_text.is_empty() {
+            let text = std::mem::take(&mut pending_artifact_text);
             yield Ok::<_, Infallible>(a2a_sse_line(a2a_stream_artifact_update_value(
                 &stream_task_id,
                 &stream_context_id,
@@ -977,6 +981,27 @@ fn a2a_stream_artifact_update_value(
             "lastChunk": last_chunk
         }
     })
+}
+
+fn a2a_drain_complete_paragraphs(buffer: &mut String) -> Vec<String> {
+    let mut chunks = Vec::new();
+    while let Some(end) = a2a_paragraph_boundary(buffer) {
+        let chunk = buffer.drain(..end).collect::<String>();
+        if !chunk.is_empty() {
+            chunks.push(chunk);
+        }
+    }
+    chunks
+}
+
+fn a2a_paragraph_boundary(text: &str) -> Option<usize> {
+    let lf = text.find("\n\n").map(|index| index + 2);
+    let crlf = text.find("\r\n\r\n").map(|index| index + 4);
+    match (lf, crlf) {
+        (Some(left), Some(right)) => Some(left.min(right)),
+        (Some(index), None) | (None, Some(index)) => Some(index),
+        (None, None) => None,
+    }
 }
 
 fn rename_message_parts_for_rest_v1(value: &mut Value) {
