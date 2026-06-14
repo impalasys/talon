@@ -83,6 +83,8 @@ pub struct AgentSpecDelta {
     pub mcp_server_refs: ::core::option::Option<StringListDelta>,
     #[prost(message, optional, tag = "6")]
     pub capabilities: ::core::option::Option<CapabilitiesPolicyDelta>,
+    #[prost(message, optional, tag = "7")]
+    pub a2a: ::core::option::Option<A2a>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PromptDelta {
@@ -231,6 +233,8 @@ pub struct McpServerBindingSpec {
 pub struct A2a {
     #[prost(message, repeated, tag = "1")]
     pub connections: ::prost::alloc::vec::Vec<Connection>,
+    #[prost(message, optional, tag = "2")]
+    pub publication: ::core::option::Option<Publication>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Connection {
@@ -286,37 +290,22 @@ pub struct ConnectionAuth {
     pub secret_ref: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AgentCard {
+pub struct Publication {
     #[prost(string, tag = "1")]
-    pub api_version: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub kind: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
-    pub metadata: ::core::option::Option<ObjectMeta>,
-    #[prost(message, optional, tag = "4")]
-    pub spec: ::core::option::Option<AgentCardSpec>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AgentCardSpec {
-    #[prost(string, tag = "1")]
-    pub agent_ref: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub hostname: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
     pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
+    #[prost(string, tag = "2")]
     pub description: ::prost::alloc::string::String,
-    #[prost(string, tag = "5")]
+    #[prost(string, tag = "3")]
     pub version: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "6")]
+    #[prost(message, optional, tag = "4")]
     pub capabilities: ::core::option::Option<AgentCardCapabilities>,
-    #[prost(string, repeated, tag = "7")]
+    #[prost(string, repeated, tag = "5")]
     pub default_input_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(string, repeated, tag = "8")]
+    #[prost(string, repeated, tag = "6")]
     pub default_output_modes: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
-    #[prost(message, repeated, tag = "9")]
+    #[prost(message, repeated, tag = "7")]
     pub skills: ::prost::alloc::vec::Vec<AgentCardSkill>,
-    #[prost(message, optional, tag = "10")]
+    #[prost(message, optional, tag = "8")]
     pub auth: ::core::option::Option<AgentCardAuth>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]

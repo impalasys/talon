@@ -17,17 +17,16 @@ use talon::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
 use talon::gateway::rpc::models;
 use talon::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use talon::gateway::rpc::proto::{
-    CancelWorkflowRunRequest, CreateAgentCardRequest, CreateAgentRequest,
-    CreateAgentTemplateRequest, CreateChannelRequest, CreateChannelSubscriptionRequest,
-    CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateWorkflowRequest,
-    CreateWorkflowRunRequest, DeleteAgentCardRequest, DeleteAgentTemplateRequest,
+    CancelWorkflowRunRequest, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest,
+    CreateChannelSubscriptionRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest,
+    CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentTemplateRequest,
     DeleteChannelRequest, DeleteChannelSubscriptionRequest, DeleteMcpServerRequest,
-    DeleteNamespaceKnowledgeRequest, DeleteWorkflowRequest, GetAgentCardRequest,
-    GetAgentTemplateRequest, GetChannelRequest, GetChannelSubscriptionRequest,
-    GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetScheduleRequest, GetWorkflowRequest,
-    GetWorkflowRunRequest, ListNamespaceKnowledgeRequest, ListWorkflowRunsRequest,
-    ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest,
-    ResumeWorkflowRunRequest, StreamWorkflowEventsRequest,
+    DeleteNamespaceKnowledgeRequest, DeleteWorkflowRequest, GetAgentTemplateRequest,
+    GetChannelRequest, GetChannelSubscriptionRequest, GetMcpServerRequest,
+    GetNamespaceKnowledgeRequest, GetScheduleRequest, GetWorkflowRequest, GetWorkflowRunRequest,
+    ListNamespaceKnowledgeRequest, ListWorkflowRunsRequest, ModifyAgentRequest,
+    ModifyChannelRequest, ModifyChannelSubscriptionRequest, ResumeWorkflowRunRequest,
+    StreamWorkflowEventsRequest,
 };
 use tonic::metadata::MetadataValue;
 use tonic::service::Interceptor;
@@ -518,22 +517,6 @@ fn manifest_json_payload(content: &str) -> Result<(String, serde_json::Value)> {
                 }),
             ))
         }
-        "AgentCard" => {
-            let card = talon::manifest::parse_agent_card(content)?;
-            let namespace = card
-                .metadata
-                .as_ref()
-                .map(|meta| meta.namespace.clone())
-                .filter(|namespace| !namespace.is_empty())
-                .context("AgentCard missing metadata.namespace")?;
-            Ok((
-                "card".to_string(),
-                json!({
-                    "ns": namespace,
-                    "card": card,
-                }),
-            ))
-        }
         "Namespace" => {
             let namespace = talon::manifest::parse_namespace(content)?;
             Ok((
@@ -636,21 +619,6 @@ fn rest_get_path(
                 ),
                 "binding",
             ))
-        }
-        "agentcard" | "agentcards" | "agent-card" | "agent-cards" => {
-            let ns = namespace
-                .as_ref()
-                .context("AgentCard get requires --namespace")?;
-            let path = if name.is_empty() {
-                format!("/v1/namespaces/{}/agent-cards", urlencoding::encode(ns))
-            } else {
-                format!(
-                    "/v1/namespaces/{}/agent-cards/{}",
-                    urlencoding::encode(ns),
-                    urlencoding::encode(name)
-                )
-            };
-            Ok((path, "card"))
         }
         "namespace" | "namespaces" => Ok((
             format!("/v1/namespaces/{}", urlencoding::encode(name)),
@@ -760,16 +728,6 @@ fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Resul
                 urlencoding::encode(name)
             ))
         }
-        "agentcard" | "agentcards" | "agent-card" | "agent-cards" => {
-            let ns = namespace
-                .as_ref()
-                .context("AgentCard delete requires --namespace")?;
-            Ok(format!(
-                "/v1/namespaces/{}/agent-cards/{}",
-                urlencoding::encode(ns),
-                urlencoding::encode(name)
-            ))
-        }
         "namespace" | "namespaces" => Ok(format!("/v1/namespaces/{}", urlencoding::encode(name))),
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             let ns = namespace
@@ -843,19 +801,6 @@ fn render_json_payload(content: &str) -> Result<serde_json::Value> {
                 "binding": binding,
             }))
         }
-        "AgentCard" => {
-            let card = talon::manifest::parse_agent_card(content)?;
-            let namespace = card
-                .metadata
-                .as_ref()
-                .map(|meta| meta.namespace.clone())
-                .filter(|namespace| !namespace.is_empty())
-                .context("AgentCard missing metadata.namespace")?;
-            Ok(json!({
-                "ns": namespace,
-                "card": card,
-            }))
-        }
         "Namespace" => {
             let namespace = talon::manifest::parse_namespace(content)?;
             Ok(json!({
@@ -924,28 +869,6 @@ fn render_rest_get_yaml(response_key: &str, value: serde_json::Value) -> Result<
             let binding: talon::gateway::rpc::manifests::McpServerBinding =
                 serde_json::from_value(value).context("Failed to decode McpServerBinding JSON")?;
             talon::manifest::render_mcp_server_binding_yaml(&binding)
-        }
-        "card" => {
-            let mut value = value;
-            normalize_manifest_metadata_maps(&mut value);
-            if let Some(cards) = value.get("cards").and_then(|cards| cards.as_array()) {
-                let mut yaml = String::new();
-                for card in cards {
-                    let mut card = card.clone();
-                    normalize_manifest_metadata_maps(&mut card);
-                    let card: talon::gateway::rpc::manifests::AgentCard =
-                        serde_json::from_value(card).context("Failed to decode AgentCard JSON")?;
-                    if !yaml.is_empty() {
-                        yaml.push_str("---\n");
-                    }
-                    yaml.push_str(&talon::manifest::render_agent_card_yaml(&card)?);
-                }
-                Ok(yaml)
-            } else {
-                let card: talon::gateway::rpc::manifests::AgentCard =
-                    serde_json::from_value(value).context("Failed to decode AgentCard JSON")?;
-                talon::manifest::render_agent_card_yaml(&card)
-            }
         }
         "knowledge" => {
             let mut value = value;
@@ -1711,9 +1634,9 @@ enum Commands {
     /// Retrieves a manifest from the gateway.
     ///
     /// Supported resource kinds:
-    ///   agent, agent-card, template, mcp-server, knowledge, schedule, channel, channel-subscription
+    ///   agent, template, mcp-server, knowledge, schedule, channel, channel-subscription
     Get {
-        /// Type of resource to get: agent, agent-card, template, mcp-server, knowledge, schedule, channel, channel-subscription
+        /// Type of resource to get: agent, template, mcp-server, knowledge, schedule, channel, channel-subscription
         #[arg(value_name = "KIND")]
         kind: String,
         /// Name of the resource
@@ -1728,9 +1651,9 @@ enum Commands {
     /// Deletes a manifest from the gateway.
     ///
     /// Supported resource kinds:
-    ///   agent-card, template, mcp-server, knowledge, channel, channel-subscription
+    ///   template, mcp-server, knowledge, channel, channel-subscription
     Delete {
-        /// Type of resource to delete: agent-card, template, mcp-server, knowledge, channel, channel-subscription
+        /// Type of resource to delete: template, mcp-server, knowledge, channel, channel-subscription
         #[arg(value_name = "KIND")]
         kind: String,
         /// Name of the resource
@@ -1916,10 +1839,6 @@ enum GrpcGetTarget {
     McpServer {
         name: String,
     },
-    AgentCard {
-        ns: String,
-        name: String,
-    },
     Knowledge {
         ns: String,
         name: String,
@@ -1949,10 +1868,6 @@ enum GrpcDeleteTarget {
         name: String,
     },
     McpServer {
-        name: String,
-    },
-    AgentCard {
-        ns: String,
         name: String,
     },
     Knowledge {
@@ -1989,11 +1904,6 @@ enum GrpcApplyPlan {
     McpServer {
         name: String,
         server: talon::gateway::rpc::manifests::McpServer,
-    },
-    AgentCard {
-        ns: String,
-        name: String,
-        card: talon::gateway::rpc::manifests::AgentCard,
     },
     Knowledge {
         ns: String,
@@ -2116,22 +2026,6 @@ fn build_rest_apply_plan(
                 ),
                 payload: json!({ "ns": meta.namespace, "binding": binding }),
                 success_label: format!("McpServerBinding '{}/{}'", meta.namespace, meta.name),
-            })
-        }
-        "AgentCard" => {
-            let card = talon::manifest::parse_agent_card(content)?;
-            let meta = card
-                .metadata
-                .as_ref()
-                .context("AgentCard missing metadata")?;
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: format!(
-                    "/v1/namespaces/{}/agent-cards",
-                    urlencoding::encode(&meta.namespace)
-                ),
-                payload: json!({ "ns": meta.namespace, "card": card }),
-                success_label: format!("AgentCard '{}/{}'", meta.namespace, meta.name),
             })
         }
         "Namespace" => {
@@ -2291,15 +2185,6 @@ fn grpc_get_target(kind: &str, name: &str, namespace: Option<&String>) -> Result
         "mcpserver" | "mcpservers" | "mcp" => Ok(GrpcGetTarget::McpServer {
             name: name.to_string(),
         }),
-        "agentcard" | "agentcards" | "agent-card" | "agent-cards" => {
-            let ns = namespace
-                .cloned()
-                .context("AgentCard get requires --namespace")?;
-            Ok(GrpcGetTarget::AgentCard {
-                ns,
-                name: name.to_string(),
-            })
-        }
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             let ns = namespace
                 .cloned()
@@ -2368,15 +2253,6 @@ fn grpc_delete_target(
         "mcpserver" | "mcpservers" | "mcp" => Ok(GrpcDeleteTarget::McpServer {
             name: name.to_string(),
         }),
-        "agentcard" | "agentcards" | "agent-card" | "agent-cards" => {
-            let ns = namespace
-                .cloned()
-                .context("AgentCard delete requires --namespace")?;
-            Ok(GrpcDeleteTarget::AgentCard {
-                ns,
-                name: name.to_string(),
-            })
-        }
         "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
             let ns = namespace
                 .cloned()
@@ -2464,18 +2340,6 @@ fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
                 server,
             })
         }
-        "AgentCard" => {
-            let card = talon::manifest::parse_agent_card(content)?;
-            let meta = card
-                .metadata
-                .as_ref()
-                .context("AgentCard missing metadata")?;
-            Ok(GrpcApplyPlan::AgentCard {
-                ns: meta.namespace.clone(),
-                name: meta.name.clone(),
-                card,
-            })
-        }
         "Knowledge" => {
             let knowledge = talon::manifest::parse_knowledge(content)?;
             let meta = knowledge
@@ -2560,17 +2424,6 @@ async fn grpc_get_yaml(
                 .with_context(|| format!("Failed to fetch MCPServer '{}'", name))?;
             let server = resp.into_inner().server.context("Resource not found.")?;
             talon::manifest::render_mcp_server_yaml(&server)
-        }
-        GrpcGetTarget::AgentCard { ns, name } => {
-            let resp = client
-                .get_agent_card(GetAgentCardRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to fetch AgentCard '{}/{}'", ns, name))?;
-            let card = resp.into_inner().card.context("AgentCard not found.")?;
-            talon::manifest::render_agent_card_yaml(&card)
         }
         GrpcGetTarget::Knowledge { ns, name } => {
             let resp = client
@@ -2670,19 +2523,6 @@ async fn grpc_delete_resource(
                 .await
                 .with_context(|| format!("Failed to delete MCPServer '{}'", name))?;
             Ok(format!("✓ MCPServer '{}' deleted successfully.", name))
-        }
-        GrpcDeleteTarget::AgentCard { ns, name } => {
-            client
-                .delete_agent_card(DeleteAgentCardRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to delete AgentCard '{}/{}'", ns, name))?;
-            Ok(format!(
-                "✓ AgentCard '{}/{}' deleted successfully.",
-                ns, name
-            ))
         }
         GrpcDeleteTarget::Knowledge { ns, name } => {
             client
@@ -2808,19 +2648,6 @@ async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
                 .await
                 .context("Gateway rejected MCPServer")?;
             Ok(format!("✓ MCPServer '{}' applied successfully.", name))
-        }
-        GrpcApplyPlan::AgentCard { ns, name, card } => {
-            client
-                .create_agent_card(CreateAgentCardRequest {
-                    ns: ns.clone(),
-                    card: Some(card),
-                })
-                .await
-                .with_context(|| format!("Gateway rejected AgentCard '{}/{}'", ns, name))?;
-            Ok(format!(
-                "✓ AgentCard '{}/{}' applied successfully.",
-                ns, name
-            ))
         }
         GrpcApplyPlan::Knowledge {
             ns,
@@ -3699,72 +3526,6 @@ mod tests {
         let channel = talon::manifest::parse_channel(&channel_yaml).expect("channel should parse");
         assert_eq!(channel.name, "match");
         assert_eq!(channel.ns, "codewords:main");
-
-        let cards_yaml = render_rest_get_yaml(
-            "card",
-            json!({
-                "cards": [
-                    {
-                        "apiVersion": "talon.impalasys.com/v1",
-                        "kind": "AgentCard",
-                        "metadata": {
-                            "name": "support",
-                            "namespace": "team-a",
-                            "labels": null
-                        },
-                        "spec": {
-                            "agentRef": "support-docs",
-                            "name": "Support Agent",
-                            "description": "Answers support questions.",
-                            "version": "1.0.0",
-                            "capabilities": {
-                                "streaming": false,
-                                "pushNotifications": false,
-                                "extendedAgentCard": false
-                            },
-                            "defaultInputModes": ["text/plain"],
-                            "defaultOutputModes": ["text/plain"],
-                            "skills": [],
-                            "auth": {
-                                "discovery": "public",
-                                "operations": "public"
-                            }
-                        }
-                    },
-                    {
-                        "apiVersion": "talon.impalasys.com/v1",
-                        "kind": "AgentCard",
-                        "metadata": {
-                            "name": "sales",
-                            "namespace": "team-a",
-                            "labels": null
-                        },
-                        "spec": {
-                            "agentRef": "sales-docs",
-                            "name": "Sales Agent",
-                            "description": "Answers sales questions.",
-                            "version": "1.0.0",
-                            "capabilities": {
-                                "streaming": false,
-                                "pushNotifications": false,
-                                "extendedAgentCard": false
-                            },
-                            "defaultInputModes": ["text/plain"],
-                            "defaultOutputModes": ["text/plain"],
-                            "skills": [],
-                            "auth": {
-                                "discovery": "public",
-                                "operations": "public"
-                            }
-                        }
-                    }
-                ]
-            }),
-        )
-        .unwrap();
-        assert_eq!(cards_yaml.matches("kind: AgentCard").count(), 2);
-        assert!(cards_yaml.contains("---\napiVersion: talon.impalasys.com/v1"));
-        assert!(!cards_yaml.contains("labels: null"));
     }
 
     #[test]
@@ -4140,17 +3901,6 @@ mod tests {
             )
         );
         assert_eq!(
-            rest_get_path("agent-cards", "", Some(&team)).unwrap(),
-            ("/v1/namespaces/team-a/agent-cards".to_string(), "card")
-        );
-        assert_eq!(
-            rest_get_path("agent-card", "support public", Some(&team)).unwrap(),
-            (
-                "/v1/namespaces/team-a/agent-cards/support%20public".to_string(),
-                "card"
-            )
-        );
-        assert_eq!(
             rest_delete_path("namespace", "team/a", None).unwrap(),
             "/v1/namespaces/team%2Fa".to_string()
         );
@@ -4233,7 +3983,7 @@ mod tests {
             .render_long_help()
             .to_string();
 
-        assert!(help.contains("agent-card"));
+        assert!(help.contains("agent"));
         assert!(help.contains("mcp-server"));
         assert!(help.contains("channel-subscription"));
         assert!(help.contains("template"));

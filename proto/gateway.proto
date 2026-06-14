@@ -392,28 +392,6 @@ service GatewayService {
     };
   }
 
-  // A2A Agent Cards
-  rpc CreateAgentCard(CreateAgentCardRequest) returns (AgentCardResponse) {
-    option (google.api.http) = {
-      post: "/v1/namespaces/{ns}/agent-cards"
-      body: "*"
-    };
-  }
-  rpc GetAgentCard(GetAgentCardRequest) returns (AgentCardResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/agent-cards/{name}"
-    };
-  }
-  rpc ListAgentCards(ListAgentCardsRequest) returns (ListAgentCardsResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/agent-cards"
-    };
-  }
-  rpc DeleteAgentCard(DeleteAgentCardRequest) returns (DeleteAgentCardResponse) {
-    option (google.api.http) = {
-      delete: "/v1/namespaces/{ns}/agent-cards/{name}"
-    };
-  }
 }
 
 // ---------------------------------------------------------
@@ -503,37 +481,6 @@ message McpServerBindingResponse {
 
 message ListMcpServerBindingsResponse {
   repeated talon.manifests.McpServerBinding bindings = 1;
-}
-
-message CreateAgentCardRequest {
-  string ns = 1;
-  talon.manifests.AgentCard card = 2;
-}
-
-message GetAgentCardRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListAgentCardsRequest {
-  string ns = 1;
-}
-
-message DeleteAgentCardRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteAgentCardResponse {
-  bool success = 1;
-}
-
-message AgentCardResponse {
-  talon.manifests.AgentCard card = 1;
-}
-
-message ListAgentCardsResponse {
-  repeated talon.manifests.AgentCard cards = 1;
 }
 
 message GetAgentResponse {

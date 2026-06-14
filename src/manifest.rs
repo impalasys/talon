@@ -70,6 +70,8 @@ struct AgentSpecDeltaManifest {
     mcp_server_refs: Option<StringListDeltaManifest>,
     #[serde(default)]
     capabilities: Option<CapabilitiesPolicyDeltaManifest>,
+    #[serde(default)]
+    a2a: Option<A2AManifest>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -206,6 +208,7 @@ struct McpServerBindingSpecManifest {
 #[serde(rename_all = "camelCase", default)]
 struct A2AManifest {
     connections: Vec<ConnectionManifest>,
+    publication: Option<PublicationManifest>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -248,19 +251,9 @@ struct ConnectionAuthManifest {
     secret_ref: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct AgentCardManifest {
-    api_version: String,
-    kind: String,
-    metadata: ObjectMetaManifest,
-    spec: AgentCardSpecManifest,
-}
-
 #[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase", default)]
-struct AgentCardSpecManifest {
-    agent_ref: String,
+struct PublicationManifest {
     name: String,
     description: String,
     version: String,
@@ -557,31 +550,6 @@ pub fn parse_mcp_server_binding(yaml: &str) -> Result<manifests::McpServerBindin
     })
 }
 
-pub fn parse_agent_card(yaml: &str) -> Result<manifests::AgentCard> {
-    let card: AgentCardManifest =
-        serde_yaml::from_str(yaml).context("Failed to parse AgentCard YAML")?;
-
-    if card.kind != "AgentCard" {
-        bail!("Expected kind 'AgentCard', got '{}'", card.kind);
-    }
-    if card.metadata.namespace.trim().is_empty() {
-        bail!("AgentCard metadata.namespace is required");
-    }
-    if card.metadata.name.trim().is_empty() {
-        bail!("AgentCard metadata.name is required");
-    }
-    if card.spec.agent_ref.trim().is_empty() {
-        bail!("AgentCard spec.agentRef is required");
-    }
-
-    Ok(manifests::AgentCard {
-        api_version: card.api_version,
-        kind: card.kind,
-        metadata: Some(card.metadata.into_proto()),
-        spec: Some(card.spec.into_proto()),
-    })
-}
-
 pub fn parse_namespace(yaml: &str) -> Result<models::Namespace> {
     let namespace: NamespaceManifest =
         serde_yaml::from_str(yaml).context("Failed to parse Namespace YAML")?;
@@ -781,26 +749,6 @@ pub fn render_mcp_server_binding_yaml(binding: &manifests::McpServerBinding) -> 
     };
 
     serde_yaml::to_string(&yaml_binding).context("Failed to serialize McpServerBinding to YAML")
-}
-
-pub fn render_agent_card_yaml(card: &manifests::AgentCard) -> Result<String> {
-    let metadata = card
-        .metadata
-        .as_ref()
-        .ok_or_else(|| anyhow!("AgentCard missing metadata"))?;
-    let spec = card
-        .spec
-        .as_ref()
-        .ok_or_else(|| anyhow!("AgentCard missing spec"))?;
-
-    let yaml_card = AgentCardManifest {
-        api_version: card.api_version.clone(),
-        kind: card.kind.clone(),
-        metadata: ObjectMetaManifest::from_proto(metadata),
-        spec: AgentCardSpecManifest::from_proto(spec),
-    };
-
-    serde_yaml::to_string(&yaml_card).context("Failed to serialize AgentCard to YAML")
 }
 
 pub fn render_namespace_yaml(namespace: &models::Namespace) -> Result<String> {
@@ -1004,6 +952,7 @@ impl A2AManifest {
                 .into_iter()
                 .map(ConnectionManifest::into_proto)
                 .collect::<Result<Vec<_>>>()?,
+            publication: self.publication.map(PublicationManifest::into_proto),
         })
     }
 
@@ -1014,6 +963,10 @@ impl A2AManifest {
                 .iter()
                 .map(ConnectionManifest::from_proto)
                 .collect(),
+            publication: spec
+                .publication
+                .as_ref()
+                .map(PublicationManifest::from_proto),
         }
     }
 }
@@ -1122,10 +1075,9 @@ impl ConnectionAuthManifest {
     }
 }
 
-impl AgentCardSpecManifest {
-    fn into_proto(self) -> manifests::AgentCardSpec {
-        manifests::AgentCardSpec {
-            agent_ref: self.agent_ref,
+impl PublicationManifest {
+    fn into_proto(self) -> manifests::Publication {
+        manifests::Publication {
             name: self.name,
             description: self.description,
             version: self.version,
@@ -1143,9 +1095,8 @@ impl AgentCardSpecManifest {
         }
     }
 
-    fn from_proto(spec: &manifests::AgentCardSpec) -> Self {
+    fn from_proto(spec: &manifests::Publication) -> Self {
         Self {
-            agent_ref: spec.agent_ref.clone(),
             name: spec.name.clone(),
             description: spec.description.clone(),
             version: spec.version.clone(),
@@ -1447,6 +1398,7 @@ impl AgentSpecDeltaManifest {
             capabilities: self
                 .capabilities
                 .map(CapabilitiesPolicyDeltaManifest::into_proto),
+            a2a: self.a2a.map(A2AManifest::into_proto).transpose()?,
         })
     }
 
@@ -1476,6 +1428,7 @@ impl AgentSpecDeltaManifest {
                 .capabilities
                 .as_ref()
                 .map(CapabilitiesPolicyDeltaManifest::from_proto),
+            a2a: delta.a2a.as_ref().map(A2AManifest::from_proto),
         }
     }
 }
@@ -1924,66 +1877,67 @@ definition:
     }
 
     #[test]
-    fn parse_and_render_agent_card_manifest() {
-        let card = parse_agent_card(
+    fn parse_and_render_agent_manifest_with_a2a_publication() {
+        let agent = parse_agent(
             r#"
 apiVersion: talon.impalasys.com/v1
-kind: AgentCard
+kind: Agent
 metadata:
-  name: support-public
+  name: support-docs
   namespace: support
-spec:
-  agentRef: support-docs
-  name: Support Agent
-  description: Answers support questions.
-  version: 1.0.0
-  capabilities:
-    streaming: true
-    pushNotifications: false
-    extendedAgentCard: false
-  defaultInputModes:
-    - text/plain
-  defaultOutputModes:
-    - text/plain
-  skills:
-    - id: answer_support_question
-      name: Answer support question
-      description: Answers using docs.
-      tags:
-        - support
+definition:
+  customSpec:
+    systemPrompt: test
+    modelPolicy:
+      profiles:
+        - name: default
+          model:
+            provider: test
+            name: test
+            temperature: 0
+    a2a:
+      publication:
+        name: Support Agent
+        description: Answers support questions.
+        version: 1.0.0
+        capabilities:
+          streaming: true
+          pushNotifications: false
+          extendedAgentCard: false
+        defaultInputModes:
+          - text/plain
+        defaultOutputModes:
+          - text/plain
+        skills:
+          - id: answer_support_question
+            name: Answer support question
+            description: Answers using docs.
+            tags:
+              - support
 "#,
         )
-        .expect("AgentCard manifest should parse");
+        .expect("Agent manifest should parse");
 
-        let spec = card.spec.as_ref().expect("spec should exist");
-        assert_eq!(spec.agent_ref, "support-docs");
-        assert!(spec
+        let definition = agent.definition.as_ref().expect("definition should exist");
+        let publication = match definition.source.as_ref().expect("source should exist") {
+            manifests::agent_definition::Source::CustomSpec(spec) => spec
+                .a2a
+                .as_ref()
+                .and_then(|a2a| a2a.publication.as_ref())
+                .expect("publication should exist"),
+            other => panic!("expected customSpec, got {other:?}"),
+        };
+        assert!(publication
             .capabilities
             .as_ref()
             .is_some_and(|caps| caps.streaming));
-        assert_eq!(spec.skills[0].id, "answer_support_question");
+        assert_eq!(publication.skills[0].id, "answer_support_question");
 
-        let rendered = render_agent_card_yaml(&card).expect("AgentCard yaml should render");
-        let reparsed = parse_agent_card(&rendered).expect("rendered card should parse");
-        assert_eq!(
-            reparsed.spec.as_ref().map(|spec| spec.agent_ref.as_str()),
-            Some("support-docs")
-        );
-
-        let err = parse_agent_card(
-            r#"
-apiVersion: talon.impalasys.com/v1
-kind: AgentCard
-metadata:
-  name: ""
-  namespace: support
-spec:
-  agentRef: support-docs
-"#,
-        )
-        .unwrap_err()
-        .to_string();
-        assert!(err.contains("AgentCard metadata.name is required"));
+        let rendered = render_agent_yaml(&agent).expect("Agent yaml should render");
+        let reparsed = parse_agent(&rendered).expect("rendered agent should parse");
+        assert_eq!(reparsed.name, "support-docs");
+        assert!(rendered.contains("publication:"));
+        assert!(rendered.contains("answer_support_question"));
     }
 
     #[test]
@@ -2300,6 +2254,7 @@ spec:
                             features: None,
                             mcp_server_refs: None,
                             capabilities: None,
+                            a2a: None,
                         }),
                     },
                 )),

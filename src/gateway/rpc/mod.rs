@@ -6,7 +6,6 @@ use std::sync::Arc;
 
 use std::pin::Pin;
 
-pub mod agent_cards;
 pub mod agents;
 pub mod channels;
 pub mod knowledge;
@@ -231,34 +230,6 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::DeleteMcpServerBindingResponse>, tonic::Status>
     {
         self.handle_delete_mcp_server_binding(req).await
-    }
-
-    async fn create_agent_card(
-        &self,
-        req: tonic::Request<proto::CreateAgentCardRequest>,
-    ) -> std::result::Result<tonic::Response<proto::AgentCardResponse>, tonic::Status> {
-        self.handle_create_agent_card(req).await
-    }
-
-    async fn get_agent_card(
-        &self,
-        req: tonic::Request<proto::GetAgentCardRequest>,
-    ) -> std::result::Result<tonic::Response<proto::AgentCardResponse>, tonic::Status> {
-        self.handle_get_agent_card(req).await
-    }
-
-    async fn list_agent_cards(
-        &self,
-        req: tonic::Request<proto::ListAgentCardsRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListAgentCardsResponse>, tonic::Status> {
-        self.handle_list_agent_cards(req).await
-    }
-
-    async fn delete_agent_card(
-        &self,
-        req: tonic::Request<proto::DeleteAgentCardRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteAgentCardResponse>, tonic::Status> {
-        self.handle_delete_agent_card(req).await
     }
 
     // Sessions

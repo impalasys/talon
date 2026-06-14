@@ -957,338 +957,6 @@ func (x *ListMcpServerBindingsResponse) GetBindings() []*manifests.McpServerBind
 	return nil
 }
 
-type CreateAgentCardRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ns            string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
-	Card          *manifests.AgentCard   `protobuf:"bytes,2,opt,name=card,proto3" json:"card,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateAgentCardRequest) Reset() {
-	*x = CreateAgentCardRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[21]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateAgentCardRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateAgentCardRequest) ProtoMessage() {}
-
-func (x *CreateAgentCardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[21]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateAgentCardRequest.ProtoReflect.Descriptor instead.
-func (*CreateAgentCardRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *CreateAgentCardRequest) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
-func (x *CreateAgentCardRequest) GetCard() *manifests.AgentCard {
-	if x != nil {
-		return x.Card
-	}
-	return nil
-}
-
-type GetAgentCardRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ns            string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetAgentCardRequest) Reset() {
-	*x = GetAgentCardRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[22]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetAgentCardRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetAgentCardRequest) ProtoMessage() {}
-
-func (x *GetAgentCardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[22]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetAgentCardRequest.ProtoReflect.Descriptor instead.
-func (*GetAgentCardRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{22}
-}
-
-func (x *GetAgentCardRequest) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
-func (x *GetAgentCardRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-type ListAgentCardsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ns            string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListAgentCardsRequest) Reset() {
-	*x = ListAgentCardsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[23]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListAgentCardsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListAgentCardsRequest) ProtoMessage() {}
-
-func (x *ListAgentCardsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[23]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListAgentCardsRequest.ProtoReflect.Descriptor instead.
-func (*ListAgentCardsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{23}
-}
-
-func (x *ListAgentCardsRequest) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
-type DeleteAgentCardRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ns            string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeleteAgentCardRequest) Reset() {
-	*x = DeleteAgentCardRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[24]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeleteAgentCardRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteAgentCardRequest) ProtoMessage() {}
-
-func (x *DeleteAgentCardRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[24]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteAgentCardRequest.ProtoReflect.Descriptor instead.
-func (*DeleteAgentCardRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{24}
-}
-
-func (x *DeleteAgentCardRequest) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
-func (x *DeleteAgentCardRequest) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-type DeleteAgentCardResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeleteAgentCardResponse) Reset() {
-	*x = DeleteAgentCardResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[25]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeleteAgentCardResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteAgentCardResponse) ProtoMessage() {}
-
-func (x *DeleteAgentCardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[25]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteAgentCardResponse.ProtoReflect.Descriptor instead.
-func (*DeleteAgentCardResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{25}
-}
-
-func (x *DeleteAgentCardResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-type AgentCardResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Card          *manifests.AgentCard   `protobuf:"bytes,1,opt,name=card,proto3" json:"card,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AgentCardResponse) Reset() {
-	*x = AgentCardResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[26]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AgentCardResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AgentCardResponse) ProtoMessage() {}
-
-func (x *AgentCardResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[26]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AgentCardResponse.ProtoReflect.Descriptor instead.
-func (*AgentCardResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{26}
-}
-
-func (x *AgentCardResponse) GetCard() *manifests.AgentCard {
-	if x != nil {
-		return x.Card
-	}
-	return nil
-}
-
-type ListAgentCardsResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Cards         []*manifests.AgentCard `protobuf:"bytes,1,rep,name=cards,proto3" json:"cards,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListAgentCardsResponse) Reset() {
-	*x = ListAgentCardsResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[27]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListAgentCardsResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListAgentCardsResponse) ProtoMessage() {}
-
-func (x *ListAgentCardsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[27]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListAgentCardsResponse.ProtoReflect.Descriptor instead.
-func (*ListAgentCardsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{27}
-}
-
-func (x *ListAgentCardsResponse) GetCards() []*manifests.AgentCard {
-	if x != nil {
-		return x.Cards
-	}
-	return nil
-}
-
 type GetAgentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Agent         *models.Agent          `protobuf:"bytes,1,opt,name=agent,proto3" json:"agent,omitempty"`
@@ -1298,7 +966,7 @@ type GetAgentResponse struct {
 
 func (x *GetAgentResponse) Reset() {
 	*x = GetAgentResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[28]
+	mi := &file_proto_gateway_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1310,7 +978,7 @@ func (x *GetAgentResponse) String() string {
 func (*GetAgentResponse) ProtoMessage() {}
 
 func (x *GetAgentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[28]
+	mi := &file_proto_gateway_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1323,7 +991,7 @@ func (x *GetAgentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentResponse.ProtoReflect.Descriptor instead.
 func (*GetAgentResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{28}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetAgentResponse) GetAgent() *models.Agent {
@@ -1343,7 +1011,7 @@ type GetAgentRequest struct {
 
 func (x *GetAgentRequest) Reset() {
 	*x = GetAgentRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[29]
+	mi := &file_proto_gateway_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1355,7 +1023,7 @@ func (x *GetAgentRequest) String() string {
 func (*GetAgentRequest) ProtoMessage() {}
 
 func (x *GetAgentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[29]
+	mi := &file_proto_gateway_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1368,7 +1036,7 @@ func (x *GetAgentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAgentRequest.ProtoReflect.Descriptor instead.
 func (*GetAgentRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{29}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetAgentRequest) GetNs() string {
@@ -1397,7 +1065,7 @@ type CreateAgentRequest struct {
 
 func (x *CreateAgentRequest) Reset() {
 	*x = CreateAgentRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[30]
+	mi := &file_proto_gateway_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +1077,7 @@ func (x *CreateAgentRequest) String() string {
 func (*CreateAgentRequest) ProtoMessage() {}
 
 func (x *CreateAgentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[30]
+	mi := &file_proto_gateway_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +1090,7 @@ func (x *CreateAgentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateAgentRequest.ProtoReflect.Descriptor instead.
 func (*CreateAgentRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{30}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CreateAgentRequest) GetNs() string {
@@ -1464,7 +1132,7 @@ type AgentResponse struct {
 
 func (x *AgentResponse) Reset() {
 	*x = AgentResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[31]
+	mi := &file_proto_gateway_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1476,7 +1144,7 @@ func (x *AgentResponse) String() string {
 func (*AgentResponse) ProtoMessage() {}
 
 func (x *AgentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[31]
+	mi := &file_proto_gateway_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1489,7 +1157,7 @@ func (x *AgentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AgentResponse.ProtoReflect.Descriptor instead.
 func (*AgentResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{31}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *AgentResponse) GetAgent() string {
@@ -1522,7 +1190,7 @@ type ListAgentsRequest struct {
 
 func (x *ListAgentsRequest) Reset() {
 	*x = ListAgentsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[32]
+	mi := &file_proto_gateway_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1534,7 +1202,7 @@ func (x *ListAgentsRequest) String() string {
 func (*ListAgentsRequest) ProtoMessage() {}
 
 func (x *ListAgentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[32]
+	mi := &file_proto_gateway_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1547,7 +1215,7 @@ func (x *ListAgentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentsRequest.ProtoReflect.Descriptor instead.
 func (*ListAgentsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{32}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListAgentsRequest) GetNs() string {
@@ -1566,7 +1234,7 @@ type ListAgentsResponse struct {
 
 func (x *ListAgentsResponse) Reset() {
 	*x = ListAgentsResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[33]
+	mi := &file_proto_gateway_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1578,7 +1246,7 @@ func (x *ListAgentsResponse) String() string {
 func (*ListAgentsResponse) ProtoMessage() {}
 
 func (x *ListAgentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[33]
+	mi := &file_proto_gateway_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1591,7 +1259,7 @@ func (x *ListAgentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAgentsResponse.ProtoReflect.Descriptor instead.
 func (*ListAgentsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{33}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListAgentsResponse) GetAgents() []string {
@@ -1613,7 +1281,7 @@ type ModifyAgentRequest struct {
 
 func (x *ModifyAgentRequest) Reset() {
 	*x = ModifyAgentRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[34]
+	mi := &file_proto_gateway_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1625,7 +1293,7 @@ func (x *ModifyAgentRequest) String() string {
 func (*ModifyAgentRequest) ProtoMessage() {}
 
 func (x *ModifyAgentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[34]
+	mi := &file_proto_gateway_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1638,7 +1306,7 @@ func (x *ModifyAgentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModifyAgentRequest.ProtoReflect.Descriptor instead.
 func (*ModifyAgentRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{34}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ModifyAgentRequest) GetAgent() string {
@@ -1680,7 +1348,7 @@ type GetKnowledgeRequest struct {
 
 func (x *GetKnowledgeRequest) Reset() {
 	*x = GetKnowledgeRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[35]
+	mi := &file_proto_gateway_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1692,7 +1360,7 @@ func (x *GetKnowledgeRequest) String() string {
 func (*GetKnowledgeRequest) ProtoMessage() {}
 
 func (x *GetKnowledgeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[35]
+	mi := &file_proto_gateway_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1705,7 +1373,7 @@ func (x *GetKnowledgeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKnowledgeRequest.ProtoReflect.Descriptor instead.
 func (*GetKnowledgeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{35}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetKnowledgeRequest) GetAgent() string {
@@ -1738,7 +1406,7 @@ type KnowledgeResponse struct {
 
 func (x *KnowledgeResponse) Reset() {
 	*x = KnowledgeResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[36]
+	mi := &file_proto_gateway_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1750,7 +1418,7 @@ func (x *KnowledgeResponse) String() string {
 func (*KnowledgeResponse) ProtoMessage() {}
 
 func (x *KnowledgeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[36]
+	mi := &file_proto_gateway_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1763,7 +1431,7 @@ func (x *KnowledgeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KnowledgeResponse.ProtoReflect.Descriptor instead.
 func (*KnowledgeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{36}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *KnowledgeResponse) GetModules() []*models.Knowledge {
@@ -1784,7 +1452,7 @@ type SearchKnowledgeRequest struct {
 
 func (x *SearchKnowledgeRequest) Reset() {
 	*x = SearchKnowledgeRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[37]
+	mi := &file_proto_gateway_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1796,7 +1464,7 @@ func (x *SearchKnowledgeRequest) String() string {
 func (*SearchKnowledgeRequest) ProtoMessage() {}
 
 func (x *SearchKnowledgeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[37]
+	mi := &file_proto_gateway_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1809,7 +1477,7 @@ func (x *SearchKnowledgeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKnowledgeRequest.ProtoReflect.Descriptor instead.
 func (*SearchKnowledgeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{37}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *SearchKnowledgeRequest) GetAgent() string {
@@ -1842,7 +1510,7 @@ type SearchKnowledgeResponse struct {
 
 func (x *SearchKnowledgeResponse) Reset() {
 	*x = SearchKnowledgeResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[38]
+	mi := &file_proto_gateway_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1854,7 +1522,7 @@ func (x *SearchKnowledgeResponse) String() string {
 func (*SearchKnowledgeResponse) ProtoMessage() {}
 
 func (x *SearchKnowledgeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[38]
+	mi := &file_proto_gateway_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1867,7 +1535,7 @@ func (x *SearchKnowledgeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKnowledgeResponse.ProtoReflect.Descriptor instead.
 func (*SearchKnowledgeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{38}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *SearchKnowledgeResponse) GetResults() []*models.KnowledgeSearchResult {
@@ -1887,7 +1555,7 @@ type CreateNamespaceKnowledgeRequest struct {
 
 func (x *CreateNamespaceKnowledgeRequest) Reset() {
 	*x = CreateNamespaceKnowledgeRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[39]
+	mi := &file_proto_gateway_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1899,7 +1567,7 @@ func (x *CreateNamespaceKnowledgeRequest) String() string {
 func (*CreateNamespaceKnowledgeRequest) ProtoMessage() {}
 
 func (x *CreateNamespaceKnowledgeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[39]
+	mi := &file_proto_gateway_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1912,7 +1580,7 @@ func (x *CreateNamespaceKnowledgeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNamespaceKnowledgeRequest.ProtoReflect.Descriptor instead.
 func (*CreateNamespaceKnowledgeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{39}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *CreateNamespaceKnowledgeRequest) GetNs() string {
@@ -1939,7 +1607,7 @@ type GetNamespaceKnowledgeRequest struct {
 
 func (x *GetNamespaceKnowledgeRequest) Reset() {
 	*x = GetNamespaceKnowledgeRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[40]
+	mi := &file_proto_gateway_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1951,7 +1619,7 @@ func (x *GetNamespaceKnowledgeRequest) String() string {
 func (*GetNamespaceKnowledgeRequest) ProtoMessage() {}
 
 func (x *GetNamespaceKnowledgeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[40]
+	mi := &file_proto_gateway_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1964,7 +1632,7 @@ func (x *GetNamespaceKnowledgeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceKnowledgeRequest.ProtoReflect.Descriptor instead.
 func (*GetNamespaceKnowledgeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{40}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetNamespaceKnowledgeRequest) GetNs() string {
@@ -1990,7 +1658,7 @@ type ListNamespaceKnowledgeRequest struct {
 
 func (x *ListNamespaceKnowledgeRequest) Reset() {
 	*x = ListNamespaceKnowledgeRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[41]
+	mi := &file_proto_gateway_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2002,7 +1670,7 @@ func (x *ListNamespaceKnowledgeRequest) String() string {
 func (*ListNamespaceKnowledgeRequest) ProtoMessage() {}
 
 func (x *ListNamespaceKnowledgeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[41]
+	mi := &file_proto_gateway_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2015,7 +1683,7 @@ func (x *ListNamespaceKnowledgeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespaceKnowledgeRequest.ProtoReflect.Descriptor instead.
 func (*ListNamespaceKnowledgeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{41}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListNamespaceKnowledgeRequest) GetNs() string {
@@ -2035,7 +1703,7 @@ type DeleteNamespaceKnowledgeRequest struct {
 
 func (x *DeleteNamespaceKnowledgeRequest) Reset() {
 	*x = DeleteNamespaceKnowledgeRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[42]
+	mi := &file_proto_gateway_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2047,7 +1715,7 @@ func (x *DeleteNamespaceKnowledgeRequest) String() string {
 func (*DeleteNamespaceKnowledgeRequest) ProtoMessage() {}
 
 func (x *DeleteNamespaceKnowledgeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[42]
+	mi := &file_proto_gateway_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2060,7 +1728,7 @@ func (x *DeleteNamespaceKnowledgeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNamespaceKnowledgeRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNamespaceKnowledgeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{42}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *DeleteNamespaceKnowledgeRequest) GetNs() string {
@@ -2086,7 +1754,7 @@ type DeleteNamespaceKnowledgeResponse struct {
 
 func (x *DeleteNamespaceKnowledgeResponse) Reset() {
 	*x = DeleteNamespaceKnowledgeResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[43]
+	mi := &file_proto_gateway_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2098,7 +1766,7 @@ func (x *DeleteNamespaceKnowledgeResponse) String() string {
 func (*DeleteNamespaceKnowledgeResponse) ProtoMessage() {}
 
 func (x *DeleteNamespaceKnowledgeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[43]
+	mi := &file_proto_gateway_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2111,7 +1779,7 @@ func (x *DeleteNamespaceKnowledgeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNamespaceKnowledgeResponse.ProtoReflect.Descriptor instead.
 func (*DeleteNamespaceKnowledgeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{43}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DeleteNamespaceKnowledgeResponse) GetSuccess() bool {
@@ -2130,7 +1798,7 @@ type NamespaceKnowledgeResponse struct {
 
 func (x *NamespaceKnowledgeResponse) Reset() {
 	*x = NamespaceKnowledgeResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[44]
+	mi := &file_proto_gateway_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2142,7 +1810,7 @@ func (x *NamespaceKnowledgeResponse) String() string {
 func (*NamespaceKnowledgeResponse) ProtoMessage() {}
 
 func (x *NamespaceKnowledgeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[44]
+	mi := &file_proto_gateway_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2155,7 +1823,7 @@ func (x *NamespaceKnowledgeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NamespaceKnowledgeResponse.ProtoReflect.Descriptor instead.
 func (*NamespaceKnowledgeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{44}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *NamespaceKnowledgeResponse) GetKnowledge() *manifests.Knowledge {
@@ -2174,7 +1842,7 @@ type ListNamespaceKnowledgeResponse struct {
 
 func (x *ListNamespaceKnowledgeResponse) Reset() {
 	*x = ListNamespaceKnowledgeResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[45]
+	mi := &file_proto_gateway_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2186,7 +1854,7 @@ func (x *ListNamespaceKnowledgeResponse) String() string {
 func (*ListNamespaceKnowledgeResponse) ProtoMessage() {}
 
 func (x *ListNamespaceKnowledgeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[45]
+	mi := &file_proto_gateway_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2199,7 +1867,7 @@ func (x *ListNamespaceKnowledgeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespaceKnowledgeResponse.ProtoReflect.Descriptor instead.
 func (*ListNamespaceKnowledgeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{45}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListNamespaceKnowledgeResponse) GetKnowledge() []*manifests.Knowledge {
@@ -2220,7 +1888,7 @@ type CreateSessionRequest struct {
 
 func (x *CreateSessionRequest) Reset() {
 	*x = CreateSessionRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[46]
+	mi := &file_proto_gateway_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2232,7 +1900,7 @@ func (x *CreateSessionRequest) String() string {
 func (*CreateSessionRequest) ProtoMessage() {}
 
 func (x *CreateSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[46]
+	mi := &file_proto_gateway_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2245,7 +1913,7 @@ func (x *CreateSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateSessionRequest.ProtoReflect.Descriptor instead.
 func (*CreateSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{46}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *CreateSessionRequest) GetAgent() string {
@@ -2282,7 +1950,7 @@ type GetSessionRequest struct {
 
 func (x *GetSessionRequest) Reset() {
 	*x = GetSessionRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[47]
+	mi := &file_proto_gateway_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2294,7 +1962,7 @@ func (x *GetSessionRequest) String() string {
 func (*GetSessionRequest) ProtoMessage() {}
 
 func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[47]
+	mi := &file_proto_gateway_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2307,7 +1975,7 @@ func (x *GetSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetSessionRequest.ProtoReflect.Descriptor instead.
 func (*GetSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{47}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GetSessionRequest) GetSessionId() string {
@@ -2351,7 +2019,7 @@ type ListSessionMessagesRequest struct {
 
 func (x *ListSessionMessagesRequest) Reset() {
 	*x = ListSessionMessagesRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[48]
+	mi := &file_proto_gateway_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2363,7 +2031,7 @@ func (x *ListSessionMessagesRequest) String() string {
 func (*ListSessionMessagesRequest) ProtoMessage() {}
 
 func (x *ListSessionMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[48]
+	mi := &file_proto_gateway_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2376,7 +2044,7 @@ func (x *ListSessionMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{48}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ListSessionMessagesRequest) GetSessionId() string {
@@ -2423,7 +2091,7 @@ type ListSessionMessagesResponseItem struct {
 
 func (x *ListSessionMessagesResponseItem) Reset() {
 	*x = ListSessionMessagesResponseItem{}
-	mi := &file_proto_gateway_proto_msgTypes[49]
+	mi := &file_proto_gateway_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2435,7 +2103,7 @@ func (x *ListSessionMessagesResponseItem) String() string {
 func (*ListSessionMessagesResponseItem) ProtoMessage() {}
 
 func (x *ListSessionMessagesResponseItem) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[49]
+	mi := &file_proto_gateway_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2448,7 +2116,7 @@ func (x *ListSessionMessagesResponseItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionMessagesResponseItem.ProtoReflect.Descriptor instead.
 func (*ListSessionMessagesResponseItem) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{49}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ListSessionMessagesResponseItem) GetMessage() *models.SessionMessage {
@@ -2472,7 +2140,7 @@ type ListSessionMessagesResponse struct {
 
 func (x *ListSessionMessagesResponse) Reset() {
 	*x = ListSessionMessagesResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[50]
+	mi := &file_proto_gateway_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2484,7 +2152,7 @@ func (x *ListSessionMessagesResponse) String() string {
 func (*ListSessionMessagesResponse) ProtoMessage() {}
 
 func (x *ListSessionMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[50]
+	mi := &file_proto_gateway_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2497,7 +2165,7 @@ func (x *ListSessionMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{50}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ListSessionMessagesResponse) GetSessionId() string {
@@ -2552,7 +2220,7 @@ type ListSessionsRequest struct {
 
 func (x *ListSessionsRequest) Reset() {
 	*x = ListSessionsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[51]
+	mi := &file_proto_gateway_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2564,7 +2232,7 @@ func (x *ListSessionsRequest) String() string {
 func (*ListSessionsRequest) ProtoMessage() {}
 
 func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[51]
+	mi := &file_proto_gateway_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2577,7 +2245,7 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{51}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ListSessionsRequest) GetAgent() string {
@@ -2605,7 +2273,7 @@ type SessionListItem struct {
 
 func (x *SessionListItem) Reset() {
 	*x = SessionListItem{}
-	mi := &file_proto_gateway_proto_msgTypes[52]
+	mi := &file_proto_gateway_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2617,7 +2285,7 @@ func (x *SessionListItem) String() string {
 func (*SessionListItem) ProtoMessage() {}
 
 func (x *SessionListItem) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[52]
+	mi := &file_proto_gateway_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2630,7 +2298,7 @@ func (x *SessionListItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionListItem.ProtoReflect.Descriptor instead.
 func (*SessionListItem) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{52}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *SessionListItem) GetSessionId() string {
@@ -2664,7 +2332,7 @@ type ListSessionsResponse struct {
 
 func (x *ListSessionsResponse) Reset() {
 	*x = ListSessionsResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[53]
+	mi := &file_proto_gateway_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2676,7 +2344,7 @@ func (x *ListSessionsResponse) String() string {
 func (*ListSessionsResponse) ProtoMessage() {}
 
 func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[53]
+	mi := &file_proto_gateway_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2689,7 +2357,7 @@ func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{53}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListSessionsResponse) GetSessionIds() []string {
@@ -2719,7 +2387,7 @@ type SessionResponse struct {
 
 func (x *SessionResponse) Reset() {
 	*x = SessionResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[54]
+	mi := &file_proto_gateway_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2731,7 +2399,7 @@ func (x *SessionResponse) String() string {
 func (*SessionResponse) ProtoMessage() {}
 
 func (x *SessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[54]
+	mi := &file_proto_gateway_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2744,7 +2412,7 @@ func (x *SessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionResponse.ProtoReflect.Descriptor instead.
 func (*SessionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{54}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *SessionResponse) GetSessionId() string {
@@ -2793,7 +2461,7 @@ type DeleteSessionRequest struct {
 
 func (x *DeleteSessionRequest) Reset() {
 	*x = DeleteSessionRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[55]
+	mi := &file_proto_gateway_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2805,7 +2473,7 @@ func (x *DeleteSessionRequest) String() string {
 func (*DeleteSessionRequest) ProtoMessage() {}
 
 func (x *DeleteSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[55]
+	mi := &file_proto_gateway_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2818,7 +2486,7 @@ func (x *DeleteSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSessionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{55}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *DeleteSessionRequest) GetSessionId() string {
@@ -2851,7 +2519,7 @@ type DeleteSessionResponse struct {
 
 func (x *DeleteSessionResponse) Reset() {
 	*x = DeleteSessionResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[56]
+	mi := &file_proto_gateway_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2863,7 +2531,7 @@ func (x *DeleteSessionResponse) String() string {
 func (*DeleteSessionResponse) ProtoMessage() {}
 
 func (x *DeleteSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[56]
+	mi := &file_proto_gateway_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2876,7 +2544,7 @@ func (x *DeleteSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteSessionResponse.ProtoReflect.Descriptor instead.
 func (*DeleteSessionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{56}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *DeleteSessionResponse) GetSuccess() bool {
@@ -2897,7 +2565,7 @@ type ClearSessionRequest struct {
 
 func (x *ClearSessionRequest) Reset() {
 	*x = ClearSessionRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[57]
+	mi := &file_proto_gateway_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2909,7 +2577,7 @@ func (x *ClearSessionRequest) String() string {
 func (*ClearSessionRequest) ProtoMessage() {}
 
 func (x *ClearSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[57]
+	mi := &file_proto_gateway_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2922,7 +2590,7 @@ func (x *ClearSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearSessionRequest.ProtoReflect.Descriptor instead.
 func (*ClearSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{57}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ClearSessionRequest) GetSessionId() string {
@@ -2955,7 +2623,7 @@ type ClearSessionResponse struct {
 
 func (x *ClearSessionResponse) Reset() {
 	*x = ClearSessionResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[58]
+	mi := &file_proto_gateway_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2967,7 +2635,7 @@ func (x *ClearSessionResponse) String() string {
 func (*ClearSessionResponse) ProtoMessage() {}
 
 func (x *ClearSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[58]
+	mi := &file_proto_gateway_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2980,7 +2648,7 @@ func (x *ClearSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClearSessionResponse.ProtoReflect.Descriptor instead.
 func (*ClearSessionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{58}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *ClearSessionResponse) GetSuccess() bool {
@@ -3000,7 +2668,7 @@ type CreateChannelRequest struct {
 
 func (x *CreateChannelRequest) Reset() {
 	*x = CreateChannelRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[59]
+	mi := &file_proto_gateway_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3012,7 +2680,7 @@ func (x *CreateChannelRequest) String() string {
 func (*CreateChannelRequest) ProtoMessage() {}
 
 func (x *CreateChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[59]
+	mi := &file_proto_gateway_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3025,7 +2693,7 @@ func (x *CreateChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateChannelRequest.ProtoReflect.Descriptor instead.
 func (*CreateChannelRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{59}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *CreateChannelRequest) GetNs() string {
@@ -3052,7 +2720,7 @@ type GetChannelRequest struct {
 
 func (x *GetChannelRequest) Reset() {
 	*x = GetChannelRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[60]
+	mi := &file_proto_gateway_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3064,7 +2732,7 @@ func (x *GetChannelRequest) String() string {
 func (*GetChannelRequest) ProtoMessage() {}
 
 func (x *GetChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[60]
+	mi := &file_proto_gateway_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3077,7 +2745,7 @@ func (x *GetChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChannelRequest.ProtoReflect.Descriptor instead.
 func (*GetChannelRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{60}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetChannelRequest) GetNs() string {
@@ -3105,7 +2773,7 @@ type ModifyChannelRequest struct {
 
 func (x *ModifyChannelRequest) Reset() {
 	*x = ModifyChannelRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[61]
+	mi := &file_proto_gateway_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3117,7 +2785,7 @@ func (x *ModifyChannelRequest) String() string {
 func (*ModifyChannelRequest) ProtoMessage() {}
 
 func (x *ModifyChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[61]
+	mi := &file_proto_gateway_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3130,7 +2798,7 @@ func (x *ModifyChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModifyChannelRequest.ProtoReflect.Descriptor instead.
 func (*ModifyChannelRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{61}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ModifyChannelRequest) GetNs() string {
@@ -3163,7 +2831,7 @@ type ListChannelsRequest struct {
 
 func (x *ListChannelsRequest) Reset() {
 	*x = ListChannelsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[62]
+	mi := &file_proto_gateway_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3175,7 +2843,7 @@ func (x *ListChannelsRequest) String() string {
 func (*ListChannelsRequest) ProtoMessage() {}
 
 func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[62]
+	mi := &file_proto_gateway_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3188,7 +2856,7 @@ func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelsRequest.ProtoReflect.Descriptor instead.
 func (*ListChannelsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{62}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *ListChannelsRequest) GetNs() string {
@@ -3208,7 +2876,7 @@ type DeleteChannelRequest struct {
 
 func (x *DeleteChannelRequest) Reset() {
 	*x = DeleteChannelRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[63]
+	mi := &file_proto_gateway_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3220,7 +2888,7 @@ func (x *DeleteChannelRequest) String() string {
 func (*DeleteChannelRequest) ProtoMessage() {}
 
 func (x *DeleteChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[63]
+	mi := &file_proto_gateway_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3233,7 +2901,7 @@ func (x *DeleteChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteChannelRequest.ProtoReflect.Descriptor instead.
 func (*DeleteChannelRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{63}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *DeleteChannelRequest) GetNs() string {
@@ -3259,7 +2927,7 @@ type ChannelResponse struct {
 
 func (x *ChannelResponse) Reset() {
 	*x = ChannelResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[64]
+	mi := &file_proto_gateway_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3271,7 +2939,7 @@ func (x *ChannelResponse) String() string {
 func (*ChannelResponse) ProtoMessage() {}
 
 func (x *ChannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[64]
+	mi := &file_proto_gateway_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3284,7 +2952,7 @@ func (x *ChannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelResponse.ProtoReflect.Descriptor instead.
 func (*ChannelResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{64}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *ChannelResponse) GetChannel() *models.Channel {
@@ -3303,7 +2971,7 @@ type ListChannelsResponse struct {
 
 func (x *ListChannelsResponse) Reset() {
 	*x = ListChannelsResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[65]
+	mi := &file_proto_gateway_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3315,7 +2983,7 @@ func (x *ListChannelsResponse) String() string {
 func (*ListChannelsResponse) ProtoMessage() {}
 
 func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[65]
+	mi := &file_proto_gateway_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3328,7 +2996,7 @@ func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelsResponse.ProtoReflect.Descriptor instead.
 func (*ListChannelsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{65}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ListChannelsResponse) GetChannels() []*models.Channel {
@@ -3347,7 +3015,7 @@ type DeleteChannelResponse struct {
 
 func (x *DeleteChannelResponse) Reset() {
 	*x = DeleteChannelResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[66]
+	mi := &file_proto_gateway_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3359,7 +3027,7 @@ func (x *DeleteChannelResponse) String() string {
 func (*DeleteChannelResponse) ProtoMessage() {}
 
 func (x *DeleteChannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[66]
+	mi := &file_proto_gateway_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3372,7 +3040,7 @@ func (x *DeleteChannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteChannelResponse.ProtoReflect.Descriptor instead.
 func (*DeleteChannelResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{66}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *DeleteChannelResponse) GetSuccess() bool {
@@ -3397,7 +3065,7 @@ type PostChannelMessageRequest struct {
 
 func (x *PostChannelMessageRequest) Reset() {
 	*x = PostChannelMessageRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[67]
+	mi := &file_proto_gateway_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3409,7 +3077,7 @@ func (x *PostChannelMessageRequest) String() string {
 func (*PostChannelMessageRequest) ProtoMessage() {}
 
 func (x *PostChannelMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[67]
+	mi := &file_proto_gateway_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3422,7 +3090,7 @@ func (x *PostChannelMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostChannelMessageRequest.ProtoReflect.Descriptor instead.
 func (*PostChannelMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{67}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *PostChannelMessageRequest) GetNs() string {
@@ -3486,7 +3154,7 @@ type RoutedChannelSession struct {
 
 func (x *RoutedChannelSession) Reset() {
 	*x = RoutedChannelSession{}
-	mi := &file_proto_gateway_proto_msgTypes[68]
+	mi := &file_proto_gateway_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3498,7 +3166,7 @@ func (x *RoutedChannelSession) String() string {
 func (*RoutedChannelSession) ProtoMessage() {}
 
 func (x *RoutedChannelSession) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[68]
+	mi := &file_proto_gateway_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3511,7 +3179,7 @@ func (x *RoutedChannelSession) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoutedChannelSession.ProtoReflect.Descriptor instead.
 func (*RoutedChannelSession) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{68}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *RoutedChannelSession) GetSubscription() string {
@@ -3552,7 +3220,7 @@ type PostChannelMessageResponse struct {
 
 func (x *PostChannelMessageResponse) Reset() {
 	*x = PostChannelMessageResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[69]
+	mi := &file_proto_gateway_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3564,7 +3232,7 @@ func (x *PostChannelMessageResponse) String() string {
 func (*PostChannelMessageResponse) ProtoMessage() {}
 
 func (x *PostChannelMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[69]
+	mi := &file_proto_gateway_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3577,7 +3245,7 @@ func (x *PostChannelMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PostChannelMessageResponse.ProtoReflect.Descriptor instead.
 func (*PostChannelMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{69}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *PostChannelMessageResponse) GetMessage() *models.ChannelMessage {
@@ -3605,7 +3273,7 @@ type GetChannelMessageRequest struct {
 
 func (x *GetChannelMessageRequest) Reset() {
 	*x = GetChannelMessageRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[70]
+	mi := &file_proto_gateway_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3617,7 +3285,7 @@ func (x *GetChannelMessageRequest) String() string {
 func (*GetChannelMessageRequest) ProtoMessage() {}
 
 func (x *GetChannelMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[70]
+	mi := &file_proto_gateway_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3630,7 +3298,7 @@ func (x *GetChannelMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChannelMessageRequest.ProtoReflect.Descriptor instead.
 func (*GetChannelMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{70}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *GetChannelMessageRequest) GetNs() string {
@@ -3663,7 +3331,7 @@ type ChannelMessageResponse struct {
 
 func (x *ChannelMessageResponse) Reset() {
 	*x = ChannelMessageResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[71]
+	mi := &file_proto_gateway_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3675,7 +3343,7 @@ func (x *ChannelMessageResponse) String() string {
 func (*ChannelMessageResponse) ProtoMessage() {}
 
 func (x *ChannelMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[71]
+	mi := &file_proto_gateway_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3688,7 +3356,7 @@ func (x *ChannelMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelMessageResponse.ProtoReflect.Descriptor instead.
 func (*ChannelMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{71}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *ChannelMessageResponse) GetMessage() *models.ChannelMessage {
@@ -3711,7 +3379,7 @@ type ListChannelMessagesRequest struct {
 
 func (x *ListChannelMessagesRequest) Reset() {
 	*x = ListChannelMessagesRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[72]
+	mi := &file_proto_gateway_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3723,7 +3391,7 @@ func (x *ListChannelMessagesRequest) String() string {
 func (*ListChannelMessagesRequest) ProtoMessage() {}
 
 func (x *ListChannelMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[72]
+	mi := &file_proto_gateway_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3736,7 +3404,7 @@ func (x *ListChannelMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListChannelMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{72}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *ListChannelMessagesRequest) GetNs() string {
@@ -3785,7 +3453,7 @@ type ListChannelMessagesResponse struct {
 
 func (x *ListChannelMessagesResponse) Reset() {
 	*x = ListChannelMessagesResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[73]
+	mi := &file_proto_gateway_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3797,7 +3465,7 @@ func (x *ListChannelMessagesResponse) String() string {
 func (*ListChannelMessagesResponse) ProtoMessage() {}
 
 func (x *ListChannelMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[73]
+	mi := &file_proto_gateway_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3810,7 +3478,7 @@ func (x *ListChannelMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListChannelMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{73}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ListChannelMessagesResponse) GetMessages() []*models.ChannelMessage {
@@ -3845,7 +3513,7 @@ type CreateChannelSubscriptionRequest struct {
 
 func (x *CreateChannelSubscriptionRequest) Reset() {
 	*x = CreateChannelSubscriptionRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[74]
+	mi := &file_proto_gateway_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3857,7 +3525,7 @@ func (x *CreateChannelSubscriptionRequest) String() string {
 func (*CreateChannelSubscriptionRequest) ProtoMessage() {}
 
 func (x *CreateChannelSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[74]
+	mi := &file_proto_gateway_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3870,7 +3538,7 @@ func (x *CreateChannelSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateChannelSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*CreateChannelSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{74}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *CreateChannelSubscriptionRequest) GetNs() string {
@@ -3905,7 +3573,7 @@ type GetChannelSubscriptionRequest struct {
 
 func (x *GetChannelSubscriptionRequest) Reset() {
 	*x = GetChannelSubscriptionRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[75]
+	mi := &file_proto_gateway_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3917,7 +3585,7 @@ func (x *GetChannelSubscriptionRequest) String() string {
 func (*GetChannelSubscriptionRequest) ProtoMessage() {}
 
 func (x *GetChannelSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[75]
+	mi := &file_proto_gateway_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3930,7 +3598,7 @@ func (x *GetChannelSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetChannelSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*GetChannelSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{75}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *GetChannelSubscriptionRequest) GetNs() string {
@@ -3966,7 +3634,7 @@ type ModifyChannelSubscriptionRequest struct {
 
 func (x *ModifyChannelSubscriptionRequest) Reset() {
 	*x = ModifyChannelSubscriptionRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[76]
+	mi := &file_proto_gateway_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3978,7 +3646,7 @@ func (x *ModifyChannelSubscriptionRequest) String() string {
 func (*ModifyChannelSubscriptionRequest) ProtoMessage() {}
 
 func (x *ModifyChannelSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[76]
+	mi := &file_proto_gateway_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3991,7 +3659,7 @@ func (x *ModifyChannelSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModifyChannelSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*ModifyChannelSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{76}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *ModifyChannelSubscriptionRequest) GetNs() string {
@@ -4032,7 +3700,7 @@ type ListChannelSubscriptionsRequest struct {
 
 func (x *ListChannelSubscriptionsRequest) Reset() {
 	*x = ListChannelSubscriptionsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[77]
+	mi := &file_proto_gateway_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4044,7 +3712,7 @@ func (x *ListChannelSubscriptionsRequest) String() string {
 func (*ListChannelSubscriptionsRequest) ProtoMessage() {}
 
 func (x *ListChannelSubscriptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[77]
+	mi := &file_proto_gateway_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4057,7 +3725,7 @@ func (x *ListChannelSubscriptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelSubscriptionsRequest.ProtoReflect.Descriptor instead.
 func (*ListChannelSubscriptionsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{77}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ListChannelSubscriptionsRequest) GetNs() string {
@@ -4085,7 +3753,7 @@ type DeleteChannelSubscriptionRequest struct {
 
 func (x *DeleteChannelSubscriptionRequest) Reset() {
 	*x = DeleteChannelSubscriptionRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[78]
+	mi := &file_proto_gateway_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4097,7 +3765,7 @@ func (x *DeleteChannelSubscriptionRequest) String() string {
 func (*DeleteChannelSubscriptionRequest) ProtoMessage() {}
 
 func (x *DeleteChannelSubscriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[78]
+	mi := &file_proto_gateway_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4110,7 +3778,7 @@ func (x *DeleteChannelSubscriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteChannelSubscriptionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteChannelSubscriptionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{78}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *DeleteChannelSubscriptionRequest) GetNs() string {
@@ -4143,7 +3811,7 @@ type ChannelSubscriptionResponse struct {
 
 func (x *ChannelSubscriptionResponse) Reset() {
 	*x = ChannelSubscriptionResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[79]
+	mi := &file_proto_gateway_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4155,7 +3823,7 @@ func (x *ChannelSubscriptionResponse) String() string {
 func (*ChannelSubscriptionResponse) ProtoMessage() {}
 
 func (x *ChannelSubscriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[79]
+	mi := &file_proto_gateway_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4168,7 +3836,7 @@ func (x *ChannelSubscriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelSubscriptionResponse.ProtoReflect.Descriptor instead.
 func (*ChannelSubscriptionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{79}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *ChannelSubscriptionResponse) GetSubscription() *models.ChannelSubscription {
@@ -4187,7 +3855,7 @@ type ListChannelSubscriptionsResponse struct {
 
 func (x *ListChannelSubscriptionsResponse) Reset() {
 	*x = ListChannelSubscriptionsResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[80]
+	mi := &file_proto_gateway_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4199,7 +3867,7 @@ func (x *ListChannelSubscriptionsResponse) String() string {
 func (*ListChannelSubscriptionsResponse) ProtoMessage() {}
 
 func (x *ListChannelSubscriptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[80]
+	mi := &file_proto_gateway_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4212,7 +3880,7 @@ func (x *ListChannelSubscriptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelSubscriptionsResponse.ProtoReflect.Descriptor instead.
 func (*ListChannelSubscriptionsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{80}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *ListChannelSubscriptionsResponse) GetSubscriptions() []*models.ChannelSubscription {
@@ -4231,7 +3899,7 @@ type DeleteChannelSubscriptionResponse struct {
 
 func (x *DeleteChannelSubscriptionResponse) Reset() {
 	*x = DeleteChannelSubscriptionResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[81]
+	mi := &file_proto_gateway_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4243,7 +3911,7 @@ func (x *DeleteChannelSubscriptionResponse) String() string {
 func (*DeleteChannelSubscriptionResponse) ProtoMessage() {}
 
 func (x *DeleteChannelSubscriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[81]
+	mi := &file_proto_gateway_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4256,7 +3924,7 @@ func (x *DeleteChannelSubscriptionResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeleteChannelSubscriptionResponse.ProtoReflect.Descriptor instead.
 func (*DeleteChannelSubscriptionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{81}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *DeleteChannelSubscriptionResponse) GetSuccess() bool {
@@ -4276,7 +3944,7 @@ type StreamChannelEventsRequest struct {
 
 func (x *StreamChannelEventsRequest) Reset() {
 	*x = StreamChannelEventsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[82]
+	mi := &file_proto_gateway_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4288,7 +3956,7 @@ func (x *StreamChannelEventsRequest) String() string {
 func (*StreamChannelEventsRequest) ProtoMessage() {}
 
 func (x *StreamChannelEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[82]
+	mi := &file_proto_gateway_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4301,7 +3969,7 @@ func (x *StreamChannelEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamChannelEventsRequest.ProtoReflect.Descriptor instead.
 func (*StreamChannelEventsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{82}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *StreamChannelEventsRequest) GetNs() string {
@@ -4328,7 +3996,7 @@ type CreateScheduleRequest struct {
 
 func (x *CreateScheduleRequest) Reset() {
 	*x = CreateScheduleRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[83]
+	mi := &file_proto_gateway_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4340,7 +4008,7 @@ func (x *CreateScheduleRequest) String() string {
 func (*CreateScheduleRequest) ProtoMessage() {}
 
 func (x *CreateScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[83]
+	mi := &file_proto_gateway_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4353,7 +4021,7 @@ func (x *CreateScheduleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateScheduleRequest.ProtoReflect.Descriptor instead.
 func (*CreateScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{83}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *CreateScheduleRequest) GetNs() string {
@@ -4380,7 +4048,7 @@ type GetScheduleRequest struct {
 
 func (x *GetScheduleRequest) Reset() {
 	*x = GetScheduleRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[84]
+	mi := &file_proto_gateway_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4392,7 +4060,7 @@ func (x *GetScheduleRequest) String() string {
 func (*GetScheduleRequest) ProtoMessage() {}
 
 func (x *GetScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[84]
+	mi := &file_proto_gateway_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4405,7 +4073,7 @@ func (x *GetScheduleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetScheduleRequest.ProtoReflect.Descriptor instead.
 func (*GetScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{84}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *GetScheduleRequest) GetNs() string {
@@ -4433,7 +4101,7 @@ type ModifyScheduleRequest struct {
 
 func (x *ModifyScheduleRequest) Reset() {
 	*x = ModifyScheduleRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[85]
+	mi := &file_proto_gateway_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4445,7 +4113,7 @@ func (x *ModifyScheduleRequest) String() string {
 func (*ModifyScheduleRequest) ProtoMessage() {}
 
 func (x *ModifyScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[85]
+	mi := &file_proto_gateway_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4458,7 +4126,7 @@ func (x *ModifyScheduleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModifyScheduleRequest.ProtoReflect.Descriptor instead.
 func (*ModifyScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{85}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *ModifyScheduleRequest) GetNs() string {
@@ -4491,7 +4159,7 @@ type ListSchedulesRequest struct {
 
 func (x *ListSchedulesRequest) Reset() {
 	*x = ListSchedulesRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[86]
+	mi := &file_proto_gateway_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4503,7 +4171,7 @@ func (x *ListSchedulesRequest) String() string {
 func (*ListSchedulesRequest) ProtoMessage() {}
 
 func (x *ListSchedulesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[86]
+	mi := &file_proto_gateway_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4516,7 +4184,7 @@ func (x *ListSchedulesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSchedulesRequest.ProtoReflect.Descriptor instead.
 func (*ListSchedulesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{86}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *ListSchedulesRequest) GetNs() string {
@@ -4535,7 +4203,7 @@ type ListSchedulesResponse struct {
 
 func (x *ListSchedulesResponse) Reset() {
 	*x = ListSchedulesResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[87]
+	mi := &file_proto_gateway_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4547,7 +4215,7 @@ func (x *ListSchedulesResponse) String() string {
 func (*ListSchedulesResponse) ProtoMessage() {}
 
 func (x *ListSchedulesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[87]
+	mi := &file_proto_gateway_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4560,7 +4228,7 @@ func (x *ListSchedulesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSchedulesResponse.ProtoReflect.Descriptor instead.
 func (*ListSchedulesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{87}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *ListSchedulesResponse) GetSchedules() []*models.Schedule {
@@ -4580,7 +4248,7 @@ type DeleteScheduleRequest struct {
 
 func (x *DeleteScheduleRequest) Reset() {
 	*x = DeleteScheduleRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[88]
+	mi := &file_proto_gateway_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4592,7 +4260,7 @@ func (x *DeleteScheduleRequest) String() string {
 func (*DeleteScheduleRequest) ProtoMessage() {}
 
 func (x *DeleteScheduleRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[88]
+	mi := &file_proto_gateway_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4605,7 +4273,7 @@ func (x *DeleteScheduleRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteScheduleRequest.ProtoReflect.Descriptor instead.
 func (*DeleteScheduleRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{88}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *DeleteScheduleRequest) GetNs() string {
@@ -4631,7 +4299,7 @@ type DeleteScheduleResponse struct {
 
 func (x *DeleteScheduleResponse) Reset() {
 	*x = DeleteScheduleResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[89]
+	mi := &file_proto_gateway_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4643,7 +4311,7 @@ func (x *DeleteScheduleResponse) String() string {
 func (*DeleteScheduleResponse) ProtoMessage() {}
 
 func (x *DeleteScheduleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[89]
+	mi := &file_proto_gateway_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4656,7 +4324,7 @@ func (x *DeleteScheduleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteScheduleResponse.ProtoReflect.Descriptor instead.
 func (*DeleteScheduleResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{89}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *DeleteScheduleResponse) GetSuccess() bool {
@@ -4676,7 +4344,7 @@ type CreateWorkflowRequest struct {
 
 func (x *CreateWorkflowRequest) Reset() {
 	*x = CreateWorkflowRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[90]
+	mi := &file_proto_gateway_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4688,7 +4356,7 @@ func (x *CreateWorkflowRequest) String() string {
 func (*CreateWorkflowRequest) ProtoMessage() {}
 
 func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[90]
+	mi := &file_proto_gateway_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4701,7 +4369,7 @@ func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*CreateWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{90}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *CreateWorkflowRequest) GetNs() string {
@@ -4728,7 +4396,7 @@ type GetWorkflowRequest struct {
 
 func (x *GetWorkflowRequest) Reset() {
 	*x = GetWorkflowRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[91]
+	mi := &file_proto_gateway_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4740,7 +4408,7 @@ func (x *GetWorkflowRequest) String() string {
 func (*GetWorkflowRequest) ProtoMessage() {}
 
 func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[91]
+	mi := &file_proto_gateway_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4753,7 +4421,7 @@ func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*GetWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{91}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *GetWorkflowRequest) GetNs() string {
@@ -4779,7 +4447,7 @@ type ListWorkflowsRequest struct {
 
 func (x *ListWorkflowsRequest) Reset() {
 	*x = ListWorkflowsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[92]
+	mi := &file_proto_gateway_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4791,7 +4459,7 @@ func (x *ListWorkflowsRequest) String() string {
 func (*ListWorkflowsRequest) ProtoMessage() {}
 
 func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[92]
+	mi := &file_proto_gateway_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4804,7 +4472,7 @@ func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowsRequest.ProtoReflect.Descriptor instead.
 func (*ListWorkflowsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{92}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *ListWorkflowsRequest) GetNs() string {
@@ -4824,7 +4492,7 @@ type DeleteWorkflowRequest struct {
 
 func (x *DeleteWorkflowRequest) Reset() {
 	*x = DeleteWorkflowRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[93]
+	mi := &file_proto_gateway_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4836,7 +4504,7 @@ func (x *DeleteWorkflowRequest) String() string {
 func (*DeleteWorkflowRequest) ProtoMessage() {}
 
 func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[93]
+	mi := &file_proto_gateway_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4849,7 +4517,7 @@ func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteWorkflowRequest.ProtoReflect.Descriptor instead.
 func (*DeleteWorkflowRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{93}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *DeleteWorkflowRequest) GetNs() string {
@@ -4875,7 +4543,7 @@ type WorkflowResponse struct {
 
 func (x *WorkflowResponse) Reset() {
 	*x = WorkflowResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[94]
+	mi := &file_proto_gateway_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4887,7 +4555,7 @@ func (x *WorkflowResponse) String() string {
 func (*WorkflowResponse) ProtoMessage() {}
 
 func (x *WorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[94]
+	mi := &file_proto_gateway_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4900,7 +4568,7 @@ func (x *WorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowResponse.ProtoReflect.Descriptor instead.
 func (*WorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{94}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *WorkflowResponse) GetWorkflow() *models.Workflow {
@@ -4919,7 +4587,7 @@ type ListWorkflowsResponse struct {
 
 func (x *ListWorkflowsResponse) Reset() {
 	*x = ListWorkflowsResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[95]
+	mi := &file_proto_gateway_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4931,7 +4599,7 @@ func (x *ListWorkflowsResponse) String() string {
 func (*ListWorkflowsResponse) ProtoMessage() {}
 
 func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[95]
+	mi := &file_proto_gateway_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4944,7 +4612,7 @@ func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowsResponse.ProtoReflect.Descriptor instead.
 func (*ListWorkflowsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{95}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *ListWorkflowsResponse) GetWorkflows() []*models.Workflow {
@@ -4963,7 +4631,7 @@ type DeleteWorkflowResponse struct {
 
 func (x *DeleteWorkflowResponse) Reset() {
 	*x = DeleteWorkflowResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[96]
+	mi := &file_proto_gateway_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4975,7 +4643,7 @@ func (x *DeleteWorkflowResponse) String() string {
 func (*DeleteWorkflowResponse) ProtoMessage() {}
 
 func (x *DeleteWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[96]
+	mi := &file_proto_gateway_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4988,7 +4656,7 @@ func (x *DeleteWorkflowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteWorkflowResponse.ProtoReflect.Descriptor instead.
 func (*DeleteWorkflowResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{96}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *DeleteWorkflowResponse) GetSuccess() bool {
@@ -5010,7 +4678,7 @@ type CreateWorkflowRunRequest struct {
 
 func (x *CreateWorkflowRunRequest) Reset() {
 	*x = CreateWorkflowRunRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[97]
+	mi := &file_proto_gateway_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5022,7 +4690,7 @@ func (x *CreateWorkflowRunRequest) String() string {
 func (*CreateWorkflowRunRequest) ProtoMessage() {}
 
 func (x *CreateWorkflowRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[97]
+	mi := &file_proto_gateway_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5035,7 +4703,7 @@ func (x *CreateWorkflowRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWorkflowRunRequest.ProtoReflect.Descriptor instead.
 func (*CreateWorkflowRunRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{97}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *CreateWorkflowRunRequest) GetNs() string {
@@ -5077,7 +4745,7 @@ type GetWorkflowRunRequest struct {
 
 func (x *GetWorkflowRunRequest) Reset() {
 	*x = GetWorkflowRunRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[98]
+	mi := &file_proto_gateway_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5089,7 +4757,7 @@ func (x *GetWorkflowRunRequest) String() string {
 func (*GetWorkflowRunRequest) ProtoMessage() {}
 
 func (x *GetWorkflowRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[98]
+	mi := &file_proto_gateway_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5102,7 +4770,7 @@ func (x *GetWorkflowRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetWorkflowRunRequest.ProtoReflect.Descriptor instead.
 func (*GetWorkflowRunRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{98}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *GetWorkflowRunRequest) GetNs() string {
@@ -5138,7 +4806,7 @@ type ListWorkflowRunsRequest struct {
 
 func (x *ListWorkflowRunsRequest) Reset() {
 	*x = ListWorkflowRunsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[99]
+	mi := &file_proto_gateway_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5150,7 +4818,7 @@ func (x *ListWorkflowRunsRequest) String() string {
 func (*ListWorkflowRunsRequest) ProtoMessage() {}
 
 func (x *ListWorkflowRunsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[99]
+	mi := &file_proto_gateway_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5163,7 +4831,7 @@ func (x *ListWorkflowRunsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowRunsRequest.ProtoReflect.Descriptor instead.
 func (*ListWorkflowRunsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{99}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *ListWorkflowRunsRequest) GetNs() string {
@@ -5207,7 +4875,7 @@ type ResumeWorkflowRunRequest struct {
 
 func (x *ResumeWorkflowRunRequest) Reset() {
 	*x = ResumeWorkflowRunRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[100]
+	mi := &file_proto_gateway_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5219,7 +4887,7 @@ func (x *ResumeWorkflowRunRequest) String() string {
 func (*ResumeWorkflowRunRequest) ProtoMessage() {}
 
 func (x *ResumeWorkflowRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[100]
+	mi := &file_proto_gateway_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5232,7 +4900,7 @@ func (x *ResumeWorkflowRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResumeWorkflowRunRequest.ProtoReflect.Descriptor instead.
 func (*ResumeWorkflowRunRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{100}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *ResumeWorkflowRunRequest) GetNs() string {
@@ -5281,7 +4949,7 @@ type CancelWorkflowRunRequest struct {
 
 func (x *CancelWorkflowRunRequest) Reset() {
 	*x = CancelWorkflowRunRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[101]
+	mi := &file_proto_gateway_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5293,7 +4961,7 @@ func (x *CancelWorkflowRunRequest) String() string {
 func (*CancelWorkflowRunRequest) ProtoMessage() {}
 
 func (x *CancelWorkflowRunRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[101]
+	mi := &file_proto_gateway_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5306,7 +4974,7 @@ func (x *CancelWorkflowRunRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelWorkflowRunRequest.ProtoReflect.Descriptor instead.
 func (*CancelWorkflowRunRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{101}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *CancelWorkflowRunRequest) GetNs() string {
@@ -5341,7 +5009,7 @@ type StreamWorkflowEventsRequest struct {
 
 func (x *StreamWorkflowEventsRequest) Reset() {
 	*x = StreamWorkflowEventsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[102]
+	mi := &file_proto_gateway_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5353,7 +5021,7 @@ func (x *StreamWorkflowEventsRequest) String() string {
 func (*StreamWorkflowEventsRequest) ProtoMessage() {}
 
 func (x *StreamWorkflowEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[102]
+	mi := &file_proto_gateway_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5366,7 +5034,7 @@ func (x *StreamWorkflowEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamWorkflowEventsRequest.ProtoReflect.Descriptor instead.
 func (*StreamWorkflowEventsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{102}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *StreamWorkflowEventsRequest) GetNs() string {
@@ -5400,7 +5068,7 @@ type WorkflowRunResponse struct {
 
 func (x *WorkflowRunResponse) Reset() {
 	*x = WorkflowRunResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[103]
+	mi := &file_proto_gateway_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5412,7 +5080,7 @@ func (x *WorkflowRunResponse) String() string {
 func (*WorkflowRunResponse) ProtoMessage() {}
 
 func (x *WorkflowRunResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[103]
+	mi := &file_proto_gateway_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5425,7 +5093,7 @@ func (x *WorkflowRunResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowRunResponse.ProtoReflect.Descriptor instead.
 func (*WorkflowRunResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{103}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *WorkflowRunResponse) GetRun() *models.WorkflowRun {
@@ -5453,7 +5121,7 @@ type ListWorkflowRunsResponse struct {
 
 func (x *ListWorkflowRunsResponse) Reset() {
 	*x = ListWorkflowRunsResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[104]
+	mi := &file_proto_gateway_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5465,7 +5133,7 @@ func (x *ListWorkflowRunsResponse) String() string {
 func (*ListWorkflowRunsResponse) ProtoMessage() {}
 
 func (x *ListWorkflowRunsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[104]
+	mi := &file_proto_gateway_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5478,7 +5146,7 @@ func (x *ListWorkflowRunsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListWorkflowRunsResponse.ProtoReflect.Descriptor instead.
 func (*ListWorkflowRunsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{104}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *ListWorkflowRunsResponse) GetRuns() []*models.WorkflowRun {
@@ -5511,7 +5179,7 @@ type ScheduleResponse struct {
 
 func (x *ScheduleResponse) Reset() {
 	*x = ScheduleResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[105]
+	mi := &file_proto_gateway_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5523,7 +5191,7 @@ func (x *ScheduleResponse) String() string {
 func (*ScheduleResponse) ProtoMessage() {}
 
 func (x *ScheduleResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[105]
+	mi := &file_proto_gateway_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5536,7 +5204,7 @@ func (x *ScheduleResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScheduleResponse.ProtoReflect.Descriptor instead.
 func (*ScheduleResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{105}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *ScheduleResponse) GetSchedule() *models.Schedule {
@@ -5559,7 +5227,7 @@ type SendMessageRequest struct {
 
 func (x *SendMessageRequest) Reset() {
 	*x = SendMessageRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[106]
+	mi := &file_proto_gateway_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5571,7 +5239,7 @@ func (x *SendMessageRequest) String() string {
 func (*SendMessageRequest) ProtoMessage() {}
 
 func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[106]
+	mi := &file_proto_gateway_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5584,7 +5252,7 @@ func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMessageRequest.ProtoReflect.Descriptor instead.
 func (*SendMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{106}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *SendMessageRequest) GetSessionId() string {
@@ -5632,7 +5300,7 @@ type SendMessageResponse struct {
 
 func (x *SendMessageResponse) Reset() {
 	*x = SendMessageResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[107]
+	mi := &file_proto_gateway_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5644,7 +5312,7 @@ func (x *SendMessageResponse) String() string {
 func (*SendMessageResponse) ProtoMessage() {}
 
 func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[107]
+	mi := &file_proto_gateway_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5657,7 +5325,7 @@ func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendMessageResponse.ProtoReflect.Descriptor instead.
 func (*SendMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{107}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *SendMessageResponse) GetReply() string {
@@ -5686,7 +5354,7 @@ type AppendSessionMessageRequest struct {
 
 func (x *AppendSessionMessageRequest) Reset() {
 	*x = AppendSessionMessageRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[108]
+	mi := &file_proto_gateway_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5698,7 +5366,7 @@ func (x *AppendSessionMessageRequest) String() string {
 func (*AppendSessionMessageRequest) ProtoMessage() {}
 
 func (x *AppendSessionMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[108]
+	mi := &file_proto_gateway_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5711,7 +5379,7 @@ func (x *AppendSessionMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppendSessionMessageRequest.ProtoReflect.Descriptor instead.
 func (*AppendSessionMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{108}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *AppendSessionMessageRequest) GetSessionId() string {
@@ -5752,7 +5420,7 @@ type AppendSessionMessageResponse struct {
 
 func (x *AppendSessionMessageResponse) Reset() {
 	*x = AppendSessionMessageResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[109]
+	mi := &file_proto_gateway_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5764,7 +5432,7 @@ func (x *AppendSessionMessageResponse) String() string {
 func (*AppendSessionMessageResponse) ProtoMessage() {}
 
 func (x *AppendSessionMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[109]
+	mi := &file_proto_gateway_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5777,7 +5445,7 @@ func (x *AppendSessionMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AppendSessionMessageResponse.ProtoReflect.Descriptor instead.
 func (*AppendSessionMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{109}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *AppendSessionMessageResponse) GetSessionId() string {
@@ -5805,7 +5473,7 @@ type StopSessionGenerationRequest struct {
 
 func (x *StopSessionGenerationRequest) Reset() {
 	*x = StopSessionGenerationRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[110]
+	mi := &file_proto_gateway_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5817,7 +5485,7 @@ func (x *StopSessionGenerationRequest) String() string {
 func (*StopSessionGenerationRequest) ProtoMessage() {}
 
 func (x *StopSessionGenerationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[110]
+	mi := &file_proto_gateway_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5830,7 +5498,7 @@ func (x *StopSessionGenerationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSessionGenerationRequest.ProtoReflect.Descriptor instead.
 func (*StopSessionGenerationRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{110}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *StopSessionGenerationRequest) GetSessionId() string {
@@ -5863,7 +5531,7 @@ type StopSessionGenerationResponse struct {
 
 func (x *StopSessionGenerationResponse) Reset() {
 	*x = StopSessionGenerationResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[111]
+	mi := &file_proto_gateway_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5875,7 +5543,7 @@ func (x *StopSessionGenerationResponse) String() string {
 func (*StopSessionGenerationResponse) ProtoMessage() {}
 
 func (x *StopSessionGenerationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[111]
+	mi := &file_proto_gateway_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5888,7 +5556,7 @@ func (x *StopSessionGenerationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopSessionGenerationResponse.ProtoReflect.Descriptor instead.
 func (*StopSessionGenerationResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{111}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *StopSessionGenerationResponse) GetSuccess() bool {
@@ -5909,7 +5577,7 @@ type StreamSessionPartsRequest struct {
 
 func (x *StreamSessionPartsRequest) Reset() {
 	*x = StreamSessionPartsRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[112]
+	mi := &file_proto_gateway_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5921,7 +5589,7 @@ func (x *StreamSessionPartsRequest) String() string {
 func (*StreamSessionPartsRequest) ProtoMessage() {}
 
 func (x *StreamSessionPartsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[112]
+	mi := &file_proto_gateway_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5934,7 +5602,7 @@ func (x *StreamSessionPartsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSessionPartsRequest.ProtoReflect.Descriptor instead.
 func (*StreamSessionPartsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{112}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *StreamSessionPartsRequest) GetSessionId() string {
@@ -5969,7 +5637,7 @@ type StreamSessionPartsBatchRequest struct {
 
 func (x *StreamSessionPartsBatchRequest) Reset() {
 	*x = StreamSessionPartsBatchRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[113]
+	mi := &file_proto_gateway_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5981,7 +5649,7 @@ func (x *StreamSessionPartsBatchRequest) String() string {
 func (*StreamSessionPartsBatchRequest) ProtoMessage() {}
 
 func (x *StreamSessionPartsBatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[113]
+	mi := &file_proto_gateway_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5994,7 +5662,7 @@ func (x *StreamSessionPartsBatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamSessionPartsBatchRequest.ProtoReflect.Descriptor instead.
 func (*StreamSessionPartsBatchRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{113}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *StreamSessionPartsBatchRequest) GetSessionNames() []string {
@@ -6015,7 +5683,7 @@ type CreateNamespaceRequest struct {
 
 func (x *CreateNamespaceRequest) Reset() {
 	*x = CreateNamespaceRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[114]
+	mi := &file_proto_gateway_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6027,7 +5695,7 @@ func (x *CreateNamespaceRequest) String() string {
 func (*CreateNamespaceRequest) ProtoMessage() {}
 
 func (x *CreateNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[114]
+	mi := &file_proto_gateway_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6040,7 +5708,7 @@ func (x *CreateNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*CreateNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{114}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *CreateNamespaceRequest) GetName() string {
@@ -6073,7 +5741,7 @@ type GetNamespaceRequest struct {
 
 func (x *GetNamespaceRequest) Reset() {
 	*x = GetNamespaceRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[115]
+	mi := &file_proto_gateway_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6085,7 +5753,7 @@ func (x *GetNamespaceRequest) String() string {
 func (*GetNamespaceRequest) ProtoMessage() {}
 
 func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[115]
+	mi := &file_proto_gateway_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6098,7 +5766,7 @@ func (x *GetNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*GetNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{115}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *GetNamespaceRequest) GetName() string {
@@ -6117,7 +5785,7 @@ type DeleteNamespaceRequest struct {
 
 func (x *DeleteNamespaceRequest) Reset() {
 	*x = DeleteNamespaceRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[116]
+	mi := &file_proto_gateway_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6129,7 +5797,7 @@ func (x *DeleteNamespaceRequest) String() string {
 func (*DeleteNamespaceRequest) ProtoMessage() {}
 
 func (x *DeleteNamespaceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[116]
+	mi := &file_proto_gateway_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6142,7 +5810,7 @@ func (x *DeleteNamespaceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteNamespaceRequest.ProtoReflect.Descriptor instead.
 func (*DeleteNamespaceRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{116}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *DeleteNamespaceRequest) GetName() string {
@@ -6161,7 +5829,7 @@ type ListNamespacesRequest struct {
 
 func (x *ListNamespacesRequest) Reset() {
 	*x = ListNamespacesRequest{}
-	mi := &file_proto_gateway_proto_msgTypes[117]
+	mi := &file_proto_gateway_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6173,7 +5841,7 @@ func (x *ListNamespacesRequest) String() string {
 func (*ListNamespacesRequest) ProtoMessage() {}
 
 func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[117]
+	mi := &file_proto_gateway_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6186,7 +5854,7 @@ func (x *ListNamespacesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesRequest.ProtoReflect.Descriptor instead.
 func (*ListNamespacesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{117}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *ListNamespacesRequest) GetParent() string {
@@ -6209,7 +5877,7 @@ type NamespaceResponse struct {
 
 func (x *NamespaceResponse) Reset() {
 	*x = NamespaceResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[118]
+	mi := &file_proto_gateway_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6221,7 +5889,7 @@ func (x *NamespaceResponse) String() string {
 func (*NamespaceResponse) ProtoMessage() {}
 
 func (x *NamespaceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[118]
+	mi := &file_proto_gateway_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6234,7 +5902,7 @@ func (x *NamespaceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NamespaceResponse.ProtoReflect.Descriptor instead.
 func (*NamespaceResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{118}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *NamespaceResponse) GetName() string {
@@ -6281,7 +5949,7 @@ type ListNamespacesResponse struct {
 
 func (x *ListNamespacesResponse) Reset() {
 	*x = ListNamespacesResponse{}
-	mi := &file_proto_gateway_proto_msgTypes[119]
+	mi := &file_proto_gateway_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6293,7 +5961,7 @@ func (x *ListNamespacesResponse) String() string {
 func (*ListNamespacesResponse) ProtoMessage() {}
 
 func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_gateway_proto_msgTypes[119]
+	mi := &file_proto_gateway_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6306,7 +5974,7 @@ func (x *ListNamespacesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListNamespacesResponse.ProtoReflect.Descriptor instead.
 func (*ListNamespacesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_gateway_proto_rawDescGZIP(), []int{119}
+	return file_proto_gateway_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *ListNamespacesResponse) GetNamespaces() []*NamespaceResponse {
@@ -6363,24 +6031,7 @@ const file_proto_gateway_proto_rawDesc = "" +
 	"\x18McpServerBindingResponse\x12;\n" +
 	"\abinding\x18\x01 \x01(\v2!.talon.manifests.McpServerBindingR\abinding\"^\n" +
 	"\x1dListMcpServerBindingsResponse\x12=\n" +
-	"\bbindings\x18\x01 \x03(\v2!.talon.manifests.McpServerBindingR\bbindings\"X\n" +
-	"\x16CreateAgentCardRequest\x12\x0e\n" +
-	"\x02ns\x18\x01 \x01(\tR\x02ns\x12.\n" +
-	"\x04card\x18\x02 \x01(\v2\x1a.talon.manifests.AgentCardR\x04card\"9\n" +
-	"\x13GetAgentCardRequest\x12\x0e\n" +
-	"\x02ns\x18\x01 \x01(\tR\x02ns\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"'\n" +
-	"\x15ListAgentCardsRequest\x12\x0e\n" +
-	"\x02ns\x18\x01 \x01(\tR\x02ns\"<\n" +
-	"\x16DeleteAgentCardRequest\x12\x0e\n" +
-	"\x02ns\x18\x01 \x01(\tR\x02ns\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"3\n" +
-	"\x17DeleteAgentCardResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\"C\n" +
-	"\x11AgentCardResponse\x12.\n" +
-	"\x04card\x18\x01 \x01(\v2\x1a.talon.manifests.AgentCardR\x04card\"J\n" +
-	"\x16ListAgentCardsResponse\x120\n" +
-	"\x05cards\x18\x01 \x03(\v2\x1a.talon.manifests.AgentCardR\x05cards\"=\n" +
+	"\bbindings\x18\x01 \x03(\v2!.talon.manifests.McpServerBindingR\bbindings\"=\n" +
 	"\x10GetAgentResponse\x12)\n" +
 	"\x05agent\x18\x01 \x01(\v2\x13.talon.models.AgentR\x05agent\"5\n" +
 	"\x0fGetAgentRequest\x12\x0e\n" +
@@ -6756,7 +6407,7 @@ const file_proto_gateway_proto_rawDesc = "" +
 	"\x16ListNamespacesResponse\x12@\n" +
 	"\n" +
 	"namespaces\x18\x01 \x03(\v2 .talon.gateway.NamespaceResponseR\n" +
-	"namespaces2\xeeN\n" +
+	"namespaces2\xc2J\n" +
 	"\x0eGatewayService\x12m\n" +
 	"\vCreateAgent\x12!.talon.gateway.CreateAgentRequest\x1a\x1c.talon.gateway.AgentResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/v1/ns/{ns}/agents\x12n\n" +
 	"\bGetAgent\x12\x1e.talon.gateway.GetAgentRequest\x1a\x1f.talon.gateway.GetAgentResponse\"!\x82\xd3\xe4\x93\x02\x1b\x12\x19/v1/ns/{ns}/agents/{name}\x12u\n" +
@@ -6826,11 +6477,7 @@ const file_proto_gateway_proto_rawDesc = "" +
 	"\x16CreateMcpServerBinding\x12,.talon.gateway.CreateMcpServerBindingRequest\x1a'.talon.gateway.McpServerBindingResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /v1/namespaces/{ns}/mcp-bindings\x12\x9a\x01\n" +
 	"\x13GetMcpServerBinding\x12).talon.gateway.GetMcpServerBindingRequest\x1a'.talon.gateway.McpServerBindingResponse\"/\x82\xd3\xe4\x93\x02)\x12'/v1/namespaces/{ns}/mcp-bindings/{name}\x12\x9c\x01\n" +
 	"\x15ListMcpServerBindings\x12+.talon.gateway.ListMcpServerBindingsRequest\x1a,.talon.gateway.ListMcpServerBindingsResponse\"(\x82\xd3\xe4\x93\x02\"\x12 /v1/namespaces/{ns}/mcp-bindings\x12\xa6\x01\n" +
-	"\x16DeleteMcpServerBinding\x12,.talon.gateway.DeleteMcpServerBindingRequest\x1a-.talon.gateway.DeleteMcpServerBindingResponse\"/\x82\xd3\xe4\x93\x02)*'/v1/namespaces/{ns}/mcp-bindings/{name}\x12\x86\x01\n" +
-	"\x0fCreateAgentCard\x12%.talon.gateway.CreateAgentCardRequest\x1a .talon.gateway.AgentCardResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/v1/namespaces/{ns}/agent-cards\x12\x84\x01\n" +
-	"\fGetAgentCard\x12\".talon.gateway.GetAgentCardRequest\x1a .talon.gateway.AgentCardResponse\".\x82\xd3\xe4\x93\x02(\x12&/v1/namespaces/{ns}/agent-cards/{name}\x12\x86\x01\n" +
-	"\x0eListAgentCards\x12$.talon.gateway.ListAgentCardsRequest\x1a%.talon.gateway.ListAgentCardsResponse\"'\x82\xd3\xe4\x93\x02!\x12\x1f/v1/namespaces/{ns}/agent-cards\x12\x90\x01\n" +
-	"\x0fDeleteAgentCard\x12%.talon.gateway.DeleteAgentCardRequest\x1a&.talon.gateway.DeleteAgentCardResponse\".\x82\xd3\xe4\x93\x02(*&/v1/namespaces/{ns}/agent-cards/{name}b\x06proto3"
+	"\x16DeleteMcpServerBinding\x12,.talon.gateway.DeleteMcpServerBindingRequest\x1a-.talon.gateway.DeleteMcpServerBindingResponse\"/\x82\xd3\xe4\x93\x02)*'/v1/namespaces/{ns}/mcp-bindings/{name}b\x06proto3"
 
 var (
 	file_proto_gateway_proto_rawDescOnce sync.Once
@@ -6844,7 +6491,7 @@ func file_proto_gateway_proto_rawDescGZIP() []byte {
 	return file_proto_gateway_proto_rawDescData
 }
 
-var file_proto_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 131)
+var file_proto_gateway_proto_msgTypes = make([]protoimpl.MessageInfo, 124)
 var file_proto_gateway_proto_goTypes = []any{
 	(*CreateAgentTemplateRequest)(nil),        // 0: talon.gateway.CreateAgentTemplateRequest
 	(*AgentTemplateResponse)(nil),             // 1: talon.gateway.AgentTemplateResponse
@@ -6867,343 +6514,324 @@ var file_proto_gateway_proto_goTypes = []any{
 	(*DeleteMcpServerBindingResponse)(nil),    // 18: talon.gateway.DeleteMcpServerBindingResponse
 	(*McpServerBindingResponse)(nil),          // 19: talon.gateway.McpServerBindingResponse
 	(*ListMcpServerBindingsResponse)(nil),     // 20: talon.gateway.ListMcpServerBindingsResponse
-	(*CreateAgentCardRequest)(nil),            // 21: talon.gateway.CreateAgentCardRequest
-	(*GetAgentCardRequest)(nil),               // 22: talon.gateway.GetAgentCardRequest
-	(*ListAgentCardsRequest)(nil),             // 23: talon.gateway.ListAgentCardsRequest
-	(*DeleteAgentCardRequest)(nil),            // 24: talon.gateway.DeleteAgentCardRequest
-	(*DeleteAgentCardResponse)(nil),           // 25: talon.gateway.DeleteAgentCardResponse
-	(*AgentCardResponse)(nil),                 // 26: talon.gateway.AgentCardResponse
-	(*ListAgentCardsResponse)(nil),            // 27: talon.gateway.ListAgentCardsResponse
-	(*GetAgentResponse)(nil),                  // 28: talon.gateway.GetAgentResponse
-	(*GetAgentRequest)(nil),                   // 29: talon.gateway.GetAgentRequest
-	(*CreateAgentRequest)(nil),                // 30: talon.gateway.CreateAgentRequest
-	(*AgentResponse)(nil),                     // 31: talon.gateway.AgentResponse
-	(*ListAgentsRequest)(nil),                 // 32: talon.gateway.ListAgentsRequest
-	(*ListAgentsResponse)(nil),                // 33: talon.gateway.ListAgentsResponse
-	(*ModifyAgentRequest)(nil),                // 34: talon.gateway.ModifyAgentRequest
-	(*GetKnowledgeRequest)(nil),               // 35: talon.gateway.GetKnowledgeRequest
-	(*KnowledgeResponse)(nil),                 // 36: talon.gateway.KnowledgeResponse
-	(*SearchKnowledgeRequest)(nil),            // 37: talon.gateway.SearchKnowledgeRequest
-	(*SearchKnowledgeResponse)(nil),           // 38: talon.gateway.SearchKnowledgeResponse
-	(*CreateNamespaceKnowledgeRequest)(nil),   // 39: talon.gateway.CreateNamespaceKnowledgeRequest
-	(*GetNamespaceKnowledgeRequest)(nil),      // 40: talon.gateway.GetNamespaceKnowledgeRequest
-	(*ListNamespaceKnowledgeRequest)(nil),     // 41: talon.gateway.ListNamespaceKnowledgeRequest
-	(*DeleteNamespaceKnowledgeRequest)(nil),   // 42: talon.gateway.DeleteNamespaceKnowledgeRequest
-	(*DeleteNamespaceKnowledgeResponse)(nil),  // 43: talon.gateway.DeleteNamespaceKnowledgeResponse
-	(*NamespaceKnowledgeResponse)(nil),        // 44: talon.gateway.NamespaceKnowledgeResponse
-	(*ListNamespaceKnowledgeResponse)(nil),    // 45: talon.gateway.ListNamespaceKnowledgeResponse
-	(*CreateSessionRequest)(nil),              // 46: talon.gateway.CreateSessionRequest
-	(*GetSessionRequest)(nil),                 // 47: talon.gateway.GetSessionRequest
-	(*ListSessionMessagesRequest)(nil),        // 48: talon.gateway.ListSessionMessagesRequest
-	(*ListSessionMessagesResponseItem)(nil),   // 49: talon.gateway.ListSessionMessagesResponseItem
-	(*ListSessionMessagesResponse)(nil),       // 50: talon.gateway.ListSessionMessagesResponse
-	(*ListSessionsRequest)(nil),               // 51: talon.gateway.ListSessionsRequest
-	(*SessionListItem)(nil),                   // 52: talon.gateway.SessionListItem
-	(*ListSessionsResponse)(nil),              // 53: talon.gateway.ListSessionsResponse
-	(*SessionResponse)(nil),                   // 54: talon.gateway.SessionResponse
-	(*DeleteSessionRequest)(nil),              // 55: talon.gateway.DeleteSessionRequest
-	(*DeleteSessionResponse)(nil),             // 56: talon.gateway.DeleteSessionResponse
-	(*ClearSessionRequest)(nil),               // 57: talon.gateway.ClearSessionRequest
-	(*ClearSessionResponse)(nil),              // 58: talon.gateway.ClearSessionResponse
-	(*CreateChannelRequest)(nil),              // 59: talon.gateway.CreateChannelRequest
-	(*GetChannelRequest)(nil),                 // 60: talon.gateway.GetChannelRequest
-	(*ModifyChannelRequest)(nil),              // 61: talon.gateway.ModifyChannelRequest
-	(*ListChannelsRequest)(nil),               // 62: talon.gateway.ListChannelsRequest
-	(*DeleteChannelRequest)(nil),              // 63: talon.gateway.DeleteChannelRequest
-	(*ChannelResponse)(nil),                   // 64: talon.gateway.ChannelResponse
-	(*ListChannelsResponse)(nil),              // 65: talon.gateway.ListChannelsResponse
-	(*DeleteChannelResponse)(nil),             // 66: talon.gateway.DeleteChannelResponse
-	(*PostChannelMessageRequest)(nil),         // 67: talon.gateway.PostChannelMessageRequest
-	(*RoutedChannelSession)(nil),              // 68: talon.gateway.RoutedChannelSession
-	(*PostChannelMessageResponse)(nil),        // 69: talon.gateway.PostChannelMessageResponse
-	(*GetChannelMessageRequest)(nil),          // 70: talon.gateway.GetChannelMessageRequest
-	(*ChannelMessageResponse)(nil),            // 71: talon.gateway.ChannelMessageResponse
-	(*ListChannelMessagesRequest)(nil),        // 72: talon.gateway.ListChannelMessagesRequest
-	(*ListChannelMessagesResponse)(nil),       // 73: talon.gateway.ListChannelMessagesResponse
-	(*CreateChannelSubscriptionRequest)(nil),  // 74: talon.gateway.CreateChannelSubscriptionRequest
-	(*GetChannelSubscriptionRequest)(nil),     // 75: talon.gateway.GetChannelSubscriptionRequest
-	(*ModifyChannelSubscriptionRequest)(nil),  // 76: talon.gateway.ModifyChannelSubscriptionRequest
-	(*ListChannelSubscriptionsRequest)(nil),   // 77: talon.gateway.ListChannelSubscriptionsRequest
-	(*DeleteChannelSubscriptionRequest)(nil),  // 78: talon.gateway.DeleteChannelSubscriptionRequest
-	(*ChannelSubscriptionResponse)(nil),       // 79: talon.gateway.ChannelSubscriptionResponse
-	(*ListChannelSubscriptionsResponse)(nil),  // 80: talon.gateway.ListChannelSubscriptionsResponse
-	(*DeleteChannelSubscriptionResponse)(nil), // 81: talon.gateway.DeleteChannelSubscriptionResponse
-	(*StreamChannelEventsRequest)(nil),        // 82: talon.gateway.StreamChannelEventsRequest
-	(*CreateScheduleRequest)(nil),             // 83: talon.gateway.CreateScheduleRequest
-	(*GetScheduleRequest)(nil),                // 84: talon.gateway.GetScheduleRequest
-	(*ModifyScheduleRequest)(nil),             // 85: talon.gateway.ModifyScheduleRequest
-	(*ListSchedulesRequest)(nil),              // 86: talon.gateway.ListSchedulesRequest
-	(*ListSchedulesResponse)(nil),             // 87: talon.gateway.ListSchedulesResponse
-	(*DeleteScheduleRequest)(nil),             // 88: talon.gateway.DeleteScheduleRequest
-	(*DeleteScheduleResponse)(nil),            // 89: talon.gateway.DeleteScheduleResponse
-	(*CreateWorkflowRequest)(nil),             // 90: talon.gateway.CreateWorkflowRequest
-	(*GetWorkflowRequest)(nil),                // 91: talon.gateway.GetWorkflowRequest
-	(*ListWorkflowsRequest)(nil),              // 92: talon.gateway.ListWorkflowsRequest
-	(*DeleteWorkflowRequest)(nil),             // 93: talon.gateway.DeleteWorkflowRequest
-	(*WorkflowResponse)(nil),                  // 94: talon.gateway.WorkflowResponse
-	(*ListWorkflowsResponse)(nil),             // 95: talon.gateway.ListWorkflowsResponse
-	(*DeleteWorkflowResponse)(nil),            // 96: talon.gateway.DeleteWorkflowResponse
-	(*CreateWorkflowRunRequest)(nil),          // 97: talon.gateway.CreateWorkflowRunRequest
-	(*GetWorkflowRunRequest)(nil),             // 98: talon.gateway.GetWorkflowRunRequest
-	(*ListWorkflowRunsRequest)(nil),           // 99: talon.gateway.ListWorkflowRunsRequest
-	(*ResumeWorkflowRunRequest)(nil),          // 100: talon.gateway.ResumeWorkflowRunRequest
-	(*CancelWorkflowRunRequest)(nil),          // 101: talon.gateway.CancelWorkflowRunRequest
-	(*StreamWorkflowEventsRequest)(nil),       // 102: talon.gateway.StreamWorkflowEventsRequest
-	(*WorkflowRunResponse)(nil),               // 103: talon.gateway.WorkflowRunResponse
-	(*ListWorkflowRunsResponse)(nil),          // 104: talon.gateway.ListWorkflowRunsResponse
-	(*ScheduleResponse)(nil),                  // 105: talon.gateway.ScheduleResponse
-	(*SendMessageRequest)(nil),                // 106: talon.gateway.SendMessageRequest
-	(*SendMessageResponse)(nil),               // 107: talon.gateway.SendMessageResponse
-	(*AppendSessionMessageRequest)(nil),       // 108: talon.gateway.AppendSessionMessageRequest
-	(*AppendSessionMessageResponse)(nil),      // 109: talon.gateway.AppendSessionMessageResponse
-	(*StopSessionGenerationRequest)(nil),      // 110: talon.gateway.StopSessionGenerationRequest
-	(*StopSessionGenerationResponse)(nil),     // 111: talon.gateway.StopSessionGenerationResponse
-	(*StreamSessionPartsRequest)(nil),         // 112: talon.gateway.StreamSessionPartsRequest
-	(*StreamSessionPartsBatchRequest)(nil),    // 113: talon.gateway.StreamSessionPartsBatchRequest
-	(*CreateNamespaceRequest)(nil),            // 114: talon.gateway.CreateNamespaceRequest
-	(*GetNamespaceRequest)(nil),               // 115: talon.gateway.GetNamespaceRequest
-	(*DeleteNamespaceRequest)(nil),            // 116: talon.gateway.DeleteNamespaceRequest
-	(*ListNamespacesRequest)(nil),             // 117: talon.gateway.ListNamespacesRequest
-	(*NamespaceResponse)(nil),                 // 118: talon.gateway.NamespaceResponse
-	(*ListNamespacesResponse)(nil),            // 119: talon.gateway.ListNamespacesResponse
-	nil,                                       // 120: talon.gateway.CreateAgentRequest.LabelsEntry
-	nil,                                       // 121: talon.gateway.AgentResponse.LabelsEntry
-	nil,                                       // 122: talon.gateway.ModifyAgentRequest.LabelsEntry
-	nil,                                       // 123: talon.gateway.CreateSessionRequest.LabelsEntry
-	nil,                                       // 124: talon.gateway.SessionListItem.LabelsEntry
-	nil,                                       // 125: talon.gateway.SessionResponse.LabelsEntry
-	nil,                                       // 126: talon.gateway.PostChannelMessageRequest.LabelsEntry
-	nil,                                       // 127: talon.gateway.CreateWorkflowRunRequest.LabelsEntry
-	nil,                                       // 128: talon.gateway.SendMessageRequest.LabelsEntry
-	nil,                                       // 129: talon.gateway.CreateNamespaceRequest.LabelsEntry
-	nil,                                       // 130: talon.gateway.NamespaceResponse.LabelsEntry
-	(*manifests.AgentTemplate)(nil),           // 131: talon.manifests.AgentTemplate
-	(*manifests.McpServer)(nil),               // 132: talon.manifests.McpServer
-	(*manifests.McpServerBinding)(nil),        // 133: talon.manifests.McpServerBinding
-	(*manifests.AgentCard)(nil),               // 134: talon.manifests.AgentCard
-	(*models.Agent)(nil),                      // 135: talon.models.Agent
-	(*manifests.AgentDefinition)(nil),         // 136: talon.manifests.AgentDefinition
-	(*models.Knowledge)(nil),                  // 137: talon.models.Knowledge
-	(*models.KnowledgeSearchResult)(nil),      // 138: talon.models.KnowledgeSearchResult
-	(*manifests.Knowledge)(nil),               // 139: talon.manifests.Knowledge
-	(*models.SessionMessage)(nil),             // 140: talon.models.SessionMessage
-	(*models.Channel)(nil),                    // 141: talon.models.Channel
-	(*models.ChannelMessage)(nil),             // 142: talon.models.ChannelMessage
-	(*models.ChannelSubscription)(nil),        // 143: talon.models.ChannelSubscription
-	(*models.Schedule)(nil),                   // 144: talon.models.Schedule
-	(*models.Workflow)(nil),                   // 145: talon.models.Workflow
-	(*models.WorkflowRun)(nil),                // 146: talon.models.WorkflowRun
-	(*models.WorkflowStepRun)(nil),            // 147: talon.models.WorkflowStepRun
-	(*events.SessionMessagePartEvent)(nil),    // 148: talon.events.SessionMessagePartEvent
-	(*events.ChannelEvent)(nil),               // 149: talon.events.ChannelEvent
-	(*models.WorkflowRunEvent)(nil),           // 150: talon.models.WorkflowRunEvent
+	(*GetAgentResponse)(nil),                  // 21: talon.gateway.GetAgentResponse
+	(*GetAgentRequest)(nil),                   // 22: talon.gateway.GetAgentRequest
+	(*CreateAgentRequest)(nil),                // 23: talon.gateway.CreateAgentRequest
+	(*AgentResponse)(nil),                     // 24: talon.gateway.AgentResponse
+	(*ListAgentsRequest)(nil),                 // 25: talon.gateway.ListAgentsRequest
+	(*ListAgentsResponse)(nil),                // 26: talon.gateway.ListAgentsResponse
+	(*ModifyAgentRequest)(nil),                // 27: talon.gateway.ModifyAgentRequest
+	(*GetKnowledgeRequest)(nil),               // 28: talon.gateway.GetKnowledgeRequest
+	(*KnowledgeResponse)(nil),                 // 29: talon.gateway.KnowledgeResponse
+	(*SearchKnowledgeRequest)(nil),            // 30: talon.gateway.SearchKnowledgeRequest
+	(*SearchKnowledgeResponse)(nil),           // 31: talon.gateway.SearchKnowledgeResponse
+	(*CreateNamespaceKnowledgeRequest)(nil),   // 32: talon.gateway.CreateNamespaceKnowledgeRequest
+	(*GetNamespaceKnowledgeRequest)(nil),      // 33: talon.gateway.GetNamespaceKnowledgeRequest
+	(*ListNamespaceKnowledgeRequest)(nil),     // 34: talon.gateway.ListNamespaceKnowledgeRequest
+	(*DeleteNamespaceKnowledgeRequest)(nil),   // 35: talon.gateway.DeleteNamespaceKnowledgeRequest
+	(*DeleteNamespaceKnowledgeResponse)(nil),  // 36: talon.gateway.DeleteNamespaceKnowledgeResponse
+	(*NamespaceKnowledgeResponse)(nil),        // 37: talon.gateway.NamespaceKnowledgeResponse
+	(*ListNamespaceKnowledgeResponse)(nil),    // 38: talon.gateway.ListNamespaceKnowledgeResponse
+	(*CreateSessionRequest)(nil),              // 39: talon.gateway.CreateSessionRequest
+	(*GetSessionRequest)(nil),                 // 40: talon.gateway.GetSessionRequest
+	(*ListSessionMessagesRequest)(nil),        // 41: talon.gateway.ListSessionMessagesRequest
+	(*ListSessionMessagesResponseItem)(nil),   // 42: talon.gateway.ListSessionMessagesResponseItem
+	(*ListSessionMessagesResponse)(nil),       // 43: talon.gateway.ListSessionMessagesResponse
+	(*ListSessionsRequest)(nil),               // 44: talon.gateway.ListSessionsRequest
+	(*SessionListItem)(nil),                   // 45: talon.gateway.SessionListItem
+	(*ListSessionsResponse)(nil),              // 46: talon.gateway.ListSessionsResponse
+	(*SessionResponse)(nil),                   // 47: talon.gateway.SessionResponse
+	(*DeleteSessionRequest)(nil),              // 48: talon.gateway.DeleteSessionRequest
+	(*DeleteSessionResponse)(nil),             // 49: talon.gateway.DeleteSessionResponse
+	(*ClearSessionRequest)(nil),               // 50: talon.gateway.ClearSessionRequest
+	(*ClearSessionResponse)(nil),              // 51: talon.gateway.ClearSessionResponse
+	(*CreateChannelRequest)(nil),              // 52: talon.gateway.CreateChannelRequest
+	(*GetChannelRequest)(nil),                 // 53: talon.gateway.GetChannelRequest
+	(*ModifyChannelRequest)(nil),              // 54: talon.gateway.ModifyChannelRequest
+	(*ListChannelsRequest)(nil),               // 55: talon.gateway.ListChannelsRequest
+	(*DeleteChannelRequest)(nil),              // 56: talon.gateway.DeleteChannelRequest
+	(*ChannelResponse)(nil),                   // 57: talon.gateway.ChannelResponse
+	(*ListChannelsResponse)(nil),              // 58: talon.gateway.ListChannelsResponse
+	(*DeleteChannelResponse)(nil),             // 59: talon.gateway.DeleteChannelResponse
+	(*PostChannelMessageRequest)(nil),         // 60: talon.gateway.PostChannelMessageRequest
+	(*RoutedChannelSession)(nil),              // 61: talon.gateway.RoutedChannelSession
+	(*PostChannelMessageResponse)(nil),        // 62: talon.gateway.PostChannelMessageResponse
+	(*GetChannelMessageRequest)(nil),          // 63: talon.gateway.GetChannelMessageRequest
+	(*ChannelMessageResponse)(nil),            // 64: talon.gateway.ChannelMessageResponse
+	(*ListChannelMessagesRequest)(nil),        // 65: talon.gateway.ListChannelMessagesRequest
+	(*ListChannelMessagesResponse)(nil),       // 66: talon.gateway.ListChannelMessagesResponse
+	(*CreateChannelSubscriptionRequest)(nil),  // 67: talon.gateway.CreateChannelSubscriptionRequest
+	(*GetChannelSubscriptionRequest)(nil),     // 68: talon.gateway.GetChannelSubscriptionRequest
+	(*ModifyChannelSubscriptionRequest)(nil),  // 69: talon.gateway.ModifyChannelSubscriptionRequest
+	(*ListChannelSubscriptionsRequest)(nil),   // 70: talon.gateway.ListChannelSubscriptionsRequest
+	(*DeleteChannelSubscriptionRequest)(nil),  // 71: talon.gateway.DeleteChannelSubscriptionRequest
+	(*ChannelSubscriptionResponse)(nil),       // 72: talon.gateway.ChannelSubscriptionResponse
+	(*ListChannelSubscriptionsResponse)(nil),  // 73: talon.gateway.ListChannelSubscriptionsResponse
+	(*DeleteChannelSubscriptionResponse)(nil), // 74: talon.gateway.DeleteChannelSubscriptionResponse
+	(*StreamChannelEventsRequest)(nil),        // 75: talon.gateway.StreamChannelEventsRequest
+	(*CreateScheduleRequest)(nil),             // 76: talon.gateway.CreateScheduleRequest
+	(*GetScheduleRequest)(nil),                // 77: talon.gateway.GetScheduleRequest
+	(*ModifyScheduleRequest)(nil),             // 78: talon.gateway.ModifyScheduleRequest
+	(*ListSchedulesRequest)(nil),              // 79: talon.gateway.ListSchedulesRequest
+	(*ListSchedulesResponse)(nil),             // 80: talon.gateway.ListSchedulesResponse
+	(*DeleteScheduleRequest)(nil),             // 81: talon.gateway.DeleteScheduleRequest
+	(*DeleteScheduleResponse)(nil),            // 82: talon.gateway.DeleteScheduleResponse
+	(*CreateWorkflowRequest)(nil),             // 83: talon.gateway.CreateWorkflowRequest
+	(*GetWorkflowRequest)(nil),                // 84: talon.gateway.GetWorkflowRequest
+	(*ListWorkflowsRequest)(nil),              // 85: talon.gateway.ListWorkflowsRequest
+	(*DeleteWorkflowRequest)(nil),             // 86: talon.gateway.DeleteWorkflowRequest
+	(*WorkflowResponse)(nil),                  // 87: talon.gateway.WorkflowResponse
+	(*ListWorkflowsResponse)(nil),             // 88: talon.gateway.ListWorkflowsResponse
+	(*DeleteWorkflowResponse)(nil),            // 89: talon.gateway.DeleteWorkflowResponse
+	(*CreateWorkflowRunRequest)(nil),          // 90: talon.gateway.CreateWorkflowRunRequest
+	(*GetWorkflowRunRequest)(nil),             // 91: talon.gateway.GetWorkflowRunRequest
+	(*ListWorkflowRunsRequest)(nil),           // 92: talon.gateway.ListWorkflowRunsRequest
+	(*ResumeWorkflowRunRequest)(nil),          // 93: talon.gateway.ResumeWorkflowRunRequest
+	(*CancelWorkflowRunRequest)(nil),          // 94: talon.gateway.CancelWorkflowRunRequest
+	(*StreamWorkflowEventsRequest)(nil),       // 95: talon.gateway.StreamWorkflowEventsRequest
+	(*WorkflowRunResponse)(nil),               // 96: talon.gateway.WorkflowRunResponse
+	(*ListWorkflowRunsResponse)(nil),          // 97: talon.gateway.ListWorkflowRunsResponse
+	(*ScheduleResponse)(nil),                  // 98: talon.gateway.ScheduleResponse
+	(*SendMessageRequest)(nil),                // 99: talon.gateway.SendMessageRequest
+	(*SendMessageResponse)(nil),               // 100: talon.gateway.SendMessageResponse
+	(*AppendSessionMessageRequest)(nil),       // 101: talon.gateway.AppendSessionMessageRequest
+	(*AppendSessionMessageResponse)(nil),      // 102: talon.gateway.AppendSessionMessageResponse
+	(*StopSessionGenerationRequest)(nil),      // 103: talon.gateway.StopSessionGenerationRequest
+	(*StopSessionGenerationResponse)(nil),     // 104: talon.gateway.StopSessionGenerationResponse
+	(*StreamSessionPartsRequest)(nil),         // 105: talon.gateway.StreamSessionPartsRequest
+	(*StreamSessionPartsBatchRequest)(nil),    // 106: talon.gateway.StreamSessionPartsBatchRequest
+	(*CreateNamespaceRequest)(nil),            // 107: talon.gateway.CreateNamespaceRequest
+	(*GetNamespaceRequest)(nil),               // 108: talon.gateway.GetNamespaceRequest
+	(*DeleteNamespaceRequest)(nil),            // 109: talon.gateway.DeleteNamespaceRequest
+	(*ListNamespacesRequest)(nil),             // 110: talon.gateway.ListNamespacesRequest
+	(*NamespaceResponse)(nil),                 // 111: talon.gateway.NamespaceResponse
+	(*ListNamespacesResponse)(nil),            // 112: talon.gateway.ListNamespacesResponse
+	nil,                                       // 113: talon.gateway.CreateAgentRequest.LabelsEntry
+	nil,                                       // 114: talon.gateway.AgentResponse.LabelsEntry
+	nil,                                       // 115: talon.gateway.ModifyAgentRequest.LabelsEntry
+	nil,                                       // 116: talon.gateway.CreateSessionRequest.LabelsEntry
+	nil,                                       // 117: talon.gateway.SessionListItem.LabelsEntry
+	nil,                                       // 118: talon.gateway.SessionResponse.LabelsEntry
+	nil,                                       // 119: talon.gateway.PostChannelMessageRequest.LabelsEntry
+	nil,                                       // 120: talon.gateway.CreateWorkflowRunRequest.LabelsEntry
+	nil,                                       // 121: talon.gateway.SendMessageRequest.LabelsEntry
+	nil,                                       // 122: talon.gateway.CreateNamespaceRequest.LabelsEntry
+	nil,                                       // 123: talon.gateway.NamespaceResponse.LabelsEntry
+	(*manifests.AgentTemplate)(nil),           // 124: talon.manifests.AgentTemplate
+	(*manifests.McpServer)(nil),               // 125: talon.manifests.McpServer
+	(*manifests.McpServerBinding)(nil),        // 126: talon.manifests.McpServerBinding
+	(*models.Agent)(nil),                      // 127: talon.models.Agent
+	(*manifests.AgentDefinition)(nil),         // 128: talon.manifests.AgentDefinition
+	(*models.Knowledge)(nil),                  // 129: talon.models.Knowledge
+	(*models.KnowledgeSearchResult)(nil),      // 130: talon.models.KnowledgeSearchResult
+	(*manifests.Knowledge)(nil),               // 131: talon.manifests.Knowledge
+	(*models.SessionMessage)(nil),             // 132: talon.models.SessionMessage
+	(*models.Channel)(nil),                    // 133: talon.models.Channel
+	(*models.ChannelMessage)(nil),             // 134: talon.models.ChannelMessage
+	(*models.ChannelSubscription)(nil),        // 135: talon.models.ChannelSubscription
+	(*models.Schedule)(nil),                   // 136: talon.models.Schedule
+	(*models.Workflow)(nil),                   // 137: talon.models.Workflow
+	(*models.WorkflowRun)(nil),                // 138: talon.models.WorkflowRun
+	(*models.WorkflowStepRun)(nil),            // 139: talon.models.WorkflowStepRun
+	(*events.SessionMessagePartEvent)(nil),    // 140: talon.events.SessionMessagePartEvent
+	(*events.ChannelEvent)(nil),               // 141: talon.events.ChannelEvent
+	(*models.WorkflowRunEvent)(nil),           // 142: talon.models.WorkflowRunEvent
 }
 var file_proto_gateway_proto_depIdxs = []int32{
-	131, // 0: talon.gateway.CreateAgentTemplateRequest.template:type_name -> talon.manifests.AgentTemplate
-	131, // 1: talon.gateway.AgentTemplateResponse.template:type_name -> talon.manifests.AgentTemplate
-	131, // 2: talon.gateway.ListAgentTemplatesResponse.templates:type_name -> talon.manifests.AgentTemplate
-	132, // 3: talon.gateway.CreateMcpServerRequest.server:type_name -> talon.manifests.McpServer
-	132, // 4: talon.gateway.McpServerResponse.server:type_name -> talon.manifests.McpServer
-	132, // 5: talon.gateway.ListMcpServersResponse.servers:type_name -> talon.manifests.McpServer
-	133, // 6: talon.gateway.CreateMcpServerBindingRequest.binding:type_name -> talon.manifests.McpServerBinding
-	133, // 7: talon.gateway.McpServerBindingResponse.binding:type_name -> talon.manifests.McpServerBinding
-	133, // 8: talon.gateway.ListMcpServerBindingsResponse.bindings:type_name -> talon.manifests.McpServerBinding
-	134, // 9: talon.gateway.CreateAgentCardRequest.card:type_name -> talon.manifests.AgentCard
-	134, // 10: talon.gateway.AgentCardResponse.card:type_name -> talon.manifests.AgentCard
-	134, // 11: talon.gateway.ListAgentCardsResponse.cards:type_name -> talon.manifests.AgentCard
-	135, // 12: talon.gateway.GetAgentResponse.agent:type_name -> talon.models.Agent
-	136, // 13: talon.gateway.CreateAgentRequest.definition:type_name -> talon.manifests.AgentDefinition
-	120, // 14: talon.gateway.CreateAgentRequest.labels:type_name -> talon.gateway.CreateAgentRequest.LabelsEntry
-	121, // 15: talon.gateway.AgentResponse.labels:type_name -> talon.gateway.AgentResponse.LabelsEntry
-	136, // 16: talon.gateway.ModifyAgentRequest.definition:type_name -> talon.manifests.AgentDefinition
-	122, // 17: talon.gateway.ModifyAgentRequest.labels:type_name -> talon.gateway.ModifyAgentRequest.LabelsEntry
-	137, // 18: talon.gateway.KnowledgeResponse.modules:type_name -> talon.models.Knowledge
-	138, // 19: talon.gateway.SearchKnowledgeResponse.results:type_name -> talon.models.KnowledgeSearchResult
-	139, // 20: talon.gateway.CreateNamespaceKnowledgeRequest.knowledge:type_name -> talon.manifests.Knowledge
-	139, // 21: talon.gateway.NamespaceKnowledgeResponse.knowledge:type_name -> talon.manifests.Knowledge
-	139, // 22: talon.gateway.ListNamespaceKnowledgeResponse.knowledge:type_name -> talon.manifests.Knowledge
-	123, // 23: talon.gateway.CreateSessionRequest.labels:type_name -> talon.gateway.CreateSessionRequest.LabelsEntry
-	140, // 24: talon.gateway.ListSessionMessagesResponseItem.message:type_name -> talon.models.SessionMessage
-	49,  // 25: talon.gateway.ListSessionMessagesResponse.items:type_name -> talon.gateway.ListSessionMessagesResponseItem
-	124, // 26: talon.gateway.SessionListItem.labels:type_name -> talon.gateway.SessionListItem.LabelsEntry
-	52,  // 27: talon.gateway.ListSessionsResponse.sessions:type_name -> talon.gateway.SessionListItem
-	140, // 28: talon.gateway.SessionResponse.messages:type_name -> talon.models.SessionMessage
-	125, // 29: talon.gateway.SessionResponse.labels:type_name -> talon.gateway.SessionResponse.LabelsEntry
-	141, // 30: talon.gateway.CreateChannelRequest.channel:type_name -> talon.models.Channel
-	141, // 31: talon.gateway.ModifyChannelRequest.channel:type_name -> talon.models.Channel
-	141, // 32: talon.gateway.ChannelResponse.channel:type_name -> talon.models.Channel
-	141, // 33: talon.gateway.ListChannelsResponse.channels:type_name -> talon.models.Channel
-	126, // 34: talon.gateway.PostChannelMessageRequest.labels:type_name -> talon.gateway.PostChannelMessageRequest.LabelsEntry
-	142, // 35: talon.gateway.PostChannelMessageResponse.message:type_name -> talon.models.ChannelMessage
-	68,  // 36: talon.gateway.PostChannelMessageResponse.routed_sessions:type_name -> talon.gateway.RoutedChannelSession
-	142, // 37: talon.gateway.ChannelMessageResponse.message:type_name -> talon.models.ChannelMessage
-	142, // 38: talon.gateway.ListChannelMessagesResponse.messages:type_name -> talon.models.ChannelMessage
-	143, // 39: talon.gateway.CreateChannelSubscriptionRequest.subscription:type_name -> talon.models.ChannelSubscription
-	143, // 40: talon.gateway.ModifyChannelSubscriptionRequest.subscription:type_name -> talon.models.ChannelSubscription
-	143, // 41: talon.gateway.ChannelSubscriptionResponse.subscription:type_name -> talon.models.ChannelSubscription
-	143, // 42: talon.gateway.ListChannelSubscriptionsResponse.subscriptions:type_name -> talon.models.ChannelSubscription
-	144, // 43: talon.gateway.CreateScheduleRequest.schedule:type_name -> talon.models.Schedule
-	144, // 44: talon.gateway.ModifyScheduleRequest.schedule:type_name -> talon.models.Schedule
-	144, // 45: talon.gateway.ListSchedulesResponse.schedules:type_name -> talon.models.Schedule
-	145, // 46: talon.gateway.CreateWorkflowRequest.workflow:type_name -> talon.models.Workflow
-	145, // 47: talon.gateway.WorkflowResponse.workflow:type_name -> talon.models.Workflow
-	145, // 48: talon.gateway.ListWorkflowsResponse.workflows:type_name -> talon.models.Workflow
-	127, // 49: talon.gateway.CreateWorkflowRunRequest.labels:type_name -> talon.gateway.CreateWorkflowRunRequest.LabelsEntry
-	146, // 50: talon.gateway.WorkflowRunResponse.run:type_name -> talon.models.WorkflowRun
-	147, // 51: talon.gateway.WorkflowRunResponse.steps:type_name -> talon.models.WorkflowStepRun
-	146, // 52: talon.gateway.ListWorkflowRunsResponse.runs:type_name -> talon.models.WorkflowRun
-	144, // 53: talon.gateway.ScheduleResponse.schedule:type_name -> talon.models.Schedule
-	128, // 54: talon.gateway.SendMessageRequest.labels:type_name -> talon.gateway.SendMessageRequest.LabelsEntry
-	140, // 55: talon.gateway.AppendSessionMessageRequest.message:type_name -> talon.models.SessionMessage
-	140, // 56: talon.gateway.AppendSessionMessageResponse.message:type_name -> talon.models.SessionMessage
-	129, // 57: talon.gateway.CreateNamespaceRequest.labels:type_name -> talon.gateway.CreateNamespaceRequest.LabelsEntry
-	130, // 58: talon.gateway.NamespaceResponse.labels:type_name -> talon.gateway.NamespaceResponse.LabelsEntry
-	118, // 59: talon.gateway.ListNamespacesResponse.namespaces:type_name -> talon.gateway.NamespaceResponse
-	30,  // 60: talon.gateway.GatewayService.CreateAgent:input_type -> talon.gateway.CreateAgentRequest
-	29,  // 61: talon.gateway.GatewayService.GetAgent:input_type -> talon.gateway.GetAgentRequest
-	34,  // 62: talon.gateway.GatewayService.ModifyAgent:input_type -> talon.gateway.ModifyAgentRequest
-	32,  // 63: talon.gateway.GatewayService.ListAgents:input_type -> talon.gateway.ListAgentsRequest
-	35,  // 64: talon.gateway.GatewayService.GetKnowledge:input_type -> talon.gateway.GetKnowledgeRequest
-	37,  // 65: talon.gateway.GatewayService.SearchKnowledge:input_type -> talon.gateway.SearchKnowledgeRequest
-	39,  // 66: talon.gateway.GatewayService.CreateNamespaceKnowledge:input_type -> talon.gateway.CreateNamespaceKnowledgeRequest
-	40,  // 67: talon.gateway.GatewayService.GetNamespaceKnowledge:input_type -> talon.gateway.GetNamespaceKnowledgeRequest
-	41,  // 68: talon.gateway.GatewayService.ListNamespaceKnowledge:input_type -> talon.gateway.ListNamespaceKnowledgeRequest
-	42,  // 69: talon.gateway.GatewayService.DeleteNamespaceKnowledge:input_type -> talon.gateway.DeleteNamespaceKnowledgeRequest
-	46,  // 70: talon.gateway.GatewayService.CreateSession:input_type -> talon.gateway.CreateSessionRequest
-	47,  // 71: talon.gateway.GatewayService.GetSession:input_type -> talon.gateway.GetSessionRequest
-	48,  // 72: talon.gateway.GatewayService.ListSessionMessages:input_type -> talon.gateway.ListSessionMessagesRequest
-	51,  // 73: talon.gateway.GatewayService.ListSessions:input_type -> talon.gateway.ListSessionsRequest
-	55,  // 74: talon.gateway.GatewayService.DeleteSession:input_type -> talon.gateway.DeleteSessionRequest
-	57,  // 75: talon.gateway.GatewayService.ClearSession:input_type -> talon.gateway.ClearSessionRequest
-	106, // 76: talon.gateway.GatewayService.SendMessage:input_type -> talon.gateway.SendMessageRequest
-	108, // 77: talon.gateway.GatewayService.AppendSessionMessage:input_type -> talon.gateway.AppendSessionMessageRequest
-	110, // 78: talon.gateway.GatewayService.StopSessionGeneration:input_type -> talon.gateway.StopSessionGenerationRequest
-	112, // 79: talon.gateway.GatewayService.StreamSessionParts:input_type -> talon.gateway.StreamSessionPartsRequest
-	113, // 80: talon.gateway.GatewayService.StreamSessionPartsBatch:input_type -> talon.gateway.StreamSessionPartsBatchRequest
-	59,  // 81: talon.gateway.GatewayService.CreateChannel:input_type -> talon.gateway.CreateChannelRequest
-	60,  // 82: talon.gateway.GatewayService.GetChannel:input_type -> talon.gateway.GetChannelRequest
-	61,  // 83: talon.gateway.GatewayService.ModifyChannel:input_type -> talon.gateway.ModifyChannelRequest
-	62,  // 84: talon.gateway.GatewayService.ListChannels:input_type -> talon.gateway.ListChannelsRequest
-	63,  // 85: talon.gateway.GatewayService.DeleteChannel:input_type -> talon.gateway.DeleteChannelRequest
-	67,  // 86: talon.gateway.GatewayService.PostChannelMessage:input_type -> talon.gateway.PostChannelMessageRequest
-	70,  // 87: talon.gateway.GatewayService.GetChannelMessage:input_type -> talon.gateway.GetChannelMessageRequest
-	72,  // 88: talon.gateway.GatewayService.ListChannelMessages:input_type -> talon.gateway.ListChannelMessagesRequest
-	74,  // 89: talon.gateway.GatewayService.CreateChannelSubscription:input_type -> talon.gateway.CreateChannelSubscriptionRequest
-	75,  // 90: talon.gateway.GatewayService.GetChannelSubscription:input_type -> talon.gateway.GetChannelSubscriptionRequest
-	76,  // 91: talon.gateway.GatewayService.ModifyChannelSubscription:input_type -> talon.gateway.ModifyChannelSubscriptionRequest
-	77,  // 92: talon.gateway.GatewayService.ListChannelSubscriptions:input_type -> talon.gateway.ListChannelSubscriptionsRequest
-	78,  // 93: talon.gateway.GatewayService.DeleteChannelSubscription:input_type -> talon.gateway.DeleteChannelSubscriptionRequest
-	82,  // 94: talon.gateway.GatewayService.StreamChannelEvents:input_type -> talon.gateway.StreamChannelEventsRequest
-	83,  // 95: talon.gateway.GatewayService.CreateSchedule:input_type -> talon.gateway.CreateScheduleRequest
-	84,  // 96: talon.gateway.GatewayService.GetSchedule:input_type -> talon.gateway.GetScheduleRequest
-	85,  // 97: talon.gateway.GatewayService.ModifySchedule:input_type -> talon.gateway.ModifyScheduleRequest
-	86,  // 98: talon.gateway.GatewayService.ListSchedules:input_type -> talon.gateway.ListSchedulesRequest
-	88,  // 99: talon.gateway.GatewayService.DeleteSchedule:input_type -> talon.gateway.DeleteScheduleRequest
-	90,  // 100: talon.gateway.GatewayService.CreateWorkflow:input_type -> talon.gateway.CreateWorkflowRequest
-	91,  // 101: talon.gateway.GatewayService.GetWorkflow:input_type -> talon.gateway.GetWorkflowRequest
-	92,  // 102: talon.gateway.GatewayService.ListWorkflows:input_type -> talon.gateway.ListWorkflowsRequest
-	93,  // 103: talon.gateway.GatewayService.DeleteWorkflow:input_type -> talon.gateway.DeleteWorkflowRequest
-	97,  // 104: talon.gateway.GatewayService.CreateWorkflowRun:input_type -> talon.gateway.CreateWorkflowRunRequest
-	98,  // 105: talon.gateway.GatewayService.GetWorkflowRun:input_type -> talon.gateway.GetWorkflowRunRequest
-	99,  // 106: talon.gateway.GatewayService.ListWorkflowRuns:input_type -> talon.gateway.ListWorkflowRunsRequest
-	100, // 107: talon.gateway.GatewayService.ResumeWorkflowRun:input_type -> talon.gateway.ResumeWorkflowRunRequest
-	101, // 108: talon.gateway.GatewayService.CancelWorkflowRun:input_type -> talon.gateway.CancelWorkflowRunRequest
-	102, // 109: talon.gateway.GatewayService.StreamWorkflowEvents:input_type -> talon.gateway.StreamWorkflowEventsRequest
-	114, // 110: talon.gateway.GatewayService.CreateNamespace:input_type -> talon.gateway.CreateNamespaceRequest
-	115, // 111: talon.gateway.GatewayService.GetNamespace:input_type -> talon.gateway.GetNamespaceRequest
-	116, // 112: talon.gateway.GatewayService.DeleteNamespace:input_type -> talon.gateway.DeleteNamespaceRequest
-	117, // 113: talon.gateway.GatewayService.ListNamespaces:input_type -> talon.gateway.ListNamespacesRequest
-	0,   // 114: talon.gateway.GatewayService.CreateAgentTemplate:input_type -> talon.gateway.CreateAgentTemplateRequest
-	2,   // 115: talon.gateway.GatewayService.GetAgentTemplate:input_type -> talon.gateway.GetAgentTemplateRequest
-	5,   // 116: talon.gateway.GatewayService.ListAgentTemplates:input_type -> talon.gateway.ListAgentTemplatesRequest
-	3,   // 117: talon.gateway.GatewayService.DeleteAgentTemplate:input_type -> talon.gateway.DeleteAgentTemplateRequest
-	7,   // 118: talon.gateway.GatewayService.CreateMcpServer:input_type -> talon.gateway.CreateMcpServerRequest
-	8,   // 119: talon.gateway.GatewayService.GetMcpServer:input_type -> talon.gateway.GetMcpServerRequest
-	9,   // 120: talon.gateway.GatewayService.ListMcpServers:input_type -> talon.gateway.ListMcpServersRequest
-	10,  // 121: talon.gateway.GatewayService.DeleteMcpServer:input_type -> talon.gateway.DeleteMcpServerRequest
-	14,  // 122: talon.gateway.GatewayService.CreateMcpServerBinding:input_type -> talon.gateway.CreateMcpServerBindingRequest
-	15,  // 123: talon.gateway.GatewayService.GetMcpServerBinding:input_type -> talon.gateway.GetMcpServerBindingRequest
-	16,  // 124: talon.gateway.GatewayService.ListMcpServerBindings:input_type -> talon.gateway.ListMcpServerBindingsRequest
-	17,  // 125: talon.gateway.GatewayService.DeleteMcpServerBinding:input_type -> talon.gateway.DeleteMcpServerBindingRequest
-	21,  // 126: talon.gateway.GatewayService.CreateAgentCard:input_type -> talon.gateway.CreateAgentCardRequest
-	22,  // 127: talon.gateway.GatewayService.GetAgentCard:input_type -> talon.gateway.GetAgentCardRequest
-	23,  // 128: talon.gateway.GatewayService.ListAgentCards:input_type -> talon.gateway.ListAgentCardsRequest
-	24,  // 129: talon.gateway.GatewayService.DeleteAgentCard:input_type -> talon.gateway.DeleteAgentCardRequest
-	31,  // 130: talon.gateway.GatewayService.CreateAgent:output_type -> talon.gateway.AgentResponse
-	28,  // 131: talon.gateway.GatewayService.GetAgent:output_type -> talon.gateway.GetAgentResponse
-	31,  // 132: talon.gateway.GatewayService.ModifyAgent:output_type -> talon.gateway.AgentResponse
-	33,  // 133: talon.gateway.GatewayService.ListAgents:output_type -> talon.gateway.ListAgentsResponse
-	36,  // 134: talon.gateway.GatewayService.GetKnowledge:output_type -> talon.gateway.KnowledgeResponse
-	38,  // 135: talon.gateway.GatewayService.SearchKnowledge:output_type -> talon.gateway.SearchKnowledgeResponse
-	44,  // 136: talon.gateway.GatewayService.CreateNamespaceKnowledge:output_type -> talon.gateway.NamespaceKnowledgeResponse
-	44,  // 137: talon.gateway.GatewayService.GetNamespaceKnowledge:output_type -> talon.gateway.NamespaceKnowledgeResponse
-	45,  // 138: talon.gateway.GatewayService.ListNamespaceKnowledge:output_type -> talon.gateway.ListNamespaceKnowledgeResponse
-	43,  // 139: talon.gateway.GatewayService.DeleteNamespaceKnowledge:output_type -> talon.gateway.DeleteNamespaceKnowledgeResponse
-	54,  // 140: talon.gateway.GatewayService.CreateSession:output_type -> talon.gateway.SessionResponse
-	54,  // 141: talon.gateway.GatewayService.GetSession:output_type -> talon.gateway.SessionResponse
-	50,  // 142: talon.gateway.GatewayService.ListSessionMessages:output_type -> talon.gateway.ListSessionMessagesResponse
-	53,  // 143: talon.gateway.GatewayService.ListSessions:output_type -> talon.gateway.ListSessionsResponse
-	56,  // 144: talon.gateway.GatewayService.DeleteSession:output_type -> talon.gateway.DeleteSessionResponse
-	58,  // 145: talon.gateway.GatewayService.ClearSession:output_type -> talon.gateway.ClearSessionResponse
-	107, // 146: talon.gateway.GatewayService.SendMessage:output_type -> talon.gateway.SendMessageResponse
-	109, // 147: talon.gateway.GatewayService.AppendSessionMessage:output_type -> talon.gateway.AppendSessionMessageResponse
-	111, // 148: talon.gateway.GatewayService.StopSessionGeneration:output_type -> talon.gateway.StopSessionGenerationResponse
-	148, // 149: talon.gateway.GatewayService.StreamSessionParts:output_type -> talon.events.SessionMessagePartEvent
-	148, // 150: talon.gateway.GatewayService.StreamSessionPartsBatch:output_type -> talon.events.SessionMessagePartEvent
-	64,  // 151: talon.gateway.GatewayService.CreateChannel:output_type -> talon.gateway.ChannelResponse
-	64,  // 152: talon.gateway.GatewayService.GetChannel:output_type -> talon.gateway.ChannelResponse
-	64,  // 153: talon.gateway.GatewayService.ModifyChannel:output_type -> talon.gateway.ChannelResponse
-	65,  // 154: talon.gateway.GatewayService.ListChannels:output_type -> talon.gateway.ListChannelsResponse
-	66,  // 155: talon.gateway.GatewayService.DeleteChannel:output_type -> talon.gateway.DeleteChannelResponse
-	69,  // 156: talon.gateway.GatewayService.PostChannelMessage:output_type -> talon.gateway.PostChannelMessageResponse
-	71,  // 157: talon.gateway.GatewayService.GetChannelMessage:output_type -> talon.gateway.ChannelMessageResponse
-	73,  // 158: talon.gateway.GatewayService.ListChannelMessages:output_type -> talon.gateway.ListChannelMessagesResponse
-	79,  // 159: talon.gateway.GatewayService.CreateChannelSubscription:output_type -> talon.gateway.ChannelSubscriptionResponse
-	79,  // 160: talon.gateway.GatewayService.GetChannelSubscription:output_type -> talon.gateway.ChannelSubscriptionResponse
-	79,  // 161: talon.gateway.GatewayService.ModifyChannelSubscription:output_type -> talon.gateway.ChannelSubscriptionResponse
-	80,  // 162: talon.gateway.GatewayService.ListChannelSubscriptions:output_type -> talon.gateway.ListChannelSubscriptionsResponse
-	81,  // 163: talon.gateway.GatewayService.DeleteChannelSubscription:output_type -> talon.gateway.DeleteChannelSubscriptionResponse
-	149, // 164: talon.gateway.GatewayService.StreamChannelEvents:output_type -> talon.events.ChannelEvent
-	105, // 165: talon.gateway.GatewayService.CreateSchedule:output_type -> talon.gateway.ScheduleResponse
-	105, // 166: talon.gateway.GatewayService.GetSchedule:output_type -> talon.gateway.ScheduleResponse
-	105, // 167: talon.gateway.GatewayService.ModifySchedule:output_type -> talon.gateway.ScheduleResponse
-	87,  // 168: talon.gateway.GatewayService.ListSchedules:output_type -> talon.gateway.ListSchedulesResponse
-	89,  // 169: talon.gateway.GatewayService.DeleteSchedule:output_type -> talon.gateway.DeleteScheduleResponse
-	94,  // 170: talon.gateway.GatewayService.CreateWorkflow:output_type -> talon.gateway.WorkflowResponse
-	94,  // 171: talon.gateway.GatewayService.GetWorkflow:output_type -> talon.gateway.WorkflowResponse
-	95,  // 172: talon.gateway.GatewayService.ListWorkflows:output_type -> talon.gateway.ListWorkflowsResponse
-	96,  // 173: talon.gateway.GatewayService.DeleteWorkflow:output_type -> talon.gateway.DeleteWorkflowResponse
-	103, // 174: talon.gateway.GatewayService.CreateWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	103, // 175: talon.gateway.GatewayService.GetWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	104, // 176: talon.gateway.GatewayService.ListWorkflowRuns:output_type -> talon.gateway.ListWorkflowRunsResponse
-	103, // 177: talon.gateway.GatewayService.ResumeWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	103, // 178: talon.gateway.GatewayService.CancelWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	150, // 179: talon.gateway.GatewayService.StreamWorkflowEvents:output_type -> talon.models.WorkflowRunEvent
-	118, // 180: talon.gateway.GatewayService.CreateNamespace:output_type -> talon.gateway.NamespaceResponse
-	118, // 181: talon.gateway.GatewayService.GetNamespace:output_type -> talon.gateway.NamespaceResponse
-	118, // 182: talon.gateway.GatewayService.DeleteNamespace:output_type -> talon.gateway.NamespaceResponse
-	119, // 183: talon.gateway.GatewayService.ListNamespaces:output_type -> talon.gateway.ListNamespacesResponse
-	1,   // 184: talon.gateway.GatewayService.CreateAgentTemplate:output_type -> talon.gateway.AgentTemplateResponse
-	1,   // 185: talon.gateway.GatewayService.GetAgentTemplate:output_type -> talon.gateway.AgentTemplateResponse
-	6,   // 186: talon.gateway.GatewayService.ListAgentTemplates:output_type -> talon.gateway.ListAgentTemplatesResponse
-	4,   // 187: talon.gateway.GatewayService.DeleteAgentTemplate:output_type -> talon.gateway.DeleteAgentTemplateResponse
-	12,  // 188: talon.gateway.GatewayService.CreateMcpServer:output_type -> talon.gateway.McpServerResponse
-	12,  // 189: talon.gateway.GatewayService.GetMcpServer:output_type -> talon.gateway.McpServerResponse
-	13,  // 190: talon.gateway.GatewayService.ListMcpServers:output_type -> talon.gateway.ListMcpServersResponse
-	11,  // 191: talon.gateway.GatewayService.DeleteMcpServer:output_type -> talon.gateway.DeleteMcpServerResponse
-	19,  // 192: talon.gateway.GatewayService.CreateMcpServerBinding:output_type -> talon.gateway.McpServerBindingResponse
-	19,  // 193: talon.gateway.GatewayService.GetMcpServerBinding:output_type -> talon.gateway.McpServerBindingResponse
-	20,  // 194: talon.gateway.GatewayService.ListMcpServerBindings:output_type -> talon.gateway.ListMcpServerBindingsResponse
-	18,  // 195: talon.gateway.GatewayService.DeleteMcpServerBinding:output_type -> talon.gateway.DeleteMcpServerBindingResponse
-	26,  // 196: talon.gateway.GatewayService.CreateAgentCard:output_type -> talon.gateway.AgentCardResponse
-	26,  // 197: talon.gateway.GatewayService.GetAgentCard:output_type -> talon.gateway.AgentCardResponse
-	27,  // 198: talon.gateway.GatewayService.ListAgentCards:output_type -> talon.gateway.ListAgentCardsResponse
-	25,  // 199: talon.gateway.GatewayService.DeleteAgentCard:output_type -> talon.gateway.DeleteAgentCardResponse
-	130, // [130:200] is the sub-list for method output_type
-	60,  // [60:130] is the sub-list for method input_type
-	60,  // [60:60] is the sub-list for extension type_name
-	60,  // [60:60] is the sub-list for extension extendee
-	0,   // [0:60] is the sub-list for field type_name
+	124, // 0: talon.gateway.CreateAgentTemplateRequest.template:type_name -> talon.manifests.AgentTemplate
+	124, // 1: talon.gateway.AgentTemplateResponse.template:type_name -> talon.manifests.AgentTemplate
+	124, // 2: talon.gateway.ListAgentTemplatesResponse.templates:type_name -> talon.manifests.AgentTemplate
+	125, // 3: talon.gateway.CreateMcpServerRequest.server:type_name -> talon.manifests.McpServer
+	125, // 4: talon.gateway.McpServerResponse.server:type_name -> talon.manifests.McpServer
+	125, // 5: talon.gateway.ListMcpServersResponse.servers:type_name -> talon.manifests.McpServer
+	126, // 6: talon.gateway.CreateMcpServerBindingRequest.binding:type_name -> talon.manifests.McpServerBinding
+	126, // 7: talon.gateway.McpServerBindingResponse.binding:type_name -> talon.manifests.McpServerBinding
+	126, // 8: talon.gateway.ListMcpServerBindingsResponse.bindings:type_name -> talon.manifests.McpServerBinding
+	127, // 9: talon.gateway.GetAgentResponse.agent:type_name -> talon.models.Agent
+	128, // 10: talon.gateway.CreateAgentRequest.definition:type_name -> talon.manifests.AgentDefinition
+	113, // 11: talon.gateway.CreateAgentRequest.labels:type_name -> talon.gateway.CreateAgentRequest.LabelsEntry
+	114, // 12: talon.gateway.AgentResponse.labels:type_name -> talon.gateway.AgentResponse.LabelsEntry
+	128, // 13: talon.gateway.ModifyAgentRequest.definition:type_name -> talon.manifests.AgentDefinition
+	115, // 14: talon.gateway.ModifyAgentRequest.labels:type_name -> talon.gateway.ModifyAgentRequest.LabelsEntry
+	129, // 15: talon.gateway.KnowledgeResponse.modules:type_name -> talon.models.Knowledge
+	130, // 16: talon.gateway.SearchKnowledgeResponse.results:type_name -> talon.models.KnowledgeSearchResult
+	131, // 17: talon.gateway.CreateNamespaceKnowledgeRequest.knowledge:type_name -> talon.manifests.Knowledge
+	131, // 18: talon.gateway.NamespaceKnowledgeResponse.knowledge:type_name -> talon.manifests.Knowledge
+	131, // 19: talon.gateway.ListNamespaceKnowledgeResponse.knowledge:type_name -> talon.manifests.Knowledge
+	116, // 20: talon.gateway.CreateSessionRequest.labels:type_name -> talon.gateway.CreateSessionRequest.LabelsEntry
+	132, // 21: talon.gateway.ListSessionMessagesResponseItem.message:type_name -> talon.models.SessionMessage
+	42,  // 22: talon.gateway.ListSessionMessagesResponse.items:type_name -> talon.gateway.ListSessionMessagesResponseItem
+	117, // 23: talon.gateway.SessionListItem.labels:type_name -> talon.gateway.SessionListItem.LabelsEntry
+	45,  // 24: talon.gateway.ListSessionsResponse.sessions:type_name -> talon.gateway.SessionListItem
+	132, // 25: talon.gateway.SessionResponse.messages:type_name -> talon.models.SessionMessage
+	118, // 26: talon.gateway.SessionResponse.labels:type_name -> talon.gateway.SessionResponse.LabelsEntry
+	133, // 27: talon.gateway.CreateChannelRequest.channel:type_name -> talon.models.Channel
+	133, // 28: talon.gateway.ModifyChannelRequest.channel:type_name -> talon.models.Channel
+	133, // 29: talon.gateway.ChannelResponse.channel:type_name -> talon.models.Channel
+	133, // 30: talon.gateway.ListChannelsResponse.channels:type_name -> talon.models.Channel
+	119, // 31: talon.gateway.PostChannelMessageRequest.labels:type_name -> talon.gateway.PostChannelMessageRequest.LabelsEntry
+	134, // 32: talon.gateway.PostChannelMessageResponse.message:type_name -> talon.models.ChannelMessage
+	61,  // 33: talon.gateway.PostChannelMessageResponse.routed_sessions:type_name -> talon.gateway.RoutedChannelSession
+	134, // 34: talon.gateway.ChannelMessageResponse.message:type_name -> talon.models.ChannelMessage
+	134, // 35: talon.gateway.ListChannelMessagesResponse.messages:type_name -> talon.models.ChannelMessage
+	135, // 36: talon.gateway.CreateChannelSubscriptionRequest.subscription:type_name -> talon.models.ChannelSubscription
+	135, // 37: talon.gateway.ModifyChannelSubscriptionRequest.subscription:type_name -> talon.models.ChannelSubscription
+	135, // 38: talon.gateway.ChannelSubscriptionResponse.subscription:type_name -> talon.models.ChannelSubscription
+	135, // 39: talon.gateway.ListChannelSubscriptionsResponse.subscriptions:type_name -> talon.models.ChannelSubscription
+	136, // 40: talon.gateway.CreateScheduleRequest.schedule:type_name -> talon.models.Schedule
+	136, // 41: talon.gateway.ModifyScheduleRequest.schedule:type_name -> talon.models.Schedule
+	136, // 42: talon.gateway.ListSchedulesResponse.schedules:type_name -> talon.models.Schedule
+	137, // 43: talon.gateway.CreateWorkflowRequest.workflow:type_name -> talon.models.Workflow
+	137, // 44: talon.gateway.WorkflowResponse.workflow:type_name -> talon.models.Workflow
+	137, // 45: talon.gateway.ListWorkflowsResponse.workflows:type_name -> talon.models.Workflow
+	120, // 46: talon.gateway.CreateWorkflowRunRequest.labels:type_name -> talon.gateway.CreateWorkflowRunRequest.LabelsEntry
+	138, // 47: talon.gateway.WorkflowRunResponse.run:type_name -> talon.models.WorkflowRun
+	139, // 48: talon.gateway.WorkflowRunResponse.steps:type_name -> talon.models.WorkflowStepRun
+	138, // 49: talon.gateway.ListWorkflowRunsResponse.runs:type_name -> talon.models.WorkflowRun
+	136, // 50: talon.gateway.ScheduleResponse.schedule:type_name -> talon.models.Schedule
+	121, // 51: talon.gateway.SendMessageRequest.labels:type_name -> talon.gateway.SendMessageRequest.LabelsEntry
+	132, // 52: talon.gateway.AppendSessionMessageRequest.message:type_name -> talon.models.SessionMessage
+	132, // 53: talon.gateway.AppendSessionMessageResponse.message:type_name -> talon.models.SessionMessage
+	122, // 54: talon.gateway.CreateNamespaceRequest.labels:type_name -> talon.gateway.CreateNamespaceRequest.LabelsEntry
+	123, // 55: talon.gateway.NamespaceResponse.labels:type_name -> talon.gateway.NamespaceResponse.LabelsEntry
+	111, // 56: talon.gateway.ListNamespacesResponse.namespaces:type_name -> talon.gateway.NamespaceResponse
+	23,  // 57: talon.gateway.GatewayService.CreateAgent:input_type -> talon.gateway.CreateAgentRequest
+	22,  // 58: talon.gateway.GatewayService.GetAgent:input_type -> talon.gateway.GetAgentRequest
+	27,  // 59: talon.gateway.GatewayService.ModifyAgent:input_type -> talon.gateway.ModifyAgentRequest
+	25,  // 60: talon.gateway.GatewayService.ListAgents:input_type -> talon.gateway.ListAgentsRequest
+	28,  // 61: talon.gateway.GatewayService.GetKnowledge:input_type -> talon.gateway.GetKnowledgeRequest
+	30,  // 62: talon.gateway.GatewayService.SearchKnowledge:input_type -> talon.gateway.SearchKnowledgeRequest
+	32,  // 63: talon.gateway.GatewayService.CreateNamespaceKnowledge:input_type -> talon.gateway.CreateNamespaceKnowledgeRequest
+	33,  // 64: talon.gateway.GatewayService.GetNamespaceKnowledge:input_type -> talon.gateway.GetNamespaceKnowledgeRequest
+	34,  // 65: talon.gateway.GatewayService.ListNamespaceKnowledge:input_type -> talon.gateway.ListNamespaceKnowledgeRequest
+	35,  // 66: talon.gateway.GatewayService.DeleteNamespaceKnowledge:input_type -> talon.gateway.DeleteNamespaceKnowledgeRequest
+	39,  // 67: talon.gateway.GatewayService.CreateSession:input_type -> talon.gateway.CreateSessionRequest
+	40,  // 68: talon.gateway.GatewayService.GetSession:input_type -> talon.gateway.GetSessionRequest
+	41,  // 69: talon.gateway.GatewayService.ListSessionMessages:input_type -> talon.gateway.ListSessionMessagesRequest
+	44,  // 70: talon.gateway.GatewayService.ListSessions:input_type -> talon.gateway.ListSessionsRequest
+	48,  // 71: talon.gateway.GatewayService.DeleteSession:input_type -> talon.gateway.DeleteSessionRequest
+	50,  // 72: talon.gateway.GatewayService.ClearSession:input_type -> talon.gateway.ClearSessionRequest
+	99,  // 73: talon.gateway.GatewayService.SendMessage:input_type -> talon.gateway.SendMessageRequest
+	101, // 74: talon.gateway.GatewayService.AppendSessionMessage:input_type -> talon.gateway.AppendSessionMessageRequest
+	103, // 75: talon.gateway.GatewayService.StopSessionGeneration:input_type -> talon.gateway.StopSessionGenerationRequest
+	105, // 76: talon.gateway.GatewayService.StreamSessionParts:input_type -> talon.gateway.StreamSessionPartsRequest
+	106, // 77: talon.gateway.GatewayService.StreamSessionPartsBatch:input_type -> talon.gateway.StreamSessionPartsBatchRequest
+	52,  // 78: talon.gateway.GatewayService.CreateChannel:input_type -> talon.gateway.CreateChannelRequest
+	53,  // 79: talon.gateway.GatewayService.GetChannel:input_type -> talon.gateway.GetChannelRequest
+	54,  // 80: talon.gateway.GatewayService.ModifyChannel:input_type -> talon.gateway.ModifyChannelRequest
+	55,  // 81: talon.gateway.GatewayService.ListChannels:input_type -> talon.gateway.ListChannelsRequest
+	56,  // 82: talon.gateway.GatewayService.DeleteChannel:input_type -> talon.gateway.DeleteChannelRequest
+	60,  // 83: talon.gateway.GatewayService.PostChannelMessage:input_type -> talon.gateway.PostChannelMessageRequest
+	63,  // 84: talon.gateway.GatewayService.GetChannelMessage:input_type -> talon.gateway.GetChannelMessageRequest
+	65,  // 85: talon.gateway.GatewayService.ListChannelMessages:input_type -> talon.gateway.ListChannelMessagesRequest
+	67,  // 86: talon.gateway.GatewayService.CreateChannelSubscription:input_type -> talon.gateway.CreateChannelSubscriptionRequest
+	68,  // 87: talon.gateway.GatewayService.GetChannelSubscription:input_type -> talon.gateway.GetChannelSubscriptionRequest
+	69,  // 88: talon.gateway.GatewayService.ModifyChannelSubscription:input_type -> talon.gateway.ModifyChannelSubscriptionRequest
+	70,  // 89: talon.gateway.GatewayService.ListChannelSubscriptions:input_type -> talon.gateway.ListChannelSubscriptionsRequest
+	71,  // 90: talon.gateway.GatewayService.DeleteChannelSubscription:input_type -> talon.gateway.DeleteChannelSubscriptionRequest
+	75,  // 91: talon.gateway.GatewayService.StreamChannelEvents:input_type -> talon.gateway.StreamChannelEventsRequest
+	76,  // 92: talon.gateway.GatewayService.CreateSchedule:input_type -> talon.gateway.CreateScheduleRequest
+	77,  // 93: talon.gateway.GatewayService.GetSchedule:input_type -> talon.gateway.GetScheduleRequest
+	78,  // 94: talon.gateway.GatewayService.ModifySchedule:input_type -> talon.gateway.ModifyScheduleRequest
+	79,  // 95: talon.gateway.GatewayService.ListSchedules:input_type -> talon.gateway.ListSchedulesRequest
+	81,  // 96: talon.gateway.GatewayService.DeleteSchedule:input_type -> talon.gateway.DeleteScheduleRequest
+	83,  // 97: talon.gateway.GatewayService.CreateWorkflow:input_type -> talon.gateway.CreateWorkflowRequest
+	84,  // 98: talon.gateway.GatewayService.GetWorkflow:input_type -> talon.gateway.GetWorkflowRequest
+	85,  // 99: talon.gateway.GatewayService.ListWorkflows:input_type -> talon.gateway.ListWorkflowsRequest
+	86,  // 100: talon.gateway.GatewayService.DeleteWorkflow:input_type -> talon.gateway.DeleteWorkflowRequest
+	90,  // 101: talon.gateway.GatewayService.CreateWorkflowRun:input_type -> talon.gateway.CreateWorkflowRunRequest
+	91,  // 102: talon.gateway.GatewayService.GetWorkflowRun:input_type -> talon.gateway.GetWorkflowRunRequest
+	92,  // 103: talon.gateway.GatewayService.ListWorkflowRuns:input_type -> talon.gateway.ListWorkflowRunsRequest
+	93,  // 104: talon.gateway.GatewayService.ResumeWorkflowRun:input_type -> talon.gateway.ResumeWorkflowRunRequest
+	94,  // 105: talon.gateway.GatewayService.CancelWorkflowRun:input_type -> talon.gateway.CancelWorkflowRunRequest
+	95,  // 106: talon.gateway.GatewayService.StreamWorkflowEvents:input_type -> talon.gateway.StreamWorkflowEventsRequest
+	107, // 107: talon.gateway.GatewayService.CreateNamespace:input_type -> talon.gateway.CreateNamespaceRequest
+	108, // 108: talon.gateway.GatewayService.GetNamespace:input_type -> talon.gateway.GetNamespaceRequest
+	109, // 109: talon.gateway.GatewayService.DeleteNamespace:input_type -> talon.gateway.DeleteNamespaceRequest
+	110, // 110: talon.gateway.GatewayService.ListNamespaces:input_type -> talon.gateway.ListNamespacesRequest
+	0,   // 111: talon.gateway.GatewayService.CreateAgentTemplate:input_type -> talon.gateway.CreateAgentTemplateRequest
+	2,   // 112: talon.gateway.GatewayService.GetAgentTemplate:input_type -> talon.gateway.GetAgentTemplateRequest
+	5,   // 113: talon.gateway.GatewayService.ListAgentTemplates:input_type -> talon.gateway.ListAgentTemplatesRequest
+	3,   // 114: talon.gateway.GatewayService.DeleteAgentTemplate:input_type -> talon.gateway.DeleteAgentTemplateRequest
+	7,   // 115: talon.gateway.GatewayService.CreateMcpServer:input_type -> talon.gateway.CreateMcpServerRequest
+	8,   // 116: talon.gateway.GatewayService.GetMcpServer:input_type -> talon.gateway.GetMcpServerRequest
+	9,   // 117: talon.gateway.GatewayService.ListMcpServers:input_type -> talon.gateway.ListMcpServersRequest
+	10,  // 118: talon.gateway.GatewayService.DeleteMcpServer:input_type -> talon.gateway.DeleteMcpServerRequest
+	14,  // 119: talon.gateway.GatewayService.CreateMcpServerBinding:input_type -> talon.gateway.CreateMcpServerBindingRequest
+	15,  // 120: talon.gateway.GatewayService.GetMcpServerBinding:input_type -> talon.gateway.GetMcpServerBindingRequest
+	16,  // 121: talon.gateway.GatewayService.ListMcpServerBindings:input_type -> talon.gateway.ListMcpServerBindingsRequest
+	17,  // 122: talon.gateway.GatewayService.DeleteMcpServerBinding:input_type -> talon.gateway.DeleteMcpServerBindingRequest
+	24,  // 123: talon.gateway.GatewayService.CreateAgent:output_type -> talon.gateway.AgentResponse
+	21,  // 124: talon.gateway.GatewayService.GetAgent:output_type -> talon.gateway.GetAgentResponse
+	24,  // 125: talon.gateway.GatewayService.ModifyAgent:output_type -> talon.gateway.AgentResponse
+	26,  // 126: talon.gateway.GatewayService.ListAgents:output_type -> talon.gateway.ListAgentsResponse
+	29,  // 127: talon.gateway.GatewayService.GetKnowledge:output_type -> talon.gateway.KnowledgeResponse
+	31,  // 128: talon.gateway.GatewayService.SearchKnowledge:output_type -> talon.gateway.SearchKnowledgeResponse
+	37,  // 129: talon.gateway.GatewayService.CreateNamespaceKnowledge:output_type -> talon.gateway.NamespaceKnowledgeResponse
+	37,  // 130: talon.gateway.GatewayService.GetNamespaceKnowledge:output_type -> talon.gateway.NamespaceKnowledgeResponse
+	38,  // 131: talon.gateway.GatewayService.ListNamespaceKnowledge:output_type -> talon.gateway.ListNamespaceKnowledgeResponse
+	36,  // 132: talon.gateway.GatewayService.DeleteNamespaceKnowledge:output_type -> talon.gateway.DeleteNamespaceKnowledgeResponse
+	47,  // 133: talon.gateway.GatewayService.CreateSession:output_type -> talon.gateway.SessionResponse
+	47,  // 134: talon.gateway.GatewayService.GetSession:output_type -> talon.gateway.SessionResponse
+	43,  // 135: talon.gateway.GatewayService.ListSessionMessages:output_type -> talon.gateway.ListSessionMessagesResponse
+	46,  // 136: talon.gateway.GatewayService.ListSessions:output_type -> talon.gateway.ListSessionsResponse
+	49,  // 137: talon.gateway.GatewayService.DeleteSession:output_type -> talon.gateway.DeleteSessionResponse
+	51,  // 138: talon.gateway.GatewayService.ClearSession:output_type -> talon.gateway.ClearSessionResponse
+	100, // 139: talon.gateway.GatewayService.SendMessage:output_type -> talon.gateway.SendMessageResponse
+	102, // 140: talon.gateway.GatewayService.AppendSessionMessage:output_type -> talon.gateway.AppendSessionMessageResponse
+	104, // 141: talon.gateway.GatewayService.StopSessionGeneration:output_type -> talon.gateway.StopSessionGenerationResponse
+	140, // 142: talon.gateway.GatewayService.StreamSessionParts:output_type -> talon.events.SessionMessagePartEvent
+	140, // 143: talon.gateway.GatewayService.StreamSessionPartsBatch:output_type -> talon.events.SessionMessagePartEvent
+	57,  // 144: talon.gateway.GatewayService.CreateChannel:output_type -> talon.gateway.ChannelResponse
+	57,  // 145: talon.gateway.GatewayService.GetChannel:output_type -> talon.gateway.ChannelResponse
+	57,  // 146: talon.gateway.GatewayService.ModifyChannel:output_type -> talon.gateway.ChannelResponse
+	58,  // 147: talon.gateway.GatewayService.ListChannels:output_type -> talon.gateway.ListChannelsResponse
+	59,  // 148: talon.gateway.GatewayService.DeleteChannel:output_type -> talon.gateway.DeleteChannelResponse
+	62,  // 149: talon.gateway.GatewayService.PostChannelMessage:output_type -> talon.gateway.PostChannelMessageResponse
+	64,  // 150: talon.gateway.GatewayService.GetChannelMessage:output_type -> talon.gateway.ChannelMessageResponse
+	66,  // 151: talon.gateway.GatewayService.ListChannelMessages:output_type -> talon.gateway.ListChannelMessagesResponse
+	72,  // 152: talon.gateway.GatewayService.CreateChannelSubscription:output_type -> talon.gateway.ChannelSubscriptionResponse
+	72,  // 153: talon.gateway.GatewayService.GetChannelSubscription:output_type -> talon.gateway.ChannelSubscriptionResponse
+	72,  // 154: talon.gateway.GatewayService.ModifyChannelSubscription:output_type -> talon.gateway.ChannelSubscriptionResponse
+	73,  // 155: talon.gateway.GatewayService.ListChannelSubscriptions:output_type -> talon.gateway.ListChannelSubscriptionsResponse
+	74,  // 156: talon.gateway.GatewayService.DeleteChannelSubscription:output_type -> talon.gateway.DeleteChannelSubscriptionResponse
+	141, // 157: talon.gateway.GatewayService.StreamChannelEvents:output_type -> talon.events.ChannelEvent
+	98,  // 158: talon.gateway.GatewayService.CreateSchedule:output_type -> talon.gateway.ScheduleResponse
+	98,  // 159: talon.gateway.GatewayService.GetSchedule:output_type -> talon.gateway.ScheduleResponse
+	98,  // 160: talon.gateway.GatewayService.ModifySchedule:output_type -> talon.gateway.ScheduleResponse
+	80,  // 161: talon.gateway.GatewayService.ListSchedules:output_type -> talon.gateway.ListSchedulesResponse
+	82,  // 162: talon.gateway.GatewayService.DeleteSchedule:output_type -> talon.gateway.DeleteScheduleResponse
+	87,  // 163: talon.gateway.GatewayService.CreateWorkflow:output_type -> talon.gateway.WorkflowResponse
+	87,  // 164: talon.gateway.GatewayService.GetWorkflow:output_type -> talon.gateway.WorkflowResponse
+	88,  // 165: talon.gateway.GatewayService.ListWorkflows:output_type -> talon.gateway.ListWorkflowsResponse
+	89,  // 166: talon.gateway.GatewayService.DeleteWorkflow:output_type -> talon.gateway.DeleteWorkflowResponse
+	96,  // 167: talon.gateway.GatewayService.CreateWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
+	96,  // 168: talon.gateway.GatewayService.GetWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
+	97,  // 169: talon.gateway.GatewayService.ListWorkflowRuns:output_type -> talon.gateway.ListWorkflowRunsResponse
+	96,  // 170: talon.gateway.GatewayService.ResumeWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
+	96,  // 171: talon.gateway.GatewayService.CancelWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
+	142, // 172: talon.gateway.GatewayService.StreamWorkflowEvents:output_type -> talon.models.WorkflowRunEvent
+	111, // 173: talon.gateway.GatewayService.CreateNamespace:output_type -> talon.gateway.NamespaceResponse
+	111, // 174: talon.gateway.GatewayService.GetNamespace:output_type -> talon.gateway.NamespaceResponse
+	111, // 175: talon.gateway.GatewayService.DeleteNamespace:output_type -> talon.gateway.NamespaceResponse
+	112, // 176: talon.gateway.GatewayService.ListNamespaces:output_type -> talon.gateway.ListNamespacesResponse
+	1,   // 177: talon.gateway.GatewayService.CreateAgentTemplate:output_type -> talon.gateway.AgentTemplateResponse
+	1,   // 178: talon.gateway.GatewayService.GetAgentTemplate:output_type -> talon.gateway.AgentTemplateResponse
+	6,   // 179: talon.gateway.GatewayService.ListAgentTemplates:output_type -> talon.gateway.ListAgentTemplatesResponse
+	4,   // 180: talon.gateway.GatewayService.DeleteAgentTemplate:output_type -> talon.gateway.DeleteAgentTemplateResponse
+	12,  // 181: talon.gateway.GatewayService.CreateMcpServer:output_type -> talon.gateway.McpServerResponse
+	12,  // 182: talon.gateway.GatewayService.GetMcpServer:output_type -> talon.gateway.McpServerResponse
+	13,  // 183: talon.gateway.GatewayService.ListMcpServers:output_type -> talon.gateway.ListMcpServersResponse
+	11,  // 184: talon.gateway.GatewayService.DeleteMcpServer:output_type -> talon.gateway.DeleteMcpServerResponse
+	19,  // 185: talon.gateway.GatewayService.CreateMcpServerBinding:output_type -> talon.gateway.McpServerBindingResponse
+	19,  // 186: talon.gateway.GatewayService.GetMcpServerBinding:output_type -> talon.gateway.McpServerBindingResponse
+	20,  // 187: talon.gateway.GatewayService.ListMcpServerBindings:output_type -> talon.gateway.ListMcpServerBindingsResponse
+	18,  // 188: talon.gateway.GatewayService.DeleteMcpServerBinding:output_type -> talon.gateway.DeleteMcpServerBindingResponse
+	123, // [123:189] is the sub-list for method output_type
+	57,  // [57:123] is the sub-list for method input_type
+	57,  // [57:57] is the sub-list for extension type_name
+	57,  // [57:57] is the sub-list for extension extendee
+	0,   // [0:57] is the sub-list for field type_name
 }
 
 func init() { file_proto_gateway_proto_init() }
@@ -7211,21 +6839,21 @@ func file_proto_gateway_proto_init() {
 	if File_proto_gateway_proto != nil {
 		return
 	}
-	file_proto_gateway_proto_msgTypes[30].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[35].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[48].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[50].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[72].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[73].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[117].OneofWrappers = []any{}
-	file_proto_gateway_proto_msgTypes[118].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[23].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[28].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[41].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[43].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[65].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[66].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[110].OneofWrappers = []any{}
+	file_proto_gateway_proto_msgTypes[111].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_gateway_proto_rawDesc), len(file_proto_gateway_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   131,
+			NumMessages:   124,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

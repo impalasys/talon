@@ -24,7 +24,6 @@ import {
   Square,
   Hash,
   Radio,
-  Network
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
@@ -160,15 +159,6 @@ function selectionFromSearchParams(searchParams: URLSearchParams): Selection | n
     };
   }
 
-  if (type === 'agent-card' && resourceName) {
-    return {
-      type: 'agent-card',
-      ns,
-      resourceName,
-      fullPath: `${ns}:agent-card:${resourceName}`,
-    };
-  }
-
   return {
     type: 'namespace',
     ns,
@@ -234,7 +224,6 @@ function getSelectionSubtitle(selection: Selection | null) {
   if (selection.type === 'schedule') return `${selection.ns} / Schedule`;
   if (selection.type === 'mcp-binding') return `${selection.ns} / MCP Binding`;
   if (selection.type === 'knowledge') return `${selection.ns} / Knowledge`;
-  if (selection.type === 'agent-card') return `${selection.ns} / AgentCard`;
   if (selection.type === 'template') return 'Sys / AgentTemplate';
   return 'Sys / MCPServer';
 }
@@ -256,7 +245,6 @@ function selectionIcon(selection: Selection | null) {
   if (selection.type === 'schedule') return <Clock3 className="w-4 h-4 text-amber-500" />;
   if (selection.type === 'mcp-binding') return <Plug className="w-4 h-4 text-blue-500" />;
   if (selection.type === 'knowledge') return <FileText className="w-4 h-4 text-violet-400" />;
-  if (selection.type === 'agent-card') return <Network className="w-4 h-4 text-sky-400" />;
   if (selection.type === 'template') return <FileText className="w-4 h-4 text-emerald-500" />;
   return <Plug className="w-4 h-4 text-blue-500" />;
 }
@@ -965,12 +953,6 @@ function DebuggerPageContent() {
               ns: selection.ns,
               name: selection.resourceName || '',
             })).knowledge;
-            break;
-          case 'agent-card':
-            document = (await getGatewayClient().getAgentCard({
-              ns: selection.ns,
-              name: selection.resourceName || '',
-            })).card;
             break;
         }
         if (!document) {

@@ -17,9 +17,8 @@ from a2a.client.client import ClientConfig
 from a2a.client.client_factory import ClientFactory
 from a2a.types import Message, Role, TextPart, TransportProtocol
 import conftest
-from proto.gateway_pb2 import CreateAgentRequest, CreateNamespaceRequest
+from proto.gateway_pb2 import CreateNamespaceRequest
 from proto.gateway_pb2_grpc import GatewayServiceStub
-from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model
 
 
 def card_resolver(client: httpx.AsyncClient, agent_card_url: str) -> A2ACardResolver:
@@ -107,72 +106,59 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
     try:
         stub = GatewayServiceStub(channel)
         stub.CreateNamespace(CreateNamespaceRequest(name=namespace, recursive=True))
-        stub.CreateAgent(
-            CreateAgentRequest(
-                ns=namespace,
-                name=agent_name,
-                definition=AgentDefinition(
-                    custom_spec=AgentSpec(
-                        model_policy={
-                            "profiles": [
-                                {
-                                    "name": "default",
-                                    "model": Model(
-                                        provider="mock",
-                                        name="minimax-m2.7",
-                                        temperature=0.0,
-                                    ),
-                                }
-                            ]
-                        },
-                        system_prompt="You are a deterministic A2A compatibility test agent.",
-                    )
-                ),
-            )
-        )
     finally:
         channel.close()
 
-    card_path = write_manifest(
+    agent_path = write_manifest(
         tmp_path,
-        "agent-card.yaml",
+        "agent.yaml",
         f"""
         apiVersion: talon.impalasys.com/v1
-        kind: AgentCard
+        kind: Agent
         metadata:
-          name: localhost-public
+          name: {agent_name}
           namespace: {namespace}
-        spec:
-          agentRef: {agent_name}
-          name: A2A Compatibility Agent
-          description: AgentCard used by the upstream A2A SDK compatibility test.
-          version: 1.0.0
-          capabilities:
-            streaming: true
-            pushNotifications: false
-            extendedAgentCard: false
-          defaultInputModes:
-            - text/plain
-          defaultOutputModes:
-            - text/plain
-          skills:
-            - id: answer_compat_question
-              name: Answer compatibility question
-              description: Answers deterministic A2A compatibility prompts.
-              tags:
-                - compatibility
-              examples:
-                - Hello from A2A compatibility CI
-              inputModes:
-                - text/plain
-              outputModes:
-                - text/plain
-          auth:
-            discovery: public
-            operations: public
+        definition:
+          customSpec:
+            modelPolicy:
+              profiles:
+                - name: default
+                  model:
+                    provider: mock
+                    name: minimax-m2.7
+                    temperature: 0
+            systemPrompt: You are a deterministic A2A compatibility test agent.
+            a2a:
+              publication:
+                name: A2A Compatibility Agent
+                description: AgentCard used by the upstream A2A SDK compatibility test.
+                version: 1.0.0
+                capabilities:
+                  streaming: true
+                  pushNotifications: false
+                  extendedAgentCard: false
+                defaultInputModes:
+                  - text/plain
+                defaultOutputModes:
+                  - text/plain
+                skills:
+                  - id: answer_compat_question
+                    name: Answer compatibility question
+                    description: Answers deterministic A2A compatibility prompts.
+                    tags:
+                      - compatibility
+                    examples:
+                      - Hello from A2A compatibility CI
+                    inputModes:
+                      - text/plain
+                    outputModes:
+                      - text/plain
+                auth:
+                  discovery: public
+                  operations: public
         """,
     )
-    apply_manifest(card_path)
+    apply_manifest(agent_path)
 
 
 @pytest.mark.asyncio
@@ -184,7 +170,7 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
     agent_name = f"a2a-agent-{run_id}"
     create_a2a_fixture(namespace, agent_name, tmp_path)
 
-    agent_card_url = f"http://localhost:50053/a2a/{namespace}/localhost-public/agent-card.json"
+    agent_card_url = f"http://localhost:50053/a2a/{namespace}/{agent_name}/agent-card.json"
     async with httpx.AsyncClient(timeout=90.0) as http_client:
         resolver = card_resolver(http_client, agent_card_url)
         card = await resolver.get_agent_card()
@@ -192,7 +178,7 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
         assert card.name == "A2A Compatibility Agent"
         assert card.protocol_version == "0.3.0"
         assert card.preferred_transport == TransportProtocol.http_json
-        assert card.url == f"http://localhost:50053/a2a/{namespace}/localhost-public"
+        assert card.url == f"http://localhost:50053/a2a/{namespace}/{agent_name}"
         assert card.capabilities.streaming is True
         assert card.default_input_modes == ["text/plain"]
         assert card.default_output_modes == ["text/plain"]

@@ -87,10 +87,6 @@ const (
 	GatewayService_GetMcpServerBinding_FullMethodName       = "/talon.gateway.GatewayService/GetMcpServerBinding"
 	GatewayService_ListMcpServerBindings_FullMethodName     = "/talon.gateway.GatewayService/ListMcpServerBindings"
 	GatewayService_DeleteMcpServerBinding_FullMethodName    = "/talon.gateway.GatewayService/DeleteMcpServerBinding"
-	GatewayService_CreateAgentCard_FullMethodName           = "/talon.gateway.GatewayService/CreateAgentCard"
-	GatewayService_GetAgentCard_FullMethodName              = "/talon.gateway.GatewayService/GetAgentCard"
-	GatewayService_ListAgentCards_FullMethodName            = "/talon.gateway.GatewayService/ListAgentCards"
-	GatewayService_DeleteAgentCard_FullMethodName           = "/talon.gateway.GatewayService/DeleteAgentCard"
 )
 
 // GatewayServiceClient is the client API for GatewayService service.
@@ -173,11 +169,6 @@ type GatewayServiceClient interface {
 	GetMcpServerBinding(ctx context.Context, in *GetMcpServerBindingRequest, opts ...grpc.CallOption) (*McpServerBindingResponse, error)
 	ListMcpServerBindings(ctx context.Context, in *ListMcpServerBindingsRequest, opts ...grpc.CallOption) (*ListMcpServerBindingsResponse, error)
 	DeleteMcpServerBinding(ctx context.Context, in *DeleteMcpServerBindingRequest, opts ...grpc.CallOption) (*DeleteMcpServerBindingResponse, error)
-	// A2A Agent Cards
-	CreateAgentCard(ctx context.Context, in *CreateAgentCardRequest, opts ...grpc.CallOption) (*AgentCardResponse, error)
-	GetAgentCard(ctx context.Context, in *GetAgentCardRequest, opts ...grpc.CallOption) (*AgentCardResponse, error)
-	ListAgentCards(ctx context.Context, in *ListAgentCardsRequest, opts ...grpc.CallOption) (*ListAgentCardsResponse, error)
-	DeleteAgentCard(ctx context.Context, in *DeleteAgentCardRequest, opts ...grpc.CallOption) (*DeleteAgentCardResponse, error)
 }
 
 type gatewayServiceClient struct {
@@ -884,46 +875,6 @@ func (c *gatewayServiceClient) DeleteMcpServerBinding(ctx context.Context, in *D
 	return out, nil
 }
 
-func (c *gatewayServiceClient) CreateAgentCard(ctx context.Context, in *CreateAgentCardRequest, opts ...grpc.CallOption) (*AgentCardResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AgentCardResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateAgentCard_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetAgentCard(ctx context.Context, in *GetAgentCardRequest, opts ...grpc.CallOption) (*AgentCardResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AgentCardResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetAgentCard_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListAgentCards(ctx context.Context, in *ListAgentCardsRequest, opts ...grpc.CallOption) (*ListAgentCardsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListAgentCardsResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListAgentCards_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteAgentCard(ctx context.Context, in *DeleteAgentCardRequest, opts ...grpc.CallOption) (*DeleteAgentCardResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteAgentCardResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteAgentCard_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GatewayServiceServer is the server API for GatewayService service.
 // All implementations must embed UnimplementedGatewayServiceServer
 // for forward compatibility.
@@ -1004,11 +955,6 @@ type GatewayServiceServer interface {
 	GetMcpServerBinding(context.Context, *GetMcpServerBindingRequest) (*McpServerBindingResponse, error)
 	ListMcpServerBindings(context.Context, *ListMcpServerBindingsRequest) (*ListMcpServerBindingsResponse, error)
 	DeleteMcpServerBinding(context.Context, *DeleteMcpServerBindingRequest) (*DeleteMcpServerBindingResponse, error)
-	// A2A Agent Cards
-	CreateAgentCard(context.Context, *CreateAgentCardRequest) (*AgentCardResponse, error)
-	GetAgentCard(context.Context, *GetAgentCardRequest) (*AgentCardResponse, error)
-	ListAgentCards(context.Context, *ListAgentCardsRequest) (*ListAgentCardsResponse, error)
-	DeleteAgentCard(context.Context, *DeleteAgentCardRequest) (*DeleteAgentCardResponse, error)
 	mustEmbedUnimplementedGatewayServiceServer()
 }
 
@@ -1216,18 +1162,6 @@ func (UnimplementedGatewayServiceServer) ListMcpServerBindings(context.Context, 
 }
 func (UnimplementedGatewayServiceServer) DeleteMcpServerBinding(context.Context, *DeleteMcpServerBindingRequest) (*DeleteMcpServerBindingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteMcpServerBinding not implemented")
-}
-func (UnimplementedGatewayServiceServer) CreateAgentCard(context.Context, *CreateAgentCardRequest) (*AgentCardResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAgentCard not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetAgentCard(context.Context, *GetAgentCardRequest) (*AgentCardResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAgentCard not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListAgentCards(context.Context, *ListAgentCardsRequest) (*ListAgentCardsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListAgentCards not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteAgentCard(context.Context, *DeleteAgentCardRequest) (*DeleteAgentCardResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteAgentCard not implemented")
 }
 func (UnimplementedGatewayServiceServer) mustEmbedUnimplementedGatewayServiceServer() {}
 func (UnimplementedGatewayServiceServer) testEmbeddedByValue()                        {}
@@ -2410,78 +2344,6 @@ func _GatewayService_DeleteMcpServerBinding_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GatewayService_CreateAgentCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAgentCardRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateAgentCard(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateAgentCard_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateAgentCard(ctx, req.(*CreateAgentCardRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetAgentCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAgentCardRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetAgentCard(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetAgentCard_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetAgentCard(ctx, req.(*GetAgentCardRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListAgentCards_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListAgentCardsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListAgentCards(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListAgentCards_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListAgentCards(ctx, req.(*ListAgentCardsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteAgentCard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteAgentCardRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteAgentCard(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteAgentCard_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteAgentCard(ctx, req.(*DeleteAgentCardRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // GatewayService_ServiceDesc is the grpc.ServiceDesc for GatewayService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2736,22 +2598,6 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMcpServerBinding",
 			Handler:    _GatewayService_DeleteMcpServerBinding_Handler,
-		},
-		{
-			MethodName: "CreateAgentCard",
-			Handler:    _GatewayService_CreateAgentCard_Handler,
-		},
-		{
-			MethodName: "GetAgentCard",
-			Handler:    _GatewayService_GetAgentCard_Handler,
-		},
-		{
-			MethodName: "ListAgentCards",
-			Handler:    _GatewayService_ListAgentCards_Handler,
-		},
-		{
-			MethodName: "DeleteAgentCard",
-			Handler:    _GatewayService_DeleteAgentCard_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

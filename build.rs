@@ -8,8 +8,7 @@ fn main() -> std::io::Result<()> {
     let serde_default_types = [
         ".talon.manifests.FeatureSetDelta",
         ".talon.manifests.McpAuthBrokerSpec",
-        ".talon.manifests.AgentCard",
-        ".talon.manifests.AgentCardSpec",
+        ".talon.manifests.Publication",
         ".talon.manifests.AgentCardCapabilities",
         ".talon.manifests.AgentCardSkill",
         ".talon.manifests.AgentCardAuth",

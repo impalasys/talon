@@ -54,32 +54,35 @@ impl Gateway {
     pub fn http_ui_router(&self) -> Router {
         Router::new()
             .route(
-                "/a2a/:ns/:card/agent-card.json",
+                "/a2a/:ns/:agent/agent-card.json",
                 get(crate::gateway::a2a::get_agent_card),
             )
             .route(
-                "/a2a/:ns/:card/message:operation",
+                "/a2a/:ns/:agent/message:operation",
                 post(crate::gateway::a2a::post_message_operation),
             )
             .route(
-                "/a2a/:ns/:card/v1/message:operation",
+                "/a2a/:ns/:agent/v1/message:operation",
                 post(crate::gateway::a2a::post_message_operation),
             )
-            .route("/a2a/:ns/:card/tasks", get(crate::gateway::a2a::list_tasks))
             .route(
-                "/a2a/:ns/:card/v1/tasks",
+                "/a2a/:ns/:agent/tasks",
                 get(crate::gateway::a2a::list_tasks),
             )
             .route(
-                "/a2a/:ns/:card/tasks/*tail",
+                "/a2a/:ns/:agent/v1/tasks",
+                get(crate::gateway::a2a::list_tasks),
+            )
+            .route(
+                "/a2a/:ns/:agent/tasks/*tail",
                 get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
             )
             .route(
-                "/a2a/:ns/:card/v1/tasks/*tail",
+                "/a2a/:ns/:agent/v1/tasks/*tail",
                 get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
             )
             .route(
-                "/a2a/:ns/:card/extendedAgentCard",
+                "/a2a/:ns/:agent/extendedAgentCard",
                 get(crate::gateway::a2a::unsupported_a2a_operation),
             )
             .route(
@@ -162,7 +165,7 @@ mod tests {
         events::{SessionMessagePartEvent, SessionMessagePartEventKind},
         keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
-        KeyValueStore, MessagePublisher,
+        KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::auth::AuthConfig;
     use crate::gateway::rpc::models::{SessionMessagePart, SessionMessagePartType};
@@ -311,61 +314,86 @@ mod tests {
             .unwrap();
     }
 
-    fn agent_card(
-        ns: &str,
-        name: &str,
-        agent_ref: &str,
-    ) -> crate::gateway::rpc::manifests::AgentCard {
-        crate::gateway::rpc::manifests::AgentCard {
-            api_version: "talon.impalasys.com/v1".to_string(),
-            kind: "AgentCard".to_string(),
-            metadata: Some(crate::gateway::rpc::manifests::ObjectMeta {
-                name: name.to_string(),
-                namespace: ns.to_string(),
-                labels: HashMap::new(),
-                annotations: HashMap::new(),
+    fn a2a_publication() -> crate::gateway::rpc::manifests::Publication {
+        crate::gateway::rpc::manifests::Publication {
+            name: "Support Agent".to_string(),
+            description: "Answers support questions.".to_string(),
+            version: "1.0.0".to_string(),
+            capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
+                streaming: true,
+                push_notifications: false,
+                extended_agent_card: false,
             }),
-            spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
-                agent_ref: agent_ref.to_string(),
-                name: "Support Agent".to_string(),
-                description: "Answers support questions.".to_string(),
-                version: "1.0.0".to_string(),
-                capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
-                    streaming: false,
-                    push_notifications: false,
-                    extended_agent_card: false,
-                }),
-                default_input_modes: vec!["text/plain".to_string()],
-                default_output_modes: vec!["text/plain".to_string()],
-                skills: vec![crate::gateway::rpc::manifests::AgentCardSkill {
-                    id: "answer_support_question".to_string(),
-                    name: "Answer support question".to_string(),
-                    description: "Answers using docs.".to_string(),
-                    tags: vec!["support".to_string()],
-                    examples: Vec::new(),
-                    input_modes: Vec::new(),
-                    output_modes: Vec::new(),
-                }],
-                auth: Some(crate::gateway::rpc::manifests::AgentCardAuth {
-                    discovery: "public".to_string(),
-                    operations: "public".to_string(),
-                }),
+            default_input_modes: vec!["text/plain".to_string()],
+            default_output_modes: vec!["text/plain".to_string()],
+            skills: vec![crate::gateway::rpc::manifests::AgentCardSkill {
+                id: "answer_support_question".to_string(),
+                name: "Answer support question".to_string(),
+                description: "Answers using docs.".to_string(),
+                tags: vec!["support".to_string()],
+                examples: Vec::new(),
+                input_modes: Vec::new(),
+                output_modes: Vec::new(),
+            }],
+            auth: Some(crate::gateway::rpc::manifests::AgentCardAuth {
+                discovery: "public".to_string(),
+                operations: "public".to_string(),
             }),
         }
     }
 
-    async fn seed_agent_card(gateway: &Gateway, ns: &str, name: &str, agent_ref: &str) {
-        seed_namespace_and_agent(gateway, ns, agent_ref).await;
-        let handler = crate::gateway::rpc::GrpcGatewayHandler {
-            gateway: Arc::new(gateway.clone()),
-        };
-        handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
+    fn published_agent_definition(
+        publication: crate::gateway::rpc::manifests::Publication,
+    ) -> crate::gateway::rpc::manifests::AgentDefinition {
+        crate::gateway::rpc::manifests::AgentDefinition {
+            source: Some(
+                crate::gateway::rpc::manifests::agent_definition::Source::CustomSpec(
+                    crate::gateway::rpc::manifests::AgentSpec {
+                        features: Vec::new(),
+                        model_policy: Some(crate::gateway::rpc::manifests::ModelPolicy {
+                            profiles: vec![crate::gateway::rpc::manifests::ModelProfile {
+                                name: "default".to_string(),
+                                model: Some(crate::gateway::rpc::manifests::Model {
+                                    provider: "test".to_string(),
+                                    name: "test".to_string(),
+                                    temperature: 0.0,
+                                    thinking: None,
+                                }),
+                            }],
+                        }),
+                        system_prompt: "test".to_string(),
+                        mcp_server_refs: Vec::new(),
+                        capabilities: HashMap::new(),
+                        a2a: Some(crate::gateway::rpc::manifests::A2a {
+                            connections: Vec::new(),
+                            publication: Some(publication),
+                        }),
+                    },
+                ),
+            ),
+        }
+    }
+
+    async fn seed_published_agent(gateway: &Gateway, ns: &str, agent: &str) {
+        seed_namespace_and_agent(gateway, ns, agent).await;
+        let definition = published_agent_definition(a2a_publication());
+        let resolved =
+            crate::agents::resolver::resolve_agent_definition(gateway.kv.as_ref(), &definition)
+                .await
+                .unwrap();
+        gateway
+            .kv
+            .set_msg(
+                &crate::control::keys::agent(ns, agent),
+                &crate::gateway::rpc::models::Agent {
+                    name: agent.to_string(),
                     ns: ns.to_string(),
-                    card: Some(agent_card(ns, name, agent_ref)),
+                    definition: Some(definition),
+                    effective_spec: Some(resolved.effective_spec),
+                    template_deps: resolved.template_deps,
+                    labels: HashMap::new(),
                 },
-            ))
+            )
             .await
             .unwrap();
     }
@@ -436,62 +464,14 @@ mod tests {
     #[tokio::test]
     async fn http_ui_router_serves_agent_card_by_path() {
         let gateway = gateway();
-        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let card = crate::gateway::rpc::manifests::AgentCard {
-            api_version: "talon.impalasys.com/v1".to_string(),
-            kind: "AgentCard".to_string(),
-            metadata: Some(crate::gateway::rpc::manifests::ObjectMeta {
-                name: "support-public".to_string(),
-                namespace: "support".to_string(),
-                labels: HashMap::new(),
-                annotations: HashMap::new(),
-            }),
-            spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
-                agent_ref: "support-docs".to_string(),
-                name: "Support Agent".to_string(),
-                description: "Answers support questions.".to_string(),
-                version: "1.0.0".to_string(),
-                capabilities: Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
-                    streaming: false,
-                    push_notifications: false,
-                    extended_agent_card: false,
-                }),
-                default_input_modes: vec!["text/plain".to_string()],
-                default_output_modes: vec!["text/plain".to_string()],
-                skills: vec![crate::gateway::rpc::manifests::AgentCardSkill {
-                    id: "answer_support_question".to_string(),
-                    name: "Answer support question".to_string(),
-                    description: "Answers using docs.".to_string(),
-                    tags: vec!["support".to_string()],
-                    examples: Vec::new(),
-                    input_modes: Vec::new(),
-                    output_modes: Vec::new(),
-                }],
-                auth: Some(crate::gateway::rpc::manifests::AgentCardAuth {
-                    discovery: "public".to_string(),
-                    operations: "public".to_string(),
-                }),
-            }),
-        };
-        let handler = crate::gateway::rpc::GrpcGatewayHandler {
-            gateway: Arc::new(gateway.clone()),
-        };
-        handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "support".to_string(),
-                    card: Some(card),
-                },
-            ))
-            .await
-            .unwrap();
+        seed_published_agent(&gateway, "support", "support-docs").await;
 
         let response = gateway
             .http_ui_router()
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/support-public/agent-card.json")
+                    .uri("/a2a/support/support-docs/agent-card.json")
                     .header(header::HOST, "support.example.com:8080")
                     .header("x-forwarded-proto", "HTTP")
                     .body(Body::empty())
@@ -508,7 +488,7 @@ mod tests {
         assert_eq!(value["name"], "Support Agent");
         assert_eq!(
             value["url"],
-            "http://support.example.com:8080/a2a/support/support-public"
+            "http://support.example.com:8080/a2a/support/support-docs"
         );
         assert_eq!(value["protocolVersion"], "0.3.0");
         assert_eq!(value["preferredTransport"], "HTTP+JSON");
@@ -516,22 +496,12 @@ mod tests {
         assert_eq!(value["skills"][0]["id"], "answer_support_question");
         assert!(value.get("auth").is_none());
 
-        handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "support".to_string(),
-                    card: Some(agent_card("support", "local-public", "support-docs")),
-                },
-            ))
-            .await
-            .unwrap();
-
         let response = gateway
             .http_ui_router()
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/local-public/agent-card.json")
+                    .uri("/a2a/support/support-docs/agent-card.json")
                     .header(header::HOST, "localhost:8080")
                     .body(Body::empty())
                     .unwrap(),
@@ -546,14 +516,14 @@ mod tests {
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(
             value["url"],
-            "http://localhost:8080/a2a/support/local-public"
+            "http://localhost:8080/a2a/support/support-docs"
         );
     }
 
     #[tokio::test]
     async fn http_ui_router_serves_external_a2a_task_operations() {
         let gateway = gateway();
-        seed_agent_card(&gateway, "support", "support-public", "support-docs").await;
+        seed_published_agent(&gateway, "support", "support-docs").await;
         let router = gateway.http_ui_router();
 
         let send = router
@@ -561,7 +531,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/a2a/support/support-public/message:send")
+                    .uri("/a2a/support/support-docs/message:send")
                     .header(header::HOST, "support.example.com")
                     .header(header::CONTENT_TYPE, "application/json")
                     .body(Body::from(
@@ -596,7 +566,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/a2a/support/support-public/v1/message:send")
+                    .uri("/a2a/support/support-docs/v1/message:send")
                     .header(header::HOST, "support.example.com")
                     .header(header::CONTENT_TYPE, "application/json")
                     .body(Body::from(
@@ -690,7 +660,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/support-public/tasks/task-1")
+                    .uri("/a2a/support/support-docs/tasks/task-1")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -717,7 +687,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/support-public/v1/tasks/task-1")
+                    .uri("/a2a/support/support-docs/v1/tasks/task-1")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -740,7 +710,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/a2a/support/support-public/tasks")
+                    .uri("/a2a/support/support-docs/tasks")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -759,7 +729,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/a2a/support/support-public/tasks/task-1:cancel")
+                    .uri("/a2a/support/support-docs/tasks/task-1:cancel")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -777,7 +747,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/a2a/support/support-public/message:stream")
+                    .uri("/a2a/support/support-docs/message:stream")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -828,14 +798,14 @@ mod tests {
             ]]),
         );
         let gateway = gateway_with_pubsub(pubsub);
-        seed_agent_card(&gateway, "support", "support-public", "support-docs").await;
+        seed_published_agent(&gateway, "support", "support-docs").await;
 
         let response = gateway
             .http_ui_router()
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/a2a/support/support-public/v1/message:stream")
+                    .uri("/a2a/support/support-docs/v1/message:stream")
                     .header(header::HOST, "support.example.com")
                     .header(header::CONTENT_TYPE, "application/json")
                     .body(Body::from(format!(
@@ -886,11 +856,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_card_rejects_non_public_discovery_auth() {
+    async fn agent_rejects_non_public_a2a_publication_auth() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let mut card = agent_card("support", "support-private", "support-docs");
-        card.spec.as_mut().unwrap().auth = Some(crate::gateway::rpc::manifests::AgentCardAuth {
+        let mut publication = a2a_publication();
+        publication.auth = Some(crate::gateway::rpc::manifests::AgentCardAuth {
             discovery: "bearer".to_string(),
             operations: "bearer".to_string(),
         });
@@ -898,10 +868,12 @@ mod tests {
         let err = crate::gateway::rpc::GrpcGatewayHandler {
             gateway: Arc::new(gateway),
         }
-        .handle_create_agent_card(tonic::Request::new(
-            crate::gateway::rpc::proto::CreateAgentCardRequest {
+        .handle_create_agent(tonic::Request::new(
+            crate::gateway::rpc::proto::CreateAgentRequest {
                 ns: "support".to_string(),
-                card: Some(card),
+                name: Some("support-docs".to_string()),
+                definition: Some(published_agent_definition(publication)),
+                labels: HashMap::new(),
             },
         ))
         .await
@@ -912,24 +884,25 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_card_rejects_unsupported_capabilities() {
+    async fn agent_rejects_unsupported_a2a_publication_capabilities() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let mut card = agent_card("support", "support-public", "support-docs");
-        card.spec.as_mut().unwrap().capabilities =
-            Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
-                streaming: false,
-                push_notifications: true,
-                extended_agent_card: false,
-            });
+        let mut publication = a2a_publication();
+        publication.capabilities = Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
+            streaming: false,
+            push_notifications: true,
+            extended_agent_card: false,
+        });
 
         let err = crate::gateway::rpc::GrpcGatewayHandler {
             gateway: Arc::new(gateway),
         }
-        .handle_create_agent_card(tonic::Request::new(
-            crate::gateway::rpc::proto::CreateAgentCardRequest {
+        .handle_create_agent(tonic::Request::new(
+            crate::gateway::rpc::proto::CreateAgentRequest {
                 ns: "support".to_string(),
-                card: Some(card),
+                name: Some("support-docs".to_string()),
+                definition: Some(published_agent_definition(publication)),
+                labels: HashMap::new(),
             },
         ))
         .await
