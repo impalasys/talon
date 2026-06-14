@@ -133,6 +133,9 @@ pub enum ObjectStoreConfigWrapper {
         endpoint_url: Option<String>,
         force_path_style: Option<bool>,
     },
+    R2 {
+        endpoint_url: Option<String>,
+    },
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -375,6 +378,13 @@ impl From<ObjectStoreConfigWrapper> for proto::ObjectStoreConfig {
                     },
                 )),
             },
+            ObjectStoreConfigWrapper::R2 { endpoint_url } => Self {
+                backend: Some(proto::object_store_config::Backend::R2(
+                    proto::R2ObjectStoreConfig {
+                        endpoint_url: endpoint_url.unwrap_or_default(),
+                    },
+                )),
+            },
         }
     }
 }
@@ -451,6 +461,13 @@ impl ConfigExt for Config {
     }
 
     fn load_default() -> Result<Config> {
+        if let Ok(inline_yaml) = env::var("TALON_CONFIG_INLINE_YAML") {
+            if !inline_yaml.trim().is_empty() {
+                let serde_config: SerdeConfig = serde_yaml::from_str(&inline_yaml)?;
+                return Ok(serde_config.into());
+            }
+        }
+
         if let Ok(explicit_path) = env::var("TALON_CONFIG_PATH") {
             if !explicit_path.trim().is_empty() {
                 return Self::from_file(explicit_path);

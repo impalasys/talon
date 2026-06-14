@@ -1,0 +1,134 @@
+services:
+  cloudflare-dev:
+    build:
+      context: ../../..
+      dockerfile: infra/cf/dev/Dockerfile
+    working_dir: /repo/infra/cf/worker
+    command: start-wrangler
+    environment:
+      - WRANGLER_LOG=info
+    volumes:
+      - ../../..:/repo
+      - /var/run/docker.sock:/var/run/docker.sock
+      - cloudflare-node-modules:/repo/infra/cf/worker/node_modules
+      - cloudflare-wrangler:/repo/infra/cf/worker/.wrangler
+    ports:
+      - "8787:8787"
+    networks:
+      default:
+        aliases:
+          - talon-d1.internal
+          - talon-r2.internal
+          - talon-queues.internal
+          - talon-alarms.internal
+    depends_on:
+      mock-llm:
+        condition: service_healthy
+
+  gateway:
+    build:
+      context: ../../..
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
+    command: sh -c 'until curl -s -o /dev/null http://talon-d1.internal:8787/__ready; do sleep 1; done; export TALON_CONFIG_INLINE_YAML="$$(cat /repo/infra/cf/dev/talon.yaml)" && exec talon-server'
+    restart: on-failure
+    environment:
+      GRPC_ADDR: 0.0.0.0:50051
+      GATEWAY_UI_ADDR: 0.0.0.0:50052
+      TALON_CLOUDFLARE_D1_URL: http://talon-d1.internal:8787
+      TALON_CLOUDFLARE_R2_URL: http://talon-r2.internal:8787
+      TALON_CLOUDFLARE_QUEUES_URL: http://talon-queues.internal:8787
+      TALON_CLOUDFLARE_ALARMS_URL: http://talon-alarms.internal:8787
+      TALON_SCHEDULER_DRIVER: cf_alarms
+      TALON_SCHEDULER_AUTH_TOKEN: cloudflare-local-scheduler-token
+      MOCK_LLM_API_KEY: local-cloudflare-e2e
+    volumes:
+      - ../../..:/repo:ro
+    networks:
+      default:
+        aliases:
+          - gateway.internal
+    depends_on:
+      cloudflare-dev:
+        condition: service_started
+      mock-llm:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ../../..
+      dockerfile: dockerfiles/oss-runtime.Dockerfile
+    command: sh -c 'until curl -s -o /dev/null http://talon-d1.internal:8787/__ready; do sleep 1; done; export TALON_CONFIG_INLINE_YAML="$$(cat /repo/infra/cf/dev/talon.yaml)" && exec talon-worker'
+    restart: on-failure
+    environment:
+      PORT: 8081
+      TALON_CLOUDFLARE_D1_URL: http://talon-d1.internal:8787
+      TALON_CLOUDFLARE_R2_URL: http://talon-r2.internal:8787
+      TALON_CLOUDFLARE_QUEUES_URL: http://talon-queues.internal:8787
+      TALON_CLOUDFLARE_ALARMS_URL: http://talon-alarms.internal:8787
+      TALON_SCHEDULER_DRIVER: cf_alarms
+      TALON_SCHEDULER_AUTH_TOKEN: cloudflare-local-scheduler-token
+      MOCK_LLM_API_KEY: local-cloudflare-e2e
+    volumes:
+      - ../../..:/repo:ro
+    depends_on:
+      cloudflare-dev:
+        condition: service_started
+      mock-llm:
+        condition: service_healthy
+
+  envoy:
+    build:
+      context: ../../..
+      dockerfile: infra/cf/dockerfiles/cloudflare-envoy.Dockerfile
+    depends_on:
+      gateway:
+        condition: service_started
+
+  mock-llm:
+    image: python:3.12-slim
+    working_dir: /repo/tests
+    command: sh -c "pip install -r requirements.txt && uvicorn mock_llm:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ../../..:/repo
+    networks:
+      default:
+        aliases:
+          - mock-llm.internal
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import json
+          import urllib.request
+          payload = json.dumps({"messages": [{"role": "user", "content": "hello"}]}).encode()
+          request = urllib.request.Request("http://127.0.0.1:8000/chat/completions", data=payload, headers={"Content-Type": "application/json"})
+          urllib.request.urlopen(request, timeout=2).read()
+      interval: 2s
+      timeout: 5s
+      retries: 60
+
+  e2e-tests:
+    image: python:3.12-slim
+    working_dir: /repo
+    command: sh -c "pip install requests && python tests/run_cloudflare_e2e.py"
+    environment:
+      - TALON_CLOUDFLARE_URL=http://cloudflare-dev:8787
+    volumes:
+      - ../../..:/repo
+    depends_on:
+      mock-llm:
+        condition: service_healthy
+      cloudflare-dev:
+        condition: service_started
+      gateway:
+        condition: service_started
+      worker:
+        condition: service_started
+      envoy:
+        condition: service_started
+
+volumes:
+  cloudflare-node-modules:
+  cloudflare-wrangler:
