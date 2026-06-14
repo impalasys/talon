@@ -69,7 +69,7 @@ impl MessagePublisher for CfQueuesPublisher {
     ) -> Result<Pin<Box<dyn futures::Stream<Item = Vec<u8>> + Send>>> {
         let _ = topic;
         Err(anyhow!(
-            "cf-queues does not support pull subscribe; use Worker queue delivery"
+            "cf_queues does not support pull subscribe; use Worker queue delivery"
         ))
     }
 }

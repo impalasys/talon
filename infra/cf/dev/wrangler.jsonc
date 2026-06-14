@@ -7,7 +7,7 @@
     "nodejs_compat"
   ],
   "vars": {
-    "TALON_CONFIG_INLINE_YAML": "providers:\n  mock:\n    type: openai_compatible\n    name: mock\n    base_url: \"http://mock-llm.internal\"\n    model: minimax/minimax-m2.7\n    api_key:\n      source: env\n      key: MOCK_LLM_API_KEY\ndefault_provider: mock\ncontrol_plane:\n  database:\n    driver: d1\n  message_broker:\n    driver: cf-queues\n  object_store:\n    driver: r2\n",
+    "TALON_CONFIG_INLINE_YAML": "providers:\n  mock:\n    type: openai_compatible\n    name: mock\n    base_url: \"http://mock-llm.internal\"\n    model: minimax/minimax-m2.7\n    api_key:\n      source: env\n      key: MOCK_LLM_API_KEY\ndefault_provider: mock\ncontrol_plane:\n  database:\n    driver: d1\n  message_broker:\n    driver: cf_queues\n  object_store:\n    driver: r2\n",
     "TALON_GATEWAY_CONTAINER_COUNT": "1",
     "TALON_WORKER_CONTAINER_COUNT": "1",
     "TALON_ENVOY_CONTAINER_COUNT": "1",

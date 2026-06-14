@@ -640,11 +640,11 @@ where
     );
     let use_cf_queues = matches!(
         message_broker_driver(handler.config.as_ref()),
-        Some("cf-queues")
+        Some("cf_queues")
     );
     if use_cf_queues {
         tracing::info!(
-            transport = "cf-queues",
+            transport = "cf_queues",
             "Worker will receive events from the Cloudflare queue HTTP dispatch endpoint"
         );
         return Vec::new();
