@@ -11664,8 +11664,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
 
   }
 
-  public interface CloudflareR2ObjectStoreConfigOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.config.CloudflareR2ObjectStoreConfig)
+  public interface R2ObjectStoreConfigOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.config.R2ObjectStoreConfig)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -11681,12 +11681,12 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         getEndpointUrlBytes();
   }
   /**
-   * Protobuf type {@code talon.config.CloudflareR2ObjectStoreConfig}
+   * Protobuf type {@code talon.config.R2ObjectStoreConfig}
    */
-  public static final class CloudflareR2ObjectStoreConfig extends
+  public static final class R2ObjectStoreConfig extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.config.CloudflareR2ObjectStoreConfig)
-      CloudflareR2ObjectStoreConfigOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.config.R2ObjectStoreConfig)
+      R2ObjectStoreConfigOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -11695,32 +11695,32 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "CloudflareR2ObjectStoreConfig");
+        "R2ObjectStoreConfig");
     }
-    // Use CloudflareR2ObjectStoreConfig.newBuilder() to construct.
-    private CloudflareR2ObjectStoreConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use R2ObjectStoreConfig.newBuilder() to construct.
+    private R2ObjectStoreConfig(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private CloudflareR2ObjectStoreConfig() {
+    private R2ObjectStoreConfig() {
       endpointUrl_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.config.Config.internal_static_talon_config_CloudflareR2ObjectStoreConfig_descriptor;
+      return talon.config.Config.internal_static_talon_config_R2ObjectStoreConfig_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.config.Config.internal_static_talon_config_CloudflareR2ObjectStoreConfig_descriptor;
+      return talon.config.Config.internal_static_talon_config_R2ObjectStoreConfig_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.config.Config.internal_static_talon_config_CloudflareR2ObjectStoreConfig_fieldAccessorTable
+      return talon.config.Config.internal_static_talon_config_R2ObjectStoreConfig_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.config.Config.CloudflareR2ObjectStoreConfig.class, talon.config.Config.CloudflareR2ObjectStoreConfig.Builder.class);
+              talon.config.Config.R2ObjectStoreConfig.class, talon.config.Config.R2ObjectStoreConfig.Builder.class);
     }
 
     public static final int ENDPOINT_URL_FIELD_NUMBER = 1;
@@ -11801,10 +11801,10 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.config.Config.CloudflareR2ObjectStoreConfig)) {
+      if (!(obj instanceof talon.config.Config.R2ObjectStoreConfig)) {
         return super.equals(obj);
       }
-      talon.config.Config.CloudflareR2ObjectStoreConfig other = (talon.config.Config.CloudflareR2ObjectStoreConfig) obj;
+      talon.config.Config.R2ObjectStoreConfig other = (talon.config.Config.R2ObjectStoreConfig) obj;
 
       if (!getEndpointUrl()
           .equals(other.getEndpointUrl())) return false;
@@ -11826,44 +11826,44 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       return hash;
     }
 
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(byte[] data)
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(java.io.InputStream input)
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -11871,26 +11871,26 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseDelimitedFrom(java.io.InputStream input)
+    public static talon.config.Config.R2ObjectStoreConfig parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseDelimitedFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig parseFrom(
+    public static talon.config.Config.R2ObjectStoreConfig parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -11903,7 +11903,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.config.Config.CloudflareR2ObjectStoreConfig prototype) {
+    public static Builder newBuilder(talon.config.Config.R2ObjectStoreConfig prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -11919,26 +11919,26 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.config.CloudflareR2ObjectStoreConfig}
+     * Protobuf type {@code talon.config.R2ObjectStoreConfig}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.config.CloudflareR2ObjectStoreConfig)
-        talon.config.Config.CloudflareR2ObjectStoreConfigOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.config.R2ObjectStoreConfig)
+        talon.config.Config.R2ObjectStoreConfigOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.config.Config.internal_static_talon_config_CloudflareR2ObjectStoreConfig_descriptor;
+        return talon.config.Config.internal_static_talon_config_R2ObjectStoreConfig_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.config.Config.internal_static_talon_config_CloudflareR2ObjectStoreConfig_fieldAccessorTable
+        return talon.config.Config.internal_static_talon_config_R2ObjectStoreConfig_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.config.Config.CloudflareR2ObjectStoreConfig.class, talon.config.Config.CloudflareR2ObjectStoreConfig.Builder.class);
+                talon.config.Config.R2ObjectStoreConfig.class, talon.config.Config.R2ObjectStoreConfig.Builder.class);
       }
 
-      // Construct using talon.config.Config.CloudflareR2ObjectStoreConfig.newBuilder()
+      // Construct using talon.config.Config.R2ObjectStoreConfig.newBuilder()
       private Builder() {
 
       }
@@ -11959,17 +11959,17 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.config.Config.internal_static_talon_config_CloudflareR2ObjectStoreConfig_descriptor;
+        return talon.config.Config.internal_static_talon_config_R2ObjectStoreConfig_descriptor;
       }
 
       @java.lang.Override
-      public talon.config.Config.CloudflareR2ObjectStoreConfig getDefaultInstanceForType() {
-        return talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance();
+      public talon.config.Config.R2ObjectStoreConfig getDefaultInstanceForType() {
+        return talon.config.Config.R2ObjectStoreConfig.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.config.Config.CloudflareR2ObjectStoreConfig build() {
-        talon.config.Config.CloudflareR2ObjectStoreConfig result = buildPartial();
+      public talon.config.Config.R2ObjectStoreConfig build() {
+        talon.config.Config.R2ObjectStoreConfig result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -11977,14 +11977,14 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       }
 
       @java.lang.Override
-      public talon.config.Config.CloudflareR2ObjectStoreConfig buildPartial() {
-        talon.config.Config.CloudflareR2ObjectStoreConfig result = new talon.config.Config.CloudflareR2ObjectStoreConfig(this);
+      public talon.config.Config.R2ObjectStoreConfig buildPartial() {
+        talon.config.Config.R2ObjectStoreConfig result = new talon.config.Config.R2ObjectStoreConfig(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.config.Config.CloudflareR2ObjectStoreConfig result) {
+      private void buildPartial0(talon.config.Config.R2ObjectStoreConfig result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.endpointUrl_ = endpointUrl_;
@@ -11993,16 +11993,16 @@ talon.config.Config.LlmProviderConfig defaultValue) {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.config.Config.CloudflareR2ObjectStoreConfig) {
-          return mergeFrom((talon.config.Config.CloudflareR2ObjectStoreConfig)other);
+        if (other instanceof talon.config.Config.R2ObjectStoreConfig) {
+          return mergeFrom((talon.config.Config.R2ObjectStoreConfig)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.config.Config.CloudflareR2ObjectStoreConfig other) {
-        if (other == talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.config.Config.R2ObjectStoreConfig other) {
+        if (other == talon.config.Config.R2ObjectStoreConfig.getDefaultInstance()) return this;
         if (!other.getEndpointUrl().isEmpty()) {
           endpointUrl_ = other.endpointUrl_;
           bitField0_ |= 0x00000001;
@@ -12128,23 +12128,23 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.config.CloudflareR2ObjectStoreConfig)
+      // @@protoc_insertion_point(builder_scope:talon.config.R2ObjectStoreConfig)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.config.CloudflareR2ObjectStoreConfig)
-    private static final talon.config.Config.CloudflareR2ObjectStoreConfig DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.config.R2ObjectStoreConfig)
+    private static final talon.config.Config.R2ObjectStoreConfig DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.config.Config.CloudflareR2ObjectStoreConfig();
+      DEFAULT_INSTANCE = new talon.config.Config.R2ObjectStoreConfig();
     }
 
-    public static talon.config.Config.CloudflareR2ObjectStoreConfig getDefaultInstance() {
+    public static talon.config.Config.R2ObjectStoreConfig getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<CloudflareR2ObjectStoreConfig>
-        PARSER = new com.google.protobuf.AbstractParser<CloudflareR2ObjectStoreConfig>() {
+    private static final com.google.protobuf.Parser<R2ObjectStoreConfig>
+        PARSER = new com.google.protobuf.AbstractParser<R2ObjectStoreConfig>() {
       @java.lang.Override
-      public CloudflareR2ObjectStoreConfig parsePartialFrom(
+      public R2ObjectStoreConfig parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -12163,17 +12163,17 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       }
     };
 
-    public static com.google.protobuf.Parser<CloudflareR2ObjectStoreConfig> parser() {
+    public static com.google.protobuf.Parser<R2ObjectStoreConfig> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<CloudflareR2ObjectStoreConfig> getParserForType() {
+    public com.google.protobuf.Parser<R2ObjectStoreConfig> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.config.Config.CloudflareR2ObjectStoreConfig getDefaultInstanceForType() {
+    public talon.config.Config.R2ObjectStoreConfig getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -12229,19 +12229,19 @@ talon.config.Config.LlmProviderConfig defaultValue) {
     talon.config.Config.S3ObjectStoreConfigOrBuilder getS3OrBuilder();
 
     /**
-     * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
-     * @return Whether the cloudflareR2 field is set.
+     * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
+     * @return Whether the r2 field is set.
      */
-    boolean hasCloudflareR2();
+    boolean hasR2();
     /**
-     * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
-     * @return The cloudflareR2.
+     * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
+     * @return The r2.
      */
-    talon.config.Config.CloudflareR2ObjectStoreConfig getCloudflareR2();
+    talon.config.Config.R2ObjectStoreConfig getR2();
     /**
-     * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+     * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
      */
-    talon.config.Config.CloudflareR2ObjectStoreConfigOrBuilder getCloudflareR2OrBuilder();
+    talon.config.Config.R2ObjectStoreConfigOrBuilder getR2OrBuilder();
 
     talon.config.Config.ObjectStoreConfig.BackendCase getBackendCase();
   }
@@ -12296,7 +12296,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       LOCAL(1),
       GCS(2),
       S3(3),
-      CLOUDFLARE_R2(4),
+      R2(4),
       BACKEND_NOT_SET(0);
       private final int value;
       private BackendCase(int value) {
@@ -12317,7 +12317,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           case 1: return LOCAL;
           case 2: return GCS;
           case 3: return S3;
-          case 4: return CLOUDFLARE_R2;
+          case 4: return R2;
           case 0: return BACKEND_NOT_SET;
           default: return null;
         }
@@ -12426,35 +12426,35 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       return talon.config.Config.S3ObjectStoreConfig.getDefaultInstance();
     }
 
-    public static final int CLOUDFLARE_R2_FIELD_NUMBER = 4;
+    public static final int R2_FIELD_NUMBER = 4;
     /**
-     * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
-     * @return Whether the cloudflareR2 field is set.
+     * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
+     * @return Whether the r2 field is set.
      */
     @java.lang.Override
-    public boolean hasCloudflareR2() {
+    public boolean hasR2() {
       return backendCase_ == 4;
     }
     /**
-     * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
-     * @return The cloudflareR2.
+     * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
+     * @return The r2.
      */
     @java.lang.Override
-    public talon.config.Config.CloudflareR2ObjectStoreConfig getCloudflareR2() {
+    public talon.config.Config.R2ObjectStoreConfig getR2() {
       if (backendCase_ == 4) {
-         return (talon.config.Config.CloudflareR2ObjectStoreConfig) backend_;
+         return (talon.config.Config.R2ObjectStoreConfig) backend_;
       }
-      return talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance();
+      return talon.config.Config.R2ObjectStoreConfig.getDefaultInstance();
     }
     /**
-     * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+     * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
      */
     @java.lang.Override
-    public talon.config.Config.CloudflareR2ObjectStoreConfigOrBuilder getCloudflareR2OrBuilder() {
+    public talon.config.Config.R2ObjectStoreConfigOrBuilder getR2OrBuilder() {
       if (backendCase_ == 4) {
-         return (talon.config.Config.CloudflareR2ObjectStoreConfig) backend_;
+         return (talon.config.Config.R2ObjectStoreConfig) backend_;
       }
-      return talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance();
+      return talon.config.Config.R2ObjectStoreConfig.getDefaultInstance();
     }
 
     private byte memoizedIsInitialized = -1;
@@ -12481,7 +12481,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         output.writeMessage(3, (talon.config.Config.S3ObjectStoreConfig) backend_);
       }
       if (backendCase_ == 4) {
-        output.writeMessage(4, (talon.config.Config.CloudflareR2ObjectStoreConfig) backend_);
+        output.writeMessage(4, (talon.config.Config.R2ObjectStoreConfig) backend_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -12506,7 +12506,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       }
       if (backendCase_ == 4) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, (talon.config.Config.CloudflareR2ObjectStoreConfig) backend_);
+          .computeMessageSize(4, (talon.config.Config.R2ObjectStoreConfig) backend_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -12538,8 +12538,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
               .equals(other.getS3())) return false;
           break;
         case 4:
-          if (!getCloudflareR2()
-              .equals(other.getCloudflareR2())) return false;
+          if (!getR2()
+              .equals(other.getR2())) return false;
           break;
         case 0:
         default:
@@ -12569,8 +12569,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           hash = (53 * hash) + getS3().hashCode();
           break;
         case 4:
-          hash = (37 * hash) + CLOUDFLARE_R2_FIELD_NUMBER;
-          hash = (53 * hash) + getCloudflareR2().hashCode();
+          hash = (37 * hash) + R2_FIELD_NUMBER;
+          hash = (53 * hash) + getR2().hashCode();
           break;
         case 0:
         default:
@@ -12715,8 +12715,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
         if (s3Builder_ != null) {
           s3Builder_.clear();
         }
-        if (cloudflareR2Builder_ != null) {
-          cloudflareR2Builder_.clear();
+        if (r2Builder_ != null) {
+          r2Builder_.clear();
         }
         backendCase_ = 0;
         backend_ = null;
@@ -12772,8 +12772,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           result.backend_ = s3Builder_.build();
         }
         if (backendCase_ == 4 &&
-            cloudflareR2Builder_ != null) {
-          result.backend_ = cloudflareR2Builder_.build();
+            r2Builder_ != null) {
+          result.backend_ = r2Builder_.build();
         }
       }
 
@@ -12802,8 +12802,8 @@ talon.config.Config.LlmProviderConfig defaultValue) {
             mergeS3(other.getS3());
             break;
           }
-          case CLOUDFLARE_R2: {
-            mergeCloudflareR2(other.getCloudflareR2());
+          case R2: {
+            mergeR2(other.getR2());
             break;
           }
           case BACKEND_NOT_SET: {
@@ -12859,7 +12859,7 @@ talon.config.Config.LlmProviderConfig defaultValue) {
               } // case 26
               case 34: {
                 input.readMessage(
-                    internalGetCloudflareR2FieldBuilder().getBuilder(),
+                    internalGetR2FieldBuilder().getBuilder(),
                     extensionRegistry);
                 backendCase_ = 4;
                 break;
@@ -13323,71 +13323,71 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       }
 
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.CloudflareR2ObjectStoreConfig, talon.config.Config.CloudflareR2ObjectStoreConfig.Builder, talon.config.Config.CloudflareR2ObjectStoreConfigOrBuilder> cloudflareR2Builder_;
+          talon.config.Config.R2ObjectStoreConfig, talon.config.Config.R2ObjectStoreConfig.Builder, talon.config.Config.R2ObjectStoreConfigOrBuilder> r2Builder_;
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
-       * @return Whether the cloudflareR2 field is set.
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
+       * @return Whether the r2 field is set.
        */
       @java.lang.Override
-      public boolean hasCloudflareR2() {
+      public boolean hasR2() {
         return backendCase_ == 4;
       }
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
-       * @return The cloudflareR2.
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
+       * @return The r2.
        */
       @java.lang.Override
-      public talon.config.Config.CloudflareR2ObjectStoreConfig getCloudflareR2() {
-        if (cloudflareR2Builder_ == null) {
+      public talon.config.Config.R2ObjectStoreConfig getR2() {
+        if (r2Builder_ == null) {
           if (backendCase_ == 4) {
-            return (talon.config.Config.CloudflareR2ObjectStoreConfig) backend_;
+            return (talon.config.Config.R2ObjectStoreConfig) backend_;
           }
-          return talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance();
+          return talon.config.Config.R2ObjectStoreConfig.getDefaultInstance();
         } else {
           if (backendCase_ == 4) {
-            return cloudflareR2Builder_.getMessage();
+            return r2Builder_.getMessage();
           }
-          return talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance();
+          return talon.config.Config.R2ObjectStoreConfig.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
        */
-      public Builder setCloudflareR2(talon.config.Config.CloudflareR2ObjectStoreConfig value) {
-        if (cloudflareR2Builder_ == null) {
+      public Builder setR2(talon.config.Config.R2ObjectStoreConfig value) {
+        if (r2Builder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
           backend_ = value;
           onChanged();
         } else {
-          cloudflareR2Builder_.setMessage(value);
+          r2Builder_.setMessage(value);
         }
         backendCase_ = 4;
         return this;
       }
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
        */
-      public Builder setCloudflareR2(
-          talon.config.Config.CloudflareR2ObjectStoreConfig.Builder builderForValue) {
-        if (cloudflareR2Builder_ == null) {
+      public Builder setR2(
+          talon.config.Config.R2ObjectStoreConfig.Builder builderForValue) {
+        if (r2Builder_ == null) {
           backend_ = builderForValue.build();
           onChanged();
         } else {
-          cloudflareR2Builder_.setMessage(builderForValue.build());
+          r2Builder_.setMessage(builderForValue.build());
         }
         backendCase_ = 4;
         return this;
       }
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
        */
-      public Builder mergeCloudflareR2(talon.config.Config.CloudflareR2ObjectStoreConfig value) {
-        if (cloudflareR2Builder_ == null) {
+      public Builder mergeR2(talon.config.Config.R2ObjectStoreConfig value) {
+        if (r2Builder_ == null) {
           if (backendCase_ == 4 &&
-              backend_ != talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance()) {
-            backend_ = talon.config.Config.CloudflareR2ObjectStoreConfig.newBuilder((talon.config.Config.CloudflareR2ObjectStoreConfig) backend_)
+              backend_ != talon.config.Config.R2ObjectStoreConfig.getDefaultInstance()) {
+            backend_ = talon.config.Config.R2ObjectStoreConfig.newBuilder((talon.config.Config.R2ObjectStoreConfig) backend_)
                 .mergeFrom(value).buildPartial();
           } else {
             backend_ = value;
@@ -13395,19 +13395,19 @@ talon.config.Config.LlmProviderConfig defaultValue) {
           onChanged();
         } else {
           if (backendCase_ == 4) {
-            cloudflareR2Builder_.mergeFrom(value);
+            r2Builder_.mergeFrom(value);
           } else {
-            cloudflareR2Builder_.setMessage(value);
+            r2Builder_.setMessage(value);
           }
         }
         backendCase_ = 4;
         return this;
       }
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
        */
-      public Builder clearCloudflareR2() {
-        if (cloudflareR2Builder_ == null) {
+      public Builder clearR2() {
+        if (r2Builder_ == null) {
           if (backendCase_ == 4) {
             backendCase_ = 0;
             backend_ = null;
@@ -13418,50 +13418,50 @@ talon.config.Config.LlmProviderConfig defaultValue) {
             backendCase_ = 0;
             backend_ = null;
           }
-          cloudflareR2Builder_.clear();
+          r2Builder_.clear();
         }
         return this;
       }
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
        */
-      public talon.config.Config.CloudflareR2ObjectStoreConfig.Builder getCloudflareR2Builder() {
-        return internalGetCloudflareR2FieldBuilder().getBuilder();
+      public talon.config.Config.R2ObjectStoreConfig.Builder getR2Builder() {
+        return internalGetR2FieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
        */
       @java.lang.Override
-      public talon.config.Config.CloudflareR2ObjectStoreConfigOrBuilder getCloudflareR2OrBuilder() {
-        if ((backendCase_ == 4) && (cloudflareR2Builder_ != null)) {
-          return cloudflareR2Builder_.getMessageOrBuilder();
+      public talon.config.Config.R2ObjectStoreConfigOrBuilder getR2OrBuilder() {
+        if ((backendCase_ == 4) && (r2Builder_ != null)) {
+          return r2Builder_.getMessageOrBuilder();
         } else {
           if (backendCase_ == 4) {
-            return (talon.config.Config.CloudflareR2ObjectStoreConfig) backend_;
+            return (talon.config.Config.R2ObjectStoreConfig) backend_;
           }
-          return talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance();
+          return talon.config.Config.R2ObjectStoreConfig.getDefaultInstance();
         }
       }
       /**
-       * <code>.talon.config.CloudflareR2ObjectStoreConfig cloudflare_r2 = 4;</code>
+       * <code>.talon.config.R2ObjectStoreConfig r2 = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.config.Config.CloudflareR2ObjectStoreConfig, talon.config.Config.CloudflareR2ObjectStoreConfig.Builder, talon.config.Config.CloudflareR2ObjectStoreConfigOrBuilder>
-          internalGetCloudflareR2FieldBuilder() {
-        if (cloudflareR2Builder_ == null) {
+          talon.config.Config.R2ObjectStoreConfig, talon.config.Config.R2ObjectStoreConfig.Builder, talon.config.Config.R2ObjectStoreConfigOrBuilder>
+          internalGetR2FieldBuilder() {
+        if (r2Builder_ == null) {
           if (!(backendCase_ == 4)) {
-            backend_ = talon.config.Config.CloudflareR2ObjectStoreConfig.getDefaultInstance();
+            backend_ = talon.config.Config.R2ObjectStoreConfig.getDefaultInstance();
           }
-          cloudflareR2Builder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.config.Config.CloudflareR2ObjectStoreConfig, talon.config.Config.CloudflareR2ObjectStoreConfig.Builder, talon.config.Config.CloudflareR2ObjectStoreConfigOrBuilder>(
-                  (talon.config.Config.CloudflareR2ObjectStoreConfig) backend_,
+          r2Builder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.config.Config.R2ObjectStoreConfig, talon.config.Config.R2ObjectStoreConfig.Builder, talon.config.Config.R2ObjectStoreConfigOrBuilder>(
+                  (talon.config.Config.R2ObjectStoreConfig) backend_,
                   getParentForChildren(),
                   isClean());
           backend_ = null;
         }
         backendCase_ = 4;
         onChanged();
-        return cloudflareR2Builder_;
+        return r2Builder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.config.ObjectStoreConfig)
@@ -18735,10 +18735,10 @@ talon.config.Config.LlmProviderConfig defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_config_S3ObjectStoreConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_config_CloudflareR2ObjectStoreConfig_descriptor;
+    internal_static_talon_config_R2ObjectStoreConfig_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_config_CloudflareR2ObjectStoreConfig_fieldAccessorTable;
+      internal_static_talon_config_R2ObjectStoreConfig_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_config_ObjectStoreConfig_descriptor;
   private static final
@@ -18821,34 +18821,33 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       "i_base_url\030\003 \001(\t\"u\n\023S3ObjectStoreConfig\022" +
       "\016\n\006bucket\030\001 \001(\t\022\016\n\006prefix\030\002 \001(\t\022\016\n\006regio" +
       "n\030\003 \001(\t\022\024\n\014endpoint_url\030\004 \001(\t\022\030\n\020force_p" +
-      "ath_style\030\005 \001(\010\"5\n\035CloudflareR2ObjectSto" +
-      "reConfig\022\024\n\014endpoint_url\030\001 \001(\t\"\377\001\n\021Objec" +
-      "tStoreConfig\0225\n\005local\030\001 \001(\0132$.talon.conf" +
-      "ig.LocalObjectStoreConfigH\000\0221\n\003gcs\030\002 \001(\013" +
-      "2\".talon.config.GcsObjectStoreConfigH\000\022/" +
-      "\n\002s3\030\003 \001(\0132!.talon.config.S3ObjectStoreC" +
-      "onfigH\000\022D\n\rcloudflare_r2\030\004 \001(\0132+.talon.c" +
-      "onfig.CloudflareR2ObjectStoreConfigH\000B\t\n" +
-      "\007backend\"\217\001\n\033SchedulerCallbackAuthConfig" +
-      "\022-\n\rshared_secret\030\001 \001(\0132\024.talon.config.S" +
-      "ecretH\000\0229\n\013google_oidc\030\002 \001(\0132\".talon.con" +
-      "fig.GoogleOidcAuthConfigH\000B\006\n\004auth\"G\n\024Go" +
-      "ogleOidcAuthConfig\022\020\n\010audience\030\001 \001(\t\022\035\n\025" +
-      "service_account_email\030\002 \001(\t\"\246\001\n\031CloudTas" +
-      "ksSchedulerConfig\022\022\n\nproject_id\030\001 \001(\t\022\020\n" +
-      "\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022\022\n\ntarget" +
-      "_url\030\004 \001(\t\022@\n\rcallback_auth\030\005 \001(\0132).talo" +
-      "n.config.SchedulerCallbackAuthConfig\"\\\n\017" +
-      "SchedulerConfig\022>\n\013cloud_tasks\030\001 \001(\0132\'.t" +
-      "alon.config.CloudTasksSchedulerConfigH\000B" +
-      "\t\n\007backend\"\350\001\n\022ControlPlaneConfig\022.\n\010dat" +
-      "abase\030\001 \001(\0132\034.talon.config.DatabaseConfi" +
-      "g\0229\n\016message_broker\030\002 \001(\0132!.talon.config" +
-      ".MessageBrokerConfig\0220\n\tscheduler\030\003 \001(\0132" +
-      "\035.talon.config.SchedulerConfig\0225\n\014object" +
-      "_store\030\004 \001(\0132\037.talon.config.ObjectStoreC" +
-      "onfig\"*\n\014ServerConfig\022\014\n\004host\030\001 \001(\t\022\014\n\004p" +
-      "ort\030\002 \001(\rb\006proto3"
+      "ath_style\030\005 \001(\010\"+\n\023R2ObjectStoreConfig\022\024" +
+      "\n\014endpoint_url\030\001 \001(\t\"\352\001\n\021ObjectStoreConf" +
+      "ig\0225\n\005local\030\001 \001(\0132$.talon.config.LocalOb" +
+      "jectStoreConfigH\000\0221\n\003gcs\030\002 \001(\0132\".talon.c" +
+      "onfig.GcsObjectStoreConfigH\000\022/\n\002s3\030\003 \001(\013" +
+      "2!.talon.config.S3ObjectStoreConfigH\000\022/\n" +
+      "\002r2\030\004 \001(\0132!.talon.config.R2ObjectStoreCo" +
+      "nfigH\000B\t\n\007backend\"\217\001\n\033SchedulerCallbackA" +
+      "uthConfig\022-\n\rshared_secret\030\001 \001(\0132\024.talon" +
+      ".config.SecretH\000\0229\n\013google_oidc\030\002 \001(\0132\"." +
+      "talon.config.GoogleOidcAuthConfigH\000B\006\n\004a" +
+      "uth\"G\n\024GoogleOidcAuthConfig\022\020\n\010audience\030" +
+      "\001 \001(\t\022\035\n\025service_account_email\030\002 \001(\t\"\246\001\n" +
+      "\031CloudTasksSchedulerConfig\022\022\n\nproject_id" +
+      "\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\022\r\n\005queue\030\003 \001(\t\022" +
+      "\022\n\ntarget_url\030\004 \001(\t\022@\n\rcallback_auth\030\005 \001" +
+      "(\0132).talon.config.SchedulerCallbackAuthC" +
+      "onfig\"\\\n\017SchedulerConfig\022>\n\013cloud_tasks\030" +
+      "\001 \001(\0132\'.talon.config.CloudTasksScheduler" +
+      "ConfigH\000B\t\n\007backend\"\350\001\n\022ControlPlaneConf" +
+      "ig\022.\n\010database\030\001 \001(\0132\034.talon.config.Data" +
+      "baseConfig\0229\n\016message_broker\030\002 \001(\0132!.tal" +
+      "on.config.MessageBrokerConfig\0220\n\tschedul" +
+      "er\030\003 \001(\0132\035.talon.config.SchedulerConfig\022" +
+      "5\n\014object_store\030\004 \001(\0132\037.talon.config.Obj" +
+      "ectStoreConfig\"*\n\014ServerConfig\022\014\n\004host\030\001" +
+      " \001(\t\022\014\n\004port\030\002 \001(\rb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -18938,18 +18937,18 @@ talon.config.Config.LlmProviderConfig defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_S3ObjectStoreConfig_descriptor,
         new java.lang.String[] { "Bucket", "Prefix", "Region", "EndpointUrl", "ForcePathStyle", });
-    internal_static_talon_config_CloudflareR2ObjectStoreConfig_descriptor =
+    internal_static_talon_config_R2ObjectStoreConfig_descriptor =
       getDescriptor().getMessageType(13);
-    internal_static_talon_config_CloudflareR2ObjectStoreConfig_fieldAccessorTable = new
+    internal_static_talon_config_R2ObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_config_CloudflareR2ObjectStoreConfig_descriptor,
+        internal_static_talon_config_R2ObjectStoreConfig_descriptor,
         new java.lang.String[] { "EndpointUrl", });
     internal_static_talon_config_ObjectStoreConfig_descriptor =
       getDescriptor().getMessageType(14);
     internal_static_talon_config_ObjectStoreConfig_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_config_ObjectStoreConfig_descriptor,
-        new java.lang.String[] { "Local", "Gcs", "S3", "CloudflareR2", "Backend", });
+        new java.lang.String[] { "Local", "Gcs", "S3", "R2", "Backend", });
     internal_static_talon_config_SchedulerCallbackAuthConfig_descriptor =
       getDescriptor().getMessageType(15);
     internal_static_talon_config_SchedulerCallbackAuthConfig_fieldAccessorTable = new

@@ -463,7 +463,7 @@ control_plane:
             .backend
             .unwrap();
         match backend {
-            proto::object_store_config::Backend::CloudflareR2(cfg) => {
+            proto::object_store_config::Backend::R2(cfg) => {
                 assert_eq!(cfg.endpoint_url, "http://talon-r2.internal");
             }
             other => panic!("unexpected object store backend: {other:?}"),

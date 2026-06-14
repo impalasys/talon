@@ -2,7 +2,7 @@ import { json } from "./http";
 import type { TalonCfBindingsEnv } from "./types";
 
 /**
- * Handles the internal R2 object bridge used by Rust `CloudflareR2ObjectStore`.
+ * Handles the internal R2 object bridge used by Rust `R2ObjectStore`.
  *
  * Contract:
  * - `PUT /objects/{percent-encoded-key}` stores the request body in R2
