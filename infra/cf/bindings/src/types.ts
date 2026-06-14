@@ -17,6 +17,7 @@ export type TalonCfBindingsEnv = {
   SESSION_CONTROL_QUEUE: Queue;
   WORKER_CONTAINER: ContainerNamespace;
   SCHEDULE_SHARD: DurableObjectNamespace;
+  SESSION_STREAMS: DurableObjectNamespace;
 };
 
 export type QueueMessageBody = {

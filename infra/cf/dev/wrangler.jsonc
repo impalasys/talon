@@ -66,6 +66,10 @@
       {
         "name": "SCHEDULE_SHARD",
         "class_name": "ScheduleShard"
+      },
+      {
+        "name": "SESSION_STREAMS",
+        "class_name": "SessionStreamShard"
       }
     ]
   },
@@ -73,7 +77,8 @@
     {
       "tag": "v1",
       "new_sqlite_classes": [
-        "ScheduleShard"
+        "ScheduleShard",
+        "SessionStreamShard"
       ]
     }
   ]

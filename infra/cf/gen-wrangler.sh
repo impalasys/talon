@@ -94,7 +94,10 @@ def config_env_keys(config_yaml: str) -> list[str]:
     return sorted(set(keys))
 
 def durable_object_bindings(include_container_classes: bool) -> list[dict]:
-    bindings = [{"name": "SCHEDULE_SHARD", "class_name": "ScheduleShard"}]
+    bindings = [
+        {"name": "SCHEDULE_SHARD", "class_name": "ScheduleShard"},
+        {"name": "SESSION_STREAMS", "class_name": "SessionStreamShard"},
+    ]
     if include_container_classes:
         bindings = [
             {"name": "GATEWAY_CONTAINER", "class_name": "GatewayContainer"},
@@ -105,7 +108,7 @@ def durable_object_bindings(include_container_classes: bool) -> list[dict]:
     return bindings
 
 def durable_object_classes(include_container_classes: bool) -> list[str]:
-    classes = ["ScheduleShard"]
+    classes = ["ScheduleShard", "SessionStreamShard"]
     if include_container_classes:
         classes = ["GatewayContainer", "WorkerContainer", "EnvoyContainer", *classes]
     return classes

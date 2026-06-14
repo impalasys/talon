@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { handleD1 } from "../../bindings/src/d1";
-import { handleQueues, dispatchQueueBatch } from "../../bindings/src/queues";
+import { handleQueues, dispatchQueueBatch, SessionStreamShard } from "../../bindings/src/queues";
 import { handleR2 } from "../../bindings/src/r2";
 import { TOPICS } from "../../bindings/src/constants";
 
@@ -77,6 +77,23 @@ class MockQueue {
   }
 }
 
+class MockDurableObjectNamespace {
+  readonly objects = new Map<string, unknown>();
+
+  idFromName(name: string) {
+    return { name } as DurableObjectId & { name: string };
+  }
+
+  get(id: DurableObjectId & { name: string }) {
+    let object = this.objects.get(id.name) as { fetch(request: Request): Promise<Response> } | undefined;
+    if (!object) {
+      object = new SessionStreamShard({} as DurableObjectState, baseEnv() as any);
+      this.objects.set(id.name, object);
+    }
+    return object;
+  }
+}
+
 function baseEnv(overrides: Record<string, unknown> = {}) {
   const noopQueue = new MockQueue();
   return {
@@ -85,6 +102,7 @@ function baseEnv(overrides: Record<string, unknown> = {}) {
     SESSION_DISPATCH_QUEUE: noopQueue,
     RESOURCE_LIFECYCLE_QUEUE: noopQueue,
     SESSION_CONTROL_QUEUE: noopQueue,
+    SESSION_STREAMS: new MockDurableObjectNamespace(),
     TALON_SCHEDULER_AUTH_TOKEN: "test-scheduler-token",
     ...overrides,
   } as any;
@@ -115,6 +133,37 @@ test("D1 bridge decodes Rust execute params and forwards prepared SQL", async ()
   assert.deepEqual(d1.lastParams.slice(0, 4), ["default", "Agent/demo", "Session", "s1"]);
   assert.deepEqual([...d1.lastParams[4] as Uint8Array], [...new TextEncoder().encode("hello")]);
   assert.deepEqual(await response.json(), { meta: { changes: 1 } });
+});
+
+test("Queue bridge fans out session part topics through live stream Durable Objects", async () => {
+  const env = baseEnv();
+  const controller = new AbortController();
+  const subscription = await handleQueues(
+    new Request("http://talon-queues.internal/subscribe?topic=talon.session.parts.7", {
+      signal: controller.signal,
+    }),
+    env,
+  );
+  assert.equal(subscription.status, 200);
+
+  const reader = subscription.body!.getReader();
+  const published = await handleQueues(
+    new Request("http://talon-queues.internal/publish", {
+      method: "POST",
+      body: JSON.stringify({
+        topic: "talon.session.parts.7",
+        payloadBase64: "aGVsbG8=",
+      }),
+    }),
+    env,
+  );
+  assert.equal(published.status, 200);
+  assert.deepEqual(await published.json(), { subscribers: 1 });
+
+  const chunk = await reader.read();
+  assert.equal(chunk.done, false);
+  assert.equal(new TextDecoder().decode(chunk.value), "{\"payloadBase64\":\"aGVsbG8=\"}\n");
+  controller.abort();
 });
 
 test("D1 bridge encodes result rows into Rust tagged cells", async () => {
@@ -192,7 +241,7 @@ test("Queue bridge maps Rust topics onto Cloudflare queue messages", async () =>
     SESSION_CONTROL_QUEUE: sessionControl,
   });
 
-  for (const topic of Object.values(TOPICS)) {
+  for (const topic of [TOPICS.sessionDispatch, TOPICS.resourceLifecycle, TOPICS.sessionControl]) {
     const response = await handleQueues(
       new Request("http://talon-queues.internal/publish", {
         method: "POST",
