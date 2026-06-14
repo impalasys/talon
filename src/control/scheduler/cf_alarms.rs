@@ -10,7 +10,7 @@ use super::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
 
 const CLOUDFLARE_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
 
-pub struct CloudflareAlarmsSchedulerBackend {
+pub struct CfAlarmsSchedulerBackend {
     client: reqwest::Client,
     endpoint: String,
 }
@@ -38,7 +38,7 @@ struct CancelRequest<'a> {
     handle: &'a str,
 }
 
-impl CloudflareAlarmsSchedulerBackend {
+impl CfAlarmsSchedulerBackend {
     pub fn from_env() -> Self {
         let endpoint = std::env::var("TALON_CLOUDFLARE_ALARMS_URL")
             .unwrap_or_else(|_| "http://talon-alarms.internal".to_string());
@@ -79,7 +79,7 @@ impl CloudflareAlarmsSchedulerBackend {
 }
 
 #[async_trait::async_trait]
-impl SchedulerBackend for CloudflareAlarmsSchedulerBackend {
+impl SchedulerBackend for CfAlarmsSchedulerBackend {
     async fn schedule(&self, req: ScheduleWakeupRequest) -> Result<ScheduledWakeup> {
         let response: ScheduleResponse = self
             .post_json(
@@ -149,7 +149,7 @@ mod tests {
             axum::serve(listener, app).await.unwrap();
         });
 
-        let backend = CloudflareAlarmsSchedulerBackend::new(format!("http://{addr}"));
+        let backend = CfAlarmsSchedulerBackend::new(format!("http://{addr}"));
         let fire_at = chrono::Utc
             .with_ymd_and_hms(2026, 6, 13, 12, 30, 0)
             .unwrap();

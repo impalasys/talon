@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-mod cloudflare_queues;
+mod cf_queues;
 mod local_socket;
 
 use crate::control::MessagePublisher;
@@ -17,7 +17,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-pub use cloudflare_queues::CloudflareQueuesPublisher;
+pub use cf_queues::CfQueuesPublisher;
 pub use local_socket::{LocalSocketMessagePublisher, LocalSocketSubscriber};
 
 pub struct GcpPubSubPublisher {

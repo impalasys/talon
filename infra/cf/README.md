@@ -230,7 +230,7 @@ The Worker sets:
 
 ```text
 TALON_CONFIG_INLINE_YAML=<Cloudflare Talon YAML>
-TALON_SCHEDULER_DRIVER=cloudflare_alarms
+TALON_SCHEDULER_DRIVER=cf-alarms
 ```
 
 Secrets should remain environment-backed. The checked-in `talon.yaml` references `NOVITA_API_KEY` through Talon's existing env secret loader.
