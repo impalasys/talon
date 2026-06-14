@@ -49,11 +49,33 @@ function retryDelayMicros(attempts: number): number {
   return seconds * 1_000_000;
 }
 
+/**
+ * Routes Rust scheduler HTTP calls to the singleton `ScheduleShard` Durable Object.
+ *
+ * Rust `CfAlarmsSchedulerBackend` calls this virtual host through
+ * `http://talon-alarms.internal`. The DO owns alarm persistence and eventual
+ * delivery to Rust worker containers.
+ */
 export async function handleAlarms(request: Request, env: TalonCfBindingsEnv): Promise<Response> {
   const shard = env.SCHEDULE_SHARD.get(env.SCHEDULE_SHARD.idFromName("default"));
   return shard.fetch(request);
 }
 
+/**
+ * Durable Object scheduler bridge for Cloudflare-native Talon deployments.
+ *
+ * Public internal endpoints:
+ * - `POST /schedule` with `{ namespace, scheduleId, revision, fireAtMicros, payloadBase64 }`
+ *   returns `{ handle, armed: true }`
+ * - `POST /cancel` with `{ handle }` deletes the active wakeup
+ * - `GET /healthz` returns `{ ok: true }`
+ *
+ * Active wakeups are stored twice: by handle and by due-time index. The due-time
+ * index lets alarms load the next due wakeups without scanning historical
+ * storage. Alarm delivery posts decoded payload bytes to
+ * `http://worker/schedules/fire` with `X-Talon-Scheduler-Token`. Failed
+ * deliveries are retried per wakeup with bounded backoff and a retry cap.
+ */
 export class ScheduleShard extends DurableObject<TalonCfBindingsEnv> {
   constructor(ctx: DurableObjectState, env: TalonCfBindingsEnv) {
     super(ctx, env);
