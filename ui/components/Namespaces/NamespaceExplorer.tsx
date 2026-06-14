@@ -143,7 +143,6 @@ type ExplorerAgentCard = {
   };
   spec?: {
     agentRef?: string;
-    hostname?: string;
     name?: string;
     description?: string;
     version?: string;
@@ -188,7 +187,6 @@ function namespaceLabel(labels?: Record<string, string>) {
 const emptyAgentCardForm = {
   name: '',
   agentRef: '',
-  hostname: '',
   displayName: '',
   description: '',
   version: '1.0.0',
@@ -704,7 +702,7 @@ export function NamespaceExplorer({
               currentLevel.children[`agent-card:${cardName}`] = {
                 id: cardId,
                 name: cardName,
-                badge: card.spec?.hostname || card.spec?.agentRef || 'AgentCard',
+                badge: card.spec?.agentRef || 'AgentCard',
                 selection: {
                   type: 'agent-card',
                   ns,
@@ -1204,8 +1202,7 @@ export function NamespaceExplorer({
     e.preventDefault();
     const cardName = agentCardForm.name.trim();
     const agentRef = agentCardForm.agentRef.trim();
-    const hostname = agentCardForm.hostname.trim().toLowerCase();
-    if (!cardName || !agentRef || !hostname) return;
+    if (!cardName || !agentRef) return;
 
     setIsSubmittingAgentCard(true);
     try {
@@ -1224,7 +1221,6 @@ export function NamespaceExplorer({
           },
           spec: {
             agentRef,
-            hostname,
             name: agentCardForm.displayName.trim() || cardName,
             description: agentCardForm.description.trim(),
             version: agentCardForm.version.trim() || '1.0.0',
@@ -1708,7 +1704,6 @@ export function NamespaceExplorer({
                   setAgentCardForm({
                     name: card?.metadata?.name || menuNode.selection.resourceName || '',
                     agentRef: card?.spec?.agentRef || '',
-                    hostname: card?.spec?.hostname || '',
                     displayName: card?.spec?.name || '',
                     description: card?.spec?.description || '',
                     version: card?.spec?.version || '1.0.0',
@@ -1858,16 +1853,6 @@ export function NamespaceExplorer({
                   />
                 </div>
               </div>
-              <div>
-                <Label className="block text-sm font-medium mb-1">Hostname</Label>
-                <Input
-                  className="w-full"
-                  placeholder="support.example.com"
-                  value={agentCardForm.hostname}
-                  onChange={(e) => setAgentCardForm(prev => ({ ...prev, hostname: e.target.value }))}
-                  required
-                />
-              </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_7rem]">
                 <div>
                   <Label className="block text-sm font-medium mb-1">Display Name</Label>
@@ -1936,7 +1921,7 @@ export function NamespaceExplorer({
               color="primary"
               type="submit"
               form="create-agent-card-form"
-              disabled={isSubmittingAgentCard || !agentCardForm.name.trim() || !agentCardForm.agentRef.trim() || !agentCardForm.hostname.trim()}
+              disabled={isSubmittingAgentCard || !agentCardForm.name.trim() || !agentCardForm.agentRef.trim()}
             >
               Save AgentCard
             </Button>

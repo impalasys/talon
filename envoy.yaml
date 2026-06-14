@@ -17,26 +17,9 @@ static_resources:
               domains: ["*"]
               routes:
               - match: { path: "/.well-known/agent-card.json" }
-                route:
-                  cluster: talon_ui_http_service
-                  timeout: 60s
-              - match: { prefix: "/v1/message:" }
-                route:
-                  cluster: talon_ui_http_service
-                  timeout: 60s
-              - match: { prefix: "/v1/tasks" }
-                route:
-                  cluster: talon_ui_http_service
-                  timeout: 60s
-              - match: { prefix: "/message:" }
-                route:
-                  cluster: talon_ui_http_service
-                  timeout: 60s
-              - match: { prefix: "/tasks" }
-                route:
-                  cluster: talon_ui_http_service
-                  timeout: 60s
-              - match: { path: "/extendedAgentCard" }
+                direct_response:
+                  status: 404
+              - match: { prefix: "/a2a/" }
                 route:
                   cluster: talon_ui_http_service
                   timeout: 60s

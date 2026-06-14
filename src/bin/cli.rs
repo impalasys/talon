@@ -3714,7 +3714,6 @@ mod tests {
                         },
                         "spec": {
                             "agentRef": "support-docs",
-                            "hostname": "support.example.com",
                             "name": "Support Agent",
                             "description": "Answers support questions.",
                             "version": "1.0.0",
@@ -3742,7 +3741,6 @@ mod tests {
                         },
                         "spec": {
                             "agentRef": "sales-docs",
-                            "hostname": "sales.example.com",
                             "name": "Sales Agent",
                             "description": "Answers sales questions.",
                             "version": "1.0.0",

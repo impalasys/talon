@@ -109,8 +109,7 @@ services:
         talon-cli --gateway "$$REST_GATEWAY" --rest apply -f /manifests/examples/chatgpt-app/namespace.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-template.yaml
         talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-agent.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/localhost-agent-card.yaml
-        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/orb-agent-card.yaml
+        talon-cli --gateway "$$GRPC_GATEWAY" apply -f /manifests/examples/chatgpt-app/support-docs-agent-card.yaml
 
   init-tutorial-channels:
     profiles: ["tutorial-channels"]

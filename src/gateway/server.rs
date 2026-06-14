@@ -54,29 +54,32 @@ impl Gateway {
     pub fn http_ui_router(&self) -> Router {
         Router::new()
             .route(
-                "/.well-known/agent-card.json",
-                get(crate::gateway::a2a::get_well_known_agent_card),
+                "/a2a/:ns/:card/agent-card.json",
+                get(crate::gateway::a2a::get_agent_card),
             )
             .route(
-                "/message:operation",
+                "/a2a/:ns/:card/message:operation",
                 post(crate::gateway::a2a::post_message_operation),
             )
             .route(
-                "/v1/message:operation",
+                "/a2a/:ns/:card/v1/message:operation",
                 post(crate::gateway::a2a::post_message_operation),
             )
-            .route("/tasks", get(crate::gateway::a2a::list_tasks))
-            .route("/v1/tasks", get(crate::gateway::a2a::list_tasks))
+            .route("/a2a/:ns/:card/tasks", get(crate::gateway::a2a::list_tasks))
             .route(
-                "/tasks/*tail",
+                "/a2a/:ns/:card/v1/tasks",
+                get(crate::gateway::a2a::list_tasks),
+            )
+            .route(
+                "/a2a/:ns/:card/tasks/*tail",
                 get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
             )
             .route(
-                "/v1/tasks/*tail",
+                "/a2a/:ns/:card/v1/tasks/*tail",
                 get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
             )
             .route(
-                "/extendedAgentCard",
+                "/a2a/:ns/:card/extendedAgentCard",
                 get(crate::gateway::a2a::unsupported_a2a_operation),
             )
             .route(
@@ -312,7 +315,6 @@ mod tests {
         ns: &str,
         name: &str,
         agent_ref: &str,
-        hostname: &str,
     ) -> crate::gateway::rpc::manifests::AgentCard {
         crate::gateway::rpc::manifests::AgentCard {
             api_version: "talon.impalasys.com/v1".to_string(),
@@ -325,7 +327,6 @@ mod tests {
             }),
             spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
                 agent_ref: agent_ref.to_string(),
-                hostname: hostname.to_string(),
                 name: "Support Agent".to_string(),
                 description: "Answers support questions.".to_string(),
                 version: "1.0.0".to_string(),
@@ -353,13 +354,7 @@ mod tests {
         }
     }
 
-    async fn seed_agent_card(
-        gateway: &Gateway,
-        ns: &str,
-        name: &str,
-        agent_ref: &str,
-        hostname: &str,
-    ) {
+    async fn seed_agent_card(gateway: &Gateway, ns: &str, name: &str, agent_ref: &str) {
         seed_namespace_and_agent(gateway, ns, agent_ref).await;
         let handler = crate::gateway::rpc::GrpcGatewayHandler {
             gateway: Arc::new(gateway.clone()),
@@ -368,7 +363,7 @@ mod tests {
             .handle_create_agent_card(tonic::Request::new(
                 crate::gateway::rpc::proto::CreateAgentCardRequest {
                     ns: ns.to_string(),
-                    card: Some(agent_card(ns, name, agent_ref, hostname)),
+                    card: Some(agent_card(ns, name, agent_ref)),
                 },
             ))
             .await
@@ -439,7 +434,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn http_ui_router_serves_agent_card_by_host() {
+    async fn http_ui_router_serves_agent_card_by_path() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
         let card = crate::gateway::rpc::manifests::AgentCard {
@@ -453,7 +448,6 @@ mod tests {
             }),
             spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
                 agent_ref: "support-docs".to_string(),
-                hostname: "support.example.com".to_string(),
                 name: "Support Agent".to_string(),
                 description: "Answers support questions.".to_string(),
                 version: "1.0.0".to_string(),
@@ -492,21 +486,12 @@ mod tests {
             .await
             .unwrap();
 
-        assert!(gateway
-            .kv
-            .get(&crate::control::keys::agent_card_hostname(
-                "support.example.com"
-            ))
-            .await
-            .unwrap()
-            .is_some());
-
         let response = gateway
             .http_ui_router()
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/.well-known/agent-card.json")
+                    .uri("/a2a/support/support-public/agent-card.json")
                     .header(header::HOST, "support.example.com:8080")
                     .header("x-forwarded-proto", "HTTP")
                     .body(Body::empty())
@@ -521,7 +506,10 @@ mod tests {
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(value["name"], "Support Agent");
-        assert_eq!(value["url"], "http://support.example.com:8080");
+        assert_eq!(
+            value["url"],
+            "http://support.example.com:8080/a2a/support/support-public"
+        );
         assert_eq!(value["protocolVersion"], "0.3.0");
         assert_eq!(value["preferredTransport"], "HTTP+JSON");
         assert_eq!(value["capabilities"]["streaming"], true);
@@ -532,12 +520,7 @@ mod tests {
             .handle_create_agent_card(tonic::Request::new(
                 crate::gateway::rpc::proto::CreateAgentCardRequest {
                     ns: "support".to_string(),
-                    card: Some(agent_card(
-                        "support",
-                        "local-public",
-                        "support-docs",
-                        "localhost",
-                    )),
+                    card: Some(agent_card("support", "local-public", "support-docs")),
                 },
             ))
             .await
@@ -548,7 +531,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/.well-known/agent-card.json")
+                    .uri("/a2a/support/local-public/agent-card.json")
                     .header(header::HOST, "localhost:8080")
                     .body(Body::empty())
                     .unwrap(),
@@ -561,20 +544,16 @@ mod tests {
             .await
             .unwrap();
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(value["url"], "http://localhost:8080");
+        assert_eq!(
+            value["url"],
+            "http://localhost:8080/a2a/support/local-public"
+        );
     }
 
     #[tokio::test]
     async fn http_ui_router_serves_external_a2a_task_operations() {
         let gateway = gateway();
-        seed_agent_card(
-            &gateway,
-            "support",
-            "support-public",
-            "support-docs",
-            "support.example.com",
-        )
-        .await;
+        seed_agent_card(&gateway, "support", "support-public", "support-docs").await;
         let router = gateway.http_ui_router();
 
         let send = router
@@ -582,7 +561,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/message:send")
+                    .uri("/a2a/support/support-public/message:send")
                     .header(header::HOST, "support.example.com")
                     .header(header::CONTENT_TYPE, "application/json")
                     .body(Body::from(
@@ -617,7 +596,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/v1/message:send")
+                    .uri("/a2a/support/support-public/v1/message:send")
                     .header(header::HOST, "support.example.com")
                     .header(header::CONTENT_TYPE, "application/json")
                     .body(Body::from(
@@ -711,7 +690,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/tasks/task-1")
+                    .uri("/a2a/support/support-public/tasks/task-1")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -738,7 +717,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/v1/tasks/task-1")
+                    .uri("/a2a/support/support-public/v1/tasks/task-1")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -761,7 +740,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::GET)
-                    .uri("/tasks")
+                    .uri("/a2a/support/support-public/tasks")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -780,7 +759,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/tasks/task-1:cancel")
+                    .uri("/a2a/support/support-public/tasks/task-1:cancel")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -798,7 +777,7 @@ mod tests {
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/message:stream")
+                    .uri("/a2a/support/support-public/message:stream")
                     .header(header::HOST, "support.example.com")
                     .body(Body::empty())
                     .unwrap(),
@@ -849,21 +828,14 @@ mod tests {
             ]]),
         );
         let gateway = gateway_with_pubsub(pubsub);
-        seed_agent_card(
-            &gateway,
-            "support",
-            "support-public",
-            "support-docs",
-            "support.example.com",
-        )
-        .await;
+        seed_agent_card(&gateway, "support", "support-public", "support-docs").await;
 
         let response = gateway
             .http_ui_router()
             .oneshot(
                 Request::builder()
                     .method(Method::POST)
-                    .uri("/v1/message:stream")
+                    .uri("/a2a/support/support-public/v1/message:stream")
                     .header(header::HOST, "support.example.com")
                     .header(header::CONTENT_TYPE, "application/json")
                     .body(Body::from(format!(
@@ -917,12 +889,7 @@ mod tests {
     async fn agent_card_rejects_non_public_discovery_auth() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let mut card = agent_card(
-            "support",
-            "support-private",
-            "support-docs",
-            "private.example.com",
-        );
+        let mut card = agent_card("support", "support-private", "support-docs");
         card.spec.as_mut().unwrap().auth = Some(crate::gateway::rpc::manifests::AgentCardAuth {
             discovery: "bearer".to_string(),
             operations: "bearer".to_string(),
@@ -948,16 +915,11 @@ mod tests {
     async fn agent_card_rejects_unsupported_capabilities() {
         let gateway = gateway();
         seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let mut card = agent_card(
-            "support",
-            "support-public",
-            "support-docs",
-            "support.example.com",
-        );
+        let mut card = agent_card("support", "support-public", "support-docs");
         card.spec.as_mut().unwrap().capabilities =
             Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
-                streaming: true,
-                push_notifications: false,
+                streaming: false,
+                push_notifications: true,
                 extended_agent_card: false,
             });
 
@@ -974,253 +936,7 @@ mod tests {
         .unwrap_err();
 
         assert_eq!(err.code(), tonic::Code::InvalidArgument);
-        assert!(err.message().contains("streaming is not supported"));
-    }
-
-    #[tokio::test]
-    async fn agent_card_hostname_claim_reuses_stale_index_but_rejects_live_owner() {
-        let gateway = gateway();
-        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        seed_namespace_and_agent(&gateway, "sales", "sales-docs").await;
-        let handler = crate::gateway::rpc::GrpcGatewayHandler {
-            gateway: Arc::new(gateway.clone()),
-        };
-
-        let stale = agent_card(
-            "support",
-            "deleted-card",
-            "support-docs",
-            "shared.example.com",
-        );
-        gateway
-            .kv
-            .set(
-                &crate::control::keys::agent_card_hostname("shared.example.com"),
-                &stale.encode_to_vec(),
-            )
-            .await
-            .unwrap();
-        let support_card = agent_card(
-            "support",
-            "support-public",
-            "support-docs",
-            "shared.example.com",
-        );
-        handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "support".to_string(),
-                    card: Some(support_card),
-                },
-            ))
-            .await
-            .unwrap();
-
-        let sales_card = agent_card("sales", "sales-public", "sales-docs", "shared.example.com");
-        let err = handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "sales".to_string(),
-                    card: Some(sales_card),
-                },
-            ))
-            .await
-            .unwrap_err();
-
-        assert_eq!(err.code(), tonic::Code::AlreadyExists);
-        assert!(err.message().contains("already claimed"));
-    }
-
-    #[tokio::test]
-    async fn agent_card_create_does_not_persist_primary_when_hostname_claim_fails() {
-        let gateway = gateway();
-        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        seed_namespace_and_agent(&gateway, "sales", "sales-docs").await;
-        let handler = crate::gateway::rpc::GrpcGatewayHandler {
-            gateway: Arc::new(gateway.clone()),
-        };
-        handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "support".to_string(),
-                    card: Some(agent_card(
-                        "support",
-                        "support-public",
-                        "support-docs",
-                        "shared.example.com",
-                    )),
-                },
-            ))
-            .await
-            .unwrap();
-
-        let err = handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "sales".to_string(),
-                    card: Some(agent_card(
-                        "sales",
-                        "sales-public",
-                        "sales-docs",
-                        "shared.example.com",
-                    )),
-                },
-            ))
-            .await
-            .unwrap_err();
-
-        assert_eq!(err.code(), tonic::Code::AlreadyExists);
-        assert!(gateway
-            .kv
-            .get(&crate::control::keys::agent_card("sales", "sales-public"))
-            .await
-            .unwrap()
-            .is_none());
-    }
-
-    #[tokio::test]
-    async fn agent_card_update_cleans_old_hostname_index() {
-        let gateway = gateway();
-        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let handler = crate::gateway::rpc::GrpcGatewayHandler {
-            gateway: Arc::new(gateway.clone()),
-        };
-        handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "support".to_string(),
-                    card: Some(agent_card(
-                        "support",
-                        "support-public",
-                        "support-docs",
-                        "old.example.com",
-                    )),
-                },
-            ))
-            .await
-            .unwrap();
-        handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "support".to_string(),
-                    card: Some(agent_card(
-                        "support",
-                        "support-public",
-                        "support-docs",
-                        "new.example.com",
-                    )),
-                },
-            ))
-            .await
-            .unwrap();
-
-        assert!(gateway
-            .kv
-            .get(&crate::control::keys::agent_card_hostname(
-                "old.example.com"
-            ))
-            .await
-            .unwrap()
-            .is_none());
-        assert!(gateway
-            .kv
-            .get(&crate::control::keys::agent_card_hostname(
-                "new.example.com"
-            ))
-            .await
-            .unwrap()
-            .is_some());
-    }
-
-    #[tokio::test]
-    async fn agent_card_delete_cleans_hostname_index() {
-        let gateway = gateway();
-        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let handler = crate::gateway::rpc::GrpcGatewayHandler {
-            gateway: Arc::new(gateway.clone()),
-        };
-        handler
-            .handle_create_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::CreateAgentCardRequest {
-                    ns: "support".to_string(),
-                    card: Some(agent_card(
-                        "support",
-                        "support-public",
-                        "support-docs",
-                        "support.example.com",
-                    )),
-                },
-            ))
-            .await
-            .unwrap();
-        handler
-            .handle_delete_agent_card(tonic::Request::new(
-                crate::gateway::rpc::proto::DeleteAgentCardRequest {
-                    ns: "support".to_string(),
-                    name: "support-public".to_string(),
-                },
-            ))
-            .await
-            .unwrap();
-
-        assert!(gateway
-            .kv
-            .get(&crate::control::keys::agent_card_hostname(
-                "support.example.com"
-            ))
-            .await
-            .unwrap()
-            .is_none());
-    }
-
-    #[tokio::test]
-    async fn http_ui_router_ignores_stale_agent_card_hostname_index() {
-        let gateway = gateway();
-        let stale_card = crate::gateway::rpc::manifests::AgentCard {
-            api_version: "talon.impalasys.com/v1".to_string(),
-            kind: "AgentCard".to_string(),
-            metadata: Some(crate::gateway::rpc::manifests::ObjectMeta {
-                name: "stale-public".to_string(),
-                namespace: "support".to_string(),
-                labels: HashMap::new(),
-                annotations: HashMap::new(),
-            }),
-            spec: Some(crate::gateway::rpc::manifests::AgentCardSpec {
-                agent_ref: "support-docs".to_string(),
-                hostname: "stale.example.com".to_string(),
-                name: "Stale Agent".to_string(),
-                description: String::new(),
-                version: String::new(),
-                capabilities: None,
-                default_input_modes: Vec::new(),
-                default_output_modes: Vec::new(),
-                skills: Vec::new(),
-                auth: None,
-            }),
-        };
-        gateway
-            .kv
-            .set(
-                &crate::control::keys::agent_card_hostname("stale.example.com"),
-                &stale_card.encode_to_vec(),
-            )
-            .await
-            .unwrap();
-
-        let response = gateway
-            .http_ui_router()
-            .oneshot(
-                Request::builder()
-                    .method(Method::GET)
-                    .uri("/.well-known/agent-card.json")
-                    .header(header::HOST, "stale.example.com")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
-
-        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        assert!(err.message().contains("pushNotifications is not supported"));
     }
 
     #[tokio::test]

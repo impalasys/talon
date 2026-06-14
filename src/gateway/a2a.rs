@@ -25,8 +25,8 @@ use crate::control::{
     keys::{self, ResourceKey},
     topics, ProtoKeyValueStoreExt,
 };
+use crate::gateway::rpc::manifests;
 use crate::gateway::rpc::models;
-use crate::gateway::rpc::{manifests, GrpcGatewayHandler};
 use crate::gateway::server::Gateway;
 use crate::scheduling;
 
@@ -74,6 +74,7 @@ struct AgentCardRoute {
     ns: String,
     agent: String,
     card_name: String,
+    card: manifests::AgentCard,
 }
 
 #[derive(Deserialize)]
@@ -152,41 +153,42 @@ struct ListTasksResponseJson {
     tasks: Vec<A2aTaskJson>,
 }
 
-pub async fn get_well_known_agent_card(
+pub async fn get_agent_card(
     State(gateway): State<Arc<Gateway>>,
     headers: HeaderMap,
     Host(host): Host,
+    Path((ns, card_name)): Path<(String, String)>,
 ) -> Response {
-    let handler = GrpcGatewayHandler { gateway };
-    match handler.find_agent_card_by_hostname(&host).await {
-        Ok(Some(card)) => match agent_card_json(&card, scheme_from_headers(&headers, &host), &host)
-        {
-            Ok(payload) => Json(payload).into_response(),
-            Err(response) => response,
-        },
-        Ok(None) => (StatusCode::NOT_FOUND, "AgentCard not found for host").into_response(),
-        Err(status) if status.code() == tonic::Code::InvalidArgument => {
-            (StatusCode::BAD_REQUEST, status.message().to_string()).into_response()
-        }
-        Err(status) => {
-            tracing::error!(%status, "Failed to find AgentCard by hostname");
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "failed to load AgentCard",
-            )
-                .into_response()
-        }
+    let route = match resolve_agent_card_route(&gateway, &ns, &card_name).await {
+        Ok(route) => route,
+        Err(response) => return response,
+    };
+    let external_host = external_host_from_headers(&headers, &host);
+    let scheme = scheme_from_headers(&headers, &external_host);
+    match agent_card_json(
+        &route.card,
+        scheme,
+        &external_host,
+        &route.ns,
+        &route.card_name,
+    ) {
+        Ok(payload) => Json(payload).into_response(),
+        Err(response) => response,
     }
 }
 
 pub async fn post_message_operation(
     State(gateway): State<Arc<Gateway>>,
-    Host(host): Host,
+    Path((ns, card_name)): Path<(String, String)>,
     OriginalUri(uri): OriginalUri,
     body: Bytes,
 ) -> Response {
-    match uri.path() {
-        "/message:send" | "/v1/message:send" => {
+    let route = match resolve_agent_card_route(&gateway, &ns, &card_name).await {
+        Ok(route) => route,
+        Err(response) => return response,
+    };
+    match scoped_a2a_operation_path(uri.path(), &ns, &card_name) {
+        Some("/message:send" | "/v1/message:send") => {
             let body = match serde_json::from_slice::<SendMessageRequestJson>(&body) {
                 Ok(body) => body,
                 Err(err) => {
@@ -196,14 +198,16 @@ pub async fn post_message_operation(
                     );
                 }
             };
-            let response_encoding = if uri.path().starts_with("/v1/") {
+            let response_encoding = if scoped_a2a_operation_path(uri.path(), &ns, &card_name)
+                .is_some_and(|path| path.starts_with("/v1/"))
+            {
                 A2aResponseEncoding::RestV1
             } else {
                 A2aResponseEncoding::Legacy
             };
-            send_message(gateway, host, body, response_encoding).await
+            send_message(gateway, route, body, response_encoding).await
         }
-        "/message:stream" | "/v1/message:stream" => {
+        Some("/message:stream" | "/v1/message:stream") => {
             let body = match serde_json::from_slice::<SendMessageRequestJson>(&body) {
                 Ok(body) => body,
                 Err(err) => {
@@ -213,7 +217,7 @@ pub async fn post_message_operation(
                     );
                 }
             };
-            stream_message(gateway, host, body).await
+            stream_message(gateway, route, body).await
         }
         _ => a2a_error(StatusCode::NOT_FOUND, "A2A message operation not found"),
     }
@@ -221,13 +225,9 @@ pub async fn post_message_operation(
 
 async fn stream_message(
     gateway: Arc<Gateway>,
-    host: String,
+    route: AgentCardRoute,
     body: SendMessageRequestJson,
 ) -> Response {
-    let route = match resolve_agent_card_route(&gateway, &host).await {
-        Ok(route) => route,
-        Err(response) => return response,
-    };
     if !is_user_role(&body.message.role) {
         return a2a_error(
             StatusCode::BAD_REQUEST,
@@ -424,14 +424,10 @@ async fn stream_message(
 
 async fn send_message(
     gateway: Arc<Gateway>,
-    host: String,
+    route: AgentCardRoute,
     body: SendMessageRequestJson,
     response_encoding: A2aResponseEncoding,
 ) -> Response {
-    let route = match resolve_agent_card_route(&gateway, &host).await {
-        Ok(route) => route,
-        Err(response) => return response,
-    };
     if !is_user_role(&body.message.role) {
         return a2a_error(
             StatusCode::BAD_REQUEST,
@@ -496,10 +492,10 @@ async fn send_message(
 
 pub async fn list_tasks(
     State(gateway): State<Arc<Gateway>>,
-    Host(host): Host,
+    Path((ns, card_name)): Path<(String, String)>,
     OriginalUri(uri): OriginalUri,
 ) -> Response {
-    let route = match resolve_agent_card_route(&gateway, &host).await {
+    let route = match resolve_agent_card_route(&gateway, &ns, &card_name).await {
         Ok(route) => route,
         Err(response) => return response,
     };
@@ -547,14 +543,13 @@ pub async fn list_tasks(
 
 pub async fn get_task(
     State(gateway): State<Arc<Gateway>>,
-    Host(host): Host,
-    Path(tail): Path<String>,
+    Path((ns, card_name, tail)): Path<(String, String, String)>,
     OriginalUri(uri): OriginalUri,
 ) -> Response {
     if tail.contains('/') || tail.ends_with(":cancel") || tail.ends_with(":subscribe") {
         return a2a_error(StatusCode::NOT_FOUND, "A2A task not found");
     }
-    let route = match resolve_agent_card_route(&gateway, &host).await {
+    let route = match resolve_agent_card_route(&gateway, &ns, &card_name).await {
         Ok(route) => route,
         Err(response) => return response,
     };
@@ -569,11 +564,10 @@ pub async fn get_task(
 
 pub async fn post_task_operation(
     State(gateway): State<Arc<Gateway>>,
-    Host(host): Host,
-    Path(tail): Path<String>,
+    Path((ns, card_name, tail)): Path<(String, String, String)>,
     OriginalUri(uri): OriginalUri,
 ) -> Response {
-    let route = match resolve_agent_card_route(&gateway, &host).await {
+    let route = match resolve_agent_card_route(&gateway, &ns, &card_name).await {
         Ok(route) => route,
         Err(response) => return response,
     };
@@ -604,9 +598,9 @@ pub async fn post_task_operation(
 
 pub async fn unsupported_a2a_operation(
     State(gateway): State<Arc<Gateway>>,
-    Host(host): Host,
+    Path((ns, card_name)): Path<(String, String)>,
 ) -> Response {
-    if let Err(response) = resolve_agent_card_route(&gateway, &host).await {
+    if let Err(response) = resolve_agent_card_route(&gateway, &ns, &card_name).await {
         return response;
     }
     unsupported_operation("A2A operation is not supported by this AgentCard")
@@ -628,6 +622,17 @@ fn scheme_from_headers(headers: &HeaderMap, host: &str) -> &'static str {
             }
         })
         .unwrap_or_else(|| if is_local_host(host) { "http" } else { "https" })
+}
+
+fn external_host_from_headers(headers: &HeaderMap, host: &str) -> String {
+    headers
+        .get("x-forwarded-host")
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.split(',').next())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .unwrap_or(host)
+        .to_string()
 }
 
 fn host_without_port(host: &str) -> &str {
@@ -652,24 +657,22 @@ fn is_local_host(host: &str) -> bool {
     hostname.eq_ignore_ascii_case("localhost") || hostname == "127.0.0.1" || hostname == "::1"
 }
 
-fn request_host_port(host: &str) -> Option<&str> {
-    let host = host.trim();
-    if let Some(stripped) = host.strip_prefix('[') {
-        stripped
-            .split_once(']')
-            .and_then(|(_inside, rest)| rest.strip_prefix(':'))
-            .filter(|port| port.chars().all(|ch| ch.is_ascii_digit()))
-    } else {
-        host.rsplit_once(':').and_then(|(candidate, port)| {
-            (!candidate.contains(':') && port.chars().all(|ch| ch.is_ascii_digit())).then_some(port)
-        })
-    }
+fn a2a_card_base_url(scheme: &str, host: &str, ns: &str, card_name: &str) -> String {
+    format!(
+        "{}://{}/a2a/{}/{}",
+        scheme,
+        host.trim(),
+        urlencoding::encode(ns),
+        urlencoding::encode(card_name)
+    )
 }
 
 fn agent_card_json(
     card: &manifests::AgentCard,
     scheme: &str,
     host: &str,
+    ns: &str,
+    card_name: &str,
 ) -> Result<AgentCardJson, Response> {
     let spec = card.spec.as_ref().ok_or_else(|| {
         (
@@ -679,16 +682,11 @@ fn agent_card_json(
             .into_response()
     })?;
     let capabilities = spec.capabilities.as_ref();
-    let url = if let Some(port) = request_host_port(host) {
-        format!("{}://{}:{}", scheme, spec.hostname, port)
-    } else {
-        format!("{}://{}", scheme, spec.hostname)
-    };
     Ok(AgentCardJson {
         name: spec.name.clone(),
         description: spec.description.clone(),
         version: spec.version.clone(),
-        url,
+        url: a2a_card_base_url(scheme, host, ns, card_name),
         protocol_version: "0.3.0".to_string(),
         preferred_transport: "HTTP+JSON".to_string(),
         capabilities: AgentCardCapabilitiesJson {
@@ -859,30 +857,21 @@ fn rest_v1_part_value(part: Value) -> Value {
 
 async fn resolve_agent_card_route(
     gateway: &Arc<Gateway>,
-    host: &str,
+    ns: &str,
+    card_name: &str,
 ) -> Result<AgentCardRoute, Response> {
-    let handler = GrpcGatewayHandler {
-        gateway: gateway.clone(),
-    };
-    let card = match handler.find_agent_card_by_hostname(host).await {
-        Ok(Some(card)) => card,
-        Ok(None) => {
-            return Err(a2a_error(
-                StatusCode::NOT_FOUND,
-                "AgentCard not found for host",
-            ))
-        }
-        Err(status) if status.code() == tonic::Code::InvalidArgument => {
-            return Err(a2a_error(StatusCode::BAD_REQUEST, status.message()));
-        }
-        Err(status) => {
-            tracing::error!(%status, "Failed to find AgentCard by hostname");
-            return Err(a2a_error(
+    let card = gateway
+        .kv
+        .get_msg::<manifests::AgentCard>(&keys::agent_card(ns, card_name))
+        .await
+        .map_err(|err| {
+            tracing::error!(%err, "Failed to fetch AgentCard");
+            a2a_error(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "failed to load AgentCard",
-            ));
-        }
-    };
+            )
+        })?
+        .ok_or_else(|| a2a_error(StatusCode::NOT_FOUND, "AgentCard not found"))?;
     let spec = card.spec.as_ref().ok_or_else(|| {
         a2a_error(
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -900,6 +889,22 @@ async fn resolve_agent_card_route(
         ns: metadata.namespace.clone(),
         agent: spec.agent_ref.clone(),
         card_name: metadata.name.clone(),
+        card,
+    })
+}
+
+fn scoped_a2a_operation_path<'a>(path: &'a str, ns: &str, card_name: &str) -> Option<&'a str> {
+    let prefix = format!(
+        "/a2a/{}/{}",
+        urlencoding::encode(ns),
+        urlencoding::encode(card_name)
+    );
+    path.strip_prefix(&prefix).filter(|suffix| {
+        suffix.starts_with("/message:")
+            || suffix.starts_with("/v1/message:")
+            || suffix.starts_with("/tasks")
+            || suffix.starts_with("/v1/tasks")
+            || *suffix == "/extendedAgentCard"
     })
 }
 

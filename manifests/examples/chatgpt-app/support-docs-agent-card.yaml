@@ -1,13 +1,12 @@
 apiVersion: talon.impalasys.com/v1
 kind: AgentCard
 metadata:
-  name: localhost-support-docs
+  name: support-docs
   namespace: chatgpt-app
   labels:
     tutorial: chatgpt-app
 spec:
   agentRef: support-docs-agent
-  hostname: localhost
   name: Local Support Agent
   description: Local AgentCard for testing external A2A routing.
   version: 1.0.0

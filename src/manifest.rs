@@ -261,7 +261,6 @@ struct AgentCardManifest {
 #[serde(rename_all = "camelCase", default)]
 struct AgentCardSpecManifest {
     agent_ref: String,
-    hostname: String,
     name: String,
     description: String,
     version: String,
@@ -573,9 +572,6 @@ pub fn parse_agent_card(yaml: &str) -> Result<manifests::AgentCard> {
     }
     if card.spec.agent_ref.trim().is_empty() {
         bail!("AgentCard spec.agentRef is required");
-    }
-    if card.spec.hostname.trim().is_empty() {
-        bail!("AgentCard spec.hostname is required");
     }
 
     Ok(manifests::AgentCard {
@@ -1130,7 +1126,6 @@ impl AgentCardSpecManifest {
     fn into_proto(self) -> manifests::AgentCardSpec {
         manifests::AgentCardSpec {
             agent_ref: self.agent_ref,
-            hostname: self.hostname,
             name: self.name,
             description: self.description,
             version: self.version,
@@ -1151,7 +1146,6 @@ impl AgentCardSpecManifest {
     fn from_proto(spec: &manifests::AgentCardSpec) -> Self {
         Self {
             agent_ref: spec.agent_ref.clone(),
-            hostname: spec.hostname.clone(),
             name: spec.name.clone(),
             description: spec.description.clone(),
             version: spec.version.clone(),
@@ -1940,7 +1934,6 @@ metadata:
   namespace: support
 spec:
   agentRef: support-docs
-  hostname: support.example.com
   name: Support Agent
   description: Answers support questions.
   version: 1.0.0
@@ -1964,7 +1957,6 @@ spec:
 
         let spec = card.spec.as_ref().expect("spec should exist");
         assert_eq!(spec.agent_ref, "support-docs");
-        assert_eq!(spec.hostname, "support.example.com");
         assert!(spec
             .capabilities
             .as_ref()
@@ -1974,8 +1966,8 @@ spec:
         let rendered = render_agent_card_yaml(&card).expect("AgentCard yaml should render");
         let reparsed = parse_agent_card(&rendered).expect("rendered card should parse");
         assert_eq!(
-            reparsed.spec.as_ref().map(|spec| spec.hostname.as_str()),
-            Some("support.example.com")
+            reparsed.spec.as_ref().map(|spec| spec.agent_ref.as_str()),
+            Some("support-docs")
         );
 
         let err = parse_agent_card(
@@ -1987,7 +1979,6 @@ metadata:
   namespace: support
 spec:
   agentRef: support-docs
-  hostname: support.example.com
 "#,
         )
         .unwrap_err()

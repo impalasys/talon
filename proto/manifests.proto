@@ -183,7 +183,8 @@ message AgentCard {
 
 message AgentCardSpec {
   string agent_ref = 1;
-  string hostname = 2;
+  reserved 2;
+  reserved "hostname";
   string name = 3;
   string description = 4;
   string version = 5;

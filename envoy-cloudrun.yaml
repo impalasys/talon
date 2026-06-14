@@ -17,6 +17,9 @@ static_resources:
               domains: ["*"]
               routes:
               - match: { path: "/.well-known/agent-card.json" }
+                direct_response:
+                  status: 404
+              - match: { prefix: "/a2a/" }
                 route:
                   cluster: talon_ui_http_service
                   timeout: 60s

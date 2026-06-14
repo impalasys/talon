@@ -144,7 +144,6 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
           namespace: {namespace}
         spec:
           agentRef: {agent_name}
-          hostname: localhost
           name: A2A Compatibility Agent
           description: AgentCard used by the upstream A2A SDK compatibility test.
           version: 1.0.0
@@ -185,7 +184,7 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
     agent_name = f"a2a-agent-{run_id}"
     create_a2a_fixture(namespace, agent_name, tmp_path)
 
-    agent_card_url = "http://localhost:50053/.well-known/agent-card.json"
+    agent_card_url = f"http://localhost:50053/a2a/{namespace}/localhost-public/agent-card.json"
     async with httpx.AsyncClient(timeout=90.0) as http_client:
         resolver = card_resolver(http_client, agent_card_url)
         card = await resolver.get_agent_card()
@@ -193,6 +192,7 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
         assert card.name == "A2A Compatibility Agent"
         assert card.protocol_version == "0.3.0"
         assert card.preferred_transport == TransportProtocol.http_json
+        assert card.url == f"http://localhost:50053/a2a/{namespace}/localhost-public"
         assert card.capabilities.streaming is True
         assert card.default_input_modes == ["text/plain"]
         assert card.default_output_modes == ["text/plain"]
@@ -255,7 +255,7 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
         assert get_field(final_event, "context_id", "contextId") == context_id
         assert final_event.get("status", {}).get("state") == "completed"
 
-        task_response = await http_client.get(f"http://localhost:50053/v1/tasks/{task_id}")
+        task_response = await http_client.get(f"{card.url}/v1/tasks/{task_id}")
         task_response.raise_for_status()
         task = task_response.json()
         assert task["id"] == task_id
