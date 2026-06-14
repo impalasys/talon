@@ -7,7 +7,7 @@ use crate::control::{
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
-use axum::{routing::get, routing::post, Router};
+use axum::{routing::post, Router};
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -53,38 +53,7 @@ impl Gateway {
 
     pub fn http_ui_router(&self) -> Router {
         Router::new()
-            .route(
-                "/a2a/:ns/:agent/agent-card.json",
-                get(crate::gateway::a2a::get_agent_card),
-            )
-            .route(
-                "/a2a/:ns/:agent/message:operation",
-                post(crate::gateway::a2a::post_message_operation),
-            )
-            .route(
-                "/a2a/:ns/:agent/v1/message:operation",
-                post(crate::gateway::a2a::post_message_operation),
-            )
-            .route(
-                "/a2a/:ns/:agent/tasks",
-                get(crate::gateway::a2a::list_tasks),
-            )
-            .route(
-                "/a2a/:ns/:agent/v1/tasks",
-                get(crate::gateway::a2a::list_tasks),
-            )
-            .route(
-                "/a2a/:ns/:agent/tasks/*tail",
-                get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
-            )
-            .route(
-                "/a2a/:ns/:agent/v1/tasks/*tail",
-                get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
-            )
-            .route(
-                "/a2a/:ns/:agent/extendedAgentCard",
-                get(crate::gateway::a2a::unsupported_a2a_operation),
-            )
+            .merge(crate::gateway::rest::a2a::router())
             .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
                 post(crate::gateway::ui::post_chat)
@@ -534,6 +503,7 @@ mod tests {
                     .method(Method::GET)
                     .uri("/a2a/support/support-docs/agent-card.json")
                     .header(header::HOST, "localhost:8080")
+                    .header("x-forwarded-proto", "http")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -548,6 +518,53 @@ mod tests {
         assert_eq!(
             value["url"],
             "http://localhost:8080/a2a/support/support-docs"
+        );
+
+        let response = gateway
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/a2a/support/support-docs/agent-card.json")
+                    .header(header::HOST, "support.example.net")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(
+            value["url"],
+            "https://support.example.net/a2a/support/support-docs"
+        );
+
+        let response = gateway
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/a2a/support/support-docs/agent-card.json")
+                    .header(header::HOST, "support.example.org")
+                    .header("x-forwarded-proto", "ftp")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(
+            value["url"],
+            "https://support.example.org/a2a/support/support-docs"
         );
     }
 
