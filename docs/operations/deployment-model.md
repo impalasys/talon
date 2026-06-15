@@ -45,6 +45,12 @@ In practice Talon exposes:
 - REST-transcoded HTTP through Envoy
 - browser-oriented UI session routes for Sightline-style clients
 
+## Forwarded headers
+
+The gateway uses `x-forwarded-proto` and `x-forwarded-host` when constructing public URLs in REST responses such as A2A Agent Cards. Production deployments must place the gateway behind a trusted reverse proxy or edge service that strips untrusted client-supplied `x-forwarded-*` headers and then sets the forwarded headers itself.
+
+Do not directly expose the gateway UI HTTP surface to untrusted clients unless the surrounding infrastructure sanitizes these headers first.
+
 ## Read next
 
 - [Runtime Topology](../concepts/runtime-topology.md)

@@ -7,7 +7,7 @@ use crate::control::{
 use crate::gateway::auth::AuthConfig;
 use crate::gateway::session_streams::SessionStreamHub;
 use anyhow::Result;
-use axum::{routing::get, routing::post, Router};
+use axum::{routing::post, Router};
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
@@ -53,38 +53,7 @@ impl Gateway {
 
     pub fn http_ui_router(&self) -> Router {
         Router::new()
-            .route(
-                "/a2a/:ns/:agent/agent-card.json",
-                get(crate::gateway::a2a::get_agent_card),
-            )
-            .route(
-                "/a2a/:ns/:agent/message:operation",
-                post(crate::gateway::a2a::post_message_operation),
-            )
-            .route(
-                "/a2a/:ns/:agent/v1/message:operation",
-                post(crate::gateway::a2a::post_message_operation),
-            )
-            .route(
-                "/a2a/:ns/:agent/tasks",
-                get(crate::gateway::a2a::list_tasks),
-            )
-            .route(
-                "/a2a/:ns/:agent/v1/tasks",
-                get(crate::gateway::a2a::list_tasks),
-            )
-            .route(
-                "/a2a/:ns/:agent/tasks/*tail",
-                get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
-            )
-            .route(
-                "/a2a/:ns/:agent/v1/tasks/*tail",
-                get(crate::gateway::a2a::get_task).post(crate::gateway::a2a::post_task_operation),
-            )
-            .route(
-                "/a2a/:ns/:agent/extendedAgentCard",
-                get(crate::gateway::a2a::unsupported_a2a_operation),
-            )
+            .merge(crate::gateway::rest::a2a::router())
             .route(
                 "/v1/ui/ns/:ns/agents/:agent/sessions/:session_id",
                 post(crate::gateway::ui::post_chat)
@@ -534,6 +503,7 @@ mod tests {
                     .method(Method::GET)
                     .uri("/a2a/support/support-docs/agent-card.json")
                     .header(header::HOST, "localhost:8080")
+                    .header("x-forwarded-proto", "http")
                     .body(Body::empty())
                     .unwrap(),
             )
@@ -548,6 +518,53 @@ mod tests {
         assert_eq!(
             value["url"],
             "http://localhost:8080/a2a/support/support-docs"
+        );
+
+        let response = gateway
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/a2a/support/support-docs/agent-card.json")
+                    .header(header::HOST, "support.example.net")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(
+            value["url"],
+            "https://support.example.net/a2a/support/support-docs"
+        );
+
+        let response = gateway
+            .http_ui_router()
+            .oneshot(
+                Request::builder()
+                    .method(Method::GET)
+                    .uri("/a2a/support/support-docs/agent-card.json")
+                    .header(header::HOST, "support.example.org")
+                    .header("x-forwarded-proto", "ftp")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(
+            value["url"],
+            "https://support.example.org/a2a/support/support-docs"
         );
     }
 
@@ -845,6 +862,15 @@ mod tests {
                         payload_json: String::new(),
                         created_at: session.last_active,
                         object: None,
+                    },
+                    crate::gateway::rpc::models::SessionMessagePart {
+                        id: "000002".to_string(),
+                        part_type: 999,
+                        content: String::new(),
+                        name: "structured".to_string(),
+                        payload_json: r#"{"answer":42}"#.to_string(),
+                        created_at: session.last_active,
+                        object: None,
                     }],
                 }
                 .encode_to_vec(),
@@ -873,11 +899,12 @@ mod tests {
         assert_eq!(value["status"]["state"], "TASK_STATE_COMPLETED");
         assert!(value["status"].get("message").is_none());
         assert_eq!(value["artifacts"][0]["artifactId"], "response");
-        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 1);
+        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 2);
         assert_eq!(value["artifacts"][0]["parts"][0]["text"], "assistant reply");
+        assert_eq!(value["artifacts"][0]["parts"][1]["data"]["answer"], 42);
         assert_eq!(value["history"][0]["role"], "ROLE_USER");
         assert_eq!(value["history"][1]["role"], "ROLE_AGENT");
-        assert_eq!(value["history"][1]["parts"].as_array().unwrap().len(), 1);
+        assert_eq!(value["history"][1]["parts"].as_array().unwrap().len(), 2);
 
         let get_v1_task = router
             .clone()
@@ -898,8 +925,12 @@ mod tests {
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert!(value["status"].get("message").is_none());
         assert_eq!(value["artifacts"][0]["artifactId"], "response");
-        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 1);
+        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 2);
         assert_eq!(value["artifacts"][0]["parts"][0]["text"], "assistant reply");
+        assert_eq!(value["artifacts"][0]["parts"][1]["data"]["answer"], 42);
+        assert!(value["artifacts"][0]["parts"][1]["data"]
+            .get("data")
+            .is_none());
         assert!(value["artifacts"][0]["parts"][0].get("content").is_none());
 
         let list = router
