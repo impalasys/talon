@@ -434,6 +434,31 @@ fn parse_json_field(value: &str) -> serde_json::Value {
     }
 }
 
+fn rest_grpc_error_details(headers: &reqwest::header::HeaderMap) -> String {
+    let grpc_status = headers
+        .get("grpc-status")
+        .and_then(|value| value.to_str().ok())
+        .filter(|value| !value.trim().is_empty());
+    let grpc_message = headers
+        .get("grpc-message")
+        .and_then(|value| value.to_str().ok())
+        .filter(|value| !value.trim().is_empty())
+        .map(|value| {
+            urlencoding::decode(value)
+                .map(|decoded| decoded.into_owned())
+                .unwrap_or_else(|_| value.to_string())
+        });
+
+    match (grpc_status, grpc_message.as_deref()) {
+        (Some(status), Some(message)) => {
+            format!(" grpc-status={} grpc-message={}", status, message)
+        }
+        (Some(status), None) => format!(" grpc-status={}", status),
+        (None, Some(message)) => format!(" grpc-message={}", message),
+        (None, None) => String::new(),
+    }
+}
+
 async fn rest_request_json(
     cli: &Cli,
     method: reqwest::Method,
@@ -453,17 +478,19 @@ async fn rest_request_json(
         .await
         .with_context(|| format!("Failed to call REST endpoint {}", url))?;
     let status = response.status();
+    let headers = response.headers().clone();
     let text = response
         .text()
         .await
         .with_context(|| format!("Failed to read REST response body from {}", url))?;
     if !status.is_success() {
         anyhow::bail!(
-            "REST {} {} failed: status={} body={}",
+            "REST {} {} failed: status={} body={}{}",
             path,
             url,
             status,
-            text.trim()
+            text.trim(),
+            rest_grpc_error_details(&headers)
         );
     }
     if text.trim().is_empty() {
@@ -1505,17 +1532,19 @@ async fn rest_stream_workflow_events(
         .await
         .with_context(|| format!("Failed to call REST endpoint {}", url))?;
     let status = response.status();
+    let headers = response.headers().clone();
     if !status.is_success() {
         let text = response
             .text()
             .await
             .with_context(|| format!("Failed to read REST response body from {}", url))?;
         anyhow::bail!(
-            "REST {} {} failed: status={} body={}",
+            "REST {} {} failed: status={} body={}{}",
             path,
             url,
             status,
-            text.trim()
+            text.trim(),
+            rest_grpc_error_details(&headers)
         );
     }
 
@@ -3187,7 +3216,7 @@ mod tests {
     };
     use axum::{
         extract::{Path as AxumPath, State},
-        http::StatusCode,
+        http::{HeaderMap, StatusCode},
         routing::{delete, get, post},
         Json, Router,
     };
@@ -5839,6 +5868,20 @@ mod tests {
             .route(
                 "/fail",
                 post(|| async { (StatusCode::BAD_REQUEST, "broken request") }),
+            )
+            .route(
+                "/grpc-fail",
+                post(|| async {
+                    let mut headers = HeaderMap::new();
+                    headers.insert("grpc-status", "3".parse().unwrap());
+                    headers.insert(
+                        "grpc-message",
+                        "Namespace%20%27chatgpt-app%27%20does%20not%20exist."
+                            .parse()
+                            .unwrap(),
+                    );
+                    (StatusCode::BAD_REQUEST, headers, "")
+                }),
             );
 
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -5877,6 +5920,22 @@ mod tests {
         .to_string();
         assert!(fail_err.contains("status=400 Bad Request"));
         assert!(fail_err.contains("broken request"));
+
+        let grpc_fail_err = rest_request_json(
+            &cli,
+            reqwest::Method::POST,
+            "/grpc-fail",
+            Some(json!({ "x": 1 })),
+        )
+        .await
+        .unwrap_err()
+        .to_string();
+        assert!(grpc_fail_err.contains("status=400 Bad Request"));
+        assert!(grpc_fail_err.contains("grpc-status=3"));
+        assert!(
+            grpc_fail_err.contains("grpc-message=Namespace 'chatgpt-app' does not exist."),
+            "{grpc_fail_err}"
+        );
 
         server.abort();
     }
