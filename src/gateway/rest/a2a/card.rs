@@ -65,6 +65,8 @@ pub(super) struct AgentCardRoute {
 }
 
 pub(super) fn scheme_from_headers(headers: &HeaderMap) -> &'static str {
+    // Deployment must ensure untrusted x-forwarded-* headers are stripped before requests reach
+    // the gateway. See docs/operations/deployment-model.md.
     headers
         .get("x-forwarded-proto")
         .and_then(|value| value.to_str().ok())

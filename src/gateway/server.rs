@@ -862,6 +862,15 @@ mod tests {
                         payload_json: String::new(),
                         created_at: session.last_active,
                         object: None,
+                    },
+                    crate::gateway::rpc::models::SessionMessagePart {
+                        id: "000002".to_string(),
+                        part_type: 999,
+                        content: String::new(),
+                        name: "structured".to_string(),
+                        payload_json: r#"{"answer":42}"#.to_string(),
+                        created_at: session.last_active,
+                        object: None,
                     }],
                 }
                 .encode_to_vec(),
@@ -890,11 +899,12 @@ mod tests {
         assert_eq!(value["status"]["state"], "TASK_STATE_COMPLETED");
         assert!(value["status"].get("message").is_none());
         assert_eq!(value["artifacts"][0]["artifactId"], "response");
-        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 1);
+        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 2);
         assert_eq!(value["artifacts"][0]["parts"][0]["text"], "assistant reply");
+        assert_eq!(value["artifacts"][0]["parts"][1]["data"]["answer"], 42);
         assert_eq!(value["history"][0]["role"], "ROLE_USER");
         assert_eq!(value["history"][1]["role"], "ROLE_AGENT");
-        assert_eq!(value["history"][1]["parts"].as_array().unwrap().len(), 1);
+        assert_eq!(value["history"][1]["parts"].as_array().unwrap().len(), 2);
 
         let get_v1_task = router
             .clone()
@@ -915,8 +925,12 @@ mod tests {
         let value: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert!(value["status"].get("message").is_none());
         assert_eq!(value["artifacts"][0]["artifactId"], "response");
-        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 1);
+        assert_eq!(value["artifacts"][0]["parts"].as_array().unwrap().len(), 2);
         assert_eq!(value["artifacts"][0]["parts"][0]["text"], "assistant reply");
+        assert_eq!(value["artifacts"][0]["parts"][1]["data"]["answer"], 42);
+        assert!(value["artifacts"][0]["parts"][1]["data"]
+            .get("data")
+            .is_none());
         assert!(value["artifacts"][0]["parts"][0].get("content").is_none());
 
         let list = router

@@ -739,7 +739,7 @@ fn rest_v1_part_value(part: Value) -> Value {
     match part {
         Value::Object(mut object) => {
             if let Some(data) = object.remove("data") {
-                object.insert("data".to_string(), json!({ "data": data }));
+                object.insert("data".to_string(), data);
             }
             Value::Object(object)
         }

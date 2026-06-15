@@ -637,8 +637,9 @@ pub(super) async fn wait_for_a2a_task(
     let deadline = Instant::now() + A2A_BLOCKING_TIMEOUT;
     loop {
         let task = load_a2a_task_for_session(gateway, route, session_id, task_id).await?;
+        let state = task.status.state;
         let terminal = matches!(
-            task.status.state,
+            state,
             "TASK_STATE_COMPLETED"
                 | "TASK_STATE_FAILED"
                 | "TASK_STATE_CANCELED"
@@ -648,7 +649,7 @@ pub(super) async fn wait_for_a2a_task(
             .history
             .iter()
             .any(|message| message.role == "ROLE_AGENT");
-        if terminal && has_agent_message {
+        if terminal && (state != "TASK_STATE_COMPLETED" || has_agent_message) {
             return Ok(task);
         }
         if Instant::now() >= deadline {
