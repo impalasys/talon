@@ -169,7 +169,9 @@ async def test_upstream_a2a_sdk_can_discover_send_stream_and_read_task(
     create_a2a_fixture(namespace, agent_name, tmp_path)
 
     agent_card_url = f"http://localhost:50053/a2a/{namespace}/{agent_name}/agent-card.json"
-    async with httpx.AsyncClient(timeout=90.0) as http_client:
+    async with httpx.AsyncClient(
+        timeout=90.0, headers={"x-forwarded-proto": "http"}
+    ) as http_client:
         resolver = card_resolver(http_client, agent_card_url)
         card = await resolver.get_agent_card()
 
