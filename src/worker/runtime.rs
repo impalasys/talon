@@ -211,10 +211,11 @@ impl AgentRuntime {
             }
             reg.register_mcp_tools(&server_config.server_name, accepted_tools);
         }
+        let effective_skills =
+            crate::skills::namespace::load_effective_skills(cp.kv.clone(), ns).await?;
+        crate::native_tools::register_skill_tools(&mut reg, &effective_skills);
         let registry = Arc::new(tokio::sync::RwLock::new(reg));
-        let skill_context = crate::skills::namespace::format_skill_context(
-            &crate::skills::namespace::load_effective_skills(cp.kv.clone(), ns).await?,
-        );
+        let skill_context = crate::skills::namespace::format_skill_catalog(&effective_skills);
 
         // 5. Build executor
         let executor = AgentExecutor::new_with_session(
@@ -970,7 +971,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_runtime_injects_inherited_skills_without_registering_skill_tools() {
+    async fn agent_runtime_injects_skill_catalog_and_registers_activation_tool() {
         let kv = Arc::new(MockKvStore::default());
         let cp = control_plane(kv.clone());
         let config = runtime_config();
@@ -981,6 +982,7 @@ mod tests {
             system_prompt: "assist".to_string(),
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::new(),
+            a2a: None,
         };
 
         kv.set_msg(
@@ -1032,15 +1034,60 @@ mod tests {
         let assembled = runtime.executor.assembler.assemble().await.unwrap();
         let tools = runtime.executor.registry.read().await.to_provider_tools();
 
-        assert!(assembled.contains("# INHERITED SKILLS"));
+        assert!(assembled.contains("# AVAILABLE SKILLS"));
         assert!(assembled.contains("Skill: review"));
         assert!(assembled.contains("Source namespace: acme:team"));
-        assert!(assembled.contains("child instructions"));
         assert!(assembled.contains("Skill: release"));
-        assert!(assembled.contains("release instructions"));
+        assert!(assembled.contains("Write release notes"));
+        assert!(!assembled.contains("child instructions"));
+        assert!(!assembled.contains("release instructions"));
         assert!(!assembled.contains("parent instructions"));
+        assert!(tools
+            .iter()
+            .any(|tool| tool.name == crate::native_tools::ACTIVATE_SKILL_TOOL));
         assert!(!tools.iter().any(|tool| tool.name == "review"));
         assert!(!tools.iter().any(|tool| tool.name == "release"));
+    }
+
+    #[tokio::test]
+    async fn agent_runtime_omits_activation_tool_without_skills() {
+        let kv = Arc::new(MockKvStore::default());
+        let cp = control_plane(kv.clone());
+        let config = runtime_config();
+        let registry = crate::worker::mcp_registry::McpRegistry::new();
+
+        kv.set_msg(
+            &crate::control::keys::agent("acme:team", "writer"),
+            &models::Agent {
+                name: "writer".to_string(),
+                ns: "acme:team".to_string(),
+                definition: None,
+                effective_spec: Some(manifests::AgentSpec {
+                    features: Vec::new(),
+                    model_policy: None,
+                    system_prompt: "assist".to_string(),
+                    mcp_server_refs: Vec::new(),
+                    capabilities: HashMap::new(),
+                    a2a: None,
+                }),
+                template_deps: Vec::new(),
+                labels: HashMap::new(),
+            },
+        )
+        .await
+        .unwrap();
+
+        let runtime =
+            AgentRuntime::build("acme:team", "writer", "session-1", &cp, &config, &registry)
+                .await
+                .unwrap();
+        let assembled = runtime.executor.assembler.assemble().await.unwrap();
+        let tools = runtime.executor.registry.read().await.to_provider_tools();
+
+        assert!(!assembled.contains("# AVAILABLE SKILLS"));
+        assert!(!tools
+            .iter()
+            .any(|tool| tool.name == crate::native_tools::ACTIVATE_SKILL_TOOL));
     }
 
     #[tokio::test]

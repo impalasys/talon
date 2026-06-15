@@ -54,19 +54,18 @@ pub async fn load_effective_skills(
     Ok(skills)
 }
 
-pub fn format_skill_context(skills: &[manifests::Skill]) -> String {
+pub fn format_skill_catalog(skills: &[manifests::Skill]) -> String {
     let mut formatted_skills = Vec::new();
 
     for skill in skills {
-        let Some(spec) = skill.spec.as_ref() else {
+        let Some(spec) = valid_skill_spec(skill) else {
             continue;
         };
         formatted_skills.push(format!(
-            "## Skill: {}\nSource namespace: {}\nDescription: {}\n\n{}",
+            "## Skill: {}\nSource namespace: {}\nDescription: {}",
             skill_name(skill),
             skill_namespace(skill),
-            spec.description.trim(),
-            spec.instructions.trim()
+            spec.description.trim()
         ));
     }
 
@@ -74,15 +73,54 @@ pub fn format_skill_context(skills: &[manifests::Skill]) -> String {
         return String::new();
     }
 
-    let mut output = String::from("# INHERITED SKILLS\n");
+    let mut output = String::from("# AVAILABLE SKILLS\n");
     output.push_str(
-        "These shared namespace skills are available as reusable prompt guidance. Follow any relevant skill instructions for this task.\n\n",
+        "These shared namespace skills are available as reusable prompt guidance. Call the activate_skill tool to load full instructions before using a relevant skill.\n\n",
     );
     output.push_str(&formatted_skills.join("\n\n"));
     output
 }
 
-fn skill_name(skill: &manifests::Skill) -> String {
+pub fn format_activated_skill(skill: &manifests::Skill) -> Option<String> {
+    let spec = valid_skill_spec(skill)?;
+    Some(format!(
+        "# ACTIVATED SKILL: {}\nSource namespace: {}\nDescription: {}\n\n{}",
+        skill_name(skill),
+        skill_namespace(skill),
+        spec.description.trim(),
+        spec.instructions.trim()
+    ))
+}
+
+pub fn find_effective_skill<'a>(
+    skills: &'a [manifests::Skill],
+    name: &str,
+) -> Option<&'a manifests::Skill> {
+    skills
+        .iter()
+        .find(|skill| valid_skill_spec(skill).is_some() && skill_name(skill) == name)
+}
+
+pub fn effective_skill_names(skills: &[manifests::Skill]) -> Vec<String> {
+    skills
+        .iter()
+        .filter(|skill| valid_skill_spec(skill).is_some())
+        .map(skill_name)
+        .collect()
+}
+
+fn valid_skill_spec(skill: &manifests::Skill) -> Option<&manifests::SkillSpec> {
+    let spec = skill.spec.as_ref()?;
+    if skill_name(skill).trim().is_empty()
+        || spec.description.trim().is_empty()
+        || spec.instructions.trim().is_empty()
+    {
+        return None;
+    }
+    Some(spec)
+}
+
+pub fn skill_name(skill: &manifests::Skill) -> String {
     skill
         .metadata
         .as_ref()
@@ -90,7 +128,7 @@ fn skill_name(skill: &manifests::Skill) -> String {
         .unwrap_or_default()
 }
 
-fn skill_namespace(skill: &manifests::Skill) -> String {
+pub fn skill_namespace(skill: &manifests::Skill) -> String {
     skill
         .metadata
         .as_ref()
@@ -150,15 +188,23 @@ mod tests {
         .unwrap();
 
         let skills = load_effective_skills(kv, "acme:team:agent").await.unwrap();
-        let rendered = format_skill_context(&skills);
+        let rendered = format_skill_catalog(&skills);
 
         assert_eq!(skills.len(), 2);
         assert!(rendered.contains("Skill: release"));
         assert!(rendered.contains("Skill: review"));
         assert!(rendered.contains("Source namespace: acme:team"));
-        assert!(rendered.contains("child"));
+        assert!(rendered.contains("review description"));
+        assert!(!rendered.contains("child"));
         assert!(!rendered.contains("parent"));
         assert!(!rendered.contains("sibling"));
+
+        let activated = format_activated_skill(find_effective_skill(&skills, "review").unwrap())
+            .expect("valid skill should activate");
+        assert!(activated.contains("ACTIVATED SKILL: review"));
+        assert!(activated.contains("Source namespace: acme:team"));
+        assert!(activated.contains("child"));
+        assert!(!activated.contains("parent"));
     }
 
     #[tokio::test]
@@ -181,10 +227,23 @@ mod tests {
     }
 
     #[test]
-    fn format_skill_context_omits_header_when_no_valid_skills_render() {
+    fn format_skill_catalog_omits_header_when_no_valid_skills_render() {
         let mut invalid = skill("acme", "empty", "ignored");
         invalid.spec = None;
 
-        assert_eq!(format_skill_context(&[invalid]), "");
+        assert_eq!(format_skill_catalog(&[invalid]), "");
+    }
+
+    #[test]
+    fn skill_catalog_and_activation_skip_empty_fields() {
+        let empty_instructions = skill("acme", "empty", "");
+
+        assert_eq!(format_skill_catalog(&[empty_instructions.clone()]), "");
+        assert_eq!(
+            effective_skill_names(&[empty_instructions.clone()]),
+            Vec::<String>::new()
+        );
+        assert!(find_effective_skill(&[empty_instructions.clone()], "empty").is_none());
+        assert_eq!(format_activated_skill(&empty_instructions), None);
     }
 }
