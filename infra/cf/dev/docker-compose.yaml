@@ -79,7 +79,10 @@ services:
   envoy:
     build:
       context: ../../..
-      dockerfile: infra/cf/dockerfiles/cloudflare-envoy.Dockerfile
+      dockerfile: dockerfiles/envoy.Dockerfile
+    environment:
+      TALON_ENVOY_GATEWAY_GRPC_HOST: gateway.internal
+      TALON_ENVOY_GATEWAY_HTTP_HOST: gateway.internal
     depends_on:
       gateway:
         condition: service_started

@@ -48,12 +48,12 @@ export TALON_CF_DEV_ENVOY_URL="${TALON_CF_DEV_ENVOY_URL:-http://envoy:8081}"
 
 export TALON_CF_DEV_RUNTIME_IMAGE="${TALON_CF_DEV_RUNTIME_IMAGE:-../../../dockerfiles/oss-runtime.Dockerfile}"
 export TALON_CF_DEV_RUNTIME_BUILD_CONTEXT="${TALON_CF_DEV_RUNTIME_BUILD_CONTEXT:-../../../}"
-export TALON_CF_DEV_ENVOY_IMAGE="${TALON_CF_DEV_ENVOY_IMAGE:-../dockerfiles/cloudflare-envoy.Dockerfile}"
+export TALON_CF_DEV_ENVOY_IMAGE="${TALON_CF_DEV_ENVOY_IMAGE:-../../../dockerfiles/envoy.Dockerfile}"
 export TALON_CF_DEV_ENVOY_BUILD_CONTEXT="${TALON_CF_DEV_ENVOY_BUILD_CONTEXT:-../../../}"
 
-export TALON_CF_PROD_IMAGE_TAG="${TALON_CF_PROD_IMAGE_TAG:-sha-REPLACE_ME}"
+export TALON_CF_PROD_IMAGE_TAG="${TALON_CF_PROD_IMAGE_TAG:-latest}"
 export TALON_CF_PROD_RUNTIME_IMAGE="${TALON_CF_PROD_RUNTIME_IMAGE:-ghcr.io/impalasys/talon-runtime:${TALON_CF_PROD_IMAGE_TAG}}"
-export TALON_CF_PROD_ENVOY_IMAGE="${TALON_CF_PROD_ENVOY_IMAGE:-ghcr.io/impalasys/talon-envoy-cloudflare:${TALON_CF_PROD_IMAGE_TAG}}"
+export TALON_CF_PROD_ENVOY_IMAGE="${TALON_CF_PROD_ENVOY_IMAGE:-ghcr.io/impalasys/talon-envoy:${TALON_CF_PROD_IMAGE_TAG}}"
 
 for config_path in "${TALON_CF_DEV_CONFIG_YAML}" "${TALON_CF_PROD_CONFIG_YAML}"; do
   if [[ ! -f "${config_path}" ]]; then

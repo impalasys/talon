@@ -147,6 +147,9 @@ services:
     build:
       context: .
       dockerfile: dockerfiles/envoy.Dockerfile
+    environment:
+      TALON_ENVOY_GATEWAY_GRPC_HOST: gateway
+      TALON_ENVOY_GATEWAY_HTTP_HOST: gateway
     depends_on:
       gateway:
         condition: service_healthy

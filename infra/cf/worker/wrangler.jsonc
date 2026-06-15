@@ -94,15 +94,15 @@
   "containers": [
     {
       "class_name": "GatewayContainer",
-      "image": "ghcr.io/impalasys/talon-runtime:sha-REPLACE_ME"
+      "image": "ghcr.io/impalasys/talon-runtime:latest"
     },
     {
       "class_name": "WorkerContainer",
-      "image": "ghcr.io/impalasys/talon-runtime:sha-REPLACE_ME"
+      "image": "ghcr.io/impalasys/talon-runtime:latest"
     },
     {
       "class_name": "EnvoyContainer",
-      "image": "ghcr.io/impalasys/talon-envoy-cloudflare:sha-REPLACE_ME"
+      "image": "ghcr.io/impalasys/talon-envoy:latest"
     }
   ]
 }

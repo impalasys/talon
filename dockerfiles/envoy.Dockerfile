@@ -22,4 +22,9 @@ RUN protoc \
 FROM envoyproxy/envoy:v1.33-latest
 
 COPY --from=descriptor /tmp/talon_gateway_proto-descriptor-set.proto.bin /etc/envoy/talon_gateway_proto-descriptor-set.proto.bin
-COPY envoy.yaml /etc/envoy/envoy.yaml
+COPY dockerfiles/envoy.yaml.template /etc/envoy/envoy.yaml.template
+COPY dockerfiles/talon-envoy-entrypoint.sh /usr/local/bin/talon-envoy-entrypoint
+RUN chmod +x /usr/local/bin/talon-envoy-entrypoint
+
+ENTRYPOINT ["/usr/local/bin/talon-envoy-entrypoint"]
+CMD ["envoy", "-c", "/tmp/envoy.yaml"]
