@@ -213,6 +213,10 @@ export class WorkerContainer extends Container<Env> {
 export class EnvoyContainer extends Container<Env> {
   defaultPort = 8081;
   enableInternet = false;
+  envVars = {
+    TALON_ENVOY_GATEWAY_GRPC_HOST: "gateway.internal",
+    TALON_ENVOY_GATEWAY_HTTP_HOST: "gateway.internal",
+  };
   static outboundByHost = outboundByHost;
 }
 

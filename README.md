@@ -226,14 +226,7 @@ docker build -f dockerfiles/oss-ui.Dockerfile .
 To validate the Envoy image:
 
 ```bash
-protoc -I. -Iproto -Ithird_party/googleapis \
-  --include_imports \
-  --include_source_info \
-  --experimental_allow_proto3_optional \
-  --descriptor_set_out=talon_gateway_proto-descriptor-set.proto.bin \
-  proto/gateway.proto
-
-docker build -f dockerfiles/envoy-cloudrun.Dockerfile .
+docker build -f dockerfiles/envoy.Dockerfile .
 ```
 
 ## CI artifacts
@@ -241,7 +234,7 @@ docker build -f dockerfiles/envoy-cloudrun.Dockerfile .
 GitHub CI validates Cargo, runtime image, Envoy image, and UI builds. On pushes to `main`, CI publishes Docker images to GHCR:
 
 - `ghcr.io/impalasys/talon-runtime:latest`
-- `ghcr.io/impalasys/talon-envoy-cloudrun:latest`
+- `ghcr.io/impalasys/talon-envoy:latest`
 - `ghcr.io/impalasys/talon-ui:latest`
 
 Each image is also tagged as `sha-<commit>` for immutable references from downstream projects.

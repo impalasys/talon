@@ -79,20 +79,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Install protobuf compiler
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends protobuf-compiler
-
-      - name: Generate descriptor set
-        run: |
-          protoc -I. -Iproto -Ithird_party/googleapis \
-            --include_imports \
-            --include_source_info \
-            --experimental_allow_proto3_optional \
-            --descriptor_set_out=talon_gateway_proto-descriptor-set.proto.bin \
-            proto/gateway.proto
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -108,12 +94,12 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: dockerfiles/envoy-cloudrun.Dockerfile
+          file: dockerfiles/envoy.Dockerfile
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           load: false
           tags: |
-            ghcr.io/impalasys/talon-envoy-cloudrun:latest
-            ghcr.io/impalasys/talon-envoy-cloudrun:sha-${{ github.sha }}
+            ghcr.io/impalasys/talon-envoy:latest
+            ghcr.io/impalasys/talon-envoy:sha-${{ github.sha }}
 
   ui:
     name: UI

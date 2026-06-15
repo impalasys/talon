@@ -8,7 +8,6 @@ Cloudflare-native deployment assets for Talon. This target runs Talon's Rust gat
 infra/cf/
   README.md
   talon.yaml                         # production Talon runtime config, rendered into worker/wrangler.jsonc
-  envoy.yaml                         # Envoy config for the Cloudflare Envoy container
   bindings/                          # @impalasys/talon-cf-bindings package
     src/
       d1.ts                          # generic D1 SQL execute bridge
@@ -23,12 +22,13 @@ infra/cf/
     Dockerfile                       # Node/Wrangler/Docker CLI tooling image
     docker-compose.yaml              # local E2E/dev stack
     wrangler.jsonc                   # local Wrangler config using Dockerfile-built containers
-  dockerfiles/
-    cloudflare-envoy.Dockerfile      # Cloudflare-specific Envoy image
   tf/                                # reusable Terraform module for Cloudflare backing resources
 ```
 
 The generic Talon runtime image is still built from `dockerfiles/oss-runtime.Dockerfile`. That image contains both `talon-server` and `talon-worker`. Cloudflare-specific Talon config is passed through `TALON_CONFIG_INLINE_YAML` rather than baked into the image filesystem.
+Envoy uses the shared `dockerfiles/envoy.Dockerfile` image. The image renders
+its config at startup from `dockerfiles/envoy.yaml.template`; Cloudflare sets
+the gateway upstream host to `gateway.internal` through container env vars.
 
 ## Architecture
 
@@ -316,14 +316,20 @@ npx wrangler secret put TALON_SCHEDULER_AUTH_TOKEN --config wrangler.jsonc
 npx wrangler deploy --config wrangler.jsonc
 ```
 
-Production containers should use pinned images from CI, not local Dockerfile builds. The checked-in `worker/wrangler.jsonc` currently uses replacement GHCR tags as placeholders:
+Production containers use CI-published GHCR images, not local Dockerfile
+builds. The checked-in `worker/wrangler.jsonc` defaults to `latest` for the
+simplest manual deploy path:
 
 ```text
-ghcr.io/impalasys/talon-runtime:sha-REPLACE_ME
-ghcr.io/impalasys/talon-envoy-cloudflare:sha-REPLACE_ME
+ghcr.io/impalasys/talon-runtime:latest
+ghcr.io/impalasys/talon-envoy:latest
 ```
 
-Before production deploys, set `TALON_CF_PROD_IMAGE_TAG`, `TALON_CF_PROD_RUNTIME_IMAGE`, or `TALON_CF_PROD_ENVOY_IMAGE`, then run `infra/cf/gen-wrangler.sh`. Use immutable `sha-*` tags or image digests, set `TALON_SCHEDULER_AUTH_TOKEN` with `wrangler secret put`, and ensure the D1 database ID matches the Terraform-created D1 database.
+For repeatable production deploys, set `TALON_CF_PROD_IMAGE_TAG`,
+`TALON_CF_PROD_RUNTIME_IMAGE`, or `TALON_CF_PROD_ENVOY_IMAGE`, then run
+`infra/cf/gen-wrangler.sh`. Prefer immutable `sha-*` tags or image digests for
+promotions, set `TALON_SCHEDULER_AUTH_TOKEN` with `wrangler secret put`, and
+ensure the D1 database ID matches the Terraform-created D1 database.
 
 Dry-run a deploy without publishing:
 
@@ -404,7 +410,7 @@ The generated configs should not be hand-edited for values owned by the script. 
 ```bash
 TALON_CF_D1_DATABASE_ID="<real-d1-id>" \
 TALON_CF_PROD_RUNTIME_IMAGE="ghcr.io/impalasys/talon-runtime:sha-<commit>" \
-TALON_CF_PROD_ENVOY_IMAGE="ghcr.io/impalasys/talon-envoy-cloudflare:sha-<commit>" \
+TALON_CF_PROD_ENVOY_IMAGE="ghcr.io/impalasys/talon-envoy:sha-<commit>" \
 TALON_CF_GATEWAY_CONTAINER_COUNT=2 \
 TALON_CF_WORKER_CONTAINER_COUNT=8 \
 infra/cf/gen-wrangler.sh
