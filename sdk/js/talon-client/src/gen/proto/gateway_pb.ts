@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { AgentDefinition, AgentTemplate, Knowledge as Knowledge$1, McpServer, McpServerBinding } from "./manifests_pb.js";
+import { AgentDefinition, AgentTemplate, Knowledge as Knowledge$1, McpServer, McpServerBinding, Skill } from "./manifests_pb.js";
 import { Agent, Channel, ChannelMessage, ChannelSubscription, Knowledge, KnowledgeSearchResult, Schedule, SessionMessage, Workflow, WorkflowRun, WorkflowStepRun } from "./models_pb.js";
 
 /**
@@ -1552,6 +1552,283 @@ export class ListNamespaceKnowledgeResponse extends Message<ListNamespaceKnowled
 
   static equals(a: ListNamespaceKnowledgeResponse | PlainMessage<ListNamespaceKnowledgeResponse> | undefined, b: ListNamespaceKnowledgeResponse | PlainMessage<ListNamespaceKnowledgeResponse> | undefined): boolean {
     return proto3.util.equals(ListNamespaceKnowledgeResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.CreateNamespaceSkillRequest
+ */
+export class CreateNamespaceSkillRequest extends Message<CreateNamespaceSkillRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: talon.manifests.Skill skill = 2;
+   */
+  skill?: Skill;
+
+  constructor(data?: PartialMessage<CreateNamespaceSkillRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.CreateNamespaceSkillRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "skill", kind: "message", T: Skill },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateNamespaceSkillRequest {
+    return new CreateNamespaceSkillRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateNamespaceSkillRequest {
+    return new CreateNamespaceSkillRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateNamespaceSkillRequest {
+    return new CreateNamespaceSkillRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: CreateNamespaceSkillRequest | PlainMessage<CreateNamespaceSkillRequest> | undefined, b: CreateNamespaceSkillRequest | PlainMessage<CreateNamespaceSkillRequest> | undefined): boolean {
+    return proto3.util.equals(CreateNamespaceSkillRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.GetNamespaceSkillRequest
+ */
+export class GetNamespaceSkillRequest extends Message<GetNamespaceSkillRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  constructor(data?: PartialMessage<GetNamespaceSkillRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.GetNamespaceSkillRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetNamespaceSkillRequest {
+    return new GetNamespaceSkillRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetNamespaceSkillRequest {
+    return new GetNamespaceSkillRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetNamespaceSkillRequest {
+    return new GetNamespaceSkillRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: GetNamespaceSkillRequest | PlainMessage<GetNamespaceSkillRequest> | undefined, b: GetNamespaceSkillRequest | PlainMessage<GetNamespaceSkillRequest> | undefined): boolean {
+    return proto3.util.equals(GetNamespaceSkillRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ListNamespaceSkillsRequest
+ */
+export class ListNamespaceSkillsRequest extends Message<ListNamespaceSkillsRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  constructor(data?: PartialMessage<ListNamespaceSkillsRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListNamespaceSkillsRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNamespaceSkillsRequest {
+    return new ListNamespaceSkillsRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNamespaceSkillsRequest {
+    return new ListNamespaceSkillsRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNamespaceSkillsRequest {
+    return new ListNamespaceSkillsRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListNamespaceSkillsRequest | PlainMessage<ListNamespaceSkillsRequest> | undefined, b: ListNamespaceSkillsRequest | PlainMessage<ListNamespaceSkillsRequest> | undefined): boolean {
+    return proto3.util.equals(ListNamespaceSkillsRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.DeleteNamespaceSkillRequest
+ */
+export class DeleteNamespaceSkillRequest extends Message<DeleteNamespaceSkillRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name = "";
+
+  constructor(data?: PartialMessage<DeleteNamespaceSkillRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.DeleteNamespaceSkillRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteNamespaceSkillRequest {
+    return new DeleteNamespaceSkillRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillRequest {
+    return new DeleteNamespaceSkillRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillRequest {
+    return new DeleteNamespaceSkillRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeleteNamespaceSkillRequest | PlainMessage<DeleteNamespaceSkillRequest> | undefined, b: DeleteNamespaceSkillRequest | PlainMessage<DeleteNamespaceSkillRequest> | undefined): boolean {
+    return proto3.util.equals(DeleteNamespaceSkillRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.DeleteNamespaceSkillResponse
+ */
+export class DeleteNamespaceSkillResponse extends Message<DeleteNamespaceSkillResponse> {
+  /**
+   * @generated from field: bool success = 1;
+   */
+  success = false;
+
+  constructor(data?: PartialMessage<DeleteNamespaceSkillResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.DeleteNamespaceSkillResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteNamespaceSkillResponse {
+    return new DeleteNamespaceSkillResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillResponse {
+    return new DeleteNamespaceSkillResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillResponse {
+    return new DeleteNamespaceSkillResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeleteNamespaceSkillResponse | PlainMessage<DeleteNamespaceSkillResponse> | undefined, b: DeleteNamespaceSkillResponse | PlainMessage<DeleteNamespaceSkillResponse> | undefined): boolean {
+    return proto3.util.equals(DeleteNamespaceSkillResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.NamespaceSkillResponse
+ */
+export class NamespaceSkillResponse extends Message<NamespaceSkillResponse> {
+  /**
+   * @generated from field: talon.manifests.Skill skill = 1;
+   */
+  skill?: Skill;
+
+  constructor(data?: PartialMessage<NamespaceSkillResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.NamespaceSkillResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "skill", kind: "message", T: Skill },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NamespaceSkillResponse {
+    return new NamespaceSkillResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NamespaceSkillResponse {
+    return new NamespaceSkillResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NamespaceSkillResponse {
+    return new NamespaceSkillResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: NamespaceSkillResponse | PlainMessage<NamespaceSkillResponse> | undefined, b: NamespaceSkillResponse | PlainMessage<NamespaceSkillResponse> | undefined): boolean {
+    return proto3.util.equals(NamespaceSkillResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ListNamespaceSkillsResponse
+ */
+export class ListNamespaceSkillsResponse extends Message<ListNamespaceSkillsResponse> {
+  /**
+   * @generated from field: repeated talon.manifests.Skill skills = 1;
+   */
+  skills: Skill[] = [];
+
+  constructor(data?: PartialMessage<ListNamespaceSkillsResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListNamespaceSkillsResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "skills", kind: "message", T: Skill, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNamespaceSkillsResponse {
+    return new ListNamespaceSkillsResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNamespaceSkillsResponse {
+    return new ListNamespaceSkillsResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNamespaceSkillsResponse {
+    return new ListNamespaceSkillsResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListNamespaceSkillsResponse | PlainMessage<ListNamespaceSkillsResponse> | undefined, b: ListNamespaceSkillsResponse | PlainMessage<ListNamespaceSkillsResponse> | undefined): boolean {
+    return proto3.util.equals(ListNamespaceSkillsResponse, a, b);
   }
 }
 

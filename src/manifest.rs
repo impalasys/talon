@@ -318,6 +318,22 @@ struct KnowledgeSpecManifest {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+struct SkillManifest {
+    api_version: String,
+    kind: String,
+    metadata: ObjectMetaManifest,
+    spec: SkillSpecManifest,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct SkillSpecManifest {
+    description: String,
+    instructions: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct ChannelManifest {
     api_version: String,
     kind: String,
@@ -581,6 +597,27 @@ pub fn parse_knowledge(yaml: &str) -> Result<manifests::Knowledge> {
     })
 }
 
+pub fn parse_skill(yaml: &str) -> Result<manifests::Skill> {
+    let skill: SkillManifest = serde_yaml::from_str(yaml).context("Failed to parse Skill YAML")?;
+
+    if skill.kind != "Skill" {
+        bail!("Expected kind 'Skill', got '{}'", skill.kind);
+    }
+    if skill.metadata.namespace.trim().is_empty() {
+        bail!("Skill metadata.namespace is required");
+    }
+
+    Ok(manifests::Skill {
+        api_version: skill.api_version,
+        kind: skill.kind,
+        metadata: Some(skill.metadata.into_proto()),
+        spec: Some(manifests::SkillSpec {
+            description: skill.spec.description,
+            instructions: skill.spec.instructions,
+        }),
+    })
+}
+
 pub fn parse_channel(yaml: &str) -> Result<models::Channel> {
     let channel: ChannelManifest =
         serde_yaml::from_str(yaml).context("Failed to parse Channel YAML")?;
@@ -801,6 +838,29 @@ pub fn render_knowledge_yaml(knowledge: &manifests::Knowledge) -> Result<String>
     };
 
     serde_yaml::to_string(&yaml_knowledge).context("Failed to serialize Knowledge to YAML")
+}
+
+pub fn render_skill_yaml(skill: &manifests::Skill) -> Result<String> {
+    let metadata = skill
+        .metadata
+        .as_ref()
+        .ok_or_else(|| anyhow!("Skill missing metadata"))?;
+    let spec = skill
+        .spec
+        .as_ref()
+        .ok_or_else(|| anyhow!("Skill missing spec"))?;
+
+    let yaml_skill = SkillManifest {
+        api_version: skill.api_version.clone(),
+        kind: skill.kind.clone(),
+        metadata: ObjectMetaManifest::from_proto(metadata),
+        spec: SkillSpecManifest {
+            description: spec.description.clone(),
+            instructions: spec.instructions.clone(),
+        },
+    };
+
+    serde_yaml::to_string(&yaml_skill).context("Failed to serialize Skill to YAML")
 }
 
 pub fn render_channel_yaml(channel: &models::Channel) -> Result<String> {
@@ -2088,6 +2148,26 @@ definition:
     }
 
     #[test]
+    fn parse_skill_rejects_missing_namespace() {
+        let error = parse_skill(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Skill
+metadata:
+  name: review
+spec:
+  description: Review code
+  instructions: Check tests before summarizing.
+"#,
+        )
+        .expect_err("missing namespace should fail");
+
+        assert!(error
+            .to_string()
+            .contains("Skill metadata.namespace is required"));
+    }
+
+    #[test]
     fn parse_namespace_rejects_nested_namespace_field() {
         let error = parse_namespace(
             r#"
@@ -2151,6 +2231,25 @@ spec:
         assert!(rendered.contains("kind: Knowledge"));
         assert!(rendered.contains("path: /docs/handbook"));
         assert!(rendered.contains("content: hello"));
+
+        let skill = parse_skill(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Skill
+metadata:
+  name: review
+  namespace: conic
+spec:
+  description: Review code changes
+  instructions: Check correctness and tests.
+"#,
+        )
+        .expect("skill manifest should parse");
+        let rendered = render_skill_yaml(&skill).expect("skill yaml should render");
+
+        assert!(rendered.contains("kind: Skill"));
+        assert!(rendered.contains("description: Review code changes"));
+        assert!(rendered.contains("instructions: Check correctness and tests."));
     }
 
     #[test]

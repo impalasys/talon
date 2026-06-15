@@ -362,6 +362,24 @@ pub struct KnowledgeSpec {
     pub content: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Skill {
+    #[prost(string, tag = "1")]
+    pub api_version: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "3")]
+    pub metadata: ::core::option::Option<ObjectMeta>,
+    #[prost(message, optional, tag = "4")]
+    pub spec: ::core::option::Option<SkillSpec>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SkillSpec {
+    #[prost(string, tag = "1")]
+    pub description: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub instructions: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MemoryProvider {
     #[prost(string, tag = "1")]
     pub api_version: ::prost::alloc::string::String,

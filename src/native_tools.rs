@@ -18,6 +18,30 @@ pub const UPDATE_SCHEDULE_TOOL: &str = "update_schedule";
 pub const DELETE_SCHEDULE_TOOL: &str = "delete_schedule";
 pub const CHANNEL_PUBLISH_TOOL: &str = "channel_publish";
 pub const CHANNEL_SKIP_REPLY_TOOL: &str = "channel_skip_reply";
+pub const ACTIVATE_SKILL_TOOL: &str = "activate_skill";
+
+pub fn register_skill_tools(registry: &mut ToolRegistry, skills: &[manifests::Skill]) {
+    let names = crate::skills::namespace::effective_skill_names(skills);
+    if names.is_empty() {
+        return;
+    }
+
+    registry.register_builtin(
+        ACTIVATE_SKILL_TOOL,
+        "Load the full instructions for an available namespace skill before applying it.",
+        json!({
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Available skill name to activate.",
+                    "enum": names
+                }
+            },
+            "required": ["name"]
+        }),
+    );
+}
 
 pub fn register_channel_tools(registry: &mut ToolRegistry) {
     registry.register_builtin(
@@ -157,6 +181,17 @@ pub async fn execute_tool_for_session(
     args: &Value,
 ) -> Result<Option<String>> {
     match name {
+        ACTIVATE_SKILL_TOOL => {
+            let skill_name = req_str(args, "name")?;
+            let skills =
+                crate::skills::namespace::load_effective_skills(cp.kv.clone(), current_namespace)
+                    .await?;
+            let skill = crate::skills::namespace::find_effective_skill(&skills, skill_name)
+                .ok_or_else(|| anyhow!("skill '{}' is not available", skill_name))?;
+            let activated = crate::skills::namespace::format_activated_skill(skill)
+                .ok_or_else(|| anyhow!("skill '{}' has no instructions", skill_name))?;
+            Ok(Some(activated))
+        }
         CHANNEL_PUBLISH_TOOL => {
             let content = req_str(args, "content")?;
             let message = crate::gateway::rpc::channels::publish_channel_message_from_session(
@@ -483,6 +518,7 @@ fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: 
 mod tests {
     use super::*;
     use crate::control::scheduler::{ScheduleWakeupRequest, ScheduledWakeup, SchedulerBackend};
+    use crate::control::KeyValueStore;
     use crate::test_support::{EmptyPubSub, MockKvStore};
     use std::sync::Arc;
     use tokio::sync::Mutex;
@@ -555,6 +591,23 @@ mod tests {
         .unwrap();
     }
 
+    fn skill(ns: &str, name: &str, description: &str, instructions: &str) -> manifests::Skill {
+        manifests::Skill {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Skill".to_string(),
+            metadata: Some(manifests::ObjectMeta {
+                name: name.to_string(),
+                namespace: ns.to_string(),
+                labels: HashMap::new(),
+                annotations: HashMap::new(),
+            }),
+            spec: Some(manifests::SkillSpec {
+                description: description.to_string(),
+                instructions: instructions.to_string(),
+            }),
+        }
+    }
+
     #[test]
     fn register_tools_respects_capabilities() {
         let mut registry = ToolRegistry::new();
@@ -565,6 +618,37 @@ mod tests {
         assert!(registry.get_tool(CREATE_SCHEDULE_TOOL).is_some());
         assert!(registry.get_tool(UPDATE_SCHEDULE_TOOL).is_none());
         assert!(registry.get_tool(DELETE_SCHEDULE_TOOL).is_none());
+    }
+
+    #[test]
+    fn register_skill_tools_uses_effective_skill_name_enum() {
+        let mut registry = ToolRegistry::new();
+        register_skill_tools(
+            &mut registry,
+            &[
+                skill("acme", "review", "Review code", "parent"),
+                skill("acme", "release", "Release notes", "release"),
+            ],
+        );
+
+        let tool = registry
+            .get_tool(ACTIVATE_SKILL_TOOL)
+            .expect("activation tool should be registered");
+        assert_eq!(
+            tool.input_schema["properties"]["name"]["enum"],
+            json!(["review", "release"])
+        );
+    }
+
+    #[test]
+    fn register_skill_tools_skips_empty_catalog() {
+        let mut registry = ToolRegistry::new();
+        let mut invalid = skill("acme", "review", "Review code", "parent");
+        invalid.spec = None;
+
+        register_skill_tools(&mut registry, &[invalid]);
+
+        assert!(registry.get_tool(ACTIVATE_SKILL_TOOL).is_none());
     }
 
     #[tokio::test]
@@ -584,6 +668,110 @@ mod tests {
         .unwrap_err();
 
         assert!(err.to_string().contains("agent does not have capability"));
+    }
+
+    #[tokio::test]
+    async fn activate_skill_returns_shadowed_effective_instructions() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        kv.set_msg(
+            &keys::skill("acme", "review"),
+            &skill("acme", "review", "Review code", "parent instructions"),
+        )
+        .await
+        .unwrap();
+        kv.set_msg(
+            &keys::skill("acme:team", "review"),
+            &skill(
+                "acme:team",
+                "review",
+                "Review code locally",
+                "child instructions",
+            ),
+        )
+        .await
+        .unwrap();
+
+        let activated = execute_tool(
+            &cp,
+            "acme:team",
+            "assistant",
+            &manifests::AgentSpec::default(),
+            ACTIVATE_SKILL_TOOL,
+            &json!({"name":"review"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        assert!(activated.contains("ACTIVATED SKILL: review"));
+        assert!(activated.contains("Source namespace: acme:team"));
+        assert!(activated.contains("child instructions"));
+        assert!(!activated.contains("parent instructions"));
+    }
+
+    #[tokio::test]
+    async fn activate_skill_skips_unreadable_records() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+        kv.set(&keys::skill("acme", "broken"), b"not-protobuf")
+            .await
+            .unwrap();
+        kv.set_msg(
+            &keys::skill("acme", "review"),
+            &skill("acme", "review", "Review code", "instructions"),
+        )
+        .await
+        .unwrap();
+
+        let activated = execute_tool(
+            &cp,
+            "acme",
+            "assistant",
+            &manifests::AgentSpec::default(),
+            ACTIVATE_SKILL_TOOL,
+            &json!({"name":"review"}),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+
+        assert!(activated.contains("instructions"));
+    }
+
+    #[tokio::test]
+    async fn activate_skill_reports_missing_or_invalid_name() {
+        let kv = Arc::new(MockKvStore::default());
+        let scheduler = Arc::new(MockScheduler::default());
+        let cp = control_plane(kv.clone(), scheduler);
+
+        let invalid = execute_tool(
+            &cp,
+            "acme",
+            "assistant",
+            &manifests::AgentSpec::default(),
+            ACTIVATE_SKILL_TOOL,
+            &json!({}),
+        )
+        .await
+        .unwrap_err();
+        assert!(invalid.to_string().contains("'name' is required"));
+
+        let missing = execute_tool(
+            &cp,
+            "acme",
+            "assistant",
+            &manifests::AgentSpec::default(),
+            ACTIVATE_SKILL_TOOL,
+            &json!({"name":"review"}),
+        )
+        .await
+        .unwrap_err();
+        assert!(missing
+            .to_string()
+            .contains("skill 'review' is not available"));
     }
 
     #[tokio::test]

@@ -221,6 +221,18 @@ message KnowledgeSpec {
   string content = 2;
 }
 
+message Skill {
+  string api_version = 1;
+  string kind = 2;
+  ObjectMeta metadata = 3;
+  SkillSpec spec = 4;
+}
+
+message SkillSpec {
+  string description = 1;
+  string instructions = 2;
+}
+
 // -----------------------------------------
 // Memory Provider
 // -----------------------------------------

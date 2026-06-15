@@ -86,6 +86,26 @@ class GatewayServiceStub(object):
                 request_serializer=proto_dot_gateway__pb2.DeleteNamespaceKnowledgeRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.DeleteNamespaceKnowledgeResponse.FromString,
                 _registered_method=True)
+        self.CreateNamespaceSkill = channel.unary_unary(
+                '/talon.gateway.GatewayService/CreateNamespaceSkill',
+                request_serializer=proto_dot_gateway__pb2.CreateNamespaceSkillRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.NamespaceSkillResponse.FromString,
+                _registered_method=True)
+        self.GetNamespaceSkill = channel.unary_unary(
+                '/talon.gateway.GatewayService/GetNamespaceSkill',
+                request_serializer=proto_dot_gateway__pb2.GetNamespaceSkillRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.NamespaceSkillResponse.FromString,
+                _registered_method=True)
+        self.ListNamespaceSkills = channel.unary_unary(
+                '/talon.gateway.GatewayService/ListNamespaceSkills',
+                request_serializer=proto_dot_gateway__pb2.ListNamespaceSkillsRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ListNamespaceSkillsResponse.FromString,
+                _registered_method=True)
+        self.DeleteNamespaceSkill = channel.unary_unary(
+                '/talon.gateway.GatewayService/DeleteNamespaceSkill',
+                request_serializer=proto_dot_gateway__pb2.DeleteNamespaceSkillRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.DeleteNamespaceSkillResponse.FromString,
+                _registered_method=True)
         self.CreateSession = channel.unary_unary(
                 '/talon.gateway.GatewayService/CreateSession',
                 request_serializer=proto_dot_gateway__pb2.CreateSessionRequest.SerializeToString,
@@ -428,6 +448,30 @@ class GatewayServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def DeleteNamespaceKnowledge(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CreateNamespaceSkill(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetNamespaceSkill(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListNamespaceSkills(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteNamespaceSkill(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -829,6 +873,26 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     servicer.DeleteNamespaceKnowledge,
                     request_deserializer=proto_dot_gateway__pb2.DeleteNamespaceKnowledgeRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.DeleteNamespaceKnowledgeResponse.SerializeToString,
+            ),
+            'CreateNamespaceSkill': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateNamespaceSkill,
+                    request_deserializer=proto_dot_gateway__pb2.CreateNamespaceSkillRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.NamespaceSkillResponse.SerializeToString,
+            ),
+            'GetNamespaceSkill': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetNamespaceSkill,
+                    request_deserializer=proto_dot_gateway__pb2.GetNamespaceSkillRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.NamespaceSkillResponse.SerializeToString,
+            ),
+            'ListNamespaceSkills': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListNamespaceSkills,
+                    request_deserializer=proto_dot_gateway__pb2.ListNamespaceSkillsRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ListNamespaceSkillsResponse.SerializeToString,
+            ),
+            'DeleteNamespaceSkill': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteNamespaceSkill,
+                    request_deserializer=proto_dot_gateway__pb2.DeleteNamespaceSkillRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.DeleteNamespaceSkillResponse.SerializeToString,
             ),
             'CreateSession': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateSession,
@@ -1381,6 +1445,114 @@ class GatewayService(object):
             '/talon.gateway.GatewayService/DeleteNamespaceKnowledge',
             proto_dot_gateway__pb2.DeleteNamespaceKnowledgeRequest.SerializeToString,
             proto_dot_gateway__pb2.DeleteNamespaceKnowledgeResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CreateNamespaceSkill(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/CreateNamespaceSkill',
+            proto_dot_gateway__pb2.CreateNamespaceSkillRequest.SerializeToString,
+            proto_dot_gateway__pb2.NamespaceSkillResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetNamespaceSkill(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/GetNamespaceSkill',
+            proto_dot_gateway__pb2.GetNamespaceSkillRequest.SerializeToString,
+            proto_dot_gateway__pb2.NamespaceSkillResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListNamespaceSkills(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/ListNamespaceSkills',
+            proto_dot_gateway__pb2.ListNamespaceSkillsRequest.SerializeToString,
+            proto_dot_gateway__pb2.ListNamespaceSkillsResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteNamespaceSkill(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/talon.gateway.GatewayService/DeleteNamespaceSkill',
+            proto_dot_gateway__pb2.DeleteNamespaceSkillRequest.SerializeToString,
+            proto_dot_gateway__pb2.DeleteNamespaceSkillResponse.FromString,
             options,
             channel_credentials,
             insecure,
