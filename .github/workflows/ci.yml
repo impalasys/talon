@@ -253,6 +253,8 @@ jobs:
   a2a_compat:
     name: A2A Compatibility
     runs-on: ubuntu-latest
+    env:
+      TESTCONTAINERS_RYUK_DISABLED: "true"
     steps:
       - uses: actions/checkout@v5
 
