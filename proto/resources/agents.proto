@@ -38,9 +38,12 @@ message AcpRuntime {
   string command = 2;
   repeated string args = 3;
   string cwd = 4;
+  // SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
   string sandbox_policy_ref = 5;
   bool persist_session = 6;
   map<string, string> env = 7;
+  // Keys: default, filesystemRead, filesystemWrite, terminal.
+  // Values: allow, ask, deny.
   map<string, string> permission_policy = 8;
 }
 

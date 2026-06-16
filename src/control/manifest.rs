@@ -902,7 +902,36 @@ fn template_spec_from_value(value: serde_json::Value) -> Result<resources_proto:
 
 fn agent_spec_from_value(value: serde_json::Value) -> Result<resources_proto::AgentSpec> {
     let spec = serde_json::from_value::<AgentSpecManifest>(value)?;
-    spec.into_proto()
+    let spec = spec.into_proto()?;
+    validate_acp_permission_policy_manifest(&spec)?;
+    Ok(spec)
+}
+
+fn validate_acp_permission_policy_manifest(spec: &resources_proto::AgentSpec) -> Result<()> {
+    let Some(runtime) = spec.runtime.as_ref() else {
+        return Ok(());
+    };
+    let Some(acp) = runtime.acp.as_ref() else {
+        return Ok(());
+    };
+    const ALLOWED_KEYS: &[&str] = &["default", "filesystemRead", "filesystemWrite", "terminal"];
+    const ALLOWED_VALUES: &[&str] = &["allow", "ask", "deny"];
+    for (key, value) in &acp.permission_policy {
+        if !ALLOWED_KEYS.contains(&key.as_str()) {
+            bail!(
+                "Agent spec.runtime.acp.permissionPolicy contains unsupported key '{}'",
+                key
+            );
+        }
+        if !ALLOWED_VALUES.contains(&value.as_str()) {
+            bail!(
+                "Agent spec.runtime.acp.permissionPolicy.{} has unsupported value '{}'",
+                key,
+                value
+            );
+        }
+    }
+    Ok(())
 }
 
 fn deployment_spec_from_value(value: serde_json::Value) -> Result<resources_proto::DeploymentSpec> {
@@ -978,7 +1007,7 @@ fn sandbox_policy_spec_from_value(
                 .or_else(|| value.get("template"))
                 .cloned()
                 .unwrap_or_else(|| serde_json::json!({})),
-        )),
+        )?),
         max_concurrent: value
             .pointer("/quota/maxConcurrent")
             .or_else(|| value.get("maxConcurrent"))
@@ -1037,8 +1066,14 @@ fn sandbox_runtime_template_to_json_value(
 
 fn sandbox_runtime_template_from_value(
     value: serde_json::Value,
-) -> resources_proto::SandboxRuntimeTemplateSpec {
-    resources_proto::SandboxRuntimeTemplateSpec {
+) -> Result<resources_proto::SandboxRuntimeTemplateSpec> {
+    let mount_path = value
+        .pointer("/workspace/mountPath")
+        .and_then(|value| value.as_str())
+        .unwrap_or_default()
+        .to_string();
+    validate_sandbox_mount_path(&mount_path)?;
+    Ok(resources_proto::SandboxRuntimeTemplateSpec {
         image: value
             .get("image")
             .and_then(|value| value.as_str())
@@ -1050,11 +1085,7 @@ fn sandbox_runtime_template_from_value(
                 .and_then(|value| value.as_str())
                 .unwrap_or_default()
                 .to_string(),
-            mount_path: value
-                .pointer("/workspace/mountPath")
-                .and_then(|value| value.as_str())
-                .unwrap_or_default()
-                .to_string(),
+            mount_path,
         }),
         setup: Some(resources_proto::SandboxSetupSpec {
             packages: value
@@ -1090,7 +1121,28 @@ fn sandbox_runtime_template_from_value(
                 .unwrap_or_default()
                 .to_string(),
         }),
+    })
+}
+
+fn validate_sandbox_mount_path(mount_path: &str) -> Result<()> {
+    if mount_path.is_empty() {
+        return Ok(());
     }
+    if !mount_path.starts_with('/') {
+        bail!("SandboxPolicy template.workspace.mountPath must be absolute");
+    }
+    let normalized = mount_path.trim_end_matches('/');
+    let forbidden = [
+        "", "/bin", "/boot", "/dev", "/etc", "/lib", "/lib64", "/proc", "/root", "/run", "/sbin",
+        "/sys", "/usr", "/var",
+    ];
+    if forbidden.contains(&normalized) {
+        bail!(
+            "SandboxPolicy template.workspace.mountPath '{}' is not allowed",
+            mount_path
+        );
+    }
+    Ok(())
 }
 
 fn sandbox_spec_from_value(value: serde_json::Value) -> Result<resources_proto::SandboxSpec> {
@@ -2008,6 +2060,31 @@ fn capabilities_policy_from_proto(
         .collect()
 }
 
+pub(crate) mod capabilities_policy_serde {
+    use super::*;
+    use serde::{Deserialize, Deserializer, Serialize, Serializer};
+
+    pub(crate) fn serialize<S>(
+        policy: &std::collections::HashMap<String, ListValue>,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        capabilities_policy_from_proto(policy).serialize(serializer)
+    }
+
+    pub(crate) fn deserialize<'de, D>(
+        deserializer: D,
+    ) -> std::result::Result<std::collections::HashMap<String, ListValue>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let policy = CapabilitiesPolicyManifest::deserialize(deserializer)?;
+        Ok(capabilities_policy_into_proto(policy))
+    }
+}
+
 impl AgentSpecManifest {
     fn into_proto(self) -> Result<manifests::AgentSpec> {
         Ok(manifests::AgentSpec {
@@ -2306,5 +2383,67 @@ spec:
             rendered_yaml["spec"]["template"]["spec"]["workspace"]["mountPath"].as_str(),
             Some("/workspace")
         );
+    }
+
+    #[test]
+    fn agent_spec_serde_preserves_capabilities() {
+        let spec: resources_proto::AgentSpec = serde_json::from_value(serde_json::json!({
+            "capabilities": {
+                "schedules": ["inspect", "create"]
+            }
+        }))
+        .expect("deserialize AgentSpec capabilities");
+        assert_eq!(spec.capabilities.len(), 1);
+        let rendered = serde_json::to_value(&spec).expect("serialize AgentSpec capabilities");
+        assert_eq!(
+            rendered["capabilities"]["schedules"],
+            serde_json::json!(["inspect", "create"])
+        );
+    }
+
+    #[test]
+    fn sandbox_policy_manifest_rejects_system_mount_path() {
+        let error = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: SandboxPolicy
+metadata:
+  name: coding
+  namespace: customers
+spec:
+  classRef:
+    namespace: system
+    name: docker-code
+  template:
+    spec:
+      workspace:
+        mountPath: /etc
+"#,
+        )
+        .expect_err("system mount path should fail");
+        assert!(error.to_string().contains("mountPath"));
+    }
+
+    #[test]
+    fn agent_manifest_rejects_invalid_acp_permission_policy() {
+        let error = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: coding
+  namespace: customers
+spec:
+  runtime:
+    kind: acp
+    acp:
+      command: codex-acp
+      sandboxPolicyRef: coding
+      permissionPolicy:
+        filesystemwrite: alllow
+"#,
+        )
+        .expect_err("invalid permission policy should fail");
+        assert!(error.to_string().contains("permissionPolicy"));
     }
 }

@@ -73,10 +73,35 @@ fn validate_agent_runtime(runtime: &manifests::AgentRuntime) -> Result<()> {
             if acp.sandbox_policy_ref.trim().is_empty() {
                 bail!("AgentRuntime.acp.sandboxPolicyRef is required");
             }
+            validate_acp_permission_policy(&acp.permission_policy)?;
             Ok(())
         }
         other => bail!("Unsupported AgentRuntime.kind '{}'", other),
     }
+}
+
+fn validate_acp_permission_policy(
+    policy: &std::collections::HashMap<String, String>,
+) -> Result<()> {
+    const ALLOWED_KEYS: &[&str] = &["default", "filesystemRead", "filesystemWrite", "terminal"];
+    const ALLOWED_VALUES: &[&str] = &["allow", "ask", "deny"];
+
+    for (key, value) in policy {
+        if !ALLOWED_KEYS.contains(&key.as_str()) {
+            bail!(
+                "AgentRuntime.acp.permissionPolicy contains unsupported key '{}'",
+                key
+            );
+        }
+        if !ALLOWED_VALUES.contains(&value.as_str()) {
+            bail!(
+                "AgentRuntime.acp.permissionPolicy.{} has unsupported value '{}'",
+                key,
+                value
+            );
+        }
+    }
+    Ok(())
 }
 
 fn validate_a2a(a2a: &manifests::A2a) -> Result<()> {

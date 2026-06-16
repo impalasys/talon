@@ -13,6 +13,7 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.AgentCardCapabilities",
         ".talon.resources.AgentCardSkill",
         ".talon.resources.AgentRuntime",
+        ".talon.resources.AgentSpec",
         ".talon.resources.AgentStatus",
         ".talon.resources.Channel",
         ".talon.resources.ChannelContextPolicy",
@@ -99,7 +100,6 @@ fn main() -> std::io::Result<()> {
         ".talon.events.WorkflowDispatchEvent",
     ];
     let serde_derive_only_types = [
-        ".talon.resources.AgentSpec",
         ".talon.resources.ConnectionRef",
         ".talon.resources.ResourceSpec",
         ".talon.resources.ResourceStatus",
@@ -116,7 +116,7 @@ fn main() -> std::io::Result<()> {
     }
     builder = builder.field_attribute(
         ".talon.resources.AgentSpec.capabilities",
-        "#[serde(skip, default)]",
+        "#[serde(with = \"crate::control::manifest::capabilities_policy_serde\", default)]",
     );
     builder.compile_protos(
         &[

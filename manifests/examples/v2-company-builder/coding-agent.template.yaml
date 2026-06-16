@@ -21,4 +21,4 @@ spec:
           filesystemWrite: ask
           terminal: ask
     systemPrompt: |
-      You are the coding agent for {{ namespace.annotations["vibiz.io/customer-name"] }}.
+      You are the coding agent for {{ namespace.annotations["vibiz.io/customer-name"] | default(namespace.name) }}.
