@@ -1,9 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{models, proto, GrpcGatewayHandler};
+use super::{proto, resources_proto, GrpcGatewayHandler};
+use crate::control::resource_model::TypedResource;
+use crate::control::scheduling;
 use crate::control::{keys, ProtoKeyValueStoreExt};
-use crate::scheduling;
 use futures::{stream, StreamExt};
 
 impl GrpcGatewayHandler {
@@ -17,14 +18,14 @@ impl GrpcGatewayHandler {
         let mut schedule = req
             .schedule
             .ok_or_else(|| tonic::Status::invalid_argument("schedule is required"))?;
-        schedule.ns = req.ns.clone();
-        if schedule.name.is_empty() {
+        schedule.set_namespace(req.ns.clone());
+        if schedule.name().is_empty() {
             return Err(tonic::Status::invalid_argument("schedule.name is required"));
         }
         if self
             .gateway
             .kv
-            .get_msg::<models::Schedule>(&keys::schedule(&req.ns, &schedule.name))
+            .get_msg::<resources_proto::Schedule>(&keys::schedule(&req.ns, schedule.name()))
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("failed to check schedule existence: {}", e))
@@ -62,7 +63,7 @@ impl GrpcGatewayHandler {
         let schedule = self
             .gateway
             .kv
-            .get_msg::<models::Schedule>(&keys::schedule(&req.ns, &req.name))
+            .get_msg::<resources_proto::Schedule>(&keys::schedule(&req.ns, &req.name))
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load schedule: {}", e)))?
             .ok_or_else(|| tonic::Status::not_found("schedule not found"))?;
@@ -82,7 +83,7 @@ impl GrpcGatewayHandler {
         let existing = self
             .gateway
             .kv
-            .get_msg::<models::Schedule>(&keys::schedule(&req.ns, &req.name))
+            .get_msg::<resources_proto::Schedule>(&keys::schedule(&req.ns, &req.name))
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load schedule: {}", e)))?
             .ok_or_else(|| tonic::Status::not_found("schedule not found"))?;
@@ -90,11 +91,13 @@ impl GrpcGatewayHandler {
         let request_schedule = req
             .schedule
             .ok_or_else(|| tonic::Status::invalid_argument("schedule is required"))?;
-        let requested_labels = request_schedule.labels.clone();
+        let requested_labels = request_schedule.labels().clone();
         let mut schedule = request_schedule;
-        schedule.name = req.name.clone();
-        schedule.ns = req.ns.clone();
-        schedule.labels = requested_labels;
+        schedule.set_name(req.name.clone());
+        schedule.set_namespace(req.ns.clone());
+        if let Some(labels) = schedule.labels_mut() {
+            *labels = requested_labels;
+        }
         schedule.status = existing.status.clone();
 
         scheduling::initialize_schedule(&mut schedule, chrono::Utc::now())
@@ -135,7 +138,7 @@ impl GrpcGatewayHandler {
         let kv = self.gateway.kv.clone();
         let fetched = stream::iter(schedule_keys.into_iter().map(move |key| {
             let kv = kv.clone();
-            async move { kv.get_msg::<models::Schedule>(&key).await }
+            async move { kv.get_msg::<resources_proto::Schedule>(&key).await }
         }))
         .buffer_unordered(32)
         .collect::<Vec<_>>()
@@ -165,7 +168,7 @@ impl GrpcGatewayHandler {
         if let Some(schedule) = self
             .gateway
             .kv
-            .get_msg::<models::Schedule>(&key)
+            .get_msg::<resources_proto::Schedule>(&key)
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load schedule: {}", e)))?
         {

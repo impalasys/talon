@@ -1,10 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{models, proto, GrpcGatewayHandler};
+use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
-use crate::knowledge::{KnowledgeBook, KnowledgeEntry, KvKnowledgeBook};
+use crate::harness::knowledge::{KnowledgeBook, KnowledgeEntry, KvKnowledgeBook};
 use std::collections::HashSet;
 use std::sync::Arc;
 
@@ -21,7 +21,7 @@ fn decode_entry(namespace: &str, path: &str, bytes: &[u8]) -> KnowledgeEntry {
 async fn list_namespace_knowledge(
     kv: Arc<dyn crate::control::KeyValueStore>,
     namespace: &str,
-) -> std::result::Result<Vec<models::Knowledge>, tonic::Status> {
+) -> std::result::Result<Vec<data_proto::Knowledge>, tonic::Status> {
     let mut modules = Vec::new();
     let mut seen_paths = HashSet::new();
 
@@ -38,7 +38,7 @@ async fn list_namespace_knowledge(
             }
             if let Some(bytes) = kv.get(&key).await.unwrap_or(None) {
                 let entry = decode_entry(&candidate_ns, &path, &bytes);
-                modules.push(models::Knowledge {
+                modules.push(data_proto::Knowledge {
                     namespace: entry.namespace,
                     name: entry.name,
                     path,
@@ -73,7 +73,7 @@ impl GrpcGatewayHandler {
             };
             let entry_path = entry.path();
 
-            vec![models::Knowledge {
+            vec![data_proto::Knowledge {
                 namespace: entry.namespace,
                 name: entry.name,
                 path: entry_path,
@@ -100,7 +100,7 @@ impl GrpcGatewayHandler {
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to search knowledge: {}", e)))?
             .into_iter()
-            .map(|result| models::KnowledgeSearchResult {
+            .map(|result| data_proto::KnowledgeSearchResult {
                 namespace: result.namespace,
                 path: result.path,
                 snippet: result.excerpt,
@@ -226,21 +226,21 @@ mod tests {
     #[tokio::test]
     async fn list_namespace_knowledge_prefers_local_entries_and_skips_duplicates() {
         let kv = Arc::new(MockKvStore::default());
-        let root_entry = crate::knowledge::KnowledgeEntry {
+        let root_entry = crate::harness::knowledge::KnowledgeEntry {
             namespace: "acme".to_string(),
             name: "guide.md".to_string(),
             path: "guide.md".to_string(),
             content: "root guide".to_string(),
             updated_at: 1,
         };
-        let child_entry = crate::knowledge::KnowledgeEntry {
+        let child_entry = crate::harness::knowledge::KnowledgeEntry {
             namespace: "acme:child".to_string(),
             name: "guide.md".to_string(),
             path: "guide.md".to_string(),
             content: "child guide".to_string(),
             updated_at: 2,
         };
-        let unique_entry = crate::knowledge::KnowledgeEntry {
+        let unique_entry = crate::harness::knowledge::KnowledgeEntry {
             namespace: "acme".to_string(),
             name: "shared.md".to_string(),
             path: "shared.md".to_string(),
@@ -292,7 +292,7 @@ mod tests {
     #[tokio::test]
     async fn handle_search_knowledge_returns_matches_with_paths() {
         let kv = Arc::new(MockKvStore::default());
-        let entry = crate::knowledge::KnowledgeEntry {
+        let entry = crate::harness::knowledge::KnowledgeEntry {
             namespace: "acme".to_string(),
             name: "guide.md".to_string(),
             path: "guide.md".to_string(),

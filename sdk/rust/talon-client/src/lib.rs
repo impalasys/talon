@@ -6,11 +6,11 @@ pub mod generated {
         pub mod config {
             include!("generated/talon.config.rs");
         }
-        pub mod manifests {
-            include!("generated/talon.manifests.rs");
+        pub mod data {
+            include!("generated/talon.data.rs");
         }
-        pub mod models {
-            include!("generated/talon.models.rs");
+        pub mod resources {
+            include!("generated/talon.resources.rs");
         }
         pub mod events {
             include!("generated/talon.events.rs");
@@ -22,4 +22,3 @@ pub mod generated {
 }
 
 pub use generated::talon::*;
-

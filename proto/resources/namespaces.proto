@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message Namespace {
+  ResourceMeta metadata = 1;
+  NamespaceSpec spec = 2;
+  NamespaceStatus status = 3;
+}
+
+message NamespaceSpec {
+  string parent = 1;
+}
+
+message NamespaceStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  bool is_deleted = 4;
+  int64 deleted_at = 5;
+}

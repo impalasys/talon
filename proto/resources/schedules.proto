@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message ScheduleTarget {
+  string agent = 1;
+  string session_mode = 2;
+  string session_id = 3;
+  string workflow = 4;
+}
+
+message ScheduleSpec {
+  string kind = 1;
+  string cron = 2;
+  uint32 interval_seconds = 3;
+  string run_at = 4;
+  string timezone = 5;
+  ScheduleTarget target = 6;
+  string input_message = 7;
+  bool enabled = 8;
+  string input_json = 9;
+}
+
+message ScheduleStatus {
+  uint64 revision = 1;
+  optional int64 next_run_at = 2;
+  optional string backend_handle = 3;
+  bool backend_armed = 4;
+  optional int64 last_run_at = 5;
+  optional string last_session_id = 6;
+  optional string last_error = 7;
+  optional int64 claimed_run_at = 8;
+  optional int64 claim_expires_at = 9;
+  repeated ScheduleEvent recent_events = 10;
+}
+
+message ScheduleEvent {
+  int64 timestamp = 1;
+  string phase = 2;
+  string outcome = 3;
+  string detail = 4;
+}
+
+message Schedule {
+  ResourceMeta metadata = 1;
+  ScheduleSpec spec = 2;
+  ScheduleStatus status = 3;
+}

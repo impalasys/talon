@@ -6,18 +6,18 @@ use std::path::Path;
 use std::sync::Arc;
 
 use super::mcp_registry::McpRegistry;
-use crate::config::Config;
+use crate::control::config::Config;
 use crate::control::ControlPlane;
 use crate::control::ProtoKeyValueStoreExt;
-use crate::core::context_budget::tool_result_preview;
-use crate::core::executor::{
+use crate::gateway::rpc::data_proto;
+use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
+use crate::harness::executor::context_budget::tool_result_preview;
+use crate::harness::executor::{
     AgentExecutor, ContextAssembler, ExecutionContext, LoopMessage, RegisteredMcpTool,
 };
-use crate::gateway::rpc::models;
-use crate::gateway::rpc::{manifests, protobuf_value::value::Kind as ProtoValueKind};
-use crate::knowledge::KvKnowledgeBook;
-use crate::llm::{ChatContentPart, ToolCall};
-use crate::skills::registry::ToolRegistry;
+use crate::harness::knowledge::KvKnowledgeBook;
+use crate::harness::llm::{ChatContentPart, ToolCall};
+use crate::harness::skills::registry::ToolRegistry;
 use base64::{engine::general_purpose, Engine as _};
 use prost::Message;
 
@@ -40,18 +40,19 @@ impl AgentRuntime {
         mcp_registry: &McpRegistry,
     ) -> Result<Self> {
         // 1. Fetch AgentSpec from KV
-        let agent_key = crate::control::keys::agent(ns, agent_id);
-        let agent = cp
-            .kv
-            .get_msg::<models::Agent>(&agent_key)
+        let store = crate::control::resources::ResourceStore::new(cp.kv.clone(), cp.pubsub.clone());
+        let agent = store
+            .get_agent(ns, agent_id)
             .await?
             .ok_or_else(|| anyhow::anyhow!("Agent '{}' not found in ns '{}'", agent_id, ns))?;
         let spec = agent
-            .effective_spec
-            .ok_or_else(|| anyhow::anyhow!("Agent '{}' has no effective spec", agent_id))?;
+            .spec
+            .ok_or_else(|| anyhow::anyhow!("Agent '{}' has no spec", agent_id))?;
         let session = cp
             .kv
-            .get_msg::<models::Session>(&crate::control::keys::session(ns, agent_id, session_id))
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
+                ns, agent_id, session_id,
+            ))
             .await?;
         let allow_channel_reply_tools = session
             .as_ref()
@@ -74,21 +75,21 @@ impl AgentRuntime {
 
         let mut history = Vec::new();
         for (_, value) in msg_entries {
-            if let Ok(msg) = models::SessionMessage::decode(value.as_slice()) {
-                let role = match models::MessageRole::try_from(msg.role) {
-                    Ok(models::MessageRole::RoleUser) => "user",
-                    Ok(models::MessageRole::RoleAssistant) => "assistant",
-                    Ok(models::MessageRole::RoleSystem) => "system",
+            if let Ok(msg) = data_proto::SessionMessage::decode(value.as_slice()) {
+                let role = match data_proto::MessageRole::try_from(msg.role) {
+                    Ok(data_proto::MessageRole::RoleUser) => "user",
+                    Ok(data_proto::MessageRole::RoleAssistant) => "assistant",
+                    Ok(data_proto::MessageRole::RoleSystem) => "system",
                     _ => "user",
                 };
 
                 let mut tool_calls = None;
                 let mut tool_results: Vec<LoopMessage> = Vec::new();
 
-                if msg.role == models::MessageRole::RoleAssistant as i32 {
+                if msg.role == data_proto::MessageRole::RoleAssistant as i32 {
                     let mut collected_tool_calls = Vec::new();
                     for part in &msg.parts {
-                        if part.part_type == models::SessionMessagePartType::ToolCall as i32 {
+                        if part.part_type == data_proto::SessionMessagePartType::ToolCall as i32 {
                             let payload: serde_json::Value =
                                 serde_json::from_str(&part.payload_json)
                                     .unwrap_or(serde_json::Value::Null);
@@ -108,7 +109,7 @@ impl AgentRuntime {
                                     .unwrap_or_else(|_| "null".to_string()),
                             });
                         } else if part.part_type
-                            == models::SessionMessagePartType::ToolResult as i32
+                            == data_proto::SessionMessagePartType::ToolResult as i32
                         {
                             if let Some(message) = tool_result_message_from_part(part) {
                                 tool_results.push(message);
@@ -134,15 +135,15 @@ impl AgentRuntime {
         }
 
         // 3. Resolve LLM from AgentSpec + Config
-        let llm = crate::llm::resolver::resolve_llm(&spec, config).await?;
+        let llm = crate::harness::llm::resolver::resolve_llm(&spec, config).await?;
 
         // 4. Build tool registry (builtins + future MCP servers)
         let mut mcp_tools = std::collections::HashMap::new();
         let mut reg = ToolRegistry::new();
-        crate::knowledge::register_tools(&mut reg);
-        crate::native_tools::register_tools(&mut reg, &spec);
+        crate::harness::knowledge::register_tools(&mut reg);
+        crate::harness::native_tools::register_tools(&mut reg, &spec);
         if allow_channel_reply_tools {
-            crate::native_tools::register_channel_tools(&mut reg);
+            crate::harness::native_tools::register_channel_tools(&mut reg);
         }
         let builtin_tool_names = builtin_tool_names();
         for mcp_ref in &spec.mcp_server_refs {
@@ -211,16 +212,12 @@ impl AgentRuntime {
             }
             reg.register_mcp_tools(&server_config.server_name, accepted_tools);
         }
-        let effective_skills =
-            crate::skills::namespace::load_effective_skills(cp.kv.clone(), ns).await?;
-        crate::native_tools::register_skill_tools(&mut reg, &effective_skills);
         let registry = Arc::new(tokio::sync::RwLock::new(reg));
-        let skill_context = crate::skills::namespace::format_skill_catalog(&effective_skills);
 
         // 5. Build executor
         let executor = AgentExecutor::new_with_session(
             llm,
-            ContextAssembler::new_with_skill_context(".", skill_context),
+            ContextAssembler::new("."),
             registry,
             Arc::new(config.clone()),
             Arc::new(KvKnowledgeBook::new(cp.kv.clone())),
@@ -240,10 +237,10 @@ impl AgentRuntime {
 }
 
 fn visible_tools_for_agent(
-    config: &crate::connectors::mcp::McpConnectionConfig,
-    tools: &[crate::connectors::mcp::McpTool],
+    config: &crate::harness::mcp::McpConnectionConfig,
+    tools: &[crate::harness::mcp::McpTool],
     spec: &manifests::AgentSpec,
-) -> Vec<crate::connectors::mcp::McpTool> {
+) -> Vec<crate::harness::mcp::McpTool> {
     let binding_name = config
         .binding_name
         .as_deref()
@@ -313,22 +310,22 @@ fn has_capability_action(spec: &manifests::AgentSpec, capability: &str, action: 
 
 fn builtin_tool_names() -> &'static [&'static str] {
     &[
-        crate::knowledge::KNOWLEDGE_WRITE_TOOL,
-        crate::knowledge::KNOWLEDGE_SEARCH_TOOL,
-        crate::knowledge::KNOWLEDGE_GET_TOOL,
-        crate::knowledge::KNOWLEDGE_LIST_TOOL,
-        crate::native_tools::CREATE_SCHEDULE_TOOL,
-        crate::native_tools::GET_SCHEDULE_TOOL,
-        crate::native_tools::LIST_SCHEDULES_TOOL,
-        crate::native_tools::UPDATE_SCHEDULE_TOOL,
-        crate::native_tools::DELETE_SCHEDULE_TOOL,
-        crate::native_tools::CHANNEL_PUBLISH_TOOL,
-        crate::native_tools::CHANNEL_SKIP_REPLY_TOOL,
+        crate::harness::knowledge::KNOWLEDGE_WRITE_TOOL,
+        crate::harness::knowledge::KNOWLEDGE_SEARCH_TOOL,
+        crate::harness::knowledge::KNOWLEDGE_GET_TOOL,
+        crate::harness::knowledge::KNOWLEDGE_LIST_TOOL,
+        crate::harness::native_tools::CREATE_SCHEDULE_TOOL,
+        crate::harness::native_tools::GET_SCHEDULE_TOOL,
+        crate::harness::native_tools::LIST_SCHEDULES_TOOL,
+        crate::harness::native_tools::UPDATE_SCHEDULE_TOOL,
+        crate::harness::native_tools::DELETE_SCHEDULE_TOOL,
+        crate::harness::native_tools::CHANNEL_PUBLISH_TOOL,
+        crate::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL,
     ]
 }
 
 fn qualify_mcp_tool_name(
-    config: &crate::connectors::mcp::McpConnectionConfig,
+    config: &crate::harness::mcp::McpConnectionConfig,
     tool_name: &str,
 ) -> String {
     let prefix = config
@@ -376,12 +373,12 @@ fn inferred_image_media_type(key: &str) -> Option<&'static str> {
 }
 
 async fn message_content_parts(
-    message: &models::SessionMessage,
+    message: &data_proto::SessionMessage,
     objects: &(dyn crate::control::object_store::ObjectStore + Send + Sync),
 ) -> Result<Vec<ChatContentPart>> {
     let mut content_parts = Vec::new();
     for part in &message.parts {
-        if part.part_type == models::SessionMessagePartType::Text as i32 {
+        if part.part_type == data_proto::SessionMessagePartType::Text as i32 {
             if !part.content.is_empty() {
                 content_parts.push(ChatContentPart::Text {
                     text: part.content.clone(),
@@ -390,7 +387,7 @@ async fn message_content_parts(
             continue;
         }
 
-        if part.part_type != models::SessionMessagePartType::Image as i32 {
+        if part.part_type != data_proto::SessionMessagePartType::Image as i32 {
             continue;
         }
 
@@ -449,7 +446,7 @@ async fn message_content_parts(
     Ok(content_parts)
 }
 
-fn tool_result_message_from_part(part: &models::SessionMessagePart) -> Option<LoopMessage> {
+fn tool_result_message_from_part(part: &data_proto::SessionMessagePart) -> Option<LoopMessage> {
     let payload: serde_json::Value =
         serde_json::from_str(&part.payload_json).unwrap_or(serde_json::Value::Null);
     let tool_call_id = payload.get("tool_call_id").and_then(|v| v.as_str())?;
@@ -470,26 +467,26 @@ mod tests {
         builtin_tool_names, has_capability_action, message_content_parts, qualify_mcp_tool_name,
         tool_result_message_from_part, visible_tools_for_agent, AgentRuntime,
     };
-    use crate::config::{proto, Config, ProviderConfig, Secret};
-    use crate::connectors::mcp::McpConnectionConfig;
+    use crate::control::config::{proto, Config, ProviderConfig, Secret};
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         object_store::{InMemoryObjectStore, ObjectMetadata, ObjectStore},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
-    use crate::gateway::rpc::{manifests, models, protobuf_value};
-    use crate::llm::ChatContentPart;
+    use crate::gateway::rpc::{data_proto, manifests, protobuf_value, resources_proto};
+    use crate::harness::llm::ChatContentPart;
+    use crate::harness::mcp::McpConnectionConfig;
     use futures::stream;
     use std::collections::HashMap;
     use std::pin::Pin;
     use std::sync::Arc;
     use tokio::sync::Mutex;
 
-    fn tool_result_part(content: String, payload_json: String) -> models::SessionMessagePart {
-        models::SessionMessagePart {
+    fn tool_result_part(content: String, payload_json: String) -> data_proto::SessionMessagePart {
+        data_proto::SessionMessagePart {
             id: "part-1".to_string(),
-            part_type: models::SessionMessagePartType::ToolResult as i32,
+            part_type: data_proto::SessionMessagePartType::ToolResult as i32,
             content,
             name: "tool".to_string(),
             payload_json,
@@ -615,21 +612,48 @@ mod tests {
         }
     }
 
-    fn skill(ns: &str, name: &str, description: &str, instructions: &str) -> manifests::Skill {
-        manifests::Skill {
-            api_version: "talon.impalasys.com/v1".to_string(),
-            kind: "Skill".to_string(),
-            metadata: Some(manifests::ObjectMeta {
-                name: name.to_string(),
-                namespace: ns.to_string(),
-                labels: HashMap::new(),
-                annotations: HashMap::new(),
-            }),
-            spec: Some(manifests::SkillSpec {
-                description: description.to_string(),
-                instructions: instructions.to_string(),
-            }),
-        }
+    async fn put_agent_resource(
+        kv: Arc<MockKvStore>,
+        namespace: &str,
+        name: &str,
+        spec: Option<resources_proto::AgentSpec>,
+    ) {
+        let store = crate::control::resources::ResourceStore::new(kv, Arc::new(MockPubSub));
+        store
+            .upsert(
+                namespace,
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "Agent".to_string(),
+                    metadata: Some(resources_proto::ResourceMeta {
+                        name: name.to_string(),
+                        namespace: namespace.to_string(),
+                        labels: HashMap::new(),
+                        annotations: HashMap::new(),
+                        owner_references: Vec::new(),
+                        finalizers: Vec::new(),
+                        generation: 0,
+                        resource_version: String::new(),
+                        uid: String::new(),
+                        deletion_timestamp: None,
+                    }),
+                    spec: spec.map(|spec| resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::Agent(spec)),
+                    }),
+                    status: Some(resources_proto::ResourceStatus {
+                        kind: Some(resources_proto::resource_status::Kind::Agent(
+                            resources_proto::AgentStatus {
+                                observed_generation: 0,
+                                phase: String::new(),
+                                conditions: Vec::new(),
+                                last_session_id: None,
+                            },
+                        )),
+                    }),
+                },
+            )
+            .await
+            .unwrap();
     }
 
     #[test]
@@ -725,11 +749,12 @@ mod tests {
                 })
                 .collect(),
             a2a: None,
+            runtime: None,
         }
     }
 
-    fn tool(name: &str) -> crate::connectors::mcp::McpTool {
-        crate::connectors::mcp::McpTool {
+    fn tool(name: &str) -> crate::harness::mcp::McpTool {
+        crate::harness::mcp::McpTool {
             name: name.to_string(),
             description: String::new(),
             input_schema: serde_json::json!({"type":"object"}),
@@ -815,14 +840,14 @@ mod tests {
     #[test]
     fn builtin_tool_names_contains_expected_schedule_and_knowledge_tools() {
         let names = builtin_tool_names();
-        assert!(names.contains(&crate::knowledge::KNOWLEDGE_GET_TOOL));
-        assert!(names.contains(&crate::knowledge::KNOWLEDGE_LIST_TOOL));
-        assert!(names.contains(&crate::native_tools::CREATE_SCHEDULE_TOOL));
-        assert!(names.contains(&crate::native_tools::DELETE_SCHEDULE_TOOL));
+        assert!(names.contains(&crate::harness::knowledge::KNOWLEDGE_GET_TOOL));
+        assert!(names.contains(&crate::harness::knowledge::KNOWLEDGE_LIST_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::CREATE_SCHEDULE_TOOL));
+        assert!(names.contains(&crate::harness::native_tools::DELETE_SCHEDULE_TOOL));
     }
 
     #[tokio::test]
-    async fn agent_runtime_build_errors_for_missing_agent_or_effective_spec() {
+    async fn agent_runtime_build_errors_for_missing_agent_or_spec() {
         let kv = Arc::new(MockKvStore::default());
         let cp = control_plane(kv.clone());
         let config = runtime_config();
@@ -837,19 +862,7 @@ mod tests {
             };
         assert!(missing.to_string().contains("Agent 'missing' not found"));
 
-        kv.set_msg(
-            &crate::control::keys::agent("conic", "writer"),
-            &models::Agent {
-                name: "writer".to_string(),
-                ns: "conic".to_string(),
-                definition: None,
-                effective_spec: None,
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
+        put_agent_resource(kv.clone(), "conic", "writer", None).await;
 
         let no_spec = match AgentRuntime::build(
             "conic",
@@ -864,7 +877,9 @@ mod tests {
             Ok(_) => panic!("expected missing effective spec error"),
             Err(err) => err,
         };
-        assert!(no_spec.to_string().contains("has no effective spec"));
+        assert!(no_spec
+            .to_string()
+            .contains("Agent resource is missing typed Agent spec"));
     }
 
     #[tokio::test]
@@ -880,21 +895,10 @@ mod tests {
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::new(),
             a2a: None,
+            runtime: None,
         };
 
-        kv.set_msg(
-            &crate::control::keys::agent("conic", "writer"),
-            &models::Agent {
-                name: "writer".to_string(),
-                ns: "conic".to_string(),
-                definition: None,
-                effective_spec: Some(spec),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
+        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
 
         let mut reply_labels = HashMap::new();
         reply_labels.insert(
@@ -903,7 +907,7 @@ mod tests {
         );
         kv.set_msg(
             &crate::control::keys::session("conic", "writer", "reply-session"),
-            &models::Session {
+            &data_proto::Session {
                 id: "reply-session".to_string(),
                 agent: "writer".to_string(),
                 ns: "conic".to_string(),
@@ -926,7 +930,7 @@ mod tests {
         );
         kv.set_msg(
             &crate::control::keys::session("conic", "writer", "no-reply-session"),
-            &models::Session {
+            &data_proto::Session {
                 id: "no-reply-session".to_string(),
                 agent: "writer".to_string(),
                 ns: "conic".to_string(),
@@ -945,10 +949,10 @@ mod tests {
         let reply_registry = reply_runtime.executor.registry.read().await;
         assert!(reply_registry
             .tools
-            .contains_key(crate::native_tools::CHANNEL_PUBLISH_TOOL));
+            .contains_key(crate::harness::native_tools::CHANNEL_PUBLISH_TOOL));
         assert!(reply_registry
             .tools
-            .contains_key(crate::native_tools::CHANNEL_SKIP_REPLY_TOOL));
+            .contains_key(crate::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL));
         drop(reply_registry);
 
         let no_reply_runtime = AgentRuntime::build(
@@ -964,130 +968,10 @@ mod tests {
         let no_reply_registry = no_reply_runtime.executor.registry.read().await;
         assert!(!no_reply_registry
             .tools
-            .contains_key(crate::native_tools::CHANNEL_PUBLISH_TOOL));
+            .contains_key(crate::harness::native_tools::CHANNEL_PUBLISH_TOOL));
         assert!(!no_reply_registry
             .tools
-            .contains_key(crate::native_tools::CHANNEL_SKIP_REPLY_TOOL));
-    }
-
-    #[tokio::test]
-    async fn agent_runtime_injects_skill_catalog_and_registers_activation_tool() {
-        let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
-        let config = runtime_config();
-        let registry = crate::worker::mcp_registry::McpRegistry::new();
-        let spec = manifests::AgentSpec {
-            features: Vec::new(),
-            model_policy: None,
-            system_prompt: "assist".to_string(),
-            mcp_server_refs: Vec::new(),
-            capabilities: HashMap::new(),
-            a2a: None,
-        };
-
-        kv.set_msg(
-            &crate::control::keys::agent("acme:team", "writer"),
-            &models::Agent {
-                name: "writer".to_string(),
-                ns: "acme:team".to_string(),
-                definition: None,
-                effective_spec: Some(spec),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
-        kv.set_msg(
-            &crate::control::keys::skill("acme", "review"),
-            &skill("acme", "review", "Review code", "parent instructions"),
-        )
-        .await
-        .unwrap();
-        kv.set_msg(
-            &crate::control::keys::skill("acme:team", "review"),
-            &skill(
-                "acme:team",
-                "review",
-                "Review code locally",
-                "child instructions",
-            ),
-        )
-        .await
-        .unwrap();
-        kv.set_msg(
-            &crate::control::keys::skill("acme", "release"),
-            &skill(
-                "acme",
-                "release",
-                "Write release notes",
-                "release instructions",
-            ),
-        )
-        .await
-        .unwrap();
-
-        let runtime =
-            AgentRuntime::build("acme:team", "writer", "session-1", &cp, &config, &registry)
-                .await
-                .unwrap();
-        let assembled = runtime.executor.assembler.assemble().await.unwrap();
-        let tools = runtime.executor.registry.read().await.to_provider_tools();
-
-        assert!(assembled.contains("# AVAILABLE SKILLS"));
-        assert!(assembled.contains("Skill: review"));
-        assert!(assembled.contains("Source namespace: acme:team"));
-        assert!(assembled.contains("Skill: release"));
-        assert!(assembled.contains("Write release notes"));
-        assert!(!assembled.contains("child instructions"));
-        assert!(!assembled.contains("release instructions"));
-        assert!(!assembled.contains("parent instructions"));
-        assert!(tools
-            .iter()
-            .any(|tool| tool.name == crate::native_tools::ACTIVATE_SKILL_TOOL));
-        assert!(!tools.iter().any(|tool| tool.name == "review"));
-        assert!(!tools.iter().any(|tool| tool.name == "release"));
-    }
-
-    #[tokio::test]
-    async fn agent_runtime_omits_activation_tool_without_skills() {
-        let kv = Arc::new(MockKvStore::default());
-        let cp = control_plane(kv.clone());
-        let config = runtime_config();
-        let registry = crate::worker::mcp_registry::McpRegistry::new();
-
-        kv.set_msg(
-            &crate::control::keys::agent("acme:team", "writer"),
-            &models::Agent {
-                name: "writer".to_string(),
-                ns: "acme:team".to_string(),
-                definition: None,
-                effective_spec: Some(manifests::AgentSpec {
-                    features: Vec::new(),
-                    model_policy: None,
-                    system_prompt: "assist".to_string(),
-                    mcp_server_refs: Vec::new(),
-                    capabilities: HashMap::new(),
-                    a2a: None,
-                }),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
-
-        let runtime =
-            AgentRuntime::build("acme:team", "writer", "session-1", &cp, &config, &registry)
-                .await
-                .unwrap();
-        let assembled = runtime.executor.assembler.assemble().await.unwrap();
-        let tools = runtime.executor.registry.read().await.to_provider_tools();
-
-        assert!(!assembled.contains("# AVAILABLE SKILLS"));
-        assert!(!tools
-            .iter()
-            .any(|tool| tool.name == crate::native_tools::ACTIVATE_SKILL_TOOL));
+            .contains_key(crate::harness::native_tools::CHANNEL_SKIP_REPLY_TOOL));
     }
 
     #[tokio::test]
@@ -1103,31 +987,20 @@ mod tests {
             mcp_server_refs: vec!["missing-server".to_string()],
             capabilities: HashMap::new(),
             a2a: None,
+            runtime: None,
         };
 
-        kv.set_msg(
-            &crate::control::keys::agent("conic", "writer"),
-            &models::Agent {
-                name: "writer".to_string(),
-                ns: "conic".to_string(),
-                definition: None,
-                effective_spec: Some(spec),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
+        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
         kv.set_msg(
             &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
-            &models::SessionMessage {
+            &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
                 role: 1,
                 created_at: 10,
                 labels: HashMap::new(),
-                parts: vec![models::SessionMessagePart {
+                parts: vec![data_proto::SessionMessagePart {
                     id: "000000".to_string(),
-                    part_type: models::SessionMessagePartType::Text as i32,
+                    part_type: data_proto::SessionMessagePartType::Text as i32,
                     content: "hello".to_string(),
                     name: String::new(),
                     payload_json: String::new(),
@@ -1140,24 +1013,24 @@ mod tests {
         .unwrap();
         kv.set_msg(
             &crate::control::keys::session_message("conic", "writer", "session-1", "msg-2"),
-            &models::SessionMessage {
+            &data_proto::SessionMessage {
                 id: "msg-2".to_string(),
                 role: 2,
                 created_at: 20,
                 labels: HashMap::new(),
                 parts: vec![
-                    models::SessionMessagePart {
+                    data_proto::SessionMessagePart {
                         id: "000000".to_string(),
-                        part_type: models::SessionMessagePartType::Text as i32,
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
                         content: "assistant reply".to_string(),
                         name: String::new(),
                         payload_json: String::new(),
                         created_at: 20,
                         object: None,
                     },
-                    models::SessionMessagePart {
+                    data_proto::SessionMessagePart {
                         id: "000001".to_string(),
-                        part_type: models::SessionMessagePartType::ToolCall as i32,
+                        part_type: data_proto::SessionMessagePartType::ToolCall as i32,
                         content: String::new(),
                         name: "search".to_string(),
                         payload_json: serde_json::json!({
@@ -1168,9 +1041,9 @@ mod tests {
                         created_at: 21,
                         object: None,
                     },
-                    models::SessionMessagePart {
+                    data_proto::SessionMessagePart {
                         id: "000002".to_string(),
-                        part_type: models::SessionMessagePartType::ToolResult as i32,
+                        part_type: data_proto::SessionMessagePartType::ToolResult as i32,
                         content: "tool output".to_string(),
                         name: "search".to_string(),
                         payload_json: serde_json::json!({
@@ -1222,21 +1095,10 @@ mod tests {
             mcp_server_refs: Vec::new(),
             capabilities: HashMap::new(),
             a2a: None,
+            runtime: None,
         };
 
-        kv.set_msg(
-            &crate::control::keys::agent("conic", "writer"),
-            &models::Agent {
-                name: "writer".to_string(),
-                ns: "conic".to_string(),
-                definition: None,
-                effective_spec: Some(spec),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
-        )
-        .await
-        .unwrap();
+        put_agent_resource(kv.clone(), "conic", "writer", Some(spec)).await;
 
         let object = cp
             .objects
@@ -1253,24 +1115,24 @@ mod tests {
             .unwrap();
         kv.set_msg(
             &crate::control::keys::session_message("conic", "writer", "session-1", "msg-1"),
-            &models::SessionMessage {
+            &data_proto::SessionMessage {
                 id: "msg-1".to_string(),
-                role: models::MessageRole::RoleUser as i32,
+                role: data_proto::MessageRole::RoleUser as i32,
                 created_at: 2,
                 labels: HashMap::new(),
                 parts: vec![
-                    models::SessionMessagePart {
+                    data_proto::SessionMessagePart {
                         id: "000000".to_string(),
-                        part_type: models::SessionMessagePartType::Text as i32,
+                        part_type: data_proto::SessionMessagePartType::Text as i32,
                         content: "describe this".to_string(),
                         name: String::new(),
                         payload_json: String::new(),
                         created_at: 2,
                         object: None,
                     },
-                    models::SessionMessagePart {
+                    data_proto::SessionMessagePart {
                         id: "000001".to_string(),
-                        part_type: models::SessionMessagePartType::Image as i32,
+                        part_type: data_proto::SessionMessagePartType::Image as i32,
                         content: String::new(),
                         name: String::new(),
                         payload_json: String::new(),
@@ -1315,14 +1177,14 @@ mod tests {
             )
             .await
             .unwrap();
-        let message = models::SessionMessage {
+        let message = data_proto::SessionMessage {
             id: "msg-1".to_string(),
-            role: models::MessageRole::RoleUser as i32,
+            role: data_proto::MessageRole::RoleUser as i32,
             created_at: 2,
             labels: HashMap::new(),
-            parts: vec![models::SessionMessagePart {
+            parts: vec![data_proto::SessionMessagePart {
                 id: "000001".to_string(),
-                part_type: models::SessionMessagePartType::Image as i32,
+                part_type: data_proto::SessionMessagePartType::Image as i32,
                 content: String::new(),
                 name: String::new(),
                 payload_json: String::new(),
@@ -1357,14 +1219,14 @@ mod tests {
             )
             .await
             .unwrap();
-        let message = models::SessionMessage {
+        let message = data_proto::SessionMessage {
             id: "msg-1".to_string(),
-            role: models::MessageRole::RoleUser as i32,
+            role: data_proto::MessageRole::RoleUser as i32,
             created_at: 2,
             labels: HashMap::new(),
-            parts: vec![models::SessionMessagePart {
+            parts: vec![data_proto::SessionMessagePart {
                 id: "000001".to_string(),
-                part_type: models::SessionMessagePartType::Image as i32,
+                part_type: data_proto::SessionMessagePartType::Image as i32,
                 content: String::new(),
                 name: String::new(),
                 payload_json: String::new(),
@@ -1391,14 +1253,14 @@ mod tests {
             )
             .await
             .unwrap();
-        let message = models::SessionMessage {
+        let message = data_proto::SessionMessage {
             id: "msg-1".to_string(),
-            role: models::MessageRole::RoleUser as i32,
+            role: data_proto::MessageRole::RoleUser as i32,
             created_at: 2,
             labels: HashMap::new(),
-            parts: vec![models::SessionMessagePart {
+            parts: vec![data_proto::SessionMessagePart {
                 id: "000001".to_string(),
-                part_type: models::SessionMessagePartType::Image as i32,
+                part_type: data_proto::SessionMessagePartType::Image as i32,
                 content: String::new(),
                 name: String::new(),
                 payload_json: String::new(),

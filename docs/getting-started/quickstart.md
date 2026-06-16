@@ -89,8 +89,7 @@ kind: Agent
 metadata:
   name: hello-agent
   namespace: quickstart
-definition:
-  customSpec:
+spec:
     systemPrompt: |
       You are a concise quickstart assistant for Talon.
       Answer directly and keep the response short.

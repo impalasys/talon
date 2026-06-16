@@ -5,259 +5,307 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { AgentDefinition, AgentTemplate, Knowledge as Knowledge$1, McpServer, McpServerBinding, Skill } from "./manifests_pb.js";
-import { Agent, Channel, ChannelMessage, ChannelSubscription, Knowledge, KnowledgeSearchResult, Schedule, SessionMessage, Workflow, WorkflowRun, WorkflowStepRun } from "./models_pb.js";
+import { Resource } from "./resources/resource_pb.js";
+import { McpServer, McpServerBinding } from "./resources/mcp_pb.js";
+import { Agent, AgentSpec } from "./resources/agents_pb.js";
+import { ChannelMessage, Knowledge, KnowledgeSearchResult, SessionMessage, WorkflowRun, WorkflowStepRun } from "./data/data_pb.js";
+import { Knowledge as Knowledge$1 } from "./resources/knowledge_pb.js";
+import { Channel, ChannelSubscription } from "./resources/channels_pb.js";
+import { Schedule } from "./resources/schedules_pb.js";
+import { Workflow } from "./resources/workflows_pb.js";
 
 /**
- * @generated from message talon.gateway.CreateAgentTemplateRequest
+ * @generated from message talon.gateway.CreateResourceRequest
  */
-export class CreateAgentTemplateRequest extends Message<CreateAgentTemplateRequest> {
+export class CreateResourceRequest extends Message<CreateResourceRequest> {
   /**
-   * @generated from field: talon.manifests.AgentTemplate template = 1;
+   * @generated from field: string ns = 1;
    */
-  template?: AgentTemplate;
+  ns = "";
 
-  constructor(data?: PartialMessage<CreateAgentTemplateRequest>) {
+  /**
+   * @generated from field: talon.resources.Resource resource = 2;
+   */
+  resource?: Resource;
+
+  constructor(data?: PartialMessage<CreateResourceRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateAgentTemplateRequest";
+  static readonly typeName = "talon.gateway.CreateResourceRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "template", kind: "message", T: AgentTemplate },
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "resource", kind: "message", T: Resource },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateAgentTemplateRequest {
-    return new CreateAgentTemplateRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateResourceRequest {
+    return new CreateResourceRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateAgentTemplateRequest {
-    return new CreateAgentTemplateRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateResourceRequest {
+    return new CreateResourceRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateAgentTemplateRequest {
-    return new CreateAgentTemplateRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateResourceRequest {
+    return new CreateResourceRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: CreateAgentTemplateRequest | PlainMessage<CreateAgentTemplateRequest> | undefined, b: CreateAgentTemplateRequest | PlainMessage<CreateAgentTemplateRequest> | undefined): boolean {
-    return proto3.util.equals(CreateAgentTemplateRequest, a, b);
+  static equals(a: CreateResourceRequest | PlainMessage<CreateResourceRequest> | undefined, b: CreateResourceRequest | PlainMessage<CreateResourceRequest> | undefined): boolean {
+    return proto3.util.equals(CreateResourceRequest, a, b);
   }
 }
 
 /**
- * @generated from message talon.gateway.AgentTemplateResponse
+ * @generated from message talon.gateway.GetResourceRequest
  */
-export class AgentTemplateResponse extends Message<AgentTemplateResponse> {
+export class GetResourceRequest extends Message<GetResourceRequest> {
   /**
-   * @generated from field: talon.manifests.AgentTemplate template = 1;
+   * @generated from field: string ns = 1;
    */
-  template?: AgentTemplate;
+  ns = "";
 
-  constructor(data?: PartialMessage<AgentTemplateResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.AgentTemplateResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "template", kind: "message", T: AgentTemplate },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): AgentTemplateResponse {
-    return new AgentTemplateResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): AgentTemplateResponse {
-    return new AgentTemplateResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): AgentTemplateResponse {
-    return new AgentTemplateResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: AgentTemplateResponse | PlainMessage<AgentTemplateResponse> | undefined, b: AgentTemplateResponse | PlainMessage<AgentTemplateResponse> | undefined): boolean {
-    return proto3.util.equals(AgentTemplateResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetAgentTemplateRequest
- */
-export class GetAgentTemplateRequest extends Message<GetAgentTemplateRequest> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: string kind = 2;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string name = 3;
    */
   name = "";
 
-  constructor(data?: PartialMessage<GetAgentTemplateRequest>) {
+  constructor(data?: PartialMessage<GetResourceRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetAgentTemplateRequest";
+  static readonly typeName = "talon.gateway.GetResourceRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetAgentTemplateRequest {
-    return new GetAgentTemplateRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetResourceRequest {
+    return new GetResourceRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetAgentTemplateRequest {
-    return new GetAgentTemplateRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetResourceRequest {
+    return new GetResourceRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetAgentTemplateRequest {
-    return new GetAgentTemplateRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetResourceRequest {
+    return new GetResourceRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: GetAgentTemplateRequest | PlainMessage<GetAgentTemplateRequest> | undefined, b: GetAgentTemplateRequest | PlainMessage<GetAgentTemplateRequest> | undefined): boolean {
-    return proto3.util.equals(GetAgentTemplateRequest, a, b);
+  static equals(a: GetResourceRequest | PlainMessage<GetResourceRequest> | undefined, b: GetResourceRequest | PlainMessage<GetResourceRequest> | undefined): boolean {
+    return proto3.util.equals(GetResourceRequest, a, b);
   }
 }
 
 /**
- * @generated from message talon.gateway.DeleteAgentTemplateRequest
+ * @generated from message talon.gateway.ListResourcesRequest
  */
-export class DeleteAgentTemplateRequest extends Message<DeleteAgentTemplateRequest> {
+export class ListResourcesRequest extends Message<ListResourcesRequest> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: optional string kind = 2;
+   */
+  kind?: string;
+
+  constructor(data?: PartialMessage<ListResourcesRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListResourcesRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListResourcesRequest {
+    return new ListResourcesRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListResourcesRequest {
+    return new ListResourcesRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListResourcesRequest {
+    return new ListResourcesRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListResourcesRequest | PlainMessage<ListResourcesRequest> | undefined, b: ListResourcesRequest | PlainMessage<ListResourcesRequest> | undefined): boolean {
+    return proto3.util.equals(ListResourcesRequest, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.DeleteResourceRequest
+ */
+export class DeleteResourceRequest extends Message<DeleteResourceRequest> {
+  /**
+   * @generated from field: string ns = 1;
+   */
+  ns = "";
+
+  /**
+   * @generated from field: string kind = 2;
+   */
+  kind = "";
+
+  /**
+   * @generated from field: string name = 3;
    */
   name = "";
 
-  constructor(data?: PartialMessage<DeleteAgentTemplateRequest>) {
+  constructor(data?: PartialMessage<DeleteResourceRequest>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteAgentTemplateRequest";
+  static readonly typeName = "talon.gateway.DeleteResourceRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteAgentTemplateRequest {
-    return new DeleteAgentTemplateRequest().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteAgentTemplateRequest {
-    return new DeleteAgentTemplateRequest().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteAgentTemplateRequest {
-    return new DeleteAgentTemplateRequest().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteResourceRequest {
+    return new DeleteResourceRequest().fromJsonString(jsonString, options);
   }
 
-  static equals(a: DeleteAgentTemplateRequest | PlainMessage<DeleteAgentTemplateRequest> | undefined, b: DeleteAgentTemplateRequest | PlainMessage<DeleteAgentTemplateRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteAgentTemplateRequest, a, b);
+  static equals(a: DeleteResourceRequest | PlainMessage<DeleteResourceRequest> | undefined, b: DeleteResourceRequest | PlainMessage<DeleteResourceRequest> | undefined): boolean {
+    return proto3.util.equals(DeleteResourceRequest, a, b);
   }
 }
 
 /**
- * @generated from message talon.gateway.DeleteAgentTemplateResponse
+ * @generated from message talon.gateway.ResourceResponse
  */
-export class DeleteAgentTemplateResponse extends Message<DeleteAgentTemplateResponse> {
+export class ResourceResponse extends Message<ResourceResponse> {
+  /**
+   * @generated from field: talon.resources.Resource resource = 1;
+   */
+  resource?: Resource;
+
+  constructor(data?: PartialMessage<ResourceResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ResourceResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "resource", kind: "message", T: Resource },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ResourceResponse {
+    return new ResourceResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ResourceResponse {
+    return new ResourceResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ResourceResponse {
+    return new ResourceResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ResourceResponse | PlainMessage<ResourceResponse> | undefined, b: ResourceResponse | PlainMessage<ResourceResponse> | undefined): boolean {
+    return proto3.util.equals(ResourceResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.ListResourcesResponse
+ */
+export class ListResourcesResponse extends Message<ListResourcesResponse> {
+  /**
+   * @generated from field: repeated talon.resources.Resource resources = 1;
+   */
+  resources: Resource[] = [];
+
+  constructor(data?: PartialMessage<ListResourcesResponse>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.gateway.ListResourcesResponse";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "resources", kind: "message", T: Resource, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListResourcesResponse {
+    return new ListResourcesResponse().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListResourcesResponse {
+    return new ListResourcesResponse().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListResourcesResponse {
+    return new ListResourcesResponse().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: ListResourcesResponse | PlainMessage<ListResourcesResponse> | undefined, b: ListResourcesResponse | PlainMessage<ListResourcesResponse> | undefined): boolean {
+    return proto3.util.equals(ListResourcesResponse, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.gateway.DeleteResourceResponse
+ */
+export class DeleteResourceResponse extends Message<DeleteResourceResponse> {
   /**
    * @generated from field: bool success = 1;
    */
   success = false;
 
-  constructor(data?: PartialMessage<DeleteAgentTemplateResponse>) {
+  constructor(data?: PartialMessage<DeleteResourceResponse>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteAgentTemplateResponse";
+  static readonly typeName = "talon.gateway.DeleteResourceResponse";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteAgentTemplateResponse {
-    return new DeleteAgentTemplateResponse().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteAgentTemplateResponse {
-    return new DeleteAgentTemplateResponse().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteAgentTemplateResponse {
-    return new DeleteAgentTemplateResponse().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteResourceResponse {
+    return new DeleteResourceResponse().fromJsonString(jsonString, options);
   }
 
-  static equals(a: DeleteAgentTemplateResponse | PlainMessage<DeleteAgentTemplateResponse> | undefined, b: DeleteAgentTemplateResponse | PlainMessage<DeleteAgentTemplateResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteAgentTemplateResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListAgentTemplatesRequest
- */
-export class ListAgentTemplatesRequest extends Message<ListAgentTemplatesRequest> {
-  constructor(data?: PartialMessage<ListAgentTemplatesRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListAgentTemplatesRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAgentTemplatesRequest {
-    return new ListAgentTemplatesRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAgentTemplatesRequest {
-    return new ListAgentTemplatesRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAgentTemplatesRequest {
-    return new ListAgentTemplatesRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListAgentTemplatesRequest | PlainMessage<ListAgentTemplatesRequest> | undefined, b: ListAgentTemplatesRequest | PlainMessage<ListAgentTemplatesRequest> | undefined): boolean {
-    return proto3.util.equals(ListAgentTemplatesRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListAgentTemplatesResponse
- */
-export class ListAgentTemplatesResponse extends Message<ListAgentTemplatesResponse> {
-  /**
-   * @generated from field: repeated talon.manifests.AgentTemplate templates = 1;
-   */
-  templates: AgentTemplate[] = [];
-
-  constructor(data?: PartialMessage<ListAgentTemplatesResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListAgentTemplatesResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "templates", kind: "message", T: AgentTemplate, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListAgentTemplatesResponse {
-    return new ListAgentTemplatesResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListAgentTemplatesResponse {
-    return new ListAgentTemplatesResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListAgentTemplatesResponse {
-    return new ListAgentTemplatesResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListAgentTemplatesResponse | PlainMessage<ListAgentTemplatesResponse> | undefined, b: ListAgentTemplatesResponse | PlainMessage<ListAgentTemplatesResponse> | undefined): boolean {
-    return proto3.util.equals(ListAgentTemplatesResponse, a, b);
+  static equals(a: DeleteResourceResponse | PlainMessage<DeleteResourceResponse> | undefined, b: DeleteResourceResponse | PlainMessage<DeleteResourceResponse> | undefined): boolean {
+    return proto3.util.equals(DeleteResourceResponse, a, b);
   }
 }
 
@@ -266,7 +314,7 @@ export class ListAgentTemplatesResponse extends Message<ListAgentTemplatesRespon
  */
 export class CreateMcpServerRequest extends Message<CreateMcpServerRequest> {
   /**
-   * @generated from field: talon.manifests.McpServer server = 1;
+   * @generated from field: talon.resources.McpServer server = 1;
    */
   server?: McpServer;
 
@@ -445,7 +493,7 @@ export class DeleteMcpServerResponse extends Message<DeleteMcpServerResponse> {
  */
 export class McpServerResponse extends Message<McpServerResponse> {
   /**
-   * @generated from field: talon.manifests.McpServer server = 1;
+   * @generated from field: talon.resources.McpServer server = 1;
    */
   server?: McpServer;
 
@@ -482,7 +530,7 @@ export class McpServerResponse extends Message<McpServerResponse> {
  */
 export class ListMcpServersResponse extends Message<ListMcpServersResponse> {
   /**
-   * @generated from field: repeated talon.manifests.McpServer servers = 1;
+   * @generated from field: repeated talon.resources.McpServer servers = 1;
    */
   servers: McpServer[] = [];
 
@@ -524,7 +572,7 @@ export class CreateMcpServerBindingRequest extends Message<CreateMcpServerBindin
   ns = "";
 
   /**
-   * @generated from field: talon.manifests.McpServerBinding binding = 2;
+   * @generated from field: talon.resources.McpServerBinding binding = 2;
    */
   binding?: McpServerBinding;
 
@@ -722,7 +770,7 @@ export class DeleteMcpServerBindingResponse extends Message<DeleteMcpServerBindi
  */
 export class McpServerBindingResponse extends Message<McpServerBindingResponse> {
   /**
-   * @generated from field: talon.manifests.McpServerBinding binding = 1;
+   * @generated from field: talon.resources.McpServerBinding binding = 1;
    */
   binding?: McpServerBinding;
 
@@ -759,7 +807,7 @@ export class McpServerBindingResponse extends Message<McpServerBindingResponse> 
  */
 export class ListMcpServerBindingsResponse extends Message<ListMcpServerBindingsResponse> {
   /**
-   * @generated from field: repeated talon.manifests.McpServerBinding bindings = 1;
+   * @generated from field: repeated talon.resources.McpServerBinding bindings = 1;
    */
   bindings: McpServerBinding[] = [];
 
@@ -796,7 +844,7 @@ export class ListMcpServerBindingsResponse extends Message<ListMcpServerBindings
  */
 export class GetAgentResponse extends Message<GetAgentResponse> {
   /**
-   * @generated from field: talon.models.Agent agent = 1;
+   * @generated from field: talon.resources.Agent agent = 1;
    */
   agent?: Agent;
 
@@ -886,9 +934,9 @@ export class CreateAgentRequest extends Message<CreateAgentRequest> {
   name?: string;
 
   /**
-   * @generated from field: talon.manifests.AgentDefinition definition = 3;
+   * @generated from field: talon.resources.AgentSpec spec = 5;
    */
-  definition?: AgentDefinition;
+  spec?: AgentSpec;
 
   /**
    * @generated from field: map<string, string> labels = 4;
@@ -905,7 +953,7 @@ export class CreateAgentRequest extends Message<CreateAgentRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
-    { no: 3, name: "definition", kind: "message", T: AgentDefinition },
+    { no: 5, name: "spec", kind: "message", T: AgentSpec },
     { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
   ]);
 
@@ -1064,9 +1112,9 @@ export class ModifyAgentRequest extends Message<ModifyAgentRequest> {
   ns = "";
 
   /**
-   * @generated from field: talon.manifests.AgentDefinition definition = 3;
+   * @generated from field: talon.resources.AgentSpec spec = 5;
    */
-  definition?: AgentDefinition;
+  spec?: AgentSpec;
 
   /**
    * @generated from field: map<string, string> labels = 4;
@@ -1083,7 +1131,7 @@ export class ModifyAgentRequest extends Message<ModifyAgentRequest> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "definition", kind: "message", T: AgentDefinition },
+    { no: 5, name: "spec", kind: "message", T: AgentSpec },
     { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
   ]);
 
@@ -1160,7 +1208,7 @@ export class GetKnowledgeRequest extends Message<GetKnowledgeRequest> {
  */
 export class KnowledgeResponse extends Message<KnowledgeResponse> {
   /**
-   * @generated from field: repeated talon.models.Knowledge modules = 1;
+   * @generated from field: repeated talon.data.Knowledge modules = 1;
    */
   modules: Knowledge[] = [];
 
@@ -1246,7 +1294,7 @@ export class SearchKnowledgeRequest extends Message<SearchKnowledgeRequest> {
  */
 export class SearchKnowledgeResponse extends Message<SearchKnowledgeResponse> {
   /**
-   * @generated from field: repeated talon.models.KnowledgeSearchResult results = 1;
+   * @generated from field: repeated talon.data.KnowledgeSearchResult results = 1;
    */
   results: KnowledgeSearchResult[] = [];
 
@@ -1288,7 +1336,7 @@ export class CreateNamespaceKnowledgeRequest extends Message<CreateNamespaceKnow
   ns = "";
 
   /**
-   * @generated from field: talon.manifests.Knowledge knowledge = 2;
+   * @generated from field: talon.resources.Knowledge knowledge = 2;
    */
   knowledge?: Knowledge$1;
 
@@ -1486,7 +1534,7 @@ export class DeleteNamespaceKnowledgeResponse extends Message<DeleteNamespaceKno
  */
 export class NamespaceKnowledgeResponse extends Message<NamespaceKnowledgeResponse> {
   /**
-   * @generated from field: talon.manifests.Knowledge knowledge = 1;
+   * @generated from field: talon.resources.Knowledge knowledge = 1;
    */
   knowledge?: Knowledge$1;
 
@@ -1523,7 +1571,7 @@ export class NamespaceKnowledgeResponse extends Message<NamespaceKnowledgeRespon
  */
 export class ListNamespaceKnowledgeResponse extends Message<ListNamespaceKnowledgeResponse> {
   /**
-   * @generated from field: repeated talon.manifests.Knowledge knowledge = 1;
+   * @generated from field: repeated talon.resources.Knowledge knowledge = 1;
    */
   knowledge: Knowledge$1[] = [];
 
@@ -1552,283 +1600,6 @@ export class ListNamespaceKnowledgeResponse extends Message<ListNamespaceKnowled
 
   static equals(a: ListNamespaceKnowledgeResponse | PlainMessage<ListNamespaceKnowledgeResponse> | undefined, b: ListNamespaceKnowledgeResponse | PlainMessage<ListNamespaceKnowledgeResponse> | undefined): boolean {
     return proto3.util.equals(ListNamespaceKnowledgeResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.CreateNamespaceSkillRequest
- */
-export class CreateNamespaceSkillRequest extends Message<CreateNamespaceSkillRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.manifests.Skill skill = 2;
-   */
-  skill?: Skill;
-
-  constructor(data?: PartialMessage<CreateNamespaceSkillRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.CreateNamespaceSkillRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "skill", kind: "message", T: Skill },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateNamespaceSkillRequest {
-    return new CreateNamespaceSkillRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): CreateNamespaceSkillRequest {
-    return new CreateNamespaceSkillRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): CreateNamespaceSkillRequest {
-    return new CreateNamespaceSkillRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: CreateNamespaceSkillRequest | PlainMessage<CreateNamespaceSkillRequest> | undefined, b: CreateNamespaceSkillRequest | PlainMessage<CreateNamespaceSkillRequest> | undefined): boolean {
-    return proto3.util.equals(CreateNamespaceSkillRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.GetNamespaceSkillRequest
- */
-export class GetNamespaceSkillRequest extends Message<GetNamespaceSkillRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<GetNamespaceSkillRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.GetNamespaceSkillRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): GetNamespaceSkillRequest {
-    return new GetNamespaceSkillRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): GetNamespaceSkillRequest {
-    return new GetNamespaceSkillRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): GetNamespaceSkillRequest {
-    return new GetNamespaceSkillRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: GetNamespaceSkillRequest | PlainMessage<GetNamespaceSkillRequest> | undefined, b: GetNamespaceSkillRequest | PlainMessage<GetNamespaceSkillRequest> | undefined): boolean {
-    return proto3.util.equals(GetNamespaceSkillRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListNamespaceSkillsRequest
- */
-export class ListNamespaceSkillsRequest extends Message<ListNamespaceSkillsRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  constructor(data?: PartialMessage<ListNamespaceSkillsRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListNamespaceSkillsRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNamespaceSkillsRequest {
-    return new ListNamespaceSkillsRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNamespaceSkillsRequest {
-    return new ListNamespaceSkillsRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNamespaceSkillsRequest {
-    return new ListNamespaceSkillsRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListNamespaceSkillsRequest | PlainMessage<ListNamespaceSkillsRequest> | undefined, b: ListNamespaceSkillsRequest | PlainMessage<ListNamespaceSkillsRequest> | undefined): boolean {
-    return proto3.util.equals(ListNamespaceSkillsRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteNamespaceSkillRequest
- */
-export class DeleteNamespaceSkillRequest extends Message<DeleteNamespaceSkillRequest> {
-  /**
-   * @generated from field: string ns = 1;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: string name = 2;
-   */
-  name = "";
-
-  constructor(data?: PartialMessage<DeleteNamespaceSkillRequest>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteNamespaceSkillRequest";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteNamespaceSkillRequest {
-    return new DeleteNamespaceSkillRequest().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillRequest {
-    return new DeleteNamespaceSkillRequest().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillRequest {
-    return new DeleteNamespaceSkillRequest().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteNamespaceSkillRequest | PlainMessage<DeleteNamespaceSkillRequest> | undefined, b: DeleteNamespaceSkillRequest | PlainMessage<DeleteNamespaceSkillRequest> | undefined): boolean {
-    return proto3.util.equals(DeleteNamespaceSkillRequest, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.DeleteNamespaceSkillResponse
- */
-export class DeleteNamespaceSkillResponse extends Message<DeleteNamespaceSkillResponse> {
-  /**
-   * @generated from field: bool success = 1;
-   */
-  success = false;
-
-  constructor(data?: PartialMessage<DeleteNamespaceSkillResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.DeleteNamespaceSkillResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "success", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeleteNamespaceSkillResponse {
-    return new DeleteNamespaceSkillResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillResponse {
-    return new DeleteNamespaceSkillResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeleteNamespaceSkillResponse {
-    return new DeleteNamespaceSkillResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: DeleteNamespaceSkillResponse | PlainMessage<DeleteNamespaceSkillResponse> | undefined, b: DeleteNamespaceSkillResponse | PlainMessage<DeleteNamespaceSkillResponse> | undefined): boolean {
-    return proto3.util.equals(DeleteNamespaceSkillResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.NamespaceSkillResponse
- */
-export class NamespaceSkillResponse extends Message<NamespaceSkillResponse> {
-  /**
-   * @generated from field: talon.manifests.Skill skill = 1;
-   */
-  skill?: Skill;
-
-  constructor(data?: PartialMessage<NamespaceSkillResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.NamespaceSkillResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "skill", kind: "message", T: Skill },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): NamespaceSkillResponse {
-    return new NamespaceSkillResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): NamespaceSkillResponse {
-    return new NamespaceSkillResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): NamespaceSkillResponse {
-    return new NamespaceSkillResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: NamespaceSkillResponse | PlainMessage<NamespaceSkillResponse> | undefined, b: NamespaceSkillResponse | PlainMessage<NamespaceSkillResponse> | undefined): boolean {
-    return proto3.util.equals(NamespaceSkillResponse, a, b);
-  }
-}
-
-/**
- * @generated from message talon.gateway.ListNamespaceSkillsResponse
- */
-export class ListNamespaceSkillsResponse extends Message<ListNamespaceSkillsResponse> {
-  /**
-   * @generated from field: repeated talon.manifests.Skill skills = 1;
-   */
-  skills: Skill[] = [];
-
-  constructor(data?: PartialMessage<ListNamespaceSkillsResponse>) {
-    super();
-    proto3.util.initPartial(data, this);
-  }
-
-  static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "talon.gateway.ListNamespaceSkillsResponse";
-  static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "skills", kind: "message", T: Skill, repeated: true },
-  ]);
-
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ListNamespaceSkillsResponse {
-    return new ListNamespaceSkillsResponse().fromBinary(bytes, options);
-  }
-
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): ListNamespaceSkillsResponse {
-    return new ListNamespaceSkillsResponse().fromJson(jsonValue, options);
-  }
-
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): ListNamespaceSkillsResponse {
-    return new ListNamespaceSkillsResponse().fromJsonString(jsonString, options);
-  }
-
-  static equals(a: ListNamespaceSkillsResponse | PlainMessage<ListNamespaceSkillsResponse> | undefined, b: ListNamespaceSkillsResponse | PlainMessage<ListNamespaceSkillsResponse> | undefined): boolean {
-    return proto3.util.equals(ListNamespaceSkillsResponse, a, b);
   }
 }
 
@@ -2004,7 +1775,7 @@ export class ListSessionMessagesRequest extends Message<ListSessionMessagesReque
  */
 export class ListSessionMessagesResponseItem extends Message<ListSessionMessagesResponseItem> {
   /**
-   * @generated from field: talon.models.SessionMessage message = 1;
+   * @generated from field: talon.data.SessionMessage message = 1;
    */
   message?: SessionMessage;
 
@@ -2258,7 +2029,7 @@ export class SessionResponse extends Message<SessionResponse> {
   state = "";
 
   /**
-   * @generated from field: repeated talon.models.SessionMessage messages = 4;
+   * @generated from field: repeated talon.data.SessionMessage messages = 4;
    */
   messages: SessionMessage[] = [];
 
@@ -2481,7 +2252,7 @@ export class CreateChannelRequest extends Message<CreateChannelRequest> {
   ns = "";
 
   /**
-   * @generated from field: talon.models.Channel channel = 2;
+   * @generated from field: talon.resources.Channel channel = 2;
    */
   channel?: Channel;
 
@@ -2572,7 +2343,7 @@ export class ModifyChannelRequest extends Message<ModifyChannelRequest> {
   name = "";
 
   /**
-   * @generated from field: talon.models.Channel channel = 3;
+   * @generated from field: talon.resources.Channel channel = 3;
    */
   channel?: Channel;
 
@@ -2691,7 +2462,7 @@ export class DeleteChannelRequest extends Message<DeleteChannelRequest> {
  */
 export class ChannelResponse extends Message<ChannelResponse> {
   /**
-   * @generated from field: talon.models.Channel channel = 1;
+   * @generated from field: talon.resources.Channel channel = 1;
    */
   channel?: Channel;
 
@@ -2728,7 +2499,7 @@ export class ChannelResponse extends Message<ChannelResponse> {
  */
 export class ListChannelsResponse extends Message<ListChannelsResponse> {
   /**
-   * @generated from field: repeated talon.models.Channel channels = 1;
+   * @generated from field: repeated talon.resources.Channel channels = 1;
    */
   channels: Channel[] = [];
 
@@ -2930,7 +2701,7 @@ export class RoutedChannelSession extends Message<RoutedChannelSession> {
  */
 export class PostChannelMessageResponse extends Message<PostChannelMessageResponse> {
   /**
-   * @generated from field: talon.models.ChannelMessage message = 1;
+   * @generated from field: talon.data.ChannelMessage message = 1;
    */
   message?: ChannelMessage;
 
@@ -3022,7 +2793,7 @@ export class GetChannelMessageRequest extends Message<GetChannelMessageRequest> 
  */
 export class ChannelMessageResponse extends Message<ChannelMessageResponse> {
   /**
-   * @generated from field: talon.models.ChannelMessage message = 1;
+   * @generated from field: talon.data.ChannelMessage message = 1;
    */
   message?: ChannelMessage;
 
@@ -3120,7 +2891,7 @@ export class ListChannelMessagesRequest extends Message<ListChannelMessagesReque
  */
 export class ListChannelMessagesResponse extends Message<ListChannelMessagesResponse> {
   /**
-   * @generated from field: repeated talon.models.ChannelMessage messages = 1;
+   * @generated from field: repeated talon.data.ChannelMessage messages = 1;
    */
   messages: ChannelMessage[] = [];
 
@@ -3179,7 +2950,7 @@ export class CreateChannelSubscriptionRequest extends Message<CreateChannelSubsc
   channel = "";
 
   /**
-   * @generated from field: talon.models.ChannelSubscription subscription = 3;
+   * @generated from field: talon.resources.ChannelSubscription subscription = 3;
    */
   subscription?: ChannelSubscription;
 
@@ -3282,7 +3053,7 @@ export class ModifyChannelSubscriptionRequest extends Message<ModifyChannelSubsc
   name = "";
 
   /**
-   * @generated from field: talon.models.ChannelSubscription subscription = 4;
+   * @generated from field: talon.resources.ChannelSubscription subscription = 4;
    */
   subscription?: ChannelSubscription;
 
@@ -3414,7 +3185,7 @@ export class DeleteChannelSubscriptionRequest extends Message<DeleteChannelSubsc
  */
 export class ChannelSubscriptionResponse extends Message<ChannelSubscriptionResponse> {
   /**
-   * @generated from field: talon.models.ChannelSubscription subscription = 1;
+   * @generated from field: talon.resources.ChannelSubscription subscription = 1;
    */
   subscription?: ChannelSubscription;
 
@@ -3451,7 +3222,7 @@ export class ChannelSubscriptionResponse extends Message<ChannelSubscriptionResp
  */
 export class ListChannelSubscriptionsResponse extends Message<ListChannelSubscriptionsResponse> {
   /**
-   * @generated from field: repeated talon.models.ChannelSubscription subscriptions = 1;
+   * @generated from field: repeated talon.resources.ChannelSubscription subscriptions = 1;
    */
   subscriptions: ChannelSubscription[] = [];
 
@@ -3573,7 +3344,7 @@ export class CreateScheduleRequest extends Message<CreateScheduleRequest> {
   ns = "";
 
   /**
-   * @generated from field: talon.models.Schedule schedule = 2;
+   * @generated from field: talon.resources.Schedule schedule = 2;
    */
   schedule?: Schedule;
 
@@ -3664,7 +3435,7 @@ export class ModifyScheduleRequest extends Message<ModifyScheduleRequest> {
   name = "";
 
   /**
-   * @generated from field: talon.models.Schedule schedule = 3;
+   * @generated from field: talon.resources.Schedule schedule = 3;
    */
   schedule?: Schedule;
 
@@ -3740,7 +3511,7 @@ export class ListSchedulesRequest extends Message<ListSchedulesRequest> {
  */
 export class ListSchedulesResponse extends Message<ListSchedulesResponse> {
   /**
-   * @generated from field: repeated talon.models.Schedule schedules = 1;
+   * @generated from field: repeated talon.resources.Schedule schedules = 1;
    */
   schedules: Schedule[] = [];
 
@@ -3862,7 +3633,7 @@ export class CreateWorkflowRequest extends Message<CreateWorkflowRequest> {
   ns = "";
 
   /**
-   * @generated from field: talon.models.Workflow workflow = 2;
+   * @generated from field: talon.resources.Workflow workflow = 2;
    */
   workflow?: Workflow;
 
@@ -4023,7 +3794,7 @@ export class DeleteWorkflowRequest extends Message<DeleteWorkflowRequest> {
  */
 export class WorkflowResponse extends Message<WorkflowResponse> {
   /**
-   * @generated from field: talon.models.Workflow workflow = 1;
+   * @generated from field: talon.resources.Workflow workflow = 1;
    */
   workflow?: Workflow;
 
@@ -4060,7 +3831,7 @@ export class WorkflowResponse extends Message<WorkflowResponse> {
  */
 export class ListWorkflowsResponse extends Message<ListWorkflowsResponse> {
   /**
-   * @generated from field: repeated talon.models.Workflow workflows = 1;
+   * @generated from field: repeated talon.resources.Workflow workflows = 1;
    */
   workflows: Workflow[] = [];
 
@@ -4452,12 +4223,12 @@ export class StreamWorkflowEventsRequest extends Message<StreamWorkflowEventsReq
  */
 export class WorkflowRunResponse extends Message<WorkflowRunResponse> {
   /**
-   * @generated from field: talon.models.WorkflowRun run = 1;
+   * @generated from field: talon.data.WorkflowRun run = 1;
    */
   run?: WorkflowRun;
 
   /**
-   * @generated from field: repeated talon.models.WorkflowStepRun steps = 2;
+   * @generated from field: repeated talon.data.WorkflowStepRun steps = 2;
    */
   steps: WorkflowStepRun[] = [];
 
@@ -4495,7 +4266,7 @@ export class WorkflowRunResponse extends Message<WorkflowRunResponse> {
  */
 export class ListWorkflowRunsResponse extends Message<ListWorkflowRunsResponse> {
   /**
-   * @generated from field: repeated talon.models.WorkflowRun runs = 1;
+   * @generated from field: repeated talon.data.WorkflowRun runs = 1;
    */
   runs: WorkflowRun[] = [];
 
@@ -4544,7 +4315,7 @@ export class ListWorkflowRunsResponse extends Message<ListWorkflowRunsResponse> 
  */
 export class ScheduleResponse extends Message<ScheduleResponse> {
   /**
-   * @generated from field: talon.models.Schedule schedule = 1;
+   * @generated from field: talon.resources.Schedule schedule = 1;
    */
   schedule?: Schedule;
 
@@ -4700,7 +4471,7 @@ export class AppendSessionMessageRequest extends Message<AppendSessionMessageReq
   ns = "";
 
   /**
-   * @generated from field: talon.models.SessionMessage message = 4;
+   * @generated from field: talon.data.SessionMessage message = 4;
    */
   message?: SessionMessage;
 
@@ -4745,7 +4516,7 @@ export class AppendSessionMessageResponse extends Message<AppendSessionMessageRe
   sessionId = "";
 
   /**
-   * @generated from field: talon.models.SessionMessage message = 2;
+   * @generated from field: talon.data.SessionMessage message = 2;
    */
   message?: SessionMessage;
 

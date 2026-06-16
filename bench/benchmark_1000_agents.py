@@ -54,8 +54,8 @@ from proto.events_pb2 import (  # noqa: E402
     SESSION_MESSAGE_PART_EVENT_KIND_DONE,
     SESSION_MESSAGE_PART_EVENT_KIND_ERROR,
 )
-from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model  # noqa: E402
-from proto.models_pb2 import SESSION_MESSAGE_PART_TYPE_TEXT  # noqa: E402
+from proto.data.data_pb2 import SESSION_MESSAGE_PART_TYPE_TEXT  # noqa: E402
+from proto.resources.agents_pb2 import AgentSpec, Model  # noqa: E402
 
 
 MOCK_LLM_PORT = 8000
@@ -535,37 +535,33 @@ async def wait_for_channel(address: str, timeout_seconds: float = 60.0) -> None:
         await asyncio.wait_for(channel.channel_ready(), timeout=timeout_seconds)
 
 
-def agent_definition() -> AgentDefinition:
-    return AgentDefinition(
-        custom_spec=AgentSpec(
-            model_policy={
-                "profiles": [
-                    {
-                        "name": "default",
-                        "model": Model(
-                            provider="mock",
-                            name="talon-bench-mock",
-                            temperature=0.0,
-                        ),
-                    }
-                ]
-            },
-            system_prompt="You are a deterministic benchmark assistant.",
-        )
+def agent_spec() -> AgentSpec:
+    return AgentSpec(
+        model_policy={
+            "profiles": [
+                {
+                    "name": "default",
+                    "model": Model(
+                        provider="mock",
+                        name="talon-bench-mock",
+                        temperature=0.0,
+                    ),
+                }
+            ]
+        },
+        system_prompt="You are a deterministic benchmark assistant.",
     )
 
 
 async def provision(stub: GatewayServiceStub, ns: str, agents: int, concurrency: int) -> list[str]:
     await stub.CreateNamespace(CreateNamespaceRequest(name=ns, recursive=True))
-    definition = agent_definition()
+    spec = agent_spec()
     sem = asyncio.Semaphore(concurrency)
 
     async def create_agent(index: int) -> str:
         name = f"agent-{index:04d}"
         async with sem:
-            await stub.CreateAgent(
-                CreateAgentRequest(ns=ns, name=name, definition=definition)
-            )
+            await stub.CreateAgent(CreateAgentRequest(ns=ns, name=name, spec=spec))
             return name
 
     agent_names = await asyncio.gather(*(create_agent(i) for i in range(agents)))

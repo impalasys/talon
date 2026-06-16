@@ -10,10 +10,10 @@ use tokio::sync::Mutex as AsyncMutex;
 
 use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
 use crate::control::{keys::ResourceKey, topics, KeyValueStore, MessagePublisher};
-use crate::core::context_budget::tool_result_preview;
-use crate::core::executor::{AgentEvent, ExecutionSink};
-use crate::gateway::rpc::models;
-use crate::llm::ChatUsage;
+use crate::gateway::rpc::data_proto;
+use crate::harness::executor::context_budget::tool_result_preview;
+use crate::harness::executor::{AgentEvent, ExecutionSink};
+use crate::harness::llm::ChatUsage;
 use tracing::Instrument;
 
 #[derive(Debug, Clone)]
@@ -46,7 +46,7 @@ pub struct PubSubSessionSink {
     accumulated: Mutex<String>,
     pending_token_event_buffer: Mutex<String>,
     pending_reasoning_event_buffer: Mutex<String>,
-    durable_parts: Mutex<Vec<models::SessionMessagePart>>,
+    durable_parts: Mutex<Vec<data_proto::SessionMessagePart>>,
     durable_text_bytes: Mutex<usize>,
     next_part_index: Mutex<u64>,
     last_flush: Mutex<Instant>,
@@ -141,7 +141,7 @@ impl PubSubSessionSink {
 
     fn record_part(
         &self,
-        part_type: models::SessionMessagePartType,
+        part_type: data_proto::SessionMessagePartType,
         name: String,
         content: String,
         payload_json: String,
@@ -149,7 +149,7 @@ impl PubSubSessionSink {
         self.durable_parts
             .lock()
             .unwrap()
-            .push(models::SessionMessagePart {
+            .push(data_proto::SessionMessagePart {
                 id: self.next_part_id(),
                 part_type: part_type as i32,
                 content,
@@ -160,7 +160,7 @@ impl PubSubSessionSink {
             });
     }
 
-    fn final_message_parts(&self, reply: &str) -> Vec<models::SessionMessagePart> {
+    fn final_message_parts(&self, reply: &str) -> Vec<data_proto::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
         let text = {
             let accumulated = self.accumulated.lock().unwrap();
@@ -173,9 +173,9 @@ impl PubSubSessionSink {
             }
         };
         if !text.is_empty() {
-            parts.push(models::SessionMessagePart {
+            parts.push(data_proto::SessionMessagePart {
                 id: self.next_part_id(),
-                part_type: models::SessionMessagePartType::Text as i32,
+                part_type: data_proto::SessionMessagePartType::Text as i32,
                 content: text,
                 name: String::new(),
                 payload_json: String::new(),
@@ -186,13 +186,13 @@ impl PubSubSessionSink {
         parts
     }
 
-    fn partial_message_parts(&self, current_text: &str) -> Vec<models::SessionMessagePart> {
+    fn partial_message_parts(&self, current_text: &str) -> Vec<data_proto::SessionMessagePart> {
         let mut parts = self.durable_parts.lock().unwrap().clone();
         let text = self.text_since_last_durable_part(current_text);
         if !text.is_empty() {
-            parts.push(models::SessionMessagePart {
+            parts.push(data_proto::SessionMessagePart {
                 id: "000000".to_string(),
-                part_type: models::SessionMessagePartType::Text as i32,
+                part_type: data_proto::SessionMessagePartType::Text as i32,
                 content: text,
                 name: String::new(),
                 payload_json: String::new(),
@@ -220,7 +220,7 @@ impl PubSubSessionSink {
         };
         if !pending_text.is_empty() {
             self.record_part(
-                models::SessionMessagePartType::Text,
+                data_proto::SessionMessagePartType::Text,
                 String::new(),
                 pending_text,
                 String::new(),
@@ -253,7 +253,7 @@ impl PubSubSessionSink {
         };
 
         self.record_part(
-            models::SessionMessagePartType::Reasoning,
+            data_proto::SessionMessagePartType::Reasoning,
             String::new(),
             content.clone(),
             String::new(),
@@ -265,14 +265,14 @@ impl PubSubSessionSink {
         let (kind, part_type, name, content, payload_json) = match event {
             AgentEvent::Reasoning(content) => (
                 SessionMessagePartEventKind::Delta,
-                models::SessionMessagePartType::Reasoning,
+                data_proto::SessionMessagePartType::Reasoning,
                 String::new(),
                 content,
                 String::new(),
             ),
             AgentEvent::Action { id, name, input } => (
                 SessionMessagePartEventKind::Delta,
-                models::SessionMessagePartType::ToolCall,
+                data_proto::SessionMessagePartType::ToolCall,
                 name,
                 "Tool call".to_string(),
                 serde_json::to_string(&serde_json::json!({
@@ -283,7 +283,7 @@ impl PubSubSessionSink {
             ),
             AgentEvent::Observation { id, name, output } => (
                 SessionMessagePartEventKind::Delta,
-                models::SessionMessagePartType::ToolResult,
+                data_proto::SessionMessagePartType::ToolResult,
                 name,
                 output.clone(),
                 serde_json::to_string(&serde_json::json!({
@@ -294,28 +294,28 @@ impl PubSubSessionSink {
             ),
             AgentEvent::Token(content) => (
                 SessionMessagePartEventKind::Delta,
-                models::SessionMessagePartType::Text,
+                data_proto::SessionMessagePartType::Text,
                 String::new(),
                 content,
                 String::new(),
             ),
             AgentEvent::Usage(usage) => (
                 SessionMessagePartEventKind::Delta,
-                models::SessionMessagePartType::Usage,
+                data_proto::SessionMessagePartType::Usage,
                 String::new(),
                 String::new(),
                 serde_json::to_string(&usage).unwrap_or_else(|_| "{}".to_string()),
             ),
             AgentEvent::Done(reply) => (
                 SessionMessagePartEventKind::Done,
-                models::SessionMessagePartType::Text,
+                data_proto::SessionMessagePartType::Text,
                 String::new(),
                 reply,
                 String::new(),
             ),
             AgentEvent::Error(err) => (
                 SessionMessagePartEventKind::Error,
-                models::SessionMessagePartType::Error,
+                data_proto::SessionMessagePartType::Error,
                 String::new(),
                 err,
                 String::new(),
@@ -325,7 +325,7 @@ impl PubSubSessionSink {
         let event = SessionMessagePartEvent {
             session_id: self.session_id.clone(),
             kind: kind as i32,
-            part: Some(models::SessionMessagePart {
+            part: Some(data_proto::SessionMessagePart {
                 id: String::new(),
                 part_type: part_type as i32,
                 content,
@@ -367,9 +367,9 @@ impl PubSubSessionSink {
             let kv = self.kv.clone();
             let reply_msg_key = self.reply_msg_key.clone();
             let persist_lock = self.persist_lock.clone();
-            let partial = models::SessionMessage {
+            let partial = data_proto::SessionMessage {
                 id: self.reply_msg_id.clone(),
-                role: models::MessageRole::RoleAssistant as i32,
+                role: data_proto::MessageRole::RoleAssistant as i32,
                 created_at: chrono::Utc::now().timestamp_micros(),
                 labels: std::collections::HashMap::new(),
                 parts: self.partial_message_parts(&current_text),
@@ -479,7 +479,7 @@ impl ExecutionSink for PubSubSessionSink {
         self.record_accumulated_text_part();
         self.flush_reasoning_part_and_event().await;
         self.record_part(
-            models::SessionMessagePartType::ToolCall,
+            data_proto::SessionMessagePartType::ToolCall,
             name.to_string(),
             "Tool call".to_string(),
             serde_json::to_string(&serde_json::json!({
@@ -501,7 +501,7 @@ impl ExecutionSink for PubSubSessionSink {
         self.flush_reasoning_part_and_event().await;
         let preview = tool_result_preview(result);
         self.record_part(
-            models::SessionMessagePartType::ToolResult,
+            data_proto::SessionMessagePartType::ToolResult,
             name.to_string(),
             preview.clone(),
             serde_json::to_string(&serde_json::json!({
@@ -523,7 +523,7 @@ impl ExecutionSink for PubSubSessionSink {
         *self.usage_events.lock().unwrap() += 1;
         self.flush_reasoning_part_and_event().await;
         self.record_part(
-            models::SessionMessagePartType::Usage,
+            data_proto::SessionMessagePartType::Usage,
             String::new(),
             String::new(),
             serde_json::to_string(usage).unwrap_or_else(|_| "{}".to_string()),
@@ -538,9 +538,9 @@ impl ExecutionSink for PubSubSessionSink {
         // Final KV write (complete message)
         let reply = reply.to_string();
         let reply_for_event = reply.clone();
-        let msg = models::SessionMessage {
+        let msg = data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
-            role: models::MessageRole::RoleAssistant as i32,
+            role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: std::collections::HashMap::new(),
             parts: self.final_message_parts(&reply),
@@ -575,14 +575,14 @@ impl ExecutionSink for PubSubSessionSink {
 
         self.record_accumulated_text_part();
         self.record_part(
-            models::SessionMessagePartType::Error,
+            data_proto::SessionMessagePartType::Error,
             String::new(),
             err.to_string(),
             String::new(),
         );
-        let msg = models::SessionMessage {
+        let msg = data_proto::SessionMessage {
             id: self.reply_msg_id.clone(),
-            role: models::MessageRole::RoleAssistant as i32,
+            role: data_proto::MessageRole::RoleAssistant as i32,
             created_at: chrono::Utc::now().timestamp_micros(),
             labels: std::collections::HashMap::new(),
             parts: self.durable_parts.lock().unwrap().clone(),
@@ -626,8 +626,8 @@ mod tests {
     use crate::control::events::{SessionMessagePartEvent, SessionMessagePartEventKind};
     use crate::control::keys::{self, ResourceKey, ResourceList};
     use crate::control::{KeyValueStore, MessagePublisher};
-    use crate::core::executor::ExecutionSink;
-    use crate::gateway::rpc::models;
+    use crate::gateway::rpc::data_proto;
+    use crate::harness::executor::ExecutionSink;
     use async_trait::async_trait;
     use prost::Message;
     use serde_json::json;
@@ -684,7 +684,7 @@ mod tests {
         events: Arc<Mutex<Vec<SessionMessagePartEvent>>>,
     }
 
-    fn event_part(event: &SessionMessagePartEvent) -> &models::SessionMessagePart {
+    fn event_part(event: &SessionMessagePartEvent) -> &data_proto::SessionMessagePart {
         event.part.as_ref().expect("event part")
     }
 
@@ -732,7 +732,7 @@ mod tests {
             .iter()
             .filter(|event| event.kind == SessionMessagePartEventKind::Delta as i32)
             .filter(|event| {
-                event_part(event).part_type == models::SessionMessagePartType::Text as i32
+                event_part(event).part_type == data_proto::SessionMessagePartType::Text as i32
             })
             .map(|event| event_part(event).content.clone())
             .collect::<Vec<_>>();
@@ -765,12 +765,12 @@ mod tests {
         let events = events.lock().await.clone();
         assert_eq!(
             event_part(&events[0]).part_type,
-            models::SessionMessagePartType::Text as i32
+            data_proto::SessionMessagePartType::Text as i32
         );
         assert_eq!(event_part(&events[0]).content, "drafting request");
         assert_eq!(
             event_part(&events[1]).part_type,
-            models::SessionMessagePartType::ToolCall as i32
+            data_proto::SessionMessagePartType::ToolCall as i32
         );
         assert_eq!(event_part(&events[1]).name, "create_prompt");
 
@@ -778,7 +778,7 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let reply = entries
             .iter()
-            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
             .find(|message| message.id == "reply-1")
             .expect("reply message should be persisted");
         let reply_part_contents = reply
@@ -818,7 +818,7 @@ mod tests {
         let reasoning_events = events
             .iter()
             .filter(|event| {
-                event_part(event).part_type == models::SessionMessagePartType::Reasoning as i32
+                event_part(event).part_type == data_proto::SessionMessagePartType::Reasoning as i32
             })
             .map(|event| event_part(event).content.clone())
             .collect::<Vec<_>>();
@@ -827,9 +827,9 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let persisted_reasoning = entries
             .iter()
-            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
             .flat_map(|message| message.parts)
-            .filter(|part| part.part_type == models::SessionMessagePartType::Reasoning as i32)
+            .filter(|part| part.part_type == data_proto::SessionMessagePartType::Reasoning as i32)
             .map(|part| part.content)
             .collect::<Vec<_>>();
         assert_eq!(persisted_reasoning, vec!["first second".to_string()]);
@@ -863,9 +863,9 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let persisted = entries
             .iter()
-            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
             .flat_map(|message| message.parts)
-            .find(|part| part.part_type == models::SessionMessagePartType::ToolResult as i32)
+            .find(|part| part.part_type == data_proto::SessionMessagePartType::ToolResult as i32)
             .unwrap();
         let payload: serde_json::Value = serde_json::from_str(&persisted.payload_json).unwrap();
 
@@ -900,7 +900,7 @@ mod tests {
         let entries = kv.entries.lock().await.clone();
         let partial = entries
             .iter()
-            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
             .find(|message| message.id == "reply-1")
             .expect("partial reply message should be persisted");
         let part_types = partial
@@ -911,8 +911,8 @@ mod tests {
         assert_eq!(
             part_types,
             vec![
-                models::SessionMessagePartType::ToolCall as i32,
-                models::SessionMessagePartType::Text as i32
+                data_proto::SessionMessagePartType::ToolCall as i32,
+                data_proto::SessionMessagePartType::Text as i32
             ]
         );
         assert_eq!(partial.parts.last().unwrap().content, "partial");
@@ -954,21 +954,21 @@ mod tests {
         let persisted_messages = entries
             .iter()
             .filter_map(|(_, value)| {
-                crate::gateway::rpc::models::SessionMessage::decode(value.as_slice()).ok()
+                crate::gateway::rpc::data_proto::SessionMessage::decode(value.as_slice()).ok()
             })
             .collect::<Vec<_>>();
         assert!(persisted_messages.iter().any(|msg| msg.id == "reply-1"));
 
         let persisted_parts = entries
             .iter()
-            .filter_map(|(_, value)| models::SessionMessage::decode(value.as_slice()).ok())
+            .filter_map(|(_, value)| data_proto::SessionMessage::decode(value.as_slice()).ok())
             .flat_map(|message| message.parts)
             .collect::<Vec<_>>();
         assert!(persisted_parts.iter().any(|part| part.part_type
-            == models::SessionMessagePartType::Text as i32
+            == data_proto::SessionMessagePartType::Text as i32
             && part.content == "final reply"));
         assert!(persisted_parts.iter().any(|part| part.part_type
-            == models::SessionMessagePartType::Error as i32
+            == data_proto::SessionMessagePartType::Error as i32
             && part.content == "tool failed"));
 
         let reply_message = persisted_messages

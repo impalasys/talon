@@ -1,9 +1,12 @@
 apiVersion: talon.impalasys.com/v1
-kind: AgentTemplate
+kind: Template
 metadata:
   name: retention-review-template
-definition:
-  customSpec:
+spec:
+  kind: Agent
+  metadata:
+    name: retention-review
+  spec:
     systemPrompt: |
       You are a customer-retention analyst. Review account context, identify
       churn indicators, and propose specific next actions.

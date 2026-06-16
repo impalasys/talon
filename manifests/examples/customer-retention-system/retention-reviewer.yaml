@@ -5,6 +5,14 @@ metadata:
   namespace: customer-retention
   labels:
     tutorial: customer-retention
-definition:
-  templated:
-    templateName: retention-review-template
+spec:
+  systemPrompt: |
+    You are a customer-retention analyst. Review account context, identify
+    churn indicators, and propose specific next actions.
+  modelPolicy:
+    profiles:
+      - name: default
+        model:
+          provider: openai
+          name: gpt-5.4-nano
+          temperature: 0.0

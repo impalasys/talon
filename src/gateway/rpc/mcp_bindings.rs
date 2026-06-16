@@ -19,12 +19,6 @@ impl GrpcGatewayHandler {
         let mut binding = msg
             .binding
             .ok_or_else(|| tonic::Status::invalid_argument("missing MCP server binding"))?;
-        if binding.api_version.is_empty() {
-            binding.api_version = "v1".to_string();
-        }
-        if binding.kind.is_empty() {
-            binding.kind = "McpServerBinding".to_string();
-        }
         {
             let meta = binding.metadata.as_mut().ok_or_else(|| {
                 tonic::Status::invalid_argument("McpServerBinding missing metadata")

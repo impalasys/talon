@@ -1,0 +1,31 @@
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-agent
+  namespace: __SOURCE_NS__
+spec:
+  kind: Agent
+  metadata:
+    name: coding
+  spec:
+    runtime:
+      kind: acp
+      acp:
+        command: talon-codex-acp
+        args: []
+        cwd: /workspace
+        sandboxPolicyRef: coding
+        persistSession: false
+        env:
+          TALON_CODEX_COMMAND: codex
+          TALON_CODEX_TIMEOUT_SECONDS: "180"
+          TALON_CODEX_ACP_FILE_PATH: /workspace/talon_codex_e2e.py
+          TALON_CODEX_ACP_TERMINAL_COMMAND: python3 /workspace/talon_codex_e2e.py
+          OPENAI_API_KEY: __OPENAI_API_KEY__
+        permissionPolicy:
+          default: allow
+          filesystemWrite: allow
+          filesystemRead: allow
+          terminal: allow
+    systemPrompt: |
+      You are the Docker Codex coding agent for {{ namespace.name }}.

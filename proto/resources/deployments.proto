@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message TemplateSpec {
+  string kind = 1;
+  ResourceMeta metadata = 2;
+  string spec_json = 3;
+}
+
+message DeploymentPlacement {
+  NamespaceSelector namespace_selector = 1;
+}
+
+message DeploymentSpec {
+  DeploymentPlacement placement = 1;
+  repeated string templates = 2;
+}
+
+message DeploymentReplicaSpec {
+  ResourceRef deployment_ref = 1;
+  string target_namespace = 2;
+}
+
+message DeploymentStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  repeated ResourceRef replicas = 4;
+}
+
+message DeploymentReplicaStatus {
+  repeated string rendered_resources = 1;
+  map<string, string> rendered_hashes = 2;
+  repeated string conflicts = 3;
+  map<string, string> last_rendered_json = 4;
+  repeated string owned_json_pointers = 5;
+  string phase = 6;
+}

@@ -68,8 +68,7 @@ kind: Agent
 metadata:
   name: hello-agent
   namespace: first-agent
-definition:
-  customSpec:
+spec:
     systemPrompt: |
       You are a concise tutorial assistant for Talon.
       Explain what you are doing and keep answers short.

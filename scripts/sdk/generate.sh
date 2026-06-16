@@ -6,8 +6,19 @@ cd "$ROOT"
 
 PROTO_SRCS=(
   proto/config.proto
-  proto/models.proto
-  proto/manifests.proto
+  proto/resources/common.proto
+  proto/resources/agents.proto
+  proto/resources/mcp.proto
+  proto/resources/knowledge.proto
+  proto/resources/namespaces.proto
+  proto/resources/channels.proto
+  proto/resources/schedules.proto
+  proto/resources/workflows.proto
+  proto/resources/deployments.proto
+  proto/resources/sandboxes.proto
+  proto/resources/sessions.proto
+  proto/resources/resource.proto
+  proto/data/data.proto
   proto/events.proto
   proto/gateway.proto
 )
@@ -51,13 +62,35 @@ GO_OPTS=(
   "--go_opt=module=${GO_MODULE}"
   "--go-grpc_opt=module=${GO_MODULE}"
   "--go_opt=Mproto/config.proto=${GO_MODULE}/talon/config"
-  "--go_opt=Mproto/models.proto=${GO_MODULE}/talon/models"
-  "--go_opt=Mproto/manifests.proto=${GO_MODULE}/talon/manifests"
+  "--go_opt=Mproto/resources/common.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/agents.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/mcp.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
+  "--go_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
   "--go_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
   "--go_opt=Mproto/gateway.proto=${GO_MODULE}/talon/gateway"
   "--go-grpc_opt=Mproto/config.proto=${GO_MODULE}/talon/config"
-  "--go-grpc_opt=Mproto/models.proto=${GO_MODULE}/talon/models"
-  "--go-grpc_opt=Mproto/manifests.proto=${GO_MODULE}/talon/manifests"
+  "--go-grpc_opt=Mproto/resources/common.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/agents.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/mcp.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/knowledge.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/namespaces.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/channels.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/schedules.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/workflows.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/deployments.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/sandboxes.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/sessions.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/resources/resource.proto=${GO_MODULE}/talon/resources"
+  "--go-grpc_opt=Mproto/data/data.proto=${GO_MODULE}/talon/data"
   "--go-grpc_opt=Mproto/events.proto=${GO_MODULE}/talon/events"
   "--go-grpc_opt=Mproto/gateway.proto=${GO_MODULE}/talon/gateway"
 )

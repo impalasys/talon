@@ -3,10 +3,10 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AgentResponse, AgentTemplateResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ChannelResponse, ChannelSubscriptionResponse, ClearSessionRequest, ClearSessionResponse, CreateAgentRequest, CreateAgentTemplateRequest, CreateChannelRequest, CreateChannelSubscriptionRequest, CreateMcpServerBindingRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateNamespaceRequest, CreateNamespaceSkillRequest, CreateScheduleRequest, CreateSessionRequest, CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteAgentTemplateRequest, DeleteAgentTemplateResponse, DeleteChannelRequest, DeleteChannelResponse, DeleteChannelSubscriptionRequest, DeleteChannelSubscriptionResponse, DeleteMcpServerBindingRequest, DeleteMcpServerBindingResponse, DeleteMcpServerRequest, DeleteMcpServerResponse, DeleteNamespaceKnowledgeRequest, DeleteNamespaceKnowledgeResponse, DeleteNamespaceRequest, DeleteNamespaceSkillRequest, DeleteNamespaceSkillResponse, DeleteScheduleRequest, DeleteScheduleResponse, DeleteSessionRequest, DeleteSessionResponse, DeleteWorkflowRequest, DeleteWorkflowResponse, GetAgentRequest, GetAgentResponse, GetAgentTemplateRequest, GetChannelMessageRequest, GetChannelRequest, GetChannelSubscriptionRequest, GetKnowledgeRequest, GetMcpServerBindingRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetNamespaceRequest, GetNamespaceSkillRequest, GetScheduleRequest, GetSessionRequest, GetWorkflowRequest, GetWorkflowRunRequest, KnowledgeResponse, ListAgentsRequest, ListAgentsResponse, ListAgentTemplatesRequest, ListAgentTemplatesResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelSubscriptionsRequest, ListChannelSubscriptionsResponse, ListMcpServerBindingsRequest, ListMcpServerBindingsResponse, ListMcpServersRequest, ListMcpServersResponse, ListNamespaceKnowledgeRequest, ListNamespaceKnowledgeResponse, ListNamespaceSkillsRequest, ListNamespaceSkillsResponse, ListNamespacesRequest, ListNamespacesResponse, ListSchedulesRequest, ListSchedulesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, ListWorkflowsRequest, ListWorkflowsResponse, McpServerBindingResponse, McpServerResponse, ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest, ModifyScheduleRequest, NamespaceKnowledgeResponse, NamespaceResponse, NamespaceSkillResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResumeWorkflowRunRequest, ScheduleResponse, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowResponse, WorkflowRunResponse } from "./gateway_pb.js";
+import { AgentResponse, AppendSessionMessageRequest, AppendSessionMessageResponse, CancelWorkflowRunRequest, ChannelMessageResponse, ChannelResponse, ChannelSubscriptionResponse, ClearSessionRequest, ClearSessionResponse, CreateAgentRequest, CreateChannelRequest, CreateChannelSubscriptionRequest, CreateMcpServerBindingRequest, CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateNamespaceRequest, CreateResourceRequest, CreateScheduleRequest, CreateSessionRequest, CreateWorkflowRequest, CreateWorkflowRunRequest, DeleteChannelRequest, DeleteChannelResponse, DeleteChannelSubscriptionRequest, DeleteChannelSubscriptionResponse, DeleteMcpServerBindingRequest, DeleteMcpServerBindingResponse, DeleteMcpServerRequest, DeleteMcpServerResponse, DeleteNamespaceKnowledgeRequest, DeleteNamespaceKnowledgeResponse, DeleteNamespaceRequest, DeleteResourceRequest, DeleteResourceResponse, DeleteScheduleRequest, DeleteScheduleResponse, DeleteSessionRequest, DeleteSessionResponse, DeleteWorkflowRequest, DeleteWorkflowResponse, GetAgentRequest, GetAgentResponse, GetChannelMessageRequest, GetChannelRequest, GetChannelSubscriptionRequest, GetKnowledgeRequest, GetMcpServerBindingRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest, GetNamespaceRequest, GetResourceRequest, GetScheduleRequest, GetSessionRequest, GetWorkflowRequest, GetWorkflowRunRequest, KnowledgeResponse, ListAgentsRequest, ListAgentsResponse, ListChannelMessagesRequest, ListChannelMessagesResponse, ListChannelsRequest, ListChannelsResponse, ListChannelSubscriptionsRequest, ListChannelSubscriptionsResponse, ListMcpServerBindingsRequest, ListMcpServerBindingsResponse, ListMcpServersRequest, ListMcpServersResponse, ListNamespaceKnowledgeRequest, ListNamespaceKnowledgeResponse, ListNamespacesRequest, ListNamespacesResponse, ListResourcesRequest, ListResourcesResponse, ListSchedulesRequest, ListSchedulesResponse, ListSessionMessagesRequest, ListSessionMessagesResponse, ListSessionsRequest, ListSessionsResponse, ListWorkflowRunsRequest, ListWorkflowRunsResponse, ListWorkflowsRequest, ListWorkflowsResponse, McpServerBindingResponse, McpServerResponse, ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest, ModifyScheduleRequest, NamespaceKnowledgeResponse, NamespaceResponse, PostChannelMessageRequest, PostChannelMessageResponse, ResourceResponse, ResumeWorkflowRunRequest, ScheduleResponse, SearchKnowledgeRequest, SearchKnowledgeResponse, SendMessageRequest, SendMessageResponse, SessionResponse, StopSessionGenerationRequest, StopSessionGenerationResponse, StreamChannelEventsRequest, StreamSessionPartsBatchRequest, StreamSessionPartsRequest, StreamWorkflowEventsRequest, WorkflowResponse, WorkflowRunResponse } from "./gateway_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 import { ChannelEvent, SessionMessagePartEvent } from "./events_pb.js";
-import { WorkflowRunEvent } from "./models_pb.js";
+import { WorkflowRunEvent } from "./data/data_pb.js";
 
 /**
  * @generated from service talon.gateway.GatewayService
@@ -106,42 +106,6 @@ export const GatewayService = {
       name: "DeleteNamespaceKnowledge",
       I: DeleteNamespaceKnowledgeRequest,
       O: DeleteNamespaceKnowledgeResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.CreateNamespaceSkill
-     */
-    createNamespaceSkill: {
-      name: "CreateNamespaceSkill",
-      I: CreateNamespaceSkillRequest,
-      O: NamespaceSkillResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.GetNamespaceSkill
-     */
-    getNamespaceSkill: {
-      name: "GetNamespaceSkill",
-      I: GetNamespaceSkillRequest,
-      O: NamespaceSkillResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.ListNamespaceSkills
-     */
-    listNamespaceSkills: {
-      name: "ListNamespaceSkills",
-      I: ListNamespaceSkillsRequest,
-      O: ListNamespaceSkillsResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteNamespaceSkill
-     */
-    deleteNamespaceSkill: {
-      name: "DeleteNamespaceSkill",
-      I: DeleteNamespaceSkillRequest,
-      O: DeleteNamespaceSkillResponse,
       kind: MethodKind.Unary,
     },
     /**
@@ -553,41 +517,41 @@ export const GatewayService = {
       kind: MethodKind.Unary,
     },
     /**
-     * Agent Templates
+     * Generic v2 resources
      *
-     * @generated from rpc talon.gateway.GatewayService.CreateAgentTemplate
+     * @generated from rpc talon.gateway.GatewayService.CreateResource
      */
-    createAgentTemplate: {
-      name: "CreateAgentTemplate",
-      I: CreateAgentTemplateRequest,
-      O: AgentTemplateResponse,
+    createResource: {
+      name: "CreateResource",
+      I: CreateResourceRequest,
+      O: ResourceResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc talon.gateway.GatewayService.GetAgentTemplate
+     * @generated from rpc talon.gateway.GatewayService.GetResource
      */
-    getAgentTemplate: {
-      name: "GetAgentTemplate",
-      I: GetAgentTemplateRequest,
-      O: AgentTemplateResponse,
+    getResource: {
+      name: "GetResource",
+      I: GetResourceRequest,
+      O: ResourceResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc talon.gateway.GatewayService.ListAgentTemplates
+     * @generated from rpc talon.gateway.GatewayService.ListResources
      */
-    listAgentTemplates: {
-      name: "ListAgentTemplates",
-      I: ListAgentTemplatesRequest,
-      O: ListAgentTemplatesResponse,
+    listResources: {
+      name: "ListResources",
+      I: ListResourcesRequest,
+      O: ListResourcesResponse,
       kind: MethodKind.Unary,
     },
     /**
-     * @generated from rpc talon.gateway.GatewayService.DeleteAgentTemplate
+     * @generated from rpc talon.gateway.GatewayService.DeleteResource
      */
-    deleteAgentTemplate: {
-      name: "DeleteAgentTemplate",
-      I: DeleteAgentTemplateRequest,
-      O: DeleteAgentTemplateResponse,
+    deleteResource: {
+      name: "DeleteResource",
+      I: DeleteResourceRequest,
+      O: DeleteResourceResponse,
       kind: MethodKind.Unary,
     },
     /**

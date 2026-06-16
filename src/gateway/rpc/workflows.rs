@@ -1,9 +1,10 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{models, proto, GrpcGatewayHandler};
+use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
+use crate::control::resource_model::TypedResource;
 use crate::control::{keys, topics, KeyValueStore, ProtoKeyValueStoreExt};
-use crate::workflows;
+use crate::worker::workflows;
 use futures::{stream, StreamExt};
 use prost::Message;
 use rand::Rng;
@@ -27,10 +28,10 @@ impl GrpcGatewayHandler {
         let mut workflow = req
             .workflow
             .ok_or_else(|| tonic::Status::invalid_argument("workflow is required"))?;
-        workflow.ns = req.ns.clone();
+        workflow.set_namespace(req.ns.clone());
         workflows::validate_workflow(&workflow)
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
-        let key = keys::workflow(&req.ns, &workflow.name);
+        let key = keys::workflow(&req.ns, workflow.name());
         let payload = workflow.encode_to_vec();
         for attempt in 0..MAX_WORKFLOW_UPSERT_RETRIES {
             let current = self
@@ -71,7 +72,7 @@ impl GrpcGatewayHandler {
         let workflow = self
             .gateway
             .kv
-            .get_msg::<models::Workflow>(&keys::workflow(&req.ns, &req.name))
+            .get_msg::<resources_proto::Workflow>(&keys::workflow(&req.ns, &req.name))
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
@@ -95,7 +96,7 @@ impl GrpcGatewayHandler {
         entries.sort_by(|left, right| left.0.cmp(&right.0));
         let mut workflows = Vec::new();
         for (key, bytes) in entries {
-            match models::Workflow::decode(bytes.as_slice()) {
+            match resources_proto::Workflow::decode(bytes.as_slice()) {
                 Ok(workflow) => workflows.push(workflow),
                 Err(err) => {
                     tracing::warn!(
@@ -136,7 +137,7 @@ impl GrpcGatewayHandler {
         let workflow = self
             .gateway
             .kv
-            .get_msg::<models::Workflow>(&keys::workflow(&req.ns, &req.workflow))
+            .get_msg::<resources_proto::Workflow>(&keys::workflow(&req.ns, &req.workflow))
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
             .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
@@ -176,7 +177,7 @@ impl GrpcGatewayHandler {
         let run = self
             .gateway
             .kv
-            .get_msg::<models::WorkflowRun>(&keys::workflow_run(
+            .get_msg::<data_proto::WorkflowRun>(&keys::workflow_run(
                 &req.ns,
                 &req.workflow,
                 &req.run_id,
@@ -234,7 +235,7 @@ impl GrpcGatewayHandler {
                 if runs.len() >= target_run_count {
                     break;
                 }
-                match models::WorkflowRun::decode(bytes.as_slice()) {
+                match data_proto::WorkflowRun::decode(bytes.as_slice()) {
                     Ok(run) => runs.push(run),
                     Err(err) => {
                         tracing::warn!(
@@ -324,7 +325,7 @@ impl GrpcGatewayHandler {
         let req = req.into_inner();
         self.gateway
             .kv
-            .get_msg::<models::WorkflowRun>(&keys::workflow_run(
+            .get_msg::<data_proto::WorkflowRun>(&keys::workflow_run(
                 &req.ns,
                 &req.workflow,
                 &req.run_id,
@@ -356,7 +357,7 @@ impl GrpcGatewayHandler {
 
         let mut historical = Vec::new();
         for (key, bytes) in entries {
-            match models::WorkflowRunEvent::decode(bytes.as_slice()) {
+            match data_proto::WorkflowRunEvent::decode(bytes.as_slice()) {
                 Ok(event) => historical.push(event),
                 Err(err) => {
                     tracing::warn!(
@@ -399,7 +400,7 @@ impl GrpcGatewayHandler {
                 if *terminated {
                     return futures::future::ready(None);
                 }
-                let item = match models::WorkflowRunEvent::decode(bytes.as_slice()) {
+                let item = match data_proto::WorkflowRunEvent::decode(bytes.as_slice()) {
                     Ok(event) => {
                         if !seen.insert(event.id.clone()) {
                             Some(None)
@@ -428,8 +429,8 @@ impl GrpcGatewayHandler {
 
 async fn load_sorted_workflow_step_runs(
     kv: &dyn KeyValueStore,
-    run: &models::WorkflowRun,
-) -> Result<Vec<models::WorkflowStepRun>, tonic::Status> {
+    run: &data_proto::WorkflowRun,
+) -> Result<Vec<data_proto::WorkflowStepRun>, tonic::Status> {
     let mut steps = workflows::load_step_runs(kv, run)
         .await
         .map_err(|err| tonic::Status::internal(err.to_string()))?

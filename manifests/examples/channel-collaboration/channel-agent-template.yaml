@@ -1,9 +1,12 @@
 apiVersion: talon.impalasys.com/v1
-kind: AgentTemplate
+kind: Template
 metadata:
   name: channel-agent-template
-definition:
-  customSpec:
+spec:
+  kind: Agent
+  metadata:
+    name: channel-agent
+  spec:
     systemPrompt: |
       You are a channel-collaboration tutorial agent.
       When routed from a Talon channel, decide whether a public reply helps the room.

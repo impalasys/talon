@@ -8,8 +8,8 @@ package gateway
 
 import (
 	context "context"
+	data "github.com/impalasys/talon/sdk/go/talon-client/talon/data"
 	events "github.com/impalasys/talon/sdk/go/talon-client/talon/events"
-	models "github.com/impalasys/talon/sdk/go/talon-client/talon/models"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -79,10 +79,10 @@ const (
 	GatewayService_GetNamespace_FullMethodName              = "/talon.gateway.GatewayService/GetNamespace"
 	GatewayService_DeleteNamespace_FullMethodName           = "/talon.gateway.GatewayService/DeleteNamespace"
 	GatewayService_ListNamespaces_FullMethodName            = "/talon.gateway.GatewayService/ListNamespaces"
-	GatewayService_CreateAgentTemplate_FullMethodName       = "/talon.gateway.GatewayService/CreateAgentTemplate"
-	GatewayService_GetAgentTemplate_FullMethodName          = "/talon.gateway.GatewayService/GetAgentTemplate"
-	GatewayService_ListAgentTemplates_FullMethodName        = "/talon.gateway.GatewayService/ListAgentTemplates"
-	GatewayService_DeleteAgentTemplate_FullMethodName       = "/talon.gateway.GatewayService/DeleteAgentTemplate"
+	GatewayService_CreateResource_FullMethodName            = "/talon.gateway.GatewayService/CreateResource"
+	GatewayService_GetResource_FullMethodName               = "/talon.gateway.GatewayService/GetResource"
+	GatewayService_ListResources_FullMethodName             = "/talon.gateway.GatewayService/ListResources"
+	GatewayService_DeleteResource_FullMethodName            = "/talon.gateway.GatewayService/DeleteResource"
 	GatewayService_CreateMcpServer_FullMethodName           = "/talon.gateway.GatewayService/CreateMcpServer"
 	GatewayService_GetMcpServer_FullMethodName              = "/talon.gateway.GatewayService/GetMcpServer"
 	GatewayService_ListMcpServers_FullMethodName            = "/talon.gateway.GatewayService/ListMcpServers"
@@ -157,17 +157,17 @@ type GatewayServiceClient interface {
 	ListWorkflowRuns(ctx context.Context, in *ListWorkflowRunsRequest, opts ...grpc.CallOption) (*ListWorkflowRunsResponse, error)
 	ResumeWorkflowRun(ctx context.Context, in *ResumeWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error)
 	CancelWorkflowRun(ctx context.Context, in *CancelWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error)
-	StreamWorkflowEvents(ctx context.Context, in *StreamWorkflowEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[models.WorkflowRunEvent], error)
+	StreamWorkflowEvents(ctx context.Context, in *StreamWorkflowEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[data.WorkflowRunEvent], error)
 	// Namespaces
 	CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	GetNamespace(ctx context.Context, in *GetNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	DeleteNamespace(ctx context.Context, in *DeleteNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error)
 	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
-	// Agent Templates
-	CreateAgentTemplate(ctx context.Context, in *CreateAgentTemplateRequest, opts ...grpc.CallOption) (*AgentTemplateResponse, error)
-	GetAgentTemplate(ctx context.Context, in *GetAgentTemplateRequest, opts ...grpc.CallOption) (*AgentTemplateResponse, error)
-	ListAgentTemplates(ctx context.Context, in *ListAgentTemplatesRequest, opts ...grpc.CallOption) (*ListAgentTemplatesResponse, error)
-	DeleteAgentTemplate(ctx context.Context, in *DeleteAgentTemplateRequest, opts ...grpc.CallOption) (*DeleteAgentTemplateResponse, error)
+	// Generic v2 resources
+	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
+	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
+	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
+	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
 	// MCP Servers
 	CreateMcpServer(ctx context.Context, in *CreateMcpServerRequest, opts ...grpc.CallOption) (*McpServerResponse, error)
 	GetMcpServer(ctx context.Context, in *GetMcpServerRequest, opts ...grpc.CallOption) (*McpServerResponse, error)
@@ -744,13 +744,13 @@ func (c *gatewayServiceClient) CancelWorkflowRun(ctx context.Context, in *Cancel
 	return out, nil
 }
 
-func (c *gatewayServiceClient) StreamWorkflowEvents(ctx context.Context, in *StreamWorkflowEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[models.WorkflowRunEvent], error) {
+func (c *gatewayServiceClient) StreamWorkflowEvents(ctx context.Context, in *StreamWorkflowEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[data.WorkflowRunEvent], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &GatewayService_ServiceDesc.Streams[3], GatewayService_StreamWorkflowEvents_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StreamWorkflowEventsRequest, models.WorkflowRunEvent]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StreamWorkflowEventsRequest, data.WorkflowRunEvent]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -761,7 +761,7 @@ func (c *gatewayServiceClient) StreamWorkflowEvents(ctx context.Context, in *Str
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GatewayService_StreamWorkflowEventsClient = grpc.ServerStreamingClient[models.WorkflowRunEvent]
+type GatewayService_StreamWorkflowEventsClient = grpc.ServerStreamingClient[data.WorkflowRunEvent]
 
 func (c *gatewayServiceClient) CreateNamespace(ctx context.Context, in *CreateNamespaceRequest, opts ...grpc.CallOption) (*NamespaceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -803,40 +803,40 @@ func (c *gatewayServiceClient) ListNamespaces(ctx context.Context, in *ListNames
 	return out, nil
 }
 
-func (c *gatewayServiceClient) CreateAgentTemplate(ctx context.Context, in *CreateAgentTemplateRequest, opts ...grpc.CallOption) (*AgentTemplateResponse, error) {
+func (c *gatewayServiceClient) CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AgentTemplateResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateAgentTemplate_FullMethodName, in, out, cOpts...)
+	out := new(ResourceResponse)
+	err := c.cc.Invoke(ctx, GatewayService_CreateResource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gatewayServiceClient) GetAgentTemplate(ctx context.Context, in *GetAgentTemplateRequest, opts ...grpc.CallOption) (*AgentTemplateResponse, error) {
+func (c *gatewayServiceClient) GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AgentTemplateResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetAgentTemplate_FullMethodName, in, out, cOpts...)
+	out := new(ResourceResponse)
+	err := c.cc.Invoke(ctx, GatewayService_GetResource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gatewayServiceClient) ListAgentTemplates(ctx context.Context, in *ListAgentTemplatesRequest, opts ...grpc.CallOption) (*ListAgentTemplatesResponse, error) {
+func (c *gatewayServiceClient) ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListAgentTemplatesResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListAgentTemplates_FullMethodName, in, out, cOpts...)
+	out := new(ListResourcesResponse)
+	err := c.cc.Invoke(ctx, GatewayService_ListResources_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gatewayServiceClient) DeleteAgentTemplate(ctx context.Context, in *DeleteAgentTemplateRequest, opts ...grpc.CallOption) (*DeleteAgentTemplateResponse, error) {
+func (c *gatewayServiceClient) DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteAgentTemplateResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteAgentTemplate_FullMethodName, in, out, cOpts...)
+	out := new(DeleteResourceResponse)
+	err := c.cc.Invoke(ctx, GatewayService_DeleteResource_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -987,17 +987,17 @@ type GatewayServiceServer interface {
 	ListWorkflowRuns(context.Context, *ListWorkflowRunsRequest) (*ListWorkflowRunsResponse, error)
 	ResumeWorkflowRun(context.Context, *ResumeWorkflowRunRequest) (*WorkflowRunResponse, error)
 	CancelWorkflowRun(context.Context, *CancelWorkflowRunRequest) (*WorkflowRunResponse, error)
-	StreamWorkflowEvents(*StreamWorkflowEventsRequest, grpc.ServerStreamingServer[models.WorkflowRunEvent]) error
+	StreamWorkflowEvents(*StreamWorkflowEventsRequest, grpc.ServerStreamingServer[data.WorkflowRunEvent]) error
 	// Namespaces
 	CreateNamespace(context.Context, *CreateNamespaceRequest) (*NamespaceResponse, error)
 	GetNamespace(context.Context, *GetNamespaceRequest) (*NamespaceResponse, error)
 	DeleteNamespace(context.Context, *DeleteNamespaceRequest) (*NamespaceResponse, error)
 	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
-	// Agent Templates
-	CreateAgentTemplate(context.Context, *CreateAgentTemplateRequest) (*AgentTemplateResponse, error)
-	GetAgentTemplate(context.Context, *GetAgentTemplateRequest) (*AgentTemplateResponse, error)
-	ListAgentTemplates(context.Context, *ListAgentTemplatesRequest) (*ListAgentTemplatesResponse, error)
-	DeleteAgentTemplate(context.Context, *DeleteAgentTemplateRequest) (*DeleteAgentTemplateResponse, error)
+	// Generic v2 resources
+	CreateResource(context.Context, *CreateResourceRequest) (*ResourceResponse, error)
+	GetResource(context.Context, *GetResourceRequest) (*ResourceResponse, error)
+	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)
+	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
 	// MCP Servers
 	CreateMcpServer(context.Context, *CreateMcpServerRequest) (*McpServerResponse, error)
 	GetMcpServer(context.Context, *GetMcpServerRequest) (*McpServerResponse, error)
@@ -1176,7 +1176,7 @@ func (UnimplementedGatewayServiceServer) ResumeWorkflowRun(context.Context, *Res
 func (UnimplementedGatewayServiceServer) CancelWorkflowRun(context.Context, *CancelWorkflowRunRequest) (*WorkflowRunResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CancelWorkflowRun not implemented")
 }
-func (UnimplementedGatewayServiceServer) StreamWorkflowEvents(*StreamWorkflowEventsRequest, grpc.ServerStreamingServer[models.WorkflowRunEvent]) error {
+func (UnimplementedGatewayServiceServer) StreamWorkflowEvents(*StreamWorkflowEventsRequest, grpc.ServerStreamingServer[data.WorkflowRunEvent]) error {
 	return status.Errorf(codes.Unimplemented, "method StreamWorkflowEvents not implemented")
 }
 func (UnimplementedGatewayServiceServer) CreateNamespace(context.Context, *CreateNamespaceRequest) (*NamespaceResponse, error) {
@@ -1191,17 +1191,17 @@ func (UnimplementedGatewayServiceServer) DeleteNamespace(context.Context, *Delet
 func (UnimplementedGatewayServiceServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
 }
-func (UnimplementedGatewayServiceServer) CreateAgentTemplate(context.Context, *CreateAgentTemplateRequest) (*AgentTemplateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAgentTemplate not implemented")
+func (UnimplementedGatewayServiceServer) CreateResource(context.Context, *CreateResourceRequest) (*ResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateResource not implemented")
 }
-func (UnimplementedGatewayServiceServer) GetAgentTemplate(context.Context, *GetAgentTemplateRequest) (*AgentTemplateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAgentTemplate not implemented")
+func (UnimplementedGatewayServiceServer) GetResource(context.Context, *GetResourceRequest) (*ResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetResource not implemented")
 }
-func (UnimplementedGatewayServiceServer) ListAgentTemplates(context.Context, *ListAgentTemplatesRequest) (*ListAgentTemplatesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListAgentTemplates not implemented")
+func (UnimplementedGatewayServiceServer) ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListResources not implemented")
 }
-func (UnimplementedGatewayServiceServer) DeleteAgentTemplate(context.Context, *DeleteAgentTemplateRequest) (*DeleteAgentTemplateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteAgentTemplate not implemented")
+func (UnimplementedGatewayServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteResource not implemented")
 }
 func (UnimplementedGatewayServiceServer) CreateMcpServer(context.Context, *CreateMcpServerRequest) (*McpServerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateMcpServer not implemented")
@@ -2186,11 +2186,11 @@ func _GatewayService_StreamWorkflowEvents_Handler(srv interface{}, stream grpc.S
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(GatewayServiceServer).StreamWorkflowEvents(m, &grpc.GenericServerStream[StreamWorkflowEventsRequest, models.WorkflowRunEvent]{ServerStream: stream})
+	return srv.(GatewayServiceServer).StreamWorkflowEvents(m, &grpc.GenericServerStream[StreamWorkflowEventsRequest, data.WorkflowRunEvent]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type GatewayService_StreamWorkflowEventsServer = grpc.ServerStreamingServer[models.WorkflowRunEvent]
+type GatewayService_StreamWorkflowEventsServer = grpc.ServerStreamingServer[data.WorkflowRunEvent]
 
 func _GatewayService_CreateNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateNamespaceRequest)
@@ -2264,74 +2264,74 @@ func _GatewayService_ListNamespaces_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GatewayService_CreateAgentTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAgentTemplateRequest)
+func _GatewayService_CreateResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateAgentTemplate(ctx, in)
+		return srv.(GatewayServiceServer).CreateResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GatewayService_CreateAgentTemplate_FullMethodName,
+		FullMethod: GatewayService_CreateResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateAgentTemplate(ctx, req.(*CreateAgentTemplateRequest))
+		return srv.(GatewayServiceServer).CreateResource(ctx, req.(*CreateResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GatewayService_GetAgentTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAgentTemplateRequest)
+func _GatewayService_GetResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetAgentTemplate(ctx, in)
+		return srv.(GatewayServiceServer).GetResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GatewayService_GetAgentTemplate_FullMethodName,
+		FullMethod: GatewayService_GetResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetAgentTemplate(ctx, req.(*GetAgentTemplateRequest))
+		return srv.(GatewayServiceServer).GetResource(ctx, req.(*GetResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GatewayService_ListAgentTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListAgentTemplatesRequest)
+func _GatewayService_ListResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListResourcesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListAgentTemplates(ctx, in)
+		return srv.(GatewayServiceServer).ListResources(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GatewayService_ListAgentTemplates_FullMethodName,
+		FullMethod: GatewayService_ListResources_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListAgentTemplates(ctx, req.(*ListAgentTemplatesRequest))
+		return srv.(GatewayServiceServer).ListResources(ctx, req.(*ListResourcesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GatewayService_DeleteAgentTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteAgentTemplateRequest)
+func _GatewayService_DeleteResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteAgentTemplate(ctx, in)
+		return srv.(GatewayServiceServer).DeleteResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: GatewayService_DeleteAgentTemplate_FullMethodName,
+		FullMethod: GatewayService_DeleteResource_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteAgentTemplate(ctx, req.(*DeleteAgentTemplateRequest))
+		return srv.(GatewayServiceServer).DeleteResource(ctx, req.(*DeleteResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2704,20 +2704,20 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GatewayService_ListNamespaces_Handler,
 		},
 		{
-			MethodName: "CreateAgentTemplate",
-			Handler:    _GatewayService_CreateAgentTemplate_Handler,
+			MethodName: "CreateResource",
+			Handler:    _GatewayService_CreateResource_Handler,
 		},
 		{
-			MethodName: "GetAgentTemplate",
-			Handler:    _GatewayService_GetAgentTemplate_Handler,
+			MethodName: "GetResource",
+			Handler:    _GatewayService_GetResource_Handler,
 		},
 		{
-			MethodName: "ListAgentTemplates",
-			Handler:    _GatewayService_ListAgentTemplates_Handler,
+			MethodName: "ListResources",
+			Handler:    _GatewayService_ListResources_Handler,
 		},
 		{
-			MethodName: "DeleteAgentTemplate",
-			Handler:    _GatewayService_DeleteAgentTemplate_Handler,
+			MethodName: "DeleteResource",
+			Handler:    _GatewayService_DeleteResource_Handler,
 		},
 		{
 			MethodName: "CreateMcpServer",

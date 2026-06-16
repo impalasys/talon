@@ -88,7 +88,7 @@ pub struct Claims {
 }
 
 pub fn verify_jwt(token: &str, secret: &str) -> Result<Claims, Status> {
-    crate::security::install_jwt_crypto_provider();
+    crate::control::security::install_jwt_crypto_provider();
     let mut validation = Validation::new(Algorithm::HS256);
     validation.set_audience(&["talon"]);
 
@@ -486,7 +486,7 @@ mod tests {
         agent: Option<&str>,
         session: Option<&str>,
     ) -> String {
-        crate::security::install_jwt_crypto_provider();
+        crate::control::security::install_jwt_crypto_provider();
         let claims = Claims {
             sub: "user123".to_string(),
             aud: "talon".to_string(),
@@ -592,7 +592,7 @@ mod tests {
     }
 
     fn create_channel_token(secret: &str, ns: Option<&str>, channel: Option<&str>) -> String {
-        crate::security::install_jwt_crypto_provider();
+        crate::control::security::install_jwt_crypto_provider();
         let claims = Claims {
             sub: "channel-client".to_string(),
             aud: "talon".to_string(),

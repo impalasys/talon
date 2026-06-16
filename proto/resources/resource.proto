@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/agents.proto";
+import "proto/resources/channels.proto";
+import "proto/resources/common.proto";
+import "proto/resources/deployments.proto";
+import "proto/resources/knowledge.proto";
+import "proto/resources/mcp.proto";
+import "proto/resources/namespaces.proto";
+import "proto/resources/sandboxes.proto";
+import "proto/resources/schedules.proto";
+import "proto/resources/sessions.proto";
+import "proto/resources/workflows.proto";
+
+message Resource {
+  string api_version = 1;
+  string kind = 2;
+  ResourceMeta metadata = 3;
+  ResourceSpec spec = 4;
+  ResourceStatus status = 5;
+}
+
+message RawResourceSpec {
+  string json = 1;
+}
+
+message RawResourceStatus {
+  string json = 1;
+}
+
+message ResourceSpec {
+  oneof kind {
+    AgentSpec agent = 1;
+    WorkflowSpec workflow = 2;
+    ScheduleSpec schedule = 3;
+    ChannelSpec channel = 4;
+    ChannelSubscriptionSpec channel_subscription = 5;
+    McpServerSpec mcp_server = 6;
+    McpServerBindingSpec mcp_server_binding = 7;
+    KnowledgeSpec knowledge = 8;
+    NamespaceSpec namespace = 9;
+    SessionSpec session = 10;
+    TemplateSpec template = 20;
+    DeploymentSpec deployment = 21;
+    DeploymentReplicaSpec deployment_replica = 22;
+    SandboxClassSpec sandbox_class = 40;
+    SandboxPolicySpec sandbox_policy = 41;
+    SandboxSpec sandbox = 42;
+    PermissionRequestSpec permission_request = 43;
+    RawResourceSpec raw = 1000;
+  }
+}
+
+message ResourceStatus {
+  oneof kind {
+    AgentStatus agent = 1;
+    WorkflowStatus workflow = 2;
+    ScheduleStatus schedule = 3;
+    ChannelStatus channel = 4;
+    CommonResourceStatus channel_subscription = 5;
+    CommonResourceStatus mcp_server = 6;
+    CommonResourceStatus mcp_server_binding = 7;
+    CommonResourceStatus knowledge = 8;
+    NamespaceStatus namespace = 9;
+    SessionStatus session = 10;
+    CommonResourceStatus template = 20;
+    DeploymentStatus deployment = 21;
+    DeploymentReplicaStatus deployment_replica = 22;
+    CommonResourceStatus sandbox_class = 40;
+    CommonResourceStatus sandbox_policy = 41;
+    SandboxStatus sandbox = 42;
+    PermissionRequestStatus permission_request = 43;
+    RawResourceStatus raw = 1000;
+  }
+}

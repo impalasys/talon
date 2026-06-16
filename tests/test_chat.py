@@ -35,8 +35,11 @@ from proto.gateway_pb2 import (
     DeleteScheduleRequest,
     StreamWorkflowEventsRequest,
 )
-from proto.manifests_pb2 import AgentDefinition, AgentSpec, Model, Knowledge, ObjectMeta, KnowledgeSpec
-from proto.models_pb2 import Schedule, ScheduleSpec, ScheduleTarget, Workflow, WorkflowSpec, WorkflowStep
+from proto.resources.agents_pb2 import AgentSpec, Model
+from proto.resources.common_pb2 import ResourceMeta
+from proto.resources.knowledge_pb2 import Knowledge, KnowledgeSpec
+from proto.resources.schedules_pb2 import Schedule, ScheduleSpec, ScheduleTarget
+from proto.resources.workflows_pb2 import Workflow, WorkflowSpec, WorkflowStep
 import threading
 import uuid
 
@@ -84,7 +87,7 @@ def test_single_turn_chat(gateway_channel, mock_llm_server):
     agent = stub.CreateAgent(CreateAgentRequest(
         ns="talon-test",
         name="test-llm-agent",
-        definition=AgentDefinition(custom_spec=agent_spec),
+        spec=agent_spec,
     ))
     
     assert agent.agent == "test-llm-agent"
@@ -164,7 +167,7 @@ def test_streaming_chat(gateway_channel, mock_llm_server):
     agent = stub.CreateAgent(CreateAgentRequest(
         ns="talon-stream-test",
         name="stream-agent",
-        definition=AgentDefinition(custom_spec=agent_spec),
+        spec=agent_spec,
     ))
     
     session = stub.CreateSession(CreateSessionRequest(
@@ -250,13 +253,13 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
     stub.CreateAgent(CreateAgentRequest(
         ns=namespace,
         name=agent_name,
-        definition=AgentDefinition(custom_spec=agent_spec),
+        spec=agent_spec,
     ))
 
     created = stub.CreateNamespaceKnowledge(CreateNamespaceKnowledgeRequest(
         ns=namespace,
         knowledge=Knowledge(
-            metadata=ObjectMeta(name="guide"),
+            metadata=ResourceMeta(name="guide"),
             spec=KnowledgeSpec(
                 path="guide.md",
                 content="Talon stores runtime facts in guide documents."
@@ -322,7 +325,7 @@ def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
     stub.CreateAgent(CreateAgentRequest(
         ns=namespace,
         name=agent_name,
-        definition=AgentDefinition(custom_spec=agent_spec),
+        spec=agent_spec,
     ))
 
     created = stub.CreateSchedule(CreateScheduleRequest(

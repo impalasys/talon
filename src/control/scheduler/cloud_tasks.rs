@@ -1,7 +1,7 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::config::{proto::CloudTasksSchedulerConfig, SecretExt};
+use crate::control::config::{proto::CloudTasksSchedulerConfig, SecretExt};
 use anyhow::{anyhow, Context, Result};
 use base64::Engine as _;
 use chrono::{DateTime, Utc};
@@ -92,20 +92,24 @@ fn compute_cloud_tasks_schedule_at(
 }
 
 async fn resolve_callback_auth(
-    cfg: Option<&crate::config::proto::SchedulerCallbackAuthConfig>,
+    cfg: Option<&crate::control::config::proto::SchedulerCallbackAuthConfig>,
 ) -> Result<(Option<String>, Option<String>, Option<String>)> {
     if let Some(cfg) = cfg {
         return match cfg.auth.as_ref() {
-            Some(crate::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
-                secret,
-            )) => Ok((Some(secret.resolve().await?), None, None)),
-            Some(crate::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(oidc)) => {
-                Ok((
-                    None,
-                    non_empty(oidc.service_account_email.clone()),
-                    non_empty(oidc.audience.clone()),
-                ))
-            }
+            Some(
+                crate::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                    secret,
+                ),
+            ) => Ok((Some(secret.resolve().await?), None, None)),
+            Some(
+                crate::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                    oidc,
+                ),
+            ) => Ok((
+                None,
+                non_empty(oidc.service_account_email.clone()),
+                non_empty(oidc.audience.clone()),
+            )),
             None => Ok((None, None, None)),
         };
     }
@@ -396,10 +400,10 @@ mod tests {
             std::env::set_var("TALON_SCHEDULER_AUDIENCE", "https://stale.example.com");
         }
 
-        let cfg = crate::config::proto::SchedulerCallbackAuthConfig {
+        let cfg = crate::control::config::proto::SchedulerCallbackAuthConfig {
             auth: Some(
-                crate::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
-                    crate::config::proto::GoogleOidcAuthConfig {
+                crate::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                    crate::control::config::proto::GoogleOidcAuthConfig {
                         service_account_email: "scheduler@example.com".to_string(),
                         audience: "https://worker.example.com".to_string(),
                     },
@@ -451,10 +455,10 @@ mod tests {
         let _guard = crate::test_support::async_env_mutex().lock().await;
         clear_scheduler_auth_env();
 
-        let blank_cfg = crate::config::proto::SchedulerCallbackAuthConfig {
+        let blank_cfg = crate::control::config::proto::SchedulerCallbackAuthConfig {
             auth: Some(
-                crate::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
-                    crate::config::proto::GoogleOidcAuthConfig {
+                crate::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                    crate::control::config::proto::GoogleOidcAuthConfig {
                         service_account_email: "   ".to_string(),
                         audience: "".to_string(),
                     },
@@ -467,13 +471,14 @@ mod tests {
         assert!(service_account_email.is_none());
         assert!(audience.is_none());
 
-        let shared_cfg = crate::config::proto::SchedulerCallbackAuthConfig {
+        let shared_cfg = crate::control::config::proto::SchedulerCallbackAuthConfig {
             auth: Some(
-                crate::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
-                    crate::config::proto::Secret {
-                        source: Some(crate::config::proto::secret::Source::Ref(
-                            crate::config::proto::SecretRef {
-                                source: crate::config::proto::secret_ref::Source::Env as i32,
+                crate::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                    crate::control::config::proto::Secret {
+                        source: Some(crate::control::config::proto::secret::Source::Ref(
+                            crate::control::config::proto::SecretRef {
+                                source: crate::control::config::proto::secret_ref::Source::Env
+                                    as i32,
                                 key: "TALON_SCHEDULER_AUTH_TOKEN".to_string(),
                             },
                         )),
@@ -577,13 +582,13 @@ mod tests {
             location: " us-west1 ".to_string(),
             queue: " main ".to_string(),
             target_url: " https://cfg.example.com/fire ".to_string(),
-            callback_auth: Some(crate::config::proto::SchedulerCallbackAuthConfig {
+            callback_auth: Some(crate::control::config::proto::SchedulerCallbackAuthConfig {
                 auth: Some(
-                    crate::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
-                        crate::config::proto::Secret {
-                            source: Some(crate::config::proto::secret::Source::Ref(
-                                crate::config::proto::SecretRef {
-                                    source: crate::config::proto::secret_ref::Source::Env as i32,
+                    crate::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                        crate::control::config::proto::Secret {
+                            source: Some(crate::control::config::proto::secret::Source::Ref(
+                                crate::control::config::proto::SecretRef {
+                                    source: crate::control::config::proto::secret_ref::Source::Env as i32,
                                     key: "TALON_SCHEDULER_AUTH_TOKEN".to_string(),
                                 },
                             )),

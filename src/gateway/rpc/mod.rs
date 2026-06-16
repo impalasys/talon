@@ -13,46 +13,55 @@ pub mod knowledge_resources;
 pub mod mcp_bindings;
 pub mod mcp_servers;
 pub mod namespaces;
+pub mod resources;
 pub mod schedules;
 pub mod sessions;
-pub mod skills;
-pub mod templates;
 pub mod workflows;
 
-#[cfg(test)]
-mod channels_tests;
-#[cfg(test)]
-mod crud_tests;
-#[cfg(test)]
-mod service_tests;
-#[cfg(test)]
-mod sessions_tests;
-
 #[cfg(not(feature = "bazel"))]
+pub mod generated {
+    pub mod data {
+        tonic::include_proto!("talon.data");
+    }
+    pub mod events {
+        pub use crate::control::events::*;
+    }
+    pub mod resources {
+        tonic::include_proto!("talon.resources");
+    }
+    pub mod proto {
+        tonic::include_proto!("talon.gateway");
+    }
+}
+
+#[cfg(feature = "bazel")]
+pub mod generated {
+    pub mod data {
+        pub use talon_data_proto::talon::data::*;
+    }
+    pub mod resources {
+        pub use talon_resources_proto::talon::resources::*;
+    }
+    pub mod proto {
+        pub use talon_gateway_proto::talon::gateway::*;
+    }
+}
+
 pub mod proto {
-    tonic::include_proto!("talon.gateway");
-}
-#[cfg(feature = "bazel")]
-pub mod proto {
-    pub use talon_gateway_proto::talon::gateway::*;
+    pub use super::generated::proto::*;
 }
 
-#[cfg(not(feature = "bazel"))]
-pub mod models {
-    tonic::include_proto!("talon.models");
-}
-#[cfg(feature = "bazel")]
-pub mod models {
-    pub use talon_models_proto::talon::models::*;
+pub mod data_proto {
+    pub use super::generated::data::*;
 }
 
-#[cfg(not(feature = "bazel"))]
-pub mod manifests {
-    tonic::include_proto!("talon.manifests");
+pub mod resources_proto {
+    pub use super::generated::resources::*;
 }
-#[cfg(feature = "bazel")]
+
 pub mod manifests {
-    pub use talon_manifests_proto::talon::manifests::*;
+    pub use super::resources_proto::*;
+    pub type ObjectMeta = super::resources_proto::ResourceMeta;
 }
 
 #[cfg(not(feature = "bazel"))]
@@ -109,7 +118,7 @@ pub type ChannelEventStream = Pin<
 
 pub type WorkflowEventStream = Pin<
     Box<
-        dyn futures::Stream<Item = std::result::Result<models::WorkflowRunEvent, tonic::Status>>
+        dyn futures::Stream<Item = std::result::Result<data_proto::WorkflowRunEvent, tonic::Status>>
             + Send,
     >,
 >;
@@ -144,35 +153,32 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
         self.handle_list_agents(req).await
     }
 
-    // Agent Templates
-    async fn create_agent_template(
+    async fn create_resource(
         &self,
-        req: tonic::Request<proto::CreateAgentTemplateRequest>,
-    ) -> std::result::Result<tonic::Response<proto::AgentTemplateResponse>, tonic::Status> {
-        self.handle_create_agent_template(req).await
+        req: tonic::Request<proto::CreateResourceRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ResourceResponse>, tonic::Status> {
+        self.handle_create_resource(req).await
     }
 
-    async fn get_agent_template(
+    async fn get_resource(
         &self,
-        req: tonic::Request<proto::GetAgentTemplateRequest>,
-    ) -> std::result::Result<tonic::Response<proto::AgentTemplateResponse>, tonic::Status> {
-        self.handle_get_agent_template(req).await
+        req: tonic::Request<proto::GetResourceRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ResourceResponse>, tonic::Status> {
+        self.handle_get_resource(req).await
     }
 
-    async fn list_agent_templates(
+    async fn list_resources(
         &self,
-        req: tonic::Request<proto::ListAgentTemplatesRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListAgentTemplatesResponse>, tonic::Status>
-    {
-        self.handle_list_agent_templates(req).await
+        req: tonic::Request<proto::ListResourcesRequest>,
+    ) -> std::result::Result<tonic::Response<proto::ListResourcesResponse>, tonic::Status> {
+        self.handle_list_resources(req).await
     }
 
-    async fn delete_agent_template(
+    async fn delete_resource(
         &self,
-        req: tonic::Request<proto::DeleteAgentTemplateRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteAgentTemplateResponse>, tonic::Status>
-    {
-        self.handle_delete_agent_template(req).await
+        req: tonic::Request<proto::DeleteResourceRequest>,
+    ) -> std::result::Result<tonic::Response<proto::DeleteResourceResponse>, tonic::Status> {
+        self.handle_delete_resource(req).await
     }
 
     async fn create_mcp_server(
@@ -416,32 +422,6 @@ impl proto::gateway_service_server::GatewayService for GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::DeleteNamespaceKnowledgeResponse>, tonic::Status>
     {
         self.handle_delete_namespace_knowledge(req).await
-    }
-    async fn create_namespace_skill(
-        &self,
-        req: tonic::Request<proto::CreateNamespaceSkillRequest>,
-    ) -> std::result::Result<tonic::Response<proto::NamespaceSkillResponse>, tonic::Status> {
-        self.handle_create_namespace_skill(req).await
-    }
-    async fn get_namespace_skill(
-        &self,
-        req: tonic::Request<proto::GetNamespaceSkillRequest>,
-    ) -> std::result::Result<tonic::Response<proto::NamespaceSkillResponse>, tonic::Status> {
-        self.handle_get_namespace_skill(req).await
-    }
-    async fn list_namespace_skills(
-        &self,
-        req: tonic::Request<proto::ListNamespaceSkillsRequest>,
-    ) -> std::result::Result<tonic::Response<proto::ListNamespaceSkillsResponse>, tonic::Status>
-    {
-        self.handle_list_namespace_skills(req).await
-    }
-    async fn delete_namespace_skill(
-        &self,
-        req: tonic::Request<proto::DeleteNamespaceSkillRequest>,
-    ) -> std::result::Result<tonic::Response<proto::DeleteNamespaceSkillResponse>, tonic::Status>
-    {
-        self.handle_delete_namespace_skill(req).await
     }
 
     // Namespaces

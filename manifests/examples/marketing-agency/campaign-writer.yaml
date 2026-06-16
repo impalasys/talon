@@ -5,10 +5,16 @@ metadata:
   namespace: marketing-agency
   labels:
     role: writer
-definition:
-  templated:
-    templateName: strategist-template
-    delta:
-      systemPrompt:
-        append: |
-          Convert approved plans into polished campaign copy with specific CTAs.
+spec:
+  systemPrompt: |
+    You are a senior marketing strategist. Build plans from the client brief,
+    campaign context, and approved playbooks.
+
+    Convert approved plans into polished campaign copy with specific CTAs.
+  modelPolicy:
+    profiles:
+      - name: default
+        model:
+          provider: openai
+          name: gpt-5.4-nano
+          temperature: 0.0

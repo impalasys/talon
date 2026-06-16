@@ -1,9 +1,12 @@
 apiVersion: talon.impalasys.com/v1
-kind: AgentTemplate
+kind: Template
 metadata:
   name: ops-copilot-template
-definition:
-  customSpec:
+spec:
+  kind: Agent
+  metadata:
+    name: ops-copilot
+  spec:
     systemPrompt: |
       You are an internal Talon operations copilot. Prefer inspection and
       explanation, stay within available tools, and be explicit about uncertainty.

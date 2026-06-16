@@ -9,8 +9,8 @@ use axum::{
 use serde::Deserialize;
 use std::path::PathBuf;
 use std::sync::Arc;
-use talon::config::{Config, ConfigExt};
 use talon::control::build_control_plane;
+use talon::control::config::{Config, ConfigExt};
 use talon::control::pubsub::{
     configured_local_socket_path, fully_qualified_subscription_name, fully_qualified_topic_name,
     LocalSocketMessagePublisher,
@@ -885,7 +885,7 @@ async fn schedule_fire(
     };
 
     match payload {
-        talon::scheduling::SchedulerFirePayload::Schedule(payload) => {
+        talon::control::scheduling::SchedulerFirePayload::Schedule(payload) => {
             match handler.handle_schedule_wakeup(payload).await {
                 Ok(_) => axum::http::StatusCode::OK,
                 Err(err) => {
@@ -894,7 +894,7 @@ async fn schedule_fire(
                 }
             }
         }
-        talon::scheduling::SchedulerFirePayload::Workflow(payload) => {
+        talon::control::scheduling::SchedulerFirePayload::Workflow(payload) => {
             match handler.handle_workflow_wakeup(payload).await {
                 Ok(_) => axum::http::StatusCode::OK,
                 Err(err) => {
@@ -906,7 +906,9 @@ async fn schedule_fire(
     }
 }
 
-fn decode_scheduler_fire_payload(body: &[u8]) -> Result<talon::scheduling::SchedulerFirePayload> {
+fn decode_scheduler_fire_payload(
+    body: &[u8],
+) -> Result<talon::control::scheduling::SchedulerFirePayload> {
     let value: serde_json::Value = serde_json::from_slice(body)?;
     if value.get("kind").is_some() {
         return serde_json::from_value(value).map_err(Into::into);
@@ -915,18 +917,21 @@ fn decode_scheduler_fire_payload(body: &[u8]) -> Result<talon::scheduling::Sched
         && value.get("revision").is_some()
         && value.get("intended_run_at").is_some()
     {
-        let payload = serde_json::from_value::<talon::scheduling::ScheduleWakeupPayload>(value)?;
-        return Ok(talon::scheduling::SchedulerFirePayload::Schedule(payload));
+        let payload =
+            serde_json::from_value::<talon::control::scheduling::ScheduleWakeupPayload>(value)?;
+        return Ok(talon::control::scheduling::SchedulerFirePayload::Schedule(
+            payload,
+        ));
     }
     anyhow::bail!("scheduler wakeup payload requires kind discriminator")
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    talon::security::install_jwt_crypto_provider();
-    let _telemetry_guard = talon::telemetry::init_from_env("talon-worker")?;
-    talon::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
-    talon::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
+    talon::control::security::install_jwt_crypto_provider();
+    let _telemetry_guard = talon::control::telemetry::init_from_env("talon-worker")?;
+    talon::control::profiling::init_cpu_profiler_from_env(|name| std::env::var(name).ok())?;
+    talon::control::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon Worker Engine...");
     tracing::info!("Connecting to control plane services...");
     run_worker_main_with(
@@ -985,14 +990,14 @@ mod tests {
     use serde_json::json;
     use std::collections::HashMap;
     use std::sync::Arc;
-    use talon::config::Config;
+    use talon::control::config::Config;
     use talon::control::{
         events::{LifecycleEvent, SessionControlEvent},
         keys,
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
-    use talon::gateway::rpc::models;
+    use talon::gateway::rpc::resources_proto;
     use talon::test_support::{EmptyPubSub, MockKvStore};
     use talon::worker::{
         mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator,
@@ -1075,18 +1080,17 @@ mod tests {
         }
     }
 
-    fn schedule_with_next_run(revision: u64, next_run_at: i64) -> models::Schedule {
-        models::Schedule {
-            name: "nightly".to_string(),
-            ns: "default".to_string(),
-            labels: HashMap::new(),
-            spec: Some(models::ScheduleSpec {
+    fn schedule_with_next_run(revision: u64, next_run_at: i64) -> resources_proto::Schedule {
+        talon::control::resource_model::schedule(
+            "default",
+            "nightly",
+            resources_proto::ScheduleSpec {
                 kind: "every".to_string(),
                 cron: String::new(),
                 interval_seconds: 600,
                 run_at: String::new(),
                 timezone: String::new(),
-                target: Some(models::ScheduleTarget {
+                target: Some(resources_proto::ScheduleTarget {
                     agent: "assistant".to_string(),
                     workflow: String::new(),
                     session_mode: "reuse".to_string(),
@@ -1095,8 +1099,8 @@ mod tests {
                 input_message: "Run".to_string(),
                 input_json: String::new(),
                 enabled: true,
-            }),
-            status: Some(models::ScheduleStatus {
+            },
+            resources_proto::ScheduleStatus {
                 revision,
                 next_run_at: Some(next_run_at),
                 backend_handle: None,
@@ -1107,8 +1111,9 @@ mod tests {
                 claimed_run_at: None,
                 claim_expires_at: None,
                 recent_events: Vec::new(),
-            }),
-        }
+            },
+            HashMap::new(),
+        )
     }
 
     #[test]
@@ -1335,13 +1340,13 @@ mod tests {
     #[tokio::test]
     async fn maybe_spawn_pull_subscriptions_uses_local_socket_specs_when_configured() {
         let mut config = Config::default();
-        config.control_plane = Some(talon::config::proto::ControlPlaneConfig {
-            database: Some(talon::config::proto::DatabaseConfig {
+        config.control_plane = Some(talon::control::config::proto::ControlPlaneConfig {
+            database: Some(talon::control::config::proto::DatabaseConfig {
                 data_dir: String::new(),
                 driver: "sqlite".to_string(),
                 url: None,
             }),
-            message_broker: Some(talon::config::proto::MessageBrokerConfig {
+            message_broker: Some(talon::control::config::proto::MessageBrokerConfig {
                 driver: "local_socket".to_string(),
             }),
             scheduler: None,
@@ -1654,7 +1659,7 @@ mod tests {
             }
         });
         match decode_scheduler_fire_payload(&serde_json::to_vec(&workflow).unwrap()).unwrap() {
-            talon::scheduling::SchedulerFirePayload::Workflow(payload) => {
+            talon::control::scheduling::SchedulerFirePayload::Workflow(payload) => {
                 assert_eq!(payload.workflow, "wf");
                 assert_eq!(payload.reason, "wait");
             }
@@ -1669,7 +1674,7 @@ mod tests {
         });
         match decode_scheduler_fire_payload(&serde_json::to_vec(&legacy_schedule).unwrap()).unwrap()
         {
-            talon::scheduling::SchedulerFirePayload::Schedule(payload) => {
+            talon::control::scheduling::SchedulerFirePayload::Schedule(payload) => {
                 assert_eq!(payload.schedule_id, "nightly");
                 assert_eq!(payload.revision, 7);
             }

@@ -2,13 +2,22 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use std::pin::Pin;
+pub mod codecs;
+pub mod config;
 pub mod events;
 pub mod keys;
 pub mod kv;
+pub mod manifest;
 pub mod ns;
 pub mod object_store;
+pub mod profiling;
 pub mod pubsub;
+pub mod resource_model;
+pub mod resources;
 pub mod scheduler;
+pub mod scheduling;
+pub mod security;
+pub mod telemetry;
 pub mod topics;
 
 use std::path::PathBuf;
@@ -170,19 +179,17 @@ pub struct ControlPlane {
 async fn ensure_builtin_namespaces(kv: &(dyn KeyValueStore + Send + Sync)) -> anyhow::Result<()> {
     let default_key = keys::namespace_metadata(ns::DEFAULT);
     if kv
-        .get_msg::<crate::gateway::rpc::models::Namespace>(&default_key)
+        .get_msg::<crate::gateway::rpc::resources_proto::Namespace>(&default_key)
         .await?
         .is_none()
     {
         kv.set_msg(
             &default_key,
-            &crate::gateway::rpc::models::Namespace {
-                name: ns::DEFAULT.to_string(),
-                parent: String::new(),
-                is_deleted: false,
-                deleted_at: 0,
-                labels: std::collections::HashMap::new(),
-            },
+            &crate::control::resource_model::namespace(
+                ns::DEFAULT,
+                String::new(),
+                std::collections::HashMap::new(),
+            ),
         )
         .await?;
     }
@@ -195,8 +202,8 @@ async fn ensure_builtin_namespaces(kv: &(dyn KeyValueStore + Send + Sync)) -> an
 }
 
 fn message_broker_config(
-    cp: &crate::config::proto::ControlPlaneConfig,
-) -> anyhow::Result<&crate::config::proto::MessageBrokerConfig> {
+    cp: &crate::control::config::proto::ControlPlaneConfig,
+) -> anyhow::Result<&crate::control::config::proto::MessageBrokerConfig> {
     let mb_config = cp
         .message_broker
         .as_ref()
@@ -213,8 +220,10 @@ fn message_broker_config(
     Ok(mb_config)
 }
 
-pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Result<ControlPlane> {
-    use crate::config::SecretExt;
+pub async fn build_control_plane(
+    config: &crate::control::config::Config,
+) -> anyhow::Result<ControlPlane> {
+    use crate::control::config::SecretExt;
 
     let cp = config
         .control_plane
@@ -359,8 +368,9 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
                 std::sync::Arc::new(scheduler::CfAlarmsSchedulerBackend::from_env())
             }
             _ => match configured_scheduler(cp.scheduler.as_ref()) {
-                Some(crate::config::proto::SchedulerConfig {
-                    backend: Some(crate::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
+                Some(crate::control::config::proto::SchedulerConfig {
+                    backend:
+                        Some(crate::control::config::proto::scheduler_config::Backend::CloudTasks(cfg)),
                 }) => match scheduler::CloudTasksSchedulerBackend::new(&cfg).await {
                     Ok(backend) => std::sync::Arc::new(backend),
                     Err(err) => {
@@ -368,7 +378,7 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
                         std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
                     }
                 },
-                Some(crate::config::proto::SchedulerConfig { backend: None }) => {
+                Some(crate::control::config::proto::SchedulerConfig { backend: None }) => {
                     std::sync::Arc::new(scheduler::NoopSchedulerBackend::default())
                 }
                 None => std::sync::Arc::new(scheduler::NoopSchedulerBackend::default()),
@@ -388,8 +398,8 @@ pub async fn build_control_plane(config: &crate::config::Config) -> anyhow::Resu
 }
 
 fn configured_scheduler(
-    cfg: Option<&crate::config::proto::SchedulerConfig>,
-) -> Option<crate::config::proto::SchedulerConfig> {
+    cfg: Option<&crate::control::config::proto::SchedulerConfig>,
+) -> Option<crate::control::config::proto::SchedulerConfig> {
     if let Some(cfg) = cfg.filter(|cfg| cfg.backend.is_some()) {
         return Some(cfg.clone());
     }
@@ -401,16 +411,18 @@ fn configured_scheduler(
     }
 
     match driver.as_str() {
-        "cloud_tasks" => Some(crate::config::proto::SchedulerConfig {
-            backend: Some(crate::config::proto::scheduler_config::Backend::CloudTasks(
-                crate::config::proto::CloudTasksSchedulerConfig {
-                    project_id: std::env::var("TALON_SCHEDULER_PROJECT_ID").unwrap_or_default(),
-                    location: std::env::var("TALON_SCHEDULER_LOCATION").unwrap_or_default(),
-                    queue: std::env::var("TALON_SCHEDULER_QUEUE").unwrap_or_default(),
-                    target_url: std::env::var("TALON_SCHEDULER_TARGET_URL").unwrap_or_default(),
-                    callback_auth: configured_scheduler_callback_auth_from_env(),
-                },
-            )),
+        "cloud_tasks" => Some(crate::control::config::proto::SchedulerConfig {
+            backend: Some(
+                crate::control::config::proto::scheduler_config::Backend::CloudTasks(
+                    crate::control::config::proto::CloudTasksSchedulerConfig {
+                        project_id: std::env::var("TALON_SCHEDULER_PROJECT_ID").unwrap_or_default(),
+                        location: std::env::var("TALON_SCHEDULER_LOCATION").unwrap_or_default(),
+                        queue: std::env::var("TALON_SCHEDULER_QUEUE").unwrap_or_default(),
+                        target_url: std::env::var("TALON_SCHEDULER_TARGET_URL").unwrap_or_default(),
+                        callback_auth: configured_scheduler_callback_auth_from_env(),
+                    },
+                ),
+            ),
         }),
         other => {
             tracing::warn!(driver = %other, "Unsupported scheduler backend configured; using noop");
@@ -424,9 +436,9 @@ fn scheduler_driver() -> Option<String> {
 }
 
 async fn sqlite_database_url(
-    db_config: &crate::config::proto::DatabaseConfig,
+    db_config: &crate::control::config::proto::DatabaseConfig,
 ) -> anyhow::Result<String> {
-    use crate::config::SecretExt;
+    use crate::control::config::SecretExt;
 
     if let Some(url_secret) = db_config.url.as_ref() {
         return Ok(url_secret.resolve().await?);
@@ -446,9 +458,9 @@ async fn sqlite_database_url(
 
 #[cfg(feature = "rocksdb")]
 async fn rocksdb_database_path(
-    db_config: &crate::config::proto::DatabaseConfig,
+    db_config: &crate::control::config::proto::DatabaseConfig,
 ) -> anyhow::Result<PathBuf> {
-    use crate::config::SecretExt;
+    use crate::control::config::SecretExt;
 
     if let Some(url_secret) = db_config.url.as_ref() {
         let raw: String = url_secret.resolve().await?;
@@ -478,16 +490,16 @@ async fn rocksdb_database_path(
 }
 
 fn configured_scheduler_callback_auth_from_env(
-) -> Option<crate::config::proto::SchedulerCallbackAuthConfig> {
+) -> Option<crate::control::config::proto::SchedulerCallbackAuthConfig> {
     if let Some(token) = std::env::var("TALON_SCHEDULER_AUTH_TOKEN")
         .ok()
         .filter(|value| !value.trim().is_empty())
     {
-        return Some(crate::config::proto::SchedulerCallbackAuthConfig {
+        return Some(crate::control::config::proto::SchedulerCallbackAuthConfig {
             auth: Some(
-                crate::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
-                    crate::config::Secret {
-                        source: Some(crate::config::proto::secret::Source::Plain(token)),
+                crate::control::config::proto::scheduler_callback_auth_config::Auth::SharedSecret(
+                    crate::control::config::Secret {
+                        source: Some(crate::control::config::proto::secret::Source::Plain(token)),
                     },
                 ),
             ),
@@ -498,10 +510,10 @@ fn configured_scheduler_callback_auth_from_env(
         .ok()
         .filter(|value| !value.trim().is_empty())
         .map(
-            |audience| crate::config::proto::SchedulerCallbackAuthConfig {
+            |audience| crate::control::config::proto::SchedulerCallbackAuthConfig {
                 auth: Some(
-                    crate::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
-                        crate::config::proto::GoogleOidcAuthConfig {
+                    crate::control::config::proto::scheduler_callback_auth_config::Auth::GoogleOidc(
+                        crate::control::config::proto::GoogleOidcAuthConfig {
                             audience,
                             service_account_email: std::env::var(
                                 "TALON_SCHEDULER_SERVICE_ACCOUNT_EMAIL",
@@ -523,10 +535,11 @@ mod tests {
         ensure_builtin_namespaces, message_broker_config, sqlite_database_url, KeyValueStore,
         ProtoKeyValueStoreExt,
     };
-    use crate::config::proto;
-    use crate::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
+    use crate::control::config::proto;
+    use crate::control::config::proto::{scheduler_callback_auth_config, scheduler_config, secret};
     use crate::control::keys;
-    use crate::gateway::rpc::models;
+    use crate::control::resource_model::{NamespaceResourceExt, TypedResource};
+    use crate::gateway::rpc::{data_proto, resources_proto};
     use crate::test_support::MockKvStore;
     use std::collections::HashMap;
     use tempfile::tempdir;
@@ -715,7 +728,7 @@ mod tests {
         assert!(kv.get(&b).await.unwrap().is_none());
         assert_eq!(kv.get(&other).await.unwrap(), Some(b"three".to_vec()));
 
-        let session = models::Session {
+        let session = data_proto::Session {
             id: "session-1".to_string(),
             agent: "agent".to_string(),
             ns: "ns".to_string(),
@@ -728,14 +741,14 @@ mod tests {
         let session_key = keys::session("ns", "agent", "session-1");
         kv.set_msg(&session_key, &session).await.unwrap();
         let loaded = kv
-            .get_msg::<models::Session>(&session_key)
+            .get_msg::<data_proto::Session>(&session_key)
             .await
             .unwrap()
             .expect("session should decode");
         assert_eq!(loaded.id, "session-1");
         assert_eq!(loaded.labels.get("env").map(String::as_str), Some("test"));
         assert!(kv
-            .get_msg::<models::Session>(&keys::session("ns", "agent", "missing"))
+            .get_msg::<data_proto::Session>(&keys::session("ns", "agent", "missing"))
             .await
             .unwrap()
             .is_none());
@@ -747,13 +760,13 @@ mod tests {
         ensure_builtin_namespaces(&kv).await.unwrap();
 
         let seeded = kv
-            .get_msg::<models::Namespace>(&keys::namespace_metadata("default"))
+            .get_msg::<resources_proto::Namespace>(&keys::namespace_metadata("default"))
             .await
             .unwrap()
             .expect("default namespace should be seeded");
-        assert_eq!(seeded.name, "default");
-        assert!(seeded.parent.is_empty());
-        assert!(!seeded.is_deleted);
+        assert_eq!(seeded.name(), "default");
+        assert!(seeded.parent().is_empty());
+        assert!(!seeded.is_deleted());
         assert_eq!(
             kv.get(&keys::namespace_ref(None, "default")).await.unwrap(),
             Some(b"default".to_vec())
@@ -761,7 +774,8 @@ mod tests {
 
         let mut labeled = seeded;
         labeled
-            .labels
+            .labels_mut()
+            .expect("seeded namespace metadata should exist")
             .insert("owner".to_string(), "app".to_string());
         kv.set_msg(&keys::namespace_metadata("default"), &labeled)
             .await
@@ -769,12 +783,12 @@ mod tests {
         ensure_builtin_namespaces(&kv).await.unwrap();
 
         let preserved = kv
-            .get_msg::<models::Namespace>(&keys::namespace_metadata("default"))
+            .get_msg::<resources_proto::Namespace>(&keys::namespace_metadata("default"))
             .await
             .unwrap()
             .expect("default namespace should still exist");
         assert_eq!(
-            preserved.labels.get("owner").map(String::as_str),
+            preserved.labels().get("owner").map(String::as_str),
             Some("app")
         );
     }
@@ -920,7 +934,7 @@ mod tests {
         let explicit = proto::DatabaseConfig {
             data_dir: String::new(),
             driver: "sqlite".to_string(),
-            url: Some(crate::config::Secret {
+            url: Some(crate::control::config::Secret {
                 source: Some(secret::Source::Plain(
                     "sqlite:///tmp/explicit.db".to_string(),
                 )),
@@ -960,7 +974,7 @@ mod tests {
         let explicit = proto::DatabaseConfig {
             data_dir: String::new(),
             driver: "rocksdb".to_string(),
-            url: Some(crate::config::Secret {
+            url: Some(crate::control::config::Secret {
                 source: Some(secret::Source::Plain(
                     "rocksdb:///tmp/explicit.rocksdb".to_string(),
                 )),

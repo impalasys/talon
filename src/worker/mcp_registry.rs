@@ -6,11 +6,11 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use crate::connectors::mcp::{
-    list_tools_for_config, McpAuthBrokerConfig, McpConnectionConfig, McpTool,
-};
 use crate::control::{keys, ns, ControlPlane, ProtoKeyValueStoreExt};
 use crate::gateway::rpc::manifests;
+use crate::harness::mcp::{
+    list_tools_for_config, McpAuthBrokerConfig, McpConnectionConfig, McpTool,
+};
 
 #[derive(Debug, Clone)]
 pub struct ResolvedMcpServer {
@@ -160,13 +160,13 @@ fn filter_allowed_tools(tools: Vec<McpTool>, allowed_tool_names: &[String]) -> V
 #[cfg(test)]
 mod tests {
     use super::{filter_allowed_tools, McpRegistry};
-    use crate::connectors::mcp::McpTool;
     use crate::control::{
         keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::rpc::manifests;
+    use crate::harness::mcp::McpTool;
     use serde_json::json;
     use std::collections::HashMap;
     use std::pin::Pin;
@@ -291,7 +291,7 @@ mod tests {
             HashMap::from([(
                 "github".to_string(),
                 Arc::new(super::ResolvedMcpServer {
-                    config: crate::connectors::mcp::McpConnectionConfig {
+                    config: crate::harness::mcp::McpConnectionConfig {
                         server_name: "github".to_string(),
                         server_ref: "github".to_string(),
                         transport: "http".to_string(),
@@ -317,7 +317,7 @@ mod tests {
             HashMap::from([(
                 "docs".to_string(),
                 Arc::new(super::ResolvedMcpServer {
-                    config: crate::connectors::mcp::McpConnectionConfig {
+                    config: crate::harness::mcp::McpConnectionConfig {
                         server_name: "docs".to_string(),
                         server_ref: "docs".to_string(),
                         transport: "http".to_string(),
@@ -366,15 +366,15 @@ mod tests {
         kv.set_msg(
             &crate::control::keys::mcp_server_binding("conic", "github"),
             &manifests::McpServerBinding {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServerBinding".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: "github".to_string(),
                     namespace: "conic".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: None,
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -405,13 +405,12 @@ mod tests {
         kv.set_msg(
             &crate::control::keys::mcp_server("docs-server"),
             &manifests::McpServer {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServer".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: "docs-server".to_string(),
                     namespace: String::new(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerSpec {
                     transport: "http".to_string(),
@@ -423,6 +422,7 @@ mod tests {
                     )]),
                     disabled: false,
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await
@@ -430,13 +430,12 @@ mod tests {
         kv.set_msg(
             &crate::control::keys::mcp_server_binding("conic", "docs"),
             &manifests::McpServerBinding {
-                api_version: "talon.impalasys.com/v1".to_string(),
-                kind: "McpServerBinding".to_string(),
                 metadata: Some(manifests::ObjectMeta {
                     name: "docs".to_string(),
                     namespace: "conic".to_string(),
                     labels: HashMap::new(),
                     annotations: HashMap::new(),
+                    ..Default::default()
                 }),
                 spec: Some(manifests::McpServerBindingSpec {
                     server_ref: "docs-server".to_string(),
@@ -454,6 +453,7 @@ mod tests {
                     }),
                     allowed_tool_names: vec!["search".to_string()],
                 }),
+                status: Some(crate::control::resource_model::common_status(String::new())),
             },
         )
         .await

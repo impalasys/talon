@@ -1,20 +1,23 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use crate::config::Config;
-use crate::connectors::mcp::{invalidate_all_broker_auth_cache, invalidate_broker_auth_cache};
+use crate::control::config::Config;
+use crate::control::resource_model::TypedResource;
 use crate::control::topics;
 use crate::control::ControlPlane;
+use crate::harness::mcp::{invalidate_all_broker_auth_cache, invalidate_broker_auth_cache};
 use anyhow::{anyhow, Result};
 use prost::Message;
 use std::sync::Arc;
 
+pub mod controllers;
 pub mod mcp_registry;
 pub mod runtime;
 pub mod scheduler_auth;
 pub mod sessions;
 pub mod sink;
 pub mod talon_ops;
+pub mod workflows;
 
 const SCHEDULE_WAKEUP_SKEW_TOLERANCE_SECONDS: i64 = 1;
 
@@ -45,6 +48,9 @@ impl WorkerEventHandler {
                 self.handle_workflow_dispatch(event).await
             }
             Some("resource_lifecycle") => {
+                if let Ok(event) = crate::control::events::ResourceChangedEvent::decode(payload) {
+                    return self.handle_resource_changed_event(event).await;
+                }
                 let event = crate::control::events::LifecycleEvent::decode(payload)?;
                 self.handle_lifecycle_event(event).await
             }
@@ -60,6 +66,10 @@ impl WorkerEventHandler {
 
                 if let Ok(event) = crate::control::events::WorkflowDispatchEvent::decode(payload) {
                     return self.handle_workflow_dispatch(event).await;
+                }
+
+                if let Ok(event) = crate::control::events::ResourceChangedEvent::decode(payload) {
+                    return self.handle_resource_changed_event(event).await;
                 }
 
                 if let Ok(event) = crate::control::events::LifecycleEvent::decode(payload) {
@@ -90,9 +100,31 @@ impl WorkerEventHandler {
         Ok(())
     }
 
+    async fn handle_resource_changed_event(
+        &self,
+        event: crate::control::events::ResourceChangedEvent,
+    ) -> Result<()> {
+        if event.resource_kind == "McpServer" {
+            self.mcp_registry.invalidate_all().await;
+            invalidate_all_broker_auth_cache().await;
+        } else if event.resource_kind == "McpServerBinding" {
+            self.mcp_registry
+                .invalidate(&event.namespace, Some(&event.name))
+                .await;
+            invalidate_broker_auth_cache(&event.namespace, Some(&event.name)).await;
+        }
+
+        crate::worker::controllers::controller::ControllerHost::new(
+            self.cp.clone(),
+            self.config.clone(),
+        )
+        .handle_resource_changed(event)
+        .await
+    }
+
     pub async fn handle_schedule_wakeup(
         &self,
-        payload: crate::scheduling::ScheduleWakeupPayload,
+        payload: crate::control::scheduling::ScheduleWakeupPayload,
     ) -> Result<()> {
         let now = chrono::Utc::now();
         tracing::info!(
@@ -102,7 +134,7 @@ impl WorkerEventHandler {
             intended_run_at = payload.intended_run_at,
             "Received schedule wakeup"
         );
-        let Some(mut schedule) = crate::scheduling::claim_schedule_wakeup(
+        let Some(mut schedule) = crate::control::scheduling::claim_schedule_wakeup(
             self.cp.kv.as_ref(),
             &payload.namespace,
             &payload.schedule_id,
@@ -129,7 +161,7 @@ impl WorkerEventHandler {
         if schedule.status.is_none() {
             return Ok(());
         }
-        crate::scheduling::append_schedule_event(
+        crate::control::scheduling::append_schedule_event(
             &mut schedule,
             now,
             "wakeup",
@@ -147,25 +179,28 @@ impl WorkerEventHandler {
                 now = %now,
                 "Deferring early schedule wakeup"
             );
-            crate::scheduling::append_schedule_event(
+            crate::control::scheduling::append_schedule_event(
                 &mut schedule,
                 now,
                 "wakeup",
                 "deferred",
                 format!("wakeup arrived early for {}", intended_fire.to_rfc3339()),
             );
-            crate::scheduling::release_schedule_claim(&mut schedule);
-            crate::scheduling::arm_schedule(
+            crate::control::scheduling::release_schedule_claim(&mut schedule);
+            crate::control::scheduling::arm_schedule(
                 self.cp.scheduler.as_ref(),
                 &mut schedule,
                 Some(intended_fire),
             )
             .await?;
-            crate::scheduling::persist_schedule(self.cp.kv.as_ref(), &schedule).await?;
+            crate::control::scheduling::persist_schedule(self.cp.kv.as_ref(), &schedule).await?;
             return Ok(());
         }
-        let dispatch_result = crate::scheduling::dispatch_schedule(&self.cp, &schedule, now).await;
+        let dispatch_result =
+            crate::control::scheduling::dispatch_schedule(&self.cp, &schedule, now).await;
         let dispatch_timestamp = now.timestamp_micros();
+        let schedule_namespace = schedule.namespace().to_string();
+        let schedule_name = schedule.name().to_string();
 
         let status = schedule
             .status
@@ -174,15 +209,15 @@ impl WorkerEventHandler {
         match &dispatch_result {
             Ok(session_id) => {
                 tracing::info!(
-                    namespace = %schedule.ns,
-                    schedule_id = %schedule.name,
+                    namespace = %schedule_namespace,
+                    schedule_id = %schedule_name,
                     session_id = %session_id,
                     "Schedule dispatch created session successfully"
                 );
                 status.last_run_at = Some(dispatch_timestamp);
                 status.last_session_id = Some(session_id.clone());
                 status.last_error = None;
-                crate::scheduling::append_schedule_event(
+                crate::control::scheduling::append_schedule_event(
                     &mut schedule,
                     now,
                     "dispatch",
@@ -195,7 +230,7 @@ impl WorkerEventHandler {
                         .as_mut()
                         .ok_or_else(|| anyhow!("schedule missing spec after dispatch"))?;
                     spec.enabled = false;
-                    crate::scheduling::append_schedule_event(
+                    crate::control::scheduling::append_schedule_event(
                         &mut schedule,
                         now,
                         "dispatch",
@@ -206,18 +241,18 @@ impl WorkerEventHandler {
             }
             Err(err)
                 if err
-                    .downcast_ref::<crate::scheduling::SessionCurrentlyProcessingError>()
+                    .downcast_ref::<crate::control::scheduling::SessionCurrentlyProcessingError>()
                     .is_some() =>
             {
                 tracing::warn!(
-                    namespace = %schedule.ns,
-                    schedule_id = %schedule.name,
+                    namespace = %schedule_namespace,
+                    schedule_id = %schedule_name,
                     error = %err,
                     "Schedule dispatch skipped because target session is processing"
                 );
                 status.last_error =
                     Some("skipped: target session is currently processing".to_string());
-                crate::scheduling::append_schedule_event(
+                crate::control::scheduling::append_schedule_event(
                     &mut schedule,
                     now,
                     "dispatch",
@@ -227,13 +262,13 @@ impl WorkerEventHandler {
             }
             Err(err) => {
                 tracing::error!(
-                    namespace = %schedule.ns,
-                    schedule_id = %schedule.name,
+                    namespace = %schedule_namespace,
+                    schedule_id = %schedule_name,
                     error = %err,
                     "Schedule dispatch failed"
                 );
                 status.last_error = Some(err.to_string());
-                crate::scheduling::append_schedule_event(
+                crate::control::scheduling::append_schedule_event(
                     &mut schedule,
                     now,
                     "dispatch",
@@ -243,18 +278,22 @@ impl WorkerEventHandler {
             }
         }
 
-        crate::scheduling::release_schedule_claim(&mut schedule);
+        crate::control::scheduling::release_schedule_claim(&mut schedule);
         let now = chrono::Utc::now();
-        let next =
-            crate::scheduling::compute_aligned_every_successor(&schedule, intended_fire, now)?;
-        crate::scheduling::arm_schedule(self.cp.scheduler.as_ref(), &mut schedule, next).await?;
-        crate::scheduling::persist_schedule(self.cp.kv.as_ref(), &schedule).await?;
+        let next = crate::control::scheduling::compute_aligned_every_successor(
+            &schedule,
+            intended_fire,
+            now,
+        )?;
+        crate::control::scheduling::arm_schedule(self.cp.scheduler.as_ref(), &mut schedule, next)
+            .await?;
+        crate::control::scheduling::persist_schedule(self.cp.kv.as_ref(), &schedule).await?;
 
         match dispatch_result {
             Ok(_) => Ok(()),
             Err(err)
                 if err
-                    .downcast_ref::<crate::scheduling::SessionCurrentlyProcessingError>()
+                    .downcast_ref::<crate::control::scheduling::SessionCurrentlyProcessingError>()
                     .is_some() =>
             {
                 Ok(())
@@ -265,9 +304,9 @@ impl WorkerEventHandler {
 
     pub async fn handle_workflow_wakeup(
         &self,
-        payload: crate::workflows::WorkflowWakeupPayload,
+        payload: crate::worker::workflows::WorkflowWakeupPayload,
     ) -> Result<()> {
-        crate::workflows::handle_workflow_wakeup(&self.cp, payload).await
+        crate::worker::workflows::handle_workflow_wakeup(&self.cp, payload).await
     }
 
     pub fn event_type_for_subscription(subscription: &str) -> Option<&'static str> {
@@ -297,7 +336,7 @@ impl WorkerEventHandler {
             reason = %event.reason,
             "Handling workflow dispatch"
         );
-        let Some(run) = crate::workflows::claim_run(
+        let Some(run) = crate::worker::workflows::claim_run(
             self.cp.kv.as_ref(),
             &event.ns,
             &event.workflow,
@@ -309,21 +348,21 @@ impl WorkerEventHandler {
         else {
             return Ok(());
         };
-        crate::workflows::advance_run(&self.cp, run).await
+        crate::worker::workflows::advance_run(&self.cp, run).await
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::WorkerEventHandler;
-    use crate::config::Config;
+    use crate::control::config::Config;
     use crate::control::{
         events::{LifecycleEvent, MessageDirection, SessionControlEvent, SessionMessageEvent},
         keys::{ResourceKey, ResourceList},
         scheduler::NoopSchedulerBackend,
         topics, ControlPlane, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
-    use crate::gateway::rpc::{manifests, models};
+    use crate::gateway::rpc::{data_proto, manifests, resources_proto};
     use crate::worker::{mcp_registry::McpRegistry, scheduler_auth::SchedulerRequestAuthenticator};
     use async_trait::async_trait;
     use chrono::{Duration, Utc};
@@ -423,18 +462,17 @@ mod tests {
         }
     }
 
-    fn schedule(revision: u64, next_run_at: i64, session_mode: &str) -> models::Schedule {
-        models::Schedule {
-            name: "nightly".to_string(),
-            ns: "conic:test".to_string(),
-            labels: HashMap::new(),
-            spec: Some(models::ScheduleSpec {
+    fn schedule(revision: u64, next_run_at: i64, session_mode: &str) -> resources_proto::Schedule {
+        crate::control::resource_model::schedule(
+            "conic:test",
+            "nightly",
+            resources_proto::ScheduleSpec {
                 kind: "every".to_string(),
                 cron: String::new(),
                 interval_seconds: 600,
                 run_at: String::new(),
                 timezone: String::new(),
-                target: Some(models::ScheduleTarget {
+                target: Some(resources_proto::ScheduleTarget {
                     agent: "assistant".to_string(),
                     workflow: String::new(),
                     session_mode: session_mode.to_string(),
@@ -443,8 +481,8 @@ mod tests {
                 input_message: "Run the report".to_string(),
                 input_json: String::new(),
                 enabled: true,
-            }),
-            status: Some(models::ScheduleStatus {
+            },
+            resources_proto::ScheduleStatus {
                 revision,
                 next_run_at: Some(next_run_at),
                 backend_handle: None,
@@ -455,27 +493,26 @@ mod tests {
                 claimed_run_at: None,
                 claim_expires_at: None,
                 recent_events: Vec::new(),
-            }),
-        }
+            },
+            HashMap::new(),
+        )
     }
 
     async fn seed_agent_and_session(kv: &MockKvStore) {
         kv.set_msg(
             &crate::control::keys::agent("conic:test", "assistant"),
-            &models::Agent {
-                name: "assistant".to_string(),
-                ns: "conic:test".to_string(),
-                definition: Some(manifests::AgentDefinition::default()),
-                effective_spec: Some(manifests::AgentSpec::default()),
-                template_deps: Vec::new(),
-                labels: HashMap::new(),
-            },
+            &crate::control::resource_model::agent_resource(
+                "conic:test",
+                "assistant",
+                manifests::AgentSpec::default(),
+                HashMap::new(),
+            ),
         )
         .await
         .unwrap();
         kv.set_msg(
             &crate::control::keys::session("conic:test", "assistant", "session-1"),
-            &models::Session {
+            &data_proto::Session {
                 id: "session-1".to_string(),
                 agent: "assistant".to_string(),
                 ns: "conic:test".to_string(),
@@ -587,7 +624,7 @@ mod tests {
         );
 
         handler
-            .handle_schedule_wakeup(crate::scheduling::ScheduleWakeupPayload {
+            .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
                 namespace: "conic:test".to_string(),
                 schedule_id: "missing".to_string(),
                 revision: 1,
@@ -611,7 +648,7 @@ mod tests {
         .unwrap();
 
         handler
-            .handle_schedule_wakeup(crate::scheduling::ScheduleWakeupPayload {
+            .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
                 namespace: "conic:test".to_string(),
                 schedule_id: "nightly".to_string(),
                 revision: 3,
@@ -621,7 +658,10 @@ mod tests {
             .expect("early wakeup should defer");
 
         let updated = kv
-            .get_msg::<models::Schedule>(&crate::control::keys::schedule("conic:test", "nightly"))
+            .get_msg::<resources_proto::Schedule>(&crate::control::keys::schedule(
+                "conic:test",
+                "nightly",
+            ))
             .await
             .unwrap()
             .unwrap();
@@ -649,7 +689,7 @@ mod tests {
         .unwrap();
 
         handler
-            .handle_schedule_wakeup(crate::scheduling::ScheduleWakeupPayload {
+            .handle_schedule_wakeup(crate::control::scheduling::ScheduleWakeupPayload {
                 namespace: "conic:test".to_string(),
                 schedule_id: "nightly".to_string(),
                 revision: 7,
@@ -659,7 +699,10 @@ mod tests {
             .expect("schedule dispatch should succeed");
 
         let updated = kv
-            .get_msg::<models::Schedule>(&crate::control::keys::schedule("conic:test", "nightly"))
+            .get_msg::<resources_proto::Schedule>(&crate::control::keys::schedule(
+                "conic:test",
+                "nightly",
+            ))
             .await
             .unwrap()
             .unwrap();
@@ -670,7 +713,7 @@ mod tests {
         assert!(status.next_run_at.is_some());
 
         let session = kv
-            .get_msg::<models::Session>(&crate::control::keys::session(
+            .get_msg::<data_proto::Session>(&crate::control::keys::session(
                 "conic:test",
                 "assistant",
                 "session-1",

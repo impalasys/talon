@@ -427,14 +427,6 @@ pub fn workflow_run_event_prefix(namespace: &str, workflow: &str, run_id: &str) 
     )
 }
 
-pub fn agent_template(name: &str) -> ResourceKey {
-    resource_key(ns::TALON_SYSTEM, &[], "AgentTemplate", name)
-}
-
-pub fn agent_template_prefix() -> ResourceList {
-    direct_child_prefix(ns::TALON_SYSTEM, &[], Some("AgentTemplate"))
-}
-
 pub fn mcp_server(name: &str) -> ResourceKey {
     resource_key(ns::TALON_SYSTEM, &[], "MCPServer", name)
 }

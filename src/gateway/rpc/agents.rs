@@ -1,13 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{models, proto, GrpcGatewayHandler};
-use crate::agents::resolver::resolve_agent_definition;
-use crate::control::events;
+use super::{proto, resources_proto, GrpcGatewayHandler};
 use crate::control::keys;
-use crate::control::topics;
+use crate::control::resource_model::{self, NamespaceResourceExt, TypedResource};
+use crate::control::resources::ResourceStore;
 use crate::control::ProtoKeyValueStoreExt;
-use prost::Message;
+use crate::harness::agents::resolver::resolve_agent_spec;
 
 impl GrpcGatewayHandler {
     pub async fn handle_create_agent(
@@ -57,10 +56,10 @@ impl GrpcGatewayHandler {
         let ns_check = self
             .gateway
             .kv
-            .get_msg::<models::Namespace>(&meta_key)
+            .get_msg::<resources_proto::Namespace>(&meta_key)
             .await;
         match ns_check {
-            Ok(Some(ns_record)) if !ns_record.is_deleted => {
+            Ok(Some(ns_record)) if !ns_record.is_deleted() => {
                 // valid
             }
             Ok(Some(_)) => {
@@ -83,44 +82,25 @@ impl GrpcGatewayHandler {
             }
         }
 
-        let definition = req
-            .definition
-            .ok_or_else(|| tonic::Status::invalid_argument("Agent definition must be provided"))?;
-        let resolved = resolve_agent_definition(self.gateway.kv.as_ref(), &definition)
-            .await
-            .map_err(|e| {
-                tonic::Status::invalid_argument(format!("Invalid agent definition: {e}"))
-            })?;
+        let spec = req
+            .spec
+            .ok_or_else(|| tonic::Status::invalid_argument("Agent spec must be provided"))?;
+        let spec = resolve_agent_spec(spec)
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid agent spec: {e}")))?;
 
-        let agent_model = models::Agent {
-            name: agent.clone(),
-            ns: req.ns.clone(),
-            definition: Some(definition),
-            effective_spec: Some(resolved.effective_spec),
-            template_deps: resolved.template_deps,
-            labels: req.labels.clone(),
-        };
-
-        let agent_db_key = keys::agent(&req.ns, &agent);
-
-        self.gateway
-            .kv
-            .set_msg(&agent_db_key, &agent_model)
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        store
+            .upsert(
+                &req.ns,
+                resource_model::agent_resource(
+                    req.ns.clone(),
+                    agent.clone(),
+                    spec,
+                    req.labels.clone(),
+                ),
+            )
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to save agent state: {}", e)))?;
-
-        let event = crate::control::events::LifecycleEvent {
-            resource_type: "Agent".to_string(),
-            name: agent.clone(),
-            ns: req.ns.clone(),
-            action: crate::control::events::SystemAction::Create as i32,
-            timestamp: chrono::Utc::now().timestamp_micros(),
-        };
-        self.gateway
-            .pubsub
-            .publish(topics::RESOURCE_LIFECYCLE_TOPIC, &event.encode_to_vec())
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to publish event: {}", e)))?;
 
         Ok(tonic::Response::new(proto::AgentResponse {
             agent,
@@ -135,12 +115,9 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().name);
         let req = req.into_inner();
 
-        let agent_db_key = keys::agent(&req.ns, &req.name);
-
-        let agent = self
-            .gateway
-            .kv
-            .get_msg::<models::Agent>(&agent_db_key)
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let agent = store
+            .get_agent(&req.ns, &req.name)
             .await
             .map_err(|e| tonic::Status::internal(format!("Database error: {}", e)))?
             .ok_or_else(|| {
@@ -162,11 +139,9 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
 
-        let agent_db_key = keys::agent(&req.ns, &req.agent);
-        let mut agent = self
-            .gateway
-            .kv
-            .get_msg::<models::Agent>(&agent_db_key)
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let mut agent = store
+            .get_agent(&req.ns, &req.agent)
             .await
             .map_err(|e| tonic::Status::internal(format!("Database error: {}", e)))?
             .ok_or_else(|| {
@@ -176,43 +151,48 @@ impl GrpcGatewayHandler {
                 ))
             })?;
 
-        if let Some(definition) = req.definition {
-            let resolved = resolve_agent_definition(self.gateway.kv.as_ref(), &definition)
-                .await
-                .map_err(|e| {
-                    tonic::Status::invalid_argument(format!("Invalid agent definition: {e}"))
-                })?;
-            agent.definition = Some(definition);
-            agent.effective_spec = Some(resolved.effective_spec);
-            agent.template_deps = resolved.template_deps;
+        if let Some(spec) = req.spec {
+            let spec = resolve_agent_spec(spec)
+                .map_err(|e| tonic::Status::invalid_argument(format!("Invalid agent spec: {e}")))?;
+            agent.spec = Some(spec);
         }
         if !req.labels.is_empty() {
-            agent.labels = req.labels.clone();
+            if let Some(labels) = agent.labels_mut() {
+                *labels = req.labels.clone();
+            }
         }
 
-        self.gateway
-            .kv
-            .set_msg(&agent_db_key, &agent)
+        let metadata = agent
+            .metadata
+            .clone()
+            .ok_or_else(|| tonic::Status::internal("Agent metadata missing"))?;
+        let spec = agent
+            .spec
+            .clone()
+            .ok_or_else(|| tonic::Status::internal("Agent spec missing"))?;
+        let status = agent.status.clone().unwrap_or_default();
+        store
+            .upsert(
+                &req.ns,
+                resources_proto::Resource {
+                    api_version: "talon.impalasys.com/v1".to_string(),
+                    kind: "Agent".to_string(),
+                    metadata: Some(metadata),
+                    spec: Some(resources_proto::ResourceSpec {
+                        kind: Some(resources_proto::resource_spec::Kind::Agent(spec)),
+                    }),
+                    status: Some(resources_proto::ResourceStatus {
+                        kind: Some(resources_proto::resource_status::Kind::Agent(status)),
+                    }),
+                },
+            )
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to update agent state: {}", e)))?;
 
-        let event = events::LifecycleEvent {
-            ns: req.ns.clone(),
-            resource_type: "Agent".to_string(),
-            name: agent.name.clone(),
-            action: events::SystemAction::Update as i32,
-            timestamp: chrono::Utc::now().timestamp_micros(),
-        };
-        self.gateway
-            .pubsub
-            .publish(topics::RESOURCE_LIFECYCLE_TOPIC, &event.encode_to_vec())
-            .await
-            .map_err(|e| tonic::Status::internal(format!("PubSub publish failed: {}", e)))?;
-
         Ok(tonic::Response::new(proto::AgentResponse {
-            agent: agent.name,
-            ns: agent.ns,
-            labels: agent.labels,
+            agent: agent.name().to_string(),
+            ns: agent.namespace().to_string(),
+            labels: agent.labels().clone(),
         }))
     }
 
@@ -223,19 +203,15 @@ impl GrpcGatewayHandler {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
 
-        let prefix = keys::agent_prefix(&req.ns);
-
-        let keys = self
-            .gateway
-            .kv
-            .list_keys(&prefix)
+        let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+        let mut agents: Vec<String> = store
+            .list(&req.ns, Some("Agent"))
             .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to list agents: {}", e)))?;
-
-        let agents: Vec<String> = keys
+            .map_err(|e| tonic::Status::internal(format!("Failed to list agents: {}", e)))?
             .into_iter()
-            .filter_map(|k| keys::direct_child_name(&prefix, &k))
+            .filter_map(|resource| resource.metadata.map(|metadata| metadata.name))
             .collect();
+        agents.sort();
 
         Ok(tonic::Response::new(proto::ListAgentsResponse { agents }))
     }

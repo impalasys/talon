@@ -14,6 +14,14 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | `default_provider` | `string` | - |
 | `workspace_dir` | `string` | - |
 | `control_plane` | `ControlPlaneConfig` | - |
+| `controllers` | `map<string, ControllerConfig>` | - |
+
+## `ControllerConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `enabled` | `bool` | - |
+| `workers` | `uint32` | - |
 
 ## `LlmProviderConfig`
 
@@ -83,6 +91,45 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | --- | --- | --- |
 | `driver` | `string` | - |
 
+## `LocalObjectStoreConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `path` | `string` | - |
+
+## `GcsObjectStoreConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `bucket` | `string` | - |
+| `prefix` | `string` | - |
+| `api_base_url` | `string` | - |
+
+## `S3ObjectStoreConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `bucket` | `string` | - |
+| `prefix` | `string` | - |
+| `region` | `string` | - |
+| `endpoint_url` | `string` | - |
+| `force_path_style` | `bool` | - |
+
+## `R2ObjectStoreConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `endpoint_url` | `string` | - |
+
+## `ObjectStoreConfig`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `local` | `LocalObjectStoreConfig` | oneof (backend) |
+| `gcs` | `GcsObjectStoreConfig` | oneof (backend) |
+| `s3` | `S3ObjectStoreConfig` | oneof (backend) |
+| `r2` | `R2ObjectStoreConfig` | oneof (backend) |
+
 ## `SchedulerCallbackAuthConfig`
 
 | Field | Type | Notes |
@@ -120,6 +167,7 @@ This page summarizes the major configuration messages exposed by Talon's runtime
 | `database` | `DatabaseConfig` | - |
 | `message_broker` | `MessageBrokerConfig` | - |
 | `scheduler` | `SchedulerConfig` | - |
+| `object_store` | `ObjectStoreConfig` | - |
 
 ## `ServerConfig`
 

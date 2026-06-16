@@ -52,7 +52,7 @@ pub struct SessionMessagePartEvent {
     #[prost(enumeration = "SessionMessagePartEventKind", tag = "2")]
     pub kind: i32,
     #[prost(message, optional, tag = "3")]
-    pub part: ::core::option::Option<super::models::SessionMessagePart>,
+    pub part: ::core::option::Option<super::data::SessionMessagePart>,
     #[prost(int64, tag = "4")]
     pub timestamp: i64,
     #[prost(string, tag = "5")]
@@ -71,7 +71,7 @@ pub struct ChannelEvent {
     #[prost(enumeration = "ChannelEventKind", tag = "3")]
     pub kind: i32,
     #[prost(message, optional, tag = "4")]
-    pub message: ::core::option::Option<super::models::ChannelMessage>,
+    pub message: ::core::option::Option<super::data::ChannelMessage>,
     #[prost(string, tag = "5")]
     pub session_id: ::prost::alloc::string::String,
     #[prost(string, tag = "6")]
@@ -98,6 +98,27 @@ pub struct WorkflowDispatchEvent {
     #[prost(string, tag = "6")]
     pub child_session_id: ::prost::alloc::string::String,
     #[prost(int64, tag = "7")]
+    pub timestamp: i64,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResourceChangedEvent {
+    #[prost(string, tag = "1")]
+    pub namespace: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub resource_kind: ::prost::alloc::string::String,
+    #[prost(string, tag = "3")]
+    pub name: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub uid: ::prost::alloc::string::String,
+    #[prost(string, tag = "5")]
+    pub resource_version: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "6")]
+    pub generation: u64,
+    #[prost(enumeration = "ResourceChangeType", tag = "7")]
+    pub change_type: i32,
+    #[prost(string, repeated, tag = "8")]
+    pub changed_sections: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(int64, tag = "9")]
     pub timestamp: i64,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -230,6 +251,38 @@ impl ChannelEventKind {
             "CHANNEL_EVENT_KIND_SESSION_ROUTED" => Some(Self::SessionRouted),
             "CHANNEL_EVENT_KIND_PUBLISH_SKIPPED" => Some(Self::PublishSkipped),
             "CHANNEL_EVENT_KIND_ERROR" => Some(Self::Error),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum ResourceChangeType {
+    Unspecified = 0,
+    Created = 1,
+    Updated = 2,
+    Deleted = 3,
+}
+impl ResourceChangeType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "RESOURCE_CHANGE_TYPE_UNSPECIFIED",
+            Self::Created => "RESOURCE_CHANGE_TYPE_CREATED",
+            Self::Updated => "RESOURCE_CHANGE_TYPE_UPDATED",
+            Self::Deleted => "RESOURCE_CHANGE_TYPE_DELETED",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "RESOURCE_CHANGE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "RESOURCE_CHANGE_TYPE_CREATED" => Some(Self::Created),
+            "RESOURCE_CHANGE_TYPE_UPDATED" => Some(Self::Updated),
+            "RESOURCE_CHANGE_TYPE_DELETED" => Some(Self::Deleted),
             _ => None,
         }
     }

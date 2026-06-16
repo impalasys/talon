@@ -100,3 +100,11 @@ path = "src/bin/cli.rs"
 [[bin]]
 name = "talon-node"
 path = "src/bin/node.rs"
+
+[[bin]]
+name = "talon-mock-acp"
+path = "src/bin/mock_acp.rs"
+
+[[bin]]
+name = "talon-codex-acp"
+path = "src/bin/codex_acp.rs"

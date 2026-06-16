@@ -3,9 +3,9 @@
 import grpc
 import warnings
 
+from proto.data import data_pb2 as proto_dot_data_dot_data__pb2
 from talon_client.proto import events_pb2 as proto_dot_events__pb2
 from talon_client.proto import gateway_pb2 as proto_dot_gateway__pb2
-from talon_client.proto import models_pb2 as proto_dot_models__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
@@ -304,7 +304,7 @@ class GatewayServiceStub(object):
         self.StreamWorkflowEvents = channel.unary_stream(
                 '/talon.gateway.GatewayService/StreamWorkflowEvents',
                 request_serializer=proto_dot_gateway__pb2.StreamWorkflowEventsRequest.SerializeToString,
-                response_deserializer=proto_dot_models__pb2.WorkflowRunEvent.FromString,
+                response_deserializer=proto_dot_data_dot_data__pb2.WorkflowRunEvent.FromString,
                 _registered_method=True)
         self.CreateNamespace = channel.unary_unary(
                 '/talon.gateway.GatewayService/CreateNamespace',
@@ -326,25 +326,25 @@ class GatewayServiceStub(object):
                 request_serializer=proto_dot_gateway__pb2.ListNamespacesRequest.SerializeToString,
                 response_deserializer=proto_dot_gateway__pb2.ListNamespacesResponse.FromString,
                 _registered_method=True)
-        self.CreateAgentTemplate = channel.unary_unary(
-                '/talon.gateway.GatewayService/CreateAgentTemplate',
-                request_serializer=proto_dot_gateway__pb2.CreateAgentTemplateRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.AgentTemplateResponse.FromString,
+        self.CreateResource = channel.unary_unary(
+                '/talon.gateway.GatewayService/CreateResource',
+                request_serializer=proto_dot_gateway__pb2.CreateResourceRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ResourceResponse.FromString,
                 _registered_method=True)
-        self.GetAgentTemplate = channel.unary_unary(
-                '/talon.gateway.GatewayService/GetAgentTemplate',
-                request_serializer=proto_dot_gateway__pb2.GetAgentTemplateRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.AgentTemplateResponse.FromString,
+        self.GetResource = channel.unary_unary(
+                '/talon.gateway.GatewayService/GetResource',
+                request_serializer=proto_dot_gateway__pb2.GetResourceRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ResourceResponse.FromString,
                 _registered_method=True)
-        self.ListAgentTemplates = channel.unary_unary(
-                '/talon.gateway.GatewayService/ListAgentTemplates',
-                request_serializer=proto_dot_gateway__pb2.ListAgentTemplatesRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.ListAgentTemplatesResponse.FromString,
+        self.ListResources = channel.unary_unary(
+                '/talon.gateway.GatewayService/ListResources',
+                request_serializer=proto_dot_gateway__pb2.ListResourcesRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.ListResourcesResponse.FromString,
                 _registered_method=True)
-        self.DeleteAgentTemplate = channel.unary_unary(
-                '/talon.gateway.GatewayService/DeleteAgentTemplate',
-                request_serializer=proto_dot_gateway__pb2.DeleteAgentTemplateRequest.SerializeToString,
-                response_deserializer=proto_dot_gateway__pb2.DeleteAgentTemplateResponse.FromString,
+        self.DeleteResource = channel.unary_unary(
+                '/talon.gateway.GatewayService/DeleteResource',
+                request_serializer=proto_dot_gateway__pb2.DeleteResourceRequest.SerializeToString,
+                response_deserializer=proto_dot_gateway__pb2.DeleteResourceResponse.FromString,
                 _registered_method=True)
         self.CreateMcpServer = channel.unary_unary(
                 '/talon.gateway.GatewayService/CreateMcpServer',
@@ -747,26 +747,26 @@ class GatewayServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def CreateAgentTemplate(self, request, context):
-        """Agent Templates
+    def CreateResource(self, request, context):
+        """Generic v2 resources
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def GetAgentTemplate(self, request, context):
+    def GetResource(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def ListAgentTemplates(self, request, context):
+    def ListResources(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def DeleteAgentTemplate(self, request, context):
+    def DeleteResource(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -1092,7 +1092,7 @@ def add_GatewayServiceServicer_to_server(servicer, server):
             'StreamWorkflowEvents': grpc.unary_stream_rpc_method_handler(
                     servicer.StreamWorkflowEvents,
                     request_deserializer=proto_dot_gateway__pb2.StreamWorkflowEventsRequest.FromString,
-                    response_serializer=proto_dot_models__pb2.WorkflowRunEvent.SerializeToString,
+                    response_serializer=proto_dot_data_dot_data__pb2.WorkflowRunEvent.SerializeToString,
             ),
             'CreateNamespace': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateNamespace,
@@ -1114,25 +1114,25 @@ def add_GatewayServiceServicer_to_server(servicer, server):
                     request_deserializer=proto_dot_gateway__pb2.ListNamespacesRequest.FromString,
                     response_serializer=proto_dot_gateway__pb2.ListNamespacesResponse.SerializeToString,
             ),
-            'CreateAgentTemplate': grpc.unary_unary_rpc_method_handler(
-                    servicer.CreateAgentTemplate,
-                    request_deserializer=proto_dot_gateway__pb2.CreateAgentTemplateRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.AgentTemplateResponse.SerializeToString,
+            'CreateResource': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateResource,
+                    request_deserializer=proto_dot_gateway__pb2.CreateResourceRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ResourceResponse.SerializeToString,
             ),
-            'GetAgentTemplate': grpc.unary_unary_rpc_method_handler(
-                    servicer.GetAgentTemplate,
-                    request_deserializer=proto_dot_gateway__pb2.GetAgentTemplateRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.AgentTemplateResponse.SerializeToString,
+            'GetResource': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetResource,
+                    request_deserializer=proto_dot_gateway__pb2.GetResourceRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ResourceResponse.SerializeToString,
             ),
-            'ListAgentTemplates': grpc.unary_unary_rpc_method_handler(
-                    servicer.ListAgentTemplates,
-                    request_deserializer=proto_dot_gateway__pb2.ListAgentTemplatesRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.ListAgentTemplatesResponse.SerializeToString,
+            'ListResources': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListResources,
+                    request_deserializer=proto_dot_gateway__pb2.ListResourcesRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.ListResourcesResponse.SerializeToString,
             ),
-            'DeleteAgentTemplate': grpc.unary_unary_rpc_method_handler(
-                    servicer.DeleteAgentTemplate,
-                    request_deserializer=proto_dot_gateway__pb2.DeleteAgentTemplateRequest.FromString,
-                    response_serializer=proto_dot_gateway__pb2.DeleteAgentTemplateResponse.SerializeToString,
+            'DeleteResource': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteResource,
+                    request_deserializer=proto_dot_gateway__pb2.DeleteResourceRequest.FromString,
+                    response_serializer=proto_dot_gateway__pb2.DeleteResourceResponse.SerializeToString,
             ),
             'CreateMcpServer': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateMcpServer,
@@ -2632,7 +2632,7 @@ class GatewayService(object):
             target,
             '/talon.gateway.GatewayService/StreamWorkflowEvents',
             proto_dot_gateway__pb2.StreamWorkflowEventsRequest.SerializeToString,
-            proto_dot_models__pb2.WorkflowRunEvent.FromString,
+            proto_dot_data_dot_data__pb2.WorkflowRunEvent.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2752,7 +2752,7 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def CreateAgentTemplate(request,
+    def CreateResource(request,
             target,
             options=(),
             channel_credentials=None,
@@ -2765,9 +2765,9 @@ class GatewayService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/talon.gateway.GatewayService/CreateAgentTemplate',
-            proto_dot_gateway__pb2.CreateAgentTemplateRequest.SerializeToString,
-            proto_dot_gateway__pb2.AgentTemplateResponse.FromString,
+            '/talon.gateway.GatewayService/CreateResource',
+            proto_dot_gateway__pb2.CreateResourceRequest.SerializeToString,
+            proto_dot_gateway__pb2.ResourceResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2779,7 +2779,7 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def GetAgentTemplate(request,
+    def GetResource(request,
             target,
             options=(),
             channel_credentials=None,
@@ -2792,9 +2792,9 @@ class GatewayService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/talon.gateway.GatewayService/GetAgentTemplate',
-            proto_dot_gateway__pb2.GetAgentTemplateRequest.SerializeToString,
-            proto_dot_gateway__pb2.AgentTemplateResponse.FromString,
+            '/talon.gateway.GatewayService/GetResource',
+            proto_dot_gateway__pb2.GetResourceRequest.SerializeToString,
+            proto_dot_gateway__pb2.ResourceResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2806,7 +2806,7 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def ListAgentTemplates(request,
+    def ListResources(request,
             target,
             options=(),
             channel_credentials=None,
@@ -2819,9 +2819,9 @@ class GatewayService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/talon.gateway.GatewayService/ListAgentTemplates',
-            proto_dot_gateway__pb2.ListAgentTemplatesRequest.SerializeToString,
-            proto_dot_gateway__pb2.ListAgentTemplatesResponse.FromString,
+            '/talon.gateway.GatewayService/ListResources',
+            proto_dot_gateway__pb2.ListResourcesRequest.SerializeToString,
+            proto_dot_gateway__pb2.ListResourcesResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -2833,7 +2833,7 @@ class GatewayService(object):
             _registered_method=True)
 
     @staticmethod
-    def DeleteAgentTemplate(request,
+    def DeleteResource(request,
             target,
             options=(),
             channel_credentials=None,
@@ -2846,9 +2846,9 @@ class GatewayService(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/talon.gateway.GatewayService/DeleteAgentTemplate',
-            proto_dot_gateway__pb2.DeleteAgentTemplateRequest.SerializeToString,
-            proto_dot_gateway__pb2.DeleteAgentTemplateResponse.FromString,
+            '/talon.gateway.GatewayService/DeleteResource',
+            proto_dot_gateway__pb2.DeleteResourceRequest.SerializeToString,
+            proto_dot_gateway__pb2.DeleteResourceResponse.FromString,
             options,
             channel_credentials,
             insecure,

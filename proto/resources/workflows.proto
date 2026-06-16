@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message WorkflowStepOutputPolicy {
+  string format = 1;
+  string schema_json = 2;
+}
+
+message WorkflowStepRetryPolicy {
+  uint32 max_attempts = 1;
+  int64 initial_backoff_seconds = 2;
+  int64 max_backoff_seconds = 3;
+  double multiplier = 4;
+}
+
+message WorkflowStep {
+  string id = 1;
+  string type = 2;
+  repeated string after = 3;
+  string when_json = 4;
+  string agent = 5;
+  string prompt = 6;
+  string tool = 7;
+  string input_json = 8;
+  string workflow = 9;
+  WorkflowStepOutputPolicy output = 10;
+  string resume_schema_json = 11;
+  WorkflowStepRetryPolicy retry = 12;
+  string timeout = 13;
+  string wait_duration = 14;
+  string wait_until = 15;
+}
+
+message WorkflowSpec {
+  string description = 1;
+  string input_schema_json = 2;
+  string output_schema_json = 3;
+  repeated WorkflowStep steps = 4;
+  string output_json = 5;
+  uint32 concurrency = 6;
+}
+
+message Workflow {
+  ResourceMeta metadata = 1;
+  WorkflowSpec spec = 2;
+  WorkflowStatus status = 3;
+}
+
+message WorkflowStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+}

@@ -1,0 +1,28 @@
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-sandbox-policy
+  namespace: customers
+spec:
+  kind: SandboxPolicy
+  metadata:
+    name: coding
+  spec:
+    classRef:
+      namespace: system
+      name: docker-code
+    template:
+      spec:
+        workspace:
+          mode: customer-repo
+          mountPath: /workspace
+        network:
+          mode: bridge
+        filesystem:
+          writable:
+            - /workspace
+            - /tmp
+        leasePolicy:
+          mode: exclusive
+    quota:
+      maxConcurrent: 5

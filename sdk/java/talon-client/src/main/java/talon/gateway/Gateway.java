@@ -26,32 +26,44 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     registerAllExtensions(
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
-  public interface CreateAgentTemplateRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.CreateAgentTemplateRequest)
+  public interface CreateResourceRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.CreateResourceRequest)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     * @return Whether the template field is set.
+     * <code>string ns = 1;</code>
+     * @return The ns.
      */
-    boolean hasTemplate();
+    java.lang.String getNs();
     /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     * @return The template.
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
      */
-    talon.manifests.Manifests.AgentTemplate getTemplate();
+    com.google.protobuf.ByteString
+        getNsBytes();
+
     /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
+     * <code>.talon.resources.Resource resource = 2;</code>
+     * @return Whether the resource field is set.
      */
-    talon.manifests.Manifests.AgentTemplateOrBuilder getTemplateOrBuilder();
+    boolean hasResource();
+    /**
+     * <code>.talon.resources.Resource resource = 2;</code>
+     * @return The resource.
+     */
+    talon.resources.ResourceOuterClass.Resource getResource();
+    /**
+     * <code>.talon.resources.Resource resource = 2;</code>
+     */
+    talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder();
   }
   /**
-   * Protobuf type {@code talon.gateway.CreateAgentTemplateRequest}
+   * Protobuf type {@code talon.gateway.CreateResourceRequest}
    */
-  public static final class CreateAgentTemplateRequest extends
+  public static final class CreateResourceRequest extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.CreateAgentTemplateRequest)
-      CreateAgentTemplateRequestOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.gateway.CreateResourceRequest)
+      CreateResourceRequestOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -60,58 +72,98 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "CreateAgentTemplateRequest");
+        "CreateResourceRequest");
     }
-    // Use CreateAgentTemplateRequest.newBuilder() to construct.
-    private CreateAgentTemplateRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use CreateResourceRequest.newBuilder() to construct.
+    private CreateResourceRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private CreateAgentTemplateRequest() {
+    private CreateResourceRequest() {
+      ns_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_CreateAgentTemplateRequest_descriptor;
+      return talon.gateway.Gateway.internal_static_talon_gateway_CreateResourceRequest_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_CreateAgentTemplateRequest_descriptor;
+      return talon.gateway.Gateway.internal_static_talon_gateway_CreateResourceRequest_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_CreateAgentTemplateRequest_fieldAccessorTable
+      return talon.gateway.Gateway.internal_static_talon_gateway_CreateResourceRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.CreateAgentTemplateRequest.class, talon.gateway.Gateway.CreateAgentTemplateRequest.Builder.class);
+              talon.gateway.Gateway.CreateResourceRequest.class, talon.gateway.Gateway.CreateResourceRequest.Builder.class);
     }
 
     private int bitField0_;
-    public static final int TEMPLATE_FIELD_NUMBER = 1;
-    private talon.manifests.Manifests.AgentTemplate template_;
+    public static final int NS_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
     /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     * @return Whether the template field is set.
+     * <code>string ns = 1;</code>
+     * @return The ns.
      */
     @java.lang.Override
-    public boolean hasTemplate() {
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RESOURCE_FIELD_NUMBER = 2;
+    private talon.resources.ResourceOuterClass.Resource resource_;
+    /**
+     * <code>.talon.resources.Resource resource = 2;</code>
+     * @return Whether the resource field is set.
+     */
+    @java.lang.Override
+    public boolean hasResource() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     * @return The template.
+     * <code>.talon.resources.Resource resource = 2;</code>
+     * @return The resource.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.AgentTemplate getTemplate() {
-      return template_ == null ? talon.manifests.Manifests.AgentTemplate.getDefaultInstance() : template_;
+    public talon.resources.ResourceOuterClass.Resource getResource() {
+      return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
     }
     /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
+     * <code>.talon.resources.Resource resource = 2;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.AgentTemplateOrBuilder getTemplateOrBuilder() {
-      return template_ == null ? talon.manifests.Manifests.AgentTemplate.getDefaultInstance() : template_;
+    public talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder() {
+      return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -128,8 +180,11 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
+      }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(1, getTemplate());
+        output.writeMessage(2, getResource());
       }
       getUnknownFields().writeTo(output);
     }
@@ -140,9 +195,12 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (size != -1) return size;
 
       size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
+      }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getTemplate());
+          .computeMessageSize(2, getResource());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -154,15 +212,17 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.gateway.Gateway.CreateAgentTemplateRequest)) {
+      if (!(obj instanceof talon.gateway.Gateway.CreateResourceRequest)) {
         return super.equals(obj);
       }
-      talon.gateway.Gateway.CreateAgentTemplateRequest other = (talon.gateway.Gateway.CreateAgentTemplateRequest) obj;
+      talon.gateway.Gateway.CreateResourceRequest other = (talon.gateway.Gateway.CreateResourceRequest) obj;
 
-      if (hasTemplate() != other.hasTemplate()) return false;
-      if (hasTemplate()) {
-        if (!getTemplate()
-            .equals(other.getTemplate())) return false;
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (hasResource() != other.hasResource()) return false;
+      if (hasResource()) {
+        if (!getResource()
+            .equals(other.getResource())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -175,53 +235,55 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasTemplate()) {
-        hash = (37 * hash) + TEMPLATE_FIELD_NUMBER;
-        hash = (53 * hash) + getTemplate().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      if (hasResource()) {
+        hash = (37 * hash) + RESOURCE_FIELD_NUMBER;
+        hash = (53 * hash) + getResource().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
     }
 
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(byte[] data)
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(java.io.InputStream input)
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -229,26 +291,26 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseDelimitedFrom(java.io.InputStream input)
+    public static talon.gateway.Gateway.CreateResourceRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseDelimitedFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.CreateResourceRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -261,7 +323,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.gateway.Gateway.CreateAgentTemplateRequest prototype) {
+    public static Builder newBuilder(talon.gateway.Gateway.CreateResourceRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -277,26 +339,26 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.gateway.CreateAgentTemplateRequest}
+     * Protobuf type {@code talon.gateway.CreateResourceRequest}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.CreateAgentTemplateRequest)
-        talon.gateway.Gateway.CreateAgentTemplateRequestOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.gateway.CreateResourceRequest)
+        talon.gateway.Gateway.CreateResourceRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_CreateAgentTemplateRequest_descriptor;
+        return talon.gateway.Gateway.internal_static_talon_gateway_CreateResourceRequest_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_CreateAgentTemplateRequest_fieldAccessorTable
+        return talon.gateway.Gateway.internal_static_talon_gateway_CreateResourceRequest_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.CreateAgentTemplateRequest.class, talon.gateway.Gateway.CreateAgentTemplateRequest.Builder.class);
+                talon.gateway.Gateway.CreateResourceRequest.class, talon.gateway.Gateway.CreateResourceRequest.Builder.class);
       }
 
-      // Construct using talon.gateway.Gateway.CreateAgentTemplateRequest.newBuilder()
+      // Construct using talon.gateway.Gateway.CreateResourceRequest.newBuilder()
       private Builder() {
         maybeForceBuilderInitialization();
       }
@@ -309,17 +371,18 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
-          internalGetTemplateFieldBuilder();
+          internalGetResourceFieldBuilder();
         }
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        template_ = null;
-        if (templateBuilder_ != null) {
-          templateBuilder_.dispose();
-          templateBuilder_ = null;
+        ns_ = "";
+        resource_ = null;
+        if (resourceBuilder_ != null) {
+          resourceBuilder_.dispose();
+          resourceBuilder_ = null;
         }
         return this;
       }
@@ -327,17 +390,17 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_CreateAgentTemplateRequest_descriptor;
+        return talon.gateway.Gateway.internal_static_talon_gateway_CreateResourceRequest_descriptor;
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.CreateAgentTemplateRequest getDefaultInstanceForType() {
-        return talon.gateway.Gateway.CreateAgentTemplateRequest.getDefaultInstance();
+      public talon.gateway.Gateway.CreateResourceRequest getDefaultInstanceForType() {
+        return talon.gateway.Gateway.CreateResourceRequest.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.CreateAgentTemplateRequest build() {
-        talon.gateway.Gateway.CreateAgentTemplateRequest result = buildPartial();
+      public talon.gateway.Gateway.CreateResourceRequest build() {
+        talon.gateway.Gateway.CreateResourceRequest result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -345,20 +408,23 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.CreateAgentTemplateRequest buildPartial() {
-        talon.gateway.Gateway.CreateAgentTemplateRequest result = new talon.gateway.Gateway.CreateAgentTemplateRequest(this);
+      public talon.gateway.Gateway.CreateResourceRequest buildPartial() {
+        talon.gateway.Gateway.CreateResourceRequest result = new talon.gateway.Gateway.CreateResourceRequest(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.gateway.Gateway.CreateAgentTemplateRequest result) {
+      private void buildPartial0(talon.gateway.Gateway.CreateResourceRequest result) {
         int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.template_ = templateBuilder_ == null
-              ? template_
-              : templateBuilder_.build();
+          result.ns_ = ns_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.resource_ = resourceBuilder_ == null
+              ? resource_
+              : resourceBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
         result.bitField0_ |= to_bitField0_;
@@ -366,18 +432,23 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.CreateAgentTemplateRequest) {
-          return mergeFrom((talon.gateway.Gateway.CreateAgentTemplateRequest)other);
+        if (other instanceof talon.gateway.Gateway.CreateResourceRequest) {
+          return mergeFrom((talon.gateway.Gateway.CreateResourceRequest)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.gateway.Gateway.CreateAgentTemplateRequest other) {
-        if (other == talon.gateway.Gateway.CreateAgentTemplateRequest.getDefaultInstance()) return this;
-        if (other.hasTemplate()) {
-          mergeTemplate(other.getTemplate());
+      public Builder mergeFrom(talon.gateway.Gateway.CreateResourceRequest other) {
+        if (other == talon.gateway.Gateway.CreateResourceRequest.getDefaultInstance()) return this;
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.hasResource()) {
+          mergeResource(other.getResource());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -406,12 +477,17 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
                 done = true;
                 break;
               case 10: {
-                input.readMessage(
-                    internalGetTemplateFieldBuilder().getBuilder(),
-                    extensionRegistry);
+                ns_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetResourceFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -429,144 +505,216 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private talon.manifests.Manifests.AgentTemplate template_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder> templateBuilder_;
+      private java.lang.Object ns_ = "";
       /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       * @return Whether the template field is set.
+       * <code>string ns = 1;</code>
+       * @return The ns.
        */
-      public boolean hasTemplate() {
-        return ((bitField0_ & 0x00000001) != 0);
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       * @return The template.
-       */
-      public talon.manifests.Manifests.AgentTemplate getTemplate() {
-        if (templateBuilder_ == null) {
-          return template_ == null ? talon.manifests.Manifests.AgentTemplate.getDefaultInstance() : template_;
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
         } else {
-          return templateBuilder_.getMessage();
+          return (java.lang.String) ref;
         }
       }
       /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
+       * <code>string ns = 1;</code>
+       * @return The bytes for ns.
        */
-      public Builder setTemplate(talon.manifests.Manifests.AgentTemplate value) {
-        if (templateBuilder_ == null) {
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private talon.resources.ResourceOuterClass.Resource resource_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder> resourceBuilder_;
+      /**
+       * <code>.talon.resources.Resource resource = 2;</code>
+       * @return Whether the resource field is set.
+       */
+      public boolean hasResource() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.talon.resources.Resource resource = 2;</code>
+       * @return The resource.
+       */
+      public talon.resources.ResourceOuterClass.Resource getResource() {
+        if (resourceBuilder_ == null) {
+          return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
+        } else {
+          return resourceBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.Resource resource = 2;</code>
+       */
+      public Builder setResource(talon.resources.ResourceOuterClass.Resource value) {
+        if (resourceBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          template_ = value;
+          resource_ = value;
         } else {
-          templateBuilder_.setMessage(value);
+          resourceBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
+       * <code>.talon.resources.Resource resource = 2;</code>
        */
-      public Builder setTemplate(
-          talon.manifests.Manifests.AgentTemplate.Builder builderForValue) {
-        if (templateBuilder_ == null) {
-          template_ = builderForValue.build();
+      public Builder setResource(
+          talon.resources.ResourceOuterClass.Resource.Builder builderForValue) {
+        if (resourceBuilder_ == null) {
+          resource_ = builderForValue.build();
         } else {
-          templateBuilder_.setMessage(builderForValue.build());
+          resourceBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
+       * <code>.talon.resources.Resource resource = 2;</code>
        */
-      public Builder mergeTemplate(talon.manifests.Manifests.AgentTemplate value) {
-        if (templateBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0) &&
-            template_ != null &&
-            template_ != talon.manifests.Manifests.AgentTemplate.getDefaultInstance()) {
-            getTemplateBuilder().mergeFrom(value);
+      public Builder mergeResource(talon.resources.ResourceOuterClass.Resource value) {
+        if (resourceBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            resource_ != null &&
+            resource_ != talon.resources.ResourceOuterClass.Resource.getDefaultInstance()) {
+            getResourceBuilder().mergeFrom(value);
           } else {
-            template_ = value;
+            resource_ = value;
           }
         } else {
-          templateBuilder_.mergeFrom(value);
+          resourceBuilder_.mergeFrom(value);
         }
-        if (template_ != null) {
-          bitField0_ |= 0x00000001;
+        if (resource_ != null) {
+          bitField0_ |= 0x00000002;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
+       * <code>.talon.resources.Resource resource = 2;</code>
        */
-      public Builder clearTemplate() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        template_ = null;
-        if (templateBuilder_ != null) {
-          templateBuilder_.dispose();
-          templateBuilder_ = null;
+      public Builder clearResource() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        resource_ = null;
+        if (resourceBuilder_ != null) {
+          resourceBuilder_.dispose();
+          resourceBuilder_ = null;
         }
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
+       * <code>.talon.resources.Resource resource = 2;</code>
        */
-      public talon.manifests.Manifests.AgentTemplate.Builder getTemplateBuilder() {
-        bitField0_ |= 0x00000001;
+      public talon.resources.ResourceOuterClass.Resource.Builder getResourceBuilder() {
+        bitField0_ |= 0x00000002;
         onChanged();
-        return internalGetTemplateFieldBuilder().getBuilder();
+        return internalGetResourceFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
+       * <code>.talon.resources.Resource resource = 2;</code>
        */
-      public talon.manifests.Manifests.AgentTemplateOrBuilder getTemplateOrBuilder() {
-        if (templateBuilder_ != null) {
-          return templateBuilder_.getMessageOrBuilder();
+      public talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder() {
+        if (resourceBuilder_ != null) {
+          return resourceBuilder_.getMessageOrBuilder();
         } else {
-          return template_ == null ?
-              talon.manifests.Manifests.AgentTemplate.getDefaultInstance() : template_;
+          return resource_ == null ?
+              talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
         }
       }
       /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
+       * <code>.talon.resources.Resource resource = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>
-          internalGetTemplateFieldBuilder() {
-        if (templateBuilder_ == null) {
-          templateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>(
-                  getTemplate(),
+          talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder>
+          internalGetResourceFieldBuilder() {
+        if (resourceBuilder_ == null) {
+          resourceBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder>(
+                  getResource(),
                   getParentForChildren(),
                   isClean());
-          template_ = null;
+          resource_ = null;
         }
-        return templateBuilder_;
+        return resourceBuilder_;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.gateway.CreateAgentTemplateRequest)
+      // @@protoc_insertion_point(builder_scope:talon.gateway.CreateResourceRequest)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.gateway.CreateAgentTemplateRequest)
-    private static final talon.gateway.Gateway.CreateAgentTemplateRequest DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.gateway.CreateResourceRequest)
+    private static final talon.gateway.Gateway.CreateResourceRequest DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.CreateAgentTemplateRequest();
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.CreateResourceRequest();
     }
 
-    public static talon.gateway.Gateway.CreateAgentTemplateRequest getDefaultInstance() {
+    public static talon.gateway.Gateway.CreateResourceRequest getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<CreateAgentTemplateRequest>
-        PARSER = new com.google.protobuf.AbstractParser<CreateAgentTemplateRequest>() {
+    private static final com.google.protobuf.Parser<CreateResourceRequest>
+        PARSER = new com.google.protobuf.AbstractParser<CreateResourceRequest>() {
       @java.lang.Override
-      public CreateAgentTemplateRequest parsePartialFrom(
+      public CreateResourceRequest parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -585,620 +733,69 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
     };
 
-    public static com.google.protobuf.Parser<CreateAgentTemplateRequest> parser() {
+    public static com.google.protobuf.Parser<CreateResourceRequest> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<CreateAgentTemplateRequest> getParserForType() {
+    public com.google.protobuf.Parser<CreateResourceRequest> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.gateway.Gateway.CreateAgentTemplateRequest getDefaultInstanceForType() {
+    public talon.gateway.Gateway.CreateResourceRequest getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface AgentTemplateResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.AgentTemplateResponse)
+  public interface GetResourceRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.GetResourceRequest)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     * @return Whether the template field is set.
+     * <code>string ns = 1;</code>
+     * @return The ns.
      */
-    boolean hasTemplate();
+    java.lang.String getNs();
     /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     * @return The template.
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
      */
-    talon.manifests.Manifests.AgentTemplate getTemplate();
-    /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     */
-    talon.manifests.Manifests.AgentTemplateOrBuilder getTemplateOrBuilder();
-  }
-  /**
-   * Protobuf type {@code talon.gateway.AgentTemplateResponse}
-   */
-  public static final class AgentTemplateResponse extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.AgentTemplateResponse)
-      AgentTemplateResponseOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "AgentTemplateResponse");
-    }
-    // Use AgentTemplateResponse.newBuilder() to construct.
-    private AgentTemplateResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private AgentTemplateResponse() {
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_AgentTemplateResponse_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_AgentTemplateResponse_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_AgentTemplateResponse_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.AgentTemplateResponse.class, talon.gateway.Gateway.AgentTemplateResponse.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int TEMPLATE_FIELD_NUMBER = 1;
-    private talon.manifests.Manifests.AgentTemplate template_;
-    /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     * @return Whether the template field is set.
-     */
-    @java.lang.Override
-    public boolean hasTemplate() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     * @return The template.
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.AgentTemplate getTemplate() {
-      return template_ == null ? talon.manifests.Manifests.AgentTemplate.getDefaultInstance() : template_;
-    }
-    /**
-     * <code>.talon.manifests.AgentTemplate template = 1;</code>
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.AgentTemplateOrBuilder getTemplateOrBuilder() {
-      return template_ == null ? talon.manifests.Manifests.AgentTemplate.getDefaultInstance() : template_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(1, getTemplate());
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getTemplate());
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.AgentTemplateResponse)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.AgentTemplateResponse other = (talon.gateway.Gateway.AgentTemplateResponse) obj;
-
-      if (hasTemplate() != other.hasTemplate()) return false;
-      if (hasTemplate()) {
-        if (!getTemplate()
-            .equals(other.getTemplate())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasTemplate()) {
-        hash = (37 * hash) + TEMPLATE_FIELD_NUMBER;
-        hash = (53 * hash) + getTemplate().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.AgentTemplateResponse parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.AgentTemplateResponse parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.AgentTemplateResponse parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.AgentTemplateResponse prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.AgentTemplateResponse}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.AgentTemplateResponse)
-        talon.gateway.Gateway.AgentTemplateResponseOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_AgentTemplateResponse_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_AgentTemplateResponse_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.AgentTemplateResponse.class, talon.gateway.Gateway.AgentTemplateResponse.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.AgentTemplateResponse.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetTemplateFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        template_ = null;
-        if (templateBuilder_ != null) {
-          templateBuilder_.dispose();
-          templateBuilder_ = null;
-        }
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_AgentTemplateResponse_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.AgentTemplateResponse getDefaultInstanceForType() {
-        return talon.gateway.Gateway.AgentTemplateResponse.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.AgentTemplateResponse build() {
-        talon.gateway.Gateway.AgentTemplateResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.AgentTemplateResponse buildPartial() {
-        talon.gateway.Gateway.AgentTemplateResponse result = new talon.gateway.Gateway.AgentTemplateResponse(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.AgentTemplateResponse result) {
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.template_ = templateBuilder_ == null
-              ? template_
-              : templateBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.AgentTemplateResponse) {
-          return mergeFrom((talon.gateway.Gateway.AgentTemplateResponse)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.AgentTemplateResponse other) {
-        if (other == talon.gateway.Gateway.AgentTemplateResponse.getDefaultInstance()) return this;
-        if (other.hasTemplate()) {
-          mergeTemplate(other.getTemplate());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                input.readMessage(
-                    internalGetTemplateFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private talon.manifests.Manifests.AgentTemplate template_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder> templateBuilder_;
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       * @return Whether the template field is set.
-       */
-      public boolean hasTemplate() {
-        return ((bitField0_ & 0x00000001) != 0);
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       * @return The template.
-       */
-      public talon.manifests.Manifests.AgentTemplate getTemplate() {
-        if (templateBuilder_ == null) {
-          return template_ == null ? talon.manifests.Manifests.AgentTemplate.getDefaultInstance() : template_;
-        } else {
-          return templateBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       */
-      public Builder setTemplate(talon.manifests.Manifests.AgentTemplate value) {
-        if (templateBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          template_ = value;
-        } else {
-          templateBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       */
-      public Builder setTemplate(
-          talon.manifests.Manifests.AgentTemplate.Builder builderForValue) {
-        if (templateBuilder_ == null) {
-          template_ = builderForValue.build();
-        } else {
-          templateBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       */
-      public Builder mergeTemplate(talon.manifests.Manifests.AgentTemplate value) {
-        if (templateBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0) &&
-            template_ != null &&
-            template_ != talon.manifests.Manifests.AgentTemplate.getDefaultInstance()) {
-            getTemplateBuilder().mergeFrom(value);
-          } else {
-            template_ = value;
-          }
-        } else {
-          templateBuilder_.mergeFrom(value);
-        }
-        if (template_ != null) {
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       */
-      public Builder clearTemplate() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        template_ = null;
-        if (templateBuilder_ != null) {
-          templateBuilder_.dispose();
-          templateBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       */
-      public talon.manifests.Manifests.AgentTemplate.Builder getTemplateBuilder() {
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return internalGetTemplateFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       */
-      public talon.manifests.Manifests.AgentTemplateOrBuilder getTemplateOrBuilder() {
-        if (templateBuilder_ != null) {
-          return templateBuilder_.getMessageOrBuilder();
-        } else {
-          return template_ == null ?
-              talon.manifests.Manifests.AgentTemplate.getDefaultInstance() : template_;
-        }
-      }
-      /**
-       * <code>.talon.manifests.AgentTemplate template = 1;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>
-          internalGetTemplateFieldBuilder() {
-        if (templateBuilder_ == null) {
-          templateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>(
-                  getTemplate(),
-                  getParentForChildren(),
-                  isClean());
-          template_ = null;
-        }
-        return templateBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.AgentTemplateResponse)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.AgentTemplateResponse)
-    private static final talon.gateway.Gateway.AgentTemplateResponse DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.AgentTemplateResponse();
-    }
-
-    public static talon.gateway.Gateway.AgentTemplateResponse getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<AgentTemplateResponse>
-        PARSER = new com.google.protobuf.AbstractParser<AgentTemplateResponse>() {
-      @java.lang.Override
-      public AgentTemplateResponse parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<AgentTemplateResponse> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<AgentTemplateResponse> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.AgentTemplateResponse getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface GetAgentTemplateRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.GetAgentTemplateRequest)
-      com.google.protobuf.MessageOrBuilder {
+    com.google.protobuf.ByteString
+        getNsBytes();
 
     /**
-     * <code>string name = 1;</code>
+     * <code>string kind = 2;</code>
+     * @return The kind.
+     */
+    java.lang.String getKind();
+    /**
+     * <code>string kind = 2;</code>
+     * @return The bytes for kind.
+     */
+    com.google.protobuf.ByteString
+        getKindBytes();
+
+    /**
+     * <code>string name = 3;</code>
      * @return The name.
      */
     java.lang.String getName();
     /**
-     * <code>string name = 1;</code>
+     * <code>string name = 3;</code>
      * @return The bytes for name.
      */
     com.google.protobuf.ByteString
         getNameBytes();
   }
   /**
-   * Protobuf type {@code talon.gateway.GetAgentTemplateRequest}
+   * Protobuf type {@code talon.gateway.GetResourceRequest}
    */
-  public static final class GetAgentTemplateRequest extends
+  public static final class GetResourceRequest extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.GetAgentTemplateRequest)
-      GetAgentTemplateRequestOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.gateway.GetResourceRequest)
+      GetResourceRequestOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -1207,39 +804,119 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "GetAgentTemplateRequest");
+        "GetResourceRequest");
     }
-    // Use GetAgentTemplateRequest.newBuilder() to construct.
-    private GetAgentTemplateRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use GetResourceRequest.newBuilder() to construct.
+    private GetResourceRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private GetAgentTemplateRequest() {
+    private GetResourceRequest() {
+      ns_ = "";
+      kind_ = "";
       name_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_GetAgentTemplateRequest_descriptor;
+      return talon.gateway.Gateway.internal_static_talon_gateway_GetResourceRequest_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_GetAgentTemplateRequest_descriptor;
+      return talon.gateway.Gateway.internal_static_talon_gateway_GetResourceRequest_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_GetAgentTemplateRequest_fieldAccessorTable
+      return talon.gateway.Gateway.internal_static_talon_gateway_GetResourceRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.GetAgentTemplateRequest.class, talon.gateway.Gateway.GetAgentTemplateRequest.Builder.class);
+              talon.gateway.Gateway.GetResourceRequest.class, talon.gateway.Gateway.GetResourceRequest.Builder.class);
     }
 
-    public static final int NAME_FIELD_NUMBER = 1;
+    public static final int NS_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 1;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int KIND_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object kind_ = "";
+    /**
+     * <code>string kind = 2;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public java.lang.String getKind() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        kind_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string kind = 2;</code>
+     * @return The bytes for kind.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getKindBytes() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        kind_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAME_FIELD_NUMBER = 3;
     @SuppressWarnings("serial")
     private volatile java.lang.Object name_ = "";
     /**
-     * <code>string name = 1;</code>
+     * <code>string name = 3;</code>
      * @return The name.
      */
     @java.lang.Override
@@ -1256,7 +933,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
-     * <code>string name = 1;</code>
+     * <code>string name = 3;</code>
      * @return The bytes for name.
      */
     @java.lang.Override
@@ -1288,8 +965,14 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, kind_);
+      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, name_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, name_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1300,8 +983,14 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (size != -1) return size;
 
       size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, kind_);
+      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, name_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, name_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1313,11 +1002,15 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.gateway.Gateway.GetAgentTemplateRequest)) {
+      if (!(obj instanceof talon.gateway.Gateway.GetResourceRequest)) {
         return super.equals(obj);
       }
-      talon.gateway.Gateway.GetAgentTemplateRequest other = (talon.gateway.Gateway.GetAgentTemplateRequest) obj;
+      talon.gateway.Gateway.GetResourceRequest other = (talon.gateway.Gateway.GetResourceRequest) obj;
 
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getKind()
+          .equals(other.getKind())) return false;
       if (!getName()
           .equals(other.getName())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
@@ -1331,6 +1024,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + KIND_FIELD_NUMBER;
+      hash = (53 * hash) + getKind().hashCode();
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
@@ -1338,44 +1035,44 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return hash;
     }
 
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(byte[] data)
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(java.io.InputStream input)
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -1383,26 +1080,26 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseDelimitedFrom(java.io.InputStream input)
+    public static talon.gateway.Gateway.GetResourceRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseDelimitedFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.gateway.Gateway.GetAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.GetResourceRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -1415,7 +1112,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.gateway.Gateway.GetAgentTemplateRequest prototype) {
+    public static Builder newBuilder(talon.gateway.Gateway.GetResourceRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -1431,26 +1128,26 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.gateway.GetAgentTemplateRequest}
+     * Protobuf type {@code talon.gateway.GetResourceRequest}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.GetAgentTemplateRequest)
-        talon.gateway.Gateway.GetAgentTemplateRequestOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.gateway.GetResourceRequest)
+        talon.gateway.Gateway.GetResourceRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_GetAgentTemplateRequest_descriptor;
+        return talon.gateway.Gateway.internal_static_talon_gateway_GetResourceRequest_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_GetAgentTemplateRequest_fieldAccessorTable
+        return talon.gateway.Gateway.internal_static_talon_gateway_GetResourceRequest_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.GetAgentTemplateRequest.class, talon.gateway.Gateway.GetAgentTemplateRequest.Builder.class);
+                talon.gateway.Gateway.GetResourceRequest.class, talon.gateway.Gateway.GetResourceRequest.Builder.class);
       }
 
-      // Construct using talon.gateway.Gateway.GetAgentTemplateRequest.newBuilder()
+      // Construct using talon.gateway.Gateway.GetResourceRequest.newBuilder()
       private Builder() {
 
       }
@@ -1464,6 +1161,8 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
+        ns_ = "";
+        kind_ = "";
         name_ = "";
         return this;
       }
@@ -1471,17 +1170,17 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_GetAgentTemplateRequest_descriptor;
+        return talon.gateway.Gateway.internal_static_talon_gateway_GetResourceRequest_descriptor;
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.GetAgentTemplateRequest getDefaultInstanceForType() {
-        return talon.gateway.Gateway.GetAgentTemplateRequest.getDefaultInstance();
+      public talon.gateway.Gateway.GetResourceRequest getDefaultInstanceForType() {
+        return talon.gateway.Gateway.GetResourceRequest.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.GetAgentTemplateRequest build() {
-        talon.gateway.Gateway.GetAgentTemplateRequest result = buildPartial();
+      public talon.gateway.Gateway.GetResourceRequest build() {
+        talon.gateway.Gateway.GetResourceRequest result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -1489,35 +1188,51 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.GetAgentTemplateRequest buildPartial() {
-        talon.gateway.Gateway.GetAgentTemplateRequest result = new talon.gateway.Gateway.GetAgentTemplateRequest(this);
+      public talon.gateway.Gateway.GetResourceRequest buildPartial() {
+        talon.gateway.Gateway.GetResourceRequest result = new talon.gateway.Gateway.GetResourceRequest(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.gateway.Gateway.GetAgentTemplateRequest result) {
+      private void buildPartial0(talon.gateway.Gateway.GetResourceRequest result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.ns_ = ns_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.kind_ = kind_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           result.name_ = name_;
         }
       }
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.GetAgentTemplateRequest) {
-          return mergeFrom((talon.gateway.Gateway.GetAgentTemplateRequest)other);
+        if (other instanceof talon.gateway.Gateway.GetResourceRequest) {
+          return mergeFrom((talon.gateway.Gateway.GetResourceRequest)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.gateway.Gateway.GetAgentTemplateRequest other) {
-        if (other == talon.gateway.Gateway.GetAgentTemplateRequest.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.gateway.Gateway.GetResourceRequest other) {
+        if (other == talon.gateway.Gateway.GetResourceRequest.getDefaultInstance()) return this;
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getKind().isEmpty()) {
+          kind_ = other.kind_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
         if (!other.getName().isEmpty()) {
           name_ = other.name_;
-          bitField0_ |= 0x00000001;
+          bitField0_ |= 0x00000004;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -1547,10 +1262,20 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
                 done = true;
                 break;
               case 10: {
-                name_ = input.readStringRequireUtf8();
+                ns_ = input.readStringRequireUtf8();
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
+              case 18: {
+                kind_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -1568,9 +1293,153 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 1;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object kind_ = "";
+      /**
+       * <code>string kind = 2;</code>
+       * @return The kind.
+       */
+      public java.lang.String getKind() {
+        java.lang.Object ref = kind_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          kind_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @return The bytes for kind.
+       */
+      public com.google.protobuf.ByteString
+          getKindBytes() {
+        java.lang.Object ref = kind_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          kind_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        kind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        kind_ = getDefaultInstance().getKind();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @param value The bytes for kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKindBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        kind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
       private java.lang.Object name_ = "";
       /**
-       * <code>string name = 1;</code>
+       * <code>string name = 3;</code>
        * @return The name.
        */
       public java.lang.String getName() {
@@ -1586,7 +1455,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>string name = 1;</code>
+       * <code>string name = 3;</code>
        * @return The bytes for name.
        */
       public com.google.protobuf.ByteString
@@ -1603,7 +1472,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>string name = 1;</code>
+       * <code>string name = 3;</code>
        * @param value The name to set.
        * @return This builder for chaining.
        */
@@ -1611,22 +1480,22 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           java.lang.String value) {
         if (value == null) { throw new NullPointerException(); }
         name_ = value;
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
+       * <code>string name = 3;</code>
        * @return This builder for chaining.
        */
       public Builder clearName() {
         name_ = getDefaultInstance().getName();
-        bitField0_ = (bitField0_ & ~0x00000001);
+        bitField0_ = (bitField0_ & ~0x00000004);
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
+       * <code>string name = 3;</code>
        * @param value The bytes for name to set.
        * @return This builder for chaining.
        */
@@ -1635,28 +1504,28 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         if (value == null) { throw new NullPointerException(); }
         checkByteStringIsUtf8(value);
         name_ = value;
-        bitField0_ |= 0x00000001;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.gateway.GetAgentTemplateRequest)
+      // @@protoc_insertion_point(builder_scope:talon.gateway.GetResourceRequest)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.gateway.GetAgentTemplateRequest)
-    private static final talon.gateway.Gateway.GetAgentTemplateRequest DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.gateway.GetResourceRequest)
+    private static final talon.gateway.Gateway.GetResourceRequest DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.GetAgentTemplateRequest();
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.GetResourceRequest();
     }
 
-    public static talon.gateway.Gateway.GetAgentTemplateRequest getDefaultInstance() {
+    public static talon.gateway.Gateway.GetResourceRequest getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<GetAgentTemplateRequest>
-        PARSER = new com.google.protobuf.AbstractParser<GetAgentTemplateRequest>() {
+    private static final com.google.protobuf.Parser<GetResourceRequest>
+        PARSER = new com.google.protobuf.AbstractParser<GetResourceRequest>() {
       @java.lang.Override
-      public GetAgentTemplateRequest parsePartialFrom(
+      public GetResourceRequest parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -1675,45 +1544,62 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
     };
 
-    public static com.google.protobuf.Parser<GetAgentTemplateRequest> parser() {
+    public static com.google.protobuf.Parser<GetResourceRequest> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<GetAgentTemplateRequest> getParserForType() {
+    public com.google.protobuf.Parser<GetResourceRequest> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.gateway.Gateway.GetAgentTemplateRequest getDefaultInstanceForType() {
+    public talon.gateway.Gateway.GetResourceRequest getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface DeleteAgentTemplateRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.DeleteAgentTemplateRequest)
+  public interface ListResourcesRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.ListResourcesRequest)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string name = 1;</code>
-     * @return The name.
+     * <code>string ns = 1;</code>
+     * @return The ns.
      */
-    java.lang.String getName();
+    java.lang.String getNs();
     /**
-     * <code>string name = 1;</code>
-     * @return The bytes for name.
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
      */
     com.google.protobuf.ByteString
-        getNameBytes();
+        getNsBytes();
+
+    /**
+     * <code>optional string kind = 2;</code>
+     * @return Whether the kind field is set.
+     */
+    boolean hasKind();
+    /**
+     * <code>optional string kind = 2;</code>
+     * @return The kind.
+     */
+    java.lang.String getKind();
+    /**
+     * <code>optional string kind = 2;</code>
+     * @return The bytes for kind.
+     */
+    com.google.protobuf.ByteString
+        getKindBytes();
   }
   /**
-   * Protobuf type {@code talon.gateway.DeleteAgentTemplateRequest}
+   * Protobuf type {@code talon.gateway.ListResourcesRequest}
    */
-  public static final class DeleteAgentTemplateRequest extends
+  public static final class ListResourcesRequest extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.DeleteAgentTemplateRequest)
-      DeleteAgentTemplateRequestOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.gateway.ListResourcesRequest)
+      ListResourcesRequestOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -1722,39 +1608,818 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "DeleteAgentTemplateRequest");
+        "ListResourcesRequest");
     }
-    // Use DeleteAgentTemplateRequest.newBuilder() to construct.
-    private DeleteAgentTemplateRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use ListResourcesRequest.newBuilder() to construct.
+    private ListResourcesRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private DeleteAgentTemplateRequest() {
-      name_ = "";
+    private ListResourcesRequest() {
+      ns_ = "";
+      kind_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateRequest_descriptor;
+      return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesRequest_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateRequest_descriptor;
+      return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesRequest_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateRequest_fieldAccessorTable
+      return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesRequest_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.DeleteAgentTemplateRequest.class, talon.gateway.Gateway.DeleteAgentTemplateRequest.Builder.class);
+              talon.gateway.Gateway.ListResourcesRequest.class, talon.gateway.Gateway.ListResourcesRequest.Builder.class);
     }
 
-    public static final int NAME_FIELD_NUMBER = 1;
+    private int bitField0_;
+    public static final int NS_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 1;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int KIND_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object kind_ = "";
+    /**
+     * <code>optional string kind = 2;</code>
+     * @return Whether the kind field is set.
+     */
+    @java.lang.Override
+    public boolean hasKind() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>optional string kind = 2;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public java.lang.String getKind() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        kind_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>optional string kind = 2;</code>
+     * @return The bytes for kind.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getKindBytes() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        kind_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, kind_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, kind_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.gateway.Gateway.ListResourcesRequest)) {
+        return super.equals(obj);
+      }
+      talon.gateway.Gateway.ListResourcesRequest other = (talon.gateway.Gateway.ListResourcesRequest) obj;
+
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (hasKind() != other.hasKind()) return false;
+      if (hasKind()) {
+        if (!getKind()
+            .equals(other.getKind())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      if (hasKind()) {
+        hash = (37 * hash) + KIND_FIELD_NUMBER;
+        hash = (53 * hash) + getKind().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.gateway.Gateway.ListResourcesRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.gateway.Gateway.ListResourcesRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.ListResourcesRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.gateway.Gateway.ListResourcesRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.gateway.ListResourcesRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.gateway.ListResourcesRequest)
+        talon.gateway.Gateway.ListResourcesRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.gateway.Gateway.ListResourcesRequest.class, talon.gateway.Gateway.ListResourcesRequest.Builder.class);
+      }
+
+      // Construct using talon.gateway.Gateway.ListResourcesRequest.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        ns_ = "";
+        kind_ = "";
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ListResourcesRequest getDefaultInstanceForType() {
+        return talon.gateway.Gateway.ListResourcesRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ListResourcesRequest build() {
+        talon.gateway.Gateway.ListResourcesRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ListResourcesRequest buildPartial() {
+        talon.gateway.Gateway.ListResourcesRequest result = new talon.gateway.Gateway.ListResourcesRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.gateway.Gateway.ListResourcesRequest result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.ns_ = ns_;
+        }
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.kind_ = kind_;
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.gateway.Gateway.ListResourcesRequest) {
+          return mergeFrom((talon.gateway.Gateway.ListResourcesRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.gateway.Gateway.ListResourcesRequest other) {
+        if (other == talon.gateway.Gateway.ListResourcesRequest.getDefaultInstance()) return this;
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (other.hasKind()) {
+          kind_ = other.kind_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                kind_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 1;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object kind_ = "";
+      /**
+       * <code>optional string kind = 2;</code>
+       * @return Whether the kind field is set.
+       */
+      public boolean hasKind() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>optional string kind = 2;</code>
+       * @return The kind.
+       */
+      public java.lang.String getKind() {
+        java.lang.Object ref = kind_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          kind_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string kind = 2;</code>
+       * @return The bytes for kind.
+       */
+      public com.google.protobuf.ByteString
+          getKindBytes() {
+        java.lang.Object ref = kind_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          kind_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string kind = 2;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        kind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string kind = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        kind_ = getDefaultInstance().getKind();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string kind = 2;</code>
+       * @param value The bytes for kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKindBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        kind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.gateway.ListResourcesRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.gateway.ListResourcesRequest)
+    private static final talon.gateway.Gateway.ListResourcesRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.ListResourcesRequest();
+    }
+
+    public static talon.gateway.Gateway.ListResourcesRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ListResourcesRequest>
+        PARSER = new com.google.protobuf.AbstractParser<ListResourcesRequest>() {
+      @java.lang.Override
+      public ListResourcesRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ListResourcesRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ListResourcesRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.gateway.Gateway.ListResourcesRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface DeleteResourceRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.DeleteResourceRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string ns = 1;</code>
+     * @return The ns.
+     */
+    java.lang.String getNs();
+    /**
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
+     */
+    com.google.protobuf.ByteString
+        getNsBytes();
+
+    /**
+     * <code>string kind = 2;</code>
+     * @return The kind.
+     */
+    java.lang.String getKind();
+    /**
+     * <code>string kind = 2;</code>
+     * @return The bytes for kind.
+     */
+    com.google.protobuf.ByteString
+        getKindBytes();
+
+    /**
+     * <code>string name = 3;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <code>string name = 3;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+  }
+  /**
+   * Protobuf type {@code talon.gateway.DeleteResourceRequest}
+   */
+  public static final class DeleteResourceRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.gateway.DeleteResourceRequest)
+      DeleteResourceRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "DeleteResourceRequest");
+    }
+    // Use DeleteResourceRequest.newBuilder() to construct.
+    private DeleteResourceRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private DeleteResourceRequest() {
+      ns_ = "";
+      kind_ = "";
+      name_ = "";
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.gateway.Gateway.DeleteResourceRequest.class, talon.gateway.Gateway.DeleteResourceRequest.Builder.class);
+    }
+
+    public static final int NS_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object ns_ = "";
+    /**
+     * <code>string ns = 1;</code>
+     * @return The ns.
+     */
+    @java.lang.Override
+    public java.lang.String getNs() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        ns_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string ns = 1;</code>
+     * @return The bytes for ns.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNsBytes() {
+      java.lang.Object ref = ns_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        ns_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int KIND_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object kind_ = "";
+    /**
+     * <code>string kind = 2;</code>
+     * @return The kind.
+     */
+    @java.lang.Override
+    public java.lang.String getKind() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        kind_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string kind = 2;</code>
+     * @return The bytes for kind.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getKindBytes() {
+      java.lang.Object ref = kind_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        kind_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAME_FIELD_NUMBER = 3;
     @SuppressWarnings("serial")
     private volatile java.lang.Object name_ = "";
     /**
-     * <code>string name = 1;</code>
+     * <code>string name = 3;</code>
      * @return The name.
      */
     @java.lang.Override
@@ -1771,7 +2436,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
-     * <code>string name = 1;</code>
+     * <code>string name = 3;</code>
      * @return The bytes for name.
      */
     @java.lang.Override
@@ -1803,8 +2468,14 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, kind_);
+      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, name_);
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, name_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1815,8 +2486,14 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (size != -1) return size;
 
       size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, kind_);
+      }
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, name_);
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, name_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -1828,11 +2505,15 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.gateway.Gateway.DeleteAgentTemplateRequest)) {
+      if (!(obj instanceof talon.gateway.Gateway.DeleteResourceRequest)) {
         return super.equals(obj);
       }
-      talon.gateway.Gateway.DeleteAgentTemplateRequest other = (talon.gateway.Gateway.DeleteAgentTemplateRequest) obj;
+      talon.gateway.Gateway.DeleteResourceRequest other = (talon.gateway.Gateway.DeleteResourceRequest) obj;
 
+      if (!getNs()
+          .equals(other.getNs())) return false;
+      if (!getKind()
+          .equals(other.getKind())) return false;
       if (!getName()
           .equals(other.getName())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
@@ -1846,6 +2527,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NS_FIELD_NUMBER;
+      hash = (53 * hash) + getNs().hashCode();
+      hash = (37 * hash) + KIND_FIELD_NUMBER;
+      hash = (53 * hash) + getKind().hashCode();
       hash = (37 * hash) + NAME_FIELD_NUMBER;
       hash = (53 * hash) + getName().hashCode();
       hash = (29 * hash) + getUnknownFields().hashCode();
@@ -1853,44 +2538,44 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return hash;
     }
 
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(byte[] data)
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(java.io.InputStream input)
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -1898,26 +2583,26 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseDelimitedFrom(java.io.InputStream input)
+    public static talon.gateway.Gateway.DeleteResourceRequest parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseDelimitedFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceRequest parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -1930,7 +2615,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.gateway.Gateway.DeleteAgentTemplateRequest prototype) {
+    public static Builder newBuilder(talon.gateway.Gateway.DeleteResourceRequest prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -1946,26 +2631,26 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.gateway.DeleteAgentTemplateRequest}
+     * Protobuf type {@code talon.gateway.DeleteResourceRequest}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.DeleteAgentTemplateRequest)
-        talon.gateway.Gateway.DeleteAgentTemplateRequestOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.gateway.DeleteResourceRequest)
+        talon.gateway.Gateway.DeleteResourceRequestOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateRequest_descriptor;
+        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceRequest_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateRequest_fieldAccessorTable
+        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceRequest_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.DeleteAgentTemplateRequest.class, talon.gateway.Gateway.DeleteAgentTemplateRequest.Builder.class);
+                talon.gateway.Gateway.DeleteResourceRequest.class, talon.gateway.Gateway.DeleteResourceRequest.Builder.class);
       }
 
-      // Construct using talon.gateway.Gateway.DeleteAgentTemplateRequest.newBuilder()
+      // Construct using talon.gateway.Gateway.DeleteResourceRequest.newBuilder()
       private Builder() {
 
       }
@@ -1979,6 +2664,8 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
+        ns_ = "";
+        kind_ = "";
         name_ = "";
         return this;
       }
@@ -1986,17 +2673,17 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateRequest_descriptor;
+        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceRequest_descriptor;
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.DeleteAgentTemplateRequest getDefaultInstanceForType() {
-        return talon.gateway.Gateway.DeleteAgentTemplateRequest.getDefaultInstance();
+      public talon.gateway.Gateway.DeleteResourceRequest getDefaultInstanceForType() {
+        return talon.gateway.Gateway.DeleteResourceRequest.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.DeleteAgentTemplateRequest build() {
-        talon.gateway.Gateway.DeleteAgentTemplateRequest result = buildPartial();
+      public talon.gateway.Gateway.DeleteResourceRequest build() {
+        talon.gateway.Gateway.DeleteResourceRequest result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -2004,35 +2691,51 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.DeleteAgentTemplateRequest buildPartial() {
-        talon.gateway.Gateway.DeleteAgentTemplateRequest result = new talon.gateway.Gateway.DeleteAgentTemplateRequest(this);
+      public talon.gateway.Gateway.DeleteResourceRequest buildPartial() {
+        talon.gateway.Gateway.DeleteResourceRequest result = new talon.gateway.Gateway.DeleteResourceRequest(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.gateway.Gateway.DeleteAgentTemplateRequest result) {
+      private void buildPartial0(talon.gateway.Gateway.DeleteResourceRequest result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.ns_ = ns_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.kind_ = kind_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           result.name_ = name_;
         }
       }
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.DeleteAgentTemplateRequest) {
-          return mergeFrom((talon.gateway.Gateway.DeleteAgentTemplateRequest)other);
+        if (other instanceof talon.gateway.Gateway.DeleteResourceRequest) {
+          return mergeFrom((talon.gateway.Gateway.DeleteResourceRequest)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.gateway.Gateway.DeleteAgentTemplateRequest other) {
-        if (other == talon.gateway.Gateway.DeleteAgentTemplateRequest.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.gateway.Gateway.DeleteResourceRequest other) {
+        if (other == talon.gateway.Gateway.DeleteResourceRequest.getDefaultInstance()) return this;
+        if (!other.getNs().isEmpty()) {
+          ns_ = other.ns_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getKind().isEmpty()) {
+          kind_ = other.kind_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
         if (!other.getName().isEmpty()) {
           name_ = other.name_;
-          bitField0_ |= 0x00000001;
+          bitField0_ |= 0x00000004;
           onChanged();
         }
         this.mergeUnknownFields(other.getUnknownFields());
@@ -2062,7 +2765,687 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
                 done = true;
                 break;
               case 10: {
+                ns_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                kind_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
                 name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object ns_ = "";
+      /**
+       * <code>string ns = 1;</code>
+       * @return The ns.
+       */
+      public java.lang.String getNs() {
+        java.lang.Object ref = ns_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          ns_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return The bytes for ns.
+       */
+      public com.google.protobuf.ByteString
+          getNsBytes() {
+        java.lang.Object ref = ns_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          ns_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNs(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNs() {
+        ns_ = getDefaultInstance().getNs();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string ns = 1;</code>
+       * @param value The bytes for ns to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ns_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object kind_ = "";
+      /**
+       * <code>string kind = 2;</code>
+       * @return The kind.
+       */
+      public java.lang.String getKind() {
+        java.lang.Object ref = kind_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          kind_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @return The bytes for kind.
+       */
+      public com.google.protobuf.ByteString
+          getKindBytes() {
+        java.lang.Object ref = kind_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          kind_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @param value The kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKind(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        kind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearKind() {
+        kind_ = getDefaultInstance().getKind();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string kind = 2;</code>
+       * @param value The bytes for kind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setKindBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        kind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>string name = 3;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.gateway.DeleteResourceRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.gateway.DeleteResourceRequest)
+    private static final talon.gateway.Gateway.DeleteResourceRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.DeleteResourceRequest();
+    }
+
+    public static talon.gateway.Gateway.DeleteResourceRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<DeleteResourceRequest>
+        PARSER = new com.google.protobuf.AbstractParser<DeleteResourceRequest>() {
+      @java.lang.Override
+      public DeleteResourceRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<DeleteResourceRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<DeleteResourceRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.gateway.Gateway.DeleteResourceRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface ResourceResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.ResourceResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.resources.Resource resource = 1;</code>
+     * @return Whether the resource field is set.
+     */
+    boolean hasResource();
+    /**
+     * <code>.talon.resources.Resource resource = 1;</code>
+     * @return The resource.
+     */
+    talon.resources.ResourceOuterClass.Resource getResource();
+    /**
+     * <code>.talon.resources.Resource resource = 1;</code>
+     */
+    talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.gateway.ResourceResponse}
+   */
+  public static final class ResourceResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.gateway.ResourceResponse)
+      ResourceResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ResourceResponse");
+    }
+    // Use ResourceResponse.newBuilder() to construct.
+    private ResourceResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ResourceResponse() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_ResourceResponse_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_ResourceResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_ResourceResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.gateway.Gateway.ResourceResponse.class, talon.gateway.Gateway.ResourceResponse.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int RESOURCE_FIELD_NUMBER = 1;
+    private talon.resources.ResourceOuterClass.Resource resource_;
+    /**
+     * <code>.talon.resources.Resource resource = 1;</code>
+     * @return Whether the resource field is set.
+     */
+    @java.lang.Override
+    public boolean hasResource() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.Resource resource = 1;</code>
+     * @return The resource.
+     */
+    @java.lang.Override
+    public talon.resources.ResourceOuterClass.Resource getResource() {
+      return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
+    }
+    /**
+     * <code>.talon.resources.Resource resource = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder() {
+      return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getResource());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getResource());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.gateway.Gateway.ResourceResponse)) {
+        return super.equals(obj);
+      }
+      talon.gateway.Gateway.ResourceResponse other = (talon.gateway.Gateway.ResourceResponse) obj;
+
+      if (hasResource() != other.hasResource()) return false;
+      if (hasResource()) {
+        if (!getResource()
+            .equals(other.getResource())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasResource()) {
+        hash = (37 * hash) + RESOURCE_FIELD_NUMBER;
+        hash = (53 * hash) + getResource().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.gateway.Gateway.ResourceResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.gateway.Gateway.ResourceResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.ResourceResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.gateway.Gateway.ResourceResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.gateway.ResourceResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.gateway.ResourceResponse)
+        talon.gateway.Gateway.ResourceResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ResourceResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ResourceResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.gateway.Gateway.ResourceResponse.class, talon.gateway.Gateway.ResourceResponse.Builder.class);
+      }
+
+      // Construct using talon.gateway.Gateway.ResourceResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetResourceFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        resource_ = null;
+        if (resourceBuilder_ != null) {
+          resourceBuilder_.dispose();
+          resourceBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ResourceResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ResourceResponse getDefaultInstanceForType() {
+        return talon.gateway.Gateway.ResourceResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ResourceResponse build() {
+        talon.gateway.Gateway.ResourceResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ResourceResponse buildPartial() {
+        talon.gateway.Gateway.ResourceResponse result = new talon.gateway.Gateway.ResourceResponse(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.gateway.Gateway.ResourceResponse result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.resource_ = resourceBuilder_ == null
+              ? resource_
+              : resourceBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.gateway.Gateway.ResourceResponse) {
+          return mergeFrom((talon.gateway.Gateway.ResourceResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.gateway.Gateway.ResourceResponse other) {
+        if (other == talon.gateway.Gateway.ResourceResponse.getDefaultInstance()) return this;
+        if (other.hasResource()) {
+          mergeResource(other.getResource());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetResourceFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
@@ -2083,95 +3466,144 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private java.lang.Object name_ = "";
+      private talon.resources.ResourceOuterClass.Resource resource_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder> resourceBuilder_;
       /**
-       * <code>string name = 1;</code>
-       * @return The name.
+       * <code>.talon.resources.Resource resource = 1;</code>
+       * @return Whether the resource field is set.
        */
-      public java.lang.String getName() {
-        java.lang.Object ref = name_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          name_ = s;
-          return s;
+      public boolean hasResource() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.Resource resource = 1;</code>
+       * @return The resource.
+       */
+      public talon.resources.ResourceOuterClass.Resource getResource() {
+        if (resourceBuilder_ == null) {
+          return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
         } else {
-          return (java.lang.String) ref;
+          return resourceBuilder_.getMessage();
         }
       }
       /**
-       * <code>string name = 1;</code>
-       * @return The bytes for name.
+       * <code>.talon.resources.Resource resource = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getNameBytes() {
-        java.lang.Object ref = name_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          name_ = b;
-          return b;
+      public Builder setResource(talon.resources.ResourceOuterClass.Resource value) {
+        if (resourceBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          resource_ = value;
         } else {
-          return (com.google.protobuf.ByteString) ref;
+          resourceBuilder_.setMessage(value);
         }
-      }
-      /**
-       * <code>string name = 1;</code>
-       * @param value The name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        name_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
-       * @return This builder for chaining.
+       * <code>.talon.resources.Resource resource = 1;</code>
        */
-      public Builder clearName() {
-        name_ = getDefaultInstance().getName();
+      public Builder setResource(
+          talon.resources.ResourceOuterClass.Resource.Builder builderForValue) {
+        if (resourceBuilder_ == null) {
+          resource_ = builderForValue.build();
+        } else {
+          resourceBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.Resource resource = 1;</code>
+       */
+      public Builder mergeResource(talon.resources.ResourceOuterClass.Resource value) {
+        if (resourceBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            resource_ != null &&
+            resource_ != talon.resources.ResourceOuterClass.Resource.getDefaultInstance()) {
+            getResourceBuilder().mergeFrom(value);
+          } else {
+            resource_ = value;
+          }
+        } else {
+          resourceBuilder_.mergeFrom(value);
+        }
+        if (resource_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.Resource resource = 1;</code>
+       */
+      public Builder clearResource() {
         bitField0_ = (bitField0_ & ~0x00000001);
+        resource_ = null;
+        if (resourceBuilder_ != null) {
+          resourceBuilder_.dispose();
+          resourceBuilder_ = null;
+        }
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
-       * @param value The bytes for name to set.
-       * @return This builder for chaining.
+       * <code>.talon.resources.Resource resource = 1;</code>
        */
-      public Builder setNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        name_ = value;
+      public talon.resources.ResourceOuterClass.Resource.Builder getResourceBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
-        return this;
+        return internalGetResourceFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.Resource resource = 1;</code>
+       */
+      public talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder() {
+        if (resourceBuilder_ != null) {
+          return resourceBuilder_.getMessageOrBuilder();
+        } else {
+          return resource_ == null ?
+              talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
+        }
+      }
+      /**
+       * <code>.talon.resources.Resource resource = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder>
+          internalGetResourceFieldBuilder() {
+        if (resourceBuilder_ == null) {
+          resourceBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder>(
+                  getResource(),
+                  getParentForChildren(),
+                  isClean());
+          resource_ = null;
+        }
+        return resourceBuilder_;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.gateway.DeleteAgentTemplateRequest)
+      // @@protoc_insertion_point(builder_scope:talon.gateway.ResourceResponse)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.gateway.DeleteAgentTemplateRequest)
-    private static final talon.gateway.Gateway.DeleteAgentTemplateRequest DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.gateway.ResourceResponse)
+    private static final talon.gateway.Gateway.ResourceResponse DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.DeleteAgentTemplateRequest();
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.ResourceResponse();
     }
 
-    public static talon.gateway.Gateway.DeleteAgentTemplateRequest getDefaultInstance() {
+    public static talon.gateway.Gateway.ResourceResponse getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<DeleteAgentTemplateRequest>
-        PARSER = new com.google.protobuf.AbstractParser<DeleteAgentTemplateRequest>() {
+    private static final com.google.protobuf.Parser<ResourceResponse>
+        PARSER = new com.google.protobuf.AbstractParser<ResourceResponse>() {
       @java.lang.Override
-      public DeleteAgentTemplateRequest parsePartialFrom(
+      public ResourceResponse parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -2190,24 +3622,774 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
     };
 
-    public static com.google.protobuf.Parser<DeleteAgentTemplateRequest> parser() {
+    public static com.google.protobuf.Parser<ResourceResponse> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<DeleteAgentTemplateRequest> getParserForType() {
+    public com.google.protobuf.Parser<ResourceResponse> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.gateway.Gateway.DeleteAgentTemplateRequest getDefaultInstanceForType() {
+    public talon.gateway.Gateway.ResourceResponse getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
   }
 
-  public interface DeleteAgentTemplateResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.DeleteAgentTemplateResponse)
+  public interface ListResourcesResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.ListResourcesResponse)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    java.util.List<talon.resources.ResourceOuterClass.Resource>
+        getResourcesList();
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    talon.resources.ResourceOuterClass.Resource getResources(int index);
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    int getResourcesCount();
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    java.util.List<? extends talon.resources.ResourceOuterClass.ResourceOrBuilder>
+        getResourcesOrBuilderList();
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    talon.resources.ResourceOuterClass.ResourceOrBuilder getResourcesOrBuilder(
+        int index);
+  }
+  /**
+   * Protobuf type {@code talon.gateway.ListResourcesResponse}
+   */
+  public static final class ListResourcesResponse extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.gateway.ListResourcesResponse)
+      ListResourcesResponseOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ListResourcesResponse");
+    }
+    // Use ListResourcesResponse.newBuilder() to construct.
+    private ListResourcesResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ListResourcesResponse() {
+      resources_ = java.util.Collections.emptyList();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesResponse_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesResponse_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.gateway.Gateway.ListResourcesResponse.class, talon.gateway.Gateway.ListResourcesResponse.Builder.class);
+    }
+
+    public static final int RESOURCES_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private java.util.List<talon.resources.ResourceOuterClass.Resource> resources_;
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    @java.lang.Override
+    public java.util.List<talon.resources.ResourceOuterClass.Resource> getResourcesList() {
+      return resources_;
+    }
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    @java.lang.Override
+    public java.util.List<? extends talon.resources.ResourceOuterClass.ResourceOrBuilder>
+        getResourcesOrBuilderList() {
+      return resources_;
+    }
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    @java.lang.Override
+    public int getResourcesCount() {
+      return resources_.size();
+    }
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.ResourceOuterClass.Resource getResources(int index) {
+      return resources_.get(index);
+    }
+    /**
+     * <code>repeated .talon.resources.Resource resources = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.ResourceOuterClass.ResourceOrBuilder getResourcesOrBuilder(
+        int index) {
+      return resources_.get(index);
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      for (int i = 0; i < resources_.size(); i++) {
+        output.writeMessage(1, resources_.get(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+
+          {
+            final int count = resources_.size();
+            for (int i = 0; i < count; i++) {
+              size += com.google.protobuf.CodedOutputStream
+                .computeMessageSizeNoTag(resources_.get(i));
+            }
+            size += 1 * count;
+          }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.gateway.Gateway.ListResourcesResponse)) {
+        return super.equals(obj);
+      }
+      talon.gateway.Gateway.ListResourcesResponse other = (talon.gateway.Gateway.ListResourcesResponse) obj;
+
+      if (!getResourcesList()
+          .equals(other.getResourcesList())) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (getResourcesCount() > 0) {
+        hash = (37 * hash) + RESOURCES_FIELD_NUMBER;
+        hash = (53 * hash) + getResourcesList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.gateway.Gateway.ListResourcesResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.gateway.Gateway.ListResourcesResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.gateway.Gateway.ListResourcesResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.gateway.Gateway.ListResourcesResponse prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.gateway.ListResourcesResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.gateway.ListResourcesResponse)
+        talon.gateway.Gateway.ListResourcesResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesResponse_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.gateway.Gateway.ListResourcesResponse.class, talon.gateway.Gateway.ListResourcesResponse.Builder.class);
+      }
+
+      // Construct using talon.gateway.Gateway.ListResourcesResponse.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        if (resourcesBuilder_ == null) {
+          resources_ = java.util.Collections.emptyList();
+        } else {
+          resources_ = null;
+          resourcesBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.gateway.Gateway.internal_static_talon_gateway_ListResourcesResponse_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ListResourcesResponse getDefaultInstanceForType() {
+        return talon.gateway.Gateway.ListResourcesResponse.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ListResourcesResponse build() {
+        talon.gateway.Gateway.ListResourcesResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.gateway.Gateway.ListResourcesResponse buildPartial() {
+        talon.gateway.Gateway.ListResourcesResponse result = new talon.gateway.Gateway.ListResourcesResponse(this);
+        buildPartialRepeatedFields(result);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartialRepeatedFields(talon.gateway.Gateway.ListResourcesResponse result) {
+        if (resourcesBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0)) {
+            resources_ = java.util.Collections.unmodifiableList(resources_);
+            bitField0_ = (bitField0_ & ~0x00000001);
+          }
+          result.resources_ = resources_;
+        } else {
+          result.resources_ = resourcesBuilder_.build();
+        }
+      }
+
+      private void buildPartial0(talon.gateway.Gateway.ListResourcesResponse result) {
+        int from_bitField0_ = bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.gateway.Gateway.ListResourcesResponse) {
+          return mergeFrom((talon.gateway.Gateway.ListResourcesResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.gateway.Gateway.ListResourcesResponse other) {
+        if (other == talon.gateway.Gateway.ListResourcesResponse.getDefaultInstance()) return this;
+        if (resourcesBuilder_ == null) {
+          if (!other.resources_.isEmpty()) {
+            if (resources_.isEmpty()) {
+              resources_ = other.resources_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+            } else {
+              ensureResourcesIsMutable();
+              resources_.addAll(other.resources_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.resources_.isEmpty()) {
+            if (resourcesBuilder_.isEmpty()) {
+              resourcesBuilder_.dispose();
+              resourcesBuilder_ = null;
+              resources_ = other.resources_;
+              bitField0_ = (bitField0_ & ~0x00000001);
+              resourcesBuilder_ =
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   internalGetResourcesFieldBuilder() : null;
+            } else {
+              resourcesBuilder_.addAllMessages(other.resources_);
+            }
+          }
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                talon.resources.ResourceOuterClass.Resource m =
+                    input.readMessage(
+                        talon.resources.ResourceOuterClass.Resource.parser(),
+                        extensionRegistry);
+                if (resourcesBuilder_ == null) {
+                  ensureResourcesIsMutable();
+                  resources_.add(m);
+                } else {
+                  resourcesBuilder_.addMessage(m);
+                }
+                break;
+              } // case 10
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.util.List<talon.resources.ResourceOuterClass.Resource> resources_ =
+        java.util.Collections.emptyList();
+      private void ensureResourcesIsMutable() {
+        if (!((bitField0_ & 0x00000001) != 0)) {
+          resources_ = new java.util.ArrayList<talon.resources.ResourceOuterClass.Resource>(resources_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder> resourcesBuilder_;
+
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public java.util.List<talon.resources.ResourceOuterClass.Resource> getResourcesList() {
+        if (resourcesBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(resources_);
+        } else {
+          return resourcesBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public int getResourcesCount() {
+        if (resourcesBuilder_ == null) {
+          return resources_.size();
+        } else {
+          return resourcesBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public talon.resources.ResourceOuterClass.Resource getResources(int index) {
+        if (resourcesBuilder_ == null) {
+          return resources_.get(index);
+        } else {
+          return resourcesBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder setResources(
+          int index, talon.resources.ResourceOuterClass.Resource value) {
+        if (resourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureResourcesIsMutable();
+          resources_.set(index, value);
+          onChanged();
+        } else {
+          resourcesBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder setResources(
+          int index, talon.resources.ResourceOuterClass.Resource.Builder builderForValue) {
+        if (resourcesBuilder_ == null) {
+          ensureResourcesIsMutable();
+          resources_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          resourcesBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder addResources(talon.resources.ResourceOuterClass.Resource value) {
+        if (resourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureResourcesIsMutable();
+          resources_.add(value);
+          onChanged();
+        } else {
+          resourcesBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder addResources(
+          int index, talon.resources.ResourceOuterClass.Resource value) {
+        if (resourcesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensureResourcesIsMutable();
+          resources_.add(index, value);
+          onChanged();
+        } else {
+          resourcesBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder addResources(
+          talon.resources.ResourceOuterClass.Resource.Builder builderForValue) {
+        if (resourcesBuilder_ == null) {
+          ensureResourcesIsMutable();
+          resources_.add(builderForValue.build());
+          onChanged();
+        } else {
+          resourcesBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder addResources(
+          int index, talon.resources.ResourceOuterClass.Resource.Builder builderForValue) {
+        if (resourcesBuilder_ == null) {
+          ensureResourcesIsMutable();
+          resources_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          resourcesBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder addAllResources(
+          java.lang.Iterable<? extends talon.resources.ResourceOuterClass.Resource> values) {
+        if (resourcesBuilder_ == null) {
+          ensureResourcesIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, resources_);
+          onChanged();
+        } else {
+          resourcesBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder clearResources() {
+        if (resourcesBuilder_ == null) {
+          resources_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000001);
+          onChanged();
+        } else {
+          resourcesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public Builder removeResources(int index) {
+        if (resourcesBuilder_ == null) {
+          ensureResourcesIsMutable();
+          resources_.remove(index);
+          onChanged();
+        } else {
+          resourcesBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public talon.resources.ResourceOuterClass.Resource.Builder getResourcesBuilder(
+          int index) {
+        return internalGetResourcesFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public talon.resources.ResourceOuterClass.ResourceOrBuilder getResourcesOrBuilder(
+          int index) {
+        if (resourcesBuilder_ == null) {
+          return resources_.get(index);  } else {
+          return resourcesBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public java.util.List<? extends talon.resources.ResourceOuterClass.ResourceOrBuilder>
+           getResourcesOrBuilderList() {
+        if (resourcesBuilder_ != null) {
+          return resourcesBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(resources_);
+        }
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public talon.resources.ResourceOuterClass.Resource.Builder addResourcesBuilder() {
+        return internalGetResourcesFieldBuilder().addBuilder(
+            talon.resources.ResourceOuterClass.Resource.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public talon.resources.ResourceOuterClass.Resource.Builder addResourcesBuilder(
+          int index) {
+        return internalGetResourcesFieldBuilder().addBuilder(
+            index, talon.resources.ResourceOuterClass.Resource.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .talon.resources.Resource resources = 1;</code>
+       */
+      public java.util.List<talon.resources.ResourceOuterClass.Resource.Builder>
+           getResourcesBuilderList() {
+        return internalGetResourcesFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder>
+          internalGetResourcesFieldBuilder() {
+        if (resourcesBuilder_ == null) {
+          resourcesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder>(
+                  resources_,
+                  ((bitField0_ & 0x00000001) != 0),
+                  getParentForChildren(),
+                  isClean());
+          resources_ = null;
+        }
+        return resourcesBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.gateway.ListResourcesResponse)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.gateway.ListResourcesResponse)
+    private static final talon.gateway.Gateway.ListResourcesResponse DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.ListResourcesResponse();
+    }
+
+    public static talon.gateway.Gateway.ListResourcesResponse getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ListResourcesResponse>
+        PARSER = new com.google.protobuf.AbstractParser<ListResourcesResponse>() {
+      @java.lang.Override
+      public ListResourcesResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ListResourcesResponse> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ListResourcesResponse> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.gateway.Gateway.ListResourcesResponse getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface DeleteResourceResponseOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.gateway.DeleteResourceResponse)
       com.google.protobuf.MessageOrBuilder {
 
     /**
@@ -2217,12 +4399,12 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     boolean getSuccess();
   }
   /**
-   * Protobuf type {@code talon.gateway.DeleteAgentTemplateResponse}
+   * Protobuf type {@code talon.gateway.DeleteResourceResponse}
    */
-  public static final class DeleteAgentTemplateResponse extends
+  public static final class DeleteResourceResponse extends
       com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.DeleteAgentTemplateResponse)
-      DeleteAgentTemplateResponseOrBuilder {
+      // @@protoc_insertion_point(message_implements:talon.gateway.DeleteResourceResponse)
+      DeleteResourceResponseOrBuilder {
   private static final long serialVersionUID = 0L;
     static {
       com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
@@ -2231,31 +4413,31 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         /* minor= */ 34,
         /* patch= */ 1,
         /* suffix= */ "",
-        "DeleteAgentTemplateResponse");
+        "DeleteResourceResponse");
     }
-    // Use DeleteAgentTemplateResponse.newBuilder() to construct.
-    private DeleteAgentTemplateResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+    // Use DeleteResourceResponse.newBuilder() to construct.
+    private DeleteResourceResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
     }
-    private DeleteAgentTemplateResponse() {
+    private DeleteResourceResponse() {
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateResponse_descriptor;
+      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceResponse_descriptor;
     }
 
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateResponse_descriptor;
+      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceResponse_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateResponse_fieldAccessorTable
+      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceResponse_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.DeleteAgentTemplateResponse.class, talon.gateway.Gateway.DeleteAgentTemplateResponse.Builder.class);
+              talon.gateway.Gateway.DeleteResourceResponse.class, talon.gateway.Gateway.DeleteResourceResponse.Builder.class);
     }
 
     public static final int SUCCESS_FIELD_NUMBER = 1;
@@ -2309,10 +4491,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       if (obj == this) {
        return true;
       }
-      if (!(obj instanceof talon.gateway.Gateway.DeleteAgentTemplateResponse)) {
+      if (!(obj instanceof talon.gateway.Gateway.DeleteResourceResponse)) {
         return super.equals(obj);
       }
-      talon.gateway.Gateway.DeleteAgentTemplateResponse other = (talon.gateway.Gateway.DeleteAgentTemplateResponse) obj;
+      talon.gateway.Gateway.DeleteResourceResponse other = (talon.gateway.Gateway.DeleteResourceResponse) obj;
 
       if (getSuccess()
           != other.getSuccess()) return false;
@@ -2335,44 +4517,44 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return hash;
     }
 
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(
         java.nio.ByteBuffer data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(
         java.nio.ByteBuffer data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(
         com.google.protobuf.ByteString data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(
         com.google.protobuf.ByteString data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(byte[] data)
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(byte[] data)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(
         byte[] data,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
       return PARSER.parseFrom(data, extensionRegistry);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(java.io.InputStream input)
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -2380,26 +4562,26 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           .parseWithIOException(PARSER, input, extensionRegistry);
     }
 
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseDelimitedFrom(java.io.InputStream input)
+    public static talon.gateway.Gateway.DeleteResourceResponse parseDelimitedFrom(java.io.InputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input);
     }
 
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseDelimitedFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseDelimitedFrom(
         java.io.InputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(
         com.google.protobuf.CodedInputStream input)
         throws java.io.IOException {
       return com.google.protobuf.GeneratedMessage
           .parseWithIOException(PARSER, input);
     }
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse parseFrom(
+    public static talon.gateway.Gateway.DeleteResourceResponse parseFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
@@ -2412,7 +4594,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     public static Builder newBuilder() {
       return DEFAULT_INSTANCE.toBuilder();
     }
-    public static Builder newBuilder(talon.gateway.Gateway.DeleteAgentTemplateResponse prototype) {
+    public static Builder newBuilder(talon.gateway.Gateway.DeleteResourceResponse prototype) {
       return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
     }
     @java.lang.Override
@@ -2428,26 +4610,26 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return builder;
     }
     /**
-     * Protobuf type {@code talon.gateway.DeleteAgentTemplateResponse}
+     * Protobuf type {@code talon.gateway.DeleteResourceResponse}
      */
     public static final class Builder extends
         com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.DeleteAgentTemplateResponse)
-        talon.gateway.Gateway.DeleteAgentTemplateResponseOrBuilder {
+        // @@protoc_insertion_point(builder_implements:talon.gateway.DeleteResourceResponse)
+        talon.gateway.Gateway.DeleteResourceResponseOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateResponse_descriptor;
+        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceResponse_descriptor;
       }
 
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateResponse_fieldAccessorTable
+        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceResponse_fieldAccessorTable
             .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.DeleteAgentTemplateResponse.class, talon.gateway.Gateway.DeleteAgentTemplateResponse.Builder.class);
+                talon.gateway.Gateway.DeleteResourceResponse.class, talon.gateway.Gateway.DeleteResourceResponse.Builder.class);
       }
 
-      // Construct using talon.gateway.Gateway.DeleteAgentTemplateResponse.newBuilder()
+      // Construct using talon.gateway.Gateway.DeleteResourceResponse.newBuilder()
       private Builder() {
 
       }
@@ -2468,17 +4650,17 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       @java.lang.Override
       public com.google.protobuf.Descriptors.Descriptor
           getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteAgentTemplateResponse_descriptor;
+        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteResourceResponse_descriptor;
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.DeleteAgentTemplateResponse getDefaultInstanceForType() {
-        return talon.gateway.Gateway.DeleteAgentTemplateResponse.getDefaultInstance();
+      public talon.gateway.Gateway.DeleteResourceResponse getDefaultInstanceForType() {
+        return talon.gateway.Gateway.DeleteResourceResponse.getDefaultInstance();
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.DeleteAgentTemplateResponse build() {
-        talon.gateway.Gateway.DeleteAgentTemplateResponse result = buildPartial();
+      public talon.gateway.Gateway.DeleteResourceResponse build() {
+        talon.gateway.Gateway.DeleteResourceResponse result = buildPartial();
         if (!result.isInitialized()) {
           throw newUninitializedMessageException(result);
         }
@@ -2486,14 +4668,14 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
 
       @java.lang.Override
-      public talon.gateway.Gateway.DeleteAgentTemplateResponse buildPartial() {
-        talon.gateway.Gateway.DeleteAgentTemplateResponse result = new talon.gateway.Gateway.DeleteAgentTemplateResponse(this);
+      public talon.gateway.Gateway.DeleteResourceResponse buildPartial() {
+        talon.gateway.Gateway.DeleteResourceResponse result = new talon.gateway.Gateway.DeleteResourceResponse(this);
         if (bitField0_ != 0) { buildPartial0(result); }
         onBuilt();
         return result;
       }
 
-      private void buildPartial0(talon.gateway.Gateway.DeleteAgentTemplateResponse result) {
+      private void buildPartial0(talon.gateway.Gateway.DeleteResourceResponse result) {
         int from_bitField0_ = bitField0_;
         if (((from_bitField0_ & 0x00000001) != 0)) {
           result.success_ = success_;
@@ -2502,16 +4684,16 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.DeleteAgentTemplateResponse) {
-          return mergeFrom((talon.gateway.Gateway.DeleteAgentTemplateResponse)other);
+        if (other instanceof talon.gateway.Gateway.DeleteResourceResponse) {
+          return mergeFrom((talon.gateway.Gateway.DeleteResourceResponse)other);
         } else {
           super.mergeFrom(other);
           return this;
         }
       }
 
-      public Builder mergeFrom(talon.gateway.Gateway.DeleteAgentTemplateResponse other) {
-        if (other == talon.gateway.Gateway.DeleteAgentTemplateResponse.getDefaultInstance()) return this;
+      public Builder mergeFrom(talon.gateway.Gateway.DeleteResourceResponse other) {
+        if (other == talon.gateway.Gateway.DeleteResourceResponse.getDefaultInstance()) return this;
         if (other.getSuccess() != false) {
           setSuccess(other.getSuccess());
         }
@@ -2595,23 +4777,23 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      // @@protoc_insertion_point(builder_scope:talon.gateway.DeleteAgentTemplateResponse)
+      // @@protoc_insertion_point(builder_scope:talon.gateway.DeleteResourceResponse)
     }
 
-    // @@protoc_insertion_point(class_scope:talon.gateway.DeleteAgentTemplateResponse)
-    private static final talon.gateway.Gateway.DeleteAgentTemplateResponse DEFAULT_INSTANCE;
+    // @@protoc_insertion_point(class_scope:talon.gateway.DeleteResourceResponse)
+    private static final talon.gateway.Gateway.DeleteResourceResponse DEFAULT_INSTANCE;
     static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.DeleteAgentTemplateResponse();
+      DEFAULT_INSTANCE = new talon.gateway.Gateway.DeleteResourceResponse();
     }
 
-    public static talon.gateway.Gateway.DeleteAgentTemplateResponse getDefaultInstance() {
+    public static talon.gateway.Gateway.DeleteResourceResponse getDefaultInstance() {
       return DEFAULT_INSTANCE;
     }
 
-    private static final com.google.protobuf.Parser<DeleteAgentTemplateResponse>
-        PARSER = new com.google.protobuf.AbstractParser<DeleteAgentTemplateResponse>() {
+    private static final com.google.protobuf.Parser<DeleteResourceResponse>
+        PARSER = new com.google.protobuf.AbstractParser<DeleteResourceResponse>() {
       @java.lang.Override
-      public DeleteAgentTemplateResponse parsePartialFrom(
+      public DeleteResourceResponse parsePartialFrom(
           com.google.protobuf.CodedInputStream input,
           com.google.protobuf.ExtensionRegistryLite extensionRegistry)
           throws com.google.protobuf.InvalidProtocolBufferException {
@@ -2630,1127 +4812,17 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
     };
 
-    public static com.google.protobuf.Parser<DeleteAgentTemplateResponse> parser() {
+    public static com.google.protobuf.Parser<DeleteResourceResponse> parser() {
       return PARSER;
     }
 
     @java.lang.Override
-    public com.google.protobuf.Parser<DeleteAgentTemplateResponse> getParserForType() {
+    public com.google.protobuf.Parser<DeleteResourceResponse> getParserForType() {
       return PARSER;
     }
 
     @java.lang.Override
-    public talon.gateway.Gateway.DeleteAgentTemplateResponse getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ListAgentTemplatesRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.ListAgentTemplatesRequest)
-      com.google.protobuf.MessageOrBuilder {
-  }
-  /**
-   * Protobuf type {@code talon.gateway.ListAgentTemplatesRequest}
-   */
-  public static final class ListAgentTemplatesRequest extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.ListAgentTemplatesRequest)
-      ListAgentTemplatesRequestOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ListAgentTemplatesRequest");
-    }
-    // Use ListAgentTemplatesRequest.newBuilder() to construct.
-    private ListAgentTemplatesRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ListAgentTemplatesRequest() {
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesRequest_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesRequest_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesRequest_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.ListAgentTemplatesRequest.class, talon.gateway.Gateway.ListAgentTemplatesRequest.Builder.class);
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.ListAgentTemplatesRequest)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.ListAgentTemplatesRequest other = (talon.gateway.Gateway.ListAgentTemplatesRequest) obj;
-
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.ListAgentTemplatesRequest prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.ListAgentTemplatesRequest}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.ListAgentTemplatesRequest)
-        talon.gateway.Gateway.ListAgentTemplatesRequestOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesRequest_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesRequest_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.ListAgentTemplatesRequest.class, talon.gateway.Gateway.ListAgentTemplatesRequest.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.ListAgentTemplatesRequest.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesRequest_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListAgentTemplatesRequest getDefaultInstanceForType() {
-        return talon.gateway.Gateway.ListAgentTemplatesRequest.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListAgentTemplatesRequest build() {
-        talon.gateway.Gateway.ListAgentTemplatesRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListAgentTemplatesRequest buildPartial() {
-        talon.gateway.Gateway.ListAgentTemplatesRequest result = new talon.gateway.Gateway.ListAgentTemplatesRequest(this);
-        onBuilt();
-        return result;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.ListAgentTemplatesRequest) {
-          return mergeFrom((talon.gateway.Gateway.ListAgentTemplatesRequest)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.ListAgentTemplatesRequest other) {
-        if (other == talon.gateway.Gateway.ListAgentTemplatesRequest.getDefaultInstance()) return this;
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.ListAgentTemplatesRequest)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.ListAgentTemplatesRequest)
-    private static final talon.gateway.Gateway.ListAgentTemplatesRequest DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.ListAgentTemplatesRequest();
-    }
-
-    public static talon.gateway.Gateway.ListAgentTemplatesRequest getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ListAgentTemplatesRequest>
-        PARSER = new com.google.protobuf.AbstractParser<ListAgentTemplatesRequest>() {
-      @java.lang.Override
-      public ListAgentTemplatesRequest parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ListAgentTemplatesRequest> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ListAgentTemplatesRequest> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.ListAgentTemplatesRequest getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ListAgentTemplatesResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.ListAgentTemplatesResponse)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    java.util.List<talon.manifests.Manifests.AgentTemplate>
-        getTemplatesList();
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    talon.manifests.Manifests.AgentTemplate getTemplates(int index);
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    int getTemplatesCount();
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder>
-        getTemplatesOrBuilderList();
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    talon.manifests.Manifests.AgentTemplateOrBuilder getTemplatesOrBuilder(
-        int index);
-  }
-  /**
-   * Protobuf type {@code talon.gateway.ListAgentTemplatesResponse}
-   */
-  public static final class ListAgentTemplatesResponse extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.ListAgentTemplatesResponse)
-      ListAgentTemplatesResponseOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ListAgentTemplatesResponse");
-    }
-    // Use ListAgentTemplatesResponse.newBuilder() to construct.
-    private ListAgentTemplatesResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ListAgentTemplatesResponse() {
-      templates_ = java.util.Collections.emptyList();
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesResponse_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesResponse_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesResponse_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.ListAgentTemplatesResponse.class, talon.gateway.Gateway.ListAgentTemplatesResponse.Builder.class);
-    }
-
-    public static final int TEMPLATES_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private java.util.List<talon.manifests.Manifests.AgentTemplate> templates_;
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    @java.lang.Override
-    public java.util.List<talon.manifests.Manifests.AgentTemplate> getTemplatesList() {
-      return templates_;
-    }
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder>
-        getTemplatesOrBuilderList() {
-      return templates_;
-    }
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    @java.lang.Override
-    public int getTemplatesCount() {
-      return templates_.size();
-    }
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.AgentTemplate getTemplates(int index) {
-      return templates_.get(index);
-    }
-    /**
-     * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.AgentTemplateOrBuilder getTemplatesOrBuilder(
-        int index) {
-      return templates_.get(index);
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      for (int i = 0; i < templates_.size(); i++) {
-        output.writeMessage(1, templates_.get(i));
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-
-          {
-            final int count = templates_.size();
-            for (int i = 0; i < count; i++) {
-              size += com.google.protobuf.CodedOutputStream
-                .computeMessageSizeNoTag(templates_.get(i));
-            }
-            size += 1 * count;
-          }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.ListAgentTemplatesResponse)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.ListAgentTemplatesResponse other = (talon.gateway.Gateway.ListAgentTemplatesResponse) obj;
-
-      if (!getTemplatesList()
-          .equals(other.getTemplatesList())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (getTemplatesCount() > 0) {
-        hash = (37 * hash) + TEMPLATES_FIELD_NUMBER;
-        hash = (53 * hash) + getTemplatesList().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.ListAgentTemplatesResponse prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.ListAgentTemplatesResponse}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.ListAgentTemplatesResponse)
-        talon.gateway.Gateway.ListAgentTemplatesResponseOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesResponse_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesResponse_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.ListAgentTemplatesResponse.class, talon.gateway.Gateway.ListAgentTemplatesResponse.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.ListAgentTemplatesResponse.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        if (templatesBuilder_ == null) {
-          templates_ = java.util.Collections.emptyList();
-        } else {
-          templates_ = null;
-          templatesBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000001);
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListAgentTemplatesResponse_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListAgentTemplatesResponse getDefaultInstanceForType() {
-        return talon.gateway.Gateway.ListAgentTemplatesResponse.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListAgentTemplatesResponse build() {
-        talon.gateway.Gateway.ListAgentTemplatesResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListAgentTemplatesResponse buildPartial() {
-        talon.gateway.Gateway.ListAgentTemplatesResponse result = new talon.gateway.Gateway.ListAgentTemplatesResponse(this);
-        buildPartialRepeatedFields(result);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartialRepeatedFields(talon.gateway.Gateway.ListAgentTemplatesResponse result) {
-        if (templatesBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0)) {
-            templates_ = java.util.Collections.unmodifiableList(templates_);
-            bitField0_ = (bitField0_ & ~0x00000001);
-          }
-          result.templates_ = templates_;
-        } else {
-          result.templates_ = templatesBuilder_.build();
-        }
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.ListAgentTemplatesResponse result) {
-        int from_bitField0_ = bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.ListAgentTemplatesResponse) {
-          return mergeFrom((talon.gateway.Gateway.ListAgentTemplatesResponse)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.ListAgentTemplatesResponse other) {
-        if (other == talon.gateway.Gateway.ListAgentTemplatesResponse.getDefaultInstance()) return this;
-        if (templatesBuilder_ == null) {
-          if (!other.templates_.isEmpty()) {
-            if (templates_.isEmpty()) {
-              templates_ = other.templates_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-            } else {
-              ensureTemplatesIsMutable();
-              templates_.addAll(other.templates_);
-            }
-            onChanged();
-          }
-        } else {
-          if (!other.templates_.isEmpty()) {
-            if (templatesBuilder_.isEmpty()) {
-              templatesBuilder_.dispose();
-              templatesBuilder_ = null;
-              templates_ = other.templates_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-              templatesBuilder_ =
-                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
-                   internalGetTemplatesFieldBuilder() : null;
-            } else {
-              templatesBuilder_.addAllMessages(other.templates_);
-            }
-          }
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                talon.manifests.Manifests.AgentTemplate m =
-                    input.readMessage(
-                        talon.manifests.Manifests.AgentTemplate.parser(),
-                        extensionRegistry);
-                if (templatesBuilder_ == null) {
-                  ensureTemplatesIsMutable();
-                  templates_.add(m);
-                } else {
-                  templatesBuilder_.addMessage(m);
-                }
-                break;
-              } // case 10
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.util.List<talon.manifests.Manifests.AgentTemplate> templates_ =
-        java.util.Collections.emptyList();
-      private void ensureTemplatesIsMutable() {
-        if (!((bitField0_ & 0x00000001) != 0)) {
-          templates_ = new java.util.ArrayList<talon.manifests.Manifests.AgentTemplate>(templates_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-
-      private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder> templatesBuilder_;
-
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public java.util.List<talon.manifests.Manifests.AgentTemplate> getTemplatesList() {
-        if (templatesBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(templates_);
-        } else {
-          return templatesBuilder_.getMessageList();
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public int getTemplatesCount() {
-        if (templatesBuilder_ == null) {
-          return templates_.size();
-        } else {
-          return templatesBuilder_.getCount();
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public talon.manifests.Manifests.AgentTemplate getTemplates(int index) {
-        if (templatesBuilder_ == null) {
-          return templates_.get(index);
-        } else {
-          return templatesBuilder_.getMessage(index);
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder setTemplates(
-          int index, talon.manifests.Manifests.AgentTemplate value) {
-        if (templatesBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureTemplatesIsMutable();
-          templates_.set(index, value);
-          onChanged();
-        } else {
-          templatesBuilder_.setMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder setTemplates(
-          int index, talon.manifests.Manifests.AgentTemplate.Builder builderForValue) {
-        if (templatesBuilder_ == null) {
-          ensureTemplatesIsMutable();
-          templates_.set(index, builderForValue.build());
-          onChanged();
-        } else {
-          templatesBuilder_.setMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder addTemplates(talon.manifests.Manifests.AgentTemplate value) {
-        if (templatesBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureTemplatesIsMutable();
-          templates_.add(value);
-          onChanged();
-        } else {
-          templatesBuilder_.addMessage(value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder addTemplates(
-          int index, talon.manifests.Manifests.AgentTemplate value) {
-        if (templatesBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureTemplatesIsMutable();
-          templates_.add(index, value);
-          onChanged();
-        } else {
-          templatesBuilder_.addMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder addTemplates(
-          talon.manifests.Manifests.AgentTemplate.Builder builderForValue) {
-        if (templatesBuilder_ == null) {
-          ensureTemplatesIsMutable();
-          templates_.add(builderForValue.build());
-          onChanged();
-        } else {
-          templatesBuilder_.addMessage(builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder addTemplates(
-          int index, talon.manifests.Manifests.AgentTemplate.Builder builderForValue) {
-        if (templatesBuilder_ == null) {
-          ensureTemplatesIsMutable();
-          templates_.add(index, builderForValue.build());
-          onChanged();
-        } else {
-          templatesBuilder_.addMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder addAllTemplates(
-          java.lang.Iterable<? extends talon.manifests.Manifests.AgentTemplate> values) {
-        if (templatesBuilder_ == null) {
-          ensureTemplatesIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, templates_);
-          onChanged();
-        } else {
-          templatesBuilder_.addAllMessages(values);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder clearTemplates() {
-        if (templatesBuilder_ == null) {
-          templates_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000001);
-          onChanged();
-        } else {
-          templatesBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public Builder removeTemplates(int index) {
-        if (templatesBuilder_ == null) {
-          ensureTemplatesIsMutable();
-          templates_.remove(index);
-          onChanged();
-        } else {
-          templatesBuilder_.remove(index);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public talon.manifests.Manifests.AgentTemplate.Builder getTemplatesBuilder(
-          int index) {
-        return internalGetTemplatesFieldBuilder().getBuilder(index);
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public talon.manifests.Manifests.AgentTemplateOrBuilder getTemplatesOrBuilder(
-          int index) {
-        if (templatesBuilder_ == null) {
-          return templates_.get(index);  } else {
-          return templatesBuilder_.getMessageOrBuilder(index);
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public java.util.List<? extends talon.manifests.Manifests.AgentTemplateOrBuilder>
-           getTemplatesOrBuilderList() {
-        if (templatesBuilder_ != null) {
-          return templatesBuilder_.getMessageOrBuilderList();
-        } else {
-          return java.util.Collections.unmodifiableList(templates_);
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public talon.manifests.Manifests.AgentTemplate.Builder addTemplatesBuilder() {
-        return internalGetTemplatesFieldBuilder().addBuilder(
-            talon.manifests.Manifests.AgentTemplate.getDefaultInstance());
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public talon.manifests.Manifests.AgentTemplate.Builder addTemplatesBuilder(
-          int index) {
-        return internalGetTemplatesFieldBuilder().addBuilder(
-            index, talon.manifests.Manifests.AgentTemplate.getDefaultInstance());
-      }
-      /**
-       * <code>repeated .talon.manifests.AgentTemplate templates = 1;</code>
-       */
-      public java.util.List<talon.manifests.Manifests.AgentTemplate.Builder>
-           getTemplatesBuilderList() {
-        return internalGetTemplatesFieldBuilder().getBuilderList();
-      }
-      private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>
-          internalGetTemplatesFieldBuilder() {
-        if (templatesBuilder_ == null) {
-          templatesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.manifests.Manifests.AgentTemplate, talon.manifests.Manifests.AgentTemplate.Builder, talon.manifests.Manifests.AgentTemplateOrBuilder>(
-                  templates_,
-                  ((bitField0_ & 0x00000001) != 0),
-                  getParentForChildren(),
-                  isClean());
-          templates_ = null;
-        }
-        return templatesBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.ListAgentTemplatesResponse)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.ListAgentTemplatesResponse)
-    private static final talon.gateway.Gateway.ListAgentTemplatesResponse DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.ListAgentTemplatesResponse();
-    }
-
-    public static talon.gateway.Gateway.ListAgentTemplatesResponse getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ListAgentTemplatesResponse>
-        PARSER = new com.google.protobuf.AbstractParser<ListAgentTemplatesResponse>() {
-      @java.lang.Override
-      public ListAgentTemplatesResponse parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ListAgentTemplatesResponse> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ListAgentTemplatesResponse> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.ListAgentTemplatesResponse getDefaultInstanceForType() {
+    public talon.gateway.Gateway.DeleteResourceResponse getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -3761,19 +4833,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      * @return Whether the server field is set.
      */
     boolean hasServer();
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      * @return The server.
      */
-    talon.manifests.Manifests.McpServer getServer();
+    talon.resources.Mcp.McpServer getServer();
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      */
-    talon.manifests.Manifests.McpServerOrBuilder getServerOrBuilder();
+    talon.resources.Mcp.McpServerOrBuilder getServerOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.CreateMcpServerRequest}
@@ -3819,9 +4891,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
     private int bitField0_;
     public static final int SERVER_FIELD_NUMBER = 1;
-    private talon.manifests.Manifests.McpServer server_;
+    private talon.resources.Mcp.McpServer server_;
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      * @return Whether the server field is set.
      */
     @java.lang.Override
@@ -3829,19 +4901,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      * @return The server.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServer getServer() {
-      return server_ == null ? talon.manifests.Manifests.McpServer.getDefaultInstance() : server_;
+    public talon.resources.Mcp.McpServer getServer() {
+      return server_ == null ? talon.resources.Mcp.McpServer.getDefaultInstance() : server_;
     }
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerOrBuilder getServerOrBuilder() {
-      return server_ == null ? talon.manifests.Manifests.McpServer.getDefaultInstance() : server_;
+    public talon.resources.Mcp.McpServerOrBuilder getServerOrBuilder() {
+      return server_ == null ? talon.resources.Mcp.McpServer.getDefaultInstance() : server_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -4159,31 +5231,31 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private talon.manifests.Manifests.McpServer server_;
+      private talon.resources.Mcp.McpServer server_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder> serverBuilder_;
+          talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder> serverBuilder_;
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        * @return Whether the server field is set.
        */
       public boolean hasServer() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        * @return The server.
        */
-      public talon.manifests.Manifests.McpServer getServer() {
+      public talon.resources.Mcp.McpServer getServer() {
         if (serverBuilder_ == null) {
-          return server_ == null ? talon.manifests.Manifests.McpServer.getDefaultInstance() : server_;
+          return server_ == null ? talon.resources.Mcp.McpServer.getDefaultInstance() : server_;
         } else {
           return serverBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
-      public Builder setServer(talon.manifests.Manifests.McpServer value) {
+      public Builder setServer(talon.resources.Mcp.McpServer value) {
         if (serverBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -4197,10 +5269,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
       public Builder setServer(
-          talon.manifests.Manifests.McpServer.Builder builderForValue) {
+          talon.resources.Mcp.McpServer.Builder builderForValue) {
         if (serverBuilder_ == null) {
           server_ = builderForValue.build();
         } else {
@@ -4211,13 +5283,13 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
-      public Builder mergeServer(talon.manifests.Manifests.McpServer value) {
+      public Builder mergeServer(talon.resources.Mcp.McpServer value) {
         if (serverBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             server_ != null &&
-            server_ != talon.manifests.Manifests.McpServer.getDefaultInstance()) {
+            server_ != talon.resources.Mcp.McpServer.getDefaultInstance()) {
             getServerBuilder().mergeFrom(value);
           } else {
             server_ = value;
@@ -4232,7 +5304,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
       public Builder clearServer() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -4245,33 +5317,33 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
-      public talon.manifests.Manifests.McpServer.Builder getServerBuilder() {
+      public talon.resources.Mcp.McpServer.Builder getServerBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetServerFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerOrBuilder getServerOrBuilder() {
+      public talon.resources.Mcp.McpServerOrBuilder getServerOrBuilder() {
         if (serverBuilder_ != null) {
           return serverBuilder_.getMessageOrBuilder();
         } else {
           return server_ == null ?
-              talon.manifests.Manifests.McpServer.getDefaultInstance() : server_;
+              talon.resources.Mcp.McpServer.getDefaultInstance() : server_;
         }
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>
+          talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder>
           internalGetServerFieldBuilder() {
         if (serverBuilder_ == null) {
           serverBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>(
+              talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder>(
                   getServer(),
                   getParentForChildren(),
                   isClean());
@@ -6166,19 +7238,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      * @return Whether the server field is set.
      */
     boolean hasServer();
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      * @return The server.
      */
-    talon.manifests.Manifests.McpServer getServer();
+    talon.resources.Mcp.McpServer getServer();
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      */
-    talon.manifests.Manifests.McpServerOrBuilder getServerOrBuilder();
+    talon.resources.Mcp.McpServerOrBuilder getServerOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.McpServerResponse}
@@ -6224,9 +7296,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
     private int bitField0_;
     public static final int SERVER_FIELD_NUMBER = 1;
-    private talon.manifests.Manifests.McpServer server_;
+    private talon.resources.Mcp.McpServer server_;
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      * @return Whether the server field is set.
      */
     @java.lang.Override
@@ -6234,19 +7306,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      * @return The server.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServer getServer() {
-      return server_ == null ? talon.manifests.Manifests.McpServer.getDefaultInstance() : server_;
+    public talon.resources.Mcp.McpServer getServer() {
+      return server_ == null ? talon.resources.Mcp.McpServer.getDefaultInstance() : server_;
     }
     /**
-     * <code>.talon.manifests.McpServer server = 1;</code>
+     * <code>.talon.resources.McpServer server = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerOrBuilder getServerOrBuilder() {
-      return server_ == null ? talon.manifests.Manifests.McpServer.getDefaultInstance() : server_;
+    public talon.resources.Mcp.McpServerOrBuilder getServerOrBuilder() {
+      return server_ == null ? talon.resources.Mcp.McpServer.getDefaultInstance() : server_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -6564,31 +7636,31 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private talon.manifests.Manifests.McpServer server_;
+      private talon.resources.Mcp.McpServer server_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder> serverBuilder_;
+          talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder> serverBuilder_;
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        * @return Whether the server field is set.
        */
       public boolean hasServer() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        * @return The server.
        */
-      public talon.manifests.Manifests.McpServer getServer() {
+      public talon.resources.Mcp.McpServer getServer() {
         if (serverBuilder_ == null) {
-          return server_ == null ? talon.manifests.Manifests.McpServer.getDefaultInstance() : server_;
+          return server_ == null ? talon.resources.Mcp.McpServer.getDefaultInstance() : server_;
         } else {
           return serverBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
-      public Builder setServer(talon.manifests.Manifests.McpServer value) {
+      public Builder setServer(talon.resources.Mcp.McpServer value) {
         if (serverBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -6602,10 +7674,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
       public Builder setServer(
-          talon.manifests.Manifests.McpServer.Builder builderForValue) {
+          talon.resources.Mcp.McpServer.Builder builderForValue) {
         if (serverBuilder_ == null) {
           server_ = builderForValue.build();
         } else {
@@ -6616,13 +7688,13 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
-      public Builder mergeServer(talon.manifests.Manifests.McpServer value) {
+      public Builder mergeServer(talon.resources.Mcp.McpServer value) {
         if (serverBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             server_ != null &&
-            server_ != talon.manifests.Manifests.McpServer.getDefaultInstance()) {
+            server_ != talon.resources.Mcp.McpServer.getDefaultInstance()) {
             getServerBuilder().mergeFrom(value);
           } else {
             server_ = value;
@@ -6637,7 +7709,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
       public Builder clearServer() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -6650,33 +7722,33 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
-      public talon.manifests.Manifests.McpServer.Builder getServerBuilder() {
+      public talon.resources.Mcp.McpServer.Builder getServerBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetServerFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerOrBuilder getServerOrBuilder() {
+      public talon.resources.Mcp.McpServerOrBuilder getServerOrBuilder() {
         if (serverBuilder_ != null) {
           return serverBuilder_.getMessageOrBuilder();
         } else {
           return server_ == null ?
-              talon.manifests.Manifests.McpServer.getDefaultInstance() : server_;
+              talon.resources.Mcp.McpServer.getDefaultInstance() : server_;
         }
       }
       /**
-       * <code>.talon.manifests.McpServer server = 1;</code>
+       * <code>.talon.resources.McpServer server = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>
+          talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder>
           internalGetServerFieldBuilder() {
         if (serverBuilder_ == null) {
           serverBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>(
+              talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder>(
                   getServer(),
                   getParentForChildren(),
                   isClean());
@@ -6741,27 +7813,27 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.McpServer>
+    java.util.List<talon.resources.Mcp.McpServer>
         getServersList();
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
-    talon.manifests.Manifests.McpServer getServers(int index);
+    talon.resources.Mcp.McpServer getServers(int index);
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
     int getServersCount();
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder>
+    java.util.List<? extends talon.resources.Mcp.McpServerOrBuilder>
         getServersOrBuilderList();
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
-    talon.manifests.Manifests.McpServerOrBuilder getServersOrBuilder(
+    talon.resources.Mcp.McpServerOrBuilder getServersOrBuilder(
         int index);
   }
   /**
@@ -6809,41 +7881,41 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
     public static final int SERVERS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.manifests.Manifests.McpServer> servers_;
+    private java.util.List<talon.resources.Mcp.McpServer> servers_;
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.manifests.Manifests.McpServer> getServersList() {
+    public java.util.List<talon.resources.Mcp.McpServer> getServersList() {
       return servers_;
     }
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder>
+    public java.util.List<? extends talon.resources.Mcp.McpServerOrBuilder>
         getServersOrBuilderList() {
       return servers_;
     }
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
     @java.lang.Override
     public int getServersCount() {
       return servers_.size();
     }
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServer getServers(int index) {
+    public talon.resources.Mcp.McpServer getServers(int index) {
       return servers_.get(index);
     }
     /**
-     * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+     * <code>repeated .talon.resources.McpServer servers = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerOrBuilder getServersOrBuilder(
+    public talon.resources.Mcp.McpServerOrBuilder getServersOrBuilder(
         int index) {
       return servers_.get(index);
     }
@@ -7166,9 +8238,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
                 done = true;
                 break;
               case 10: {
-                talon.manifests.Manifests.McpServer m =
+                talon.resources.Mcp.McpServer m =
                     input.readMessage(
-                        talon.manifests.Manifests.McpServer.parser(),
+                        talon.resources.Mcp.McpServer.parser(),
                         extensionRegistry);
                 if (serversBuilder_ == null) {
                   ensureServersIsMutable();
@@ -7195,22 +8267,22 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private java.util.List<talon.manifests.Manifests.McpServer> servers_ =
+      private java.util.List<talon.resources.Mcp.McpServer> servers_ =
         java.util.Collections.emptyList();
       private void ensureServersIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          servers_ = new java.util.ArrayList<talon.manifests.Manifests.McpServer>(servers_);
+          servers_ = new java.util.ArrayList<talon.resources.Mcp.McpServer>(servers_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder> serversBuilder_;
+          talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder> serversBuilder_;
 
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.McpServer> getServersList() {
+      public java.util.List<talon.resources.Mcp.McpServer> getServersList() {
         if (serversBuilder_ == null) {
           return java.util.Collections.unmodifiableList(servers_);
         } else {
@@ -7218,7 +8290,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public int getServersCount() {
         if (serversBuilder_ == null) {
@@ -7228,9 +8300,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public talon.manifests.Manifests.McpServer getServers(int index) {
+      public talon.resources.Mcp.McpServer getServers(int index) {
         if (serversBuilder_ == null) {
           return servers_.get(index);
         } else {
@@ -7238,10 +8310,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public Builder setServers(
-          int index, talon.manifests.Manifests.McpServer value) {
+          int index, talon.resources.Mcp.McpServer value) {
         if (serversBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -7255,10 +8327,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public Builder setServers(
-          int index, talon.manifests.Manifests.McpServer.Builder builderForValue) {
+          int index, talon.resources.Mcp.McpServer.Builder builderForValue) {
         if (serversBuilder_ == null) {
           ensureServersIsMutable();
           servers_.set(index, builderForValue.build());
@@ -7269,9 +8341,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public Builder addServers(talon.manifests.Manifests.McpServer value) {
+      public Builder addServers(talon.resources.Mcp.McpServer value) {
         if (serversBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -7285,10 +8357,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public Builder addServers(
-          int index, talon.manifests.Manifests.McpServer value) {
+          int index, talon.resources.Mcp.McpServer value) {
         if (serversBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -7302,10 +8374,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public Builder addServers(
-          talon.manifests.Manifests.McpServer.Builder builderForValue) {
+          talon.resources.Mcp.McpServer.Builder builderForValue) {
         if (serversBuilder_ == null) {
           ensureServersIsMutable();
           servers_.add(builderForValue.build());
@@ -7316,10 +8388,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public Builder addServers(
-          int index, talon.manifests.Manifests.McpServer.Builder builderForValue) {
+          int index, talon.resources.Mcp.McpServer.Builder builderForValue) {
         if (serversBuilder_ == null) {
           ensureServersIsMutable();
           servers_.add(index, builderForValue.build());
@@ -7330,10 +8402,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public Builder addAllServers(
-          java.lang.Iterable<? extends talon.manifests.Manifests.McpServer> values) {
+          java.lang.Iterable<? extends talon.resources.Mcp.McpServer> values) {
         if (serversBuilder_ == null) {
           ensureServersIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -7345,7 +8417,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public Builder clearServers() {
         if (serversBuilder_ == null) {
@@ -7358,7 +8430,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
       public Builder removeServers(int index) {
         if (serversBuilder_ == null) {
@@ -7371,16 +8443,16 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public talon.manifests.Manifests.McpServer.Builder getServersBuilder(
+      public talon.resources.Mcp.McpServer.Builder getServersBuilder(
           int index) {
         return internalGetServersFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerOrBuilder getServersOrBuilder(
+      public talon.resources.Mcp.McpServerOrBuilder getServersOrBuilder(
           int index) {
         if (serversBuilder_ == null) {
           return servers_.get(index);  } else {
@@ -7388,9 +8460,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.McpServerOrBuilder>
+      public java.util.List<? extends talon.resources.Mcp.McpServerOrBuilder>
            getServersOrBuilderList() {
         if (serversBuilder_ != null) {
           return serversBuilder_.getMessageOrBuilderList();
@@ -7399,33 +8471,33 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public talon.manifests.Manifests.McpServer.Builder addServersBuilder() {
+      public talon.resources.Mcp.McpServer.Builder addServersBuilder() {
         return internalGetServersFieldBuilder().addBuilder(
-            talon.manifests.Manifests.McpServer.getDefaultInstance());
+            talon.resources.Mcp.McpServer.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public talon.manifests.Manifests.McpServer.Builder addServersBuilder(
+      public talon.resources.Mcp.McpServer.Builder addServersBuilder(
           int index) {
         return internalGetServersFieldBuilder().addBuilder(
-            index, talon.manifests.Manifests.McpServer.getDefaultInstance());
+            index, talon.resources.Mcp.McpServer.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.manifests.McpServer servers = 1;</code>
+       * <code>repeated .talon.resources.McpServer servers = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.McpServer.Builder>
+      public java.util.List<talon.resources.Mcp.McpServer.Builder>
            getServersBuilderList() {
         return internalGetServersFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>
+          talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder>
           internalGetServersFieldBuilder() {
         if (serversBuilder_ == null) {
           serversBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.manifests.Manifests.McpServer, talon.manifests.Manifests.McpServer.Builder, talon.manifests.Manifests.McpServerOrBuilder>(
+              talon.resources.Mcp.McpServer, talon.resources.Mcp.McpServer.Builder, talon.resources.Mcp.McpServerOrBuilder>(
                   servers_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -7503,19 +8575,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNsBytes();
 
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+     * <code>.talon.resources.McpServerBinding binding = 2;</code>
      * @return Whether the binding field is set.
      */
     boolean hasBinding();
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+     * <code>.talon.resources.McpServerBinding binding = 2;</code>
      * @return The binding.
      */
-    talon.manifests.Manifests.McpServerBinding getBinding();
+    talon.resources.Mcp.McpServerBinding getBinding();
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+     * <code>.talon.resources.McpServerBinding binding = 2;</code>
      */
-    talon.manifests.Manifests.McpServerBindingOrBuilder getBindingOrBuilder();
+    talon.resources.Mcp.McpServerBindingOrBuilder getBindingOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.CreateMcpServerBindingRequest}
@@ -7601,9 +8673,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int BINDING_FIELD_NUMBER = 2;
-    private talon.manifests.Manifests.McpServerBinding binding_;
+    private talon.resources.Mcp.McpServerBinding binding_;
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+     * <code>.talon.resources.McpServerBinding binding = 2;</code>
      * @return Whether the binding field is set.
      */
     @java.lang.Override
@@ -7611,19 +8683,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+     * <code>.talon.resources.McpServerBinding binding = 2;</code>
      * @return The binding.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerBinding getBinding() {
-      return binding_ == null ? talon.manifests.Manifests.McpServerBinding.getDefaultInstance() : binding_;
+    public talon.resources.Mcp.McpServerBinding getBinding() {
+      return binding_ == null ? talon.resources.Mcp.McpServerBinding.getDefaultInstance() : binding_;
     }
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+     * <code>.talon.resources.McpServerBinding binding = 2;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerBindingOrBuilder getBindingOrBuilder() {
-      return binding_ == null ? talon.manifests.Manifests.McpServerBinding.getDefaultInstance() : binding_;
+    public talon.resources.Mcp.McpServerBindingOrBuilder getBindingOrBuilder() {
+      return binding_ == null ? talon.resources.Mcp.McpServerBinding.getDefaultInstance() : binding_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -8037,31 +9109,31 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private talon.manifests.Manifests.McpServerBinding binding_;
+      private talon.resources.Mcp.McpServerBinding binding_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder> bindingBuilder_;
+          talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder> bindingBuilder_;
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        * @return Whether the binding field is set.
        */
       public boolean hasBinding() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        * @return The binding.
        */
-      public talon.manifests.Manifests.McpServerBinding getBinding() {
+      public talon.resources.Mcp.McpServerBinding getBinding() {
         if (bindingBuilder_ == null) {
-          return binding_ == null ? talon.manifests.Manifests.McpServerBinding.getDefaultInstance() : binding_;
+          return binding_ == null ? talon.resources.Mcp.McpServerBinding.getDefaultInstance() : binding_;
         } else {
           return bindingBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        */
-      public Builder setBinding(talon.manifests.Manifests.McpServerBinding value) {
+      public Builder setBinding(talon.resources.Mcp.McpServerBinding value) {
         if (bindingBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -8075,10 +9147,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        */
       public Builder setBinding(
-          talon.manifests.Manifests.McpServerBinding.Builder builderForValue) {
+          talon.resources.Mcp.McpServerBinding.Builder builderForValue) {
         if (bindingBuilder_ == null) {
           binding_ = builderForValue.build();
         } else {
@@ -8089,13 +9161,13 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        */
-      public Builder mergeBinding(talon.manifests.Manifests.McpServerBinding value) {
+      public Builder mergeBinding(talon.resources.Mcp.McpServerBinding value) {
         if (bindingBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             binding_ != null &&
-            binding_ != talon.manifests.Manifests.McpServerBinding.getDefaultInstance()) {
+            binding_ != talon.resources.Mcp.McpServerBinding.getDefaultInstance()) {
             getBindingBuilder().mergeFrom(value);
           } else {
             binding_ = value;
@@ -8110,7 +9182,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        */
       public Builder clearBinding() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -8123,33 +9195,33 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        */
-      public talon.manifests.Manifests.McpServerBinding.Builder getBindingBuilder() {
+      public talon.resources.Mcp.McpServerBinding.Builder getBindingBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetBindingFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        */
-      public talon.manifests.Manifests.McpServerBindingOrBuilder getBindingOrBuilder() {
+      public talon.resources.Mcp.McpServerBindingOrBuilder getBindingOrBuilder() {
         if (bindingBuilder_ != null) {
           return bindingBuilder_.getMessageOrBuilder();
         } else {
           return binding_ == null ?
-              talon.manifests.Manifests.McpServerBinding.getDefaultInstance() : binding_;
+              talon.resources.Mcp.McpServerBinding.getDefaultInstance() : binding_;
         }
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 2;</code>
+       * <code>.talon.resources.McpServerBinding binding = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>
+          talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder>
           internalGetBindingFieldBuilder() {
         if (bindingBuilder_ == null) {
           bindingBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>(
+              talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder>(
                   getBinding(),
                   getParentForChildren(),
                   isClean());
@@ -10495,19 +11567,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+     * <code>.talon.resources.McpServerBinding binding = 1;</code>
      * @return Whether the binding field is set.
      */
     boolean hasBinding();
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+     * <code>.talon.resources.McpServerBinding binding = 1;</code>
      * @return The binding.
      */
-    talon.manifests.Manifests.McpServerBinding getBinding();
+    talon.resources.Mcp.McpServerBinding getBinding();
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+     * <code>.talon.resources.McpServerBinding binding = 1;</code>
      */
-    talon.manifests.Manifests.McpServerBindingOrBuilder getBindingOrBuilder();
+    talon.resources.Mcp.McpServerBindingOrBuilder getBindingOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.McpServerBindingResponse}
@@ -10553,9 +11625,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
     private int bitField0_;
     public static final int BINDING_FIELD_NUMBER = 1;
-    private talon.manifests.Manifests.McpServerBinding binding_;
+    private talon.resources.Mcp.McpServerBinding binding_;
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+     * <code>.talon.resources.McpServerBinding binding = 1;</code>
      * @return Whether the binding field is set.
      */
     @java.lang.Override
@@ -10563,19 +11635,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+     * <code>.talon.resources.McpServerBinding binding = 1;</code>
      * @return The binding.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerBinding getBinding() {
-      return binding_ == null ? talon.manifests.Manifests.McpServerBinding.getDefaultInstance() : binding_;
+    public talon.resources.Mcp.McpServerBinding getBinding() {
+      return binding_ == null ? talon.resources.Mcp.McpServerBinding.getDefaultInstance() : binding_;
     }
     /**
-     * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+     * <code>.talon.resources.McpServerBinding binding = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerBindingOrBuilder getBindingOrBuilder() {
-      return binding_ == null ? talon.manifests.Manifests.McpServerBinding.getDefaultInstance() : binding_;
+    public talon.resources.Mcp.McpServerBindingOrBuilder getBindingOrBuilder() {
+      return binding_ == null ? talon.resources.Mcp.McpServerBinding.getDefaultInstance() : binding_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -10893,31 +11965,31 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private talon.manifests.Manifests.McpServerBinding binding_;
+      private talon.resources.Mcp.McpServerBinding binding_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder> bindingBuilder_;
+          talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder> bindingBuilder_;
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        * @return Whether the binding field is set.
        */
       public boolean hasBinding() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        * @return The binding.
        */
-      public talon.manifests.Manifests.McpServerBinding getBinding() {
+      public talon.resources.Mcp.McpServerBinding getBinding() {
         if (bindingBuilder_ == null) {
-          return binding_ == null ? talon.manifests.Manifests.McpServerBinding.getDefaultInstance() : binding_;
+          return binding_ == null ? talon.resources.Mcp.McpServerBinding.getDefaultInstance() : binding_;
         } else {
           return bindingBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        */
-      public Builder setBinding(talon.manifests.Manifests.McpServerBinding value) {
+      public Builder setBinding(talon.resources.Mcp.McpServerBinding value) {
         if (bindingBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -10931,10 +12003,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        */
       public Builder setBinding(
-          talon.manifests.Manifests.McpServerBinding.Builder builderForValue) {
+          talon.resources.Mcp.McpServerBinding.Builder builderForValue) {
         if (bindingBuilder_ == null) {
           binding_ = builderForValue.build();
         } else {
@@ -10945,13 +12017,13 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        */
-      public Builder mergeBinding(talon.manifests.Manifests.McpServerBinding value) {
+      public Builder mergeBinding(talon.resources.Mcp.McpServerBinding value) {
         if (bindingBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             binding_ != null &&
-            binding_ != talon.manifests.Manifests.McpServerBinding.getDefaultInstance()) {
+            binding_ != talon.resources.Mcp.McpServerBinding.getDefaultInstance()) {
             getBindingBuilder().mergeFrom(value);
           } else {
             binding_ = value;
@@ -10966,7 +12038,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        */
       public Builder clearBinding() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -10979,33 +12051,33 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerBinding.Builder getBindingBuilder() {
+      public talon.resources.Mcp.McpServerBinding.Builder getBindingBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetBindingFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerBindingOrBuilder getBindingOrBuilder() {
+      public talon.resources.Mcp.McpServerBindingOrBuilder getBindingOrBuilder() {
         if (bindingBuilder_ != null) {
           return bindingBuilder_.getMessageOrBuilder();
         } else {
           return binding_ == null ?
-              talon.manifests.Manifests.McpServerBinding.getDefaultInstance() : binding_;
+              talon.resources.Mcp.McpServerBinding.getDefaultInstance() : binding_;
         }
       }
       /**
-       * <code>.talon.manifests.McpServerBinding binding = 1;</code>
+       * <code>.talon.resources.McpServerBinding binding = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>
+          talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder>
           internalGetBindingFieldBuilder() {
         if (bindingBuilder_ == null) {
           bindingBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>(
+              talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder>(
                   getBinding(),
                   getParentForChildren(),
                   isClean());
@@ -11070,27 +12142,27 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.McpServerBinding>
+    java.util.List<talon.resources.Mcp.McpServerBinding>
         getBindingsList();
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
-    talon.manifests.Manifests.McpServerBinding getBindings(int index);
+    talon.resources.Mcp.McpServerBinding getBindings(int index);
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
     int getBindingsCount();
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder>
+    java.util.List<? extends talon.resources.Mcp.McpServerBindingOrBuilder>
         getBindingsOrBuilderList();
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
-    talon.manifests.Manifests.McpServerBindingOrBuilder getBindingsOrBuilder(
+    talon.resources.Mcp.McpServerBindingOrBuilder getBindingsOrBuilder(
         int index);
   }
   /**
@@ -11138,41 +12210,41 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
     public static final int BINDINGS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.manifests.Manifests.McpServerBinding> bindings_;
+    private java.util.List<talon.resources.Mcp.McpServerBinding> bindings_;
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.manifests.Manifests.McpServerBinding> getBindingsList() {
+    public java.util.List<talon.resources.Mcp.McpServerBinding> getBindingsList() {
       return bindings_;
     }
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder>
+    public java.util.List<? extends talon.resources.Mcp.McpServerBindingOrBuilder>
         getBindingsOrBuilderList() {
       return bindings_;
     }
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
     @java.lang.Override
     public int getBindingsCount() {
       return bindings_.size();
     }
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerBinding getBindings(int index) {
+    public talon.resources.Mcp.McpServerBinding getBindings(int index) {
       return bindings_.get(index);
     }
     /**
-     * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+     * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.McpServerBindingOrBuilder getBindingsOrBuilder(
+    public talon.resources.Mcp.McpServerBindingOrBuilder getBindingsOrBuilder(
         int index) {
       return bindings_.get(index);
     }
@@ -11495,9 +12567,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
                 done = true;
                 break;
               case 10: {
-                talon.manifests.Manifests.McpServerBinding m =
+                talon.resources.Mcp.McpServerBinding m =
                     input.readMessage(
-                        talon.manifests.Manifests.McpServerBinding.parser(),
+                        talon.resources.Mcp.McpServerBinding.parser(),
                         extensionRegistry);
                 if (bindingsBuilder_ == null) {
                   ensureBindingsIsMutable();
@@ -11524,22 +12596,22 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private java.util.List<talon.manifests.Manifests.McpServerBinding> bindings_ =
+      private java.util.List<talon.resources.Mcp.McpServerBinding> bindings_ =
         java.util.Collections.emptyList();
       private void ensureBindingsIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          bindings_ = new java.util.ArrayList<talon.manifests.Manifests.McpServerBinding>(bindings_);
+          bindings_ = new java.util.ArrayList<talon.resources.Mcp.McpServerBinding>(bindings_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder> bindingsBuilder_;
+          talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder> bindingsBuilder_;
 
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.McpServerBinding> getBindingsList() {
+      public java.util.List<talon.resources.Mcp.McpServerBinding> getBindingsList() {
         if (bindingsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(bindings_);
         } else {
@@ -11547,7 +12619,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public int getBindingsCount() {
         if (bindingsBuilder_ == null) {
@@ -11557,9 +12629,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerBinding getBindings(int index) {
+      public talon.resources.Mcp.McpServerBinding getBindings(int index) {
         if (bindingsBuilder_ == null) {
           return bindings_.get(index);
         } else {
@@ -11567,10 +12639,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public Builder setBindings(
-          int index, talon.manifests.Manifests.McpServerBinding value) {
+          int index, talon.resources.Mcp.McpServerBinding value) {
         if (bindingsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -11584,10 +12656,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public Builder setBindings(
-          int index, talon.manifests.Manifests.McpServerBinding.Builder builderForValue) {
+          int index, talon.resources.Mcp.McpServerBinding.Builder builderForValue) {
         if (bindingsBuilder_ == null) {
           ensureBindingsIsMutable();
           bindings_.set(index, builderForValue.build());
@@ -11598,9 +12670,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public Builder addBindings(talon.manifests.Manifests.McpServerBinding value) {
+      public Builder addBindings(talon.resources.Mcp.McpServerBinding value) {
         if (bindingsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -11614,10 +12686,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public Builder addBindings(
-          int index, talon.manifests.Manifests.McpServerBinding value) {
+          int index, talon.resources.Mcp.McpServerBinding value) {
         if (bindingsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -11631,10 +12703,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public Builder addBindings(
-          talon.manifests.Manifests.McpServerBinding.Builder builderForValue) {
+          talon.resources.Mcp.McpServerBinding.Builder builderForValue) {
         if (bindingsBuilder_ == null) {
           ensureBindingsIsMutable();
           bindings_.add(builderForValue.build());
@@ -11645,10 +12717,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public Builder addBindings(
-          int index, talon.manifests.Manifests.McpServerBinding.Builder builderForValue) {
+          int index, talon.resources.Mcp.McpServerBinding.Builder builderForValue) {
         if (bindingsBuilder_ == null) {
           ensureBindingsIsMutable();
           bindings_.add(index, builderForValue.build());
@@ -11659,10 +12731,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public Builder addAllBindings(
-          java.lang.Iterable<? extends talon.manifests.Manifests.McpServerBinding> values) {
+          java.lang.Iterable<? extends talon.resources.Mcp.McpServerBinding> values) {
         if (bindingsBuilder_ == null) {
           ensureBindingsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -11674,7 +12746,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public Builder clearBindings() {
         if (bindingsBuilder_ == null) {
@@ -11687,7 +12759,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
       public Builder removeBindings(int index) {
         if (bindingsBuilder_ == null) {
@@ -11700,16 +12772,16 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerBinding.Builder getBindingsBuilder(
+      public talon.resources.Mcp.McpServerBinding.Builder getBindingsBuilder(
           int index) {
         return internalGetBindingsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerBindingOrBuilder getBindingsOrBuilder(
+      public talon.resources.Mcp.McpServerBindingOrBuilder getBindingsOrBuilder(
           int index) {
         if (bindingsBuilder_ == null) {
           return bindings_.get(index);  } else {
@@ -11717,9 +12789,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.McpServerBindingOrBuilder>
+      public java.util.List<? extends talon.resources.Mcp.McpServerBindingOrBuilder>
            getBindingsOrBuilderList() {
         if (bindingsBuilder_ != null) {
           return bindingsBuilder_.getMessageOrBuilderList();
@@ -11728,33 +12800,33 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerBinding.Builder addBindingsBuilder() {
+      public talon.resources.Mcp.McpServerBinding.Builder addBindingsBuilder() {
         return internalGetBindingsFieldBuilder().addBuilder(
-            talon.manifests.Manifests.McpServerBinding.getDefaultInstance());
+            talon.resources.Mcp.McpServerBinding.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public talon.manifests.Manifests.McpServerBinding.Builder addBindingsBuilder(
+      public talon.resources.Mcp.McpServerBinding.Builder addBindingsBuilder(
           int index) {
         return internalGetBindingsFieldBuilder().addBuilder(
-            index, talon.manifests.Manifests.McpServerBinding.getDefaultInstance());
+            index, talon.resources.Mcp.McpServerBinding.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.manifests.McpServerBinding bindings = 1;</code>
+       * <code>repeated .talon.resources.McpServerBinding bindings = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.McpServerBinding.Builder>
+      public java.util.List<talon.resources.Mcp.McpServerBinding.Builder>
            getBindingsBuilderList() {
         return internalGetBindingsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>
+          talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder>
           internalGetBindingsFieldBuilder() {
         if (bindingsBuilder_ == null) {
           bindingsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.manifests.Manifests.McpServerBinding, talon.manifests.Manifests.McpServerBinding.Builder, talon.manifests.Manifests.McpServerBindingOrBuilder>(
+              talon.resources.Mcp.McpServerBinding, talon.resources.Mcp.McpServerBinding.Builder, talon.resources.Mcp.McpServerBindingOrBuilder>(
                   bindings_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -11820,19 +12892,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.Agent agent = 1;</code>
+     * <code>.talon.resources.Agent agent = 1;</code>
      * @return Whether the agent field is set.
      */
     boolean hasAgent();
     /**
-     * <code>.talon.models.Agent agent = 1;</code>
+     * <code>.talon.resources.Agent agent = 1;</code>
      * @return The agent.
      */
-    talon.models.Models.Agent getAgent();
+    talon.resources.Agents.Agent getAgent();
     /**
-     * <code>.talon.models.Agent agent = 1;</code>
+     * <code>.talon.resources.Agent agent = 1;</code>
      */
-    talon.models.Models.AgentOrBuilder getAgentOrBuilder();
+    talon.resources.Agents.AgentOrBuilder getAgentOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.GetAgentResponse}
@@ -11878,9 +12950,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
     private int bitField0_;
     public static final int AGENT_FIELD_NUMBER = 1;
-    private talon.models.Models.Agent agent_;
+    private talon.resources.Agents.Agent agent_;
     /**
-     * <code>.talon.models.Agent agent = 1;</code>
+     * <code>.talon.resources.Agent agent = 1;</code>
      * @return Whether the agent field is set.
      */
     @java.lang.Override
@@ -11888,19 +12960,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Agent agent = 1;</code>
+     * <code>.talon.resources.Agent agent = 1;</code>
      * @return The agent.
      */
     @java.lang.Override
-    public talon.models.Models.Agent getAgent() {
-      return agent_ == null ? talon.models.Models.Agent.getDefaultInstance() : agent_;
+    public talon.resources.Agents.Agent getAgent() {
+      return agent_ == null ? talon.resources.Agents.Agent.getDefaultInstance() : agent_;
     }
     /**
-     * <code>.talon.models.Agent agent = 1;</code>
+     * <code>.talon.resources.Agent agent = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.AgentOrBuilder getAgentOrBuilder() {
-      return agent_ == null ? talon.models.Models.Agent.getDefaultInstance() : agent_;
+    public talon.resources.Agents.AgentOrBuilder getAgentOrBuilder() {
+      return agent_ == null ? talon.resources.Agents.Agent.getDefaultInstance() : agent_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -12218,31 +13290,31 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       private int bitField0_;
 
-      private talon.models.Models.Agent agent_;
+      private talon.resources.Agents.Agent agent_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Agent, talon.models.Models.Agent.Builder, talon.models.Models.AgentOrBuilder> agentBuilder_;
+          talon.resources.Agents.Agent, talon.resources.Agents.Agent.Builder, talon.resources.Agents.AgentOrBuilder> agentBuilder_;
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        * @return Whether the agent field is set.
        */
       public boolean hasAgent() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        * @return The agent.
        */
-      public talon.models.Models.Agent getAgent() {
+      public talon.resources.Agents.Agent getAgent() {
         if (agentBuilder_ == null) {
-          return agent_ == null ? talon.models.Models.Agent.getDefaultInstance() : agent_;
+          return agent_ == null ? talon.resources.Agents.Agent.getDefaultInstance() : agent_;
         } else {
           return agentBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        */
-      public Builder setAgent(talon.models.Models.Agent value) {
+      public Builder setAgent(talon.resources.Agents.Agent value) {
         if (agentBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -12256,10 +13328,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        */
       public Builder setAgent(
-          talon.models.Models.Agent.Builder builderForValue) {
+          talon.resources.Agents.Agent.Builder builderForValue) {
         if (agentBuilder_ == null) {
           agent_ = builderForValue.build();
         } else {
@@ -12270,13 +13342,13 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        */
-      public Builder mergeAgent(talon.models.Models.Agent value) {
+      public Builder mergeAgent(talon.resources.Agents.Agent value) {
         if (agentBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             agent_ != null &&
-            agent_ != talon.models.Models.Agent.getDefaultInstance()) {
+            agent_ != talon.resources.Agents.Agent.getDefaultInstance()) {
             getAgentBuilder().mergeFrom(value);
           } else {
             agent_ = value;
@@ -12291,7 +13363,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        */
       public Builder clearAgent() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -12304,33 +13376,33 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        */
-      public talon.models.Models.Agent.Builder getAgentBuilder() {
+      public talon.resources.Agents.Agent.Builder getAgentBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetAgentFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        */
-      public talon.models.Models.AgentOrBuilder getAgentOrBuilder() {
+      public talon.resources.Agents.AgentOrBuilder getAgentOrBuilder() {
         if (agentBuilder_ != null) {
           return agentBuilder_.getMessageOrBuilder();
         } else {
           return agent_ == null ?
-              talon.models.Models.Agent.getDefaultInstance() : agent_;
+              talon.resources.Agents.Agent.getDefaultInstance() : agent_;
         }
       }
       /**
-       * <code>.talon.models.Agent agent = 1;</code>
+       * <code>.talon.resources.Agent agent = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Agent, talon.models.Models.Agent.Builder, talon.models.Models.AgentOrBuilder>
+          talon.resources.Agents.Agent, talon.resources.Agents.Agent.Builder, talon.resources.Agents.AgentOrBuilder>
           internalGetAgentFieldBuilder() {
         if (agentBuilder_ == null) {
           agentBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Agent, talon.models.Models.Agent.Builder, talon.models.Models.AgentOrBuilder>(
+              talon.resources.Agents.Agent, talon.resources.Agents.Agent.Builder, talon.resources.Agents.AgentOrBuilder>(
                   getAgent(),
                   getParentForChildren(),
                   isClean());
@@ -13087,19 +14159,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNameBytes();
 
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-     * @return Whether the definition field is set.
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
+     * @return Whether the spec field is set.
      */
-    boolean hasDefinition();
+    boolean hasSpec();
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-     * @return The definition.
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
+     * @return The spec.
      */
-    talon.manifests.Manifests.AgentDefinition getDefinition();
+    talon.resources.Agents.AgentSpec getSpec();
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
      */
-    talon.manifests.Manifests.AgentDefinitionOrBuilder getDefinitionOrBuilder();
+    talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder();
 
     /**
      * <code>map&lt;string, string&gt; labels = 4;</code>
@@ -13278,30 +14350,30 @@ java.lang.String defaultValue);
       }
     }
 
-    public static final int DEFINITION_FIELD_NUMBER = 3;
-    private talon.manifests.Manifests.AgentDefinition definition_;
+    public static final int SPEC_FIELD_NUMBER = 5;
+    private talon.resources.Agents.AgentSpec spec_;
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-     * @return Whether the definition field is set.
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
+     * @return Whether the spec field is set.
      */
     @java.lang.Override
-    public boolean hasDefinition() {
+    public boolean hasSpec() {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-     * @return The definition.
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
+     * @return The spec.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.AgentDefinition getDefinition() {
-      return definition_ == null ? talon.manifests.Manifests.AgentDefinition.getDefaultInstance() : definition_;
+    public talon.resources.Agents.AgentSpec getSpec() {
+      return spec_ == null ? talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
     }
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.AgentDefinitionOrBuilder getDefinitionOrBuilder() {
-      return definition_ == null ? talon.manifests.Manifests.AgentDefinition.getDefaultInstance() : definition_;
+    public talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
     }
 
     public static final int LABELS_FIELD_NUMBER = 4;
@@ -13403,15 +14475,15 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, name_);
       }
-      if (((bitField0_ & 0x00000002) != 0)) {
-        output.writeMessage(3, getDefinition());
-      }
       com.google.protobuf.GeneratedMessage
         .serializeStringMapTo(
           output,
           internalGetLabels(),
           LabelsDefaultEntryHolder.defaultEntry,
           4);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(5, getSpec());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -13427,10 +14499,6 @@ java.lang.String defaultValue) {
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, name_);
       }
-      if (((bitField0_ & 0x00000002) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getDefinition());
-      }
       for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
            : internalGetLabels().getMap().entrySet()) {
         com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
@@ -13440,6 +14508,10 @@ java.lang.String defaultValue) {
             .buildPartial();
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(4, labels__);
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getSpec());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -13463,10 +14535,10 @@ java.lang.String defaultValue) {
         if (!getName()
             .equals(other.getName())) return false;
       }
-      if (hasDefinition() != other.hasDefinition()) return false;
-      if (hasDefinition()) {
-        if (!getDefinition()
-            .equals(other.getDefinition())) return false;
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
       }
       if (!internalGetLabels().equals(
           other.internalGetLabels())) return false;
@@ -13487,9 +14559,9 @@ java.lang.String defaultValue) {
         hash = (37 * hash) + NAME_FIELD_NUMBER;
         hash = (53 * hash) + getName().hashCode();
       }
-      if (hasDefinition()) {
-        hash = (37 * hash) + DEFINITION_FIELD_NUMBER;
-        hash = (53 * hash) + getDefinition().hashCode();
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
       }
       if (!internalGetLabels().getMap().isEmpty()) {
         hash = (37 * hash) + LABELS_FIELD_NUMBER;
@@ -13647,7 +14719,7 @@ java.lang.String defaultValue) {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
-          internalGetDefinitionFieldBuilder();
+          internalGetSpecFieldBuilder();
         }
       }
       @java.lang.Override
@@ -13656,10 +14728,10 @@ java.lang.String defaultValue) {
         bitField0_ = 0;
         ns_ = "";
         name_ = "";
-        definition_ = null;
-        if (definitionBuilder_ != null) {
-          definitionBuilder_.dispose();
-          definitionBuilder_ = null;
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
         }
         internalGetMutableLabels().clear();
         return this;
@@ -13704,9 +14776,9 @@ java.lang.String defaultValue) {
           to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.definition_ = definitionBuilder_ == null
-              ? definition_
-              : definitionBuilder_.build();
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
           to_bitField0_ |= 0x00000002;
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
@@ -13738,8 +14810,8 @@ java.lang.String defaultValue) {
           bitField0_ |= 0x00000002;
           onChanged();
         }
-        if (other.hasDefinition()) {
-          mergeDefinition(other.getDefinition());
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
         }
         internalGetMutableLabels().mergeFrom(
             other.internalGetLabels());
@@ -13780,13 +14852,6 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
-              case 26: {
-                input.readMessage(
-                    internalGetDefinitionFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
               case 34: {
                 com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
                 labels__ = input.readMessage(
@@ -13796,6 +14861,13 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 42: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -13964,125 +15036,125 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.manifests.Manifests.AgentDefinition definition_;
+      private talon.resources.Agents.AgentSpec spec_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder> definitionBuilder_;
+          talon.resources.Agents.AgentSpec, talon.resources.Agents.AgentSpec.Builder, talon.resources.Agents.AgentSpecOrBuilder> specBuilder_;
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-       * @return Whether the definition field is set.
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
+       * @return Whether the spec field is set.
        */
-      public boolean hasDefinition() {
+      public boolean hasSpec() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-       * @return The definition.
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
+       * @return The spec.
        */
-      public talon.manifests.Manifests.AgentDefinition getDefinition() {
-        if (definitionBuilder_ == null) {
-          return definition_ == null ? talon.manifests.Manifests.AgentDefinition.getDefaultInstance() : definition_;
+      public talon.resources.Agents.AgentSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
         } else {
-          return definitionBuilder_.getMessage();
+          return specBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public Builder setDefinition(talon.manifests.Manifests.AgentDefinition value) {
-        if (definitionBuilder_ == null) {
+      public Builder setSpec(talon.resources.Agents.AgentSpec value) {
+        if (specBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          definition_ = value;
+          spec_ = value;
         } else {
-          definitionBuilder_.setMessage(value);
+          specBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public Builder setDefinition(
-          talon.manifests.Manifests.AgentDefinition.Builder builderForValue) {
-        if (definitionBuilder_ == null) {
-          definition_ = builderForValue.build();
+      public Builder setSpec(
+          talon.resources.Agents.AgentSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
         } else {
-          definitionBuilder_.setMessage(builderForValue.build());
+          specBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public Builder mergeDefinition(talon.manifests.Manifests.AgentDefinition value) {
-        if (definitionBuilder_ == null) {
+      public Builder mergeSpec(talon.resources.Agents.AgentSpec value) {
+        if (specBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
-            definition_ != null &&
-            definition_ != talon.manifests.Manifests.AgentDefinition.getDefaultInstance()) {
-            getDefinitionBuilder().mergeFrom(value);
+            spec_ != null &&
+            spec_ != talon.resources.Agents.AgentSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
           } else {
-            definition_ = value;
+            spec_ = value;
           }
         } else {
-          definitionBuilder_.mergeFrom(value);
+          specBuilder_.mergeFrom(value);
         }
-        if (definition_ != null) {
+        if (spec_ != null) {
           bitField0_ |= 0x00000004;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public Builder clearDefinition() {
+      public Builder clearSpec() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        definition_ = null;
-        if (definitionBuilder_ != null) {
-          definitionBuilder_.dispose();
-          definitionBuilder_ = null;
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
         }
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public talon.manifests.Manifests.AgentDefinition.Builder getDefinitionBuilder() {
+      public talon.resources.Agents.AgentSpec.Builder getSpecBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
-        return internalGetDefinitionFieldBuilder().getBuilder();
+        return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public talon.manifests.Manifests.AgentDefinitionOrBuilder getDefinitionOrBuilder() {
-        if (definitionBuilder_ != null) {
-          return definitionBuilder_.getMessageOrBuilder();
+      public talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
         } else {
-          return definition_ == null ?
-              talon.manifests.Manifests.AgentDefinition.getDefaultInstance() : definition_;
+          return spec_ == null ?
+              talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
         }
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder>
-          internalGetDefinitionFieldBuilder() {
-        if (definitionBuilder_ == null) {
-          definitionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder>(
-                  getDefinition(),
+          talon.resources.Agents.AgentSpec, talon.resources.Agents.AgentSpec.Builder, talon.resources.Agents.AgentSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Agents.AgentSpec, talon.resources.Agents.AgentSpec.Builder, talon.resources.Agents.AgentSpecOrBuilder>(
+                  getSpec(),
                   getParentForChildren(),
                   isClean());
-          definition_ = null;
+          spec_ = null;
         }
-        return definitionBuilder_;
+        return specBuilder_;
       }
 
       private com.google.protobuf.MapField<
@@ -16363,19 +17435,19 @@ java.lang.String defaultValue) {
         getNsBytes();
 
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-     * @return Whether the definition field is set.
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
+     * @return Whether the spec field is set.
      */
-    boolean hasDefinition();
+    boolean hasSpec();
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-     * @return The definition.
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
+     * @return The spec.
      */
-    talon.manifests.Manifests.AgentDefinition getDefinition();
+    talon.resources.Agents.AgentSpec getSpec();
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
      */
-    talon.manifests.Manifests.AgentDefinitionOrBuilder getDefinitionOrBuilder();
+    talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder();
 
     /**
      * <code>map&lt;string, string&gt; labels = 4;</code>
@@ -16546,30 +17618,30 @@ java.lang.String defaultValue);
       }
     }
 
-    public static final int DEFINITION_FIELD_NUMBER = 3;
-    private talon.manifests.Manifests.AgentDefinition definition_;
+    public static final int SPEC_FIELD_NUMBER = 5;
+    private talon.resources.Agents.AgentSpec spec_;
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-     * @return Whether the definition field is set.
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
+     * @return Whether the spec field is set.
      */
     @java.lang.Override
-    public boolean hasDefinition() {
+    public boolean hasSpec() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-     * @return The definition.
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
+     * @return The spec.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.AgentDefinition getDefinition() {
-      return definition_ == null ? talon.manifests.Manifests.AgentDefinition.getDefaultInstance() : definition_;
+    public talon.resources.Agents.AgentSpec getSpec() {
+      return spec_ == null ? talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
     }
     /**
-     * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+     * <code>.talon.resources.AgentSpec spec = 5;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.AgentDefinitionOrBuilder getDefinitionOrBuilder() {
-      return definition_ == null ? talon.manifests.Manifests.AgentDefinition.getDefaultInstance() : definition_;
+    public talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
     }
 
     public static final int LABELS_FIELD_NUMBER = 4;
@@ -16671,15 +17743,15 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
         com.google.protobuf.GeneratedMessage.writeString(output, 2, ns_);
       }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(3, getDefinition());
-      }
       com.google.protobuf.GeneratedMessage
         .serializeStringMapTo(
           output,
           internalGetLabels(),
           LabelsDefaultEntryHolder.defaultEntry,
           4);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(5, getSpec());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -16695,10 +17767,6 @@ java.lang.String defaultValue) {
       if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
         size += com.google.protobuf.GeneratedMessage.computeStringSize(2, ns_);
       }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getDefinition());
-      }
       for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
            : internalGetLabels().getMap().entrySet()) {
         com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
@@ -16708,6 +17776,10 @@ java.lang.String defaultValue) {
             .buildPartial();
         size += com.google.protobuf.CodedOutputStream
             .computeMessageSize(4, labels__);
+      }
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, getSpec());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -16728,10 +17800,10 @@ java.lang.String defaultValue) {
           .equals(other.getAgent())) return false;
       if (!getNs()
           .equals(other.getNs())) return false;
-      if (hasDefinition() != other.hasDefinition()) return false;
-      if (hasDefinition()) {
-        if (!getDefinition()
-            .equals(other.getDefinition())) return false;
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
       }
       if (!internalGetLabels().equals(
           other.internalGetLabels())) return false;
@@ -16750,9 +17822,9 @@ java.lang.String defaultValue) {
       hash = (53 * hash) + getAgent().hashCode();
       hash = (37 * hash) + NS_FIELD_NUMBER;
       hash = (53 * hash) + getNs().hashCode();
-      if (hasDefinition()) {
-        hash = (37 * hash) + DEFINITION_FIELD_NUMBER;
-        hash = (53 * hash) + getDefinition().hashCode();
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
       }
       if (!internalGetLabels().getMap().isEmpty()) {
         hash = (37 * hash) + LABELS_FIELD_NUMBER;
@@ -16910,7 +17982,7 @@ java.lang.String defaultValue) {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
-          internalGetDefinitionFieldBuilder();
+          internalGetSpecFieldBuilder();
         }
       }
       @java.lang.Override
@@ -16919,10 +17991,10 @@ java.lang.String defaultValue) {
         bitField0_ = 0;
         agent_ = "";
         ns_ = "";
-        definition_ = null;
-        if (definitionBuilder_ != null) {
-          definitionBuilder_.dispose();
-          definitionBuilder_ = null;
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
         }
         internalGetMutableLabels().clear();
         return this;
@@ -16966,9 +18038,9 @@ java.lang.String defaultValue) {
         }
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.definition_ = definitionBuilder_ == null
-              ? definition_
-              : definitionBuilder_.build();
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000008) != 0)) {
@@ -17000,8 +18072,8 @@ java.lang.String defaultValue) {
           bitField0_ |= 0x00000002;
           onChanged();
         }
-        if (other.hasDefinition()) {
-          mergeDefinition(other.getDefinition());
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
         }
         internalGetMutableLabels().mergeFrom(
             other.internalGetLabels());
@@ -17042,13 +18114,6 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
-              case 26: {
-                input.readMessage(
-                    internalGetDefinitionFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000004;
-                break;
-              } // case 26
               case 34: {
                 com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
                 labels__ = input.readMessage(
@@ -17058,6 +18123,13 @@ java.lang.String defaultValue) {
                 bitField0_ |= 0x00000008;
                 break;
               } // case 34
+              case 42: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -17219,125 +18291,125 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.manifests.Manifests.AgentDefinition definition_;
+      private talon.resources.Agents.AgentSpec spec_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder> definitionBuilder_;
+          talon.resources.Agents.AgentSpec, talon.resources.Agents.AgentSpec.Builder, talon.resources.Agents.AgentSpecOrBuilder> specBuilder_;
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-       * @return Whether the definition field is set.
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
+       * @return Whether the spec field is set.
        */
-      public boolean hasDefinition() {
+      public boolean hasSpec() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
-       * @return The definition.
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
+       * @return The spec.
        */
-      public talon.manifests.Manifests.AgentDefinition getDefinition() {
-        if (definitionBuilder_ == null) {
-          return definition_ == null ? talon.manifests.Manifests.AgentDefinition.getDefaultInstance() : definition_;
+      public talon.resources.Agents.AgentSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
         } else {
-          return definitionBuilder_.getMessage();
+          return specBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public Builder setDefinition(talon.manifests.Manifests.AgentDefinition value) {
-        if (definitionBuilder_ == null) {
+      public Builder setSpec(talon.resources.Agents.AgentSpec value) {
+        if (specBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          definition_ = value;
+          spec_ = value;
         } else {
-          definitionBuilder_.setMessage(value);
+          specBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public Builder setDefinition(
-          talon.manifests.Manifests.AgentDefinition.Builder builderForValue) {
-        if (definitionBuilder_ == null) {
-          definition_ = builderForValue.build();
+      public Builder setSpec(
+          talon.resources.Agents.AgentSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
         } else {
-          definitionBuilder_.setMessage(builderForValue.build());
+          specBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public Builder mergeDefinition(talon.manifests.Manifests.AgentDefinition value) {
-        if (definitionBuilder_ == null) {
+      public Builder mergeSpec(talon.resources.Agents.AgentSpec value) {
+        if (specBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
-            definition_ != null &&
-            definition_ != talon.manifests.Manifests.AgentDefinition.getDefaultInstance()) {
-            getDefinitionBuilder().mergeFrom(value);
+            spec_ != null &&
+            spec_ != talon.resources.Agents.AgentSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
           } else {
-            definition_ = value;
+            spec_ = value;
           }
         } else {
-          definitionBuilder_.mergeFrom(value);
+          specBuilder_.mergeFrom(value);
         }
-        if (definition_ != null) {
+        if (spec_ != null) {
           bitField0_ |= 0x00000004;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public Builder clearDefinition() {
+      public Builder clearSpec() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        definition_ = null;
-        if (definitionBuilder_ != null) {
-          definitionBuilder_.dispose();
-          definitionBuilder_ = null;
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
         }
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public talon.manifests.Manifests.AgentDefinition.Builder getDefinitionBuilder() {
+      public talon.resources.Agents.AgentSpec.Builder getSpecBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
-        return internalGetDefinitionFieldBuilder().getBuilder();
+        return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
-      public talon.manifests.Manifests.AgentDefinitionOrBuilder getDefinitionOrBuilder() {
-        if (definitionBuilder_ != null) {
-          return definitionBuilder_.getMessageOrBuilder();
+      public talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
         } else {
-          return definition_ == null ?
-              talon.manifests.Manifests.AgentDefinition.getDefaultInstance() : definition_;
+          return spec_ == null ?
+              talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
         }
       }
       /**
-       * <code>.talon.manifests.AgentDefinition definition = 3;</code>
+       * <code>.talon.resources.AgentSpec spec = 5;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder>
-          internalGetDefinitionFieldBuilder() {
-        if (definitionBuilder_ == null) {
-          definitionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.AgentDefinition, talon.manifests.Manifests.AgentDefinition.Builder, talon.manifests.Manifests.AgentDefinitionOrBuilder>(
-                  getDefinition(),
+          talon.resources.Agents.AgentSpec, talon.resources.Agents.AgentSpec.Builder, talon.resources.Agents.AgentSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Agents.AgentSpec, talon.resources.Agents.AgentSpec.Builder, talon.resources.Agents.AgentSpecOrBuilder>(
+                  getSpec(),
                   getParentForChildren(),
                   isClean());
-          definition_ = null;
+          spec_ = null;
         }
-        return definitionBuilder_;
+        return specBuilder_;
       }
 
       private com.google.protobuf.MapField<
@@ -18411,27 +19483,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
-    java.util.List<talon.models.Models.Knowledge>
+    java.util.List<talon.data.Data.Knowledge>
         getModulesList();
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
-    talon.models.Models.Knowledge getModules(int index);
+    talon.data.Data.Knowledge getModules(int index);
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
     int getModulesCount();
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.KnowledgeOrBuilder>
+    java.util.List<? extends talon.data.Data.KnowledgeOrBuilder>
         getModulesOrBuilderList();
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
-    talon.models.Models.KnowledgeOrBuilder getModulesOrBuilder(
+    talon.data.Data.KnowledgeOrBuilder getModulesOrBuilder(
         int index);
   }
   /**
@@ -18479,41 +19551,41 @@ java.lang.String defaultValue) {
 
     public static final int MODULES_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.Knowledge> modules_;
+    private java.util.List<talon.data.Data.Knowledge> modules_;
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.Knowledge> getModulesList() {
+    public java.util.List<talon.data.Data.Knowledge> getModulesList() {
       return modules_;
     }
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.KnowledgeOrBuilder>
+    public java.util.List<? extends talon.data.Data.KnowledgeOrBuilder>
         getModulesOrBuilderList() {
       return modules_;
     }
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
     @java.lang.Override
     public int getModulesCount() {
       return modules_.size();
     }
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.Knowledge getModules(int index) {
+    public talon.data.Data.Knowledge getModules(int index) {
       return modules_.get(index);
     }
     /**
-     * <code>repeated .talon.models.Knowledge modules = 1;</code>
+     * <code>repeated .talon.data.Knowledge modules = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.KnowledgeOrBuilder getModulesOrBuilder(
+    public talon.data.Data.KnowledgeOrBuilder getModulesOrBuilder(
         int index) {
       return modules_.get(index);
     }
@@ -18836,9 +19908,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.models.Models.Knowledge m =
+                talon.data.Data.Knowledge m =
                     input.readMessage(
-                        talon.models.Models.Knowledge.parser(),
+                        talon.data.Data.Knowledge.parser(),
                         extensionRegistry);
                 if (modulesBuilder_ == null) {
                   ensureModulesIsMutable();
@@ -18865,22 +19937,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.models.Models.Knowledge> modules_ =
+      private java.util.List<talon.data.Data.Knowledge> modules_ =
         java.util.Collections.emptyList();
       private void ensureModulesIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          modules_ = new java.util.ArrayList<talon.models.Models.Knowledge>(modules_);
+          modules_ = new java.util.ArrayList<talon.data.Data.Knowledge>(modules_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Knowledge, talon.models.Models.Knowledge.Builder, talon.models.Models.KnowledgeOrBuilder> modulesBuilder_;
+          talon.data.Data.Knowledge, talon.data.Data.Knowledge.Builder, talon.data.Data.KnowledgeOrBuilder> modulesBuilder_;
 
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public java.util.List<talon.models.Models.Knowledge> getModulesList() {
+      public java.util.List<talon.data.Data.Knowledge> getModulesList() {
         if (modulesBuilder_ == null) {
           return java.util.Collections.unmodifiableList(modules_);
         } else {
@@ -18888,7 +19960,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public int getModulesCount() {
         if (modulesBuilder_ == null) {
@@ -18898,9 +19970,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public talon.models.Models.Knowledge getModules(int index) {
+      public talon.data.Data.Knowledge getModules(int index) {
         if (modulesBuilder_ == null) {
           return modules_.get(index);
         } else {
@@ -18908,10 +19980,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public Builder setModules(
-          int index, talon.models.Models.Knowledge value) {
+          int index, talon.data.Data.Knowledge value) {
         if (modulesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -18925,10 +19997,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public Builder setModules(
-          int index, talon.models.Models.Knowledge.Builder builderForValue) {
+          int index, talon.data.Data.Knowledge.Builder builderForValue) {
         if (modulesBuilder_ == null) {
           ensureModulesIsMutable();
           modules_.set(index, builderForValue.build());
@@ -18939,9 +20011,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public Builder addModules(talon.models.Models.Knowledge value) {
+      public Builder addModules(talon.data.Data.Knowledge value) {
         if (modulesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -18955,10 +20027,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public Builder addModules(
-          int index, talon.models.Models.Knowledge value) {
+          int index, talon.data.Data.Knowledge value) {
         if (modulesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -18972,10 +20044,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public Builder addModules(
-          talon.models.Models.Knowledge.Builder builderForValue) {
+          talon.data.Data.Knowledge.Builder builderForValue) {
         if (modulesBuilder_ == null) {
           ensureModulesIsMutable();
           modules_.add(builderForValue.build());
@@ -18986,10 +20058,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public Builder addModules(
-          int index, talon.models.Models.Knowledge.Builder builderForValue) {
+          int index, talon.data.Data.Knowledge.Builder builderForValue) {
         if (modulesBuilder_ == null) {
           ensureModulesIsMutable();
           modules_.add(index, builderForValue.build());
@@ -19000,10 +20072,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public Builder addAllModules(
-          java.lang.Iterable<? extends talon.models.Models.Knowledge> values) {
+          java.lang.Iterable<? extends talon.data.Data.Knowledge> values) {
         if (modulesBuilder_ == null) {
           ensureModulesIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -19015,7 +20087,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public Builder clearModules() {
         if (modulesBuilder_ == null) {
@@ -19028,7 +20100,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
       public Builder removeModules(int index) {
         if (modulesBuilder_ == null) {
@@ -19041,16 +20113,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public talon.models.Models.Knowledge.Builder getModulesBuilder(
+      public talon.data.Data.Knowledge.Builder getModulesBuilder(
           int index) {
         return internalGetModulesFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public talon.models.Models.KnowledgeOrBuilder getModulesOrBuilder(
+      public talon.data.Data.KnowledgeOrBuilder getModulesOrBuilder(
           int index) {
         if (modulesBuilder_ == null) {
           return modules_.get(index);  } else {
@@ -19058,9 +20130,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.KnowledgeOrBuilder>
+      public java.util.List<? extends talon.data.Data.KnowledgeOrBuilder>
            getModulesOrBuilderList() {
         if (modulesBuilder_ != null) {
           return modulesBuilder_.getMessageOrBuilderList();
@@ -19069,33 +20141,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public talon.models.Models.Knowledge.Builder addModulesBuilder() {
+      public talon.data.Data.Knowledge.Builder addModulesBuilder() {
         return internalGetModulesFieldBuilder().addBuilder(
-            talon.models.Models.Knowledge.getDefaultInstance());
+            talon.data.Data.Knowledge.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public talon.models.Models.Knowledge.Builder addModulesBuilder(
+      public talon.data.Data.Knowledge.Builder addModulesBuilder(
           int index) {
         return internalGetModulesFieldBuilder().addBuilder(
-            index, talon.models.Models.Knowledge.getDefaultInstance());
+            index, talon.data.Data.Knowledge.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.Knowledge modules = 1;</code>
+       * <code>repeated .talon.data.Knowledge modules = 1;</code>
        */
-      public java.util.List<talon.models.Models.Knowledge.Builder>
+      public java.util.List<talon.data.Data.Knowledge.Builder>
            getModulesBuilderList() {
         return internalGetModulesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Knowledge, talon.models.Models.Knowledge.Builder, talon.models.Models.KnowledgeOrBuilder>
+          talon.data.Data.Knowledge, talon.data.Data.Knowledge.Builder, talon.data.Data.KnowledgeOrBuilder>
           internalGetModulesFieldBuilder() {
         if (modulesBuilder_ == null) {
           modulesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.Knowledge, talon.models.Models.Knowledge.Builder, talon.models.Models.KnowledgeOrBuilder>(
+              talon.data.Data.Knowledge, talon.data.Data.Knowledge.Builder, talon.data.Data.KnowledgeOrBuilder>(
                   modules_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -19972,27 +21044,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
-    java.util.List<talon.models.Models.KnowledgeSearchResult>
+    java.util.List<talon.data.Data.KnowledgeSearchResult>
         getResultsList();
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
-    talon.models.Models.KnowledgeSearchResult getResults(int index);
+    talon.data.Data.KnowledgeSearchResult getResults(int index);
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
     int getResultsCount();
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder>
+    java.util.List<? extends talon.data.Data.KnowledgeSearchResultOrBuilder>
         getResultsOrBuilderList();
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
-    talon.models.Models.KnowledgeSearchResultOrBuilder getResultsOrBuilder(
+    talon.data.Data.KnowledgeSearchResultOrBuilder getResultsOrBuilder(
         int index);
   }
   /**
@@ -20040,41 +21112,41 @@ java.lang.String defaultValue) {
 
     public static final int RESULTS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.KnowledgeSearchResult> results_;
+    private java.util.List<talon.data.Data.KnowledgeSearchResult> results_;
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.KnowledgeSearchResult> getResultsList() {
+    public java.util.List<talon.data.Data.KnowledgeSearchResult> getResultsList() {
       return results_;
     }
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder>
+    public java.util.List<? extends talon.data.Data.KnowledgeSearchResultOrBuilder>
         getResultsOrBuilderList() {
       return results_;
     }
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
     @java.lang.Override
     public int getResultsCount() {
       return results_.size();
     }
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.KnowledgeSearchResult getResults(int index) {
+    public talon.data.Data.KnowledgeSearchResult getResults(int index) {
       return results_.get(index);
     }
     /**
-     * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+     * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.KnowledgeSearchResultOrBuilder getResultsOrBuilder(
+    public talon.data.Data.KnowledgeSearchResultOrBuilder getResultsOrBuilder(
         int index) {
       return results_.get(index);
     }
@@ -20397,9 +21469,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.models.Models.KnowledgeSearchResult m =
+                talon.data.Data.KnowledgeSearchResult m =
                     input.readMessage(
-                        talon.models.Models.KnowledgeSearchResult.parser(),
+                        talon.data.Data.KnowledgeSearchResult.parser(),
                         extensionRegistry);
                 if (resultsBuilder_ == null) {
                   ensureResultsIsMutable();
@@ -20426,22 +21498,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.models.Models.KnowledgeSearchResult> results_ =
+      private java.util.List<talon.data.Data.KnowledgeSearchResult> results_ =
         java.util.Collections.emptyList();
       private void ensureResultsIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          results_ = new java.util.ArrayList<talon.models.Models.KnowledgeSearchResult>(results_);
+          results_ = new java.util.ArrayList<talon.data.Data.KnowledgeSearchResult>(results_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.KnowledgeSearchResult, talon.models.Models.KnowledgeSearchResult.Builder, talon.models.Models.KnowledgeSearchResultOrBuilder> resultsBuilder_;
+          talon.data.Data.KnowledgeSearchResult, talon.data.Data.KnowledgeSearchResult.Builder, talon.data.Data.KnowledgeSearchResultOrBuilder> resultsBuilder_;
 
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public java.util.List<talon.models.Models.KnowledgeSearchResult> getResultsList() {
+      public java.util.List<talon.data.Data.KnowledgeSearchResult> getResultsList() {
         if (resultsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(results_);
         } else {
@@ -20449,7 +21521,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public int getResultsCount() {
         if (resultsBuilder_ == null) {
@@ -20459,9 +21531,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public talon.models.Models.KnowledgeSearchResult getResults(int index) {
+      public talon.data.Data.KnowledgeSearchResult getResults(int index) {
         if (resultsBuilder_ == null) {
           return results_.get(index);
         } else {
@@ -20469,10 +21541,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public Builder setResults(
-          int index, talon.models.Models.KnowledgeSearchResult value) {
+          int index, talon.data.Data.KnowledgeSearchResult value) {
         if (resultsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -20486,10 +21558,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public Builder setResults(
-          int index, talon.models.Models.KnowledgeSearchResult.Builder builderForValue) {
+          int index, talon.data.Data.KnowledgeSearchResult.Builder builderForValue) {
         if (resultsBuilder_ == null) {
           ensureResultsIsMutable();
           results_.set(index, builderForValue.build());
@@ -20500,9 +21572,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public Builder addResults(talon.models.Models.KnowledgeSearchResult value) {
+      public Builder addResults(talon.data.Data.KnowledgeSearchResult value) {
         if (resultsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -20516,10 +21588,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public Builder addResults(
-          int index, talon.models.Models.KnowledgeSearchResult value) {
+          int index, talon.data.Data.KnowledgeSearchResult value) {
         if (resultsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -20533,10 +21605,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public Builder addResults(
-          talon.models.Models.KnowledgeSearchResult.Builder builderForValue) {
+          talon.data.Data.KnowledgeSearchResult.Builder builderForValue) {
         if (resultsBuilder_ == null) {
           ensureResultsIsMutable();
           results_.add(builderForValue.build());
@@ -20547,10 +21619,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public Builder addResults(
-          int index, talon.models.Models.KnowledgeSearchResult.Builder builderForValue) {
+          int index, talon.data.Data.KnowledgeSearchResult.Builder builderForValue) {
         if (resultsBuilder_ == null) {
           ensureResultsIsMutable();
           results_.add(index, builderForValue.build());
@@ -20561,10 +21633,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public Builder addAllResults(
-          java.lang.Iterable<? extends talon.models.Models.KnowledgeSearchResult> values) {
+          java.lang.Iterable<? extends talon.data.Data.KnowledgeSearchResult> values) {
         if (resultsBuilder_ == null) {
           ensureResultsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -20576,7 +21648,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public Builder clearResults() {
         if (resultsBuilder_ == null) {
@@ -20589,7 +21661,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
       public Builder removeResults(int index) {
         if (resultsBuilder_ == null) {
@@ -20602,16 +21674,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public talon.models.Models.KnowledgeSearchResult.Builder getResultsBuilder(
+      public talon.data.Data.KnowledgeSearchResult.Builder getResultsBuilder(
           int index) {
         return internalGetResultsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public talon.models.Models.KnowledgeSearchResultOrBuilder getResultsOrBuilder(
+      public talon.data.Data.KnowledgeSearchResultOrBuilder getResultsOrBuilder(
           int index) {
         if (resultsBuilder_ == null) {
           return results_.get(index);  } else {
@@ -20619,9 +21691,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.KnowledgeSearchResultOrBuilder>
+      public java.util.List<? extends talon.data.Data.KnowledgeSearchResultOrBuilder>
            getResultsOrBuilderList() {
         if (resultsBuilder_ != null) {
           return resultsBuilder_.getMessageOrBuilderList();
@@ -20630,33 +21702,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public talon.models.Models.KnowledgeSearchResult.Builder addResultsBuilder() {
+      public talon.data.Data.KnowledgeSearchResult.Builder addResultsBuilder() {
         return internalGetResultsFieldBuilder().addBuilder(
-            talon.models.Models.KnowledgeSearchResult.getDefaultInstance());
+            talon.data.Data.KnowledgeSearchResult.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public talon.models.Models.KnowledgeSearchResult.Builder addResultsBuilder(
+      public talon.data.Data.KnowledgeSearchResult.Builder addResultsBuilder(
           int index) {
         return internalGetResultsFieldBuilder().addBuilder(
-            index, talon.models.Models.KnowledgeSearchResult.getDefaultInstance());
+            index, talon.data.Data.KnowledgeSearchResult.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.KnowledgeSearchResult results = 1;</code>
+       * <code>repeated .talon.data.KnowledgeSearchResult results = 1;</code>
        */
-      public java.util.List<talon.models.Models.KnowledgeSearchResult.Builder>
+      public java.util.List<talon.data.Data.KnowledgeSearchResult.Builder>
            getResultsBuilderList() {
         return internalGetResultsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.KnowledgeSearchResult, talon.models.Models.KnowledgeSearchResult.Builder, talon.models.Models.KnowledgeSearchResultOrBuilder>
+          talon.data.Data.KnowledgeSearchResult, talon.data.Data.KnowledgeSearchResult.Builder, talon.data.Data.KnowledgeSearchResultOrBuilder>
           internalGetResultsFieldBuilder() {
         if (resultsBuilder_ == null) {
           resultsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.KnowledgeSearchResult, talon.models.Models.KnowledgeSearchResult.Builder, talon.models.Models.KnowledgeSearchResultOrBuilder>(
+              talon.data.Data.KnowledgeSearchResult, talon.data.Data.KnowledgeSearchResult.Builder, talon.data.Data.KnowledgeSearchResultOrBuilder>(
                   results_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -20734,19 +21806,19 @@ java.lang.String defaultValue) {
         getNsBytes();
 
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+     * <code>.talon.resources.Knowledge knowledge = 2;</code>
      * @return Whether the knowledge field is set.
      */
     boolean hasKnowledge();
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+     * <code>.talon.resources.Knowledge knowledge = 2;</code>
      * @return The knowledge.
      */
-    talon.manifests.Manifests.Knowledge getKnowledge();
+    talon.resources.KnowledgeOuterClass.Knowledge getKnowledge();
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+     * <code>.talon.resources.Knowledge knowledge = 2;</code>
      */
-    talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder();
+    talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.CreateNamespaceKnowledgeRequest}
@@ -20832,9 +21904,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int KNOWLEDGE_FIELD_NUMBER = 2;
-    private talon.manifests.Manifests.Knowledge knowledge_;
+    private talon.resources.KnowledgeOuterClass.Knowledge knowledge_;
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+     * <code>.talon.resources.Knowledge knowledge = 2;</code>
      * @return Whether the knowledge field is set.
      */
     @java.lang.Override
@@ -20842,19 +21914,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+     * <code>.talon.resources.Knowledge knowledge = 2;</code>
      * @return The knowledge.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.Knowledge getKnowledge() {
-      return knowledge_ == null ? talon.manifests.Manifests.Knowledge.getDefaultInstance() : knowledge_;
+    public talon.resources.KnowledgeOuterClass.Knowledge getKnowledge() {
+      return knowledge_ == null ? talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance() : knowledge_;
     }
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+     * <code>.talon.resources.Knowledge knowledge = 2;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder() {
-      return knowledge_ == null ? talon.manifests.Manifests.Knowledge.getDefaultInstance() : knowledge_;
+    public talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder() {
+      return knowledge_ == null ? talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance() : knowledge_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -21268,31 +22340,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.manifests.Manifests.Knowledge knowledge_;
+      private talon.resources.KnowledgeOuterClass.Knowledge knowledge_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder> knowledgeBuilder_;
+          talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder> knowledgeBuilder_;
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        * @return Whether the knowledge field is set.
        */
       public boolean hasKnowledge() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        * @return The knowledge.
        */
-      public talon.manifests.Manifests.Knowledge getKnowledge() {
+      public talon.resources.KnowledgeOuterClass.Knowledge getKnowledge() {
         if (knowledgeBuilder_ == null) {
-          return knowledge_ == null ? talon.manifests.Manifests.Knowledge.getDefaultInstance() : knowledge_;
+          return knowledge_ == null ? talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance() : knowledge_;
         } else {
           return knowledgeBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        */
-      public Builder setKnowledge(talon.manifests.Manifests.Knowledge value) {
+      public Builder setKnowledge(talon.resources.KnowledgeOuterClass.Knowledge value) {
         if (knowledgeBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -21306,10 +22378,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        */
       public Builder setKnowledge(
-          talon.manifests.Manifests.Knowledge.Builder builderForValue) {
+          talon.resources.KnowledgeOuterClass.Knowledge.Builder builderForValue) {
         if (knowledgeBuilder_ == null) {
           knowledge_ = builderForValue.build();
         } else {
@@ -21320,13 +22392,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        */
-      public Builder mergeKnowledge(talon.manifests.Manifests.Knowledge value) {
+      public Builder mergeKnowledge(talon.resources.KnowledgeOuterClass.Knowledge value) {
         if (knowledgeBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             knowledge_ != null &&
-            knowledge_ != talon.manifests.Manifests.Knowledge.getDefaultInstance()) {
+            knowledge_ != talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance()) {
             getKnowledgeBuilder().mergeFrom(value);
           } else {
             knowledge_ = value;
@@ -21341,7 +22413,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        */
       public Builder clearKnowledge() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -21354,33 +22426,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        */
-      public talon.manifests.Manifests.Knowledge.Builder getKnowledgeBuilder() {
+      public talon.resources.KnowledgeOuterClass.Knowledge.Builder getKnowledgeBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetKnowledgeFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        */
-      public talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder() {
+      public talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder() {
         if (knowledgeBuilder_ != null) {
           return knowledgeBuilder_.getMessageOrBuilder();
         } else {
           return knowledge_ == null ?
-              talon.manifests.Manifests.Knowledge.getDefaultInstance() : knowledge_;
+              talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance() : knowledge_;
         }
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 2;</code>
+       * <code>.talon.resources.Knowledge knowledge = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>
+          talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>
           internalGetKnowledgeFieldBuilder() {
         if (knowledgeBuilder_ == null) {
           knowledgeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>(
+              talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>(
                   getKnowledge(),
                   getParentForChildren(),
                   isClean());
@@ -23726,19 +24798,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>.talon.resources.Knowledge knowledge = 1;</code>
      * @return Whether the knowledge field is set.
      */
     boolean hasKnowledge();
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>.talon.resources.Knowledge knowledge = 1;</code>
      * @return The knowledge.
      */
-    talon.manifests.Manifests.Knowledge getKnowledge();
+    talon.resources.KnowledgeOuterClass.Knowledge getKnowledge();
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>.talon.resources.Knowledge knowledge = 1;</code>
      */
-    talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder();
+    talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.NamespaceKnowledgeResponse}
@@ -23784,9 +24856,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int KNOWLEDGE_FIELD_NUMBER = 1;
-    private talon.manifests.Manifests.Knowledge knowledge_;
+    private talon.resources.KnowledgeOuterClass.Knowledge knowledge_;
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>.talon.resources.Knowledge knowledge = 1;</code>
      * @return Whether the knowledge field is set.
      */
     @java.lang.Override
@@ -23794,19 +24866,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>.talon.resources.Knowledge knowledge = 1;</code>
      * @return The knowledge.
      */
     @java.lang.Override
-    public talon.manifests.Manifests.Knowledge getKnowledge() {
-      return knowledge_ == null ? talon.manifests.Manifests.Knowledge.getDefaultInstance() : knowledge_;
+    public talon.resources.KnowledgeOuterClass.Knowledge getKnowledge() {
+      return knowledge_ == null ? talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance() : knowledge_;
     }
     /**
-     * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>.talon.resources.Knowledge knowledge = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder() {
-      return knowledge_ == null ? talon.manifests.Manifests.Knowledge.getDefaultInstance() : knowledge_;
+    public talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder() {
+      return knowledge_ == null ? talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance() : knowledge_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -24124,31 +25196,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.manifests.Manifests.Knowledge knowledge_;
+      private talon.resources.KnowledgeOuterClass.Knowledge knowledge_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder> knowledgeBuilder_;
+          talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder> knowledgeBuilder_;
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        * @return Whether the knowledge field is set.
        */
       public boolean hasKnowledge() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        * @return The knowledge.
        */
-      public talon.manifests.Manifests.Knowledge getKnowledge() {
+      public talon.resources.KnowledgeOuterClass.Knowledge getKnowledge() {
         if (knowledgeBuilder_ == null) {
-          return knowledge_ == null ? talon.manifests.Manifests.Knowledge.getDefaultInstance() : knowledge_;
+          return knowledge_ == null ? talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance() : knowledge_;
         } else {
           return knowledgeBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        */
-      public Builder setKnowledge(talon.manifests.Manifests.Knowledge value) {
+      public Builder setKnowledge(talon.resources.KnowledgeOuterClass.Knowledge value) {
         if (knowledgeBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -24162,10 +25234,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder setKnowledge(
-          talon.manifests.Manifests.Knowledge.Builder builderForValue) {
+          talon.resources.KnowledgeOuterClass.Knowledge.Builder builderForValue) {
         if (knowledgeBuilder_ == null) {
           knowledge_ = builderForValue.build();
         } else {
@@ -24176,13 +25248,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        */
-      public Builder mergeKnowledge(talon.manifests.Manifests.Knowledge value) {
+      public Builder mergeKnowledge(talon.resources.KnowledgeOuterClass.Knowledge value) {
         if (knowledgeBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             knowledge_ != null &&
-            knowledge_ != talon.manifests.Manifests.Knowledge.getDefaultInstance()) {
+            knowledge_ != talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance()) {
             getKnowledgeBuilder().mergeFrom(value);
           } else {
             knowledge_ = value;
@@ -24197,7 +25269,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder clearKnowledge() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -24210,33 +25282,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        */
-      public talon.manifests.Manifests.Knowledge.Builder getKnowledgeBuilder() {
+      public talon.resources.KnowledgeOuterClass.Knowledge.Builder getKnowledgeBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetKnowledgeFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        */
-      public talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder() {
+      public talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder() {
         if (knowledgeBuilder_ != null) {
           return knowledgeBuilder_.getMessageOrBuilder();
         } else {
           return knowledge_ == null ?
-              talon.manifests.Manifests.Knowledge.getDefaultInstance() : knowledge_;
+              talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance() : knowledge_;
         }
       }
       /**
-       * <code>.talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>.talon.resources.Knowledge knowledge = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>
+          talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>
           internalGetKnowledgeFieldBuilder() {
         if (knowledgeBuilder_ == null) {
           knowledgeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>(
+              talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>(
                   getKnowledge(),
                   getParentForChildren(),
                   isClean());
@@ -24301,27 +25373,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
-    java.util.List<talon.manifests.Manifests.Knowledge>
+    java.util.List<talon.resources.KnowledgeOuterClass.Knowledge>
         getKnowledgeList();
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
-    talon.manifests.Manifests.Knowledge getKnowledge(int index);
+    talon.resources.KnowledgeOuterClass.Knowledge getKnowledge(int index);
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
     int getKnowledgeCount();
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
-    java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder>
+    java.util.List<? extends talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>
         getKnowledgeOrBuilderList();
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
-    talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder(
+    talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder(
         int index);
   }
   /**
@@ -24369,41 +25441,41 @@ java.lang.String defaultValue) {
 
     public static final int KNOWLEDGE_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.manifests.Manifests.Knowledge> knowledge_;
+    private java.util.List<talon.resources.KnowledgeOuterClass.Knowledge> knowledge_;
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.manifests.Manifests.Knowledge> getKnowledgeList() {
+    public java.util.List<talon.resources.KnowledgeOuterClass.Knowledge> getKnowledgeList() {
       return knowledge_;
     }
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder>
+    public java.util.List<? extends talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>
         getKnowledgeOrBuilderList() {
       return knowledge_;
     }
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
     @java.lang.Override
     public int getKnowledgeCount() {
       return knowledge_.size();
     }
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.Knowledge getKnowledge(int index) {
+    public talon.resources.KnowledgeOuterClass.Knowledge getKnowledge(int index) {
       return knowledge_.get(index);
     }
     /**
-     * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+     * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
      */
     @java.lang.Override
-    public talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder(
+    public talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder(
         int index) {
       return knowledge_.get(index);
     }
@@ -24726,9 +25798,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.manifests.Manifests.Knowledge m =
+                talon.resources.KnowledgeOuterClass.Knowledge m =
                     input.readMessage(
-                        talon.manifests.Manifests.Knowledge.parser(),
+                        talon.resources.KnowledgeOuterClass.Knowledge.parser(),
                         extensionRegistry);
                 if (knowledgeBuilder_ == null) {
                   ensureKnowledgeIsMutable();
@@ -24755,22 +25827,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.manifests.Manifests.Knowledge> knowledge_ =
+      private java.util.List<talon.resources.KnowledgeOuterClass.Knowledge> knowledge_ =
         java.util.Collections.emptyList();
       private void ensureKnowledgeIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          knowledge_ = new java.util.ArrayList<talon.manifests.Manifests.Knowledge>(knowledge_);
+          knowledge_ = new java.util.ArrayList<talon.resources.KnowledgeOuterClass.Knowledge>(knowledge_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder> knowledgeBuilder_;
+          talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder> knowledgeBuilder_;
 
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.Knowledge> getKnowledgeList() {
+      public java.util.List<talon.resources.KnowledgeOuterClass.Knowledge> getKnowledgeList() {
         if (knowledgeBuilder_ == null) {
           return java.util.Collections.unmodifiableList(knowledge_);
         } else {
@@ -24778,7 +25850,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public int getKnowledgeCount() {
         if (knowledgeBuilder_ == null) {
@@ -24788,9 +25860,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public talon.manifests.Manifests.Knowledge getKnowledge(int index) {
+      public talon.resources.KnowledgeOuterClass.Knowledge getKnowledge(int index) {
         if (knowledgeBuilder_ == null) {
           return knowledge_.get(index);
         } else {
@@ -24798,10 +25870,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder setKnowledge(
-          int index, talon.manifests.Manifests.Knowledge value) {
+          int index, talon.resources.KnowledgeOuterClass.Knowledge value) {
         if (knowledgeBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -24815,10 +25887,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder setKnowledge(
-          int index, talon.manifests.Manifests.Knowledge.Builder builderForValue) {
+          int index, talon.resources.KnowledgeOuterClass.Knowledge.Builder builderForValue) {
         if (knowledgeBuilder_ == null) {
           ensureKnowledgeIsMutable();
           knowledge_.set(index, builderForValue.build());
@@ -24829,9 +25901,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public Builder addKnowledge(talon.manifests.Manifests.Knowledge value) {
+      public Builder addKnowledge(talon.resources.KnowledgeOuterClass.Knowledge value) {
         if (knowledgeBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -24845,10 +25917,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder addKnowledge(
-          int index, talon.manifests.Manifests.Knowledge value) {
+          int index, talon.resources.KnowledgeOuterClass.Knowledge value) {
         if (knowledgeBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -24862,10 +25934,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder addKnowledge(
-          talon.manifests.Manifests.Knowledge.Builder builderForValue) {
+          talon.resources.KnowledgeOuterClass.Knowledge.Builder builderForValue) {
         if (knowledgeBuilder_ == null) {
           ensureKnowledgeIsMutable();
           knowledge_.add(builderForValue.build());
@@ -24876,10 +25948,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder addKnowledge(
-          int index, talon.manifests.Manifests.Knowledge.Builder builderForValue) {
+          int index, talon.resources.KnowledgeOuterClass.Knowledge.Builder builderForValue) {
         if (knowledgeBuilder_ == null) {
           ensureKnowledgeIsMutable();
           knowledge_.add(index, builderForValue.build());
@@ -24890,10 +25962,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder addAllKnowledge(
-          java.lang.Iterable<? extends talon.manifests.Manifests.Knowledge> values) {
+          java.lang.Iterable<? extends talon.resources.KnowledgeOuterClass.Knowledge> values) {
         if (knowledgeBuilder_ == null) {
           ensureKnowledgeIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -24905,7 +25977,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder clearKnowledge() {
         if (knowledgeBuilder_ == null) {
@@ -24918,7 +25990,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
       public Builder removeKnowledge(int index) {
         if (knowledgeBuilder_ == null) {
@@ -24931,16 +26003,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public talon.manifests.Manifests.Knowledge.Builder getKnowledgeBuilder(
+      public talon.resources.KnowledgeOuterClass.Knowledge.Builder getKnowledgeBuilder(
           int index) {
         return internalGetKnowledgeFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public talon.manifests.Manifests.KnowledgeOrBuilder getKnowledgeOrBuilder(
+      public talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder getKnowledgeOrBuilder(
           int index) {
         if (knowledgeBuilder_ == null) {
           return knowledge_.get(index);  } else {
@@ -24948,9 +26020,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public java.util.List<? extends talon.manifests.Manifests.KnowledgeOrBuilder>
+      public java.util.List<? extends talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>
            getKnowledgeOrBuilderList() {
         if (knowledgeBuilder_ != null) {
           return knowledgeBuilder_.getMessageOrBuilderList();
@@ -24959,33 +26031,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public talon.manifests.Manifests.Knowledge.Builder addKnowledgeBuilder() {
+      public talon.resources.KnowledgeOuterClass.Knowledge.Builder addKnowledgeBuilder() {
         return internalGetKnowledgeFieldBuilder().addBuilder(
-            talon.manifests.Manifests.Knowledge.getDefaultInstance());
+            talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public talon.manifests.Manifests.Knowledge.Builder addKnowledgeBuilder(
+      public talon.resources.KnowledgeOuterClass.Knowledge.Builder addKnowledgeBuilder(
           int index) {
         return internalGetKnowledgeFieldBuilder().addBuilder(
-            index, talon.manifests.Manifests.Knowledge.getDefaultInstance());
+            index, talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.manifests.Knowledge knowledge = 1;</code>
+       * <code>repeated .talon.resources.Knowledge knowledge = 1;</code>
        */
-      public java.util.List<talon.manifests.Manifests.Knowledge.Builder>
+      public java.util.List<talon.resources.KnowledgeOuterClass.Knowledge.Builder>
            getKnowledgeBuilderList() {
         return internalGetKnowledgeFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>
+          talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>
           internalGetKnowledgeFieldBuilder() {
         if (knowledgeBuilder_ == null) {
           knowledgeBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.manifests.Manifests.Knowledge, talon.manifests.Manifests.Knowledge.Builder, talon.manifests.Manifests.KnowledgeOrBuilder>(
+              talon.resources.KnowledgeOuterClass.Knowledge, talon.resources.KnowledgeOuterClass.Knowledge.Builder, talon.resources.KnowledgeOuterClass.KnowledgeOrBuilder>(
                   knowledge_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -25041,4335 +26113,6 @@ java.lang.String defaultValue) {
 
     @java.lang.Override
     public talon.gateway.Gateway.ListNamespaceKnowledgeResponse getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface CreateNamespaceSkillRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.CreateNamespaceSkillRequest)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    java.lang.String getNs();
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    com.google.protobuf.ByteString
-        getNsBytes();
-
-    /**
-     * <code>.talon.manifests.Skill skill = 2;</code>
-     * @return Whether the skill field is set.
-     */
-    boolean hasSkill();
-    /**
-     * <code>.talon.manifests.Skill skill = 2;</code>
-     * @return The skill.
-     */
-    talon.manifests.Manifests.Skill getSkill();
-    /**
-     * <code>.talon.manifests.Skill skill = 2;</code>
-     */
-    talon.manifests.Manifests.SkillOrBuilder getSkillOrBuilder();
-  }
-  /**
-   * Protobuf type {@code talon.gateway.CreateNamespaceSkillRequest}
-   */
-  public static final class CreateNamespaceSkillRequest extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.CreateNamespaceSkillRequest)
-      CreateNamespaceSkillRequestOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "CreateNamespaceSkillRequest");
-    }
-    // Use CreateNamespaceSkillRequest.newBuilder() to construct.
-    private CreateNamespaceSkillRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private CreateNamespaceSkillRequest() {
-      ns_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_CreateNamespaceSkillRequest_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_CreateNamespaceSkillRequest_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_CreateNamespaceSkillRequest_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.CreateNamespaceSkillRequest.class, talon.gateway.Gateway.CreateNamespaceSkillRequest.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int NS_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object ns_ = "";
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    @java.lang.Override
-    public java.lang.String getNs() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        ns_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNsBytes() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        ns_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SKILL_FIELD_NUMBER = 2;
-    private talon.manifests.Manifests.Skill skill_;
-    /**
-     * <code>.talon.manifests.Skill skill = 2;</code>
-     * @return Whether the skill field is set.
-     */
-    @java.lang.Override
-    public boolean hasSkill() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>.talon.manifests.Skill skill = 2;</code>
-     * @return The skill.
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.Skill getSkill() {
-      return skill_ == null ? talon.manifests.Manifests.Skill.getDefaultInstance() : skill_;
-    }
-    /**
-     * <code>.talon.manifests.Skill skill = 2;</code>
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.SkillOrBuilder getSkillOrBuilder() {
-      return skill_ == null ? talon.manifests.Manifests.Skill.getDefaultInstance() : skill_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(2, getSkill());
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
-      }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, getSkill());
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.CreateNamespaceSkillRequest)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.CreateNamespaceSkillRequest other = (talon.gateway.Gateway.CreateNamespaceSkillRequest) obj;
-
-      if (!getNs()
-          .equals(other.getNs())) return false;
-      if (hasSkill() != other.hasSkill()) return false;
-      if (hasSkill()) {
-        if (!getSkill()
-            .equals(other.getSkill())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NS_FIELD_NUMBER;
-      hash = (53 * hash) + getNs().hashCode();
-      if (hasSkill()) {
-        hash = (37 * hash) + SKILL_FIELD_NUMBER;
-        hash = (53 * hash) + getSkill().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.CreateNamespaceSkillRequest prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.CreateNamespaceSkillRequest}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.CreateNamespaceSkillRequest)
-        talon.gateway.Gateway.CreateNamespaceSkillRequestOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_CreateNamespaceSkillRequest_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_CreateNamespaceSkillRequest_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.CreateNamespaceSkillRequest.class, talon.gateway.Gateway.CreateNamespaceSkillRequest.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.CreateNamespaceSkillRequest.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetSkillFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        ns_ = "";
-        skill_ = null;
-        if (skillBuilder_ != null) {
-          skillBuilder_.dispose();
-          skillBuilder_ = null;
-        }
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_CreateNamespaceSkillRequest_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.CreateNamespaceSkillRequest getDefaultInstanceForType() {
-        return talon.gateway.Gateway.CreateNamespaceSkillRequest.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.CreateNamespaceSkillRequest build() {
-        talon.gateway.Gateway.CreateNamespaceSkillRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.CreateNamespaceSkillRequest buildPartial() {
-        talon.gateway.Gateway.CreateNamespaceSkillRequest result = new talon.gateway.Gateway.CreateNamespaceSkillRequest(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.CreateNamespaceSkillRequest result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.ns_ = ns_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.skill_ = skillBuilder_ == null
-              ? skill_
-              : skillBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.CreateNamespaceSkillRequest) {
-          return mergeFrom((talon.gateway.Gateway.CreateNamespaceSkillRequest)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.CreateNamespaceSkillRequest other) {
-        if (other == talon.gateway.Gateway.CreateNamespaceSkillRequest.getDefaultInstance()) return this;
-        if (!other.getNs().isEmpty()) {
-          ns_ = other.ns_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (other.hasSkill()) {
-          mergeSkill(other.getSkill());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                ns_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                input.readMessage(
-                    internalGetSkillFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object ns_ = "";
-      /**
-       * <code>string ns = 1;</code>
-       * @return The ns.
-       */
-      public java.lang.String getNs() {
-        java.lang.Object ref = ns_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          ns_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return The bytes for ns.
-       */
-      public com.google.protobuf.ByteString
-          getNsBytes() {
-        java.lang.Object ref = ns_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          ns_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNs(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNs() {
-        ns_ = getDefaultInstance().getNs();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The bytes for ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private talon.manifests.Manifests.Skill skill_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder> skillBuilder_;
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       * @return Whether the skill field is set.
-       */
-      public boolean hasSkill() {
-        return ((bitField0_ & 0x00000002) != 0);
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       * @return The skill.
-       */
-      public talon.manifests.Manifests.Skill getSkill() {
-        if (skillBuilder_ == null) {
-          return skill_ == null ? talon.manifests.Manifests.Skill.getDefaultInstance() : skill_;
-        } else {
-          return skillBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       */
-      public Builder setSkill(talon.manifests.Manifests.Skill value) {
-        if (skillBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          skill_ = value;
-        } else {
-          skillBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       */
-      public Builder setSkill(
-          talon.manifests.Manifests.Skill.Builder builderForValue) {
-        if (skillBuilder_ == null) {
-          skill_ = builderForValue.build();
-        } else {
-          skillBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       */
-      public Builder mergeSkill(talon.manifests.Manifests.Skill value) {
-        if (skillBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) != 0) &&
-            skill_ != null &&
-            skill_ != talon.manifests.Manifests.Skill.getDefaultInstance()) {
-            getSkillBuilder().mergeFrom(value);
-          } else {
-            skill_ = value;
-          }
-        } else {
-          skillBuilder_.mergeFrom(value);
-        }
-        if (skill_ != null) {
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       */
-      public Builder clearSkill() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        skill_ = null;
-        if (skillBuilder_ != null) {
-          skillBuilder_.dispose();
-          skillBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       */
-      public talon.manifests.Manifests.Skill.Builder getSkillBuilder() {
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return internalGetSkillFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       */
-      public talon.manifests.Manifests.SkillOrBuilder getSkillOrBuilder() {
-        if (skillBuilder_ != null) {
-          return skillBuilder_.getMessageOrBuilder();
-        } else {
-          return skill_ == null ?
-              talon.manifests.Manifests.Skill.getDefaultInstance() : skill_;
-        }
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 2;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder>
-          internalGetSkillFieldBuilder() {
-        if (skillBuilder_ == null) {
-          skillBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder>(
-                  getSkill(),
-                  getParentForChildren(),
-                  isClean());
-          skill_ = null;
-        }
-        return skillBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.CreateNamespaceSkillRequest)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.CreateNamespaceSkillRequest)
-    private static final talon.gateway.Gateway.CreateNamespaceSkillRequest DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.CreateNamespaceSkillRequest();
-    }
-
-    public static talon.gateway.Gateway.CreateNamespaceSkillRequest getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<CreateNamespaceSkillRequest>
-        PARSER = new com.google.protobuf.AbstractParser<CreateNamespaceSkillRequest>() {
-      @java.lang.Override
-      public CreateNamespaceSkillRequest parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<CreateNamespaceSkillRequest> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<CreateNamespaceSkillRequest> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.CreateNamespaceSkillRequest getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface GetNamespaceSkillRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.GetNamespaceSkillRequest)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    java.lang.String getNs();
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    com.google.protobuf.ByteString
-        getNsBytes();
-
-    /**
-     * <code>string name = 2;</code>
-     * @return The name.
-     */
-    java.lang.String getName();
-    /**
-     * <code>string name = 2;</code>
-     * @return The bytes for name.
-     */
-    com.google.protobuf.ByteString
-        getNameBytes();
-  }
-  /**
-   * Protobuf type {@code talon.gateway.GetNamespaceSkillRequest}
-   */
-  public static final class GetNamespaceSkillRequest extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.GetNamespaceSkillRequest)
-      GetNamespaceSkillRequestOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "GetNamespaceSkillRequest");
-    }
-    // Use GetNamespaceSkillRequest.newBuilder() to construct.
-    private GetNamespaceSkillRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private GetNamespaceSkillRequest() {
-      ns_ = "";
-      name_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_GetNamespaceSkillRequest_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_GetNamespaceSkillRequest_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_GetNamespaceSkillRequest_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.GetNamespaceSkillRequest.class, talon.gateway.Gateway.GetNamespaceSkillRequest.Builder.class);
-    }
-
-    public static final int NS_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object ns_ = "";
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    @java.lang.Override
-    public java.lang.String getNs() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        ns_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNsBytes() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        ns_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int NAME_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object name_ = "";
-    /**
-     * <code>string name = 2;</code>
-     * @return The name.
-     */
-    @java.lang.Override
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        name_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string name = 2;</code>
-     * @return The bytes for name.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        name_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, name_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, name_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.GetNamespaceSkillRequest)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.GetNamespaceSkillRequest other = (talon.gateway.Gateway.GetNamespaceSkillRequest) obj;
-
-      if (!getNs()
-          .equals(other.getNs())) return false;
-      if (!getName()
-          .equals(other.getName())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NS_FIELD_NUMBER;
-      hash = (53 * hash) + getNs().hashCode();
-      hash = (37 * hash) + NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getName().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.GetNamespaceSkillRequest prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.GetNamespaceSkillRequest}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.GetNamespaceSkillRequest)
-        talon.gateway.Gateway.GetNamespaceSkillRequestOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_GetNamespaceSkillRequest_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_GetNamespaceSkillRequest_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.GetNamespaceSkillRequest.class, talon.gateway.Gateway.GetNamespaceSkillRequest.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.GetNamespaceSkillRequest.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        ns_ = "";
-        name_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_GetNamespaceSkillRequest_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.GetNamespaceSkillRequest getDefaultInstanceForType() {
-        return talon.gateway.Gateway.GetNamespaceSkillRequest.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.GetNamespaceSkillRequest build() {
-        talon.gateway.Gateway.GetNamespaceSkillRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.GetNamespaceSkillRequest buildPartial() {
-        talon.gateway.Gateway.GetNamespaceSkillRequest result = new talon.gateway.Gateway.GetNamespaceSkillRequest(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.GetNamespaceSkillRequest result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.ns_ = ns_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.name_ = name_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.GetNamespaceSkillRequest) {
-          return mergeFrom((talon.gateway.Gateway.GetNamespaceSkillRequest)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.GetNamespaceSkillRequest other) {
-        if (other == talon.gateway.Gateway.GetNamespaceSkillRequest.getDefaultInstance()) return this;
-        if (!other.getNs().isEmpty()) {
-          ns_ = other.ns_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getName().isEmpty()) {
-          name_ = other.name_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                ns_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                name_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object ns_ = "";
-      /**
-       * <code>string ns = 1;</code>
-       * @return The ns.
-       */
-      public java.lang.String getNs() {
-        java.lang.Object ref = ns_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          ns_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return The bytes for ns.
-       */
-      public com.google.protobuf.ByteString
-          getNsBytes() {
-        java.lang.Object ref = ns_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          ns_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNs(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNs() {
-        ns_ = getDefaultInstance().getNs();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The bytes for ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object name_ = "";
-      /**
-       * <code>string name = 2;</code>
-       * @return The name.
-       */
-      public java.lang.String getName() {
-        java.lang.Object ref = name_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          name_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string name = 2;</code>
-       * @return The bytes for name.
-       */
-      public com.google.protobuf.ByteString
-          getNameBytes() {
-        java.lang.Object ref = name_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          name_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string name = 2;</code>
-       * @param value The name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        name_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string name = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearName() {
-        name_ = getDefaultInstance().getName();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string name = 2;</code>
-       * @param value The bytes for name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        name_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.GetNamespaceSkillRequest)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.GetNamespaceSkillRequest)
-    private static final talon.gateway.Gateway.GetNamespaceSkillRequest DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.GetNamespaceSkillRequest();
-    }
-
-    public static talon.gateway.Gateway.GetNamespaceSkillRequest getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<GetNamespaceSkillRequest>
-        PARSER = new com.google.protobuf.AbstractParser<GetNamespaceSkillRequest>() {
-      @java.lang.Override
-      public GetNamespaceSkillRequest parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<GetNamespaceSkillRequest> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<GetNamespaceSkillRequest> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.GetNamespaceSkillRequest getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ListNamespaceSkillsRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.ListNamespaceSkillsRequest)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    java.lang.String getNs();
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    com.google.protobuf.ByteString
-        getNsBytes();
-  }
-  /**
-   * Protobuf type {@code talon.gateway.ListNamespaceSkillsRequest}
-   */
-  public static final class ListNamespaceSkillsRequest extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.ListNamespaceSkillsRequest)
-      ListNamespaceSkillsRequestOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ListNamespaceSkillsRequest");
-    }
-    // Use ListNamespaceSkillsRequest.newBuilder() to construct.
-    private ListNamespaceSkillsRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ListNamespaceSkillsRequest() {
-      ns_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsRequest_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsRequest_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsRequest_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.ListNamespaceSkillsRequest.class, talon.gateway.Gateway.ListNamespaceSkillsRequest.Builder.class);
-    }
-
-    public static final int NS_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object ns_ = "";
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    @java.lang.Override
-    public java.lang.String getNs() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        ns_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNsBytes() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        ns_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.ListNamespaceSkillsRequest)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.ListNamespaceSkillsRequest other = (talon.gateway.Gateway.ListNamespaceSkillsRequest) obj;
-
-      if (!getNs()
-          .equals(other.getNs())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NS_FIELD_NUMBER;
-      hash = (53 * hash) + getNs().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.ListNamespaceSkillsRequest prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.ListNamespaceSkillsRequest}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.ListNamespaceSkillsRequest)
-        talon.gateway.Gateway.ListNamespaceSkillsRequestOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsRequest_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsRequest_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.ListNamespaceSkillsRequest.class, talon.gateway.Gateway.ListNamespaceSkillsRequest.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.ListNamespaceSkillsRequest.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        ns_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsRequest_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListNamespaceSkillsRequest getDefaultInstanceForType() {
-        return talon.gateway.Gateway.ListNamespaceSkillsRequest.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListNamespaceSkillsRequest build() {
-        talon.gateway.Gateway.ListNamespaceSkillsRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListNamespaceSkillsRequest buildPartial() {
-        talon.gateway.Gateway.ListNamespaceSkillsRequest result = new talon.gateway.Gateway.ListNamespaceSkillsRequest(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.ListNamespaceSkillsRequest result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.ns_ = ns_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.ListNamespaceSkillsRequest) {
-          return mergeFrom((talon.gateway.Gateway.ListNamespaceSkillsRequest)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.ListNamespaceSkillsRequest other) {
-        if (other == talon.gateway.Gateway.ListNamespaceSkillsRequest.getDefaultInstance()) return this;
-        if (!other.getNs().isEmpty()) {
-          ns_ = other.ns_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                ns_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object ns_ = "";
-      /**
-       * <code>string ns = 1;</code>
-       * @return The ns.
-       */
-      public java.lang.String getNs() {
-        java.lang.Object ref = ns_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          ns_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return The bytes for ns.
-       */
-      public com.google.protobuf.ByteString
-          getNsBytes() {
-        java.lang.Object ref = ns_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          ns_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNs(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNs() {
-        ns_ = getDefaultInstance().getNs();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The bytes for ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.ListNamespaceSkillsRequest)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.ListNamespaceSkillsRequest)
-    private static final talon.gateway.Gateway.ListNamespaceSkillsRequest DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.ListNamespaceSkillsRequest();
-    }
-
-    public static talon.gateway.Gateway.ListNamespaceSkillsRequest getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ListNamespaceSkillsRequest>
-        PARSER = new com.google.protobuf.AbstractParser<ListNamespaceSkillsRequest>() {
-      @java.lang.Override
-      public ListNamespaceSkillsRequest parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ListNamespaceSkillsRequest> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ListNamespaceSkillsRequest> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.ListNamespaceSkillsRequest getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface DeleteNamespaceSkillRequestOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.DeleteNamespaceSkillRequest)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    java.lang.String getNs();
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    com.google.protobuf.ByteString
-        getNsBytes();
-
-    /**
-     * <code>string name = 2;</code>
-     * @return The name.
-     */
-    java.lang.String getName();
-    /**
-     * <code>string name = 2;</code>
-     * @return The bytes for name.
-     */
-    com.google.protobuf.ByteString
-        getNameBytes();
-  }
-  /**
-   * Protobuf type {@code talon.gateway.DeleteNamespaceSkillRequest}
-   */
-  public static final class DeleteNamespaceSkillRequest extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.DeleteNamespaceSkillRequest)
-      DeleteNamespaceSkillRequestOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "DeleteNamespaceSkillRequest");
-    }
-    // Use DeleteNamespaceSkillRequest.newBuilder() to construct.
-    private DeleteNamespaceSkillRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private DeleteNamespaceSkillRequest() {
-      ns_ = "";
-      name_ = "";
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillRequest_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillRequest_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillRequest_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.DeleteNamespaceSkillRequest.class, talon.gateway.Gateway.DeleteNamespaceSkillRequest.Builder.class);
-    }
-
-    public static final int NS_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object ns_ = "";
-    /**
-     * <code>string ns = 1;</code>
-     * @return The ns.
-     */
-    @java.lang.Override
-    public java.lang.String getNs() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        ns_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string ns = 1;</code>
-     * @return The bytes for ns.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNsBytes() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        ns_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int NAME_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object name_ = "";
-    /**
-     * <code>string name = 2;</code>
-     * @return The name.
-     */
-    @java.lang.Override
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        name_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string name = 2;</code>
-     * @return The bytes for name.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        name_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, name_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, ns_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, name_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.DeleteNamespaceSkillRequest)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.DeleteNamespaceSkillRequest other = (talon.gateway.Gateway.DeleteNamespaceSkillRequest) obj;
-
-      if (!getNs()
-          .equals(other.getNs())) return false;
-      if (!getName()
-          .equals(other.getName())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NS_FIELD_NUMBER;
-      hash = (53 * hash) + getNs().hashCode();
-      hash = (37 * hash) + NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getName().hashCode();
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.DeleteNamespaceSkillRequest prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.DeleteNamespaceSkillRequest}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.DeleteNamespaceSkillRequest)
-        talon.gateway.Gateway.DeleteNamespaceSkillRequestOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillRequest_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillRequest_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.DeleteNamespaceSkillRequest.class, talon.gateway.Gateway.DeleteNamespaceSkillRequest.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.DeleteNamespaceSkillRequest.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        ns_ = "";
-        name_ = "";
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillRequest_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.DeleteNamespaceSkillRequest getDefaultInstanceForType() {
-        return talon.gateway.Gateway.DeleteNamespaceSkillRequest.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.DeleteNamespaceSkillRequest build() {
-        talon.gateway.Gateway.DeleteNamespaceSkillRequest result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.DeleteNamespaceSkillRequest buildPartial() {
-        talon.gateway.Gateway.DeleteNamespaceSkillRequest result = new talon.gateway.Gateway.DeleteNamespaceSkillRequest(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.DeleteNamespaceSkillRequest result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.ns_ = ns_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.name_ = name_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.DeleteNamespaceSkillRequest) {
-          return mergeFrom((talon.gateway.Gateway.DeleteNamespaceSkillRequest)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.DeleteNamespaceSkillRequest other) {
-        if (other == talon.gateway.Gateway.DeleteNamespaceSkillRequest.getDefaultInstance()) return this;
-        if (!other.getNs().isEmpty()) {
-          ns_ = other.ns_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getName().isEmpty()) {
-          name_ = other.name_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                ns_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              case 18: {
-                name_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.lang.Object ns_ = "";
-      /**
-       * <code>string ns = 1;</code>
-       * @return The ns.
-       */
-      public java.lang.String getNs() {
-        java.lang.Object ref = ns_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          ns_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return The bytes for ns.
-       */
-      public com.google.protobuf.ByteString
-          getNsBytes() {
-        java.lang.Object ref = ns_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          ns_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNs(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNs() {
-        ns_ = getDefaultInstance().getNs();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 1;</code>
-       * @param value The bytes for ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ns_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object name_ = "";
-      /**
-       * <code>string name = 2;</code>
-       * @return The name.
-       */
-      public java.lang.String getName() {
-        java.lang.Object ref = name_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          name_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string name = 2;</code>
-       * @return The bytes for name.
-       */
-      public com.google.protobuf.ByteString
-          getNameBytes() {
-        java.lang.Object ref = name_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          name_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string name = 2;</code>
-       * @param value The name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        name_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string name = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearName() {
-        name_ = getDefaultInstance().getName();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string name = 2;</code>
-       * @param value The bytes for name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        name_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.DeleteNamespaceSkillRequest)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.DeleteNamespaceSkillRequest)
-    private static final talon.gateway.Gateway.DeleteNamespaceSkillRequest DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.DeleteNamespaceSkillRequest();
-    }
-
-    public static talon.gateway.Gateway.DeleteNamespaceSkillRequest getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<DeleteNamespaceSkillRequest>
-        PARSER = new com.google.protobuf.AbstractParser<DeleteNamespaceSkillRequest>() {
-      @java.lang.Override
-      public DeleteNamespaceSkillRequest parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<DeleteNamespaceSkillRequest> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<DeleteNamespaceSkillRequest> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.DeleteNamespaceSkillRequest getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface DeleteNamespaceSkillResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.DeleteNamespaceSkillResponse)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>bool success = 1;</code>
-     * @return The success.
-     */
-    boolean getSuccess();
-  }
-  /**
-   * Protobuf type {@code talon.gateway.DeleteNamespaceSkillResponse}
-   */
-  public static final class DeleteNamespaceSkillResponse extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.DeleteNamespaceSkillResponse)
-      DeleteNamespaceSkillResponseOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "DeleteNamespaceSkillResponse");
-    }
-    // Use DeleteNamespaceSkillResponse.newBuilder() to construct.
-    private DeleteNamespaceSkillResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private DeleteNamespaceSkillResponse() {
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillResponse_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillResponse_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillResponse_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.DeleteNamespaceSkillResponse.class, talon.gateway.Gateway.DeleteNamespaceSkillResponse.Builder.class);
-    }
-
-    public static final int SUCCESS_FIELD_NUMBER = 1;
-    private boolean success_ = false;
-    /**
-     * <code>bool success = 1;</code>
-     * @return The success.
-     */
-    @java.lang.Override
-    public boolean getSuccess() {
-      return success_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (success_ != false) {
-        output.writeBool(1, success_);
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (success_ != false) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(1, success_);
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.DeleteNamespaceSkillResponse)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.DeleteNamespaceSkillResponse other = (talon.gateway.Gateway.DeleteNamespaceSkillResponse) obj;
-
-      if (getSuccess()
-          != other.getSuccess()) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + SUCCESS_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getSuccess());
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.DeleteNamespaceSkillResponse prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.DeleteNamespaceSkillResponse}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.DeleteNamespaceSkillResponse)
-        talon.gateway.Gateway.DeleteNamespaceSkillResponseOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillResponse_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillResponse_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.DeleteNamespaceSkillResponse.class, talon.gateway.Gateway.DeleteNamespaceSkillResponse.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.DeleteNamespaceSkillResponse.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        success_ = false;
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_DeleteNamespaceSkillResponse_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.DeleteNamespaceSkillResponse getDefaultInstanceForType() {
-        return talon.gateway.Gateway.DeleteNamespaceSkillResponse.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.DeleteNamespaceSkillResponse build() {
-        talon.gateway.Gateway.DeleteNamespaceSkillResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.DeleteNamespaceSkillResponse buildPartial() {
-        talon.gateway.Gateway.DeleteNamespaceSkillResponse result = new talon.gateway.Gateway.DeleteNamespaceSkillResponse(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.DeleteNamespaceSkillResponse result) {
-        int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.success_ = success_;
-        }
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.DeleteNamespaceSkillResponse) {
-          return mergeFrom((talon.gateway.Gateway.DeleteNamespaceSkillResponse)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.DeleteNamespaceSkillResponse other) {
-        if (other == talon.gateway.Gateway.DeleteNamespaceSkillResponse.getDefaultInstance()) return this;
-        if (other.getSuccess() != false) {
-          setSuccess(other.getSuccess());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 8: {
-                success_ = input.readBool();
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 8
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private boolean success_ ;
-      /**
-       * <code>bool success = 1;</code>
-       * @return The success.
-       */
-      @java.lang.Override
-      public boolean getSuccess() {
-        return success_;
-      }
-      /**
-       * <code>bool success = 1;</code>
-       * @param value The success to set.
-       * @return This builder for chaining.
-       */
-      public Builder setSuccess(boolean value) {
-
-        success_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>bool success = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearSuccess() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        success_ = false;
-        onChanged();
-        return this;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.DeleteNamespaceSkillResponse)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.DeleteNamespaceSkillResponse)
-    private static final talon.gateway.Gateway.DeleteNamespaceSkillResponse DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.DeleteNamespaceSkillResponse();
-    }
-
-    public static talon.gateway.Gateway.DeleteNamespaceSkillResponse getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<DeleteNamespaceSkillResponse>
-        PARSER = new com.google.protobuf.AbstractParser<DeleteNamespaceSkillResponse>() {
-      @java.lang.Override
-      public DeleteNamespaceSkillResponse parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<DeleteNamespaceSkillResponse> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<DeleteNamespaceSkillResponse> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.DeleteNamespaceSkillResponse getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface NamespaceSkillResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.NamespaceSkillResponse)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>.talon.manifests.Skill skill = 1;</code>
-     * @return Whether the skill field is set.
-     */
-    boolean hasSkill();
-    /**
-     * <code>.talon.manifests.Skill skill = 1;</code>
-     * @return The skill.
-     */
-    talon.manifests.Manifests.Skill getSkill();
-    /**
-     * <code>.talon.manifests.Skill skill = 1;</code>
-     */
-    talon.manifests.Manifests.SkillOrBuilder getSkillOrBuilder();
-  }
-  /**
-   * Protobuf type {@code talon.gateway.NamespaceSkillResponse}
-   */
-  public static final class NamespaceSkillResponse extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.NamespaceSkillResponse)
-      NamespaceSkillResponseOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "NamespaceSkillResponse");
-    }
-    // Use NamespaceSkillResponse.newBuilder() to construct.
-    private NamespaceSkillResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private NamespaceSkillResponse() {
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_NamespaceSkillResponse_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_NamespaceSkillResponse_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_NamespaceSkillResponse_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.NamespaceSkillResponse.class, talon.gateway.Gateway.NamespaceSkillResponse.Builder.class);
-    }
-
-    private int bitField0_;
-    public static final int SKILL_FIELD_NUMBER = 1;
-    private talon.manifests.Manifests.Skill skill_;
-    /**
-     * <code>.talon.manifests.Skill skill = 1;</code>
-     * @return Whether the skill field is set.
-     */
-    @java.lang.Override
-    public boolean hasSkill() {
-      return ((bitField0_ & 0x00000001) != 0);
-    }
-    /**
-     * <code>.talon.manifests.Skill skill = 1;</code>
-     * @return The skill.
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.Skill getSkill() {
-      return skill_ == null ? talon.manifests.Manifests.Skill.getDefaultInstance() : skill_;
-    }
-    /**
-     * <code>.talon.manifests.Skill skill = 1;</code>
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.SkillOrBuilder getSkillOrBuilder() {
-      return skill_ == null ? talon.manifests.Manifests.Skill.getDefaultInstance() : skill_;
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(1, getSkill());
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-      if (((bitField0_ & 0x00000001) != 0)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getSkill());
-      }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.NamespaceSkillResponse)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.NamespaceSkillResponse other = (talon.gateway.Gateway.NamespaceSkillResponse) obj;
-
-      if (hasSkill() != other.hasSkill()) return false;
-      if (hasSkill()) {
-        if (!getSkill()
-            .equals(other.getSkill())) return false;
-      }
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasSkill()) {
-        hash = (37 * hash) + SKILL_FIELD_NUMBER;
-        hash = (53 * hash) + getSkill().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.NamespaceSkillResponse parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.NamespaceSkillResponse prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.NamespaceSkillResponse}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.NamespaceSkillResponse)
-        talon.gateway.Gateway.NamespaceSkillResponseOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_NamespaceSkillResponse_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_NamespaceSkillResponse_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.NamespaceSkillResponse.class, talon.gateway.Gateway.NamespaceSkillResponse.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.NamespaceSkillResponse.newBuilder()
-      private Builder() {
-        maybeForceBuilderInitialization();
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-        maybeForceBuilderInitialization();
-      }
-      private void maybeForceBuilderInitialization() {
-        if (com.google.protobuf.GeneratedMessage
-                .alwaysUseFieldBuilders) {
-          internalGetSkillFieldBuilder();
-        }
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        skill_ = null;
-        if (skillBuilder_ != null) {
-          skillBuilder_.dispose();
-          skillBuilder_ = null;
-        }
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_NamespaceSkillResponse_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.NamespaceSkillResponse getDefaultInstanceForType() {
-        return talon.gateway.Gateway.NamespaceSkillResponse.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.NamespaceSkillResponse build() {
-        talon.gateway.Gateway.NamespaceSkillResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.NamespaceSkillResponse buildPartial() {
-        talon.gateway.Gateway.NamespaceSkillResponse result = new talon.gateway.Gateway.NamespaceSkillResponse(this);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.NamespaceSkillResponse result) {
-        int from_bitField0_ = bitField0_;
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.skill_ = skillBuilder_ == null
-              ? skill_
-              : skillBuilder_.build();
-          to_bitField0_ |= 0x00000001;
-        }
-        result.bitField0_ |= to_bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.NamespaceSkillResponse) {
-          return mergeFrom((talon.gateway.Gateway.NamespaceSkillResponse)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.NamespaceSkillResponse other) {
-        if (other == talon.gateway.Gateway.NamespaceSkillResponse.getDefaultInstance()) return this;
-        if (other.hasSkill()) {
-          mergeSkill(other.getSkill());
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                input.readMessage(
-                    internalGetSkillFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000001;
-                break;
-              } // case 10
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private talon.manifests.Manifests.Skill skill_;
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder> skillBuilder_;
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       * @return Whether the skill field is set.
-       */
-      public boolean hasSkill() {
-        return ((bitField0_ & 0x00000001) != 0);
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       * @return The skill.
-       */
-      public talon.manifests.Manifests.Skill getSkill() {
-        if (skillBuilder_ == null) {
-          return skill_ == null ? talon.manifests.Manifests.Skill.getDefaultInstance() : skill_;
-        } else {
-          return skillBuilder_.getMessage();
-        }
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       */
-      public Builder setSkill(talon.manifests.Manifests.Skill value) {
-        if (skillBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          skill_ = value;
-        } else {
-          skillBuilder_.setMessage(value);
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       */
-      public Builder setSkill(
-          talon.manifests.Manifests.Skill.Builder builderForValue) {
-        if (skillBuilder_ == null) {
-          skill_ = builderForValue.build();
-        } else {
-          skillBuilder_.setMessage(builderForValue.build());
-        }
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       */
-      public Builder mergeSkill(talon.manifests.Manifests.Skill value) {
-        if (skillBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0) &&
-            skill_ != null &&
-            skill_ != talon.manifests.Manifests.Skill.getDefaultInstance()) {
-            getSkillBuilder().mergeFrom(value);
-          } else {
-            skill_ = value;
-          }
-        } else {
-          skillBuilder_.mergeFrom(value);
-        }
-        if (skill_ != null) {
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       */
-      public Builder clearSkill() {
-        bitField0_ = (bitField0_ & ~0x00000001);
-        skill_ = null;
-        if (skillBuilder_ != null) {
-          skillBuilder_.dispose();
-          skillBuilder_ = null;
-        }
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       */
-      public talon.manifests.Manifests.Skill.Builder getSkillBuilder() {
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return internalGetSkillFieldBuilder().getBuilder();
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       */
-      public talon.manifests.Manifests.SkillOrBuilder getSkillOrBuilder() {
-        if (skillBuilder_ != null) {
-          return skillBuilder_.getMessageOrBuilder();
-        } else {
-          return skill_ == null ?
-              talon.manifests.Manifests.Skill.getDefaultInstance() : skill_;
-        }
-      }
-      /**
-       * <code>.talon.manifests.Skill skill = 1;</code>
-       */
-      private com.google.protobuf.SingleFieldBuilder<
-          talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder>
-          internalGetSkillFieldBuilder() {
-        if (skillBuilder_ == null) {
-          skillBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder>(
-                  getSkill(),
-                  getParentForChildren(),
-                  isClean());
-          skill_ = null;
-        }
-        return skillBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.NamespaceSkillResponse)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.NamespaceSkillResponse)
-    private static final talon.gateway.Gateway.NamespaceSkillResponse DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.NamespaceSkillResponse();
-    }
-
-    public static talon.gateway.Gateway.NamespaceSkillResponse getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<NamespaceSkillResponse>
-        PARSER = new com.google.protobuf.AbstractParser<NamespaceSkillResponse>() {
-      @java.lang.Override
-      public NamespaceSkillResponse parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<NamespaceSkillResponse> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<NamespaceSkillResponse> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.NamespaceSkillResponse getDefaultInstanceForType() {
-      return DEFAULT_INSTANCE;
-    }
-
-  }
-
-  public interface ListNamespaceSkillsResponseOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:talon.gateway.ListNamespaceSkillsResponse)
-      com.google.protobuf.MessageOrBuilder {
-
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    java.util.List<talon.manifests.Manifests.Skill>
-        getSkillsList();
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    talon.manifests.Manifests.Skill getSkills(int index);
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    int getSkillsCount();
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    java.util.List<? extends talon.manifests.Manifests.SkillOrBuilder>
-        getSkillsOrBuilderList();
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    talon.manifests.Manifests.SkillOrBuilder getSkillsOrBuilder(
-        int index);
-  }
-  /**
-   * Protobuf type {@code talon.gateway.ListNamespaceSkillsResponse}
-   */
-  public static final class ListNamespaceSkillsResponse extends
-      com.google.protobuf.GeneratedMessage implements
-      // @@protoc_insertion_point(message_implements:talon.gateway.ListNamespaceSkillsResponse)
-      ListNamespaceSkillsResponseOrBuilder {
-  private static final long serialVersionUID = 0L;
-    static {
-      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
-        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
-        /* major= */ 4,
-        /* minor= */ 34,
-        /* patch= */ 1,
-        /* suffix= */ "",
-        "ListNamespaceSkillsResponse");
-    }
-    // Use ListNamespaceSkillsResponse.newBuilder() to construct.
-    private ListNamespaceSkillsResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
-      super(builder);
-    }
-    private ListNamespaceSkillsResponse() {
-      skills_ = java.util.Collections.emptyList();
-    }
-
-    public static final com.google.protobuf.Descriptors.Descriptor
-        getDescriptor() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsResponse_descriptor;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsResponse_descriptor;
-    }
-
-    @java.lang.Override
-    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-        internalGetFieldAccessorTable() {
-      return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsResponse_fieldAccessorTable
-          .ensureFieldAccessorsInitialized(
-              talon.gateway.Gateway.ListNamespaceSkillsResponse.class, talon.gateway.Gateway.ListNamespaceSkillsResponse.Builder.class);
-    }
-
-    public static final int SKILLS_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private java.util.List<talon.manifests.Manifests.Skill> skills_;
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    @java.lang.Override
-    public java.util.List<talon.manifests.Manifests.Skill> getSkillsList() {
-      return skills_;
-    }
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    @java.lang.Override
-    public java.util.List<? extends talon.manifests.Manifests.SkillOrBuilder>
-        getSkillsOrBuilderList() {
-      return skills_;
-    }
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    @java.lang.Override
-    public int getSkillsCount() {
-      return skills_.size();
-    }
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.Skill getSkills(int index) {
-      return skills_.get(index);
-    }
-    /**
-     * <code>repeated .talon.manifests.Skill skills = 1;</code>
-     */
-    @java.lang.Override
-    public talon.manifests.Manifests.SkillOrBuilder getSkillsOrBuilder(
-        int index) {
-      return skills_.get(index);
-    }
-
-    private byte memoizedIsInitialized = -1;
-    @java.lang.Override
-    public final boolean isInitialized() {
-      byte isInitialized = memoizedIsInitialized;
-      if (isInitialized == 1) return true;
-      if (isInitialized == 0) return false;
-
-      memoizedIsInitialized = 1;
-      return true;
-    }
-
-    @java.lang.Override
-    public void writeTo(com.google.protobuf.CodedOutputStream output)
-                        throws java.io.IOException {
-      for (int i = 0; i < skills_.size(); i++) {
-        output.writeMessage(1, skills_.get(i));
-      }
-      getUnknownFields().writeTo(output);
-    }
-
-    @java.lang.Override
-    public int getSerializedSize() {
-      int size = memoizedSize;
-      if (size != -1) return size;
-
-      size = 0;
-
-          {
-            final int count = skills_.size();
-            for (int i = 0; i < count; i++) {
-              size += com.google.protobuf.CodedOutputStream
-                .computeMessageSizeNoTag(skills_.get(i));
-            }
-            size += 1 * count;
-          }
-      size += getUnknownFields().getSerializedSize();
-      memoizedSize = size;
-      return size;
-    }
-
-    @java.lang.Override
-    public boolean equals(final java.lang.Object obj) {
-      if (obj == this) {
-       return true;
-      }
-      if (!(obj instanceof talon.gateway.Gateway.ListNamespaceSkillsResponse)) {
-        return super.equals(obj);
-      }
-      talon.gateway.Gateway.ListNamespaceSkillsResponse other = (talon.gateway.Gateway.ListNamespaceSkillsResponse) obj;
-
-      if (!getSkillsList()
-          .equals(other.getSkillsList())) return false;
-      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
-      return true;
-    }
-
-    @java.lang.Override
-    public int hashCode() {
-      if (memoizedHashCode != 0) {
-        return memoizedHashCode;
-      }
-      int hash = 41;
-      hash = (19 * hash) + getDescriptor().hashCode();
-      if (getSkillsCount() > 0) {
-        hash = (37 * hash) + SKILLS_FIELD_NUMBER;
-        hash = (53 * hash) + getSkillsList().hashCode();
-      }
-      hash = (29 * hash) + getUnknownFields().hashCode();
-      memoizedHashCode = hash;
-      return hash;
-    }
-
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(
-        java.nio.ByteBuffer data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(
-        java.nio.ByteBuffer data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(
-        com.google.protobuf.ByteString data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(
-        com.google.protobuf.ByteString data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(byte[] data)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(
-        byte[] data,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws com.google.protobuf.InvalidProtocolBufferException {
-      return PARSER.parseFrom(data, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseDelimitedFrom(java.io.InputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input);
-    }
-
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseDelimitedFrom(
-        java.io.InputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(
-        com.google.protobuf.CodedInputStream input)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input);
-    }
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse parseFrom(
-        com.google.protobuf.CodedInputStream input,
-        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-        throws java.io.IOException {
-      return com.google.protobuf.GeneratedMessage
-          .parseWithIOException(PARSER, input, extensionRegistry);
-    }
-
-    @java.lang.Override
-    public Builder newBuilderForType() { return newBuilder(); }
-    public static Builder newBuilder() {
-      return DEFAULT_INSTANCE.toBuilder();
-    }
-    public static Builder newBuilder(talon.gateway.Gateway.ListNamespaceSkillsResponse prototype) {
-      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
-    }
-    @java.lang.Override
-    public Builder toBuilder() {
-      return this == DEFAULT_INSTANCE
-          ? new Builder() : new Builder().mergeFrom(this);
-    }
-
-    @java.lang.Override
-    protected Builder newBuilderForType(
-        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-      Builder builder = new Builder(parent);
-      return builder;
-    }
-    /**
-     * Protobuf type {@code talon.gateway.ListNamespaceSkillsResponse}
-     */
-    public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
-        // @@protoc_insertion_point(builder_implements:talon.gateway.ListNamespaceSkillsResponse)
-        talon.gateway.Gateway.ListNamespaceSkillsResponseOrBuilder {
-      public static final com.google.protobuf.Descriptors.Descriptor
-          getDescriptor() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsResponse_descriptor;
-      }
-
-      @java.lang.Override
-      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
-          internalGetFieldAccessorTable() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsResponse_fieldAccessorTable
-            .ensureFieldAccessorsInitialized(
-                talon.gateway.Gateway.ListNamespaceSkillsResponse.class, talon.gateway.Gateway.ListNamespaceSkillsResponse.Builder.class);
-      }
-
-      // Construct using talon.gateway.Gateway.ListNamespaceSkillsResponse.newBuilder()
-      private Builder() {
-
-      }
-
-      private Builder(
-          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
-        super(parent);
-
-      }
-      @java.lang.Override
-      public Builder clear() {
-        super.clear();
-        bitField0_ = 0;
-        if (skillsBuilder_ == null) {
-          skills_ = java.util.Collections.emptyList();
-        } else {
-          skills_ = null;
-          skillsBuilder_.clear();
-        }
-        bitField0_ = (bitField0_ & ~0x00000001);
-        return this;
-      }
-
-      @java.lang.Override
-      public com.google.protobuf.Descriptors.Descriptor
-          getDescriptorForType() {
-        return talon.gateway.Gateway.internal_static_talon_gateway_ListNamespaceSkillsResponse_descriptor;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListNamespaceSkillsResponse getDefaultInstanceForType() {
-        return talon.gateway.Gateway.ListNamespaceSkillsResponse.getDefaultInstance();
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListNamespaceSkillsResponse build() {
-        talon.gateway.Gateway.ListNamespaceSkillsResponse result = buildPartial();
-        if (!result.isInitialized()) {
-          throw newUninitializedMessageException(result);
-        }
-        return result;
-      }
-
-      @java.lang.Override
-      public talon.gateway.Gateway.ListNamespaceSkillsResponse buildPartial() {
-        talon.gateway.Gateway.ListNamespaceSkillsResponse result = new talon.gateway.Gateway.ListNamespaceSkillsResponse(this);
-        buildPartialRepeatedFields(result);
-        if (bitField0_ != 0) { buildPartial0(result); }
-        onBuilt();
-        return result;
-      }
-
-      private void buildPartialRepeatedFields(talon.gateway.Gateway.ListNamespaceSkillsResponse result) {
-        if (skillsBuilder_ == null) {
-          if (((bitField0_ & 0x00000001) != 0)) {
-            skills_ = java.util.Collections.unmodifiableList(skills_);
-            bitField0_ = (bitField0_ & ~0x00000001);
-          }
-          result.skills_ = skills_;
-        } else {
-          result.skills_ = skillsBuilder_.build();
-        }
-      }
-
-      private void buildPartial0(talon.gateway.Gateway.ListNamespaceSkillsResponse result) {
-        int from_bitField0_ = bitField0_;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(com.google.protobuf.Message other) {
-        if (other instanceof talon.gateway.Gateway.ListNamespaceSkillsResponse) {
-          return mergeFrom((talon.gateway.Gateway.ListNamespaceSkillsResponse)other);
-        } else {
-          super.mergeFrom(other);
-          return this;
-        }
-      }
-
-      public Builder mergeFrom(talon.gateway.Gateway.ListNamespaceSkillsResponse other) {
-        if (other == talon.gateway.Gateway.ListNamespaceSkillsResponse.getDefaultInstance()) return this;
-        if (skillsBuilder_ == null) {
-          if (!other.skills_.isEmpty()) {
-            if (skills_.isEmpty()) {
-              skills_ = other.skills_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-            } else {
-              ensureSkillsIsMutable();
-              skills_.addAll(other.skills_);
-            }
-            onChanged();
-          }
-        } else {
-          if (!other.skills_.isEmpty()) {
-            if (skillsBuilder_.isEmpty()) {
-              skillsBuilder_.dispose();
-              skillsBuilder_ = null;
-              skills_ = other.skills_;
-              bitField0_ = (bitField0_ & ~0x00000001);
-              skillsBuilder_ =
-                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
-                   internalGetSkillsFieldBuilder() : null;
-            } else {
-              skillsBuilder_.addAllMessages(other.skills_);
-            }
-          }
-        }
-        this.mergeUnknownFields(other.getUnknownFields());
-        onChanged();
-        return this;
-      }
-
-      @java.lang.Override
-      public final boolean isInitialized() {
-        return true;
-      }
-
-      @java.lang.Override
-      public Builder mergeFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws java.io.IOException {
-        if (extensionRegistry == null) {
-          throw new java.lang.NullPointerException();
-        }
-        try {
-          boolean done = false;
-          while (!done) {
-            int tag = input.readTag();
-            switch (tag) {
-              case 0:
-                done = true;
-                break;
-              case 10: {
-                talon.manifests.Manifests.Skill m =
-                    input.readMessage(
-                        talon.manifests.Manifests.Skill.parser(),
-                        extensionRegistry);
-                if (skillsBuilder_ == null) {
-                  ensureSkillsIsMutable();
-                  skills_.add(m);
-                } else {
-                  skillsBuilder_.addMessage(m);
-                }
-                break;
-              } // case 10
-              default: {
-                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
-                  done = true; // was an endgroup tag
-                }
-                break;
-              } // default:
-            } // switch (tag)
-          } // while (!done)
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.unwrapIOException();
-        } finally {
-          onChanged();
-        } // finally
-        return this;
-      }
-      private int bitField0_;
-
-      private java.util.List<talon.manifests.Manifests.Skill> skills_ =
-        java.util.Collections.emptyList();
-      private void ensureSkillsIsMutable() {
-        if (!((bitField0_ & 0x00000001) != 0)) {
-          skills_ = new java.util.ArrayList<talon.manifests.Manifests.Skill>(skills_);
-          bitField0_ |= 0x00000001;
-         }
-      }
-
-      private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder> skillsBuilder_;
-
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public java.util.List<talon.manifests.Manifests.Skill> getSkillsList() {
-        if (skillsBuilder_ == null) {
-          return java.util.Collections.unmodifiableList(skills_);
-        } else {
-          return skillsBuilder_.getMessageList();
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public int getSkillsCount() {
-        if (skillsBuilder_ == null) {
-          return skills_.size();
-        } else {
-          return skillsBuilder_.getCount();
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public talon.manifests.Manifests.Skill getSkills(int index) {
-        if (skillsBuilder_ == null) {
-          return skills_.get(index);
-        } else {
-          return skillsBuilder_.getMessage(index);
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder setSkills(
-          int index, talon.manifests.Manifests.Skill value) {
-        if (skillsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureSkillsIsMutable();
-          skills_.set(index, value);
-          onChanged();
-        } else {
-          skillsBuilder_.setMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder setSkills(
-          int index, talon.manifests.Manifests.Skill.Builder builderForValue) {
-        if (skillsBuilder_ == null) {
-          ensureSkillsIsMutable();
-          skills_.set(index, builderForValue.build());
-          onChanged();
-        } else {
-          skillsBuilder_.setMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder addSkills(talon.manifests.Manifests.Skill value) {
-        if (skillsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureSkillsIsMutable();
-          skills_.add(value);
-          onChanged();
-        } else {
-          skillsBuilder_.addMessage(value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder addSkills(
-          int index, talon.manifests.Manifests.Skill value) {
-        if (skillsBuilder_ == null) {
-          if (value == null) {
-            throw new NullPointerException();
-          }
-          ensureSkillsIsMutable();
-          skills_.add(index, value);
-          onChanged();
-        } else {
-          skillsBuilder_.addMessage(index, value);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder addSkills(
-          talon.manifests.Manifests.Skill.Builder builderForValue) {
-        if (skillsBuilder_ == null) {
-          ensureSkillsIsMutable();
-          skills_.add(builderForValue.build());
-          onChanged();
-        } else {
-          skillsBuilder_.addMessage(builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder addSkills(
-          int index, talon.manifests.Manifests.Skill.Builder builderForValue) {
-        if (skillsBuilder_ == null) {
-          ensureSkillsIsMutable();
-          skills_.add(index, builderForValue.build());
-          onChanged();
-        } else {
-          skillsBuilder_.addMessage(index, builderForValue.build());
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder addAllSkills(
-          java.lang.Iterable<? extends talon.manifests.Manifests.Skill> values) {
-        if (skillsBuilder_ == null) {
-          ensureSkillsIsMutable();
-          com.google.protobuf.AbstractMessageLite.Builder.addAll(
-              values, skills_);
-          onChanged();
-        } else {
-          skillsBuilder_.addAllMessages(values);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder clearSkills() {
-        if (skillsBuilder_ == null) {
-          skills_ = java.util.Collections.emptyList();
-          bitField0_ = (bitField0_ & ~0x00000001);
-          onChanged();
-        } else {
-          skillsBuilder_.clear();
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public Builder removeSkills(int index) {
-        if (skillsBuilder_ == null) {
-          ensureSkillsIsMutable();
-          skills_.remove(index);
-          onChanged();
-        } else {
-          skillsBuilder_.remove(index);
-        }
-        return this;
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public talon.manifests.Manifests.Skill.Builder getSkillsBuilder(
-          int index) {
-        return internalGetSkillsFieldBuilder().getBuilder(index);
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public talon.manifests.Manifests.SkillOrBuilder getSkillsOrBuilder(
-          int index) {
-        if (skillsBuilder_ == null) {
-          return skills_.get(index);  } else {
-          return skillsBuilder_.getMessageOrBuilder(index);
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public java.util.List<? extends talon.manifests.Manifests.SkillOrBuilder>
-           getSkillsOrBuilderList() {
-        if (skillsBuilder_ != null) {
-          return skillsBuilder_.getMessageOrBuilderList();
-        } else {
-          return java.util.Collections.unmodifiableList(skills_);
-        }
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public talon.manifests.Manifests.Skill.Builder addSkillsBuilder() {
-        return internalGetSkillsFieldBuilder().addBuilder(
-            talon.manifests.Manifests.Skill.getDefaultInstance());
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public talon.manifests.Manifests.Skill.Builder addSkillsBuilder(
-          int index) {
-        return internalGetSkillsFieldBuilder().addBuilder(
-            index, talon.manifests.Manifests.Skill.getDefaultInstance());
-      }
-      /**
-       * <code>repeated .talon.manifests.Skill skills = 1;</code>
-       */
-      public java.util.List<talon.manifests.Manifests.Skill.Builder>
-           getSkillsBuilderList() {
-        return internalGetSkillsFieldBuilder().getBuilderList();
-      }
-      private com.google.protobuf.RepeatedFieldBuilder<
-          talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder>
-          internalGetSkillsFieldBuilder() {
-        if (skillsBuilder_ == null) {
-          skillsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.manifests.Manifests.Skill, talon.manifests.Manifests.Skill.Builder, talon.manifests.Manifests.SkillOrBuilder>(
-                  skills_,
-                  ((bitField0_ & 0x00000001) != 0),
-                  getParentForChildren(),
-                  isClean());
-          skills_ = null;
-        }
-        return skillsBuilder_;
-      }
-
-      // @@protoc_insertion_point(builder_scope:talon.gateway.ListNamespaceSkillsResponse)
-    }
-
-    // @@protoc_insertion_point(class_scope:talon.gateway.ListNamespaceSkillsResponse)
-    private static final talon.gateway.Gateway.ListNamespaceSkillsResponse DEFAULT_INSTANCE;
-    static {
-      DEFAULT_INSTANCE = new talon.gateway.Gateway.ListNamespaceSkillsResponse();
-    }
-
-    public static talon.gateway.Gateway.ListNamespaceSkillsResponse getDefaultInstance() {
-      return DEFAULT_INSTANCE;
-    }
-
-    private static final com.google.protobuf.Parser<ListNamespaceSkillsResponse>
-        PARSER = new com.google.protobuf.AbstractParser<ListNamespaceSkillsResponse>() {
-      @java.lang.Override
-      public ListNamespaceSkillsResponse parsePartialFrom(
-          com.google.protobuf.CodedInputStream input,
-          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
-          throws com.google.protobuf.InvalidProtocolBufferException {
-        Builder builder = newBuilder();
-        try {
-          builder.mergeFrom(input, extensionRegistry);
-        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-          throw e.setUnfinishedMessage(builder.buildPartial());
-        } catch (com.google.protobuf.UninitializedMessageException e) {
-          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
-        } catch (java.io.IOException e) {
-          throw new com.google.protobuf.InvalidProtocolBufferException(e)
-              .setUnfinishedMessage(builder.buildPartial());
-        }
-        return builder.buildPartial();
-      }
-    };
-
-    public static com.google.protobuf.Parser<ListNamespaceSkillsResponse> parser() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public com.google.protobuf.Parser<ListNamespaceSkillsResponse> getParserForType() {
-      return PARSER;
-    }
-
-    @java.lang.Override
-    public talon.gateway.Gateway.ListNamespaceSkillsResponse getDefaultInstanceForType() {
       return DEFAULT_INSTANCE;
     }
 
@@ -32319,19 +29062,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.SessionMessage message = 1;</code>
+     * <code>.talon.data.SessionMessage message = 1;</code>
      * @return Whether the message field is set.
      */
     boolean hasMessage();
     /**
-     * <code>.talon.models.SessionMessage message = 1;</code>
+     * <code>.talon.data.SessionMessage message = 1;</code>
      * @return The message.
      */
-    talon.models.Models.SessionMessage getMessage();
+    talon.data.Data.SessionMessage getMessage();
     /**
-     * <code>.talon.models.SessionMessage message = 1;</code>
+     * <code>.talon.data.SessionMessage message = 1;</code>
      */
-    talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder();
+    talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.ListSessionMessagesResponseItem}
@@ -32377,9 +29120,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int MESSAGE_FIELD_NUMBER = 1;
-    private talon.models.Models.SessionMessage message_;
+    private talon.data.Data.SessionMessage message_;
     /**
-     * <code>.talon.models.SessionMessage message = 1;</code>
+     * <code>.talon.data.SessionMessage message = 1;</code>
      * @return Whether the message field is set.
      */
     @java.lang.Override
@@ -32387,19 +29130,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.SessionMessage message = 1;</code>
+     * <code>.talon.data.SessionMessage message = 1;</code>
      * @return The message.
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessage getMessage() {
-      return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+    public talon.data.Data.SessionMessage getMessage() {
+      return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
     }
     /**
-     * <code>.talon.models.SessionMessage message = 1;</code>
+     * <code>.talon.data.SessionMessage message = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder() {
-      return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+    public talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder() {
+      return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -32717,31 +29460,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.models.Models.SessionMessage message_;
+      private talon.data.Data.SessionMessage message_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder> messageBuilder_;
+          talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder> messageBuilder_;
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        * @return Whether the message field is set.
        */
       public boolean hasMessage() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        * @return The message.
        */
-      public talon.models.Models.SessionMessage getMessage() {
+      public talon.data.Data.SessionMessage getMessage() {
         if (messageBuilder_ == null) {
-          return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+          return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
         } else {
           return messageBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        */
-      public Builder setMessage(talon.models.Models.SessionMessage value) {
+      public Builder setMessage(talon.data.Data.SessionMessage value) {
         if (messageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -32755,10 +29498,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        */
       public Builder setMessage(
-          talon.models.Models.SessionMessage.Builder builderForValue) {
+          talon.data.Data.SessionMessage.Builder builderForValue) {
         if (messageBuilder_ == null) {
           message_ = builderForValue.build();
         } else {
@@ -32769,13 +29512,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        */
-      public Builder mergeMessage(talon.models.Models.SessionMessage value) {
+      public Builder mergeMessage(talon.data.Data.SessionMessage value) {
         if (messageBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             message_ != null &&
-            message_ != talon.models.Models.SessionMessage.getDefaultInstance()) {
+            message_ != talon.data.Data.SessionMessage.getDefaultInstance()) {
             getMessageBuilder().mergeFrom(value);
           } else {
             message_ = value;
@@ -32790,7 +29533,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        */
       public Builder clearMessage() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -32803,33 +29546,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        */
-      public talon.models.Models.SessionMessage.Builder getMessageBuilder() {
+      public talon.data.Data.SessionMessage.Builder getMessageBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetMessageFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        */
-      public talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder() {
+      public talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder() {
         if (messageBuilder_ != null) {
           return messageBuilder_.getMessageOrBuilder();
         } else {
           return message_ == null ?
-              talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+              talon.data.Data.SessionMessage.getDefaultInstance() : message_;
         }
       }
       /**
-       * <code>.talon.models.SessionMessage message = 1;</code>
+       * <code>.talon.data.SessionMessage message = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>
+          talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>(
+              talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder>(
                   getMessage(),
                   getParentForChildren(),
                   isClean());
@@ -36901,27 +33644,27 @@ java.lang.String defaultValue) {
         getStateBytes();
 
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
-    java.util.List<talon.models.Models.SessionMessage>
+    java.util.List<talon.data.Data.SessionMessage>
         getMessagesList();
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
-    talon.models.Models.SessionMessage getMessages(int index);
+    talon.data.Data.SessionMessage getMessages(int index);
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
     int getMessagesCount();
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
-    java.util.List<? extends talon.models.Models.SessionMessageOrBuilder>
+    java.util.List<? extends talon.data.Data.SessionMessageOrBuilder>
         getMessagesOrBuilderList();
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
-    talon.models.Models.SessionMessageOrBuilder getMessagesOrBuilder(
+    talon.data.Data.SessionMessageOrBuilder getMessagesOrBuilder(
         int index);
 
     /**
@@ -37135,41 +33878,41 @@ java.lang.String defaultValue);
 
     public static final int MESSAGES_FIELD_NUMBER = 4;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.SessionMessage> messages_;
+    private java.util.List<talon.data.Data.SessionMessage> messages_;
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.SessionMessage> getMessagesList() {
+    public java.util.List<talon.data.Data.SessionMessage> getMessagesList() {
       return messages_;
     }
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.SessionMessageOrBuilder>
+    public java.util.List<? extends talon.data.Data.SessionMessageOrBuilder>
         getMessagesOrBuilderList() {
       return messages_;
     }
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
     @java.lang.Override
     public int getMessagesCount() {
       return messages_.size();
     }
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessage getMessages(int index) {
+    public talon.data.Data.SessionMessage getMessages(int index) {
       return messages_.get(index);
     }
     /**
-     * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+     * <code>repeated .talon.data.SessionMessage messages = 4;</code>
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessageOrBuilder getMessagesOrBuilder(
+    public talon.data.Data.SessionMessageOrBuilder getMessagesOrBuilder(
         int index) {
       return messages_.get(index);
     }
@@ -37695,9 +34438,9 @@ java.lang.String defaultValue) {
                 break;
               } // case 26
               case 34: {
-                talon.models.Models.SessionMessage m =
+                talon.data.Data.SessionMessage m =
                     input.readMessage(
-                        talon.models.Models.SessionMessage.parser(),
+                        talon.data.Data.SessionMessage.parser(),
                         extensionRegistry);
                 if (messagesBuilder_ == null) {
                   ensureMessagesIsMutable();
@@ -37949,22 +34692,22 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private java.util.List<talon.models.Models.SessionMessage> messages_ =
+      private java.util.List<talon.data.Data.SessionMessage> messages_ =
         java.util.Collections.emptyList();
       private void ensureMessagesIsMutable() {
         if (!((bitField0_ & 0x00000008) != 0)) {
-          messages_ = new java.util.ArrayList<talon.models.Models.SessionMessage>(messages_);
+          messages_ = new java.util.ArrayList<talon.data.Data.SessionMessage>(messages_);
           bitField0_ |= 0x00000008;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder> messagesBuilder_;
+          talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder> messagesBuilder_;
 
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public java.util.List<talon.models.Models.SessionMessage> getMessagesList() {
+      public java.util.List<talon.data.Data.SessionMessage> getMessagesList() {
         if (messagesBuilder_ == null) {
           return java.util.Collections.unmodifiableList(messages_);
         } else {
@@ -37972,7 +34715,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public int getMessagesCount() {
         if (messagesBuilder_ == null) {
@@ -37982,9 +34725,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public talon.models.Models.SessionMessage getMessages(int index) {
+      public talon.data.Data.SessionMessage getMessages(int index) {
         if (messagesBuilder_ == null) {
           return messages_.get(index);
         } else {
@@ -37992,10 +34735,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public Builder setMessages(
-          int index, talon.models.Models.SessionMessage value) {
+          int index, talon.data.Data.SessionMessage value) {
         if (messagesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -38009,10 +34752,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public Builder setMessages(
-          int index, talon.models.Models.SessionMessage.Builder builderForValue) {
+          int index, talon.data.Data.SessionMessage.Builder builderForValue) {
         if (messagesBuilder_ == null) {
           ensureMessagesIsMutable();
           messages_.set(index, builderForValue.build());
@@ -38023,9 +34766,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public Builder addMessages(talon.models.Models.SessionMessage value) {
+      public Builder addMessages(talon.data.Data.SessionMessage value) {
         if (messagesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -38039,10 +34782,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public Builder addMessages(
-          int index, talon.models.Models.SessionMessage value) {
+          int index, talon.data.Data.SessionMessage value) {
         if (messagesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -38056,10 +34799,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public Builder addMessages(
-          talon.models.Models.SessionMessage.Builder builderForValue) {
+          talon.data.Data.SessionMessage.Builder builderForValue) {
         if (messagesBuilder_ == null) {
           ensureMessagesIsMutable();
           messages_.add(builderForValue.build());
@@ -38070,10 +34813,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public Builder addMessages(
-          int index, talon.models.Models.SessionMessage.Builder builderForValue) {
+          int index, talon.data.Data.SessionMessage.Builder builderForValue) {
         if (messagesBuilder_ == null) {
           ensureMessagesIsMutable();
           messages_.add(index, builderForValue.build());
@@ -38084,10 +34827,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public Builder addAllMessages(
-          java.lang.Iterable<? extends talon.models.Models.SessionMessage> values) {
+          java.lang.Iterable<? extends talon.data.Data.SessionMessage> values) {
         if (messagesBuilder_ == null) {
           ensureMessagesIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -38099,7 +34842,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public Builder clearMessages() {
         if (messagesBuilder_ == null) {
@@ -38112,7 +34855,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
       public Builder removeMessages(int index) {
         if (messagesBuilder_ == null) {
@@ -38125,16 +34868,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public talon.models.Models.SessionMessage.Builder getMessagesBuilder(
+      public talon.data.Data.SessionMessage.Builder getMessagesBuilder(
           int index) {
         return internalGetMessagesFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public talon.models.Models.SessionMessageOrBuilder getMessagesOrBuilder(
+      public talon.data.Data.SessionMessageOrBuilder getMessagesOrBuilder(
           int index) {
         if (messagesBuilder_ == null) {
           return messages_.get(index);  } else {
@@ -38142,9 +34885,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public java.util.List<? extends talon.models.Models.SessionMessageOrBuilder>
+      public java.util.List<? extends talon.data.Data.SessionMessageOrBuilder>
            getMessagesOrBuilderList() {
         if (messagesBuilder_ != null) {
           return messagesBuilder_.getMessageOrBuilderList();
@@ -38153,33 +34896,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public talon.models.Models.SessionMessage.Builder addMessagesBuilder() {
+      public talon.data.Data.SessionMessage.Builder addMessagesBuilder() {
         return internalGetMessagesFieldBuilder().addBuilder(
-            talon.models.Models.SessionMessage.getDefaultInstance());
+            talon.data.Data.SessionMessage.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public talon.models.Models.SessionMessage.Builder addMessagesBuilder(
+      public talon.data.Data.SessionMessage.Builder addMessagesBuilder(
           int index) {
         return internalGetMessagesFieldBuilder().addBuilder(
-            index, talon.models.Models.SessionMessage.getDefaultInstance());
+            index, talon.data.Data.SessionMessage.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.SessionMessage messages = 4;</code>
+       * <code>repeated .talon.data.SessionMessage messages = 4;</code>
        */
-      public java.util.List<talon.models.Models.SessionMessage.Builder>
+      public java.util.List<talon.data.Data.SessionMessage.Builder>
            getMessagesBuilderList() {
         return internalGetMessagesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>
+          talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder>
           internalGetMessagesFieldBuilder() {
         if (messagesBuilder_ == null) {
           messagesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>(
+              talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder>(
                   messages_,
                   ((bitField0_ & 0x00000008) != 0),
                   getParentForChildren(),
@@ -40886,19 +37629,19 @@ java.lang.String defaultValue) {
         getNsBytes();
 
     /**
-     * <code>.talon.models.Channel channel = 2;</code>
+     * <code>.talon.resources.Channel channel = 2;</code>
      * @return Whether the channel field is set.
      */
     boolean hasChannel();
     /**
-     * <code>.talon.models.Channel channel = 2;</code>
+     * <code>.talon.resources.Channel channel = 2;</code>
      * @return The channel.
      */
-    talon.models.Models.Channel getChannel();
+    talon.resources.Channels.Channel getChannel();
     /**
-     * <code>.talon.models.Channel channel = 2;</code>
+     * <code>.talon.resources.Channel channel = 2;</code>
      */
-    talon.models.Models.ChannelOrBuilder getChannelOrBuilder();
+    talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.CreateChannelRequest}
@@ -40984,9 +37727,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int CHANNEL_FIELD_NUMBER = 2;
-    private talon.models.Models.Channel channel_;
+    private talon.resources.Channels.Channel channel_;
     /**
-     * <code>.talon.models.Channel channel = 2;</code>
+     * <code>.talon.resources.Channel channel = 2;</code>
      * @return Whether the channel field is set.
      */
     @java.lang.Override
@@ -40994,19 +37737,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Channel channel = 2;</code>
+     * <code>.talon.resources.Channel channel = 2;</code>
      * @return The channel.
      */
     @java.lang.Override
-    public talon.models.Models.Channel getChannel() {
-      return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+    public talon.resources.Channels.Channel getChannel() {
+      return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
     }
     /**
-     * <code>.talon.models.Channel channel = 2;</code>
+     * <code>.talon.resources.Channel channel = 2;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelOrBuilder getChannelOrBuilder() {
-      return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+    public talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder() {
+      return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -41420,31 +38163,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.Channel channel_;
+      private talon.resources.Channels.Channel channel_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder> channelBuilder_;
+          talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder> channelBuilder_;
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        * @return Whether the channel field is set.
        */
       public boolean hasChannel() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        * @return The channel.
        */
-      public talon.models.Models.Channel getChannel() {
+      public talon.resources.Channels.Channel getChannel() {
         if (channelBuilder_ == null) {
-          return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+          return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
         } else {
           return channelBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        */
-      public Builder setChannel(talon.models.Models.Channel value) {
+      public Builder setChannel(talon.resources.Channels.Channel value) {
         if (channelBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -41458,10 +38201,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        */
       public Builder setChannel(
-          talon.models.Models.Channel.Builder builderForValue) {
+          talon.resources.Channels.Channel.Builder builderForValue) {
         if (channelBuilder_ == null) {
           channel_ = builderForValue.build();
         } else {
@@ -41472,13 +38215,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        */
-      public Builder mergeChannel(talon.models.Models.Channel value) {
+      public Builder mergeChannel(talon.resources.Channels.Channel value) {
         if (channelBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             channel_ != null &&
-            channel_ != talon.models.Models.Channel.getDefaultInstance()) {
+            channel_ != talon.resources.Channels.Channel.getDefaultInstance()) {
             getChannelBuilder().mergeFrom(value);
           } else {
             channel_ = value;
@@ -41493,7 +38236,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        */
       public Builder clearChannel() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -41506,33 +38249,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        */
-      public talon.models.Models.Channel.Builder getChannelBuilder() {
+      public talon.resources.Channels.Channel.Builder getChannelBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetChannelFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        */
-      public talon.models.Models.ChannelOrBuilder getChannelOrBuilder() {
+      public talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder() {
         if (channelBuilder_ != null) {
           return channelBuilder_.getMessageOrBuilder();
         } else {
           return channel_ == null ?
-              talon.models.Models.Channel.getDefaultInstance() : channel_;
+              talon.resources.Channels.Channel.getDefaultInstance() : channel_;
         }
       }
       /**
-       * <code>.talon.models.Channel channel = 2;</code>
+       * <code>.talon.resources.Channel channel = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>
+          talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder>
           internalGetChannelFieldBuilder() {
         if (channelBuilder_ == null) {
           channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>(
+              talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder>(
                   getChannel(),
                   getParentForChildren(),
                   isClean());
@@ -42284,19 +39027,19 @@ java.lang.String defaultValue) {
         getNameBytes();
 
     /**
-     * <code>.talon.models.Channel channel = 3;</code>
+     * <code>.talon.resources.Channel channel = 3;</code>
      * @return Whether the channel field is set.
      */
     boolean hasChannel();
     /**
-     * <code>.talon.models.Channel channel = 3;</code>
+     * <code>.talon.resources.Channel channel = 3;</code>
      * @return The channel.
      */
-    talon.models.Models.Channel getChannel();
+    talon.resources.Channels.Channel getChannel();
     /**
-     * <code>.talon.models.Channel channel = 3;</code>
+     * <code>.talon.resources.Channel channel = 3;</code>
      */
-    talon.models.Models.ChannelOrBuilder getChannelOrBuilder();
+    talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.ModifyChannelRequest}
@@ -42422,9 +39165,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int CHANNEL_FIELD_NUMBER = 3;
-    private talon.models.Models.Channel channel_;
+    private talon.resources.Channels.Channel channel_;
     /**
-     * <code>.talon.models.Channel channel = 3;</code>
+     * <code>.talon.resources.Channel channel = 3;</code>
      * @return Whether the channel field is set.
      */
     @java.lang.Override
@@ -42432,19 +39175,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Channel channel = 3;</code>
+     * <code>.talon.resources.Channel channel = 3;</code>
      * @return The channel.
      */
     @java.lang.Override
-    public talon.models.Models.Channel getChannel() {
-      return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+    public talon.resources.Channels.Channel getChannel() {
+      return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
     }
     /**
-     * <code>.talon.models.Channel channel = 3;</code>
+     * <code>.talon.resources.Channel channel = 3;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelOrBuilder getChannelOrBuilder() {
-      return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+    public talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder() {
+      return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -42954,31 +39697,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.Channel channel_;
+      private talon.resources.Channels.Channel channel_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder> channelBuilder_;
+          talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder> channelBuilder_;
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        * @return Whether the channel field is set.
        */
       public boolean hasChannel() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        * @return The channel.
        */
-      public talon.models.Models.Channel getChannel() {
+      public talon.resources.Channels.Channel getChannel() {
         if (channelBuilder_ == null) {
-          return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+          return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
         } else {
           return channelBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        */
-      public Builder setChannel(talon.models.Models.Channel value) {
+      public Builder setChannel(talon.resources.Channels.Channel value) {
         if (channelBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -42992,10 +39735,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        */
       public Builder setChannel(
-          talon.models.Models.Channel.Builder builderForValue) {
+          talon.resources.Channels.Channel.Builder builderForValue) {
         if (channelBuilder_ == null) {
           channel_ = builderForValue.build();
         } else {
@@ -43006,13 +39749,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        */
-      public Builder mergeChannel(talon.models.Models.Channel value) {
+      public Builder mergeChannel(talon.resources.Channels.Channel value) {
         if (channelBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
             channel_ != null &&
-            channel_ != talon.models.Models.Channel.getDefaultInstance()) {
+            channel_ != talon.resources.Channels.Channel.getDefaultInstance()) {
             getChannelBuilder().mergeFrom(value);
           } else {
             channel_ = value;
@@ -43027,7 +39770,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        */
       public Builder clearChannel() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -43040,33 +39783,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        */
-      public talon.models.Models.Channel.Builder getChannelBuilder() {
+      public talon.resources.Channels.Channel.Builder getChannelBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
         return internalGetChannelFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        */
-      public talon.models.Models.ChannelOrBuilder getChannelOrBuilder() {
+      public talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder() {
         if (channelBuilder_ != null) {
           return channelBuilder_.getMessageOrBuilder();
         } else {
           return channel_ == null ?
-              talon.models.Models.Channel.getDefaultInstance() : channel_;
+              talon.resources.Channels.Channel.getDefaultInstance() : channel_;
         }
       }
       /**
-       * <code>.talon.models.Channel channel = 3;</code>
+       * <code>.talon.resources.Channel channel = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>
+          talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder>
           internalGetChannelFieldBuilder() {
         if (channelBuilder_ == null) {
           channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>(
+              talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder>(
                   getChannel(),
                   getParentForChildren(),
                   isClean());
@@ -44309,19 +41052,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.Channel channel = 1;</code>
+     * <code>.talon.resources.Channel channel = 1;</code>
      * @return Whether the channel field is set.
      */
     boolean hasChannel();
     /**
-     * <code>.talon.models.Channel channel = 1;</code>
+     * <code>.talon.resources.Channel channel = 1;</code>
      * @return The channel.
      */
-    talon.models.Models.Channel getChannel();
+    talon.resources.Channels.Channel getChannel();
     /**
-     * <code>.talon.models.Channel channel = 1;</code>
+     * <code>.talon.resources.Channel channel = 1;</code>
      */
-    talon.models.Models.ChannelOrBuilder getChannelOrBuilder();
+    talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.ChannelResponse}
@@ -44367,9 +41110,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int CHANNEL_FIELD_NUMBER = 1;
-    private talon.models.Models.Channel channel_;
+    private talon.resources.Channels.Channel channel_;
     /**
-     * <code>.talon.models.Channel channel = 1;</code>
+     * <code>.talon.resources.Channel channel = 1;</code>
      * @return Whether the channel field is set.
      */
     @java.lang.Override
@@ -44377,19 +41120,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Channel channel = 1;</code>
+     * <code>.talon.resources.Channel channel = 1;</code>
      * @return The channel.
      */
     @java.lang.Override
-    public talon.models.Models.Channel getChannel() {
-      return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+    public talon.resources.Channels.Channel getChannel() {
+      return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
     }
     /**
-     * <code>.talon.models.Channel channel = 1;</code>
+     * <code>.talon.resources.Channel channel = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelOrBuilder getChannelOrBuilder() {
-      return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+    public talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder() {
+      return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -44707,31 +41450,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.models.Models.Channel channel_;
+      private talon.resources.Channels.Channel channel_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder> channelBuilder_;
+          talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder> channelBuilder_;
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        * @return Whether the channel field is set.
        */
       public boolean hasChannel() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        * @return The channel.
        */
-      public talon.models.Models.Channel getChannel() {
+      public talon.resources.Channels.Channel getChannel() {
         if (channelBuilder_ == null) {
-          return channel_ == null ? talon.models.Models.Channel.getDefaultInstance() : channel_;
+          return channel_ == null ? talon.resources.Channels.Channel.getDefaultInstance() : channel_;
         } else {
           return channelBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        */
-      public Builder setChannel(talon.models.Models.Channel value) {
+      public Builder setChannel(talon.resources.Channels.Channel value) {
         if (channelBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -44745,10 +41488,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        */
       public Builder setChannel(
-          talon.models.Models.Channel.Builder builderForValue) {
+          talon.resources.Channels.Channel.Builder builderForValue) {
         if (channelBuilder_ == null) {
           channel_ = builderForValue.build();
         } else {
@@ -44759,13 +41502,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        */
-      public Builder mergeChannel(talon.models.Models.Channel value) {
+      public Builder mergeChannel(talon.resources.Channels.Channel value) {
         if (channelBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             channel_ != null &&
-            channel_ != talon.models.Models.Channel.getDefaultInstance()) {
+            channel_ != talon.resources.Channels.Channel.getDefaultInstance()) {
             getChannelBuilder().mergeFrom(value);
           } else {
             channel_ = value;
@@ -44780,7 +41523,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        */
       public Builder clearChannel() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -44793,33 +41536,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        */
-      public talon.models.Models.Channel.Builder getChannelBuilder() {
+      public talon.resources.Channels.Channel.Builder getChannelBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetChannelFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        */
-      public talon.models.Models.ChannelOrBuilder getChannelOrBuilder() {
+      public talon.resources.Channels.ChannelOrBuilder getChannelOrBuilder() {
         if (channelBuilder_ != null) {
           return channelBuilder_.getMessageOrBuilder();
         } else {
           return channel_ == null ?
-              talon.models.Models.Channel.getDefaultInstance() : channel_;
+              talon.resources.Channels.Channel.getDefaultInstance() : channel_;
         }
       }
       /**
-       * <code>.talon.models.Channel channel = 1;</code>
+       * <code>.talon.resources.Channel channel = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>
+          talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder>
           internalGetChannelFieldBuilder() {
         if (channelBuilder_ == null) {
           channelBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>(
+              talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder>(
                   getChannel(),
                   getParentForChildren(),
                   isClean());
@@ -44884,27 +41627,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
-    java.util.List<talon.models.Models.Channel>
+    java.util.List<talon.resources.Channels.Channel>
         getChannelsList();
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
-    talon.models.Models.Channel getChannels(int index);
+    talon.resources.Channels.Channel getChannels(int index);
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
     int getChannelsCount();
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.ChannelOrBuilder>
+    java.util.List<? extends talon.resources.Channels.ChannelOrBuilder>
         getChannelsOrBuilderList();
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
-    talon.models.Models.ChannelOrBuilder getChannelsOrBuilder(
+    talon.resources.Channels.ChannelOrBuilder getChannelsOrBuilder(
         int index);
   }
   /**
@@ -44952,41 +41695,41 @@ java.lang.String defaultValue) {
 
     public static final int CHANNELS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.Channel> channels_;
+    private java.util.List<talon.resources.Channels.Channel> channels_;
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.Channel> getChannelsList() {
+    public java.util.List<talon.resources.Channels.Channel> getChannelsList() {
       return channels_;
     }
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.ChannelOrBuilder>
+    public java.util.List<? extends talon.resources.Channels.ChannelOrBuilder>
         getChannelsOrBuilderList() {
       return channels_;
     }
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
     @java.lang.Override
     public int getChannelsCount() {
       return channels_.size();
     }
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.Channel getChannels(int index) {
+    public talon.resources.Channels.Channel getChannels(int index) {
       return channels_.get(index);
     }
     /**
-     * <code>repeated .talon.models.Channel channels = 1;</code>
+     * <code>repeated .talon.resources.Channel channels = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelOrBuilder getChannelsOrBuilder(
+    public talon.resources.Channels.ChannelOrBuilder getChannelsOrBuilder(
         int index) {
       return channels_.get(index);
     }
@@ -45309,9 +42052,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.models.Models.Channel m =
+                talon.resources.Channels.Channel m =
                     input.readMessage(
-                        talon.models.Models.Channel.parser(),
+                        talon.resources.Channels.Channel.parser(),
                         extensionRegistry);
                 if (channelsBuilder_ == null) {
                   ensureChannelsIsMutable();
@@ -45338,22 +42081,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.models.Models.Channel> channels_ =
+      private java.util.List<talon.resources.Channels.Channel> channels_ =
         java.util.Collections.emptyList();
       private void ensureChannelsIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          channels_ = new java.util.ArrayList<talon.models.Models.Channel>(channels_);
+          channels_ = new java.util.ArrayList<talon.resources.Channels.Channel>(channels_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder> channelsBuilder_;
+          talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder> channelsBuilder_;
 
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public java.util.List<talon.models.Models.Channel> getChannelsList() {
+      public java.util.List<talon.resources.Channels.Channel> getChannelsList() {
         if (channelsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(channels_);
         } else {
@@ -45361,7 +42104,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public int getChannelsCount() {
         if (channelsBuilder_ == null) {
@@ -45371,9 +42114,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public talon.models.Models.Channel getChannels(int index) {
+      public talon.resources.Channels.Channel getChannels(int index) {
         if (channelsBuilder_ == null) {
           return channels_.get(index);
         } else {
@@ -45381,10 +42124,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public Builder setChannels(
-          int index, talon.models.Models.Channel value) {
+          int index, talon.resources.Channels.Channel value) {
         if (channelsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -45398,10 +42141,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public Builder setChannels(
-          int index, talon.models.Models.Channel.Builder builderForValue) {
+          int index, talon.resources.Channels.Channel.Builder builderForValue) {
         if (channelsBuilder_ == null) {
           ensureChannelsIsMutable();
           channels_.set(index, builderForValue.build());
@@ -45412,9 +42155,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public Builder addChannels(talon.models.Models.Channel value) {
+      public Builder addChannels(talon.resources.Channels.Channel value) {
         if (channelsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -45428,10 +42171,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public Builder addChannels(
-          int index, talon.models.Models.Channel value) {
+          int index, talon.resources.Channels.Channel value) {
         if (channelsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -45445,10 +42188,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public Builder addChannels(
-          talon.models.Models.Channel.Builder builderForValue) {
+          talon.resources.Channels.Channel.Builder builderForValue) {
         if (channelsBuilder_ == null) {
           ensureChannelsIsMutable();
           channels_.add(builderForValue.build());
@@ -45459,10 +42202,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public Builder addChannels(
-          int index, talon.models.Models.Channel.Builder builderForValue) {
+          int index, talon.resources.Channels.Channel.Builder builderForValue) {
         if (channelsBuilder_ == null) {
           ensureChannelsIsMutable();
           channels_.add(index, builderForValue.build());
@@ -45473,10 +42216,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public Builder addAllChannels(
-          java.lang.Iterable<? extends talon.models.Models.Channel> values) {
+          java.lang.Iterable<? extends talon.resources.Channels.Channel> values) {
         if (channelsBuilder_ == null) {
           ensureChannelsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -45488,7 +42231,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public Builder clearChannels() {
         if (channelsBuilder_ == null) {
@@ -45501,7 +42244,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
       public Builder removeChannels(int index) {
         if (channelsBuilder_ == null) {
@@ -45514,16 +42257,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public talon.models.Models.Channel.Builder getChannelsBuilder(
+      public talon.resources.Channels.Channel.Builder getChannelsBuilder(
           int index) {
         return internalGetChannelsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public talon.models.Models.ChannelOrBuilder getChannelsOrBuilder(
+      public talon.resources.Channels.ChannelOrBuilder getChannelsOrBuilder(
           int index) {
         if (channelsBuilder_ == null) {
           return channels_.get(index);  } else {
@@ -45531,9 +42274,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.ChannelOrBuilder>
+      public java.util.List<? extends talon.resources.Channels.ChannelOrBuilder>
            getChannelsOrBuilderList() {
         if (channelsBuilder_ != null) {
           return channelsBuilder_.getMessageOrBuilderList();
@@ -45542,33 +42285,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public talon.models.Models.Channel.Builder addChannelsBuilder() {
+      public talon.resources.Channels.Channel.Builder addChannelsBuilder() {
         return internalGetChannelsFieldBuilder().addBuilder(
-            talon.models.Models.Channel.getDefaultInstance());
+            talon.resources.Channels.Channel.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public talon.models.Models.Channel.Builder addChannelsBuilder(
+      public talon.resources.Channels.Channel.Builder addChannelsBuilder(
           int index) {
         return internalGetChannelsFieldBuilder().addBuilder(
-            index, talon.models.Models.Channel.getDefaultInstance());
+            index, talon.resources.Channels.Channel.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.Channel channels = 1;</code>
+       * <code>repeated .talon.resources.Channel channels = 1;</code>
        */
-      public java.util.List<talon.models.Models.Channel.Builder>
+      public java.util.List<talon.resources.Channels.Channel.Builder>
            getChannelsBuilderList() {
         return internalGetChannelsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>
+          talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder>
           internalGetChannelsFieldBuilder() {
         if (channelsBuilder_ == null) {
           channelsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.Channel, talon.models.Models.Channel.Builder, talon.models.Models.ChannelOrBuilder>(
+              talon.resources.Channels.Channel, talon.resources.Channels.Channel.Builder, talon.resources.Channels.ChannelOrBuilder>(
                   channels_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -48666,19 +45409,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      * @return Whether the message field is set.
      */
     boolean hasMessage();
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      * @return The message.
      */
-    talon.models.Models.ChannelMessage getMessage();
+    talon.data.Data.ChannelMessage getMessage();
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      */
-    talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder();
+    talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder();
 
     /**
      * <code>repeated .talon.gateway.RoutedChannelSession routed_sessions = 2;</code>
@@ -48749,9 +45492,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int MESSAGE_FIELD_NUMBER = 1;
-    private talon.models.Models.ChannelMessage message_;
+    private talon.data.Data.ChannelMessage message_;
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      * @return Whether the message field is set.
      */
     @java.lang.Override
@@ -48759,19 +45502,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      * @return The message.
      */
     @java.lang.Override
-    public talon.models.Models.ChannelMessage getMessage() {
-      return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+    public talon.data.Data.ChannelMessage getMessage() {
+      return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
     }
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder() {
-      return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+    public talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder() {
+      return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
     }
 
     public static final int ROUTED_SESSIONS_FIELD_NUMBER = 2;
@@ -49208,31 +45951,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.models.Models.ChannelMessage message_;
+      private talon.data.Data.ChannelMessage message_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder> messageBuilder_;
+          talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder> messageBuilder_;
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        * @return Whether the message field is set.
        */
       public boolean hasMessage() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        * @return The message.
        */
-      public talon.models.Models.ChannelMessage getMessage() {
+      public talon.data.Data.ChannelMessage getMessage() {
         if (messageBuilder_ == null) {
-          return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+          return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
         } else {
           return messageBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
-      public Builder setMessage(talon.models.Models.ChannelMessage value) {
+      public Builder setMessage(talon.data.Data.ChannelMessage value) {
         if (messageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -49246,10 +45989,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
       public Builder setMessage(
-          talon.models.Models.ChannelMessage.Builder builderForValue) {
+          talon.data.Data.ChannelMessage.Builder builderForValue) {
         if (messageBuilder_ == null) {
           message_ = builderForValue.build();
         } else {
@@ -49260,13 +46003,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
-      public Builder mergeMessage(talon.models.Models.ChannelMessage value) {
+      public Builder mergeMessage(talon.data.Data.ChannelMessage value) {
         if (messageBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             message_ != null &&
-            message_ != talon.models.Models.ChannelMessage.getDefaultInstance()) {
+            message_ != talon.data.Data.ChannelMessage.getDefaultInstance()) {
             getMessageBuilder().mergeFrom(value);
           } else {
             message_ = value;
@@ -49281,7 +46024,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
       public Builder clearMessage() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -49294,33 +46037,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
-      public talon.models.Models.ChannelMessage.Builder getMessageBuilder() {
+      public talon.data.Data.ChannelMessage.Builder getMessageBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetMessageFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
-      public talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder() {
+      public talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder() {
         if (messageBuilder_ != null) {
           return messageBuilder_.getMessageOrBuilder();
         } else {
           return message_ == null ?
-              talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+              talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
         }
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>
+          talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>(
+              talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder>(
                   getMessage(),
                   getParentForChildren(),
                   isClean());
@@ -50436,19 +47179,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      * @return Whether the message field is set.
      */
     boolean hasMessage();
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      * @return The message.
      */
-    talon.models.Models.ChannelMessage getMessage();
+    talon.data.Data.ChannelMessage getMessage();
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      */
-    talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder();
+    talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.ChannelMessageResponse}
@@ -50494,9 +47237,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int MESSAGE_FIELD_NUMBER = 1;
-    private talon.models.Models.ChannelMessage message_;
+    private talon.data.Data.ChannelMessage message_;
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      * @return Whether the message field is set.
      */
     @java.lang.Override
@@ -50504,19 +47247,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      * @return The message.
      */
     @java.lang.Override
-    public talon.models.Models.ChannelMessage getMessage() {
-      return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+    public talon.data.Data.ChannelMessage getMessage() {
+      return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
     }
     /**
-     * <code>.talon.models.ChannelMessage message = 1;</code>
+     * <code>.talon.data.ChannelMessage message = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder() {
-      return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+    public talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder() {
+      return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -50834,31 +47577,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.models.Models.ChannelMessage message_;
+      private talon.data.Data.ChannelMessage message_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder> messageBuilder_;
+          talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder> messageBuilder_;
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        * @return Whether the message field is set.
        */
       public boolean hasMessage() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        * @return The message.
        */
-      public talon.models.Models.ChannelMessage getMessage() {
+      public talon.data.Data.ChannelMessage getMessage() {
         if (messageBuilder_ == null) {
-          return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+          return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
         } else {
           return messageBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
-      public Builder setMessage(talon.models.Models.ChannelMessage value) {
+      public Builder setMessage(talon.data.Data.ChannelMessage value) {
         if (messageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -50872,10 +47615,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
       public Builder setMessage(
-          talon.models.Models.ChannelMessage.Builder builderForValue) {
+          talon.data.Data.ChannelMessage.Builder builderForValue) {
         if (messageBuilder_ == null) {
           message_ = builderForValue.build();
         } else {
@@ -50886,13 +47629,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
-      public Builder mergeMessage(talon.models.Models.ChannelMessage value) {
+      public Builder mergeMessage(talon.data.Data.ChannelMessage value) {
         if (messageBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             message_ != null &&
-            message_ != talon.models.Models.ChannelMessage.getDefaultInstance()) {
+            message_ != talon.data.Data.ChannelMessage.getDefaultInstance()) {
             getMessageBuilder().mergeFrom(value);
           } else {
             message_ = value;
@@ -50907,7 +47650,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
       public Builder clearMessage() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -50920,33 +47663,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
-      public talon.models.Models.ChannelMessage.Builder getMessageBuilder() {
+      public talon.data.Data.ChannelMessage.Builder getMessageBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetMessageFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
-      public talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder() {
+      public talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder() {
         if (messageBuilder_ != null) {
           return messageBuilder_.getMessageOrBuilder();
         } else {
           return message_ == null ?
-              talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+              talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
         }
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 1;</code>
+       * <code>.talon.data.ChannelMessage message = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>
+          talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>(
+              talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder>(
                   getMessage(),
                   getParentForChildren(),
                   isClean());
@@ -51995,27 +48738,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
-    java.util.List<talon.models.Models.ChannelMessage>
+    java.util.List<talon.data.Data.ChannelMessage>
         getMessagesList();
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
-    talon.models.Models.ChannelMessage getMessages(int index);
+    talon.data.Data.ChannelMessage getMessages(int index);
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
     int getMessagesCount();
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder>
+    java.util.List<? extends talon.data.Data.ChannelMessageOrBuilder>
         getMessagesOrBuilderList();
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
-    talon.models.Models.ChannelMessageOrBuilder getMessagesOrBuilder(
+    talon.data.Data.ChannelMessageOrBuilder getMessagesOrBuilder(
         int index);
 
     /**
@@ -52088,41 +48831,41 @@ java.lang.String defaultValue) {
     private int bitField0_;
     public static final int MESSAGES_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.ChannelMessage> messages_;
+    private java.util.List<talon.data.Data.ChannelMessage> messages_;
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.ChannelMessage> getMessagesList() {
+    public java.util.List<talon.data.Data.ChannelMessage> getMessagesList() {
       return messages_;
     }
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder>
+    public java.util.List<? extends talon.data.Data.ChannelMessageOrBuilder>
         getMessagesOrBuilderList() {
       return messages_;
     }
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
     @java.lang.Override
     public int getMessagesCount() {
       return messages_.size();
     }
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelMessage getMessages(int index) {
+    public talon.data.Data.ChannelMessage getMessages(int index) {
       return messages_.get(index);
     }
     /**
-     * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+     * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelMessageOrBuilder getMessagesOrBuilder(
+    public talon.data.Data.ChannelMessageOrBuilder getMessagesOrBuilder(
         int index) {
       return messages_.get(index);
     }
@@ -52549,9 +49292,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.models.Models.ChannelMessage m =
+                talon.data.Data.ChannelMessage m =
                     input.readMessage(
-                        talon.models.Models.ChannelMessage.parser(),
+                        talon.data.Data.ChannelMessage.parser(),
                         extensionRegistry);
                 if (messagesBuilder_ == null) {
                   ensureMessagesIsMutable();
@@ -52588,22 +49331,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.models.Models.ChannelMessage> messages_ =
+      private java.util.List<talon.data.Data.ChannelMessage> messages_ =
         java.util.Collections.emptyList();
       private void ensureMessagesIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          messages_ = new java.util.ArrayList<talon.models.Models.ChannelMessage>(messages_);
+          messages_ = new java.util.ArrayList<talon.data.Data.ChannelMessage>(messages_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder> messagesBuilder_;
+          talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder> messagesBuilder_;
 
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public java.util.List<talon.models.Models.ChannelMessage> getMessagesList() {
+      public java.util.List<talon.data.Data.ChannelMessage> getMessagesList() {
         if (messagesBuilder_ == null) {
           return java.util.Collections.unmodifiableList(messages_);
         } else {
@@ -52611,7 +49354,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public int getMessagesCount() {
         if (messagesBuilder_ == null) {
@@ -52621,9 +49364,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public talon.models.Models.ChannelMessage getMessages(int index) {
+      public talon.data.Data.ChannelMessage getMessages(int index) {
         if (messagesBuilder_ == null) {
           return messages_.get(index);
         } else {
@@ -52631,10 +49374,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public Builder setMessages(
-          int index, talon.models.Models.ChannelMessage value) {
+          int index, talon.data.Data.ChannelMessage value) {
         if (messagesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -52648,10 +49391,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public Builder setMessages(
-          int index, talon.models.Models.ChannelMessage.Builder builderForValue) {
+          int index, talon.data.Data.ChannelMessage.Builder builderForValue) {
         if (messagesBuilder_ == null) {
           ensureMessagesIsMutable();
           messages_.set(index, builderForValue.build());
@@ -52662,9 +49405,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public Builder addMessages(talon.models.Models.ChannelMessage value) {
+      public Builder addMessages(talon.data.Data.ChannelMessage value) {
         if (messagesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -52678,10 +49421,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public Builder addMessages(
-          int index, talon.models.Models.ChannelMessage value) {
+          int index, talon.data.Data.ChannelMessage value) {
         if (messagesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -52695,10 +49438,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public Builder addMessages(
-          talon.models.Models.ChannelMessage.Builder builderForValue) {
+          talon.data.Data.ChannelMessage.Builder builderForValue) {
         if (messagesBuilder_ == null) {
           ensureMessagesIsMutable();
           messages_.add(builderForValue.build());
@@ -52709,10 +49452,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public Builder addMessages(
-          int index, talon.models.Models.ChannelMessage.Builder builderForValue) {
+          int index, talon.data.Data.ChannelMessage.Builder builderForValue) {
         if (messagesBuilder_ == null) {
           ensureMessagesIsMutable();
           messages_.add(index, builderForValue.build());
@@ -52723,10 +49466,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public Builder addAllMessages(
-          java.lang.Iterable<? extends talon.models.Models.ChannelMessage> values) {
+          java.lang.Iterable<? extends talon.data.Data.ChannelMessage> values) {
         if (messagesBuilder_ == null) {
           ensureMessagesIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -52738,7 +49481,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public Builder clearMessages() {
         if (messagesBuilder_ == null) {
@@ -52751,7 +49494,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
       public Builder removeMessages(int index) {
         if (messagesBuilder_ == null) {
@@ -52764,16 +49507,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public talon.models.Models.ChannelMessage.Builder getMessagesBuilder(
+      public talon.data.Data.ChannelMessage.Builder getMessagesBuilder(
           int index) {
         return internalGetMessagesFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public talon.models.Models.ChannelMessageOrBuilder getMessagesOrBuilder(
+      public talon.data.Data.ChannelMessageOrBuilder getMessagesOrBuilder(
           int index) {
         if (messagesBuilder_ == null) {
           return messages_.get(index);  } else {
@@ -52781,9 +49524,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.ChannelMessageOrBuilder>
+      public java.util.List<? extends talon.data.Data.ChannelMessageOrBuilder>
            getMessagesOrBuilderList() {
         if (messagesBuilder_ != null) {
           return messagesBuilder_.getMessageOrBuilderList();
@@ -52792,33 +49535,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public talon.models.Models.ChannelMessage.Builder addMessagesBuilder() {
+      public talon.data.Data.ChannelMessage.Builder addMessagesBuilder() {
         return internalGetMessagesFieldBuilder().addBuilder(
-            talon.models.Models.ChannelMessage.getDefaultInstance());
+            talon.data.Data.ChannelMessage.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public talon.models.Models.ChannelMessage.Builder addMessagesBuilder(
+      public talon.data.Data.ChannelMessage.Builder addMessagesBuilder(
           int index) {
         return internalGetMessagesFieldBuilder().addBuilder(
-            index, talon.models.Models.ChannelMessage.getDefaultInstance());
+            index, talon.data.Data.ChannelMessage.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.ChannelMessage messages = 1;</code>
+       * <code>repeated .talon.data.ChannelMessage messages = 1;</code>
        */
-      public java.util.List<talon.models.Models.ChannelMessage.Builder>
+      public java.util.List<talon.data.Data.ChannelMessage.Builder>
            getMessagesBuilderList() {
         return internalGetMessagesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>
+          talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder>
           internalGetMessagesFieldBuilder() {
         if (messagesBuilder_ == null) {
           messagesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>(
+              talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder>(
                   messages_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -53019,19 +49762,19 @@ java.lang.String defaultValue) {
         getChannelBytes();
 
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
      * @return Whether the subscription field is set.
      */
     boolean hasSubscription();
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
      * @return The subscription.
      */
-    talon.models.Models.ChannelSubscription getSubscription();
+    talon.resources.Channels.ChannelSubscription getSubscription();
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
      */
-    talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder();
+    talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.CreateChannelSubscriptionRequest}
@@ -53157,9 +49900,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int SUBSCRIPTION_FIELD_NUMBER = 3;
-    private talon.models.Models.ChannelSubscription subscription_;
+    private talon.resources.Channels.ChannelSubscription subscription_;
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
      * @return Whether the subscription field is set.
      */
     @java.lang.Override
@@ -53167,19 +49910,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
      * @return The subscription.
      */
     @java.lang.Override
-    public talon.models.Models.ChannelSubscription getSubscription() {
-      return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+    public talon.resources.Channels.ChannelSubscription getSubscription() {
+      return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
     }
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
-      return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+    public talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
+      return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -53689,31 +50432,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.ChannelSubscription subscription_;
+      private talon.resources.Channels.ChannelSubscription subscription_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder> subscriptionBuilder_;
+          talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder> subscriptionBuilder_;
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        * @return Whether the subscription field is set.
        */
       public boolean hasSubscription() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        * @return The subscription.
        */
-      public talon.models.Models.ChannelSubscription getSubscription() {
+      public talon.resources.Channels.ChannelSubscription getSubscription() {
         if (subscriptionBuilder_ == null) {
-          return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+          return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
         } else {
           return subscriptionBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        */
-      public Builder setSubscription(talon.models.Models.ChannelSubscription value) {
+      public Builder setSubscription(talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -53727,10 +50470,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        */
       public Builder setSubscription(
-          talon.models.Models.ChannelSubscription.Builder builderForValue) {
+          talon.resources.Channels.ChannelSubscription.Builder builderForValue) {
         if (subscriptionBuilder_ == null) {
           subscription_ = builderForValue.build();
         } else {
@@ -53741,13 +50484,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        */
-      public Builder mergeSubscription(talon.models.Models.ChannelSubscription value) {
+      public Builder mergeSubscription(talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
             subscription_ != null &&
-            subscription_ != talon.models.Models.ChannelSubscription.getDefaultInstance()) {
+            subscription_ != talon.resources.Channels.ChannelSubscription.getDefaultInstance()) {
             getSubscriptionBuilder().mergeFrom(value);
           } else {
             subscription_ = value;
@@ -53762,7 +50505,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        */
       public Builder clearSubscription() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -53775,33 +50518,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        */
-      public talon.models.Models.ChannelSubscription.Builder getSubscriptionBuilder() {
+      public talon.resources.Channels.ChannelSubscription.Builder getSubscriptionBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
         return internalGetSubscriptionFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        */
-      public talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
+      public talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
         if (subscriptionBuilder_ != null) {
           return subscriptionBuilder_.getMessageOrBuilder();
         } else {
           return subscription_ == null ?
-              talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+              talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
         }
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 3;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>
+          talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder>
           internalGetSubscriptionFieldBuilder() {
         if (subscriptionBuilder_ == null) {
           subscriptionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>(
+              talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder>(
                   getSubscription(),
                   getParentForChildren(),
                   isClean());
@@ -54713,19 +51456,19 @@ java.lang.String defaultValue) {
         getNameBytes();
 
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
      * @return Whether the subscription field is set.
      */
     boolean hasSubscription();
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
      * @return The subscription.
      */
-    talon.models.Models.ChannelSubscription getSubscription();
+    talon.resources.Channels.ChannelSubscription getSubscription();
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
      */
-    talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder();
+    talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.ModifyChannelSubscriptionRequest}
@@ -54891,9 +51634,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int SUBSCRIPTION_FIELD_NUMBER = 4;
-    private talon.models.Models.ChannelSubscription subscription_;
+    private talon.resources.Channels.ChannelSubscription subscription_;
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
      * @return Whether the subscription field is set.
      */
     @java.lang.Override
@@ -54901,19 +51644,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
      * @return The subscription.
      */
     @java.lang.Override
-    public talon.models.Models.ChannelSubscription getSubscription() {
-      return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+    public talon.resources.Channels.ChannelSubscription getSubscription() {
+      return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
     }
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
-      return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+    public talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
+      return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -55519,31 +52262,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.ChannelSubscription subscription_;
+      private talon.resources.Channels.ChannelSubscription subscription_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder> subscriptionBuilder_;
+          talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder> subscriptionBuilder_;
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        * @return Whether the subscription field is set.
        */
       public boolean hasSubscription() {
         return ((bitField0_ & 0x00000008) != 0);
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        * @return The subscription.
        */
-      public talon.models.Models.ChannelSubscription getSubscription() {
+      public talon.resources.Channels.ChannelSubscription getSubscription() {
         if (subscriptionBuilder_ == null) {
-          return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+          return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
         } else {
           return subscriptionBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        */
-      public Builder setSubscription(talon.models.Models.ChannelSubscription value) {
+      public Builder setSubscription(talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -55557,10 +52300,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        */
       public Builder setSubscription(
-          talon.models.Models.ChannelSubscription.Builder builderForValue) {
+          talon.resources.Channels.ChannelSubscription.Builder builderForValue) {
         if (subscriptionBuilder_ == null) {
           subscription_ = builderForValue.build();
         } else {
@@ -55571,13 +52314,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        */
-      public Builder mergeSubscription(talon.models.Models.ChannelSubscription value) {
+      public Builder mergeSubscription(talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionBuilder_ == null) {
           if (((bitField0_ & 0x00000008) != 0) &&
             subscription_ != null &&
-            subscription_ != talon.models.Models.ChannelSubscription.getDefaultInstance()) {
+            subscription_ != talon.resources.Channels.ChannelSubscription.getDefaultInstance()) {
             getSubscriptionBuilder().mergeFrom(value);
           } else {
             subscription_ = value;
@@ -55592,7 +52335,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        */
       public Builder clearSubscription() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -55605,33 +52348,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        */
-      public talon.models.Models.ChannelSubscription.Builder getSubscriptionBuilder() {
+      public talon.resources.Channels.ChannelSubscription.Builder getSubscriptionBuilder() {
         bitField0_ |= 0x00000008;
         onChanged();
         return internalGetSubscriptionFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        */
-      public talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
+      public talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
         if (subscriptionBuilder_ != null) {
           return subscriptionBuilder_.getMessageOrBuilder();
         } else {
           return subscription_ == null ?
-              talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+              talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
         }
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 4;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>
+          talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder>
           internalGetSubscriptionFieldBuilder() {
         if (subscriptionBuilder_ == null) {
           subscriptionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>(
+              talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder>(
                   getSubscription(),
                   getParentForChildren(),
                   isClean());
@@ -57170,19 +53913,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
      * @return Whether the subscription field is set.
      */
     boolean hasSubscription();
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
      * @return The subscription.
      */
-    talon.models.Models.ChannelSubscription getSubscription();
+    talon.resources.Channels.ChannelSubscription getSubscription();
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
      */
-    talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder();
+    talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.ChannelSubscriptionResponse}
@@ -57228,9 +53971,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int SUBSCRIPTION_FIELD_NUMBER = 1;
-    private talon.models.Models.ChannelSubscription subscription_;
+    private talon.resources.Channels.ChannelSubscription subscription_;
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
      * @return Whether the subscription field is set.
      */
     @java.lang.Override
@@ -57238,19 +53981,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
      * @return The subscription.
      */
     @java.lang.Override
-    public talon.models.Models.ChannelSubscription getSubscription() {
-      return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+    public talon.resources.Channels.ChannelSubscription getSubscription() {
+      return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
     }
     /**
-     * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+     * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
-      return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+    public talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
+      return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -57568,31 +54311,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.models.Models.ChannelSubscription subscription_;
+      private talon.resources.Channels.ChannelSubscription subscription_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder> subscriptionBuilder_;
+          talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder> subscriptionBuilder_;
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        * @return Whether the subscription field is set.
        */
       public boolean hasSubscription() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        * @return The subscription.
        */
-      public talon.models.Models.ChannelSubscription getSubscription() {
+      public talon.resources.Channels.ChannelSubscription getSubscription() {
         if (subscriptionBuilder_ == null) {
-          return subscription_ == null ? talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+          return subscription_ == null ? talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
         } else {
           return subscriptionBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        */
-      public Builder setSubscription(talon.models.Models.ChannelSubscription value) {
+      public Builder setSubscription(talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -57606,10 +54349,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        */
       public Builder setSubscription(
-          talon.models.Models.ChannelSubscription.Builder builderForValue) {
+          talon.resources.Channels.ChannelSubscription.Builder builderForValue) {
         if (subscriptionBuilder_ == null) {
           subscription_ = builderForValue.build();
         } else {
@@ -57620,13 +54363,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        */
-      public Builder mergeSubscription(talon.models.Models.ChannelSubscription value) {
+      public Builder mergeSubscription(talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             subscription_ != null &&
-            subscription_ != talon.models.Models.ChannelSubscription.getDefaultInstance()) {
+            subscription_ != talon.resources.Channels.ChannelSubscription.getDefaultInstance()) {
             getSubscriptionBuilder().mergeFrom(value);
           } else {
             subscription_ = value;
@@ -57641,7 +54384,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        */
       public Builder clearSubscription() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -57654,33 +54397,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        */
-      public talon.models.Models.ChannelSubscription.Builder getSubscriptionBuilder() {
+      public talon.resources.Channels.ChannelSubscription.Builder getSubscriptionBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetSubscriptionFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        */
-      public talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
+      public talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionOrBuilder() {
         if (subscriptionBuilder_ != null) {
           return subscriptionBuilder_.getMessageOrBuilder();
         } else {
           return subscription_ == null ?
-              talon.models.Models.ChannelSubscription.getDefaultInstance() : subscription_;
+              talon.resources.Channels.ChannelSubscription.getDefaultInstance() : subscription_;
         }
       }
       /**
-       * <code>.talon.models.ChannelSubscription subscription = 1;</code>
+       * <code>.talon.resources.ChannelSubscription subscription = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>
+          talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder>
           internalGetSubscriptionFieldBuilder() {
         if (subscriptionBuilder_ == null) {
           subscriptionBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>(
+              talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder>(
                   getSubscription(),
                   getParentForChildren(),
                   isClean());
@@ -57745,27 +54488,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
-    java.util.List<talon.models.Models.ChannelSubscription>
+    java.util.List<talon.resources.Channels.ChannelSubscription>
         getSubscriptionsList();
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
-    talon.models.Models.ChannelSubscription getSubscriptions(int index);
+    talon.resources.Channels.ChannelSubscription getSubscriptions(int index);
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
     int getSubscriptionsCount();
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder>
+    java.util.List<? extends talon.resources.Channels.ChannelSubscriptionOrBuilder>
         getSubscriptionsOrBuilderList();
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
-    talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionsOrBuilder(
+    talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionsOrBuilder(
         int index);
   }
   /**
@@ -57813,41 +54556,41 @@ java.lang.String defaultValue) {
 
     public static final int SUBSCRIPTIONS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.ChannelSubscription> subscriptions_;
+    private java.util.List<talon.resources.Channels.ChannelSubscription> subscriptions_;
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.ChannelSubscription> getSubscriptionsList() {
+    public java.util.List<talon.resources.Channels.ChannelSubscription> getSubscriptionsList() {
       return subscriptions_;
     }
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder>
+    public java.util.List<? extends talon.resources.Channels.ChannelSubscriptionOrBuilder>
         getSubscriptionsOrBuilderList() {
       return subscriptions_;
     }
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
     @java.lang.Override
     public int getSubscriptionsCount() {
       return subscriptions_.size();
     }
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelSubscription getSubscriptions(int index) {
+    public talon.resources.Channels.ChannelSubscription getSubscriptions(int index) {
       return subscriptions_.get(index);
     }
     /**
-     * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+     * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionsOrBuilder(
+    public talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionsOrBuilder(
         int index) {
       return subscriptions_.get(index);
     }
@@ -58170,9 +54913,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.models.Models.ChannelSubscription m =
+                talon.resources.Channels.ChannelSubscription m =
                     input.readMessage(
-                        talon.models.Models.ChannelSubscription.parser(),
+                        talon.resources.Channels.ChannelSubscription.parser(),
                         extensionRegistry);
                 if (subscriptionsBuilder_ == null) {
                   ensureSubscriptionsIsMutable();
@@ -58199,22 +54942,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.models.Models.ChannelSubscription> subscriptions_ =
+      private java.util.List<talon.resources.Channels.ChannelSubscription> subscriptions_ =
         java.util.Collections.emptyList();
       private void ensureSubscriptionsIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          subscriptions_ = new java.util.ArrayList<talon.models.Models.ChannelSubscription>(subscriptions_);
+          subscriptions_ = new java.util.ArrayList<talon.resources.Channels.ChannelSubscription>(subscriptions_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder> subscriptionsBuilder_;
+          talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder> subscriptionsBuilder_;
 
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public java.util.List<talon.models.Models.ChannelSubscription> getSubscriptionsList() {
+      public java.util.List<talon.resources.Channels.ChannelSubscription> getSubscriptionsList() {
         if (subscriptionsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(subscriptions_);
         } else {
@@ -58222,7 +54965,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public int getSubscriptionsCount() {
         if (subscriptionsBuilder_ == null) {
@@ -58232,9 +54975,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public talon.models.Models.ChannelSubscription getSubscriptions(int index) {
+      public talon.resources.Channels.ChannelSubscription getSubscriptions(int index) {
         if (subscriptionsBuilder_ == null) {
           return subscriptions_.get(index);
         } else {
@@ -58242,10 +54985,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public Builder setSubscriptions(
-          int index, talon.models.Models.ChannelSubscription value) {
+          int index, talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -58259,10 +55002,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public Builder setSubscriptions(
-          int index, talon.models.Models.ChannelSubscription.Builder builderForValue) {
+          int index, talon.resources.Channels.ChannelSubscription.Builder builderForValue) {
         if (subscriptionsBuilder_ == null) {
           ensureSubscriptionsIsMutable();
           subscriptions_.set(index, builderForValue.build());
@@ -58273,9 +55016,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public Builder addSubscriptions(talon.models.Models.ChannelSubscription value) {
+      public Builder addSubscriptions(talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -58289,10 +55032,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public Builder addSubscriptions(
-          int index, talon.models.Models.ChannelSubscription value) {
+          int index, talon.resources.Channels.ChannelSubscription value) {
         if (subscriptionsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -58306,10 +55049,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public Builder addSubscriptions(
-          talon.models.Models.ChannelSubscription.Builder builderForValue) {
+          talon.resources.Channels.ChannelSubscription.Builder builderForValue) {
         if (subscriptionsBuilder_ == null) {
           ensureSubscriptionsIsMutable();
           subscriptions_.add(builderForValue.build());
@@ -58320,10 +55063,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public Builder addSubscriptions(
-          int index, talon.models.Models.ChannelSubscription.Builder builderForValue) {
+          int index, talon.resources.Channels.ChannelSubscription.Builder builderForValue) {
         if (subscriptionsBuilder_ == null) {
           ensureSubscriptionsIsMutable();
           subscriptions_.add(index, builderForValue.build());
@@ -58334,10 +55077,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public Builder addAllSubscriptions(
-          java.lang.Iterable<? extends talon.models.Models.ChannelSubscription> values) {
+          java.lang.Iterable<? extends talon.resources.Channels.ChannelSubscription> values) {
         if (subscriptionsBuilder_ == null) {
           ensureSubscriptionsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -58349,7 +55092,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public Builder clearSubscriptions() {
         if (subscriptionsBuilder_ == null) {
@@ -58362,7 +55105,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
       public Builder removeSubscriptions(int index) {
         if (subscriptionsBuilder_ == null) {
@@ -58375,16 +55118,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public talon.models.Models.ChannelSubscription.Builder getSubscriptionsBuilder(
+      public talon.resources.Channels.ChannelSubscription.Builder getSubscriptionsBuilder(
           int index) {
         return internalGetSubscriptionsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public talon.models.Models.ChannelSubscriptionOrBuilder getSubscriptionsOrBuilder(
+      public talon.resources.Channels.ChannelSubscriptionOrBuilder getSubscriptionsOrBuilder(
           int index) {
         if (subscriptionsBuilder_ == null) {
           return subscriptions_.get(index);  } else {
@@ -58392,9 +55135,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.ChannelSubscriptionOrBuilder>
+      public java.util.List<? extends talon.resources.Channels.ChannelSubscriptionOrBuilder>
            getSubscriptionsOrBuilderList() {
         if (subscriptionsBuilder_ != null) {
           return subscriptionsBuilder_.getMessageOrBuilderList();
@@ -58403,33 +55146,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public talon.models.Models.ChannelSubscription.Builder addSubscriptionsBuilder() {
+      public talon.resources.Channels.ChannelSubscription.Builder addSubscriptionsBuilder() {
         return internalGetSubscriptionsFieldBuilder().addBuilder(
-            talon.models.Models.ChannelSubscription.getDefaultInstance());
+            talon.resources.Channels.ChannelSubscription.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public talon.models.Models.ChannelSubscription.Builder addSubscriptionsBuilder(
+      public talon.resources.Channels.ChannelSubscription.Builder addSubscriptionsBuilder(
           int index) {
         return internalGetSubscriptionsFieldBuilder().addBuilder(
-            index, talon.models.Models.ChannelSubscription.getDefaultInstance());
+            index, talon.resources.Channels.ChannelSubscription.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.ChannelSubscription subscriptions = 1;</code>
+       * <code>repeated .talon.resources.ChannelSubscription subscriptions = 1;</code>
        */
-      public java.util.List<talon.models.Models.ChannelSubscription.Builder>
+      public java.util.List<talon.resources.Channels.ChannelSubscription.Builder>
            getSubscriptionsBuilderList() {
         return internalGetSubscriptionsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>
+          talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder>
           internalGetSubscriptionsFieldBuilder() {
         if (subscriptionsBuilder_ == null) {
           subscriptionsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.ChannelSubscription, talon.models.Models.ChannelSubscription.Builder, talon.models.Models.ChannelSubscriptionOrBuilder>(
+              talon.resources.Channels.ChannelSubscription, talon.resources.Channels.ChannelSubscription.Builder, talon.resources.Channels.ChannelSubscriptionOrBuilder>(
                   subscriptions_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -59610,19 +56353,19 @@ java.lang.String defaultValue) {
         getNsBytes();
 
     /**
-     * <code>.talon.models.Schedule schedule = 2;</code>
+     * <code>.talon.resources.Schedule schedule = 2;</code>
      * @return Whether the schedule field is set.
      */
     boolean hasSchedule();
     /**
-     * <code>.talon.models.Schedule schedule = 2;</code>
+     * <code>.talon.resources.Schedule schedule = 2;</code>
      * @return The schedule.
      */
-    talon.models.Models.Schedule getSchedule();
+    talon.resources.Schedules.Schedule getSchedule();
     /**
-     * <code>.talon.models.Schedule schedule = 2;</code>
+     * <code>.talon.resources.Schedule schedule = 2;</code>
      */
-    talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder();
+    talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.CreateScheduleRequest}
@@ -59708,9 +56451,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int SCHEDULE_FIELD_NUMBER = 2;
-    private talon.models.Models.Schedule schedule_;
+    private talon.resources.Schedules.Schedule schedule_;
     /**
-     * <code>.talon.models.Schedule schedule = 2;</code>
+     * <code>.talon.resources.Schedule schedule = 2;</code>
      * @return Whether the schedule field is set.
      */
     @java.lang.Override
@@ -59718,19 +56461,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Schedule schedule = 2;</code>
+     * <code>.talon.resources.Schedule schedule = 2;</code>
      * @return The schedule.
      */
     @java.lang.Override
-    public talon.models.Models.Schedule getSchedule() {
-      return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+    public talon.resources.Schedules.Schedule getSchedule() {
+      return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
     }
     /**
-     * <code>.talon.models.Schedule schedule = 2;</code>
+     * <code>.talon.resources.Schedule schedule = 2;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder() {
-      return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+    public talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder() {
+      return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -60144,31 +56887,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.Schedule schedule_;
+      private talon.resources.Schedules.Schedule schedule_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder> scheduleBuilder_;
+          talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder> scheduleBuilder_;
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        * @return Whether the schedule field is set.
        */
       public boolean hasSchedule() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        * @return The schedule.
        */
-      public talon.models.Models.Schedule getSchedule() {
+      public talon.resources.Schedules.Schedule getSchedule() {
         if (scheduleBuilder_ == null) {
-          return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+          return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
         } else {
           return scheduleBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        */
-      public Builder setSchedule(talon.models.Models.Schedule value) {
+      public Builder setSchedule(talon.resources.Schedules.Schedule value) {
         if (scheduleBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -60182,10 +56925,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        */
       public Builder setSchedule(
-          talon.models.Models.Schedule.Builder builderForValue) {
+          talon.resources.Schedules.Schedule.Builder builderForValue) {
         if (scheduleBuilder_ == null) {
           schedule_ = builderForValue.build();
         } else {
@@ -60196,13 +56939,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        */
-      public Builder mergeSchedule(talon.models.Models.Schedule value) {
+      public Builder mergeSchedule(talon.resources.Schedules.Schedule value) {
         if (scheduleBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             schedule_ != null &&
-            schedule_ != talon.models.Models.Schedule.getDefaultInstance()) {
+            schedule_ != talon.resources.Schedules.Schedule.getDefaultInstance()) {
             getScheduleBuilder().mergeFrom(value);
           } else {
             schedule_ = value;
@@ -60217,7 +56960,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        */
       public Builder clearSchedule() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -60230,33 +56973,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        */
-      public talon.models.Models.Schedule.Builder getScheduleBuilder() {
+      public talon.resources.Schedules.Schedule.Builder getScheduleBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetScheduleFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        */
-      public talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder() {
+      public talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder() {
         if (scheduleBuilder_ != null) {
           return scheduleBuilder_.getMessageOrBuilder();
         } else {
           return schedule_ == null ?
-              talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+              talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
         }
       }
       /**
-       * <code>.talon.models.Schedule schedule = 2;</code>
+       * <code>.talon.resources.Schedule schedule = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>
+          talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder>
           internalGetScheduleFieldBuilder() {
         if (scheduleBuilder_ == null) {
           scheduleBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>(
+              talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder>(
                   getSchedule(),
                   getParentForChildren(),
                   isClean());
@@ -61008,19 +57751,19 @@ java.lang.String defaultValue) {
         getNameBytes();
 
     /**
-     * <code>.talon.models.Schedule schedule = 3;</code>
+     * <code>.talon.resources.Schedule schedule = 3;</code>
      * @return Whether the schedule field is set.
      */
     boolean hasSchedule();
     /**
-     * <code>.talon.models.Schedule schedule = 3;</code>
+     * <code>.talon.resources.Schedule schedule = 3;</code>
      * @return The schedule.
      */
-    talon.models.Models.Schedule getSchedule();
+    talon.resources.Schedules.Schedule getSchedule();
     /**
-     * <code>.talon.models.Schedule schedule = 3;</code>
+     * <code>.talon.resources.Schedule schedule = 3;</code>
      */
-    talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder();
+    talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.ModifyScheduleRequest}
@@ -61146,9 +57889,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int SCHEDULE_FIELD_NUMBER = 3;
-    private talon.models.Models.Schedule schedule_;
+    private talon.resources.Schedules.Schedule schedule_;
     /**
-     * <code>.talon.models.Schedule schedule = 3;</code>
+     * <code>.talon.resources.Schedule schedule = 3;</code>
      * @return Whether the schedule field is set.
      */
     @java.lang.Override
@@ -61156,19 +57899,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Schedule schedule = 3;</code>
+     * <code>.talon.resources.Schedule schedule = 3;</code>
      * @return The schedule.
      */
     @java.lang.Override
-    public talon.models.Models.Schedule getSchedule() {
-      return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+    public talon.resources.Schedules.Schedule getSchedule() {
+      return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
     }
     /**
-     * <code>.talon.models.Schedule schedule = 3;</code>
+     * <code>.talon.resources.Schedule schedule = 3;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder() {
-      return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+    public talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder() {
+      return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -61678,31 +58421,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.Schedule schedule_;
+      private talon.resources.Schedules.Schedule schedule_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder> scheduleBuilder_;
+          talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder> scheduleBuilder_;
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        * @return Whether the schedule field is set.
        */
       public boolean hasSchedule() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        * @return The schedule.
        */
-      public talon.models.Models.Schedule getSchedule() {
+      public talon.resources.Schedules.Schedule getSchedule() {
         if (scheduleBuilder_ == null) {
-          return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+          return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
         } else {
           return scheduleBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        */
-      public Builder setSchedule(talon.models.Models.Schedule value) {
+      public Builder setSchedule(talon.resources.Schedules.Schedule value) {
         if (scheduleBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -61716,10 +58459,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        */
       public Builder setSchedule(
-          talon.models.Models.Schedule.Builder builderForValue) {
+          talon.resources.Schedules.Schedule.Builder builderForValue) {
         if (scheduleBuilder_ == null) {
           schedule_ = builderForValue.build();
         } else {
@@ -61730,13 +58473,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        */
-      public Builder mergeSchedule(talon.models.Models.Schedule value) {
+      public Builder mergeSchedule(talon.resources.Schedules.Schedule value) {
         if (scheduleBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
             schedule_ != null &&
-            schedule_ != talon.models.Models.Schedule.getDefaultInstance()) {
+            schedule_ != talon.resources.Schedules.Schedule.getDefaultInstance()) {
             getScheduleBuilder().mergeFrom(value);
           } else {
             schedule_ = value;
@@ -61751,7 +58494,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        */
       public Builder clearSchedule() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -61764,33 +58507,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        */
-      public talon.models.Models.Schedule.Builder getScheduleBuilder() {
+      public talon.resources.Schedules.Schedule.Builder getScheduleBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
         return internalGetScheduleFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        */
-      public talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder() {
+      public talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder() {
         if (scheduleBuilder_ != null) {
           return scheduleBuilder_.getMessageOrBuilder();
         } else {
           return schedule_ == null ?
-              talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+              talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
         }
       }
       /**
-       * <code>.talon.models.Schedule schedule = 3;</code>
+       * <code>.talon.resources.Schedule schedule = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>
+          talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder>
           internalGetScheduleFieldBuilder() {
         if (scheduleBuilder_ == null) {
           scheduleBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>(
+              talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder>(
                   getSchedule(),
                   getParentForChildren(),
                   isClean());
@@ -62370,27 +59113,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
-    java.util.List<talon.models.Models.Schedule>
+    java.util.List<talon.resources.Schedules.Schedule>
         getSchedulesList();
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
-    talon.models.Models.Schedule getSchedules(int index);
+    talon.resources.Schedules.Schedule getSchedules(int index);
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
     int getSchedulesCount();
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.ScheduleOrBuilder>
+    java.util.List<? extends talon.resources.Schedules.ScheduleOrBuilder>
         getSchedulesOrBuilderList();
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
-    talon.models.Models.ScheduleOrBuilder getSchedulesOrBuilder(
+    talon.resources.Schedules.ScheduleOrBuilder getSchedulesOrBuilder(
         int index);
   }
   /**
@@ -62438,41 +59181,41 @@ java.lang.String defaultValue) {
 
     public static final int SCHEDULES_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.Schedule> schedules_;
+    private java.util.List<talon.resources.Schedules.Schedule> schedules_;
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.Schedule> getSchedulesList() {
+    public java.util.List<talon.resources.Schedules.Schedule> getSchedulesList() {
       return schedules_;
     }
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.ScheduleOrBuilder>
+    public java.util.List<? extends talon.resources.Schedules.ScheduleOrBuilder>
         getSchedulesOrBuilderList() {
       return schedules_;
     }
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
     @java.lang.Override
     public int getSchedulesCount() {
       return schedules_.size();
     }
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.Schedule getSchedules(int index) {
+    public talon.resources.Schedules.Schedule getSchedules(int index) {
       return schedules_.get(index);
     }
     /**
-     * <code>repeated .talon.models.Schedule schedules = 1;</code>
+     * <code>repeated .talon.resources.Schedule schedules = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ScheduleOrBuilder getSchedulesOrBuilder(
+    public talon.resources.Schedules.ScheduleOrBuilder getSchedulesOrBuilder(
         int index) {
       return schedules_.get(index);
     }
@@ -62795,9 +59538,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.models.Models.Schedule m =
+                talon.resources.Schedules.Schedule m =
                     input.readMessage(
-                        talon.models.Models.Schedule.parser(),
+                        talon.resources.Schedules.Schedule.parser(),
                         extensionRegistry);
                 if (schedulesBuilder_ == null) {
                   ensureSchedulesIsMutable();
@@ -62824,22 +59567,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.models.Models.Schedule> schedules_ =
+      private java.util.List<talon.resources.Schedules.Schedule> schedules_ =
         java.util.Collections.emptyList();
       private void ensureSchedulesIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          schedules_ = new java.util.ArrayList<talon.models.Models.Schedule>(schedules_);
+          schedules_ = new java.util.ArrayList<talon.resources.Schedules.Schedule>(schedules_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder> schedulesBuilder_;
+          talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder> schedulesBuilder_;
 
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public java.util.List<talon.models.Models.Schedule> getSchedulesList() {
+      public java.util.List<talon.resources.Schedules.Schedule> getSchedulesList() {
         if (schedulesBuilder_ == null) {
           return java.util.Collections.unmodifiableList(schedules_);
         } else {
@@ -62847,7 +59590,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public int getSchedulesCount() {
         if (schedulesBuilder_ == null) {
@@ -62857,9 +59600,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public talon.models.Models.Schedule getSchedules(int index) {
+      public talon.resources.Schedules.Schedule getSchedules(int index) {
         if (schedulesBuilder_ == null) {
           return schedules_.get(index);
         } else {
@@ -62867,10 +59610,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public Builder setSchedules(
-          int index, talon.models.Models.Schedule value) {
+          int index, talon.resources.Schedules.Schedule value) {
         if (schedulesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -62884,10 +59627,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public Builder setSchedules(
-          int index, talon.models.Models.Schedule.Builder builderForValue) {
+          int index, talon.resources.Schedules.Schedule.Builder builderForValue) {
         if (schedulesBuilder_ == null) {
           ensureSchedulesIsMutable();
           schedules_.set(index, builderForValue.build());
@@ -62898,9 +59641,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public Builder addSchedules(talon.models.Models.Schedule value) {
+      public Builder addSchedules(talon.resources.Schedules.Schedule value) {
         if (schedulesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -62914,10 +59657,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public Builder addSchedules(
-          int index, talon.models.Models.Schedule value) {
+          int index, talon.resources.Schedules.Schedule value) {
         if (schedulesBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -62931,10 +59674,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public Builder addSchedules(
-          talon.models.Models.Schedule.Builder builderForValue) {
+          talon.resources.Schedules.Schedule.Builder builderForValue) {
         if (schedulesBuilder_ == null) {
           ensureSchedulesIsMutable();
           schedules_.add(builderForValue.build());
@@ -62945,10 +59688,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public Builder addSchedules(
-          int index, talon.models.Models.Schedule.Builder builderForValue) {
+          int index, talon.resources.Schedules.Schedule.Builder builderForValue) {
         if (schedulesBuilder_ == null) {
           ensureSchedulesIsMutable();
           schedules_.add(index, builderForValue.build());
@@ -62959,10 +59702,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public Builder addAllSchedules(
-          java.lang.Iterable<? extends talon.models.Models.Schedule> values) {
+          java.lang.Iterable<? extends talon.resources.Schedules.Schedule> values) {
         if (schedulesBuilder_ == null) {
           ensureSchedulesIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -62974,7 +59717,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public Builder clearSchedules() {
         if (schedulesBuilder_ == null) {
@@ -62987,7 +59730,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
       public Builder removeSchedules(int index) {
         if (schedulesBuilder_ == null) {
@@ -63000,16 +59743,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public talon.models.Models.Schedule.Builder getSchedulesBuilder(
+      public talon.resources.Schedules.Schedule.Builder getSchedulesBuilder(
           int index) {
         return internalGetSchedulesFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public talon.models.Models.ScheduleOrBuilder getSchedulesOrBuilder(
+      public talon.resources.Schedules.ScheduleOrBuilder getSchedulesOrBuilder(
           int index) {
         if (schedulesBuilder_ == null) {
           return schedules_.get(index);  } else {
@@ -63017,9 +59760,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.ScheduleOrBuilder>
+      public java.util.List<? extends talon.resources.Schedules.ScheduleOrBuilder>
            getSchedulesOrBuilderList() {
         if (schedulesBuilder_ != null) {
           return schedulesBuilder_.getMessageOrBuilderList();
@@ -63028,33 +59771,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public talon.models.Models.Schedule.Builder addSchedulesBuilder() {
+      public talon.resources.Schedules.Schedule.Builder addSchedulesBuilder() {
         return internalGetSchedulesFieldBuilder().addBuilder(
-            talon.models.Models.Schedule.getDefaultInstance());
+            talon.resources.Schedules.Schedule.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public talon.models.Models.Schedule.Builder addSchedulesBuilder(
+      public talon.resources.Schedules.Schedule.Builder addSchedulesBuilder(
           int index) {
         return internalGetSchedulesFieldBuilder().addBuilder(
-            index, talon.models.Models.Schedule.getDefaultInstance());
+            index, talon.resources.Schedules.Schedule.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.Schedule schedules = 1;</code>
+       * <code>repeated .talon.resources.Schedule schedules = 1;</code>
        */
-      public java.util.List<talon.models.Models.Schedule.Builder>
+      public java.util.List<talon.resources.Schedules.Schedule.Builder>
            getSchedulesBuilderList() {
         return internalGetSchedulesFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>
+          talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder>
           internalGetSchedulesFieldBuilder() {
         if (schedulesBuilder_ == null) {
           schedulesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>(
+              talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder>(
                   schedules_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -64235,19 +60978,19 @@ java.lang.String defaultValue) {
         getNsBytes();
 
     /**
-     * <code>.talon.models.Workflow workflow = 2;</code>
+     * <code>.talon.resources.Workflow workflow = 2;</code>
      * @return Whether the workflow field is set.
      */
     boolean hasWorkflow();
     /**
-     * <code>.talon.models.Workflow workflow = 2;</code>
+     * <code>.talon.resources.Workflow workflow = 2;</code>
      * @return The workflow.
      */
-    talon.models.Models.Workflow getWorkflow();
+    talon.resources.Workflows.Workflow getWorkflow();
     /**
-     * <code>.talon.models.Workflow workflow = 2;</code>
+     * <code>.talon.resources.Workflow workflow = 2;</code>
      */
-    talon.models.Models.WorkflowOrBuilder getWorkflowOrBuilder();
+    talon.resources.Workflows.WorkflowOrBuilder getWorkflowOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.CreateWorkflowRequest}
@@ -64333,9 +61076,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int WORKFLOW_FIELD_NUMBER = 2;
-    private talon.models.Models.Workflow workflow_;
+    private talon.resources.Workflows.Workflow workflow_;
     /**
-     * <code>.talon.models.Workflow workflow = 2;</code>
+     * <code>.talon.resources.Workflow workflow = 2;</code>
      * @return Whether the workflow field is set.
      */
     @java.lang.Override
@@ -64343,19 +61086,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Workflow workflow = 2;</code>
+     * <code>.talon.resources.Workflow workflow = 2;</code>
      * @return The workflow.
      */
     @java.lang.Override
-    public talon.models.Models.Workflow getWorkflow() {
-      return workflow_ == null ? talon.models.Models.Workflow.getDefaultInstance() : workflow_;
+    public talon.resources.Workflows.Workflow getWorkflow() {
+      return workflow_ == null ? talon.resources.Workflows.Workflow.getDefaultInstance() : workflow_;
     }
     /**
-     * <code>.talon.models.Workflow workflow = 2;</code>
+     * <code>.talon.resources.Workflow workflow = 2;</code>
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowOrBuilder getWorkflowOrBuilder() {
-      return workflow_ == null ? talon.models.Models.Workflow.getDefaultInstance() : workflow_;
+    public talon.resources.Workflows.WorkflowOrBuilder getWorkflowOrBuilder() {
+      return workflow_ == null ? talon.resources.Workflows.Workflow.getDefaultInstance() : workflow_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -64769,31 +61512,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.Workflow workflow_;
+      private talon.resources.Workflows.Workflow workflow_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder> workflowBuilder_;
+          talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder> workflowBuilder_;
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        * @return Whether the workflow field is set.
        */
       public boolean hasWorkflow() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        * @return The workflow.
        */
-      public talon.models.Models.Workflow getWorkflow() {
+      public talon.resources.Workflows.Workflow getWorkflow() {
         if (workflowBuilder_ == null) {
-          return workflow_ == null ? talon.models.Models.Workflow.getDefaultInstance() : workflow_;
+          return workflow_ == null ? talon.resources.Workflows.Workflow.getDefaultInstance() : workflow_;
         } else {
           return workflowBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        */
-      public Builder setWorkflow(talon.models.Models.Workflow value) {
+      public Builder setWorkflow(talon.resources.Workflows.Workflow value) {
         if (workflowBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -64807,10 +61550,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        */
       public Builder setWorkflow(
-          talon.models.Models.Workflow.Builder builderForValue) {
+          talon.resources.Workflows.Workflow.Builder builderForValue) {
         if (workflowBuilder_ == null) {
           workflow_ = builderForValue.build();
         } else {
@@ -64821,13 +61564,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        */
-      public Builder mergeWorkflow(talon.models.Models.Workflow value) {
+      public Builder mergeWorkflow(talon.resources.Workflows.Workflow value) {
         if (workflowBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             workflow_ != null &&
-            workflow_ != talon.models.Models.Workflow.getDefaultInstance()) {
+            workflow_ != talon.resources.Workflows.Workflow.getDefaultInstance()) {
             getWorkflowBuilder().mergeFrom(value);
           } else {
             workflow_ = value;
@@ -64842,7 +61585,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        */
       public Builder clearWorkflow() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -64855,33 +61598,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        */
-      public talon.models.Models.Workflow.Builder getWorkflowBuilder() {
+      public talon.resources.Workflows.Workflow.Builder getWorkflowBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetWorkflowFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        */
-      public talon.models.Models.WorkflowOrBuilder getWorkflowOrBuilder() {
+      public talon.resources.Workflows.WorkflowOrBuilder getWorkflowOrBuilder() {
         if (workflowBuilder_ != null) {
           return workflowBuilder_.getMessageOrBuilder();
         } else {
           return workflow_ == null ?
-              talon.models.Models.Workflow.getDefaultInstance() : workflow_;
+              talon.resources.Workflows.Workflow.getDefaultInstance() : workflow_;
         }
       }
       /**
-       * <code>.talon.models.Workflow workflow = 2;</code>
+       * <code>.talon.resources.Workflow workflow = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder>
+          talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder>
           internalGetWorkflowFieldBuilder() {
         if (workflowBuilder_ == null) {
           workflowBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder>(
+              talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder>(
                   getWorkflow(),
                   getParentForChildren(),
                   isClean());
@@ -66787,19 +63530,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.Workflow workflow = 1;</code>
+     * <code>.talon.resources.Workflow workflow = 1;</code>
      * @return Whether the workflow field is set.
      */
     boolean hasWorkflow();
     /**
-     * <code>.talon.models.Workflow workflow = 1;</code>
+     * <code>.talon.resources.Workflow workflow = 1;</code>
      * @return The workflow.
      */
-    talon.models.Models.Workflow getWorkflow();
+    talon.resources.Workflows.Workflow getWorkflow();
     /**
-     * <code>.talon.models.Workflow workflow = 1;</code>
+     * <code>.talon.resources.Workflow workflow = 1;</code>
      */
-    talon.models.Models.WorkflowOrBuilder getWorkflowOrBuilder();
+    talon.resources.Workflows.WorkflowOrBuilder getWorkflowOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.WorkflowResponse}
@@ -66845,9 +63588,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int WORKFLOW_FIELD_NUMBER = 1;
-    private talon.models.Models.Workflow workflow_;
+    private talon.resources.Workflows.Workflow workflow_;
     /**
-     * <code>.talon.models.Workflow workflow = 1;</code>
+     * <code>.talon.resources.Workflow workflow = 1;</code>
      * @return Whether the workflow field is set.
      */
     @java.lang.Override
@@ -66855,19 +63598,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Workflow workflow = 1;</code>
+     * <code>.talon.resources.Workflow workflow = 1;</code>
      * @return The workflow.
      */
     @java.lang.Override
-    public talon.models.Models.Workflow getWorkflow() {
-      return workflow_ == null ? talon.models.Models.Workflow.getDefaultInstance() : workflow_;
+    public talon.resources.Workflows.Workflow getWorkflow() {
+      return workflow_ == null ? talon.resources.Workflows.Workflow.getDefaultInstance() : workflow_;
     }
     /**
-     * <code>.talon.models.Workflow workflow = 1;</code>
+     * <code>.talon.resources.Workflow workflow = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowOrBuilder getWorkflowOrBuilder() {
-      return workflow_ == null ? talon.models.Models.Workflow.getDefaultInstance() : workflow_;
+    public talon.resources.Workflows.WorkflowOrBuilder getWorkflowOrBuilder() {
+      return workflow_ == null ? talon.resources.Workflows.Workflow.getDefaultInstance() : workflow_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -67185,31 +63928,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.models.Models.Workflow workflow_;
+      private talon.resources.Workflows.Workflow workflow_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder> workflowBuilder_;
+          talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder> workflowBuilder_;
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        * @return Whether the workflow field is set.
        */
       public boolean hasWorkflow() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        * @return The workflow.
        */
-      public talon.models.Models.Workflow getWorkflow() {
+      public talon.resources.Workflows.Workflow getWorkflow() {
         if (workflowBuilder_ == null) {
-          return workflow_ == null ? talon.models.Models.Workflow.getDefaultInstance() : workflow_;
+          return workflow_ == null ? talon.resources.Workflows.Workflow.getDefaultInstance() : workflow_;
         } else {
           return workflowBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        */
-      public Builder setWorkflow(talon.models.Models.Workflow value) {
+      public Builder setWorkflow(talon.resources.Workflows.Workflow value) {
         if (workflowBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -67223,10 +63966,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        */
       public Builder setWorkflow(
-          talon.models.Models.Workflow.Builder builderForValue) {
+          talon.resources.Workflows.Workflow.Builder builderForValue) {
         if (workflowBuilder_ == null) {
           workflow_ = builderForValue.build();
         } else {
@@ -67237,13 +63980,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        */
-      public Builder mergeWorkflow(talon.models.Models.Workflow value) {
+      public Builder mergeWorkflow(talon.resources.Workflows.Workflow value) {
         if (workflowBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             workflow_ != null &&
-            workflow_ != talon.models.Models.Workflow.getDefaultInstance()) {
+            workflow_ != talon.resources.Workflows.Workflow.getDefaultInstance()) {
             getWorkflowBuilder().mergeFrom(value);
           } else {
             workflow_ = value;
@@ -67258,7 +64001,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        */
       public Builder clearWorkflow() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -67271,33 +64014,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        */
-      public talon.models.Models.Workflow.Builder getWorkflowBuilder() {
+      public talon.resources.Workflows.Workflow.Builder getWorkflowBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetWorkflowFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        */
-      public talon.models.Models.WorkflowOrBuilder getWorkflowOrBuilder() {
+      public talon.resources.Workflows.WorkflowOrBuilder getWorkflowOrBuilder() {
         if (workflowBuilder_ != null) {
           return workflowBuilder_.getMessageOrBuilder();
         } else {
           return workflow_ == null ?
-              talon.models.Models.Workflow.getDefaultInstance() : workflow_;
+              talon.resources.Workflows.Workflow.getDefaultInstance() : workflow_;
         }
       }
       /**
-       * <code>.talon.models.Workflow workflow = 1;</code>
+       * <code>.talon.resources.Workflow workflow = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder>
+          talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder>
           internalGetWorkflowFieldBuilder() {
         if (workflowBuilder_ == null) {
           workflowBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder>(
+              talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder>(
                   getWorkflow(),
                   getParentForChildren(),
                   isClean());
@@ -67362,27 +64105,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
-    java.util.List<talon.models.Models.Workflow>
+    java.util.List<talon.resources.Workflows.Workflow>
         getWorkflowsList();
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
-    talon.models.Models.Workflow getWorkflows(int index);
+    talon.resources.Workflows.Workflow getWorkflows(int index);
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
     int getWorkflowsCount();
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.WorkflowOrBuilder>
+    java.util.List<? extends talon.resources.Workflows.WorkflowOrBuilder>
         getWorkflowsOrBuilderList();
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
-    talon.models.Models.WorkflowOrBuilder getWorkflowsOrBuilder(
+    talon.resources.Workflows.WorkflowOrBuilder getWorkflowsOrBuilder(
         int index);
   }
   /**
@@ -67430,41 +64173,41 @@ java.lang.String defaultValue) {
 
     public static final int WORKFLOWS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.Workflow> workflows_;
+    private java.util.List<talon.resources.Workflows.Workflow> workflows_;
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.Workflow> getWorkflowsList() {
+    public java.util.List<talon.resources.Workflows.Workflow> getWorkflowsList() {
       return workflows_;
     }
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.WorkflowOrBuilder>
+    public java.util.List<? extends talon.resources.Workflows.WorkflowOrBuilder>
         getWorkflowsOrBuilderList() {
       return workflows_;
     }
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
     @java.lang.Override
     public int getWorkflowsCount() {
       return workflows_.size();
     }
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.Workflow getWorkflows(int index) {
+    public talon.resources.Workflows.Workflow getWorkflows(int index) {
       return workflows_.get(index);
     }
     /**
-     * <code>repeated .talon.models.Workflow workflows = 1;</code>
+     * <code>repeated .talon.resources.Workflow workflows = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowOrBuilder getWorkflowsOrBuilder(
+    public talon.resources.Workflows.WorkflowOrBuilder getWorkflowsOrBuilder(
         int index) {
       return workflows_.get(index);
     }
@@ -67787,9 +64530,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.models.Models.Workflow m =
+                talon.resources.Workflows.Workflow m =
                     input.readMessage(
-                        talon.models.Models.Workflow.parser(),
+                        talon.resources.Workflows.Workflow.parser(),
                         extensionRegistry);
                 if (workflowsBuilder_ == null) {
                   ensureWorkflowsIsMutable();
@@ -67816,22 +64559,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.models.Models.Workflow> workflows_ =
+      private java.util.List<talon.resources.Workflows.Workflow> workflows_ =
         java.util.Collections.emptyList();
       private void ensureWorkflowsIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          workflows_ = new java.util.ArrayList<talon.models.Models.Workflow>(workflows_);
+          workflows_ = new java.util.ArrayList<talon.resources.Workflows.Workflow>(workflows_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder> workflowsBuilder_;
+          talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder> workflowsBuilder_;
 
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public java.util.List<talon.models.Models.Workflow> getWorkflowsList() {
+      public java.util.List<talon.resources.Workflows.Workflow> getWorkflowsList() {
         if (workflowsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(workflows_);
         } else {
@@ -67839,7 +64582,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public int getWorkflowsCount() {
         if (workflowsBuilder_ == null) {
@@ -67849,9 +64592,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public talon.models.Models.Workflow getWorkflows(int index) {
+      public talon.resources.Workflows.Workflow getWorkflows(int index) {
         if (workflowsBuilder_ == null) {
           return workflows_.get(index);
         } else {
@@ -67859,10 +64602,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public Builder setWorkflows(
-          int index, talon.models.Models.Workflow value) {
+          int index, talon.resources.Workflows.Workflow value) {
         if (workflowsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -67876,10 +64619,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public Builder setWorkflows(
-          int index, talon.models.Models.Workflow.Builder builderForValue) {
+          int index, talon.resources.Workflows.Workflow.Builder builderForValue) {
         if (workflowsBuilder_ == null) {
           ensureWorkflowsIsMutable();
           workflows_.set(index, builderForValue.build());
@@ -67890,9 +64633,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public Builder addWorkflows(talon.models.Models.Workflow value) {
+      public Builder addWorkflows(talon.resources.Workflows.Workflow value) {
         if (workflowsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -67906,10 +64649,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public Builder addWorkflows(
-          int index, talon.models.Models.Workflow value) {
+          int index, talon.resources.Workflows.Workflow value) {
         if (workflowsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -67923,10 +64666,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public Builder addWorkflows(
-          talon.models.Models.Workflow.Builder builderForValue) {
+          talon.resources.Workflows.Workflow.Builder builderForValue) {
         if (workflowsBuilder_ == null) {
           ensureWorkflowsIsMutable();
           workflows_.add(builderForValue.build());
@@ -67937,10 +64680,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public Builder addWorkflows(
-          int index, talon.models.Models.Workflow.Builder builderForValue) {
+          int index, talon.resources.Workflows.Workflow.Builder builderForValue) {
         if (workflowsBuilder_ == null) {
           ensureWorkflowsIsMutable();
           workflows_.add(index, builderForValue.build());
@@ -67951,10 +64694,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public Builder addAllWorkflows(
-          java.lang.Iterable<? extends talon.models.Models.Workflow> values) {
+          java.lang.Iterable<? extends talon.resources.Workflows.Workflow> values) {
         if (workflowsBuilder_ == null) {
           ensureWorkflowsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -67966,7 +64709,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public Builder clearWorkflows() {
         if (workflowsBuilder_ == null) {
@@ -67979,7 +64722,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
       public Builder removeWorkflows(int index) {
         if (workflowsBuilder_ == null) {
@@ -67992,16 +64735,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public talon.models.Models.Workflow.Builder getWorkflowsBuilder(
+      public talon.resources.Workflows.Workflow.Builder getWorkflowsBuilder(
           int index) {
         return internalGetWorkflowsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public talon.models.Models.WorkflowOrBuilder getWorkflowsOrBuilder(
+      public talon.resources.Workflows.WorkflowOrBuilder getWorkflowsOrBuilder(
           int index) {
         if (workflowsBuilder_ == null) {
           return workflows_.get(index);  } else {
@@ -68009,9 +64752,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.WorkflowOrBuilder>
+      public java.util.List<? extends talon.resources.Workflows.WorkflowOrBuilder>
            getWorkflowsOrBuilderList() {
         if (workflowsBuilder_ != null) {
           return workflowsBuilder_.getMessageOrBuilderList();
@@ -68020,33 +64763,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public talon.models.Models.Workflow.Builder addWorkflowsBuilder() {
+      public talon.resources.Workflows.Workflow.Builder addWorkflowsBuilder() {
         return internalGetWorkflowsFieldBuilder().addBuilder(
-            talon.models.Models.Workflow.getDefaultInstance());
+            talon.resources.Workflows.Workflow.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public talon.models.Models.Workflow.Builder addWorkflowsBuilder(
+      public talon.resources.Workflows.Workflow.Builder addWorkflowsBuilder(
           int index) {
         return internalGetWorkflowsFieldBuilder().addBuilder(
-            index, talon.models.Models.Workflow.getDefaultInstance());
+            index, talon.resources.Workflows.Workflow.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.Workflow workflows = 1;</code>
+       * <code>repeated .talon.resources.Workflow workflows = 1;</code>
        */
-      public java.util.List<talon.models.Models.Workflow.Builder>
+      public java.util.List<talon.resources.Workflows.Workflow.Builder>
            getWorkflowsBuilderList() {
         return internalGetWorkflowsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder>
+          talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder>
           internalGetWorkflowsFieldBuilder() {
         if (workflowsBuilder_ == null) {
           workflowsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.Workflow, talon.models.Models.Workflow.Builder, talon.models.Models.WorkflowOrBuilder>(
+              talon.resources.Workflows.Workflow, talon.resources.Workflows.Workflow.Builder, talon.resources.Workflows.WorkflowOrBuilder>(
                   workflows_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -74099,42 +70842,42 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.WorkflowRun run = 1;</code>
+     * <code>.talon.data.WorkflowRun run = 1;</code>
      * @return Whether the run field is set.
      */
     boolean hasRun();
     /**
-     * <code>.talon.models.WorkflowRun run = 1;</code>
+     * <code>.talon.data.WorkflowRun run = 1;</code>
      * @return The run.
      */
-    talon.models.Models.WorkflowRun getRun();
+    talon.data.Data.WorkflowRun getRun();
     /**
-     * <code>.talon.models.WorkflowRun run = 1;</code>
+     * <code>.talon.data.WorkflowRun run = 1;</code>
      */
-    talon.models.Models.WorkflowRunOrBuilder getRunOrBuilder();
+    talon.data.Data.WorkflowRunOrBuilder getRunOrBuilder();
 
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
-    java.util.List<talon.models.Models.WorkflowStepRun>
+    java.util.List<talon.data.Data.WorkflowStepRun>
         getStepsList();
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
-    talon.models.Models.WorkflowStepRun getSteps(int index);
+    talon.data.Data.WorkflowStepRun getSteps(int index);
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
     int getStepsCount();
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
-    java.util.List<? extends talon.models.Models.WorkflowStepRunOrBuilder>
+    java.util.List<? extends talon.data.Data.WorkflowStepRunOrBuilder>
         getStepsOrBuilderList();
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
-    talon.models.Models.WorkflowStepRunOrBuilder getStepsOrBuilder(
+    talon.data.Data.WorkflowStepRunOrBuilder getStepsOrBuilder(
         int index);
   }
   /**
@@ -74182,9 +70925,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int RUN_FIELD_NUMBER = 1;
-    private talon.models.Models.WorkflowRun run_;
+    private talon.data.Data.WorkflowRun run_;
     /**
-     * <code>.talon.models.WorkflowRun run = 1;</code>
+     * <code>.talon.data.WorkflowRun run = 1;</code>
      * @return Whether the run field is set.
      */
     @java.lang.Override
@@ -74192,58 +70935,58 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.WorkflowRun run = 1;</code>
+     * <code>.talon.data.WorkflowRun run = 1;</code>
      * @return The run.
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowRun getRun() {
-      return run_ == null ? talon.models.Models.WorkflowRun.getDefaultInstance() : run_;
+    public talon.data.Data.WorkflowRun getRun() {
+      return run_ == null ? talon.data.Data.WorkflowRun.getDefaultInstance() : run_;
     }
     /**
-     * <code>.talon.models.WorkflowRun run = 1;</code>
+     * <code>.talon.data.WorkflowRun run = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowRunOrBuilder getRunOrBuilder() {
-      return run_ == null ? talon.models.Models.WorkflowRun.getDefaultInstance() : run_;
+    public talon.data.Data.WorkflowRunOrBuilder getRunOrBuilder() {
+      return run_ == null ? talon.data.Data.WorkflowRun.getDefaultInstance() : run_;
     }
 
     public static final int STEPS_FIELD_NUMBER = 2;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.WorkflowStepRun> steps_;
+    private java.util.List<talon.data.Data.WorkflowStepRun> steps_;
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.WorkflowStepRun> getStepsList() {
+    public java.util.List<talon.data.Data.WorkflowStepRun> getStepsList() {
       return steps_;
     }
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.WorkflowStepRunOrBuilder>
+    public java.util.List<? extends talon.data.Data.WorkflowStepRunOrBuilder>
         getStepsOrBuilderList() {
       return steps_;
     }
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
     @java.lang.Override
     public int getStepsCount() {
       return steps_.size();
     }
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowStepRun getSteps(int index) {
+    public talon.data.Data.WorkflowStepRun getSteps(int index) {
       return steps_.get(index);
     }
     /**
-     * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+     * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowStepRunOrBuilder getStepsOrBuilder(
+    public talon.data.Data.WorkflowStepRunOrBuilder getStepsOrBuilder(
         int index) {
       return steps_.get(index);
     }
@@ -74612,9 +71355,9 @@ java.lang.String defaultValue) {
                 break;
               } // case 10
               case 18: {
-                talon.models.Models.WorkflowStepRun m =
+                talon.data.Data.WorkflowStepRun m =
                     input.readMessage(
-                        talon.models.Models.WorkflowStepRun.parser(),
+                        talon.data.Data.WorkflowStepRun.parser(),
                         extensionRegistry);
                 if (stepsBuilder_ == null) {
                   ensureStepsIsMutable();
@@ -74641,31 +71384,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.models.Models.WorkflowRun run_;
+      private talon.data.Data.WorkflowRun run_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.WorkflowRun, talon.models.Models.WorkflowRun.Builder, talon.models.Models.WorkflowRunOrBuilder> runBuilder_;
+          talon.data.Data.WorkflowRun, talon.data.Data.WorkflowRun.Builder, talon.data.Data.WorkflowRunOrBuilder> runBuilder_;
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        * @return Whether the run field is set.
        */
       public boolean hasRun() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        * @return The run.
        */
-      public talon.models.Models.WorkflowRun getRun() {
+      public talon.data.Data.WorkflowRun getRun() {
         if (runBuilder_ == null) {
-          return run_ == null ? talon.models.Models.WorkflowRun.getDefaultInstance() : run_;
+          return run_ == null ? talon.data.Data.WorkflowRun.getDefaultInstance() : run_;
         } else {
           return runBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        */
-      public Builder setRun(talon.models.Models.WorkflowRun value) {
+      public Builder setRun(talon.data.Data.WorkflowRun value) {
         if (runBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -74679,10 +71422,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        */
       public Builder setRun(
-          talon.models.Models.WorkflowRun.Builder builderForValue) {
+          talon.data.Data.WorkflowRun.Builder builderForValue) {
         if (runBuilder_ == null) {
           run_ = builderForValue.build();
         } else {
@@ -74693,13 +71436,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        */
-      public Builder mergeRun(talon.models.Models.WorkflowRun value) {
+      public Builder mergeRun(talon.data.Data.WorkflowRun value) {
         if (runBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             run_ != null &&
-            run_ != talon.models.Models.WorkflowRun.getDefaultInstance()) {
+            run_ != talon.data.Data.WorkflowRun.getDefaultInstance()) {
             getRunBuilder().mergeFrom(value);
           } else {
             run_ = value;
@@ -74714,7 +71457,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        */
       public Builder clearRun() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -74727,33 +71470,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        */
-      public talon.models.Models.WorkflowRun.Builder getRunBuilder() {
+      public talon.data.Data.WorkflowRun.Builder getRunBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetRunFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        */
-      public talon.models.Models.WorkflowRunOrBuilder getRunOrBuilder() {
+      public talon.data.Data.WorkflowRunOrBuilder getRunOrBuilder() {
         if (runBuilder_ != null) {
           return runBuilder_.getMessageOrBuilder();
         } else {
           return run_ == null ?
-              talon.models.Models.WorkflowRun.getDefaultInstance() : run_;
+              talon.data.Data.WorkflowRun.getDefaultInstance() : run_;
         }
       }
       /**
-       * <code>.talon.models.WorkflowRun run = 1;</code>
+       * <code>.talon.data.WorkflowRun run = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.WorkflowRun, talon.models.Models.WorkflowRun.Builder, talon.models.Models.WorkflowRunOrBuilder>
+          talon.data.Data.WorkflowRun, talon.data.Data.WorkflowRun.Builder, talon.data.Data.WorkflowRunOrBuilder>
           internalGetRunFieldBuilder() {
         if (runBuilder_ == null) {
           runBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.WorkflowRun, talon.models.Models.WorkflowRun.Builder, talon.models.Models.WorkflowRunOrBuilder>(
+              talon.data.Data.WorkflowRun, talon.data.Data.WorkflowRun.Builder, talon.data.Data.WorkflowRunOrBuilder>(
                   getRun(),
                   getParentForChildren(),
                   isClean());
@@ -74762,22 +71505,22 @@ java.lang.String defaultValue) {
         return runBuilder_;
       }
 
-      private java.util.List<talon.models.Models.WorkflowStepRun> steps_ =
+      private java.util.List<talon.data.Data.WorkflowStepRun> steps_ =
         java.util.Collections.emptyList();
       private void ensureStepsIsMutable() {
         if (!((bitField0_ & 0x00000002) != 0)) {
-          steps_ = new java.util.ArrayList<talon.models.Models.WorkflowStepRun>(steps_);
+          steps_ = new java.util.ArrayList<talon.data.Data.WorkflowStepRun>(steps_);
           bitField0_ |= 0x00000002;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.WorkflowStepRun, talon.models.Models.WorkflowStepRun.Builder, talon.models.Models.WorkflowStepRunOrBuilder> stepsBuilder_;
+          talon.data.Data.WorkflowStepRun, talon.data.Data.WorkflowStepRun.Builder, talon.data.Data.WorkflowStepRunOrBuilder> stepsBuilder_;
 
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public java.util.List<talon.models.Models.WorkflowStepRun> getStepsList() {
+      public java.util.List<talon.data.Data.WorkflowStepRun> getStepsList() {
         if (stepsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(steps_);
         } else {
@@ -74785,7 +71528,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public int getStepsCount() {
         if (stepsBuilder_ == null) {
@@ -74795,9 +71538,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public talon.models.Models.WorkflowStepRun getSteps(int index) {
+      public talon.data.Data.WorkflowStepRun getSteps(int index) {
         if (stepsBuilder_ == null) {
           return steps_.get(index);
         } else {
@@ -74805,10 +71548,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public Builder setSteps(
-          int index, talon.models.Models.WorkflowStepRun value) {
+          int index, talon.data.Data.WorkflowStepRun value) {
         if (stepsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -74822,10 +71565,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public Builder setSteps(
-          int index, talon.models.Models.WorkflowStepRun.Builder builderForValue) {
+          int index, talon.data.Data.WorkflowStepRun.Builder builderForValue) {
         if (stepsBuilder_ == null) {
           ensureStepsIsMutable();
           steps_.set(index, builderForValue.build());
@@ -74836,9 +71579,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public Builder addSteps(talon.models.Models.WorkflowStepRun value) {
+      public Builder addSteps(talon.data.Data.WorkflowStepRun value) {
         if (stepsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -74852,10 +71595,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public Builder addSteps(
-          int index, talon.models.Models.WorkflowStepRun value) {
+          int index, talon.data.Data.WorkflowStepRun value) {
         if (stepsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -74869,10 +71612,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public Builder addSteps(
-          talon.models.Models.WorkflowStepRun.Builder builderForValue) {
+          talon.data.Data.WorkflowStepRun.Builder builderForValue) {
         if (stepsBuilder_ == null) {
           ensureStepsIsMutable();
           steps_.add(builderForValue.build());
@@ -74883,10 +71626,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public Builder addSteps(
-          int index, talon.models.Models.WorkflowStepRun.Builder builderForValue) {
+          int index, talon.data.Data.WorkflowStepRun.Builder builderForValue) {
         if (stepsBuilder_ == null) {
           ensureStepsIsMutable();
           steps_.add(index, builderForValue.build());
@@ -74897,10 +71640,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public Builder addAllSteps(
-          java.lang.Iterable<? extends talon.models.Models.WorkflowStepRun> values) {
+          java.lang.Iterable<? extends talon.data.Data.WorkflowStepRun> values) {
         if (stepsBuilder_ == null) {
           ensureStepsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -74912,7 +71655,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public Builder clearSteps() {
         if (stepsBuilder_ == null) {
@@ -74925,7 +71668,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
       public Builder removeSteps(int index) {
         if (stepsBuilder_ == null) {
@@ -74938,16 +71681,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public talon.models.Models.WorkflowStepRun.Builder getStepsBuilder(
+      public talon.data.Data.WorkflowStepRun.Builder getStepsBuilder(
           int index) {
         return internalGetStepsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public talon.models.Models.WorkflowStepRunOrBuilder getStepsOrBuilder(
+      public talon.data.Data.WorkflowStepRunOrBuilder getStepsOrBuilder(
           int index) {
         if (stepsBuilder_ == null) {
           return steps_.get(index);  } else {
@@ -74955,9 +71698,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public java.util.List<? extends talon.models.Models.WorkflowStepRunOrBuilder>
+      public java.util.List<? extends talon.data.Data.WorkflowStepRunOrBuilder>
            getStepsOrBuilderList() {
         if (stepsBuilder_ != null) {
           return stepsBuilder_.getMessageOrBuilderList();
@@ -74966,33 +71709,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public talon.models.Models.WorkflowStepRun.Builder addStepsBuilder() {
+      public talon.data.Data.WorkflowStepRun.Builder addStepsBuilder() {
         return internalGetStepsFieldBuilder().addBuilder(
-            talon.models.Models.WorkflowStepRun.getDefaultInstance());
+            talon.data.Data.WorkflowStepRun.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public talon.models.Models.WorkflowStepRun.Builder addStepsBuilder(
+      public talon.data.Data.WorkflowStepRun.Builder addStepsBuilder(
           int index) {
         return internalGetStepsFieldBuilder().addBuilder(
-            index, talon.models.Models.WorkflowStepRun.getDefaultInstance());
+            index, talon.data.Data.WorkflowStepRun.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.WorkflowStepRun steps = 2;</code>
+       * <code>repeated .talon.data.WorkflowStepRun steps = 2;</code>
        */
-      public java.util.List<talon.models.Models.WorkflowStepRun.Builder>
+      public java.util.List<talon.data.Data.WorkflowStepRun.Builder>
            getStepsBuilderList() {
         return internalGetStepsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.WorkflowStepRun, talon.models.Models.WorkflowStepRun.Builder, talon.models.Models.WorkflowStepRunOrBuilder>
+          talon.data.Data.WorkflowStepRun, talon.data.Data.WorkflowStepRun.Builder, talon.data.Data.WorkflowStepRunOrBuilder>
           internalGetStepsFieldBuilder() {
         if (stepsBuilder_ == null) {
           stepsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.WorkflowStepRun, talon.models.Models.WorkflowStepRun.Builder, talon.models.Models.WorkflowStepRunOrBuilder>(
+              talon.data.Data.WorkflowStepRun, talon.data.Data.WorkflowStepRun.Builder, talon.data.Data.WorkflowStepRunOrBuilder>(
                   steps_,
                   ((bitField0_ & 0x00000002) != 0),
                   getParentForChildren(),
@@ -75058,27 +71801,27 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
-    java.util.List<talon.models.Models.WorkflowRun>
+    java.util.List<talon.data.Data.WorkflowRun>
         getRunsList();
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
-    talon.models.Models.WorkflowRun getRuns(int index);
+    talon.data.Data.WorkflowRun getRuns(int index);
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
     int getRunsCount();
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
-    java.util.List<? extends talon.models.Models.WorkflowRunOrBuilder>
+    java.util.List<? extends talon.data.Data.WorkflowRunOrBuilder>
         getRunsOrBuilderList();
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
-    talon.models.Models.WorkflowRunOrBuilder getRunsOrBuilder(
+    talon.data.Data.WorkflowRunOrBuilder getRunsOrBuilder(
         int index);
 
     /**
@@ -75145,41 +71888,41 @@ java.lang.String defaultValue) {
 
     public static final int RUNS_FIELD_NUMBER = 1;
     @SuppressWarnings("serial")
-    private java.util.List<talon.models.Models.WorkflowRun> runs_;
+    private java.util.List<talon.data.Data.WorkflowRun> runs_;
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<talon.models.Models.WorkflowRun> getRunsList() {
+    public java.util.List<talon.data.Data.WorkflowRun> getRunsList() {
       return runs_;
     }
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
     @java.lang.Override
-    public java.util.List<? extends talon.models.Models.WorkflowRunOrBuilder>
+    public java.util.List<? extends talon.data.Data.WorkflowRunOrBuilder>
         getRunsOrBuilderList() {
       return runs_;
     }
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
     @java.lang.Override
     public int getRunsCount() {
       return runs_.size();
     }
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowRun getRuns(int index) {
+    public talon.data.Data.WorkflowRun getRuns(int index) {
       return runs_.get(index);
     }
     /**
-     * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+     * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.WorkflowRunOrBuilder getRunsOrBuilder(
+    public talon.data.Data.WorkflowRunOrBuilder getRunsOrBuilder(
         int index) {
       return runs_.get(index);
     }
@@ -75590,9 +72333,9 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                talon.models.Models.WorkflowRun m =
+                talon.data.Data.WorkflowRun m =
                     input.readMessage(
-                        talon.models.Models.WorkflowRun.parser(),
+                        talon.data.Data.WorkflowRun.parser(),
                         extensionRegistry);
                 if (runsBuilder_ == null) {
                   ensureRunsIsMutable();
@@ -75629,22 +72372,22 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.util.List<talon.models.Models.WorkflowRun> runs_ =
+      private java.util.List<talon.data.Data.WorkflowRun> runs_ =
         java.util.Collections.emptyList();
       private void ensureRunsIsMutable() {
         if (!((bitField0_ & 0x00000001) != 0)) {
-          runs_ = new java.util.ArrayList<talon.models.Models.WorkflowRun>(runs_);
+          runs_ = new java.util.ArrayList<talon.data.Data.WorkflowRun>(runs_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.WorkflowRun, talon.models.Models.WorkflowRun.Builder, talon.models.Models.WorkflowRunOrBuilder> runsBuilder_;
+          talon.data.Data.WorkflowRun, talon.data.Data.WorkflowRun.Builder, talon.data.Data.WorkflowRunOrBuilder> runsBuilder_;
 
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public java.util.List<talon.models.Models.WorkflowRun> getRunsList() {
+      public java.util.List<talon.data.Data.WorkflowRun> getRunsList() {
         if (runsBuilder_ == null) {
           return java.util.Collections.unmodifiableList(runs_);
         } else {
@@ -75652,7 +72395,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public int getRunsCount() {
         if (runsBuilder_ == null) {
@@ -75662,9 +72405,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public talon.models.Models.WorkflowRun getRuns(int index) {
+      public talon.data.Data.WorkflowRun getRuns(int index) {
         if (runsBuilder_ == null) {
           return runs_.get(index);
         } else {
@@ -75672,10 +72415,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public Builder setRuns(
-          int index, talon.models.Models.WorkflowRun value) {
+          int index, talon.data.Data.WorkflowRun value) {
         if (runsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -75689,10 +72432,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public Builder setRuns(
-          int index, talon.models.Models.WorkflowRun.Builder builderForValue) {
+          int index, talon.data.Data.WorkflowRun.Builder builderForValue) {
         if (runsBuilder_ == null) {
           ensureRunsIsMutable();
           runs_.set(index, builderForValue.build());
@@ -75703,9 +72446,9 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public Builder addRuns(talon.models.Models.WorkflowRun value) {
+      public Builder addRuns(talon.data.Data.WorkflowRun value) {
         if (runsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -75719,10 +72462,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public Builder addRuns(
-          int index, talon.models.Models.WorkflowRun value) {
+          int index, talon.data.Data.WorkflowRun value) {
         if (runsBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -75736,10 +72479,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public Builder addRuns(
-          talon.models.Models.WorkflowRun.Builder builderForValue) {
+          talon.data.Data.WorkflowRun.Builder builderForValue) {
         if (runsBuilder_ == null) {
           ensureRunsIsMutable();
           runs_.add(builderForValue.build());
@@ -75750,10 +72493,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public Builder addRuns(
-          int index, talon.models.Models.WorkflowRun.Builder builderForValue) {
+          int index, talon.data.Data.WorkflowRun.Builder builderForValue) {
         if (runsBuilder_ == null) {
           ensureRunsIsMutable();
           runs_.add(index, builderForValue.build());
@@ -75764,10 +72507,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public Builder addAllRuns(
-          java.lang.Iterable<? extends talon.models.Models.WorkflowRun> values) {
+          java.lang.Iterable<? extends talon.data.Data.WorkflowRun> values) {
         if (runsBuilder_ == null) {
           ensureRunsIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -75779,7 +72522,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public Builder clearRuns() {
         if (runsBuilder_ == null) {
@@ -75792,7 +72535,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
       public Builder removeRuns(int index) {
         if (runsBuilder_ == null) {
@@ -75805,16 +72548,16 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public talon.models.Models.WorkflowRun.Builder getRunsBuilder(
+      public talon.data.Data.WorkflowRun.Builder getRunsBuilder(
           int index) {
         return internalGetRunsFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public talon.models.Models.WorkflowRunOrBuilder getRunsOrBuilder(
+      public talon.data.Data.WorkflowRunOrBuilder getRunsOrBuilder(
           int index) {
         if (runsBuilder_ == null) {
           return runs_.get(index);  } else {
@@ -75822,9 +72565,9 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public java.util.List<? extends talon.models.Models.WorkflowRunOrBuilder>
+      public java.util.List<? extends talon.data.Data.WorkflowRunOrBuilder>
            getRunsOrBuilderList() {
         if (runsBuilder_ != null) {
           return runsBuilder_.getMessageOrBuilderList();
@@ -75833,33 +72576,33 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public talon.models.Models.WorkflowRun.Builder addRunsBuilder() {
+      public talon.data.Data.WorkflowRun.Builder addRunsBuilder() {
         return internalGetRunsFieldBuilder().addBuilder(
-            talon.models.Models.WorkflowRun.getDefaultInstance());
+            talon.data.Data.WorkflowRun.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public talon.models.Models.WorkflowRun.Builder addRunsBuilder(
+      public talon.data.Data.WorkflowRun.Builder addRunsBuilder(
           int index) {
         return internalGetRunsFieldBuilder().addBuilder(
-            index, talon.models.Models.WorkflowRun.getDefaultInstance());
+            index, talon.data.Data.WorkflowRun.getDefaultInstance());
       }
       /**
-       * <code>repeated .talon.models.WorkflowRun runs = 1;</code>
+       * <code>repeated .talon.data.WorkflowRun runs = 1;</code>
        */
-      public java.util.List<talon.models.Models.WorkflowRun.Builder>
+      public java.util.List<talon.data.Data.WorkflowRun.Builder>
            getRunsBuilderList() {
         return internalGetRunsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          talon.models.Models.WorkflowRun, talon.models.Models.WorkflowRun.Builder, talon.models.Models.WorkflowRunOrBuilder>
+          talon.data.Data.WorkflowRun, talon.data.Data.WorkflowRun.Builder, talon.data.Data.WorkflowRunOrBuilder>
           internalGetRunsFieldBuilder() {
         if (runsBuilder_ == null) {
           runsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
-              talon.models.Models.WorkflowRun, talon.models.Models.WorkflowRun.Builder, talon.models.Models.WorkflowRunOrBuilder>(
+              talon.data.Data.WorkflowRun, talon.data.Data.WorkflowRun.Builder, talon.data.Data.WorkflowRunOrBuilder>(
                   runs_,
                   ((bitField0_ & 0x00000001) != 0),
                   getParentForChildren(),
@@ -76029,19 +72772,19 @@ java.lang.String defaultValue) {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>.talon.models.Schedule schedule = 1;</code>
+     * <code>.talon.resources.Schedule schedule = 1;</code>
      * @return Whether the schedule field is set.
      */
     boolean hasSchedule();
     /**
-     * <code>.talon.models.Schedule schedule = 1;</code>
+     * <code>.talon.resources.Schedule schedule = 1;</code>
      * @return The schedule.
      */
-    talon.models.Models.Schedule getSchedule();
+    talon.resources.Schedules.Schedule getSchedule();
     /**
-     * <code>.talon.models.Schedule schedule = 1;</code>
+     * <code>.talon.resources.Schedule schedule = 1;</code>
      */
-    talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder();
+    talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.ScheduleResponse}
@@ -76087,9 +72830,9 @@ java.lang.String defaultValue) {
 
     private int bitField0_;
     public static final int SCHEDULE_FIELD_NUMBER = 1;
-    private talon.models.Models.Schedule schedule_;
+    private talon.resources.Schedules.Schedule schedule_;
     /**
-     * <code>.talon.models.Schedule schedule = 1;</code>
+     * <code>.talon.resources.Schedule schedule = 1;</code>
      * @return Whether the schedule field is set.
      */
     @java.lang.Override
@@ -76097,19 +72840,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.Schedule schedule = 1;</code>
+     * <code>.talon.resources.Schedule schedule = 1;</code>
      * @return The schedule.
      */
     @java.lang.Override
-    public talon.models.Models.Schedule getSchedule() {
-      return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+    public talon.resources.Schedules.Schedule getSchedule() {
+      return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
     }
     /**
-     * <code>.talon.models.Schedule schedule = 1;</code>
+     * <code>.talon.resources.Schedule schedule = 1;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder() {
-      return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+    public talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder() {
+      return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -76427,31 +73170,31 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private talon.models.Models.Schedule schedule_;
+      private talon.resources.Schedules.Schedule schedule_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder> scheduleBuilder_;
+          talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder> scheduleBuilder_;
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        * @return Whether the schedule field is set.
        */
       public boolean hasSchedule() {
         return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        * @return The schedule.
        */
-      public talon.models.Models.Schedule getSchedule() {
+      public talon.resources.Schedules.Schedule getSchedule() {
         if (scheduleBuilder_ == null) {
-          return schedule_ == null ? talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+          return schedule_ == null ? talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
         } else {
           return scheduleBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        */
-      public Builder setSchedule(talon.models.Models.Schedule value) {
+      public Builder setSchedule(talon.resources.Schedules.Schedule value) {
         if (scheduleBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -76465,10 +73208,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        */
       public Builder setSchedule(
-          talon.models.Models.Schedule.Builder builderForValue) {
+          talon.resources.Schedules.Schedule.Builder builderForValue) {
         if (scheduleBuilder_ == null) {
           schedule_ = builderForValue.build();
         } else {
@@ -76479,13 +73222,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        */
-      public Builder mergeSchedule(talon.models.Models.Schedule value) {
+      public Builder mergeSchedule(talon.resources.Schedules.Schedule value) {
         if (scheduleBuilder_ == null) {
           if (((bitField0_ & 0x00000001) != 0) &&
             schedule_ != null &&
-            schedule_ != talon.models.Models.Schedule.getDefaultInstance()) {
+            schedule_ != talon.resources.Schedules.Schedule.getDefaultInstance()) {
             getScheduleBuilder().mergeFrom(value);
           } else {
             schedule_ = value;
@@ -76500,7 +73243,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        */
       public Builder clearSchedule() {
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -76513,33 +73256,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        */
-      public talon.models.Models.Schedule.Builder getScheduleBuilder() {
+      public talon.resources.Schedules.Schedule.Builder getScheduleBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
         return internalGetScheduleFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        */
-      public talon.models.Models.ScheduleOrBuilder getScheduleOrBuilder() {
+      public talon.resources.Schedules.ScheduleOrBuilder getScheduleOrBuilder() {
         if (scheduleBuilder_ != null) {
           return scheduleBuilder_.getMessageOrBuilder();
         } else {
           return schedule_ == null ?
-              talon.models.Models.Schedule.getDefaultInstance() : schedule_;
+              talon.resources.Schedules.Schedule.getDefaultInstance() : schedule_;
         }
       }
       /**
-       * <code>.talon.models.Schedule schedule = 1;</code>
+       * <code>.talon.resources.Schedule schedule = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>
+          talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder>
           internalGetScheduleFieldBuilder() {
         if (scheduleBuilder_ == null) {
           scheduleBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.Schedule, talon.models.Models.Schedule.Builder, talon.models.Models.ScheduleOrBuilder>(
+              talon.resources.Schedules.Schedule, talon.resources.Schedules.Schedule.Builder, talon.resources.Schedules.ScheduleOrBuilder>(
                   getSchedule(),
                   getParentForChildren(),
                   isClean());
@@ -78575,19 +75318,19 @@ java.lang.String defaultValue) {
         getNsBytes();
 
     /**
-     * <code>.talon.models.SessionMessage message = 4;</code>
+     * <code>.talon.data.SessionMessage message = 4;</code>
      * @return Whether the message field is set.
      */
     boolean hasMessage();
     /**
-     * <code>.talon.models.SessionMessage message = 4;</code>
+     * <code>.talon.data.SessionMessage message = 4;</code>
      * @return The message.
      */
-    talon.models.Models.SessionMessage getMessage();
+    talon.data.Data.SessionMessage getMessage();
     /**
-     * <code>.talon.models.SessionMessage message = 4;</code>
+     * <code>.talon.data.SessionMessage message = 4;</code>
      */
-    talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder();
+    talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.AppendSessionMessageRequest}
@@ -78753,9 +75496,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int MESSAGE_FIELD_NUMBER = 4;
-    private talon.models.Models.SessionMessage message_;
+    private talon.data.Data.SessionMessage message_;
     /**
-     * <code>.talon.models.SessionMessage message = 4;</code>
+     * <code>.talon.data.SessionMessage message = 4;</code>
      * @return Whether the message field is set.
      */
     @java.lang.Override
@@ -78763,19 +75506,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.SessionMessage message = 4;</code>
+     * <code>.talon.data.SessionMessage message = 4;</code>
      * @return The message.
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessage getMessage() {
-      return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+    public talon.data.Data.SessionMessage getMessage() {
+      return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
     }
     /**
-     * <code>.talon.models.SessionMessage message = 4;</code>
+     * <code>.talon.data.SessionMessage message = 4;</code>
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder() {
-      return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+    public talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder() {
+      return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -79381,31 +76124,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.SessionMessage message_;
+      private talon.data.Data.SessionMessage message_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder> messageBuilder_;
+          talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder> messageBuilder_;
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        * @return Whether the message field is set.
        */
       public boolean hasMessage() {
         return ((bitField0_ & 0x00000008) != 0);
       }
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        * @return The message.
        */
-      public talon.models.Models.SessionMessage getMessage() {
+      public talon.data.Data.SessionMessage getMessage() {
         if (messageBuilder_ == null) {
-          return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+          return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
         } else {
           return messageBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        */
-      public Builder setMessage(talon.models.Models.SessionMessage value) {
+      public Builder setMessage(talon.data.Data.SessionMessage value) {
         if (messageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -79419,10 +76162,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        */
       public Builder setMessage(
-          talon.models.Models.SessionMessage.Builder builderForValue) {
+          talon.data.Data.SessionMessage.Builder builderForValue) {
         if (messageBuilder_ == null) {
           message_ = builderForValue.build();
         } else {
@@ -79433,13 +76176,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        */
-      public Builder mergeMessage(talon.models.Models.SessionMessage value) {
+      public Builder mergeMessage(talon.data.Data.SessionMessage value) {
         if (messageBuilder_ == null) {
           if (((bitField0_ & 0x00000008) != 0) &&
             message_ != null &&
-            message_ != talon.models.Models.SessionMessage.getDefaultInstance()) {
+            message_ != talon.data.Data.SessionMessage.getDefaultInstance()) {
             getMessageBuilder().mergeFrom(value);
           } else {
             message_ = value;
@@ -79454,7 +76197,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        */
       public Builder clearMessage() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -79467,33 +76210,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        */
-      public talon.models.Models.SessionMessage.Builder getMessageBuilder() {
+      public talon.data.Data.SessionMessage.Builder getMessageBuilder() {
         bitField0_ |= 0x00000008;
         onChanged();
         return internalGetMessageFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        */
-      public talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder() {
+      public talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder() {
         if (messageBuilder_ != null) {
           return messageBuilder_.getMessageOrBuilder();
         } else {
           return message_ == null ?
-              talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+              talon.data.Data.SessionMessage.getDefaultInstance() : message_;
         }
       }
       /**
-       * <code>.talon.models.SessionMessage message = 4;</code>
+       * <code>.talon.data.SessionMessage message = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>
+          talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>(
+              talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder>(
                   getMessage(),
                   getParentForChildren(),
                   isClean());
@@ -79570,19 +76313,19 @@ java.lang.String defaultValue) {
         getSessionIdBytes();
 
     /**
-     * <code>.talon.models.SessionMessage message = 2;</code>
+     * <code>.talon.data.SessionMessage message = 2;</code>
      * @return Whether the message field is set.
      */
     boolean hasMessage();
     /**
-     * <code>.talon.models.SessionMessage message = 2;</code>
+     * <code>.talon.data.SessionMessage message = 2;</code>
      * @return The message.
      */
-    talon.models.Models.SessionMessage getMessage();
+    talon.data.Data.SessionMessage getMessage();
     /**
-     * <code>.talon.models.SessionMessage message = 2;</code>
+     * <code>.talon.data.SessionMessage message = 2;</code>
      */
-    talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder();
+    talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.AppendSessionMessageResponse}
@@ -79668,9 +76411,9 @@ java.lang.String defaultValue) {
     }
 
     public static final int MESSAGE_FIELD_NUMBER = 2;
-    private talon.models.Models.SessionMessage message_;
+    private talon.data.Data.SessionMessage message_;
     /**
-     * <code>.talon.models.SessionMessage message = 2;</code>
+     * <code>.talon.data.SessionMessage message = 2;</code>
      * @return Whether the message field is set.
      */
     @java.lang.Override
@@ -79678,19 +76421,19 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.SessionMessage message = 2;</code>
+     * <code>.talon.data.SessionMessage message = 2;</code>
      * @return The message.
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessage getMessage() {
-      return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+    public talon.data.Data.SessionMessage getMessage() {
+      return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
     }
     /**
-     * <code>.talon.models.SessionMessage message = 2;</code>
+     * <code>.talon.data.SessionMessage message = 2;</code>
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder() {
-      return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+    public talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder() {
+      return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -80104,31 +76847,31 @@ java.lang.String defaultValue) {
         return this;
       }
 
-      private talon.models.Models.SessionMessage message_;
+      private talon.data.Data.SessionMessage message_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder> messageBuilder_;
+          talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder> messageBuilder_;
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        * @return Whether the message field is set.
        */
       public boolean hasMessage() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        * @return The message.
        */
-      public talon.models.Models.SessionMessage getMessage() {
+      public talon.data.Data.SessionMessage getMessage() {
         if (messageBuilder_ == null) {
-          return message_ == null ? talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+          return message_ == null ? talon.data.Data.SessionMessage.getDefaultInstance() : message_;
         } else {
           return messageBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        */
-      public Builder setMessage(talon.models.Models.SessionMessage value) {
+      public Builder setMessage(talon.data.Data.SessionMessage value) {
         if (messageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -80142,10 +76885,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        */
       public Builder setMessage(
-          talon.models.Models.SessionMessage.Builder builderForValue) {
+          talon.data.Data.SessionMessage.Builder builderForValue) {
         if (messageBuilder_ == null) {
           message_ = builderForValue.build();
         } else {
@@ -80156,13 +76899,13 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        */
-      public Builder mergeMessage(talon.models.Models.SessionMessage value) {
+      public Builder mergeMessage(talon.data.Data.SessionMessage value) {
         if (messageBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
             message_ != null &&
-            message_ != talon.models.Models.SessionMessage.getDefaultInstance()) {
+            message_ != talon.data.Data.SessionMessage.getDefaultInstance()) {
             getMessageBuilder().mergeFrom(value);
           } else {
             message_ = value;
@@ -80177,7 +76920,7 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        */
       public Builder clearMessage() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -80190,33 +76933,33 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        */
-      public talon.models.Models.SessionMessage.Builder getMessageBuilder() {
+      public talon.data.Data.SessionMessage.Builder getMessageBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
         return internalGetMessageFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        */
-      public talon.models.Models.SessionMessageOrBuilder getMessageOrBuilder() {
+      public talon.data.Data.SessionMessageOrBuilder getMessageOrBuilder() {
         if (messageBuilder_ != null) {
           return messageBuilder_.getMessageOrBuilder();
         } else {
           return message_ == null ?
-              talon.models.Models.SessionMessage.getDefaultInstance() : message_;
+              talon.data.Data.SessionMessage.getDefaultInstance() : message_;
         }
       }
       /**
-       * <code>.talon.models.SessionMessage message = 2;</code>
+       * <code>.talon.data.SessionMessage message = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>
+          talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.SessionMessage, talon.models.Models.SessionMessage.Builder, talon.models.Models.SessionMessageOrBuilder>(
+              talon.data.Data.SessionMessage, talon.data.Data.SessionMessage.Builder, talon.data.Data.SessionMessageOrBuilder>(
                   getMessage(),
                   getParentForChildren(),
                   isClean());
@@ -87380,40 +84123,40 @@ java.lang.String defaultValue) {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_CreateAgentTemplateRequest_descriptor;
+    internal_static_talon_gateway_CreateResourceRequest_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_CreateAgentTemplateRequest_fieldAccessorTable;
+      internal_static_talon_gateway_CreateResourceRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_AgentTemplateResponse_descriptor;
+    internal_static_talon_gateway_GetResourceRequest_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_AgentTemplateResponse_fieldAccessorTable;
+      internal_static_talon_gateway_GetResourceRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_GetAgentTemplateRequest_descriptor;
+    internal_static_talon_gateway_ListResourcesRequest_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_GetAgentTemplateRequest_fieldAccessorTable;
+      internal_static_talon_gateway_ListResourcesRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_DeleteAgentTemplateRequest_descriptor;
+    internal_static_talon_gateway_DeleteResourceRequest_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_DeleteAgentTemplateRequest_fieldAccessorTable;
+      internal_static_talon_gateway_DeleteResourceRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_DeleteAgentTemplateResponse_descriptor;
+    internal_static_talon_gateway_ResourceResponse_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_DeleteAgentTemplateResponse_fieldAccessorTable;
+      internal_static_talon_gateway_ResourceResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_ListAgentTemplatesRequest_descriptor;
+    internal_static_talon_gateway_ListResourcesResponse_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_ListAgentTemplatesRequest_fieldAccessorTable;
+      internal_static_talon_gateway_ListResourcesResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_ListAgentTemplatesResponse_descriptor;
+    internal_static_talon_gateway_DeleteResourceResponse_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_ListAgentTemplatesResponse_fieldAccessorTable;
+      internal_static_talon_gateway_DeleteResourceResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateMcpServerRequest_descriptor;
   private static final
@@ -87589,41 +84332,6 @@ java.lang.String defaultValue) {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_gateway_ListNamespaceKnowledgeResponse_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_CreateNamespaceSkillRequest_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_CreateNamespaceSkillRequest_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_GetNamespaceSkillRequest_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_GetNamespaceSkillRequest_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_ListNamespaceSkillsRequest_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_ListNamespaceSkillsRequest_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_DeleteNamespaceSkillRequest_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_DeleteNamespaceSkillRequest_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_DeleteNamespaceSkillResponse_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_DeleteNamespaceSkillResponse_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_NamespaceSkillResponse_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_NamespaceSkillResponse_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_gateway_ListNamespaceSkillsResponse_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_gateway_ListNamespaceSkillsResponse_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_gateway_CreateSessionRequest_descriptor;
   private static final
@@ -88044,562 +84752,549 @@ java.lang.String defaultValue) {
   static {
     java.lang.String[] descriptorData = {
       "\n\023proto/gateway.proto\022\rtalon.gateway\032\034go" +
-      "ogle/api/annotations.proto\032\025proto/manife" +
-      "sts.proto\032\022proto/models.proto\032\022proto/eve" +
-      "nts.proto\"N\n\032CreateAgentTemplateRequest\022" +
-      "0\n\010template\030\001 \001(\0132\036.talon.manifests.Agen" +
-      "tTemplate\"I\n\025AgentTemplateResponse\0220\n\010te" +
-      "mplate\030\001 \001(\0132\036.talon.manifests.AgentTemp" +
-      "late\"\'\n\027GetAgentTemplateRequest\022\014\n\004name\030" +
-      "\001 \001(\t\"*\n\032DeleteAgentTemplateRequest\022\014\n\004n" +
-      "ame\030\001 \001(\t\".\n\033DeleteAgentTemplateResponse" +
-      "\022\017\n\007success\030\001 \001(\010\"\033\n\031ListAgentTemplatesR" +
-      "equest\"O\n\032ListAgentTemplatesResponse\0221\n\t" +
-      "templates\030\001 \003(\0132\036.talon.manifests.AgentT" +
-      "emplate\"D\n\026CreateMcpServerRequest\022*\n\006ser" +
-      "ver\030\001 \001(\0132\032.talon.manifests.McpServer\"#\n" +
-      "\023GetMcpServerRequest\022\014\n\004name\030\001 \001(\t\"\027\n\025Li" +
-      "stMcpServersRequest\"&\n\026DeleteMcpServerRe" +
-      "quest\022\014\n\004name\030\001 \001(\t\"*\n\027DeleteMcpServerRe" +
-      "sponse\022\017\n\007success\030\001 \001(\010\"?\n\021McpServerResp" +
-      "onse\022*\n\006server\030\001 \001(\0132\032.talon.manifests.M" +
-      "cpServer\"E\n\026ListMcpServersResponse\022+\n\007se" +
-      "rvers\030\001 \003(\0132\032.talon.manifests.McpServer\"" +
-      "_\n\035CreateMcpServerBindingRequest\022\n\n\002ns\030\001" +
-      " \001(\t\0222\n\007binding\030\002 \001(\0132!.talon.manifests." +
-      "McpServerBinding\"6\n\032GetMcpServerBindingR" +
-      "equest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"*\n\034List" +
-      "McpServerBindingsRequest\022\n\n\002ns\030\001 \001(\t\"9\n\035" +
-      "DeleteMcpServerBindingRequest\022\n\n\002ns\030\001 \001(" +
-      "\t\022\014\n\004name\030\002 \001(\t\"1\n\036DeleteMcpServerBindin" +
-      "gResponse\022\017\n\007success\030\001 \001(\010\"N\n\030McpServerB" +
-      "indingResponse\0222\n\007binding\030\001 \001(\0132!.talon." +
-      "manifests.McpServerBinding\"T\n\035ListMcpSer" +
-      "verBindingsResponse\0223\n\010bindings\030\001 \003(\0132!." +
-      "talon.manifests.McpServerBinding\"6\n\020GetA" +
-      "gentResponse\022\"\n\005agent\030\001 \001(\0132\023.talon.mode" +
-      "ls.Agent\"+\n\017GetAgentRequest\022\n\n\002ns\030\001 \001(\t\022" +
-      "\014\n\004name\030\002 \001(\t\"\340\001\n\022CreateAgentRequest\022\n\n\002" +
-      "ns\030\001 \001(\t\022\021\n\004name\030\002 \001(\tH\000\210\001\001\0224\n\ndefinitio" +
-      "n\030\003 \001(\0132 .talon.manifests.AgentDefinitio" +
-      "n\022=\n\006labels\030\004 \003(\0132-.talon.gateway.Create" +
-      "AgentRequest.LabelsEntry\032-\n\013LabelsEntry\022" +
-      "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\007\n\005_name" +
-      "\"\223\001\n\rAgentResponse\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030" +
-      "\002 \001(\t\0228\n\006labels\030\004 \003(\0132(.talon.gateway.Ag" +
-      "entResponse.LabelsEntry\032-\n\013LabelsEntry\022\013" +
-      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\037\n\021ListAg" +
-      "entsRequest\022\n\n\002ns\030\001 \001(\t\"$\n\022ListAgentsRes" +
-      "ponse\022\016\n\006agents\030\001 \003(\t\"\323\001\n\022ModifyAgentReq" +
-      "uest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\0224\n\ndefin" +
-      "ition\030\003 \001(\0132 .talon.manifests.AgentDefin" +
-      "ition\022=\n\006labels\030\004 \003(\0132-.talon.gateway.Mo" +
-      "difyAgentRequest.LabelsEntry\032-\n\013LabelsEn" +
-      "try\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"L\n\023G" +
-      "etKnowledgeRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030" +
-      "\002 \001(\t\022\021\n\004path\030\003 \001(\tH\000\210\001\001B\007\n\005_path\"=\n\021Kno" +
-      "wledgeResponse\022(\n\007modules\030\001 \003(\0132\027.talon." +
-      "models.Knowledge\"B\n\026SearchKnowledgeReque" +
-      "st\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\r\n\005query\030\003" +
-      " \001(\t\"O\n\027SearchKnowledgeResponse\0224\n\007resul" +
-      "ts\030\001 \003(\0132#.talon.models.KnowledgeSearchR" +
-      "esult\"\\\n\037CreateNamespaceKnowledgeRequest" +
-      "\022\n\n\002ns\030\001 \001(\t\022-\n\tknowledge\030\002 \001(\0132\032.talon." +
-      "manifests.Knowledge\"8\n\034GetNamespaceKnowl" +
-      "edgeRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"+\n" +
-      "\035ListNamespaceKnowledgeRequest\022\n\n\002ns\030\001 \001" +
-      "(\t\";\n\037DeleteNamespaceKnowledgeRequest\022\n\n" +
-      "\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"3\n DeleteNamespa" +
-      "ceKnowledgeResponse\022\017\n\007success\030\001 \001(\010\"K\n\032" +
-      "NamespaceKnowledgeResponse\022-\n\tknowledge\030" +
-      "\001 \001(\0132\032.talon.manifests.Knowledge\"O\n\036Lis" +
-      "tNamespaceKnowledgeResponse\022-\n\tknowledge" +
-      "\030\001 \003(\0132\032.talon.manifests.Knowledge\"P\n\033Cr" +
-      "eateNamespaceSkillRequest\022\n\n\002ns\030\001 \001(\t\022%\n" +
-      "\005skill\030\002 \001(\0132\026.talon.manifests.Skill\"4\n\030" +
-      "GetNamespaceSkillRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004" +
-      "name\030\002 \001(\t\"(\n\032ListNamespaceSkillsRequest" +
-      "\022\n\n\002ns\030\001 \001(\t\"7\n\033DeleteNamespaceSkillRequ" +
-      "est\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"/\n\034DeleteN" +
-      "amespaceSkillResponse\022\017\n\007success\030\001 \001(\010\"?" +
-      "\n\026NamespaceSkillResponse\022%\n\005skill\030\001 \001(\0132" +
-      "\026.talon.manifests.Skill\"E\n\033ListNamespace" +
-      "SkillsResponse\022&\n\006skills\030\001 \003(\0132\026.talon.m" +
-      "anifests.Skill\"\241\001\n\024CreateSessionRequest\022" +
-      "\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022?\n\006labels\030\003 \003" +
-      "(\0132/.talon.gateway.CreateSessionRequest." +
-      "LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001\"k\n\021GetSessionRequest\022" +
-      "\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns" +
-      "\030\003 \001(\t\022\025\n\rmessage_limit\030\004 \001(\005J\004\010\005\020\006R\nste" +
-      "p_limit\"\224\001\n\032ListSessionMessagesRequest\022\022" +
-      "\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030" +
-      "\003 \001(\t\022\021\n\tpage_size\030\004 \001(\005\022\036\n\021before_messa" +
-      "ge_id\030\005 \001(\tH\000\210\001\001B\024\n\022_before_message_id\"]" +
-      "\n\037ListSessionMessagesResponseItem\022-\n\007mes" +
-      "sage\030\001 \001(\0132\034.talon.models.SessionMessage" +
-      "J\004\010\002\020\003R\005steps\"\340\001\n\033ListSessionMessagesRes" +
-      "ponse\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t" +
-      "\022\r\n\005state\030\003 \001(\t\022=\n\005items\030\004 \003(\0132..talon.g" +
-      "ateway.ListSessionMessagesResponseItem\022\020" +
-      "\n\010has_more\030\005 \001(\010\022#\n\026next_before_message_" +
-      "id\030\006 \001(\tH\000\210\001\001B\031\n\027_next_before_message_id" +
-      "\"0\n\023ListSessionsRequest\022\r\n\005agent\030\001 \001(\t\022\n" +
-      "\n\002ns\030\002 \001(\t\"\244\001\n\017SessionListItem\022\022\n\nsessio" +
-      "n_id\030\001 \001(\t\022\022\n\nupdated_at\030\002 \001(\003\022:\n\006labels" +
-      "\030\003 \003(\0132*.talon.gateway.SessionListItem.L" +
-      "abelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r" +
-      "\n\005value\030\002 \001(\t:\0028\001\"]\n\024ListSessionsRespons" +
-      "e\022\023\n\013session_ids\030\001 \003(\t\0220\n\010sessions\030\002 \003(\013" +
-      "2\036.talon.gateway.SessionListItem\"\353\001\n\017Ses" +
-      "sionResponse\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agen" +
-      "t\030\002 \001(\t\022\r\n\005state\030\003 \001(\t\022.\n\010messages\030\004 \003(\013" +
-      "2\034.talon.models.SessionMessage\022:\n\006labels" +
-      "\030\006 \003(\0132*.talon.gateway.SessionResponse.L" +
-      "abelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r" +
-      "\n\005value\030\002 \001(\t:\0028\001J\004\010\005\020\006R\005steps\"E\n\024Delete" +
-      "SessionRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005ag" +
-      "ent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"(\n\025DeleteSessionRe" +
-      "sponse\022\017\n\007success\030\001 \001(\010\"D\n\023ClearSessionR" +
-      "equest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(" +
-      "\t\022\n\n\002ns\030\003 \001(\t\"\'\n\024ClearSessionResponse\022\017\n" +
-      "\007success\030\001 \001(\010\"J\n\024CreateChannelRequest\022\n" +
-      "\n\002ns\030\001 \001(\t\022&\n\007channel\030\002 \001(\0132\025.talon.mode" +
-      "ls.Channel\"-\n\021GetChannelRequest\022\n\n\002ns\030\001 " +
-      "\001(\t\022\014\n\004name\030\002 \001(\t\"X\n\024ModifyChannelReques" +
-      "t\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022&\n\007channel\030\003" +
-      " \001(\0132\025.talon.models.Channel\"!\n\023ListChann" +
-      "elsRequest\022\n\n\002ns\030\001 \001(\t\"0\n\024DeleteChannelR" +
-      "equest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"9\n\017Chan" +
-      "nelResponse\022&\n\007channel\030\001 \001(\0132\025.talon.mod" +
-      "els.Channel\"?\n\024ListChannelsResponse\022\'\n\010c" +
-      "hannels\030\001 \003(\0132\025.talon.models.Channel\"(\n\025" +
-      "DeleteChannelResponse\022\017\n\007success\030\001 \001(\010\"\377" +
-      "\001\n\031PostChannelMessageRequest\022\n\n\002ns\030\001 \001(\t" +
-      "\022\017\n\007channel\030\002 \001(\t\022\023\n\013author_kind\030\003 \001(\t\022\016" +
-      "\n\006author\030\004 \001(\t\022\017\n\007content\030\005 \001(\t\022\032\n\022subsc" +
-      "ription_names\030\006 \003(\t\022D\n\006labels\030\007 \003(\01324.ta" +
-      "lon.gateway.PostChannelMessageRequest.La" +
-      "belsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n" +
-      "\005value\030\002 \001(\t:\0028\001\"^\n\024RoutedChannelSession" +
-      "\022\024\n\014subscription\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n" +
-      "\nsession_id\030\003 \001(\t\022\r\n\005error\030\004 \001(\t\"\211\001\n\032Pos" +
-      "tChannelMessageResponse\022-\n\007message\030\001 \001(\013" +
-      "2\034.talon.models.ChannelMessage\022<\n\017routed" +
-      "_sessions\030\002 \003(\0132#.talon.gateway.RoutedCh" +
-      "annelSession\"K\n\030GetChannelMessageRequest" +
-      "\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t\022\022\n\nmessage" +
-      "_id\030\003 \001(\t\"G\n\026ChannelMessageResponse\022-\n\007m" +
-      "essage\030\001 \001(\0132\034.talon.models.ChannelMessa" +
-      "ge\"\221\001\n\032ListChannelMessagesRequest\022\n\n\002ns\030" +
-      "\001 \001(\t\022\017\n\007channel\030\002 \001(\t\022\r\n\005limit\030\003 \001(\005\022\021\n" +
-      "\tpage_size\030\004 \001(\005\022\036\n\021before_message_id\030\005 " +
-      "\001(\tH\000\210\001\001B\024\n\022_before_message_id\"\237\001\n\033ListC" +
-      "hannelMessagesResponse\022.\n\010messages\030\001 \003(\013" +
-      "2\034.talon.models.ChannelMessage\022\020\n\010has_mo" +
-      "re\030\002 \001(\010\022#\n\026next_before_message_id\030\003 \001(\t" +
-      "H\000\210\001\001B\031\n\027_next_before_message_id\"x\n Crea" +
-      "teChannelSubscriptionRequest\022\n\n\002ns\030\001 \001(\t" +
-      "\022\017\n\007channel\030\002 \001(\t\0227\n\014subscription\030\003 \001(\0132" +
-      "!.talon.models.ChannelSubscription\"J\n\035Ge" +
-      "tChannelSubscriptionRequest\022\n\n\002ns\030\001 \001(\t\022" +
-      "\017\n\007channel\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\"\206\001\n Modif" +
-      "yChannelSubscriptionRequest\022\n\n\002ns\030\001 \001(\t\022" +
-      "\017\n\007channel\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\0227\n\014subscr" +
-      "iption\030\004 \001(\0132!.talon.models.ChannelSubsc" +
-      "ription\">\n\037ListChannelSubscriptionsReque" +
-      "st\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t\"M\n Delet" +
-      "eChannelSubscriptionRequest\022\n\n\002ns\030\001 \001(\t\022" +
-      "\017\n\007channel\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\"V\n\033Channe" +
-      "lSubscriptionResponse\0227\n\014subscription\030\001 " +
-      "\001(\0132!.talon.models.ChannelSubscription\"\\" +
-      "\n ListChannelSubscriptionsResponse\0228\n\rsu" +
-      "bscriptions\030\001 \003(\0132!.talon.models.Channel" +
-      "Subscription\"4\n!DeleteChannelSubscriptio" +
-      "nResponse\022\017\n\007success\030\001 \001(\010\"9\n\032StreamChan" +
-      "nelEventsRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030" +
-      "\002 \001(\t\"M\n\025CreateScheduleRequest\022\n\n\002ns\030\001 \001" +
-      "(\t\022(\n\010schedule\030\002 \001(\0132\026.talon.models.Sche" +
-      "dule\".\n\022GetScheduleRequest\022\n\n\002ns\030\001 \001(\t\022\014" +
-      "\n\004name\030\002 \001(\t\"[\n\025ModifyScheduleRequest\022\n\n" +
-      "\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022(\n\010schedule\030\003 \001(" +
-      "\0132\026.talon.models.Schedule\"\"\n\024ListSchedul" +
-      "esRequest\022\n\n\002ns\030\001 \001(\t\"B\n\025ListSchedulesRe" +
-      "sponse\022)\n\tschedules\030\001 \003(\0132\026.talon.models" +
-      ".Schedule\"1\n\025DeleteScheduleRequest\022\n\n\002ns" +
-      "\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\")\n\026DeleteScheduleRe" +
-      "sponse\022\017\n\007success\030\001 \001(\010\"M\n\025CreateWorkflo" +
-      "wRequest\022\n\n\002ns\030\001 \001(\t\022(\n\010workflow\030\002 \001(\0132\026" +
-      ".talon.models.Workflow\".\n\022GetWorkflowReq" +
-      "uest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"\"\n\024ListWo" +
-      "rkflowsRequest\022\n\n\002ns\030\001 \001(\t\"1\n\025DeleteWork" +
-      "flowRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"<\n" +
-      "\020WorkflowResponse\022(\n\010workflow\030\001 \001(\0132\026.ta" +
-      "lon.models.Workflow\"B\n\025ListWorkflowsResp" +
-      "onse\022)\n\tworkflows\030\001 \003(\0132\026.talon.models.W" +
-      "orkflow\")\n\026DeleteWorkflowResponse\022\017\n\007suc" +
-      "cess\030\001 \001(\010\"\300\001\n\030CreateWorkflowRunRequest\022" +
-      "\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\022\n\ninput_j" +
-      "son\030\003 \001(\t\022C\n\006labels\030\004 \003(\01323.talon.gatewa" +
-      "y.CreateWorkflowRunRequest.LabelsEntry\032-" +
-      "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001\"E\n\025GetWorkflowRunRequest\022\n\n\002ns\030\001 \001" +
-      "(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\"a\n\027" +
-      "ListWorkflowRunsRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010w" +
-      "orkflow\030\002 \001(\t\022\021\n\tpage_size\030\003 \001(\005\022\025\n\rbefo" +
-      "re_run_id\030\004 \001(\t\"n\n\030ResumeWorkflowRunRequ" +
-      "est\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run" +
-      "_id\030\003 \001(\t\022\017\n\007step_id\030\004 \001(\t\022\023\n\013resume_jso" +
-      "n\030\005 \001(\t\"H\n\030CancelWorkflowRunRequest\022\n\n\002n" +
-      "s\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(" +
-      "\t\"K\n\033StreamWorkflowEventsRequest\022\n\n\002ns\030\001" +
-      " \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\"k" +
-      "\n\023WorkflowRunResponse\022&\n\003run\030\001 \001(\0132\031.tal" +
-      "on.models.WorkflowRun\022,\n\005steps\030\002 \003(\0132\035.t" +
-      "alon.models.WorkflowStepRun\"q\n\030ListWorkf" +
-      "lowRunsResponse\022\'\n\004runs\030\001 \003(\0132\031.talon.mo" +
-      "dels.WorkflowRun\022\020\n\010has_more\030\002 \001(\010\022\032\n\022ne" +
-      "xt_before_run_id\030\003 \001(\t\"<\n\020ScheduleRespon" +
-      "se\022(\n\010schedule\030\001 \001(\0132\026.talon.models.Sche" +
-      "dule\"\302\001\n\022SendMessageRequest\022\022\n\nsession_i" +
-      "d\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\017\n\007me" +
-      "ssage\030\004 \001(\t\022=\n\006labels\030\005 \003(\0132-.talon.gate" +
-      "way.SendMessageRequest.LabelsEntry\032-\n\013La" +
+      "ogle/api/annotations.proto\032\025proto/data/d" +
+      "ata.proto\032\022proto/events.proto\032\034proto/res" +
+      "ources/agents.proto\032\036proto/resources/cha" +
+      "nnels.proto\032\037proto/resources/knowledge.p" +
+      "roto\032\031proto/resources/mcp.proto\032\036proto/r" +
+      "esources/resource.proto\032\037proto/resources" +
+      "/schedules.proto\032\037proto/resources/workfl" +
+      "ows.proto\"P\n\025CreateResourceRequest\022\n\n\002ns" +
+      "\030\001 \001(\t\022+\n\010resource\030\002 \001(\0132\031.talon.resourc" +
+      "es.Resource\"<\n\022GetResourceRequest\022\n\n\002ns\030" +
+      "\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\">\n\024Lis" +
+      "tResourcesRequest\022\n\n\002ns\030\001 \001(\t\022\021\n\004kind\030\002 " +
+      "\001(\tH\000\210\001\001B\007\n\005_kind\"?\n\025DeleteResourceReque" +
+      "st\022\n\n\002ns\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022\014\n\004name\030\003 \001" +
+      "(\t\"?\n\020ResourceResponse\022+\n\010resource\030\001 \001(\013" +
+      "2\031.talon.resources.Resource\"E\n\025ListResou" +
+      "rcesResponse\022,\n\tresources\030\001 \003(\0132\031.talon." +
+      "resources.Resource\")\n\026DeleteResourceResp" +
+      "onse\022\017\n\007success\030\001 \001(\010\"D\n\026CreateMcpServer" +
+      "Request\022*\n\006server\030\001 \001(\0132\032.talon.resource" +
+      "s.McpServer\"#\n\023GetMcpServerRequest\022\014\n\004na" +
+      "me\030\001 \001(\t\"\027\n\025ListMcpServersRequest\"&\n\026Del" +
+      "eteMcpServerRequest\022\014\n\004name\030\001 \001(\t\"*\n\027Del" +
+      "eteMcpServerResponse\022\017\n\007success\030\001 \001(\010\"?\n" +
+      "\021McpServerResponse\022*\n\006server\030\001 \001(\0132\032.tal" +
+      "on.resources.McpServer\"E\n\026ListMcpServers" +
+      "Response\022+\n\007servers\030\001 \003(\0132\032.talon.resour" +
+      "ces.McpServer\"_\n\035CreateMcpServerBindingR" +
+      "equest\022\n\n\002ns\030\001 \001(\t\0222\n\007binding\030\002 \001(\0132!.ta" +
+      "lon.resources.McpServerBinding\"6\n\032GetMcp" +
+      "ServerBindingRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name" +
+      "\030\002 \001(\t\"*\n\034ListMcpServerBindingsRequest\022\n" +
+      "\n\002ns\030\001 \001(\t\"9\n\035DeleteMcpServerBindingRequ" +
+      "est\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"1\n\036DeleteM" +
+      "cpServerBindingResponse\022\017\n\007success\030\001 \001(\010" +
+      "\"N\n\030McpServerBindingResponse\0222\n\007binding\030" +
+      "\001 \001(\0132!.talon.resources.McpServerBinding" +
+      "\"T\n\035ListMcpServerBindingsResponse\0223\n\010bin" +
+      "dings\030\001 \003(\0132!.talon.resources.McpServerB" +
+      "inding\"9\n\020GetAgentResponse\022%\n\005agent\030\001 \001(" +
+      "\0132\026.talon.resources.Agent\"+\n\017GetAgentReq" +
+      "uest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"\332\001\n\022Creat" +
+      "eAgentRequest\022\n\n\002ns\030\001 \001(\t\022\021\n\004name\030\002 \001(\tH" +
+      "\000\210\001\001\022(\n\004spec\030\005 \001(\0132\032.talon.resources.Age" +
+      "ntSpec\022=\n\006labels\030\004 \003(\0132-.talon.gateway.C" +
+      "reateAgentRequest.LabelsEntry\032-\n\013LabelsE" +
+      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\007\n\005" +
+      "_nameJ\004\010\003\020\004\"\223\001\n\rAgentResponse\022\r\n\005agent\030\001" +
+      " \001(\t\022\n\n\002ns\030\002 \001(\t\0228\n\006labels\030\004 \003(\0132(.talon" +
+      ".gateway.AgentResponse.LabelsEntry\032-\n\013La" +
       "belsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
-      "\001\"8\n\023SendMessageResponse\022\r\n\005reply\030\001 \001(\t\022" +
-      "\022\n\nsession_id\030\004 \001(\t\"{\n\033AppendSessionMess" +
-      "ageRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030" +
-      "\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022-\n\007message\030\004 \001(\0132\034.tal" +
-      "on.models.SessionMessage\"a\n\034AppendSessio" +
-      "nMessageResponse\022\022\n\nsession_id\030\001 \001(\t\022-\n\007" +
-      "message\030\002 \001(\0132\034.talon.models.SessionMess" +
-      "age\"M\n\034StopSessionGenerationRequest\022\022\n\ns" +
-      "ession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001" +
-      "(\t\"0\n\035StopSessionGenerationResponse\022\017\n\007s" +
-      "uccess\030\001 \001(\010\"J\n\031StreamSessionPartsReques" +
-      "t\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
-      "ns\030\003 \001(\t\"7\n\036StreamSessionPartsBatchReque" +
-      "st\022\025\n\rsession_names\030\001 \003(\t\"\253\001\n\026CreateName" +
-      "spaceRequest\022\014\n\004name\030\001 \001(\t\022\021\n\trecursive\030" +
-      "\002 \001(\010\022A\n\006labels\030\003 \003(\01321.talon.gateway.Cr" +
-      "eateNamespaceRequest.LabelsEntry\032-\n\013Labe" +
+      "\001\"\037\n\021ListAgentsRequest\022\n\n\002ns\030\001 \001(\t\"$\n\022Li" +
+      "stAgentsResponse\022\016\n\006agents\030\001 \003(\t\"\315\001\n\022Mod" +
+      "ifyAgentRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001" +
+      "(\t\022(\n\004spec\030\005 \001(\0132\032.talon.resources.Agent" +
+      "Spec\022=\n\006labels\030\004 \003(\0132-.talon.gateway.Mod" +
+      "ifyAgentRequest.LabelsEntry\032-\n\013LabelsEnt" +
+      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004" +
+      "\"L\n\023GetKnowledgeRequest\022\r\n\005agent\030\001 \001(\t\022\n" +
+      "\n\002ns\030\002 \001(\t\022\021\n\004path\030\003 \001(\tH\000\210\001\001B\007\n\005_path\";" +
+      "\n\021KnowledgeResponse\022&\n\007modules\030\001 \003(\0132\025.t" +
+      "alon.data.Knowledge\"B\n\026SearchKnowledgeRe" +
+      "quest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\r\n\005quer" +
+      "y\030\003 \001(\t\"M\n\027SearchKnowledgeResponse\0222\n\007re" +
+      "sults\030\001 \003(\0132!.talon.data.KnowledgeSearch" +
+      "Result\"\\\n\037CreateNamespaceKnowledgeReques" +
+      "t\022\n\n\002ns\030\001 \001(\t\022-\n\tknowledge\030\002 \001(\0132\032.talon" +
+      ".resources.Knowledge\"8\n\034GetNamespaceKnow" +
+      "ledgeRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"+" +
+      "\n\035ListNamespaceKnowledgeRequest\022\n\n\002ns\030\001 " +
+      "\001(\t\";\n\037DeleteNamespaceKnowledgeRequest\022\n" +
+      "\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"3\n DeleteNamesp" +
+      "aceKnowledgeResponse\022\017\n\007success\030\001 \001(\010\"K\n" +
+      "\032NamespaceKnowledgeResponse\022-\n\tknowledge" +
+      "\030\001 \001(\0132\032.talon.resources.Knowledge\"O\n\036Li" +
+      "stNamespaceKnowledgeResponse\022-\n\tknowledg" +
+      "e\030\001 \003(\0132\032.talon.resources.Knowledge\"\241\001\n\024" +
+      "CreateSessionRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002n" +
+      "s\030\002 \001(\t\022?\n\006labels\030\003 \003(\0132/.talon.gateway." +
+      "CreateSessionRequest.LabelsEntry\032-\n\013Labe" +
       "lsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"" +
-      "#\n\023GetNamespaceRequest\022\014\n\004name\030\001 \001(\t\"&\n\026" +
-      "DeleteNamespaceRequest\022\014\n\004name\030\001 \001(\t\"7\n\025" +
-      "ListNamespacesRequest\022\023\n\006parent\030\001 \001(\tH\000\210" +
-      "\001\001B\t\n\007_parent\"\326\001\n\021NamespaceResponse\022\014\n\004n" +
-      "ame\030\001 \001(\t\022\023\n\006parent\030\002 \001(\tH\000\210\001\001\022\022\n\nis_del" +
-      "eted\030\003 \001(\010\022\022\n\ndeleted_at\030\004 \001(\003\022<\n\006labels" +
-      "\030\005 \003(\0132,.talon.gateway.NamespaceResponse" +
-      ".LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t" +
-      "\022\r\n\005value\030\002 \001(\t:\0028\001B\t\n\007_parent\"N\n\026ListNa" +
-      "mespacesResponse\0224\n\nnamespaces\030\001 \003(\0132 .t" +
-      "alon.gateway.NamespaceResponse2\226O\n\016Gatew" +
-      "ayService\022m\n\013CreateAgent\022!.talon.gateway" +
-      ".CreateAgentRequest\032\034.talon.gateway.Agen" +
-      "tResponse\"\035\202\323\344\223\002\027\"\022/v1/ns/{ns}/agents:\001*" +
-      "\022n\n\010GetAgent\022\036.talon.gateway.GetAgentReq" +
-      "uest\032\037.talon.gateway.GetAgentResponse\"!\202" +
-      "\323\344\223\002\033\022\031/v1/ns/{ns}/agents/{name}\022u\n\013Modi" +
-      "fyAgent\022!.talon.gateway.ModifyAgentReque" +
-      "st\032\034.talon.gateway.AgentResponse\"%\202\323\344\223\002\037" +
-      "\032\032/v1/ns/{ns}/agents/{agent}:\001*\022m\n\nListA" +
-      "gents\022 .talon.gateway.ListAgentsRequest\032" +
-      "!.talon.gateway.ListAgentsResponse\"\032\202\323\344\223" +
-      "\002\024\022\022/v1/ns/{ns}/agents\022\202\001\n\014GetKnowledge\022" +
-      "\".talon.gateway.GetKnowledgeRequest\032 .ta" +
-      "lon.gateway.KnowledgeResponse\",\202\323\344\223\002&\022$/" +
-      "v1/ns/{ns}/agents/{agent}/knowledge\022\230\001\n\017" +
-      "SearchKnowledge\022%.talon.gateway.SearchKn" +
-      "owledgeRequest\032&.talon.gateway.SearchKno" +
-      "wledgeResponse\"6\202\323\344\223\0020\"+/v1/ns/{ns}/agen" +
-      "ts/{agent}/knowledge/search:\001*\022\237\001\n\030Creat" +
-      "eNamespaceKnowledge\022..talon.gateway.Crea" +
-      "teNamespaceKnowledgeRequest\032).talon.gate" +
-      "way.NamespaceKnowledgeResponse\"(\202\323\344\223\002\"\"\035" +
-      "/v1/namespaces/{ns}/knowledge:\001*\022\235\001\n\025Get" +
-      "NamespaceKnowledge\022+.talon.gateway.GetNa" +
-      "mespaceKnowledgeRequest\032).talon.gateway." +
-      "NamespaceKnowledgeResponse\",\202\323\344\223\002&\022$/v1/" +
-      "namespaces/{ns}/knowledge/{name}\022\234\001\n\026Lis" +
-      "tNamespaceKnowledge\022,.talon.gateway.List" +
-      "NamespaceKnowledgeRequest\032-.talon.gatewa" +
-      "y.ListNamespaceKnowledgeResponse\"%\202\323\344\223\002\037" +
-      "\022\035/v1/namespaces/{ns}/knowledge\022\251\001\n\030Dele" +
-      "teNamespaceKnowledge\022..talon.gateway.Del" +
-      "eteNamespaceKnowledgeRequest\032/.talon.gat" +
-      "eway.DeleteNamespaceKnowledgeResponse\",\202" +
-      "\323\344\223\002&*$/v1/namespaces/{ns}/knowledge/{na" +
-      "me}\022\220\001\n\024CreateNamespaceSkill\022*.talon.gat" +
-      "eway.CreateNamespaceSkillRequest\032%.talon" +
-      ".gateway.NamespaceSkillResponse\"%\202\323\344\223\002\037\"" +
-      "\032/v1/namespaces/{ns}/skills:\001*\022\216\001\n\021GetNa" +
-      "mespaceSkill\022\'.talon.gateway.GetNamespac" +
-      "eSkillRequest\032%.talon.gateway.NamespaceS" +
-      "killResponse\")\202\323\344\223\002#\022!/v1/namespaces/{ns" +
-      "}/skills/{name}\022\220\001\n\023ListNamespaceSkills\022" +
-      ").talon.gateway.ListNamespaceSkillsReque" +
-      "st\032*.talon.gateway.ListNamespaceSkillsRe" +
-      "sponse\"\"\202\323\344\223\002\034\022\032/v1/namespaces/{ns}/skil" +
-      "ls\022\232\001\n\024DeleteNamespaceSkill\022*.talon.gate" +
-      "way.DeleteNamespaceSkillRequest\032+.talon." +
-      "gateway.DeleteNamespaceSkillResponse\")\202\323" +
-      "\344\223\002#*!/v1/namespaces/{ns}/skills/{name}\022" +
-      "\204\001\n\rCreateSession\022#.talon.gateway.Create" +
-      "SessionRequest\032\036.talon.gateway.SessionRe" +
-      "sponse\".\202\323\344\223\002(\"#/v1/ns/{ns}/agents/{agen" +
-      "t}/sessions:\001*\022\210\001\n\nGetSession\022 .talon.ga" +
-      "teway.GetSessionRequest\032\036.talon.gateway." +
-      "SessionResponse\"8\202\323\344\223\0022\0220/v1/ns/{ns}/age" +
-      "nts/{agent}/sessions/{session_id}\022\257\001\n\023Li" +
-      "stSessionMessages\022).talon.gateway.ListSe" +
-      "ssionMessagesRequest\032*.talon.gateway.Lis" +
-      "tSessionMessagesResponse\"A\202\323\344\223\002;\0229/v1/ns" +
-      "/{ns}/agents/{agent}/sessions/{session_i" +
-      "d}/messages\022\204\001\n\014ListSessions\022\".talon.gat" +
-      "eway.ListSessionsRequest\032#.talon.gateway" +
-      ".ListSessionsResponse\"+\202\323\344\223\002%\022#/v1/ns/{n" +
-      "s}/agents/{agent}/sessions\022\224\001\n\rDeleteSes" +
-      "sion\022#.talon.gateway.DeleteSessionReques" +
-      "t\032$.talon.gateway.DeleteSessionResponse\"" +
-      "8\202\323\344\223\0022*0/v1/ns/{ns}/agents/{agent}/sess" +
-      "ions/{session_id}\022\232\001\n\014ClearSession\022\".tal" +
-      "on.gateway.ClearSessionRequest\032#.talon.g" +
-      "ateway.ClearSessionResponse\"A\202\323\344\223\002;\"6/v1" +
-      "/ns/{ns}/agents/{agent}/sessions/{sessio" +
-      "n_id}:clear:\001*\022\231\001\n\013SendMessage\022!.talon.g" +
-      "ateway.SendMessageRequest\032\".talon.gatewa" +
-      "y.SendMessageResponse\"C\202\323\344\223\002=\"8/v1/ns/{n" +
-      "s}/agents/{agent}/sessions/{session_id}/" +
-      "message:\001*\022\274\001\n\024AppendSessionMessage\022*.ta" +
-      "lon.gateway.AppendSessionMessageRequest\032" +
-      "+.talon.gateway.AppendSessionMessageResp" +
-      "onse\"K\202\323\344\223\002E\"@/v1/ns/{ns}/agents/{agent}" +
-      "/sessions/{session_id}/messages:append:\001" +
-      "*\022\264\001\n\025StopSessionGeneration\022+.talon.gate" +
-      "way.StopSessionGenerationRequest\032,.talon" +
-      ".gateway.StopSessionGenerationResponse\"@" +
-      "\202\323\344\223\002:\"5/v1/ns/{ns}/agents/{agent}/sessi" +
-      "ons/{session_id}:stop:\001*\022\250\001\n\022StreamSessi" +
-      "onParts\022(.talon.gateway.StreamSessionPar" +
-      "tsRequest\032%.talon.events.SessionMessageP" +
-      "artEvent\"?\202\323\344\223\0029\0227/v1/ns/{ns}/agents/{ag" +
-      "ent}/sessions/{session_id}/stream0\001\022\227\001\n\027" +
-      "StreamSessionPartsBatch\022-.talon.gateway." +
-      "StreamSessionPartsBatchRequest\032%.talon.e" +
-      "vents.SessionMessagePartEvent\"$\202\323\344\223\002\036\"\031/" +
-      "v1/session-streams:batch:\001*0\001\022u\n\rCreateC" +
-      "hannel\022#.talon.gateway.CreateChannelRequ" +
-      "est\032\036.talon.gateway.ChannelResponse\"\037\202\323\344" +
-      "\223\002\031\"\024/v1/ns/{ns}/channels:\001*\022s\n\nGetChann" +
-      "el\022 .talon.gateway.GetChannelRequest\032\036.t" +
-      "alon.gateway.ChannelResponse\"#\202\323\344\223\002\035\022\033/v" +
-      "1/ns/{ns}/channels/{name}\022|\n\rModifyChann" +
-      "el\022#.talon.gateway.ModifyChannelRequest\032" +
-      "\036.talon.gateway.ChannelResponse\"&\202\323\344\223\002 \032" +
-      "\033/v1/ns/{ns}/channels/{name}:\001*\022u\n\014ListC" +
-      "hannels\022\".talon.gateway.ListChannelsRequ" +
-      "est\032#.talon.gateway.ListChannelsResponse" +
-      "\"\034\202\323\344\223\002\026\022\024/v1/ns/{ns}/channels\022\177\n\rDelete" +
-      "Channel\022#.talon.gateway.DeleteChannelReq" +
-      "uest\032$.talon.gateway.DeleteChannelRespon" +
-      "se\"#\202\323\344\223\002\035*\033/v1/ns/{ns}/channels/{name}\022" +
-      "\235\001\n\022PostChannelMessage\022(.talon.gateway.P" +
-      "ostChannelMessageRequest\032).talon.gateway" +
-      ".PostChannelMessageResponse\"2\202\323\344\223\002,\"\'/v1" +
-      "/ns/{ns}/channels/{channel}/messages:\001*\022" +
-      "\241\001\n\021GetChannelMessage\022\'.talon.gateway.Ge" +
-      "tChannelMessageRequest\032%.talon.gateway.C" +
-      "hannelMessageResponse\"<\202\323\344\223\0026\0224/v1/ns/{n" +
-      "s}/channels/{channel}/messages/{message_" +
-      "id}\022\235\001\n\023ListChannelMessages\022).talon.gate" +
-      "way.ListChannelMessagesRequest\032*.talon.g" +
-      "ateway.ListChannelMessagesResponse\"/\202\323\344\223" +
-      "\002)\022\'/v1/ns/{ns}/channels/{channel}/messa" +
-      "ges\022\261\001\n\031CreateChannelSubscription\022/.talo" +
-      "n.gateway.CreateChannelSubscriptionReque" +
-      "st\032*.talon.gateway.ChannelSubscriptionRe" +
-      "sponse\"7\202\323\344\223\0021\",/v1/ns/{ns}/channels/{ch" +
-      "annel}/subscriptions:\001*\022\257\001\n\026GetChannelSu" +
-      "bscription\022,.talon.gateway.GetChannelSub" +
-      "scriptionRequest\032*.talon.gateway.Channel" +
-      "SubscriptionResponse\";\202\323\344\223\0025\0223/v1/ns/{ns" +
-      "}/channels/{channel}/subscriptions/{name" +
-      "}\022\270\001\n\031ModifyChannelSubscription\022/.talon." +
-      "gateway.ModifyChannelSubscriptionRequest" +
-      "\032*.talon.gateway.ChannelSubscriptionResp" +
-      "onse\">\202\323\344\223\0028\0323/v1/ns/{ns}/channels/{chan" +
-      "nel}/subscriptions/{name}:\001*\022\261\001\n\030ListCha" +
-      "nnelSubscriptions\022..talon.gateway.ListCh" +
-      "annelSubscriptionsRequest\032/.talon.gatewa" +
-      "y.ListChannelSubscriptionsResponse\"4\202\323\344\223" +
-      "\002.\022,/v1/ns/{ns}/channels/{channel}/subsc" +
-      "riptions\022\273\001\n\031DeleteChannelSubscription\022/" +
-      ".talon.gateway.DeleteChannelSubscription" +
-      "Request\0320.talon.gateway.DeleteChannelSub" +
-      "scriptionResponse\";\202\323\344\223\0025*3/v1/ns/{ns}/c" +
-      "hannels/{channel}/subscriptions/{name}\022\215" +
-      "\001\n\023StreamChannelEvents\022).talon.gateway.S" +
-      "treamChannelEventsRequest\032\032.talon.events" +
-      ".ChannelEvent\"-\202\323\344\223\002\'\022%/v1/ns/{ns}/chann" +
-      "els/{channel}/stream0\001\022y\n\016CreateSchedule",
-      "\022$.talon.gateway.CreateScheduleRequest\032\037" +
-      ".talon.gateway.ScheduleResponse\" \202\323\344\223\002\032\"" +
-      "\025/v1/ns/{ns}/schedules:\001*\022w\n\013GetSchedule" +
-      "\022!.talon.gateway.GetScheduleRequest\032\037.ta" +
-      "lon.gateway.ScheduleResponse\"$\202\323\344\223\002\036\022\034/v" +
-      "1/ns/{ns}/schedules/{name}\022\200\001\n\016ModifySch" +
-      "edule\022$.talon.gateway.ModifyScheduleRequ" +
-      "est\032\037.talon.gateway.ScheduleResponse\"\'\202\323" +
-      "\344\223\002!\032\034/v1/ns/{ns}/schedules/{name}:\001*\022y\n" +
-      "\rListSchedules\022#.talon.gateway.ListSched" +
-      "ulesRequest\032$.talon.gateway.ListSchedule" +
-      "sResponse\"\035\202\323\344\223\002\027\022\025/v1/ns/{ns}/schedules" +
-      "\022\203\001\n\016DeleteSchedule\022$.talon.gateway.Dele" +
-      "teScheduleRequest\032%.talon.gateway.Delete" +
-      "ScheduleResponse\"$\202\323\344\223\002\036*\034/v1/ns/{ns}/sc" +
-      "hedules/{name}\022y\n\016CreateWorkflow\022$.talon" +
-      ".gateway.CreateWorkflowRequest\032\037.talon.g" +
-      "ateway.WorkflowResponse\" \202\323\344\223\002\032\"\025/v1/ns/" +
-      "{ns}/workflows:\001*\022w\n\013GetWorkflow\022!.talon" +
-      ".gateway.GetWorkflowRequest\032\037.talon.gate" +
-      "way.WorkflowResponse\"$\202\323\344\223\002\036\022\034/v1/ns/{ns" +
-      "}/workflows/{name}\022y\n\rListWorkflows\022#.ta" +
-      "lon.gateway.ListWorkflowsRequest\032$.talon" +
-      ".gateway.ListWorkflowsResponse\"\035\202\323\344\223\002\027\022\025" +
-      "/v1/ns/{ns}/workflows\022\203\001\n\016DeleteWorkflow" +
-      "\022$.talon.gateway.DeleteWorkflowRequest\032%" +
-      ".talon.gateway.DeleteWorkflowResponse\"$\202" +
-      "\323\344\223\002\036*\034/v1/ns/{ns}/workflows/{name}\022\222\001\n\021" +
-      "CreateWorkflowRun\022\'.talon.gateway.Create" +
-      "WorkflowRunRequest\032\".talon.gateway.Workf" +
-      "lowRunResponse\"0\202\323\344\223\002*\"%/v1/ns/{ns}/work" +
-      "flows/{workflow}/runs:\001*\022\222\001\n\016GetWorkflow" +
-      "Run\022$.talon.gateway.GetWorkflowRunReques" +
-      "t\032\".talon.gateway.WorkflowRunResponse\"6\202" +
-      "\323\344\223\0020\022./v1/ns/{ns}/workflows/{workflow}/" +
-      "runs/{run_id}\022\222\001\n\020ListWorkflowRuns\022&.tal" +
-      "on.gateway.ListWorkflowRunsRequest\032\'.tal" +
-      "on.gateway.ListWorkflowRunsResponse\"-\202\323\344" +
-      "\223\002\'\022%/v1/ns/{ns}/workflows/{workflow}/ru" +
-      "ns\022\242\001\n\021ResumeWorkflowRun\022\'.talon.gateway" +
-      ".ResumeWorkflowRunRequest\032\".talon.gatewa" +
-      "y.WorkflowRunResponse\"@\202\323\344\223\002:\"5/v1/ns/{n" +
-      "s}/workflows/{workflow}/runs/{run_id}:re" +
-      "sume:\001*\022\242\001\n\021CancelWorkflowRun\022\'.talon.ga" +
-      "teway.CancelWorkflowRunRequest\032\".talon.g" +
-      "ateway.WorkflowRunResponse\"@\202\323\344\223\002:\"5/v1/" +
-      "ns/{ns}/workflows/{workflow}/runs/{run_i" +
-      "d}:cancel:\001*\022\243\001\n\024StreamWorkflowEvents\022*." +
-      "talon.gateway.StreamWorkflowEventsReques" +
-      "t\032\036.talon.models.WorkflowRunEvent\"=\202\323\344\223\002" +
-      "7\0225/v1/ns/{ns}/workflows/{workflow}/runs" +
-      "/{run_id}/stream0\001\022|\n\017CreateNamespace\022%." +
-      "talon.gateway.CreateNamespaceRequest\032 .t" +
-      "alon.gateway.NamespaceResponse\" \202\323\344\223\002\032\"\025" +
-      "/v1/namespaces/{name}:\001*\022s\n\014GetNamespace" +
-      "\022\".talon.gateway.GetNamespaceRequest\032 .t" +
-      "alon.gateway.NamespaceResponse\"\035\202\323\344\223\002\027\022\025" +
-      "/v1/namespaces/{name}\022y\n\017DeleteNamespace" +
-      "\022%.talon.gateway.DeleteNamespaceRequest\032" +
-      " .talon.gateway.NamespaceResponse\"\035\202\323\344\223\002" +
-      "\027*\025/v1/namespaces/{name}\022u\n\016ListNamespac" +
-      "es\022$.talon.gateway.ListNamespacesRequest" +
-      "\032%.talon.gateway.ListNamespacesResponse\"" +
-      "\026\202\323\344\223\002\020\022\016/v1/namespaces\022\200\001\n\023CreateAgentT" +
-      "emplate\022).talon.gateway.CreateAgentTempl" +
-      "ateRequest\032$.talon.gateway.AgentTemplate" +
-      "Response\"\030\202\323\344\223\002\022\"\r/v1/templates:\001*\022~\n\020Ge" +
-      "tAgentTemplate\022&.talon.gateway.GetAgentT" +
-      "emplateRequest\032$.talon.gateway.AgentTemp" +
-      "lateResponse\"\034\202\323\344\223\002\026\022\024/v1/templates/{nam" +
-      "e}\022\200\001\n\022ListAgentTemplates\022(.talon.gatewa" +
-      "y.ListAgentTemplatesRequest\032).talon.gate" +
-      "way.ListAgentTemplatesResponse\"\025\202\323\344\223\002\017\022\r" +
-      "/v1/templates\022\212\001\n\023DeleteAgentTemplate\022)." +
-      "talon.gateway.DeleteAgentTemplateRequest" +
-      "\032*.talon.gateway.DeleteAgentTemplateResp" +
-      "onse\"\034\202\323\344\223\002\026*\024/v1/templates/{name}\022v\n\017Cr" +
-      "eateMcpServer\022%.talon.gateway.CreateMcpS" +
-      "erverRequest\032 .talon.gateway.McpServerRe" +
-      "sponse\"\032\202\323\344\223\002\024\"\017/v1/mcp-servers:\001*\022t\n\014Ge" +
-      "tMcpServer\022\".talon.gateway.GetMcpServerR" +
-      "equest\032 .talon.gateway.McpServerResponse" +
-      "\"\036\202\323\344\223\002\030\022\026/v1/mcp-servers/{name}\022v\n\016List" +
-      "McpServers\022$.talon.gateway.ListMcpServer" +
-      "sRequest\032%.talon.gateway.ListMcpServersR" +
-      "esponse\"\027\202\323\344\223\002\021\022\017/v1/mcp-servers\022\200\001\n\017Del" +
-      "eteMcpServer\022%.talon.gateway.DeleteMcpSe" +
-      "rverRequest\032&.talon.gateway.DeleteMcpSer" +
-      "verResponse\"\036\202\323\344\223\002\030*\026/v1/mcp-servers/{na" +
-      "me}\022\234\001\n\026CreateMcpServerBinding\022,.talon.g" +
-      "ateway.CreateMcpServerBindingRequest\032\'.t" +
-      "alon.gateway.McpServerBindingResponse\"+\202" +
-      "\323\344\223\002%\" /v1/namespaces/{ns}/mcp-bindings:" +
-      "\001*\022\232\001\n\023GetMcpServerBinding\022).talon.gatew" +
-      "ay.GetMcpServerBindingRequest\032\'.talon.ga" +
-      "teway.McpServerBindingResponse\"/\202\323\344\223\002)\022\'" +
-      "/v1/namespaces/{ns}/mcp-bindings/{name}\022" +
-      "\234\001\n\025ListMcpServerBindings\022+.talon.gatewa" +
-      "y.ListMcpServerBindingsRequest\032,.talon.g" +
-      "ateway.ListMcpServerBindingsResponse\"(\202\323" +
-      "\344\223\002\"\022 /v1/namespaces/{ns}/mcp-bindings\022\246" +
-      "\001\n\026DeleteMcpServerBinding\022,.talon.gatewa" +
-      "y.DeleteMcpServerBindingRequest\032-.talon." +
-      "gateway.DeleteMcpServerBindingResponse\"/" +
-      "\202\323\344\223\002)*\'/v1/namespaces/{ns}/mcp-bindings" +
-      "/{name}b\006proto3"
+      "k\n\021GetSessionRequest\022\022\n\nsession_id\030\001 \001(\t" +
+      "\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\025\n\rmessage_l" +
+      "imit\030\004 \001(\005J\004\010\005\020\006R\nstep_limit\"\224\001\n\032ListSes" +
+      "sionMessagesRequest\022\022\n\nsession_id\030\001 \001(\t\022" +
+      "\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\021\n\tpage_size\030" +
+      "\004 \001(\005\022\036\n\021before_message_id\030\005 \001(\tH\000\210\001\001B\024\n" +
+      "\022_before_message_id\"[\n\037ListSessionMessag" +
+      "esResponseItem\022+\n\007message\030\001 \001(\0132\032.talon." +
+      "data.SessionMessageJ\004\010\002\020\003R\005steps\"\340\001\n\033Lis" +
+      "tSessionMessagesResponse\022\022\n\nsession_id\030\001" +
+      " \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005state\030\003 \001(\t\022=\n\005it" +
+      "ems\030\004 \003(\0132..talon.gateway.ListSessionMes" +
+      "sagesResponseItem\022\020\n\010has_more\030\005 \001(\010\022#\n\026n" +
+      "ext_before_message_id\030\006 \001(\tH\000\210\001\001B\031\n\027_nex" +
+      "t_before_message_id\"0\n\023ListSessionsReque" +
+      "st\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\"\244\001\n\017Sessio" +
+      "nListItem\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nupdated" +
+      "_at\030\002 \001(\003\022:\n\006labels\030\003 \003(\0132*.talon.gatewa" +
+      "y.SessionListItem.LabelsEntry\032-\n\013LabelsE" +
+      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"]\n\024" +
+      "ListSessionsResponse\022\023\n\013session_ids\030\001 \003(" +
+      "\t\0220\n\010sessions\030\002 \003(\0132\036.talon.gateway.Sess" +
+      "ionListItem\"\351\001\n\017SessionResponse\022\022\n\nsessi" +
+      "on_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005state\030\003 \001(" +
+      "\t\022,\n\010messages\030\004 \003(\0132\032.talon.data.Session" +
+      "Message\022:\n\006labels\030\006 \003(\0132*.talon.gateway." +
+      "SessionResponse.LabelsEntry\032-\n\013LabelsEnt" +
+      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\005\020\006" +
+      "R\005steps\"E\n\024DeleteSessionRequest\022\022\n\nsessi" +
+      "on_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"(" +
+      "\n\025DeleteSessionResponse\022\017\n\007success\030\001 \001(\010" +
+      "\"D\n\023ClearSessionRequest\022\022\n\nsession_id\030\001 " +
+      "\001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"\'\n\024ClearS" +
+      "essionResponse\022\017\n\007success\030\001 \001(\010\"M\n\024Creat" +
+      "eChannelRequest\022\n\n\002ns\030\001 \001(\t\022)\n\007channel\030\002" +
+      " \001(\0132\030.talon.resources.Channel\"-\n\021GetCha" +
+      "nnelRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"[\n" +
+      "\024ModifyChannelRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004nam" +
+      "e\030\002 \001(\t\022)\n\007channel\030\003 \001(\0132\030.talon.resourc" +
+      "es.Channel\"!\n\023ListChannelsRequest\022\n\n\002ns\030" +
+      "\001 \001(\t\"0\n\024DeleteChannelRequest\022\n\n\002ns\030\001 \001(" +
+      "\t\022\014\n\004name\030\002 \001(\t\"<\n\017ChannelResponse\022)\n\007ch" +
+      "annel\030\001 \001(\0132\030.talon.resources.Channel\"B\n" +
+      "\024ListChannelsResponse\022*\n\010channels\030\001 \003(\0132" +
+      "\030.talon.resources.Channel\"(\n\025DeleteChann" +
+      "elResponse\022\017\n\007success\030\001 \001(\010\"\377\001\n\031PostChan" +
+      "nelMessageRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel" +
+      "\030\002 \001(\t\022\023\n\013author_kind\030\003 \001(\t\022\016\n\006author\030\004 " +
+      "\001(\t\022\017\n\007content\030\005 \001(\t\022\032\n\022subscription_nam" +
+      "es\030\006 \003(\t\022D\n\006labels\030\007 \003(\01324.talon.gateway" +
+      ".PostChannelMessageRequest.LabelsEntry\032-" +
+      "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
+      "\t:\0028\001\"^\n\024RoutedChannelSession\022\024\n\014subscri" +
+      "ption\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nsession_id" +
+      "\030\003 \001(\t\022\r\n\005error\030\004 \001(\t\"\207\001\n\032PostChannelMes" +
+      "sageResponse\022+\n\007message\030\001 \001(\0132\032.talon.da" +
+      "ta.ChannelMessage\022<\n\017routed_sessions\030\002 \003" +
+      "(\0132#.talon.gateway.RoutedChannelSession\"" +
+      "K\n\030GetChannelMessageRequest\022\n\n\002ns\030\001 \001(\t\022" +
+      "\017\n\007channel\030\002 \001(\t\022\022\n\nmessage_id\030\003 \001(\t\"E\n\026" +
+      "ChannelMessageResponse\022+\n\007message\030\001 \001(\0132" +
+      "\032.talon.data.ChannelMessage\"\221\001\n\032ListChan" +
+      "nelMessagesRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channe" +
+      "l\030\002 \001(\t\022\r\n\005limit\030\003 \001(\005\022\021\n\tpage_size\030\004 \001(" +
+      "\005\022\036\n\021before_message_id\030\005 \001(\tH\000\210\001\001B\024\n\022_be" +
+      "fore_message_id\"\235\001\n\033ListChannelMessagesR" +
+      "esponse\022,\n\010messages\030\001 \003(\0132\032.talon.data.C" +
+      "hannelMessage\022\020\n\010has_more\030\002 \001(\010\022#\n\026next_" +
+      "before_message_id\030\003 \001(\tH\000\210\001\001B\031\n\027_next_be" +
+      "fore_message_id\"{\n CreateChannelSubscrip" +
+      "tionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t" +
+      "\022:\n\014subscription\030\003 \001(\0132$.talon.resources" +
+      ".ChannelSubscription\"J\n\035GetChannelSubscr" +
+      "iptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001" +
+      "(\t\022\014\n\004name\030\003 \001(\t\"\211\001\n ModifyChannelSubscr" +
+      "iptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001" +
+      "(\t\022\014\n\004name\030\003 \001(\t\022:\n\014subscription\030\004 \001(\0132$" +
+      ".talon.resources.ChannelSubscription\">\n\037" +
+      "ListChannelSubscriptionsRequest\022\n\n\002ns\030\001 " +
+      "\001(\t\022\017\n\007channel\030\002 \001(\t\"M\n DeleteChannelSub" +
+      "scriptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030" +
+      "\002 \001(\t\022\014\n\004name\030\003 \001(\t\"Y\n\033ChannelSubscripti" +
+      "onResponse\022:\n\014subscription\030\001 \001(\0132$.talon" +
+      ".resources.ChannelSubscription\"_\n ListCh" +
+      "annelSubscriptionsResponse\022;\n\rsubscripti" +
+      "ons\030\001 \003(\0132$.talon.resources.ChannelSubsc" +
+      "ription\"4\n!DeleteChannelSubscriptionResp" +
+      "onse\022\017\n\007success\030\001 \001(\010\"9\n\032StreamChannelEv" +
+      "entsRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t" +
+      "\"P\n\025CreateScheduleRequest\022\n\n\002ns\030\001 \001(\t\022+\n" +
+      "\010schedule\030\002 \001(\0132\031.talon.resources.Schedu" +
+      "le\".\n\022GetScheduleRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004" +
+      "name\030\002 \001(\t\"^\n\025ModifyScheduleRequest\022\n\n\002n" +
+      "s\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022+\n\010schedule\030\003 \001(\0132" +
+      "\031.talon.resources.Schedule\"\"\n\024ListSchedu" +
+      "lesRequest\022\n\n\002ns\030\001 \001(\t\"E\n\025ListSchedulesR" +
+      "esponse\022,\n\tschedules\030\001 \003(\0132\031.talon.resou" +
+      "rces.Schedule\"1\n\025DeleteScheduleRequest\022\n" +
+      "\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\")\n\026DeleteSchedu" +
+      "leResponse\022\017\n\007success\030\001 \001(\010\"P\n\025CreateWor" +
+      "kflowRequest\022\n\n\002ns\030\001 \001(\t\022+\n\010workflow\030\002 \001" +
+      "(\0132\031.talon.resources.Workflow\".\n\022GetWork" +
+      "flowRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"\"\n" +
+      "\024ListWorkflowsRequest\022\n\n\002ns\030\001 \001(\t\"1\n\025Del" +
+      "eteWorkflowRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002" +
+      " \001(\t\"?\n\020WorkflowResponse\022+\n\010workflow\030\001 \001" +
+      "(\0132\031.talon.resources.Workflow\"E\n\025ListWor" +
+      "kflowsResponse\022,\n\tworkflows\030\001 \003(\0132\031.talo" +
+      "n.resources.Workflow\")\n\026DeleteWorkflowRe" +
+      "sponse\022\017\n\007success\030\001 \001(\010\"\300\001\n\030CreateWorkfl" +
+      "owRunRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001" +
+      "(\t\022\022\n\ninput_json\030\003 \001(\t\022C\n\006labels\030\004 \003(\01323" +
+      ".talon.gateway.CreateWorkflowRunRequest." +
+      "LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
+      "\r\n\005value\030\002 \001(\t:\0028\001\"E\n\025GetWorkflowRunRequ" +
+      "est\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run" +
+      "_id\030\003 \001(\t\"a\n\027ListWorkflowRunsRequest\022\n\n\002" +
+      "ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\021\n\tpage_size\030" +
+      "\003 \001(\005\022\025\n\rbefore_run_id\030\004 \001(\t\"n\n\030ResumeWo" +
+      "rkflowRunRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow" +
+      "\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\017\n\007step_id\030\004 \001(\t\022" +
+      "\023\n\013resume_json\030\005 \001(\t\"H\n\030CancelWorkflowRu" +
+      "nRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016" +
+      "\n\006run_id\030\003 \001(\t\"K\n\033StreamWorkflowEventsRe" +
+      "quest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006r" +
+      "un_id\030\003 \001(\t\"g\n\023WorkflowRunResponse\022$\n\003ru" +
+      "n\030\001 \001(\0132\027.talon.data.WorkflowRun\022*\n\005step" +
+      "s\030\002 \003(\0132\033.talon.data.WorkflowStepRun\"o\n\030" +
+      "ListWorkflowRunsResponse\022%\n\004runs\030\001 \003(\0132\027" +
+      ".talon.data.WorkflowRun\022\020\n\010has_more\030\002 \001(" +
+      "\010\022\032\n\022next_before_run_id\030\003 \001(\t\"?\n\020Schedul" +
+      "eResponse\022+\n\010schedule\030\001 \001(\0132\031.talon.reso" +
+      "urces.Schedule\"\302\001\n\022SendMessageRequest\022\022\n" +
+      "\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003" +
+      " \001(\t\022\017\n\007message\030\004 \001(\t\022=\n\006labels\030\005 \003(\0132-." +
+      "talon.gateway.SendMessageRequest.LabelsE" +
+      "ntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
+      "e\030\002 \001(\t:\0028\001\"8\n\023SendMessageResponse\022\r\n\005re" +
+      "ply\030\001 \001(\t\022\022\n\nsession_id\030\004 \001(\t\"y\n\033AppendS" +
+      "essionMessageRequest\022\022\n\nsession_id\030\001 \001(\t" +
+      "\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022+\n\007message\030\004" +
+      " \001(\0132\032.talon.data.SessionMessage\"_\n\034Appe" +
+      "ndSessionMessageResponse\022\022\n\nsession_id\030\001" +
+      " \001(\t\022+\n\007message\030\002 \001(\0132\032.talon.data.Sessi" +
+      "onMessage\"M\n\034StopSessionGenerationReques" +
+      "t\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
+      "ns\030\003 \001(\t\"0\n\035StopSessionGenerationRespons" +
+      "e\022\017\n\007success\030\001 \001(\010\"J\n\031StreamSessionParts" +
+      "Request\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001" +
+      "(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSessionPartsBatc" +
+      "hRequest\022\025\n\rsession_names\030\001 \003(\t\"\253\001\n\026Crea" +
+      "teNamespaceRequest\022\014\n\004name\030\001 \001(\t\022\021\n\trecu" +
+      "rsive\030\002 \001(\010\022A\n\006labels\030\003 \003(\01321.talon.gate" +
+      "way.CreateNamespaceRequest.LabelsEntry\032-" +
+      "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
+      "\t:\0028\001\"#\n\023GetNamespaceRequest\022\014\n\004name\030\001 \001" +
+      "(\t\"&\n\026DeleteNamespaceRequest\022\014\n\004name\030\001 \001" +
+      "(\t\"7\n\025ListNamespacesRequest\022\023\n\006parent\030\001 " +
+      "\001(\tH\000\210\001\001B\t\n\007_parent\"\326\001\n\021NamespaceRespons" +
+      "e\022\014\n\004name\030\001 \001(\t\022\023\n\006parent\030\002 \001(\tH\000\210\001\001\022\022\n\n" +
+      "is_deleted\030\003 \001(\010\022\022\n\ndeleted_at\030\004 \001(\003\022<\n\006" +
+      "labels\030\005 \003(\0132,.talon.gateway.NamespaceRe" +
+      "sponse.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key" +
+      "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\t\n\007_parent\"N\n\026" +
+      "ListNamespacesResponse\0224\n\nnamespaces\030\001 \003" +
+      "(\0132 .talon.gateway.NamespaceResponse2\260J\n" +
+      "\016GatewayService\022m\n\013CreateAgent\022!.talon.g" +
+      "ateway.CreateAgentRequest\032\034.talon.gatewa" +
+      "y.AgentResponse\"\035\202\323\344\223\002\027\"\022/v1/ns/{ns}/age" +
+      "nts:\001*\022n\n\010GetAgent\022\036.talon.gateway.GetAg" +
+      "entRequest\032\037.talon.gateway.GetAgentRespo" +
+      "nse\"!\202\323\344\223\002\033\022\031/v1/ns/{ns}/agents/{name}\022u" +
+      "\n\013ModifyAgent\022!.talon.gateway.ModifyAgen" +
+      "tRequest\032\034.talon.gateway.AgentResponse\"%" +
+      "\202\323\344\223\002\037\032\032/v1/ns/{ns}/agents/{agent}:\001*\022m\n" +
+      "\nListAgents\022 .talon.gateway.ListAgentsRe" +
+      "quest\032!.talon.gateway.ListAgentsResponse" +
+      "\"\032\202\323\344\223\002\024\022\022/v1/ns/{ns}/agents\022\202\001\n\014GetKnow" +
+      "ledge\022\".talon.gateway.GetKnowledgeReques" +
+      "t\032 .talon.gateway.KnowledgeResponse\",\202\323\344" +
+      "\223\002&\022$/v1/ns/{ns}/agents/{agent}/knowledg" +
+      "e\022\230\001\n\017SearchKnowledge\022%.talon.gateway.Se" +
+      "archKnowledgeRequest\032&.talon.gateway.Sea" +
+      "rchKnowledgeResponse\"6\202\323\344\223\0020\"+/v1/ns/{ns" +
+      "}/agents/{agent}/knowledge/search:\001*\022\237\001\n" +
+      "\030CreateNamespaceKnowledge\022..talon.gatewa" +
+      "y.CreateNamespaceKnowledgeRequest\032).talo" +
+      "n.gateway.NamespaceKnowledgeResponse\"(\202\323" +
+      "\344\223\002\"\"\035/v1/namespaces/{ns}/knowledge:\001*\022\235" +
+      "\001\n\025GetNamespaceKnowledge\022+.talon.gateway" +
+      ".GetNamespaceKnowledgeRequest\032).talon.ga" +
+      "teway.NamespaceKnowledgeResponse\",\202\323\344\223\002&" +
+      "\022$/v1/namespaces/{ns}/knowledge/{name}\022\234" +
+      "\001\n\026ListNamespaceKnowledge\022,.talon.gatewa" +
+      "y.ListNamespaceKnowledgeRequest\032-.talon." +
+      "gateway.ListNamespaceKnowledgeResponse\"%" +
+      "\202\323\344\223\002\037\022\035/v1/namespaces/{ns}/knowledge\022\251\001" +
+      "\n\030DeleteNamespaceKnowledge\022..talon.gatew" +
+      "ay.DeleteNamespaceKnowledgeRequest\032/.tal" +
+      "on.gateway.DeleteNamespaceKnowledgeRespo" +
+      "nse\",\202\323\344\223\002&*$/v1/namespaces/{ns}/knowled" +
+      "ge/{name}\022\204\001\n\rCreateSession\022#.talon.gate" +
+      "way.CreateSessionRequest\032\036.talon.gateway" +
+      ".SessionResponse\".\202\323\344\223\002(\"#/v1/ns/{ns}/ag" +
+      "ents/{agent}/sessions:\001*\022\210\001\n\nGetSession\022" +
+      " .talon.gateway.GetSessionRequest\032\036.talo" +
+      "n.gateway.SessionResponse\"8\202\323\344\223\0022\0220/v1/n" +
+      "s/{ns}/agents/{agent}/sessions/{session_" +
+      "id}\022\257\001\n\023ListSessionMessages\022).talon.gate" +
+      "way.ListSessionMessagesRequest\032*.talon.g" +
+      "ateway.ListSessionMessagesResponse\"A\202\323\344\223" +
+      "\002;\0229/v1/ns/{ns}/agents/{agent}/sessions/" +
+      "{session_id}/messages\022\204\001\n\014ListSessions\022\"" +
+      ".talon.gateway.ListSessionsRequest\032#.tal" +
+      "on.gateway.ListSessionsResponse\"+\202\323\344\223\002%\022" +
+      "#/v1/ns/{ns}/agents/{agent}/sessions\022\224\001\n" +
+      "\rDeleteSession\022#.talon.gateway.DeleteSes" +
+      "sionRequest\032$.talon.gateway.DeleteSessio" +
+      "nResponse\"8\202\323\344\223\0022*0/v1/ns/{ns}/agents/{a" +
+      "gent}/sessions/{session_id}\022\232\001\n\014ClearSes" +
+      "sion\022\".talon.gateway.ClearSessionRequest" +
+      "\032#.talon.gateway.ClearSessionResponse\"A\202" +
+      "\323\344\223\002;\"6/v1/ns/{ns}/agents/{agent}/sessio" +
+      "ns/{session_id}:clear:\001*\022\231\001\n\013SendMessage" +
+      "\022!.talon.gateway.SendMessageRequest\032\".ta" +
+      "lon.gateway.SendMessageResponse\"C\202\323\344\223\002=\"" +
+      "8/v1/ns/{ns}/agents/{agent}/sessions/{se" +
+      "ssion_id}/message:\001*\022\274\001\n\024AppendSessionMe" +
+      "ssage\022*.talon.gateway.AppendSessionMessa" +
+      "geRequest\032+.talon.gateway.AppendSessionM" +
+      "essageResponse\"K\202\323\344\223\002E\"@/v1/ns/{ns}/agen" +
+      "ts/{agent}/sessions/{session_id}/message" +
+      "s:append:\001*\022\264\001\n\025StopSessionGeneration\022+." +
+      "talon.gateway.StopSessionGenerationReque" +
+      "st\032,.talon.gateway.StopSessionGeneration" +
+      "Response\"@\202\323\344\223\002:\"5/v1/ns/{ns}/agents/{ag" +
+      "ent}/sessions/{session_id}:stop:\001*\022\250\001\n\022S" +
+      "treamSessionParts\022(.talon.gateway.Stream" +
+      "SessionPartsRequest\032%.talon.events.Sessi" +
+      "onMessagePartEvent\"?\202\323\344\223\0029\0227/v1/ns/{ns}/" +
+      "agents/{agent}/sessions/{session_id}/str" +
+      "eam0\001\022\227\001\n\027StreamSessionPartsBatch\022-.talo" +
+      "n.gateway.StreamSessionPartsBatchRequest" +
+      "\032%.talon.events.SessionMessagePartEvent\"" +
+      "$\202\323\344\223\002\036\"\031/v1/session-streams:batch:\001*0\001\022" +
+      "u\n\rCreateChannel\022#.talon.gateway.CreateC" +
+      "hannelRequest\032\036.talon.gateway.ChannelRes" +
+      "ponse\"\037\202\323\344\223\002\031\"\024/v1/ns/{ns}/channels:\001*\022s" +
+      "\n\nGetChannel\022 .talon.gateway.GetChannelR" +
+      "equest\032\036.talon.gateway.ChannelResponse\"#" +
+      "\202\323\344\223\002\035\022\033/v1/ns/{ns}/channels/{name}\022|\n\rM" +
+      "odifyChannel\022#.talon.gateway.ModifyChann" +
+      "elRequest\032\036.talon.gateway.ChannelRespons" +
+      "e\"&\202\323\344\223\002 \032\033/v1/ns/{ns}/channels/{name}:\001" +
+      "*\022u\n\014ListChannels\022\".talon.gateway.ListCh" +
+      "annelsRequest\032#.talon.gateway.ListChanne" +
+      "lsResponse\"\034\202\323\344\223\002\026\022\024/v1/ns/{ns}/channels" +
+      "\022\177\n\rDeleteChannel\022#.talon.gateway.Delete" +
+      "ChannelRequest\032$.talon.gateway.DeleteCha" +
+      "nnelResponse\"#\202\323\344\223\002\035*\033/v1/ns/{ns}/channe" +
+      "ls/{name}\022\235\001\n\022PostChannelMessage\022(.talon" +
+      ".gateway.PostChannelMessageRequest\032).tal" +
+      "on.gateway.PostChannelMessageResponse\"2\202" +
+      "\323\344\223\002,\"\'/v1/ns/{ns}/channels/{channel}/me" +
+      "ssages:\001*\022\241\001\n\021GetChannelMessage\022\'.talon." +
+      "gateway.GetChannelMessageRequest\032%.talon" +
+      ".gateway.ChannelMessageResponse\"<\202\323\344\223\0026\022" +
+      "4/v1/ns/{ns}/channels/{channel}/messages" +
+      "/{message_id}\022\235\001\n\023ListChannelMessages\022)." +
+      "talon.gateway.ListChannelMessagesRequest" +
+      "\032*.talon.gateway.ListChannelMessagesResp" +
+      "onse\"/\202\323\344\223\002)\022\'/v1/ns/{ns}/channels/{chan" +
+      "nel}/messages\022\261\001\n\031CreateChannelSubscript" +
+      "ion\022/.talon.gateway.CreateChannelSubscri" +
+      "ptionRequest\032*.talon.gateway.ChannelSubs" +
+      "criptionResponse\"7\202\323\344\223\0021\",/v1/ns/{ns}/ch" +
+      "annels/{channel}/subscriptions:\001*\022\257\001\n\026Ge" +
+      "tChannelSubscription\022,.talon.gateway.Get" +
+      "ChannelSubscriptionRequest\032*.talon.gatew" +
+      "ay.ChannelSubscriptionResponse\";\202\323\344\223\0025\0223" +
+      "/v1/ns/{ns}/channels/{channel}/subscript" +
+      "ions/{name}\022\270\001\n\031ModifyChannelSubscriptio" +
+      "n\022/.talon.gateway.ModifyChannelSubscript" +
+      "ionRequest\032*.talon.gateway.ChannelSubscr" +
+      "iptionResponse\">\202\323\344\223\0028\0323/v1/ns/{ns}/chan" +
+      "nels/{channel}/subscriptions/{name}:\001*\022\261" +
+      "\001\n\030ListChannelSubscriptions\022..talon.gate" +
+      "way.ListChannelSubscriptionsRequest\032/.ta" +
+      "lon.gateway.ListChannelSubscriptionsResp" +
+      "onse\"4\202\323\344\223\002.\022,/v1/ns/{ns}/channels/{chan" +
+      "nel}/subscriptions\022\273\001\n\031DeleteChannelSubs" +
+      "cription\022/.talon.gateway.DeleteChannelSu" +
+      "bscriptionRequest\0320.talon.gateway.Delete" +
+      "ChannelSubscriptionResponse\";\202\323\344\223\0025*3/v1" +
+      "/ns/{ns}/channels/{channel}/subscription" +
+      "s/{name}\022\215\001\n\023StreamChannelEvents\022).talon" +
+      ".gateway.StreamChannelEventsRequest\032\032.ta" +
+      "lon.events.ChannelEvent\"-\202\323\344\223\002\'\022%/v1/ns/" +
+      "{ns}/channels/{channel}/stream0\001\022y\n\016Crea" +
+      "teSchedule\022$.talon.gateway.CreateSchedul" +
+      "eRequest\032\037.talon.gateway.ScheduleRespons" +
+      "e\" \202\323\344\223\002\032\"\025/v1/ns/{ns}/schedules:\001*\022w\n\013G" +
+      "etSchedule\022!.talon.gateway.GetScheduleRe" +
+      "quest\032\037.talon.gateway.ScheduleResponse\"$" +
+      "\202\323\344\223\002\036\022\034/v1/ns/{ns}/schedules/{name}\022\200\001\n" +
+      "\016ModifySchedule\022$.talon.gateway.ModifySc" +
+      "heduleRequest\032\037.talon.gateway.ScheduleRe" +
+      "sponse\"\'\202\323\344\223\002!\032\034/v1/ns/{ns}/schedules/{n" +
+      "ame}:\001*\022y\n\rListSchedules\022#.talon.gateway" +
+      ".ListSchedulesRequest\032$.talon.gateway.Li" +
+      "stSchedulesResponse\"\035\202\323\344\223\002\027\022\025/v1/ns/{ns}" +
+      "/schedules\022\203\001\n\016DeleteSchedule\022$.talon.ga" +
+      "teway.DeleteScheduleRequest\032%.talon.gate" +
+      "way.DeleteScheduleResponse\"$\202\323\344\223\002\036*\034/v1/" +
+      "ns/{ns}/schedules/{name}\022y\n\016CreateWorkfl" +
+      "ow\022$.talon.gateway.CreateWorkflowRequest" +
+      "\032\037.talon.gateway.WorkflowResponse\" \202\323\344\223\002" +
+      "\032\"\025/v1/ns/{ns}/workflows:\001*\022w\n\013GetWorkfl",
+      "ow\022!.talon.gateway.GetWorkflowRequest\032\037." +
+      "talon.gateway.WorkflowResponse\"$\202\323\344\223\002\036\022\034" +
+      "/v1/ns/{ns}/workflows/{name}\022y\n\rListWork" +
+      "flows\022#.talon.gateway.ListWorkflowsReque" +
+      "st\032$.talon.gateway.ListWorkflowsResponse" +
+      "\"\035\202\323\344\223\002\027\022\025/v1/ns/{ns}/workflows\022\203\001\n\016Dele" +
+      "teWorkflow\022$.talon.gateway.DeleteWorkflo" +
+      "wRequest\032%.talon.gateway.DeleteWorkflowR" +
+      "esponse\"$\202\323\344\223\002\036*\034/v1/ns/{ns}/workflows/{" +
+      "name}\022\222\001\n\021CreateWorkflowRun\022\'.talon.gate" +
+      "way.CreateWorkflowRunRequest\032\".talon.gat" +
+      "eway.WorkflowRunResponse\"0\202\323\344\223\002*\"%/v1/ns" +
+      "/{ns}/workflows/{workflow}/runs:\001*\022\222\001\n\016G" +
+      "etWorkflowRun\022$.talon.gateway.GetWorkflo" +
+      "wRunRequest\032\".talon.gateway.WorkflowRunR" +
+      "esponse\"6\202\323\344\223\0020\022./v1/ns/{ns}/workflows/{" +
+      "workflow}/runs/{run_id}\022\222\001\n\020ListWorkflow" +
+      "Runs\022&.talon.gateway.ListWorkflowRunsReq" +
+      "uest\032\'.talon.gateway.ListWorkflowRunsRes" +
+      "ponse\"-\202\323\344\223\002\'\022%/v1/ns/{ns}/workflows/{wo" +
+      "rkflow}/runs\022\242\001\n\021ResumeWorkflowRun\022\'.tal" +
+      "on.gateway.ResumeWorkflowRunRequest\032\".ta" +
+      "lon.gateway.WorkflowRunResponse\"@\202\323\344\223\002:\"" +
+      "5/v1/ns/{ns}/workflows/{workflow}/runs/{" +
+      "run_id}:resume:\001*\022\242\001\n\021CancelWorkflowRun\022" +
+      "\'.talon.gateway.CancelWorkflowRunRequest" +
+      "\032\".talon.gateway.WorkflowRunResponse\"@\202\323" +
+      "\344\223\002:\"5/v1/ns/{ns}/workflows/{workflow}/r" +
+      "uns/{run_id}:cancel:\001*\022\241\001\n\024StreamWorkflo" +
+      "wEvents\022*.talon.gateway.StreamWorkflowEv" +
+      "entsRequest\032\034.talon.data.WorkflowRunEven" +
+      "t\"=\202\323\344\223\0027\0225/v1/ns/{ns}/workflows/{workfl" +
+      "ow}/runs/{run_id}/stream0\001\022|\n\017CreateName" +
+      "space\022%.talon.gateway.CreateNamespaceReq" +
+      "uest\032 .talon.gateway.NamespaceResponse\" " +
+      "\202\323\344\223\002\032\"\025/v1/namespaces/{name}:\001*\022s\n\014GetN" +
+      "amespace\022\".talon.gateway.GetNamespaceReq" +
+      "uest\032 .talon.gateway.NamespaceResponse\"\035" +
+      "\202\323\344\223\002\027\022\025/v1/namespaces/{name}\022y\n\017DeleteN" +
+      "amespace\022%.talon.gateway.DeleteNamespace" +
+      "Request\032 .talon.gateway.NamespaceRespons" +
+      "e\"\035\202\323\344\223\002\027*\025/v1/namespaces/{name}\022u\n\016List" +
+      "Namespaces\022$.talon.gateway.ListNamespace" +
+      "sRequest\032%.talon.gateway.ListNamespacesR" +
+      "esponse\"\026\202\323\344\223\002\020\022\016/v1/namespaces\022y\n\016Creat" +
+      "eResource\022$.talon.gateway.CreateResource" +
+      "Request\032\037.talon.gateway.ResourceResponse" +
+      "\" \202\323\344\223\002\032\"\025/v2/ns/{ns}/resources:\001*\022~\n\013Ge" +
+      "tResource\022!.talon.gateway.GetResourceReq" +
+      "uest\032\037.talon.gateway.ResourceResponse\"+\202" +
+      "\323\344\223\002%\022#/v2/ns/{ns}/resources/{kind}/{nam" +
+      "e}\022y\n\rListResources\022#.talon.gateway.List" +
+      "ResourcesRequest\032$.talon.gateway.ListRes" +
+      "ourcesResponse\"\035\202\323\344\223\002\027\022\025/v2/ns/{ns}/reso" +
+      "urces\022\212\001\n\016DeleteResource\022$.talon.gateway" +
+      ".DeleteResourceRequest\032%.talon.gateway.D" +
+      "eleteResourceResponse\"+\202\323\344\223\002%*#/v2/ns/{n" +
+      "s}/resources/{kind}/{name}\022v\n\017CreateMcpS" +
+      "erver\022%.talon.gateway.CreateMcpServerReq" +
+      "uest\032 .talon.gateway.McpServerResponse\"\032" +
+      "\202\323\344\223\002\024\"\017/v1/mcp-servers:\001*\022t\n\014GetMcpServ" +
+      "er\022\".talon.gateway.GetMcpServerRequest\032 " +
+      ".talon.gateway.McpServerResponse\"\036\202\323\344\223\002\030" +
+      "\022\026/v1/mcp-servers/{name}\022v\n\016ListMcpServe" +
+      "rs\022$.talon.gateway.ListMcpServersRequest" +
+      "\032%.talon.gateway.ListMcpServersResponse\"" +
+      "\027\202\323\344\223\002\021\022\017/v1/mcp-servers\022\200\001\n\017DeleteMcpSe" +
+      "rver\022%.talon.gateway.DeleteMcpServerRequ" +
+      "est\032&.talon.gateway.DeleteMcpServerRespo" +
+      "nse\"\036\202\323\344\223\002\030*\026/v1/mcp-servers/{name}\022\234\001\n\026" +
+      "CreateMcpServerBinding\022,.talon.gateway.C" +
+      "reateMcpServerBindingRequest\032\'.talon.gat" +
+      "eway.McpServerBindingResponse\"+\202\323\344\223\002%\" /" +
+      "v1/namespaces/{ns}/mcp-bindings:\001*\022\232\001\n\023G" +
+      "etMcpServerBinding\022).talon.gateway.GetMc" +
+      "pServerBindingRequest\032\'.talon.gateway.Mc" +
+      "pServerBindingResponse\"/\202\323\344\223\002)\022\'/v1/name" +
+      "spaces/{ns}/mcp-bindings/{name}\022\234\001\n\025List" +
+      "McpServerBindings\022+.talon.gateway.ListMc" +
+      "pServerBindingsRequest\032,.talon.gateway.L" +
+      "istMcpServerBindingsResponse\"(\202\323\344\223\002\"\022 /v" +
+      "1/namespaces/{ns}/mcp-bindings\022\246\001\n\026Delet" +
+      "eMcpServerBinding\022,.talon.gateway.Delete" +
+      "McpServerBindingRequest\032-.talon.gateway." +
+      "DeleteMcpServerBindingResponse\"/\202\323\344\223\002)*\'" +
+      "/v1/namespaces/{ns}/mcp-bindings/{name}b" +
+      "\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           com.google.api.AnnotationsProto.getDescriptor(),
-          talon.manifests.Manifests.getDescriptor(),
-          talon.models.Models.getDescriptor(),
+          talon.data.Data.getDescriptor(),
           talon.events.Events.getDescriptor(),
+          talon.resources.Agents.getDescriptor(),
+          talon.resources.Channels.getDescriptor(),
+          talon.resources.KnowledgeOuterClass.getDescriptor(),
+          talon.resources.Mcp.getDescriptor(),
+          talon.resources.ResourceOuterClass.getDescriptor(),
+          talon.resources.Schedules.getDescriptor(),
+          talon.resources.Workflows.getDescriptor(),
         });
-    internal_static_talon_gateway_CreateAgentTemplateRequest_descriptor =
+    internal_static_talon_gateway_CreateResourceRequest_descriptor =
       getDescriptor().getMessageType(0);
-    internal_static_talon_gateway_CreateAgentTemplateRequest_fieldAccessorTable = new
+    internal_static_talon_gateway_CreateResourceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_CreateAgentTemplateRequest_descriptor,
-        new java.lang.String[] { "Template", });
-    internal_static_talon_gateway_AgentTemplateResponse_descriptor =
+        internal_static_talon_gateway_CreateResourceRequest_descriptor,
+        new java.lang.String[] { "Ns", "Resource", });
+    internal_static_talon_gateway_GetResourceRequest_descriptor =
       getDescriptor().getMessageType(1);
-    internal_static_talon_gateway_AgentTemplateResponse_fieldAccessorTable = new
+    internal_static_talon_gateway_GetResourceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_AgentTemplateResponse_descriptor,
-        new java.lang.String[] { "Template", });
-    internal_static_talon_gateway_GetAgentTemplateRequest_descriptor =
+        internal_static_talon_gateway_GetResourceRequest_descriptor,
+        new java.lang.String[] { "Ns", "Kind", "Name", });
+    internal_static_talon_gateway_ListResourcesRequest_descriptor =
       getDescriptor().getMessageType(2);
-    internal_static_talon_gateway_GetAgentTemplateRequest_fieldAccessorTable = new
+    internal_static_talon_gateway_ListResourcesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_GetAgentTemplateRequest_descriptor,
-        new java.lang.String[] { "Name", });
-    internal_static_talon_gateway_DeleteAgentTemplateRequest_descriptor =
+        internal_static_talon_gateway_ListResourcesRequest_descriptor,
+        new java.lang.String[] { "Ns", "Kind", });
+    internal_static_talon_gateway_DeleteResourceRequest_descriptor =
       getDescriptor().getMessageType(3);
-    internal_static_talon_gateway_DeleteAgentTemplateRequest_fieldAccessorTable = new
+    internal_static_talon_gateway_DeleteResourceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_DeleteAgentTemplateRequest_descriptor,
-        new java.lang.String[] { "Name", });
-    internal_static_talon_gateway_DeleteAgentTemplateResponse_descriptor =
+        internal_static_talon_gateway_DeleteResourceRequest_descriptor,
+        new java.lang.String[] { "Ns", "Kind", "Name", });
+    internal_static_talon_gateway_ResourceResponse_descriptor =
       getDescriptor().getMessageType(4);
-    internal_static_talon_gateway_DeleteAgentTemplateResponse_fieldAccessorTable = new
+    internal_static_talon_gateway_ResourceResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_DeleteAgentTemplateResponse_descriptor,
-        new java.lang.String[] { "Success", });
-    internal_static_talon_gateway_ListAgentTemplatesRequest_descriptor =
+        internal_static_talon_gateway_ResourceResponse_descriptor,
+        new java.lang.String[] { "Resource", });
+    internal_static_talon_gateway_ListResourcesResponse_descriptor =
       getDescriptor().getMessageType(5);
-    internal_static_talon_gateway_ListAgentTemplatesRequest_fieldAccessorTable = new
+    internal_static_talon_gateway_ListResourcesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_ListAgentTemplatesRequest_descriptor,
-        new java.lang.String[] { });
-    internal_static_talon_gateway_ListAgentTemplatesResponse_descriptor =
+        internal_static_talon_gateway_ListResourcesResponse_descriptor,
+        new java.lang.String[] { "Resources", });
+    internal_static_talon_gateway_DeleteResourceResponse_descriptor =
       getDescriptor().getMessageType(6);
-    internal_static_talon_gateway_ListAgentTemplatesResponse_fieldAccessorTable = new
+    internal_static_talon_gateway_DeleteResourceResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_ListAgentTemplatesResponse_descriptor,
-        new java.lang.String[] { "Templates", });
+        internal_static_talon_gateway_DeleteResourceResponse_descriptor,
+        new java.lang.String[] { "Success", });
     internal_static_talon_gateway_CreateMcpServerRequest_descriptor =
       getDescriptor().getMessageType(7);
     internal_static_talon_gateway_CreateMcpServerRequest_fieldAccessorTable = new
@@ -88701,7 +85396,7 @@ java.lang.String defaultValue) {
     internal_static_talon_gateway_CreateAgentRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateAgentRequest_descriptor,
-        new java.lang.String[] { "Ns", "Name", "Definition", "Labels", });
+        new java.lang.String[] { "Ns", "Name", "Spec", "Labels", });
     internal_static_talon_gateway_CreateAgentRequest_LabelsEntry_descriptor =
       internal_static_talon_gateway_CreateAgentRequest_descriptor.getNestedType(0);
     internal_static_talon_gateway_CreateAgentRequest_LabelsEntry_fieldAccessorTable = new
@@ -88737,7 +85432,7 @@ java.lang.String defaultValue) {
     internal_static_talon_gateway_ModifyAgentRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ModifyAgentRequest_descriptor,
-        new java.lang.String[] { "Agent", "Ns", "Definition", "Labels", });
+        new java.lang.String[] { "Agent", "Ns", "Spec", "Labels", });
     internal_static_talon_gateway_ModifyAgentRequest_LabelsEntry_descriptor =
       internal_static_talon_gateway_ModifyAgentRequest_descriptor.getNestedType(0);
     internal_static_talon_gateway_ModifyAgentRequest_LabelsEntry_fieldAccessorTable = new
@@ -88810,50 +85505,8 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListNamespaceKnowledgeResponse_descriptor,
         new java.lang.String[] { "Knowledge", });
-    internal_static_talon_gateway_CreateNamespaceSkillRequest_descriptor =
-      getDescriptor().getMessageType(39);
-    internal_static_talon_gateway_CreateNamespaceSkillRequest_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_CreateNamespaceSkillRequest_descriptor,
-        new java.lang.String[] { "Ns", "Skill", });
-    internal_static_talon_gateway_GetNamespaceSkillRequest_descriptor =
-      getDescriptor().getMessageType(40);
-    internal_static_talon_gateway_GetNamespaceSkillRequest_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_GetNamespaceSkillRequest_descriptor,
-        new java.lang.String[] { "Ns", "Name", });
-    internal_static_talon_gateway_ListNamespaceSkillsRequest_descriptor =
-      getDescriptor().getMessageType(41);
-    internal_static_talon_gateway_ListNamespaceSkillsRequest_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_ListNamespaceSkillsRequest_descriptor,
-        new java.lang.String[] { "Ns", });
-    internal_static_talon_gateway_DeleteNamespaceSkillRequest_descriptor =
-      getDescriptor().getMessageType(42);
-    internal_static_talon_gateway_DeleteNamespaceSkillRequest_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_DeleteNamespaceSkillRequest_descriptor,
-        new java.lang.String[] { "Ns", "Name", });
-    internal_static_talon_gateway_DeleteNamespaceSkillResponse_descriptor =
-      getDescriptor().getMessageType(43);
-    internal_static_talon_gateway_DeleteNamespaceSkillResponse_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_DeleteNamespaceSkillResponse_descriptor,
-        new java.lang.String[] { "Success", });
-    internal_static_talon_gateway_NamespaceSkillResponse_descriptor =
-      getDescriptor().getMessageType(44);
-    internal_static_talon_gateway_NamespaceSkillResponse_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_NamespaceSkillResponse_descriptor,
-        new java.lang.String[] { "Skill", });
-    internal_static_talon_gateway_ListNamespaceSkillsResponse_descriptor =
-      getDescriptor().getMessageType(45);
-    internal_static_talon_gateway_ListNamespaceSkillsResponse_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_gateway_ListNamespaceSkillsResponse_descriptor,
-        new java.lang.String[] { "Skills", });
     internal_static_talon_gateway_CreateSessionRequest_descriptor =
-      getDescriptor().getMessageType(46);
+      getDescriptor().getMessageType(39);
     internal_static_talon_gateway_CreateSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateSessionRequest_descriptor,
@@ -88865,37 +85518,37 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_CreateSessionRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_GetSessionRequest_descriptor =
-      getDescriptor().getMessageType(47);
+      getDescriptor().getMessageType(40);
     internal_static_talon_gateway_GetSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetSessionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "MessageLimit", });
     internal_static_talon_gateway_ListSessionMessagesRequest_descriptor =
-      getDescriptor().getMessageType(48);
+      getDescriptor().getMessageType(41);
     internal_static_talon_gateway_ListSessionMessagesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListSessionMessagesRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "PageSize", "BeforeMessageId", });
     internal_static_talon_gateway_ListSessionMessagesResponseItem_descriptor =
-      getDescriptor().getMessageType(49);
+      getDescriptor().getMessageType(42);
     internal_static_talon_gateway_ListSessionMessagesResponseItem_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListSessionMessagesResponseItem_descriptor,
         new java.lang.String[] { "Message", });
     internal_static_talon_gateway_ListSessionMessagesResponse_descriptor =
-      getDescriptor().getMessageType(50);
+      getDescriptor().getMessageType(43);
     internal_static_talon_gateway_ListSessionMessagesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListSessionMessagesResponse_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "State", "Items", "HasMore", "NextBeforeMessageId", });
     internal_static_talon_gateway_ListSessionsRequest_descriptor =
-      getDescriptor().getMessageType(51);
+      getDescriptor().getMessageType(44);
     internal_static_talon_gateway_ListSessionsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListSessionsRequest_descriptor,
         new java.lang.String[] { "Agent", "Ns", });
     internal_static_talon_gateway_SessionListItem_descriptor =
-      getDescriptor().getMessageType(52);
+      getDescriptor().getMessageType(45);
     internal_static_talon_gateway_SessionListItem_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_SessionListItem_descriptor,
@@ -88907,13 +85560,13 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_SessionListItem_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_ListSessionsResponse_descriptor =
-      getDescriptor().getMessageType(53);
+      getDescriptor().getMessageType(46);
     internal_static_talon_gateway_ListSessionsResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListSessionsResponse_descriptor,
         new java.lang.String[] { "SessionIds", "Sessions", });
     internal_static_talon_gateway_SessionResponse_descriptor =
-      getDescriptor().getMessageType(54);
+      getDescriptor().getMessageType(47);
     internal_static_talon_gateway_SessionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_SessionResponse_descriptor,
@@ -88925,79 +85578,79 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_SessionResponse_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_DeleteSessionRequest_descriptor =
-      getDescriptor().getMessageType(55);
+      getDescriptor().getMessageType(48);
     internal_static_talon_gateway_DeleteSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteSessionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_gateway_DeleteSessionResponse_descriptor =
-      getDescriptor().getMessageType(56);
+      getDescriptor().getMessageType(49);
     internal_static_talon_gateway_DeleteSessionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteSessionResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_gateway_ClearSessionRequest_descriptor =
-      getDescriptor().getMessageType(57);
+      getDescriptor().getMessageType(50);
     internal_static_talon_gateway_ClearSessionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ClearSessionRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_gateway_ClearSessionResponse_descriptor =
-      getDescriptor().getMessageType(58);
+      getDescriptor().getMessageType(51);
     internal_static_talon_gateway_ClearSessionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ClearSessionResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_gateway_CreateChannelRequest_descriptor =
-      getDescriptor().getMessageType(59);
+      getDescriptor().getMessageType(52);
     internal_static_talon_gateway_CreateChannelRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateChannelRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", });
     internal_static_talon_gateway_GetChannelRequest_descriptor =
-      getDescriptor().getMessageType(60);
+      getDescriptor().getMessageType(53);
     internal_static_talon_gateway_GetChannelRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetChannelRequest_descriptor,
         new java.lang.String[] { "Ns", "Name", });
     internal_static_talon_gateway_ModifyChannelRequest_descriptor =
-      getDescriptor().getMessageType(61);
+      getDescriptor().getMessageType(54);
     internal_static_talon_gateway_ModifyChannelRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ModifyChannelRequest_descriptor,
         new java.lang.String[] { "Ns", "Name", "Channel", });
     internal_static_talon_gateway_ListChannelsRequest_descriptor =
-      getDescriptor().getMessageType(62);
+      getDescriptor().getMessageType(55);
     internal_static_talon_gateway_ListChannelsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListChannelsRequest_descriptor,
         new java.lang.String[] { "Ns", });
     internal_static_talon_gateway_DeleteChannelRequest_descriptor =
-      getDescriptor().getMessageType(63);
+      getDescriptor().getMessageType(56);
     internal_static_talon_gateway_DeleteChannelRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteChannelRequest_descriptor,
         new java.lang.String[] { "Ns", "Name", });
     internal_static_talon_gateway_ChannelResponse_descriptor =
-      getDescriptor().getMessageType(64);
+      getDescriptor().getMessageType(57);
     internal_static_talon_gateway_ChannelResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ChannelResponse_descriptor,
         new java.lang.String[] { "Channel", });
     internal_static_talon_gateway_ListChannelsResponse_descriptor =
-      getDescriptor().getMessageType(65);
+      getDescriptor().getMessageType(58);
     internal_static_talon_gateway_ListChannelsResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListChannelsResponse_descriptor,
         new java.lang.String[] { "Channels", });
     internal_static_talon_gateway_DeleteChannelResponse_descriptor =
-      getDescriptor().getMessageType(66);
+      getDescriptor().getMessageType(59);
     internal_static_talon_gateway_DeleteChannelResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteChannelResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_gateway_PostChannelMessageRequest_descriptor =
-      getDescriptor().getMessageType(67);
+      getDescriptor().getMessageType(60);
     internal_static_talon_gateway_PostChannelMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_PostChannelMessageRequest_descriptor,
@@ -89009,181 +85662,181 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_PostChannelMessageRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_RoutedChannelSession_descriptor =
-      getDescriptor().getMessageType(68);
+      getDescriptor().getMessageType(61);
     internal_static_talon_gateway_RoutedChannelSession_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_RoutedChannelSession_descriptor,
         new java.lang.String[] { "Subscription", "Agent", "SessionId", "Error", });
     internal_static_talon_gateway_PostChannelMessageResponse_descriptor =
-      getDescriptor().getMessageType(69);
+      getDescriptor().getMessageType(62);
     internal_static_talon_gateway_PostChannelMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_PostChannelMessageResponse_descriptor,
         new java.lang.String[] { "Message", "RoutedSessions", });
     internal_static_talon_gateway_GetChannelMessageRequest_descriptor =
-      getDescriptor().getMessageType(70);
+      getDescriptor().getMessageType(63);
     internal_static_talon_gateway_GetChannelMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetChannelMessageRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", "MessageId", });
     internal_static_talon_gateway_ChannelMessageResponse_descriptor =
-      getDescriptor().getMessageType(71);
+      getDescriptor().getMessageType(64);
     internal_static_talon_gateway_ChannelMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ChannelMessageResponse_descriptor,
         new java.lang.String[] { "Message", });
     internal_static_talon_gateway_ListChannelMessagesRequest_descriptor =
-      getDescriptor().getMessageType(72);
+      getDescriptor().getMessageType(65);
     internal_static_talon_gateway_ListChannelMessagesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListChannelMessagesRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", "Limit", "PageSize", "BeforeMessageId", });
     internal_static_talon_gateway_ListChannelMessagesResponse_descriptor =
-      getDescriptor().getMessageType(73);
+      getDescriptor().getMessageType(66);
     internal_static_talon_gateway_ListChannelMessagesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListChannelMessagesResponse_descriptor,
         new java.lang.String[] { "Messages", "HasMore", "NextBeforeMessageId", });
     internal_static_talon_gateway_CreateChannelSubscriptionRequest_descriptor =
-      getDescriptor().getMessageType(74);
+      getDescriptor().getMessageType(67);
     internal_static_talon_gateway_CreateChannelSubscriptionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateChannelSubscriptionRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", "Subscription", });
     internal_static_talon_gateway_GetChannelSubscriptionRequest_descriptor =
-      getDescriptor().getMessageType(75);
+      getDescriptor().getMessageType(68);
     internal_static_talon_gateway_GetChannelSubscriptionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetChannelSubscriptionRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", "Name", });
     internal_static_talon_gateway_ModifyChannelSubscriptionRequest_descriptor =
-      getDescriptor().getMessageType(76);
+      getDescriptor().getMessageType(69);
     internal_static_talon_gateway_ModifyChannelSubscriptionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ModifyChannelSubscriptionRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", "Name", "Subscription", });
     internal_static_talon_gateway_ListChannelSubscriptionsRequest_descriptor =
-      getDescriptor().getMessageType(77);
+      getDescriptor().getMessageType(70);
     internal_static_talon_gateway_ListChannelSubscriptionsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListChannelSubscriptionsRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", });
     internal_static_talon_gateway_DeleteChannelSubscriptionRequest_descriptor =
-      getDescriptor().getMessageType(78);
+      getDescriptor().getMessageType(71);
     internal_static_talon_gateway_DeleteChannelSubscriptionRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteChannelSubscriptionRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", "Name", });
     internal_static_talon_gateway_ChannelSubscriptionResponse_descriptor =
-      getDescriptor().getMessageType(79);
+      getDescriptor().getMessageType(72);
     internal_static_talon_gateway_ChannelSubscriptionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ChannelSubscriptionResponse_descriptor,
         new java.lang.String[] { "Subscription", });
     internal_static_talon_gateway_ListChannelSubscriptionsResponse_descriptor =
-      getDescriptor().getMessageType(80);
+      getDescriptor().getMessageType(73);
     internal_static_talon_gateway_ListChannelSubscriptionsResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListChannelSubscriptionsResponse_descriptor,
         new java.lang.String[] { "Subscriptions", });
     internal_static_talon_gateway_DeleteChannelSubscriptionResponse_descriptor =
-      getDescriptor().getMessageType(81);
+      getDescriptor().getMessageType(74);
     internal_static_talon_gateway_DeleteChannelSubscriptionResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteChannelSubscriptionResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_gateway_StreamChannelEventsRequest_descriptor =
-      getDescriptor().getMessageType(82);
+      getDescriptor().getMessageType(75);
     internal_static_talon_gateway_StreamChannelEventsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StreamChannelEventsRequest_descriptor,
         new java.lang.String[] { "Ns", "Channel", });
     internal_static_talon_gateway_CreateScheduleRequest_descriptor =
-      getDescriptor().getMessageType(83);
+      getDescriptor().getMessageType(76);
     internal_static_talon_gateway_CreateScheduleRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateScheduleRequest_descriptor,
         new java.lang.String[] { "Ns", "Schedule", });
     internal_static_talon_gateway_GetScheduleRequest_descriptor =
-      getDescriptor().getMessageType(84);
+      getDescriptor().getMessageType(77);
     internal_static_talon_gateway_GetScheduleRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetScheduleRequest_descriptor,
         new java.lang.String[] { "Ns", "Name", });
     internal_static_talon_gateway_ModifyScheduleRequest_descriptor =
-      getDescriptor().getMessageType(85);
+      getDescriptor().getMessageType(78);
     internal_static_talon_gateway_ModifyScheduleRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ModifyScheduleRequest_descriptor,
         new java.lang.String[] { "Ns", "Name", "Schedule", });
     internal_static_talon_gateway_ListSchedulesRequest_descriptor =
-      getDescriptor().getMessageType(86);
+      getDescriptor().getMessageType(79);
     internal_static_talon_gateway_ListSchedulesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListSchedulesRequest_descriptor,
         new java.lang.String[] { "Ns", });
     internal_static_talon_gateway_ListSchedulesResponse_descriptor =
-      getDescriptor().getMessageType(87);
+      getDescriptor().getMessageType(80);
     internal_static_talon_gateway_ListSchedulesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListSchedulesResponse_descriptor,
         new java.lang.String[] { "Schedules", });
     internal_static_talon_gateway_DeleteScheduleRequest_descriptor =
-      getDescriptor().getMessageType(88);
+      getDescriptor().getMessageType(81);
     internal_static_talon_gateway_DeleteScheduleRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteScheduleRequest_descriptor,
         new java.lang.String[] { "Ns", "Name", });
     internal_static_talon_gateway_DeleteScheduleResponse_descriptor =
-      getDescriptor().getMessageType(89);
+      getDescriptor().getMessageType(82);
     internal_static_talon_gateway_DeleteScheduleResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteScheduleResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_gateway_CreateWorkflowRequest_descriptor =
-      getDescriptor().getMessageType(90);
+      getDescriptor().getMessageType(83);
     internal_static_talon_gateway_CreateWorkflowRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateWorkflowRequest_descriptor,
         new java.lang.String[] { "Ns", "Workflow", });
     internal_static_talon_gateway_GetWorkflowRequest_descriptor =
-      getDescriptor().getMessageType(91);
+      getDescriptor().getMessageType(84);
     internal_static_talon_gateway_GetWorkflowRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetWorkflowRequest_descriptor,
         new java.lang.String[] { "Ns", "Name", });
     internal_static_talon_gateway_ListWorkflowsRequest_descriptor =
-      getDescriptor().getMessageType(92);
+      getDescriptor().getMessageType(85);
     internal_static_talon_gateway_ListWorkflowsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListWorkflowsRequest_descriptor,
         new java.lang.String[] { "Ns", });
     internal_static_talon_gateway_DeleteWorkflowRequest_descriptor =
-      getDescriptor().getMessageType(93);
+      getDescriptor().getMessageType(86);
     internal_static_talon_gateway_DeleteWorkflowRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteWorkflowRequest_descriptor,
         new java.lang.String[] { "Ns", "Name", });
     internal_static_talon_gateway_WorkflowResponse_descriptor =
-      getDescriptor().getMessageType(94);
+      getDescriptor().getMessageType(87);
     internal_static_talon_gateway_WorkflowResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_WorkflowResponse_descriptor,
         new java.lang.String[] { "Workflow", });
     internal_static_talon_gateway_ListWorkflowsResponse_descriptor =
-      getDescriptor().getMessageType(95);
+      getDescriptor().getMessageType(88);
     internal_static_talon_gateway_ListWorkflowsResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListWorkflowsResponse_descriptor,
         new java.lang.String[] { "Workflows", });
     internal_static_talon_gateway_DeleteWorkflowResponse_descriptor =
-      getDescriptor().getMessageType(96);
+      getDescriptor().getMessageType(89);
     internal_static_talon_gateway_DeleteWorkflowResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteWorkflowResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_gateway_CreateWorkflowRunRequest_descriptor =
-      getDescriptor().getMessageType(97);
+      getDescriptor().getMessageType(90);
     internal_static_talon_gateway_CreateWorkflowRunRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateWorkflowRunRequest_descriptor,
@@ -89195,55 +85848,55 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_CreateWorkflowRunRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_GetWorkflowRunRequest_descriptor =
-      getDescriptor().getMessageType(98);
+      getDescriptor().getMessageType(91);
     internal_static_talon_gateway_GetWorkflowRunRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetWorkflowRunRequest_descriptor,
         new java.lang.String[] { "Ns", "Workflow", "RunId", });
     internal_static_talon_gateway_ListWorkflowRunsRequest_descriptor =
-      getDescriptor().getMessageType(99);
+      getDescriptor().getMessageType(92);
     internal_static_talon_gateway_ListWorkflowRunsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListWorkflowRunsRequest_descriptor,
         new java.lang.String[] { "Ns", "Workflow", "PageSize", "BeforeRunId", });
     internal_static_talon_gateway_ResumeWorkflowRunRequest_descriptor =
-      getDescriptor().getMessageType(100);
+      getDescriptor().getMessageType(93);
     internal_static_talon_gateway_ResumeWorkflowRunRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ResumeWorkflowRunRequest_descriptor,
         new java.lang.String[] { "Ns", "Workflow", "RunId", "StepId", "ResumeJson", });
     internal_static_talon_gateway_CancelWorkflowRunRequest_descriptor =
-      getDescriptor().getMessageType(101);
+      getDescriptor().getMessageType(94);
     internal_static_talon_gateway_CancelWorkflowRunRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CancelWorkflowRunRequest_descriptor,
         new java.lang.String[] { "Ns", "Workflow", "RunId", });
     internal_static_talon_gateway_StreamWorkflowEventsRequest_descriptor =
-      getDescriptor().getMessageType(102);
+      getDescriptor().getMessageType(95);
     internal_static_talon_gateway_StreamWorkflowEventsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StreamWorkflowEventsRequest_descriptor,
         new java.lang.String[] { "Ns", "Workflow", "RunId", });
     internal_static_talon_gateway_WorkflowRunResponse_descriptor =
-      getDescriptor().getMessageType(103);
+      getDescriptor().getMessageType(96);
     internal_static_talon_gateway_WorkflowRunResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_WorkflowRunResponse_descriptor,
         new java.lang.String[] { "Run", "Steps", });
     internal_static_talon_gateway_ListWorkflowRunsResponse_descriptor =
-      getDescriptor().getMessageType(104);
+      getDescriptor().getMessageType(97);
     internal_static_talon_gateway_ListWorkflowRunsResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListWorkflowRunsResponse_descriptor,
         new java.lang.String[] { "Runs", "HasMore", "NextBeforeRunId", });
     internal_static_talon_gateway_ScheduleResponse_descriptor =
-      getDescriptor().getMessageType(105);
+      getDescriptor().getMessageType(98);
     internal_static_talon_gateway_ScheduleResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ScheduleResponse_descriptor,
         new java.lang.String[] { "Schedule", });
     internal_static_talon_gateway_SendMessageRequest_descriptor =
-      getDescriptor().getMessageType(106);
+      getDescriptor().getMessageType(99);
     internal_static_talon_gateway_SendMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_SendMessageRequest_descriptor,
@@ -89255,49 +85908,49 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_SendMessageRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_SendMessageResponse_descriptor =
-      getDescriptor().getMessageType(107);
+      getDescriptor().getMessageType(100);
     internal_static_talon_gateway_SendMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_SendMessageResponse_descriptor,
         new java.lang.String[] { "Reply", "SessionId", });
     internal_static_talon_gateway_AppendSessionMessageRequest_descriptor =
-      getDescriptor().getMessageType(108);
+      getDescriptor().getMessageType(101);
     internal_static_talon_gateway_AppendSessionMessageRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_AppendSessionMessageRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", "Message", });
     internal_static_talon_gateway_AppendSessionMessageResponse_descriptor =
-      getDescriptor().getMessageType(109);
+      getDescriptor().getMessageType(102);
     internal_static_talon_gateway_AppendSessionMessageResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_AppendSessionMessageResponse_descriptor,
         new java.lang.String[] { "SessionId", "Message", });
     internal_static_talon_gateway_StopSessionGenerationRequest_descriptor =
-      getDescriptor().getMessageType(110);
+      getDescriptor().getMessageType(103);
     internal_static_talon_gateway_StopSessionGenerationRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StopSessionGenerationRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_gateway_StopSessionGenerationResponse_descriptor =
-      getDescriptor().getMessageType(111);
+      getDescriptor().getMessageType(104);
     internal_static_talon_gateway_StopSessionGenerationResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StopSessionGenerationResponse_descriptor,
         new java.lang.String[] { "Success", });
     internal_static_talon_gateway_StreamSessionPartsRequest_descriptor =
-      getDescriptor().getMessageType(112);
+      getDescriptor().getMessageType(105);
     internal_static_talon_gateway_StreamSessionPartsRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StreamSessionPartsRequest_descriptor,
         new java.lang.String[] { "SessionId", "Agent", "Ns", });
     internal_static_talon_gateway_StreamSessionPartsBatchRequest_descriptor =
-      getDescriptor().getMessageType(113);
+      getDescriptor().getMessageType(106);
     internal_static_talon_gateway_StreamSessionPartsBatchRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_StreamSessionPartsBatchRequest_descriptor,
         new java.lang.String[] { "SessionNames", });
     internal_static_talon_gateway_CreateNamespaceRequest_descriptor =
-      getDescriptor().getMessageType(114);
+      getDescriptor().getMessageType(107);
     internal_static_talon_gateway_CreateNamespaceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateNamespaceRequest_descriptor,
@@ -89309,25 +85962,25 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_CreateNamespaceRequest_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_GetNamespaceRequest_descriptor =
-      getDescriptor().getMessageType(115);
+      getDescriptor().getMessageType(108);
     internal_static_talon_gateway_GetNamespaceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_GetNamespaceRequest_descriptor,
         new java.lang.String[] { "Name", });
     internal_static_talon_gateway_DeleteNamespaceRequest_descriptor =
-      getDescriptor().getMessageType(116);
+      getDescriptor().getMessageType(109);
     internal_static_talon_gateway_DeleteNamespaceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_DeleteNamespaceRequest_descriptor,
         new java.lang.String[] { "Name", });
     internal_static_talon_gateway_ListNamespacesRequest_descriptor =
-      getDescriptor().getMessageType(117);
+      getDescriptor().getMessageType(110);
     internal_static_talon_gateway_ListNamespacesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListNamespacesRequest_descriptor,
         new java.lang.String[] { "Parent", });
     internal_static_talon_gateway_NamespaceResponse_descriptor =
-      getDescriptor().getMessageType(118);
+      getDescriptor().getMessageType(111);
     internal_static_talon_gateway_NamespaceResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_NamespaceResponse_descriptor,
@@ -89339,16 +85992,22 @@ java.lang.String defaultValue) {
         internal_static_talon_gateway_NamespaceResponse_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_talon_gateway_ListNamespacesResponse_descriptor =
-      getDescriptor().getMessageType(119);
+      getDescriptor().getMessageType(112);
     internal_static_talon_gateway_ListNamespacesResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_ListNamespacesResponse_descriptor,
         new java.lang.String[] { "Namespaces", });
     descriptor.resolveAllFeaturesImmutable();
     com.google.api.AnnotationsProto.getDescriptor();
-    talon.manifests.Manifests.getDescriptor();
-    talon.models.Models.getDescriptor();
+    talon.data.Data.getDescriptor();
     talon.events.Events.getDescriptor();
+    talon.resources.Agents.getDescriptor();
+    talon.resources.Channels.getDescriptor();
+    talon.resources.KnowledgeOuterClass.getDescriptor();
+    talon.resources.Mcp.getDescriptor();
+    talon.resources.ResourceOuterClass.getDescriptor();
+    talon.resources.Schedules.getDescriptor();
+    talon.resources.Workflows.getDescriptor();
     com.google.protobuf.ExtensionRegistry registry =
         com.google.protobuf.ExtensionRegistry.newInstance();
     registry.add(com.google.api.AnnotationsProto.http);

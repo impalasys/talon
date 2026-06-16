@@ -11,9 +11,9 @@ use axum::{
 use serde::Serialize;
 use serde_json::{json, Value};
 
-use crate::control::{keys, ProtoKeyValueStoreExt};
+use crate::control::resource_model::TypedResource;
 use crate::gateway::auth::{AuthConfig, AuthMode};
-use crate::gateway::rpc::{manifests, models};
+use crate::gateway::rpc::manifests;
 use crate::gateway::server::Gateway;
 
 use super::a2a_error;
@@ -192,9 +192,10 @@ pub(super) async fn resolve_agent_card_route(
     ns: &str,
     agent_name: &str,
 ) -> Result<AgentCardRoute, Response> {
-    let agent = gateway
-        .kv
-        .get_msg::<models::Agent>(&keys::agent(ns, agent_name))
+    let store =
+        crate::control::resources::ResourceStore::new(gateway.kv.clone(), gateway.pubsub.clone());
+    let agent = store
+        .get_agent(ns, agent_name)
         .await
         .map_err(|err| {
             tracing::error!(%err, "Failed to fetch A2A agent");
@@ -205,7 +206,7 @@ pub(super) async fn resolve_agent_card_route(
         })?
         .ok_or_else(|| a2a_error(StatusCode::NOT_FOUND, "agent not found"))?;
     let agent_card = agent
-        .effective_spec
+        .spec
         .as_ref()
         .and_then(|spec| spec.a2a.as_ref())
         .and_then(|a2a| a2a.agent_card.as_ref())
@@ -231,8 +232,8 @@ pub(super) async fn resolve_agent_card_route(
         }
     }
     Ok(AgentCardRoute {
-        ns: agent.ns,
-        agent: agent.name,
+        ns: agent.namespace().to_string(),
+        agent: agent.name().to_string(),
         agent_card,
     })
 }

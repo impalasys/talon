@@ -119,8 +119,7 @@ def create_a2a_fixture(namespace: str, agent_name: str, tmp_path):
         metadata:
           name: {agent_name}
           namespace: {namespace}
-        definition:
-          customSpec:
+        spec:
             modelPolicy:
               profiles:
                 - name: default

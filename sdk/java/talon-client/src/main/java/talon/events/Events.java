@@ -584,6 +584,141 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     // @@protoc_insertion_point(enum_scope:talon.events.ChannelEventKind)
   }
 
+  /**
+   * Protobuf enum {@code talon.events.ResourceChangeType}
+   */
+  public enum ResourceChangeType
+      implements com.google.protobuf.ProtocolMessageEnum {
+    /**
+     * <code>RESOURCE_CHANGE_TYPE_UNSPECIFIED = 0;</code>
+     */
+    RESOURCE_CHANGE_TYPE_UNSPECIFIED(0),
+    /**
+     * <code>RESOURCE_CHANGE_TYPE_CREATED = 1;</code>
+     */
+    RESOURCE_CHANGE_TYPE_CREATED(1),
+    /**
+     * <code>RESOURCE_CHANGE_TYPE_UPDATED = 2;</code>
+     */
+    RESOURCE_CHANGE_TYPE_UPDATED(2),
+    /**
+     * <code>RESOURCE_CHANGE_TYPE_DELETED = 3;</code>
+     */
+    RESOURCE_CHANGE_TYPE_DELETED(3),
+    UNRECOGNIZED(-1),
+    ;
+
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ResourceChangeType");
+    }
+    /**
+     * <code>RESOURCE_CHANGE_TYPE_UNSPECIFIED = 0;</code>
+     */
+    public static final int RESOURCE_CHANGE_TYPE_UNSPECIFIED_VALUE = 0;
+    /**
+     * <code>RESOURCE_CHANGE_TYPE_CREATED = 1;</code>
+     */
+    public static final int RESOURCE_CHANGE_TYPE_CREATED_VALUE = 1;
+    /**
+     * <code>RESOURCE_CHANGE_TYPE_UPDATED = 2;</code>
+     */
+    public static final int RESOURCE_CHANGE_TYPE_UPDATED_VALUE = 2;
+    /**
+     * <code>RESOURCE_CHANGE_TYPE_DELETED = 3;</code>
+     */
+    public static final int RESOURCE_CHANGE_TYPE_DELETED_VALUE = 3;
+
+
+    public final int getNumber() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalArgumentException(
+            "Can't get the number of an unknown enum value.");
+      }
+      return value;
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     * @deprecated Use {@link #forNumber(int)} instead.
+     */
+    @java.lang.Deprecated
+    public static ResourceChangeType valueOf(int value) {
+      return forNumber(value);
+    }
+
+    /**
+     * @param value The numeric wire value of the corresponding enum entry.
+     * @return The enum associated with the given numeric wire value.
+     */
+    public static ResourceChangeType forNumber(int value) {
+      switch (value) {
+        case 0: return RESOURCE_CHANGE_TYPE_UNSPECIFIED;
+        case 1: return RESOURCE_CHANGE_TYPE_CREATED;
+        case 2: return RESOURCE_CHANGE_TYPE_UPDATED;
+        case 3: return RESOURCE_CHANGE_TYPE_DELETED;
+        default: return null;
+      }
+    }
+
+    public static com.google.protobuf.Internal.EnumLiteMap<ResourceChangeType>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static final com.google.protobuf.Internal.EnumLiteMap<
+        ResourceChangeType> internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<ResourceChangeType>() {
+            public ResourceChangeType findValueByNumber(int number) {
+              return ResourceChangeType.forNumber(number);
+            }
+          };
+
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      if (this == UNRECOGNIZED) {
+        throw new java.lang.IllegalStateException(
+            "Can't get the descriptor of an unrecognized enum value.");
+      }
+      return getDescriptor().getValue(ordinal());
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return talon.events.Events.getDescriptor().getEnumType(4);
+    }
+
+    private static final ResourceChangeType[] VALUES = values();
+
+    public static ResourceChangeType valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      if (desc.getIndex() == -1) {
+        return UNRECOGNIZED;
+      }
+      return VALUES[desc.getIndex()];
+    }
+
+    private final int value;
+
+    private ResourceChangeType(int value) {
+      this.value = value;
+    }
+
+    // @@protoc_insertion_point(enum_scope:talon.events.ResourceChangeType)
+  }
+
   public interface LifecycleEventOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.events.LifecycleEvent)
       com.google.protobuf.MessageOrBuilder {
@@ -3916,19 +4051,19 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     talon.events.Events.SessionMessagePartEventKind getKind();
 
     /**
-     * <code>.talon.models.SessionMessagePart part = 3;</code>
+     * <code>.talon.data.SessionMessagePart part = 3;</code>
      * @return Whether the part field is set.
      */
     boolean hasPart();
     /**
-     * <code>.talon.models.SessionMessagePart part = 3;</code>
+     * <code>.talon.data.SessionMessagePart part = 3;</code>
      * @return The part.
      */
-    talon.models.Models.SessionMessagePart getPart();
+    talon.data.Data.SessionMessagePart getPart();
     /**
-     * <code>.talon.models.SessionMessagePart part = 3;</code>
+     * <code>.talon.data.SessionMessagePart part = 3;</code>
      */
-    talon.models.Models.SessionMessagePartOrBuilder getPartOrBuilder();
+    talon.data.Data.SessionMessagePartOrBuilder getPartOrBuilder();
 
     /**
      * <code>int64 timestamp = 4;</code>
@@ -4078,9 +4213,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int PART_FIELD_NUMBER = 3;
-    private talon.models.Models.SessionMessagePart part_;
+    private talon.data.Data.SessionMessagePart part_;
     /**
-     * <code>.talon.models.SessionMessagePart part = 3;</code>
+     * <code>.talon.data.SessionMessagePart part = 3;</code>
      * @return Whether the part field is set.
      */
     @java.lang.Override
@@ -4088,19 +4223,19 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.SessionMessagePart part = 3;</code>
+     * <code>.talon.data.SessionMessagePart part = 3;</code>
      * @return The part.
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessagePart getPart() {
-      return part_ == null ? talon.models.Models.SessionMessagePart.getDefaultInstance() : part_;
+    public talon.data.Data.SessionMessagePart getPart() {
+      return part_ == null ? talon.data.Data.SessionMessagePart.getDefaultInstance() : part_;
     }
     /**
-     * <code>.talon.models.SessionMessagePart part = 3;</code>
+     * <code>.talon.data.SessionMessagePart part = 3;</code>
      */
     @java.lang.Override
-    public talon.models.Models.SessionMessagePartOrBuilder getPartOrBuilder() {
-      return part_ == null ? talon.models.Models.SessionMessagePart.getDefaultInstance() : part_;
+    public talon.data.Data.SessionMessagePartOrBuilder getPartOrBuilder() {
+      return part_ == null ? talon.data.Data.SessionMessagePart.getDefaultInstance() : part_;
     }
 
     public static final int TIMESTAMP_FIELD_NUMBER = 4;
@@ -4812,31 +4947,31 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private talon.models.Models.SessionMessagePart part_;
+      private talon.data.Data.SessionMessagePart part_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessagePart, talon.models.Models.SessionMessagePart.Builder, talon.models.Models.SessionMessagePartOrBuilder> partBuilder_;
+          talon.data.Data.SessionMessagePart, talon.data.Data.SessionMessagePart.Builder, talon.data.Data.SessionMessagePartOrBuilder> partBuilder_;
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        * @return Whether the part field is set.
        */
       public boolean hasPart() {
         return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        * @return The part.
        */
-      public talon.models.Models.SessionMessagePart getPart() {
+      public talon.data.Data.SessionMessagePart getPart() {
         if (partBuilder_ == null) {
-          return part_ == null ? talon.models.Models.SessionMessagePart.getDefaultInstance() : part_;
+          return part_ == null ? talon.data.Data.SessionMessagePart.getDefaultInstance() : part_;
         } else {
           return partBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        */
-      public Builder setPart(talon.models.Models.SessionMessagePart value) {
+      public Builder setPart(talon.data.Data.SessionMessagePart value) {
         if (partBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -4850,10 +4985,10 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        */
       public Builder setPart(
-          talon.models.Models.SessionMessagePart.Builder builderForValue) {
+          talon.data.Data.SessionMessagePart.Builder builderForValue) {
         if (partBuilder_ == null) {
           part_ = builderForValue.build();
         } else {
@@ -4864,13 +4999,13 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        */
-      public Builder mergePart(talon.models.Models.SessionMessagePart value) {
+      public Builder mergePart(talon.data.Data.SessionMessagePart value) {
         if (partBuilder_ == null) {
           if (((bitField0_ & 0x00000004) != 0) &&
             part_ != null &&
-            part_ != talon.models.Models.SessionMessagePart.getDefaultInstance()) {
+            part_ != talon.data.Data.SessionMessagePart.getDefaultInstance()) {
             getPartBuilder().mergeFrom(value);
           } else {
             part_ = value;
@@ -4885,7 +5020,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        */
       public Builder clearPart() {
         bitField0_ = (bitField0_ & ~0x00000004);
@@ -4898,33 +5033,33 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        */
-      public talon.models.Models.SessionMessagePart.Builder getPartBuilder() {
+      public talon.data.Data.SessionMessagePart.Builder getPartBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
         return internalGetPartFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        */
-      public talon.models.Models.SessionMessagePartOrBuilder getPartOrBuilder() {
+      public talon.data.Data.SessionMessagePartOrBuilder getPartOrBuilder() {
         if (partBuilder_ != null) {
           return partBuilder_.getMessageOrBuilder();
         } else {
           return part_ == null ?
-              talon.models.Models.SessionMessagePart.getDefaultInstance() : part_;
+              talon.data.Data.SessionMessagePart.getDefaultInstance() : part_;
         }
       }
       /**
-       * <code>.talon.models.SessionMessagePart part = 3;</code>
+       * <code>.talon.data.SessionMessagePart part = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.SessionMessagePart, talon.models.Models.SessionMessagePart.Builder, talon.models.Models.SessionMessagePartOrBuilder>
+          talon.data.Data.SessionMessagePart, talon.data.Data.SessionMessagePart.Builder, talon.data.Data.SessionMessagePartOrBuilder>
           internalGetPartFieldBuilder() {
         if (partBuilder_ == null) {
           partBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.SessionMessagePart, talon.models.Models.SessionMessagePart.Builder, talon.models.Models.SessionMessagePartOrBuilder>(
+              talon.data.Data.SessionMessagePart, talon.data.Data.SessionMessagePart.Builder, talon.data.Data.SessionMessagePartOrBuilder>(
                   getPart(),
                   getParentForChildren(),
                   isClean());
@@ -5272,19 +5407,19 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     talon.events.Events.ChannelEventKind getKind();
 
     /**
-     * <code>.talon.models.ChannelMessage message = 4;</code>
+     * <code>.talon.data.ChannelMessage message = 4;</code>
      * @return Whether the message field is set.
      */
     boolean hasMessage();
     /**
-     * <code>.talon.models.ChannelMessage message = 4;</code>
+     * <code>.talon.data.ChannelMessage message = 4;</code>
      * @return The message.
      */
-    talon.models.Models.ChannelMessage getMessage();
+    talon.data.Data.ChannelMessage getMessage();
     /**
-     * <code>.talon.models.ChannelMessage message = 4;</code>
+     * <code>.talon.data.ChannelMessage message = 4;</code>
      */
-    talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder();
+    talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder();
 
     /**
      * <code>string session_id = 5;</code>
@@ -5487,9 +5622,9 @@ public final class Events extends com.google.protobuf.GeneratedFile {
     }
 
     public static final int MESSAGE_FIELD_NUMBER = 4;
-    private talon.models.Models.ChannelMessage message_;
+    private talon.data.Data.ChannelMessage message_;
     /**
-     * <code>.talon.models.ChannelMessage message = 4;</code>
+     * <code>.talon.data.ChannelMessage message = 4;</code>
      * @return Whether the message field is set.
      */
     @java.lang.Override
@@ -5497,19 +5632,19 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.models.ChannelMessage message = 4;</code>
+     * <code>.talon.data.ChannelMessage message = 4;</code>
      * @return The message.
      */
     @java.lang.Override
-    public talon.models.Models.ChannelMessage getMessage() {
-      return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+    public talon.data.Data.ChannelMessage getMessage() {
+      return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
     }
     /**
-     * <code>.talon.models.ChannelMessage message = 4;</code>
+     * <code>.talon.data.ChannelMessage message = 4;</code>
      */
     @java.lang.Override
-    public talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder() {
-      return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+    public talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder() {
+      return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
     }
 
     public static final int SESSION_ID_FIELD_NUMBER = 5;
@@ -6380,31 +6515,31 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private talon.models.Models.ChannelMessage message_;
+      private talon.data.Data.ChannelMessage message_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder> messageBuilder_;
+          talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder> messageBuilder_;
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        * @return Whether the message field is set.
        */
       public boolean hasMessage() {
         return ((bitField0_ & 0x00000008) != 0);
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        * @return The message.
        */
-      public talon.models.Models.ChannelMessage getMessage() {
+      public talon.data.Data.ChannelMessage getMessage() {
         if (messageBuilder_ == null) {
-          return message_ == null ? talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+          return message_ == null ? talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
         } else {
           return messageBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        */
-      public Builder setMessage(talon.models.Models.ChannelMessage value) {
+      public Builder setMessage(talon.data.Data.ChannelMessage value) {
         if (messageBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -6418,10 +6553,10 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        */
       public Builder setMessage(
-          talon.models.Models.ChannelMessage.Builder builderForValue) {
+          talon.data.Data.ChannelMessage.Builder builderForValue) {
         if (messageBuilder_ == null) {
           message_ = builderForValue.build();
         } else {
@@ -6432,13 +6567,13 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        */
-      public Builder mergeMessage(talon.models.Models.ChannelMessage value) {
+      public Builder mergeMessage(talon.data.Data.ChannelMessage value) {
         if (messageBuilder_ == null) {
           if (((bitField0_ & 0x00000008) != 0) &&
             message_ != null &&
-            message_ != talon.models.Models.ChannelMessage.getDefaultInstance()) {
+            message_ != talon.data.Data.ChannelMessage.getDefaultInstance()) {
             getMessageBuilder().mergeFrom(value);
           } else {
             message_ = value;
@@ -6453,7 +6588,7 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        */
       public Builder clearMessage() {
         bitField0_ = (bitField0_ & ~0x00000008);
@@ -6466,33 +6601,33 @@ public final class Events extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        */
-      public talon.models.Models.ChannelMessage.Builder getMessageBuilder() {
+      public talon.data.Data.ChannelMessage.Builder getMessageBuilder() {
         bitField0_ |= 0x00000008;
         onChanged();
         return internalGetMessageFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        */
-      public talon.models.Models.ChannelMessageOrBuilder getMessageOrBuilder() {
+      public talon.data.Data.ChannelMessageOrBuilder getMessageOrBuilder() {
         if (messageBuilder_ != null) {
           return messageBuilder_.getMessageOrBuilder();
         } else {
           return message_ == null ?
-              talon.models.Models.ChannelMessage.getDefaultInstance() : message_;
+              talon.data.Data.ChannelMessage.getDefaultInstance() : message_;
         }
       }
       /**
-       * <code>.talon.models.ChannelMessage message = 4;</code>
+       * <code>.talon.data.ChannelMessage message = 4;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>
+          talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder>
           internalGetMessageFieldBuilder() {
         if (messageBuilder_ == null) {
           messageBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.models.Models.ChannelMessage, talon.models.Models.ChannelMessage.Builder, talon.models.Models.ChannelMessageOrBuilder>(
+              talon.data.Data.ChannelMessage, talon.data.Data.ChannelMessage.Builder, talon.data.Data.ChannelMessageOrBuilder>(
                   getMessage(),
                   getParentForChildren(),
                   isClean());
@@ -8200,6 +8335,1576 @@ public final class Events extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface ResourceChangedEventOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.events.ResourceChangedEvent)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    java.lang.String getNamespace();
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    com.google.protobuf.ByteString
+        getNamespaceBytes();
+
+    /**
+     * <code>string resource_kind = 2;</code>
+     * @return The resourceKind.
+     */
+    java.lang.String getResourceKind();
+    /**
+     * <code>string resource_kind = 2;</code>
+     * @return The bytes for resourceKind.
+     */
+    com.google.protobuf.ByteString
+        getResourceKindBytes();
+
+    /**
+     * <code>string name = 3;</code>
+     * @return The name.
+     */
+    java.lang.String getName();
+    /**
+     * <code>string name = 3;</code>
+     * @return The bytes for name.
+     */
+    com.google.protobuf.ByteString
+        getNameBytes();
+
+    /**
+     * <code>string uid = 4;</code>
+     * @return The uid.
+     */
+    java.lang.String getUid();
+    /**
+     * <code>string uid = 4;</code>
+     * @return The bytes for uid.
+     */
+    com.google.protobuf.ByteString
+        getUidBytes();
+
+    /**
+     * <code>string resource_version = 5;</code>
+     * @return The resourceVersion.
+     */
+    java.lang.String getResourceVersion();
+    /**
+     * <code>string resource_version = 5;</code>
+     * @return The bytes for resourceVersion.
+     */
+    com.google.protobuf.ByteString
+        getResourceVersionBytes();
+
+    /**
+     * <code>uint64 generation = 6;</code>
+     * @return The generation.
+     */
+    long getGeneration();
+
+    /**
+     * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+     * @return The enum numeric value on the wire for changeType.
+     */
+    int getChangeTypeValue();
+    /**
+     * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+     * @return The changeType.
+     */
+    talon.events.Events.ResourceChangeType getChangeType();
+
+    /**
+     * <code>repeated string changed_sections = 8;</code>
+     * @return A list containing the changedSections.
+     */
+    java.util.List<java.lang.String>
+        getChangedSectionsList();
+    /**
+     * <code>repeated string changed_sections = 8;</code>
+     * @return The count of changedSections.
+     */
+    int getChangedSectionsCount();
+    /**
+     * <code>repeated string changed_sections = 8;</code>
+     * @param index The index of the element to return.
+     * @return The changedSections at the given index.
+     */
+    java.lang.String getChangedSections(int index);
+    /**
+     * <code>repeated string changed_sections = 8;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the changedSections at the given index.
+     */
+    com.google.protobuf.ByteString
+        getChangedSectionsBytes(int index);
+
+    /**
+     * <code>int64 timestamp = 9;</code>
+     * @return The timestamp.
+     */
+    long getTimestamp();
+  }
+  /**
+   * Protobuf type {@code talon.events.ResourceChangedEvent}
+   */
+  public static final class ResourceChangedEvent extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.events.ResourceChangedEvent)
+      ResourceChangedEventOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "ResourceChangedEvent");
+    }
+    // Use ResourceChangedEvent.newBuilder() to construct.
+    private ResourceChangedEvent(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private ResourceChangedEvent() {
+      namespace_ = "";
+      resourceKind_ = "";
+      name_ = "";
+      uid_ = "";
+      resourceVersion_ = "";
+      changeType_ = 0;
+      changedSections_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.events.Events.internal_static_talon_events_ResourceChangedEvent_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.events.Events.internal_static_talon_events_ResourceChangedEvent_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.events.Events.internal_static_talon_events_ResourceChangedEvent_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.events.Events.ResourceChangedEvent.class, talon.events.Events.ResourceChangedEvent.Builder.class);
+    }
+
+    public static final int NAMESPACE_FIELD_NUMBER = 1;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object namespace_ = "";
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The namespace.
+     */
+    @java.lang.Override
+    public java.lang.String getNamespace() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        namespace_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string namespace = 1;</code>
+     * @return The bytes for namespace.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNamespaceBytes() {
+      java.lang.Object ref = namespace_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        namespace_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RESOURCE_KIND_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object resourceKind_ = "";
+    /**
+     * <code>string resource_kind = 2;</code>
+     * @return The resourceKind.
+     */
+    @java.lang.Override
+    public java.lang.String getResourceKind() {
+      java.lang.Object ref = resourceKind_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        resourceKind_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string resource_kind = 2;</code>
+     * @return The bytes for resourceKind.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getResourceKindBytes() {
+      java.lang.Object ref = resourceKind_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        resourceKind_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int NAME_FIELD_NUMBER = 3;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object name_ = "";
+    /**
+     * <code>string name = 3;</code>
+     * @return The name.
+     */
+    @java.lang.Override
+    public java.lang.String getName() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        name_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string name = 3;</code>
+     * @return The bytes for name.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getNameBytes() {
+      java.lang.Object ref = name_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        name_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int UID_FIELD_NUMBER = 4;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object uid_ = "";
+    /**
+     * <code>string uid = 4;</code>
+     * @return The uid.
+     */
+    @java.lang.Override
+    public java.lang.String getUid() {
+      java.lang.Object ref = uid_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        uid_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string uid = 4;</code>
+     * @return The bytes for uid.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getUidBytes() {
+      java.lang.Object ref = uid_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        uid_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int RESOURCE_VERSION_FIELD_NUMBER = 5;
+    @SuppressWarnings("serial")
+    private volatile java.lang.Object resourceVersion_ = "";
+    /**
+     * <code>string resource_version = 5;</code>
+     * @return The resourceVersion.
+     */
+    @java.lang.Override
+    public java.lang.String getResourceVersion() {
+      java.lang.Object ref = resourceVersion_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        resourceVersion_ = s;
+        return s;
+      }
+    }
+    /**
+     * <code>string resource_version = 5;</code>
+     * @return The bytes for resourceVersion.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString
+        getResourceVersionBytes() {
+      java.lang.Object ref = resourceVersion_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b =
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        resourceVersion_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int GENERATION_FIELD_NUMBER = 6;
+    private long generation_ = 0L;
+    /**
+     * <code>uint64 generation = 6;</code>
+     * @return The generation.
+     */
+    @java.lang.Override
+    public long getGeneration() {
+      return generation_;
+    }
+
+    public static final int CHANGE_TYPE_FIELD_NUMBER = 7;
+    private int changeType_ = 0;
+    /**
+     * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+     * @return The enum numeric value on the wire for changeType.
+     */
+    @java.lang.Override public int getChangeTypeValue() {
+      return changeType_;
+    }
+    /**
+     * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+     * @return The changeType.
+     */
+    @java.lang.Override public talon.events.Events.ResourceChangeType getChangeType() {
+      talon.events.Events.ResourceChangeType result = talon.events.Events.ResourceChangeType.forNumber(changeType_);
+      return result == null ? talon.events.Events.ResourceChangeType.UNRECOGNIZED : result;
+    }
+
+    public static final int CHANGED_SECTIONS_FIELD_NUMBER = 8;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList changedSections_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string changed_sections = 8;</code>
+     * @return A list containing the changedSections.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getChangedSectionsList() {
+      return changedSections_;
+    }
+    /**
+     * <code>repeated string changed_sections = 8;</code>
+     * @return The count of changedSections.
+     */
+    public int getChangedSectionsCount() {
+      return changedSections_.size();
+    }
+    /**
+     * <code>repeated string changed_sections = 8;</code>
+     * @param index The index of the element to return.
+     * @return The changedSections at the given index.
+     */
+    public java.lang.String getChangedSections(int index) {
+      return changedSections_.get(index);
+    }
+    /**
+     * <code>repeated string changed_sections = 8;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the changedSections at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getChangedSectionsBytes(int index) {
+      return changedSections_.getByteString(index);
+    }
+
+    public static final int TIMESTAMP_FIELD_NUMBER = 9;
+    private long timestamp_ = 0L;
+    /**
+     * <code>int64 timestamp = 9;</code>
+     * @return The timestamp.
+     */
+    @java.lang.Override
+    public long getTimestamp() {
+      return timestamp_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resourceKind_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, resourceKind_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 3, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(uid_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 4, uid_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resourceVersion_)) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 5, resourceVersion_);
+      }
+      if (generation_ != 0L) {
+        output.writeUInt64(6, generation_);
+      }
+      if (changeType_ != talon.events.Events.ResourceChangeType.RESOURCE_CHANGE_TYPE_UNSPECIFIED.getNumber()) {
+        output.writeEnum(7, changeType_);
+      }
+      for (int i = 0; i < changedSections_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 8, changedSections_.getRaw(i));
+      }
+      if (timestamp_ != 0L) {
+        output.writeInt64(9, timestamp_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(namespace_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, namespace_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resourceKind_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, resourceKind_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, name_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(uid_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(4, uid_);
+      }
+      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(resourceVersion_)) {
+        size += com.google.protobuf.GeneratedMessage.computeStringSize(5, resourceVersion_);
+      }
+      if (generation_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeUInt64Size(6, generation_);
+      }
+      if (changeType_ != talon.events.Events.ResourceChangeType.RESOURCE_CHANGE_TYPE_UNSPECIFIED.getNumber()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(7, changeType_);
+      }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < changedSections_.size(); i++) {
+          dataSize += computeStringSizeNoTag(changedSections_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getChangedSectionsList().size();
+      }
+      if (timestamp_ != 0L) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(9, timestamp_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.events.Events.ResourceChangedEvent)) {
+        return super.equals(obj);
+      }
+      talon.events.Events.ResourceChangedEvent other = (talon.events.Events.ResourceChangedEvent) obj;
+
+      if (!getNamespace()
+          .equals(other.getNamespace())) return false;
+      if (!getResourceKind()
+          .equals(other.getResourceKind())) return false;
+      if (!getName()
+          .equals(other.getName())) return false;
+      if (!getUid()
+          .equals(other.getUid())) return false;
+      if (!getResourceVersion()
+          .equals(other.getResourceVersion())) return false;
+      if (getGeneration()
+          != other.getGeneration()) return false;
+      if (changeType_ != other.changeType_) return false;
+      if (!getChangedSectionsList()
+          .equals(other.getChangedSectionsList())) return false;
+      if (getTimestamp()
+          != other.getTimestamp()) return false;
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      hash = (37 * hash) + NAMESPACE_FIELD_NUMBER;
+      hash = (53 * hash) + getNamespace().hashCode();
+      hash = (37 * hash) + RESOURCE_KIND_FIELD_NUMBER;
+      hash = (53 * hash) + getResourceKind().hashCode();
+      hash = (37 * hash) + NAME_FIELD_NUMBER;
+      hash = (53 * hash) + getName().hashCode();
+      hash = (37 * hash) + UID_FIELD_NUMBER;
+      hash = (53 * hash) + getUid().hashCode();
+      hash = (37 * hash) + RESOURCE_VERSION_FIELD_NUMBER;
+      hash = (53 * hash) + getResourceVersion().hashCode();
+      hash = (37 * hash) + GENERATION_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getGeneration());
+      hash = (37 * hash) + CHANGE_TYPE_FIELD_NUMBER;
+      hash = (53 * hash) + changeType_;
+      if (getChangedSectionsCount() > 0) {
+        hash = (37 * hash) + CHANGED_SECTIONS_FIELD_NUMBER;
+        hash = (53 * hash) + getChangedSectionsList().hashCode();
+      }
+      hash = (37 * hash) + TIMESTAMP_FIELD_NUMBER;
+      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+          getTimestamp());
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.events.Events.ResourceChangedEvent parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.events.Events.ResourceChangedEvent parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.events.Events.ResourceChangedEvent parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.events.Events.ResourceChangedEvent parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.events.Events.ResourceChangedEvent prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.events.ResourceChangedEvent}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.events.ResourceChangedEvent)
+        talon.events.Events.ResourceChangedEventOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.events.Events.internal_static_talon_events_ResourceChangedEvent_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.events.Events.internal_static_talon_events_ResourceChangedEvent_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.events.Events.ResourceChangedEvent.class, talon.events.Events.ResourceChangedEvent.Builder.class);
+      }
+
+      // Construct using talon.events.Events.ResourceChangedEvent.newBuilder()
+      private Builder() {
+
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        namespace_ = "";
+        resourceKind_ = "";
+        name_ = "";
+        uid_ = "";
+        resourceVersion_ = "";
+        generation_ = 0L;
+        changeType_ = 0;
+        changedSections_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
+        timestamp_ = 0L;
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.events.Events.internal_static_talon_events_ResourceChangedEvent_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.ResourceChangedEvent getDefaultInstanceForType() {
+        return talon.events.Events.ResourceChangedEvent.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.events.Events.ResourceChangedEvent build() {
+        talon.events.Events.ResourceChangedEvent result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.events.Events.ResourceChangedEvent buildPartial() {
+        talon.events.Events.ResourceChangedEvent result = new talon.events.Events.ResourceChangedEvent(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.events.Events.ResourceChangedEvent result) {
+        int from_bitField0_ = bitField0_;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.namespace_ = namespace_;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.resourceKind_ = resourceKind_;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.name_ = name_;
+        }
+        if (((from_bitField0_ & 0x00000008) != 0)) {
+          result.uid_ = uid_;
+        }
+        if (((from_bitField0_ & 0x00000010) != 0)) {
+          result.resourceVersion_ = resourceVersion_;
+        }
+        if (((from_bitField0_ & 0x00000020) != 0)) {
+          result.generation_ = generation_;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          result.changeType_ = changeType_;
+        }
+        if (((from_bitField0_ & 0x00000080) != 0)) {
+          changedSections_.makeImmutable();
+          result.changedSections_ = changedSections_;
+        }
+        if (((from_bitField0_ & 0x00000100) != 0)) {
+          result.timestamp_ = timestamp_;
+        }
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.events.Events.ResourceChangedEvent) {
+          return mergeFrom((talon.events.Events.ResourceChangedEvent)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.events.Events.ResourceChangedEvent other) {
+        if (other == talon.events.Events.ResourceChangedEvent.getDefaultInstance()) return this;
+        if (!other.getNamespace().isEmpty()) {
+          namespace_ = other.namespace_;
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        if (!other.getResourceKind().isEmpty()) {
+          resourceKind_ = other.resourceKind_;
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        if (!other.getName().isEmpty()) {
+          name_ = other.name_;
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        if (!other.getUid().isEmpty()) {
+          uid_ = other.uid_;
+          bitField0_ |= 0x00000008;
+          onChanged();
+        }
+        if (!other.getResourceVersion().isEmpty()) {
+          resourceVersion_ = other.resourceVersion_;
+          bitField0_ |= 0x00000010;
+          onChanged();
+        }
+        if (other.getGeneration() != 0L) {
+          setGeneration(other.getGeneration());
+        }
+        if (other.changeType_ != 0) {
+          setChangeTypeValue(other.getChangeTypeValue());
+        }
+        if (!other.changedSections_.isEmpty()) {
+          if (changedSections_.isEmpty()) {
+            changedSections_ = other.changedSections_;
+            bitField0_ |= 0x00000080;
+          } else {
+            ensureChangedSectionsIsMutable();
+            changedSections_.addAll(other.changedSections_);
+          }
+          onChanged();
+        }
+        if (other.getTimestamp() != 0L) {
+          setTimestamp(other.getTimestamp());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                namespace_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                resourceKind_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                name_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              case 34: {
+                uid_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000008;
+                break;
+              } // case 34
+              case 42: {
+                resourceVersion_ = input.readStringRequireUtf8();
+                bitField0_ |= 0x00000010;
+                break;
+              } // case 42
+              case 48: {
+                generation_ = input.readUInt64();
+                bitField0_ |= 0x00000020;
+                break;
+              } // case 48
+              case 56: {
+                changeType_ = input.readEnum();
+                bitField0_ |= 0x00000040;
+                break;
+              } // case 56
+              case 66: {
+                ensureChangedSectionsIsMutable();
+                changedSections_.add(input.readStringRequireUtf8());
+                break;
+              } // case 66
+              case 72: {
+                timestamp_ = input.readInt64();
+                bitField0_ |= 0x00000100;
+                break;
+              } // case 72
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object namespace_ = "";
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The namespace.
+       */
+      public java.lang.String getNamespace() {
+        java.lang.Object ref = namespace_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          namespace_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return The bytes for namespace.
+       */
+      public com.google.protobuf.ByteString
+          getNamespaceBytes() {
+        java.lang.Object ref = namespace_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          namespace_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespace(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearNamespace() {
+        namespace_ = getDefaultInstance().getNamespace();
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string namespace = 1;</code>
+       * @param value The bytes for namespace to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNamespaceBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        namespace_ = value;
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object resourceKind_ = "";
+      /**
+       * <code>string resource_kind = 2;</code>
+       * @return The resourceKind.
+       */
+      public java.lang.String getResourceKind() {
+        java.lang.Object ref = resourceKind_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          resourceKind_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string resource_kind = 2;</code>
+       * @return The bytes for resourceKind.
+       */
+      public com.google.protobuf.ByteString
+          getResourceKindBytes() {
+        java.lang.Object ref = resourceKind_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          resourceKind_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string resource_kind = 2;</code>
+       * @param value The resourceKind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResourceKind(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        resourceKind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resource_kind = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearResourceKind() {
+        resourceKind_ = getDefaultInstance().getResourceKind();
+        bitField0_ = (bitField0_ & ~0x00000002);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resource_kind = 2;</code>
+       * @param value The bytes for resourceKind to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResourceKindBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        resourceKind_ = value;
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object name_ = "";
+      /**
+       * <code>string name = 3;</code>
+       * @return The name.
+       */
+      public java.lang.String getName() {
+        java.lang.Object ref = name_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          name_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @return The bytes for name.
+       */
+      public com.google.protobuf.ByteString
+          getNameBytes() {
+        java.lang.Object ref = name_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          name_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @param value The name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setName(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        name_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearName() {
+        name_ = getDefaultInstance().getName();
+        bitField0_ = (bitField0_ & ~0x00000004);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string name = 3;</code>
+       * @param value The bytes for name to set.
+       * @return This builder for chaining.
+       */
+      public Builder setNameBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        name_ = value;
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object uid_ = "";
+      /**
+       * <code>string uid = 4;</code>
+       * @return The uid.
+       */
+      public java.lang.String getUid() {
+        java.lang.Object ref = uid_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          uid_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string uid = 4;</code>
+       * @return The bytes for uid.
+       */
+      public com.google.protobuf.ByteString
+          getUidBytes() {
+        java.lang.Object ref = uid_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          uid_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string uid = 4;</code>
+       * @param value The uid to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUid(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        uid_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string uid = 4;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearUid() {
+        uid_ = getDefaultInstance().getUid();
+        bitField0_ = (bitField0_ & ~0x00000008);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string uid = 4;</code>
+       * @param value The bytes for uid to set.
+       * @return This builder for chaining.
+       */
+      public Builder setUidBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        uid_ = value;
+        bitField0_ |= 0x00000008;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object resourceVersion_ = "";
+      /**
+       * <code>string resource_version = 5;</code>
+       * @return The resourceVersion.
+       */
+      public java.lang.String getResourceVersion() {
+        java.lang.Object ref = resourceVersion_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          resourceVersion_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string resource_version = 5;</code>
+       * @return The bytes for resourceVersion.
+       */
+      public com.google.protobuf.ByteString
+          getResourceVersionBytes() {
+        java.lang.Object ref = resourceVersion_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b =
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          resourceVersion_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string resource_version = 5;</code>
+       * @param value The resourceVersion to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResourceVersion(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        resourceVersion_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resource_version = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearResourceVersion() {
+        resourceVersion_ = getDefaultInstance().getResourceVersion();
+        bitField0_ = (bitField0_ & ~0x00000010);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>string resource_version = 5;</code>
+       * @param value The bytes for resourceVersion to set.
+       * @return This builder for chaining.
+       */
+      public Builder setResourceVersionBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        resourceVersion_ = value;
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return this;
+      }
+
+      private long generation_ ;
+      /**
+       * <code>uint64 generation = 6;</code>
+       * @return The generation.
+       */
+      @java.lang.Override
+      public long getGeneration() {
+        return generation_;
+      }
+      /**
+       * <code>uint64 generation = 6;</code>
+       * @param value The generation to set.
+       * @return This builder for chaining.
+       */
+      public Builder setGeneration(long value) {
+
+        generation_ = value;
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>uint64 generation = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearGeneration() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        generation_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int changeType_ = 0;
+      /**
+       * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+       * @return The enum numeric value on the wire for changeType.
+       */
+      @java.lang.Override public int getChangeTypeValue() {
+        return changeType_;
+      }
+      /**
+       * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+       * @param value The enum numeric value on the wire for changeType to set.
+       * @throws IllegalArgumentException if UNRECOGNIZED is provided.
+       * @return This builder for chaining.
+       */
+      public Builder setChangeTypeValue(int value) {
+        changeType_ = value;
+        bitField0_ |= 0x00000040;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+       * @return The changeType.
+       */
+      @java.lang.Override
+      public talon.events.Events.ResourceChangeType getChangeType() {
+        talon.events.Events.ResourceChangeType result = talon.events.Events.ResourceChangeType.forNumber(changeType_);
+        return result == null ? talon.events.Events.ResourceChangeType.UNRECOGNIZED : result;
+      }
+      /**
+       * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+       * @param value The changeType to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChangeType(talon.events.Events.ResourceChangeType value) {
+        if (value == null) { throw new NullPointerException(); }
+        bitField0_ |= 0x00000040;
+        changeType_ = value.getNumber();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.events.ResourceChangeType change_type = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearChangeType() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        changeType_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList changedSections_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureChangedSectionsIsMutable() {
+        if (!changedSections_.isModifiable()) {
+          changedSections_ = new com.google.protobuf.LazyStringArrayList(changedSections_);
+        }
+        bitField0_ |= 0x00000080;
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @return A list containing the changedSections.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getChangedSectionsList() {
+        changedSections_.makeImmutable();
+        return changedSections_;
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @return The count of changedSections.
+       */
+      public int getChangedSectionsCount() {
+        return changedSections_.size();
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @param index The index of the element to return.
+       * @return The changedSections at the given index.
+       */
+      public java.lang.String getChangedSections(int index) {
+        return changedSections_.get(index);
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the changedSections at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getChangedSectionsBytes(int index) {
+        return changedSections_.getByteString(index);
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @param index The index to set the value at.
+       * @param value The changedSections to set.
+       * @return This builder for chaining.
+       */
+      public Builder setChangedSections(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureChangedSectionsIsMutable();
+        changedSections_.set(index, value);
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @param value The changedSections to add.
+       * @return This builder for chaining.
+       */
+      public Builder addChangedSections(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureChangedSectionsIsMutable();
+        changedSections_.add(value);
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @param values The changedSections to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllChangedSections(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureChangedSectionsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, changedSections_);
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearChangedSections() {
+        changedSections_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000080);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string changed_sections = 8;</code>
+       * @param value The bytes of the changedSections to add.
+       * @return This builder for chaining.
+       */
+      public Builder addChangedSectionsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureChangedSectionsIsMutable();
+        changedSections_.add(value);
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return this;
+      }
+
+      private long timestamp_ ;
+      /**
+       * <code>int64 timestamp = 9;</code>
+       * @return The timestamp.
+       */
+      @java.lang.Override
+      public long getTimestamp() {
+        return timestamp_;
+      }
+      /**
+       * <code>int64 timestamp = 9;</code>
+       * @param value The timestamp to set.
+       * @return This builder for chaining.
+       */
+      public Builder setTimestamp(long value) {
+
+        timestamp_ = value;
+        bitField0_ |= 0x00000100;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 timestamp = 9;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearTimestamp() {
+        bitField0_ = (bitField0_ & ~0x00000100);
+        timestamp_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.events.ResourceChangedEvent)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.events.ResourceChangedEvent)
+    private static final talon.events.Events.ResourceChangedEvent DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.events.Events.ResourceChangedEvent();
+    }
+
+    public static talon.events.Events.ResourceChangedEvent getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<ResourceChangedEvent>
+        PARSER = new com.google.protobuf.AbstractParser<ResourceChangedEvent>() {
+      @java.lang.Override
+      public ResourceChangedEvent parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<ResourceChangedEvent> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<ResourceChangedEvent> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.events.Events.ResourceChangedEvent getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_events_LifecycleEvent_descriptor;
   private static final
@@ -8230,6 +9935,11 @@ public final class Events extends com.google.protobuf.GeneratedFile {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_events_WorkflowDispatchEvent_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_events_ResourceChangedEvent_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_events_ResourceChangedEvent_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -8239,56 +9949,66 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\022proto/events.proto\022\014talon.events\032\022prot" +
-      "o/models.proto\"\200\001\n\016LifecycleEvent\022\025\n\rres" +
-      "ource_type\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\n\n\002ns\030\003 \001" +
-      "(\t\022*\n\006action\030\004 \001(\0162\032.talon.events.System" +
-      "Action\022\021\n\ttimestamp\030\005 \001(\003\"\257\001\n\023SessionMes" +
-      "sageEvent\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nmessage" +
-      "_id\030\002 \001(\t\0221\n\tdirection\030\003 \001(\0162\036.talon.eve" +
-      "nts.MessageDirection\022\021\n\ttimestamp\030\004 \001(\003\022" +
-      "\r\n\005agent\030\005 \001(\t\022\017\n\007message\030\006 \001(\t\022\n\n\002ns\030\007 " +
-      "\001(\t\"g\n\023SessionControlEvent\022\022\n\nsession_id" +
-      "\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006act" +
-      "ion\030\004 \001(\t\022\021\n\ttimestamp\030\005 \001(\003\"\330\001\n\027Session" +
-      "MessagePartEvent\022\022\n\nsession_id\030\001 \001(\t\0227\n\004" +
-      "kind\030\002 \001(\0162).talon.events.SessionMessage" +
-      "PartEventKind\022.\n\004part\030\003 \001(\0132 .talon.mode" +
-      "ls.SessionMessagePart\022\021\n\ttimestamp\030\004 \001(\003" +
-      "\022\r\n\005agent\030\005 \001(\t\022\n\n\002ns\030\006 \001(\t\022\022\n\nmessage_i" +
-      "d\030\007 \001(\t\"\343\001\n\014ChannelEvent\022\n\n\002ns\030\001 \001(\t\022\017\n\007" +
-      "channel\030\002 \001(\t\022,\n\004kind\030\003 \001(\0162\036.talon.even" +
-      "ts.ChannelEventKind\022-\n\007message\030\004 \001(\0132\034.t" +
-      "alon.models.ChannelMessage\022\022\n\nsession_id" +
-      "\030\005 \001(\t\022\r\n\005agent\030\006 \001(\t\022\024\n\014subscription\030\007 " +
-      "\001(\t\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003\"\223\001" +
-      "\n\025WorkflowDispatchEvent\022\n\n\002ns\030\001 \001(\t\022\020\n\010w" +
-      "orkflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\016\n\006reason\030" +
-      "\004 \001(\t\022\017\n\007step_id\030\005 \001(\t\022\030\n\020child_session_" +
-      "id\030\006 \001(\t\022\021\n\ttimestamp\030\007 \001(\003*\260\001\n\014SystemAc" +
-      "tion\022\035\n\031SYSTEM_ACTION_UNSPECIFIED\020\000\022\030\n\024S" +
-      "YSTEM_ACTION_CREATE\020\001\022\030\n\024SYSTEM_ACTION_U" +
-      "PDATE\020\002\022\030\n\024SYSTEM_ACTION_DELETE\020\003\022\031\n\025SYS" +
-      "TEM_ACTION_SUSPEND\020\004\022\030\n\024SYSTEM_ACTION_RE" +
-      "SUME\020\005*t\n\020MessageDirection\022!\n\035MESSAGE_DI" +
-      "RECTION_UNSPECIFIED\020\000\022\035\n\031MESSAGE_DIRECTI" +
-      "ON_INBOUND\020\001\022\036\n\032MESSAGE_DIRECTION_OUTBOU" +
-      "ND\020\002*\316\001\n\033SessionMessagePartEventKind\022/\n+" +
-      "SESSION_MESSAGE_PART_EVENT_KIND_UNSPECIF" +
-      "IED\020\000\022)\n%SESSION_MESSAGE_PART_EVENT_KIND" +
-      "_DELTA\020\001\022(\n$SESSION_MESSAGE_PART_EVENT_K" +
-      "IND_DONE\020\002\022)\n%SESSION_MESSAGE_PART_EVENT" +
-      "_KIND_ERROR\020\003*\313\001\n\020ChannelEventKind\022\"\n\036CH" +
-      "ANNEL_EVENT_KIND_UNSPECIFIED\020\000\022&\n\"CHANNE" +
-      "L_EVENT_KIND_MESSAGE_CREATED\020\001\022%\n!CHANNE" +
-      "L_EVENT_KIND_SESSION_ROUTED\020\002\022&\n\"CHANNEL" +
-      "_EVENT_KIND_PUBLISH_SKIPPED\020\003\022\034\n\030CHANNEL" +
-      "_EVENT_KIND_ERROR\020\004b\006proto3"
+      "\n\022proto/events.proto\022\014talon.events\032\025prot" +
+      "o/data/data.proto\"\200\001\n\016LifecycleEvent\022\025\n\r" +
+      "resource_type\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\n\n\002ns\030" +
+      "\003 \001(\t\022*\n\006action\030\004 \001(\0162\032.talon.events.Sys" +
+      "temAction\022\021\n\ttimestamp\030\005 \001(\003\"\257\001\n\023Session" +
+      "MessageEvent\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nmess" +
+      "age_id\030\002 \001(\t\0221\n\tdirection\030\003 \001(\0162\036.talon." +
+      "events.MessageDirection\022\021\n\ttimestamp\030\004 \001" +
+      "(\003\022\r\n\005agent\030\005 \001(\t\022\017\n\007message\030\006 \001(\t\022\n\n\002ns" +
+      "\030\007 \001(\t\"g\n\023SessionControlEvent\022\022\n\nsession" +
+      "_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\016\n\006" +
+      "action\030\004 \001(\t\022\021\n\ttimestamp\030\005 \001(\003\"\326\001\n\027Sess" +
+      "ionMessagePartEvent\022\022\n\nsession_id\030\001 \001(\t\022" +
+      "7\n\004kind\030\002 \001(\0162).talon.events.SessionMess" +
+      "agePartEventKind\022,\n\004part\030\003 \001(\0132\036.talon.d" +
+      "ata.SessionMessagePart\022\021\n\ttimestamp\030\004 \001(" +
+      "\003\022\r\n\005agent\030\005 \001(\t\022\n\n\002ns\030\006 \001(\t\022\022\n\nmessage_" +
+      "id\030\007 \001(\t\"\341\001\n\014ChannelEvent\022\n\n\002ns\030\001 \001(\t\022\017\n" +
+      "\007channel\030\002 \001(\t\022,\n\004kind\030\003 \001(\0162\036.talon.eve" +
+      "nts.ChannelEventKind\022+\n\007message\030\004 \001(\0132\032." +
+      "talon.data.ChannelMessage\022\022\n\nsession_id\030" +
+      "\005 \001(\t\022\r\n\005agent\030\006 \001(\t\022\024\n\014subscription\030\007 \001" +
+      "(\t\022\r\n\005error\030\010 \001(\t\022\021\n\ttimestamp\030\t \001(\003\"\223\001\n" +
+      "\025WorkflowDispatchEvent\022\n\n\002ns\030\001 \001(\t\022\020\n\010wo" +
+      "rkflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\016\n\006reason\030\004" +
+      " \001(\t\022\017\n\007step_id\030\005 \001(\t\022\030\n\020child_session_i" +
+      "d\030\006 \001(\t\022\021\n\ttimestamp\030\007 \001(\003\"\355\001\n\024ResourceC" +
+      "hangedEvent\022\021\n\tnamespace\030\001 \001(\t\022\025\n\rresour" +
+      "ce_kind\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022\013\n\003uid\030\004 \001(\t" +
+      "\022\030\n\020resource_version\030\005 \001(\t\022\022\n\ngeneration" +
+      "\030\006 \001(\004\0225\n\013change_type\030\007 \001(\0162 .talon.even" +
+      "ts.ResourceChangeType\022\030\n\020changed_section" +
+      "s\030\010 \003(\t\022\021\n\ttimestamp\030\t \001(\003*\260\001\n\014SystemAct" +
+      "ion\022\035\n\031SYSTEM_ACTION_UNSPECIFIED\020\000\022\030\n\024SY" +
+      "STEM_ACTION_CREATE\020\001\022\030\n\024SYSTEM_ACTION_UP" +
+      "DATE\020\002\022\030\n\024SYSTEM_ACTION_DELETE\020\003\022\031\n\025SYST" +
+      "EM_ACTION_SUSPEND\020\004\022\030\n\024SYSTEM_ACTION_RES" +
+      "UME\020\005*t\n\020MessageDirection\022!\n\035MESSAGE_DIR" +
+      "ECTION_UNSPECIFIED\020\000\022\035\n\031MESSAGE_DIRECTIO" +
+      "N_INBOUND\020\001\022\036\n\032MESSAGE_DIRECTION_OUTBOUN" +
+      "D\020\002*\316\001\n\033SessionMessagePartEventKind\022/\n+S" +
+      "ESSION_MESSAGE_PART_EVENT_KIND_UNSPECIFI" +
+      "ED\020\000\022)\n%SESSION_MESSAGE_PART_EVENT_KIND_" +
+      "DELTA\020\001\022(\n$SESSION_MESSAGE_PART_EVENT_KI" +
+      "ND_DONE\020\002\022)\n%SESSION_MESSAGE_PART_EVENT_" +
+      "KIND_ERROR\020\003*\313\001\n\020ChannelEventKind\022\"\n\036CHA" +
+      "NNEL_EVENT_KIND_UNSPECIFIED\020\000\022&\n\"CHANNEL" +
+      "_EVENT_KIND_MESSAGE_CREATED\020\001\022%\n!CHANNEL" +
+      "_EVENT_KIND_SESSION_ROUTED\020\002\022&\n\"CHANNEL_" +
+      "EVENT_KIND_PUBLISH_SKIPPED\020\003\022\034\n\030CHANNEL_" +
+      "EVENT_KIND_ERROR\020\004*\240\001\n\022ResourceChangeTyp" +
+      "e\022$\n RESOURCE_CHANGE_TYPE_UNSPECIFIED\020\000\022" +
+      " \n\034RESOURCE_CHANGE_TYPE_CREATED\020\001\022 \n\034RES" +
+      "OURCE_CHANGE_TYPE_UPDATED\020\002\022 \n\034RESOURCE_" +
+      "CHANGE_TYPE_DELETED\020\003b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
-          talon.models.Models.getDescriptor(),
+          talon.data.Data.getDescriptor(),
         });
     internal_static_talon_events_LifecycleEvent_descriptor =
       getDescriptor().getMessageType(0);
@@ -8326,8 +10046,14 @@ public final class Events extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_events_WorkflowDispatchEvent_descriptor,
         new java.lang.String[] { "Ns", "Workflow", "RunId", "Reason", "StepId", "ChildSessionId", "Timestamp", });
+    internal_static_talon_events_ResourceChangedEvent_descriptor =
+      getDescriptor().getMessageType(6);
+    internal_static_talon_events_ResourceChangedEvent_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_events_ResourceChangedEvent_descriptor,
+        new java.lang.String[] { "Namespace", "ResourceKind", "Name", "Uid", "ResourceVersion", "Generation", "ChangeType", "ChangedSections", "Timestamp", });
     descriptor.resolveAllFeaturesImmutable();
-    talon.models.Models.getDescriptor();
+    talon.data.Data.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

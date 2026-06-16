@@ -3,8 +3,8 @@
 
 use anyhow::Result;
 use std::sync::Arc;
-use talon::config::{Config, ConfigExt};
 use talon::control::build_control_plane;
+use talon::control::config::{Config, ConfigExt};
 use talon::control::ControlPlane;
 use talon::gateway::auth::AuthConfig;
 use talon::gateway::server::Gateway;
@@ -200,9 +200,9 @@ where
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    talon::security::install_jwt_crypto_provider();
+    talon::control::security::install_jwt_crypto_provider();
     tracing_subscriber::fmt::init();
-    talon::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
+    talon::control::profiling::init_heap_profiler_from_env(|name| std::env::var(name).ok())?;
     tracing::info!("Starting Talon Gateway Server...");
     run_server_main_with(
         || Ok(Arc::new(Config::load_default()?)),
@@ -225,7 +225,7 @@ mod tests {
     };
     use futures::StreamExt;
     use std::sync::Arc;
-    use talon::config::Config;
+    use talon::control::config::Config;
     use talon::control::{
         keys, scheduler::NoopSchedulerBackend, ControlPlane, KeyValueStore, MessagePublisher,
     };

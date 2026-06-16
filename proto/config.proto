@@ -9,6 +9,12 @@ message TalonConfig {
   string default_provider = 4;
   string workspace_dir = 5;
   ControlPlaneConfig control_plane = 6;
+  map<string, ControllerConfig> controllers = 7;
+}
+
+message ControllerConfig {
+  bool enabled = 1;
+  uint32 workers = 2;
 }
 
 message LlmProviderConfig {

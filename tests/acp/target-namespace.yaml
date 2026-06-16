@@ -1,0 +1,7 @@
+apiVersion: talon.impalasys.com/v1
+kind: Namespace
+metadata:
+  name: __TARGET_NS__
+  labels:
+    vibiz.io/company-builder: enabled
+    e2e-run: "__RUN_ID__"

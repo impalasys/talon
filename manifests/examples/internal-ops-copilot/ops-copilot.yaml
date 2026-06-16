@@ -5,6 +5,16 @@ metadata:
   namespace: internal-ops
   labels:
     tutorial: internal-ops
-definition:
-  templated:
-    templateName: ops-copilot-template
+spec:
+  systemPrompt: |
+    You are an internal Talon operations copilot. Prefer inspection and
+    explanation, stay within available tools, and be explicit about uncertainty.
+  modelPolicy:
+    profiles:
+      - name: default
+        model:
+          provider: openai
+          name: gpt-5.4-nano
+          temperature: 0.0
+  mcpServerRefs:
+    - talon-ops

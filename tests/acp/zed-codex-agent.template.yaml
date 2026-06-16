@@ -1,0 +1,28 @@
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-agent
+  namespace: __SOURCE_NS__
+spec:
+  kind: Agent
+  metadata:
+    name: coding
+  spec:
+    runtime:
+      kind: acp
+      acp:
+        command: codex-acp
+        args: []
+        cwd: /workspace
+        sandboxPolicyRef: coding
+        persistSession: false
+        env:
+          OPENAI_API_KEY: __OPENAI_API_KEY__
+          CODEX_API_KEY: __OPENAI_API_KEY__
+        permissionPolicy:
+          default: allow
+          filesystemWrite: allow
+          filesystemRead: allow
+          terminal: allow
+    systemPrompt: |
+      You are the upstream Zed Codex ACP coding agent for {{ namespace.name }}.

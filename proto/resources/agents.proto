@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "google/protobuf/struct.proto";
+import "proto/resources/common.proto";
+
+message Agent {
+  ResourceMeta metadata = 1;
+  AgentSpec spec = 2;
+  AgentStatus status = 3;
+}
+
+message AgentSpec {
+  repeated Feature features = 1;
+  ModelPolicy model_policy = 2;
+  string system_prompt = 3;
+  repeated string mcp_server_refs = 4;
+  map<string, google.protobuf.ListValue> capabilities = 6;
+  A2A a2a = 7;
+  AgentRuntime runtime = 8;
+}
+
+message AgentStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  optional string last_session_id = 4;
+}
+
+message AgentRuntime {
+  string kind = 1;
+  AcpRuntime acp = 2;
+}
+
+message AcpRuntime {
+  string harness_ref = 1;
+  string command = 2;
+  repeated string args = 3;
+  string cwd = 4;
+  string sandbox_policy_ref = 5;
+  bool persist_session = 6;
+  map<string, string> env = 7;
+  map<string, string> permission_policy = 8;
+}
+
+message Feature {
+  string name = 1;
+  string type = 2;
+  bool required = 3;
+}
+
+message Model {
+  string provider = 1;
+  string name = 2;
+  float temperature = 3;
+  ThinkingConfig thinking = 4;
+}
+
+message ThinkingConfig {
+  bool enabled = 1;
+  optional uint32 budget_tokens = 2;
+  string effort = 3;
+}
+
+message ModelProfile {
+  string name = 1;
+  Model model = 2;
+}
+
+message ModelPolicy {
+  repeated ModelProfile profiles = 1;
+}
+
+message A2A {
+  repeated Connection connections = 1;
+  AgentCard agent_card = 2;
+}
+
+message Connection {
+  string name = 1;
+  string description = 2;
+  ConnectionRef target = 3;
+  repeated string input_modes = 4;
+  repeated string output_modes = 5;
+  uint32 timeout_seconds = 6;
+  uint32 max_depth = 7;
+  ConnectionAuth auth = 8;
+}
+
+message ConnectionRef {
+  oneof target {
+    InternalConnectionRef internal = 1;
+    ExternalConnectionRef external = 2;
+  }
+}
+
+message InternalConnectionRef {
+  string namespace = 1;
+  string agent = 2;
+}
+
+message ExternalConnectionRef {
+  string agent_card_url = 1;
+}
+
+message ConnectionAuth {
+  string kind = 1;
+  string secret_ref = 2;
+}
+
+message AgentCard {
+  string name = 1;
+  string description = 2;
+  string version = 3;
+  AgentCardCapabilities capabilities = 4;
+  repeated string default_input_modes = 5;
+  repeated string default_output_modes = 6;
+  repeated AgentCardSkill skills = 7;
+}
+
+message AgentCardCapabilities {
+  bool streaming = 1;
+  bool push_notifications = 2;
+  bool extended_agent_card = 3;
+}
+
+message AgentCardSkill {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  repeated string tags = 4;
+  repeated string examples = 5;
+  repeated string input_modes = 6;
+  repeated string output_modes = 7;
+}

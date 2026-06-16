@@ -1,11 +1,14 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{models, proto, GrpcGatewayHandler};
+use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
+use crate::control::resource_model::{
+    ChannelResourceExt, ChannelSubscriptionResourceExt, TypedResource,
+};
+use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::{events, keys, ControlPlane, KeyValueStore};
 use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
-use crate::scheduling;
 use futures::{stream, StreamExt, TryStreamExt};
 use prost::Message;
 use std::collections::{HashMap, HashSet};
@@ -152,10 +155,9 @@ fn contains_mention(content: &str, target: &str) -> bool {
     false
 }
 
-fn context_limit(subscription: &models::ChannelSubscription) -> usize {
+fn context_limit(subscription: &resources_proto::ChannelSubscription) -> usize {
     subscription
-        .context_policy
-        .as_ref()
+        .context_policy()
         .map(|policy| policy.max_messages as usize)
         .filter(|limit| *limit > 0)
         .unwrap_or(DEFAULT_CHANNEL_CONTEXT_MESSAGES)
@@ -186,11 +188,11 @@ async fn update_channel_timestamp(
         let Some(current_bytes) = kv.get(&key).await? else {
             return Ok(());
         };
-        let mut channel = models::Channel::decode(current_bytes.as_slice())?;
-        if channel.updated_at >= now {
+        let mut channel = resources_proto::Channel::decode(current_bytes.as_slice())?;
+        if channel.updated_at() >= now {
             return Ok(());
         }
-        channel.updated_at = now;
+        channel.set_updated_at(now);
         let updated = channel.encode_to_vec();
         if kv
             .compare_and_swap(&key, Some(current_bytes.as_slice()), &updated)
@@ -207,8 +209,8 @@ async fn update_channel_timestamp(
 
 async fn persist_channel_message(
     cp: &ControlPlane,
-    mut message: models::ChannelMessage,
-) -> anyhow::Result<models::ChannelMessage> {
+    mut message: data_proto::ChannelMessage,
+) -> anyhow::Result<data_proto::ChannelMessage> {
     if message.id.is_empty() {
         message.id = uuid::Uuid::now_v7().to_string();
     }
@@ -266,13 +268,13 @@ pub async fn publish_channel_message_from_session(
     agent: &str,
     session_id: &str,
     content: &str,
-) -> anyhow::Result<models::ChannelMessage> {
+) -> anyhow::Result<data_proto::ChannelMessage> {
     if content.trim().is_empty() {
         anyhow::bail!("channel.publish content is required");
     }
     let session = cp
         .kv
-        .get_msg::<models::Session>(&keys::session(ns, agent, session_id))
+        .get_msg::<data_proto::Session>(&keys::session(ns, agent, session_id))
         .await?
         .ok_or_else(|| anyhow::anyhow!("session not found"))?;
     let channel = session
@@ -283,10 +285,10 @@ pub async fn publish_channel_message_from_session(
         .ok_or_else(|| anyhow::anyhow!("session is not linked to a channel"))?;
     let channel_obj = cp
         .kv
-        .get_msg::<models::Channel>(&keys::channel(ns, &channel))
+        .get_msg::<resources_proto::Channel>(&keys::channel(ns, &channel))
         .await?
         .ok_or_else(|| anyhow::anyhow!("channel not found"))?;
-    if channel_obj.status == "closed" {
+    if channel_obj.phase() == "closed" {
         anyhow::bail!("channel is closed");
     }
     if session
@@ -310,7 +312,7 @@ pub async fn publish_channel_message_from_session(
     }
     persist_channel_message(
         cp,
-        models::ChannelMessage {
+        data_proto::ChannelMessage {
             id: String::new(),
             ns: ns.to_string(),
             channel,
@@ -335,7 +337,7 @@ pub async fn skip_channel_reply_from_session(
 ) -> anyhow::Result<()> {
     let session = cp
         .kv
-        .get_msg::<models::Session>(&keys::session(ns, agent, session_id))
+        .get_msg::<data_proto::Session>(&keys::session(ns, agent, session_id))
         .await?
         .ok_or_else(|| anyhow::anyhow!("session not found"))?;
     let channel = session
@@ -383,19 +385,19 @@ impl GrpcGatewayHandler {
         let mut channel = req
             .channel
             .ok_or_else(|| tonic::Status::invalid_argument("channel is required"))?;
-        channel.ns = req.ns.clone();
-        validate_resource_name("channel", &channel.name)?;
-        if channel.status.is_empty() {
-            channel.status = "open".to_string();
+        channel.set_namespace(req.ns.clone());
+        validate_resource_name("channel", &channel.name())?;
+        if channel.phase().is_empty() {
+            channel.set_phase("open");
         }
         let now = chrono::Utc::now().timestamp_micros();
-        channel.created_at = now;
-        channel.updated_at = now;
-        let key = keys::channel(&req.ns, &channel.name);
+        channel.set_created_at(now);
+        channel.set_updated_at(now);
+        let key = keys::channel(&req.ns, &channel.name());
         if self
             .gateway
             .kv
-            .get_msg::<models::Channel>(&key)
+            .get_msg::<resources_proto::Channel>(&key)
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to check channel: {e}")))?
             .is_some()
@@ -422,7 +424,7 @@ impl GrpcGatewayHandler {
         let channel = self
             .gateway
             .kv
-            .get_msg::<models::Channel>(&keys::channel(&req.ns, &req.name))
+            .get_msg::<resources_proto::Channel>(&keys::channel(&req.ns, &req.name))
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load channel: {e}")))?
             .ok_or_else(|| tonic::Status::not_found("channel not found"))?;
@@ -442,19 +444,19 @@ impl GrpcGatewayHandler {
         let existing = self
             .gateway
             .kv
-            .get_msg::<models::Channel>(&key)
+            .get_msg::<resources_proto::Channel>(&key)
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load channel: {e}")))?
             .ok_or_else(|| tonic::Status::not_found("channel not found"))?;
         let mut channel = req
             .channel
             .ok_or_else(|| tonic::Status::invalid_argument("channel is required"))?;
-        channel.ns = req.ns.clone();
-        channel.name = req.name.clone();
-        channel.created_at = existing.created_at;
-        channel.updated_at = chrono::Utc::now().timestamp_micros();
-        if channel.status.is_empty() {
-            channel.status = "open".to_string();
+        channel.set_namespace(req.ns.clone());
+        channel.set_name(req.name.clone());
+        channel.set_created_at(existing.created_at());
+        channel.set_updated_at(chrono::Utc::now().timestamp_micros());
+        if channel.phase().is_empty() {
+            channel.set_phase("open");
         }
         self.gateway
             .kv
@@ -482,7 +484,7 @@ impl GrpcGatewayHandler {
         let mut channels = Vec::new();
         for (_, value) in entries {
             channels.push(
-                models::Channel::decode(value.as_slice()).map_err(|e| {
+                resources_proto::Channel::decode(value.as_slice()).map_err(|e| {
                     tonic::Status::internal(format!("failed to decode channel: {e}"))
                 })?,
             );
@@ -534,11 +536,11 @@ impl GrpcGatewayHandler {
         let channel = self
             .gateway
             .kv
-            .get_msg::<models::Channel>(&keys::channel(&req.ns, &req.channel))
+            .get_msg::<resources_proto::Channel>(&keys::channel(&req.ns, &req.channel))
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to load channel: {e}")))?
             .ok_or_else(|| tonic::Status::not_found("channel not found"))?;
-        if channel.status == "closed" {
+        if channel.phase() == "closed" {
             return Err(tonic::Status::failed_precondition("channel is closed"));
         }
         let message = persist_channel_message(
@@ -548,7 +550,7 @@ impl GrpcGatewayHandler {
                 scheduler: self.gateway.scheduler.clone(),
                 objects: self.gateway.objects.clone(),
             },
-            models::ChannelMessage {
+            data_proto::ChannelMessage {
                 id: uuid::Uuid::now_v7().to_string(),
                 ns: req.ns.clone(),
                 channel: req.channel.clone(),
@@ -603,7 +605,7 @@ impl GrpcGatewayHandler {
         let message = self
             .gateway
             .kv
-            .get_msg::<models::ChannelMessage>(&keys::channel_message(
+            .get_msg::<data_proto::ChannelMessage>(&keys::channel_message(
                 &req.ns,
                 &req.channel,
                 &req.message_id,
@@ -662,7 +664,7 @@ impl GrpcGatewayHandler {
             scan_before_name = entries.last().map(|(key, _)| key.name.clone());
             for (_, value) in entries.into_iter().take(remaining) {
                 messages.push(
-                    models::ChannelMessage::decode(value.as_slice()).map_err(|e| {
+                    data_proto::ChannelMessage::decode(value.as_slice()).map_err(|e| {
                         tonic::Status::internal(format!("failed to decode channel message: {e}"))
                     })?,
                 );
@@ -698,14 +700,14 @@ impl GrpcGatewayHandler {
         let mut subscription = req
             .subscription
             .ok_or_else(|| tonic::Status::invalid_argument("subscription is required"))?;
-        subscription.ns = req.ns.clone();
-        subscription.channel = req.channel.clone();
+        subscription.set_namespace(req.ns.clone());
+        subscription.spec_mut().channel = req.channel.clone();
         validate_subscription(self, &mut subscription).await?;
-        let key = keys::channel_subscription(&req.ns, &req.channel, &subscription.name);
+        let key = keys::channel_subscription(&req.ns, &req.channel, subscription.name());
         if self
             .gateway
             .kv
-            .get_msg::<models::ChannelSubscription>(&key)
+            .get_msg::<resources_proto::ChannelSubscription>(&key)
             .await
             .map_err(|e| tonic::Status::internal(format!("failed to check subscription: {e}")))?
             .is_some()
@@ -735,7 +737,7 @@ impl GrpcGatewayHandler {
         let subscription = self
             .gateway
             .kv
-            .get_msg::<models::ChannelSubscription>(&keys::channel_subscription(
+            .get_msg::<resources_proto::ChannelSubscription>(&keys::channel_subscription(
                 &req.ns,
                 &req.channel,
                 &req.name,
@@ -759,9 +761,9 @@ impl GrpcGatewayHandler {
         let mut subscription = req
             .subscription
             .ok_or_else(|| tonic::Status::invalid_argument("subscription is required"))?;
-        subscription.ns = req.ns.clone();
-        subscription.channel = req.channel.clone();
-        subscription.name = req.name.clone();
+        subscription.set_namespace(req.ns.clone());
+        subscription.spec_mut().channel = req.channel.clone();
+        subscription.set_name(req.name.clone());
         validate_subscription(self, &mut subscription).await?;
         self.gateway
             .kv
@@ -793,7 +795,7 @@ impl GrpcGatewayHandler {
         let mut subscriptions = Vec::new();
         for (_, value) in entries {
             subscriptions.push(
-                models::ChannelSubscription::decode(value.as_slice()).map_err(|e| {
+                resources_proto::ChannelSubscription::decode(value.as_slice()).map_err(|e| {
                     tonic::Status::internal(format!("failed to decode subscription: {e}"))
                 })?,
             );
@@ -860,29 +862,34 @@ impl GrpcGatewayHandler {
 
 async fn validate_subscription(
     handler: &GrpcGatewayHandler,
-    subscription: &mut models::ChannelSubscription,
+    subscription: &mut resources_proto::ChannelSubscription,
 ) -> Result<(), tonic::Status> {
-    validate_resource_name("channel subscription", &subscription.name)?;
-    validate_resource_name("channel", &subscription.channel)?;
-    validate_resource_name("agent", &subscription.agent)?;
-    subscription.trigger = normalize_trigger(&subscription.trigger)?;
-    subscription.reply_mode = normalize_reply_mode(&subscription.reply_mode)?;
+    validate_resource_name("channel subscription", subscription.name())?;
+    validate_resource_name("channel", subscription.channel())?;
+    validate_resource_name("agent", subscription.agent())?;
+    subscription.spec_mut().trigger = normalize_trigger(subscription.trigger())?;
+    subscription.spec_mut().reply_mode = normalize_reply_mode(subscription.reply_mode())?;
     handler
         .gateway
         .kv
-        .get_msg::<models::Channel>(&keys::channel(&subscription.ns, &subscription.channel))
+        .get_msg::<resources_proto::Channel>(&keys::channel(
+            subscription.namespace(),
+            subscription.channel(),
+        ))
         .await
         .map_err(|e| tonic::Status::internal(format!("failed to load channel: {e}")))?
         .ok_or_else(|| tonic::Status::not_found("channel not found"))?;
-    handler
-        .gateway
-        .kv
-        .get_msg::<models::Agent>(&keys::agent(&subscription.ns, &subscription.agent))
+    let store = crate::control::resources::ResourceStore::new(
+        handler.gateway.kv.clone(),
+        handler.gateway.pubsub.clone(),
+    );
+    store
+        .get_agent(subscription.namespace(), subscription.agent())
         .await
         .map_err(|e| tonic::Status::internal(format!("failed to load agent: {e}")))?
         .ok_or_else(|| tonic::Status::not_found("agent not found"))?;
-    if subscription.context_policy.is_none() {
-        subscription.context_policy = Some(models::ChannelContextPolicy {
+    if subscription.context_policy().is_none() {
+        subscription.spec_mut().context_policy = Some(resources_proto::ChannelContextPolicy {
             mode: "recent_public".to_string(),
             max_messages: DEFAULT_CHANNEL_CONTEXT_MESSAGES as u32,
         });
@@ -892,7 +899,7 @@ async fn validate_subscription(
 
 async fn route_channel_message(
     cp: &ControlPlane,
-    message: &models::ChannelMessage,
+    message: &data_proto::ChannelMessage,
     manual_subscriptions: &[String],
 ) -> Vec<proto::RoutedChannelSession> {
     let mut results = Vec::new();
@@ -936,14 +943,14 @@ async fn route_channel_message(
         let result = route_to_subscription(cp, message, &subscription, &recent_messages).await;
         results.push(match result {
             Ok(session_id) => proto::RoutedChannelSession {
-                subscription: subscription.name,
-                agent: subscription.agent,
+                subscription: subscription.name().to_string(),
+                agent: subscription.agent().to_string(),
                 session_id,
                 error: String::new(),
             },
             Err(error) => proto::RoutedChannelSession {
-                subscription: subscription.name,
-                agent: subscription.agent,
+                subscription: subscription.name().to_string(),
+                agent: subscription.agent().to_string(),
                 session_id: String::new(),
                 error: error.to_string(),
             },
@@ -954,9 +961,9 @@ async fn route_channel_message(
 
 async fn matching_subscriptions(
     cp: &ControlPlane,
-    message: &models::ChannelMessage,
+    message: &data_proto::ChannelMessage,
     manual_subscriptions: &[String],
-) -> anyhow::Result<Vec<models::ChannelSubscription>> {
+) -> anyhow::Result<Vec<resources_proto::ChannelSubscription>> {
     let manual: HashSet<&str> = manual_subscriptions.iter().map(String::as_str).collect();
     let entries = cp
         .kv
@@ -967,7 +974,7 @@ async fn matching_subscriptions(
         .await?;
     let mut subscriptions = Vec::new();
     for (_, value) in entries {
-        let subscription = match models::ChannelSubscription::decode(value.as_slice()) {
+        let subscription = match resources_proto::ChannelSubscription::decode(value.as_slice()) {
             Ok(subscription) => subscription,
             Err(error) => {
                 tracing::warn!(
@@ -980,30 +987,30 @@ async fn matching_subscriptions(
                 continue;
             }
         };
-        if !subscription.enabled {
+        if !subscription.enabled() {
             continue;
         }
-        let trigger = match normalize_trigger(&subscription.trigger) {
+        let trigger = match normalize_trigger(subscription.trigger()) {
             Ok(trigger) => trigger,
             Err(error) => {
                 tracing::warn!(
                     error = %error,
                     ns = %message.ns,
                     channel = %message.channel,
-                    subscription = %subscription.name,
+                    subscription = %subscription.name(),
                     "failed to normalize channel subscription trigger; skipping"
                 );
                 continue;
             }
         };
-        let is_self = message.author_kind == "agent" && message.author == subscription.agent;
+        let is_self = message.author_kind == "agent" && message.author == subscription.agent();
         let should_route = match trigger.as_str() {
-            "manual" => manual.contains(subscription.name.as_str()),
+            "manual" => manual.contains(subscription.name()),
             "all" => !is_self,
             "mention" => {
                 !is_self
-                    && (contains_mention(&message.content, &subscription.agent)
-                        || contains_mention(&message.content, &subscription.name))
+                    && (contains_mention(&message.content, subscription.agent())
+                        || contains_mention(&message.content, subscription.name()))
             }
             "routed" | "disabled" => false,
             _ => false,
@@ -1012,36 +1019,36 @@ async fn matching_subscriptions(
             subscriptions.push(subscription);
         }
     }
-    subscriptions.sort_by(|a, b| a.name.cmp(&b.name));
+    subscriptions.sort_by(|a, b| a.name().cmp(b.name()));
     Ok(subscriptions)
 }
 
 async fn route_to_subscription(
     cp: &ControlPlane,
-    message: &models::ChannelMessage,
-    subscription: &models::ChannelSubscription,
-    recent_messages: &[models::ChannelMessage],
+    message: &data_proto::ChannelMessage,
+    subscription: &resources_proto::ChannelSubscription,
+    recent_messages: &[data_proto::ChannelMessage],
 ) -> anyhow::Result<String> {
     let mut labels = HashMap::new();
     labels.insert(LABEL_CHANNEL.to_string(), message.channel.clone());
     labels.insert(LABEL_CHANNEL_MESSAGE.to_string(), message.id.clone());
     labels.insert(
         LABEL_CHANNEL_SUBSCRIPTION.to_string(),
-        subscription.name.clone(),
+        subscription.name().to_string(),
     );
     labels.insert(
         LABEL_CHANNEL_TRIGGER.to_string(),
-        subscription.trigger.clone(),
+        subscription.trigger().to_string(),
     );
     labels.insert(
         LABEL_CHANNEL_REPLY_MODE.to_string(),
-        subscription.reply_mode.clone(),
+        subscription.reply_mode().to_string(),
     );
 
     let session_id = scheduling::create_session_with_labels(
         cp,
         &message.ns,
-        &subscription.agent,
+        subscription.agent(),
         labels.clone(),
     )
     .await?;
@@ -1056,7 +1063,7 @@ async fn route_to_subscription(
         cp.kv.as_ref(),
         cp.pubsub.as_ref(),
         &message.ns,
-        &subscription.agent,
+        subscription.agent(),
         &session_id,
         &prompt,
         labels,
@@ -1067,7 +1074,7 @@ async fn route_to_subscription(
         if let Err(cleanup_error) = delete_routed_session(
             cp.kv.as_ref(),
             &message.ns,
-            &subscription.agent,
+            subscription.agent(),
             &session_id,
         )
         .await
@@ -1075,7 +1082,7 @@ async fn route_to_subscription(
             tracing::warn!(
                 error = %cleanup_error,
                 ns = %message.ns,
-                agent = %subscription.agent,
+                agent = %subscription.agent(),
                 session_id = %session_id,
                 "failed to clean up routed channel session after scheduling error"
             );
@@ -1090,8 +1097,8 @@ async fn route_to_subscription(
             kind: events::ChannelEventKind::SessionRouted as i32,
             message: None,
             session_id: session_id.clone(),
-            agent: subscription.agent.clone(),
-            subscription: subscription.name.clone(),
+            agent: subscription.agent().to_string(),
+            subscription: subscription.name().to_string(),
             error: String::new(),
             timestamp: chrono::Utc::now().timestamp_micros(),
         },
@@ -1103,8 +1110,8 @@ async fn route_to_subscription(
             ns = %message.ns,
             channel = %message.channel,
             session_id = %session_id,
-            agent = %subscription.agent,
-            subscription = %subscription.name,
+            agent = %subscription.agent(),
+            subscription = %subscription.name(),
             "failed to publish channel event for routed session"
         );
     }
@@ -1132,9 +1139,9 @@ async fn delete_routed_session(
 
 async fn recent_channel_messages(
     cp: &ControlPlane,
-    message: &models::ChannelMessage,
+    message: &data_proto::ChannelMessage,
     limit: usize,
-) -> anyhow::Result<Vec<models::ChannelMessage>> {
+) -> anyhow::Result<Vec<data_proto::ChannelMessage>> {
     let entries = cp
         .kv
         .list_entries_page(
@@ -1146,7 +1153,7 @@ async fn recent_channel_messages(
 
     let mut recent = Vec::new();
     for (_, value) in entries {
-        recent.push(models::ChannelMessage::decode(value.as_slice())?);
+        recent.push(data_proto::ChannelMessage::decode(value.as_slice())?);
     }
     recent.sort_by(|left, right| {
         left.created_at
@@ -1157,9 +1164,9 @@ async fn recent_channel_messages(
 }
 
 fn format_channel_prompt(
-    message: &models::ChannelMessage,
-    subscription: &models::ChannelSubscription,
-    recent_messages: &[models::ChannelMessage],
+    message: &data_proto::ChannelMessage,
+    subscription: &resources_proto::ChannelSubscription,
+    recent_messages: &[data_proto::ChannelMessage],
     limit: usize,
 ) -> String {
     let start = recent_messages.len().saturating_sub(limit);
@@ -1178,7 +1185,7 @@ fn format_channel_prompt(
     } else {
         format!("\n\nRecent public channel context:\n{}", context)
     };
-    let reply_instruction = if subscription.reply_mode == "none" {
+    let reply_instruction = if subscription.reply_mode() == "none" {
         "Normal assistant text stays private in your session and will not be posted to the channel. This subscription is configured with replyMode none, so no public channel reply is expected."
     } else {
         "Normal assistant text stays private in your session and will not be posted to the channel. If a public channel reply is needed, call channel_publish with the response content. If no public reply is needed, call channel_skip_reply."
@@ -1186,7 +1193,7 @@ fn format_channel_prompt(
     format!(
         "You are subscribed to Talon channel '{}' as agent '{}'. {}\n\nTriggering channel message id: {}\nTriggering author: {}:{}\nTriggering content:\n{}{}",
         message.channel,
-        subscription.agent,
+        subscription.agent(),
         reply_instruction,
         message.id,
         message.author_kind,

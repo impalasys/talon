@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package talon.resources;
+
+import "proto/resources/common.proto";
+
+message Channel {
+  ResourceMeta metadata = 1;
+  ChannelSpec spec = 2;
+  ChannelStatus status = 3;
+}
+
+message ChannelSpec {
+  string title = 1;
+  map<string, string> metadata = 2;
+}
+
+message ChannelStatus {
+  uint64 observed_generation = 1;
+  string phase = 2;
+  repeated ResourceCondition conditions = 3;
+  int64 created_at = 4;
+  int64 updated_at = 5;
+}
+
+message ChannelContextPolicy {
+  string mode = 1;
+  uint32 max_messages = 2;
+}
+
+message ChannelSubscription {
+  ResourceMeta metadata = 1;
+  ChannelSubscriptionSpec spec = 2;
+  CommonResourceStatus status = 3;
+}
+
+message ChannelSubscriptionSpec {
+  string channel = 1;
+  string agent = 2;
+  bool enabled = 3;
+  string trigger = 4;
+  ChannelContextPolicy context_policy = 5;
+  string reply_mode = 6;
+  map<string, string> metadata = 7;
+}

@@ -1,12 +1,12 @@
 // Copyright (C) 2026 Impala Systems, Inc.
 // SPDX-License-Identifier: AGPL-3.0-only
 
-use super::{models, proto, GrpcGatewayHandler};
+use super::{data_proto, proto, GrpcGatewayHandler};
+use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::ProtoKeyValueStoreExt;
 use crate::control::{events, keys, keys::ResourceParent, KeyValueStore};
 use crate::gateway::session_streams::SessionStreamTarget;
-use crate::scheduling;
 use prost::Message;
 use std::sync::OnceLock;
 
@@ -65,14 +65,14 @@ fn stream_session_batch_max() -> usize {
 }
 
 fn normalize_appended_session_message(
-    mut message: models::SessionMessage,
-) -> models::SessionMessage {
+    mut message: data_proto::SessionMessage,
+) -> data_proto::SessionMessage {
     let now_micros = chrono::Utc::now().timestamp_micros();
     if message.id.is_empty() {
         message.id = uuid::Uuid::now_v7().to_string();
     }
-    if message.role == models::MessageRole::RoleUnspecified as i32 {
-        message.role = models::MessageRole::RoleUser as i32;
+    if message.role == data_proto::MessageRole::RoleUnspecified as i32 {
+        message.role = data_proto::MessageRole::RoleUser as i32;
     }
     if message.created_at == 0 {
         message.created_at = now_micros;
@@ -130,7 +130,7 @@ async fn acquire_clear_session_lock(
         let Some(current_bytes) = current.as_ref() else {
             return Err(tonic::Status::not_found("Session not found"));
         };
-        let mut session = models::Session::decode(current_bytes.as_slice())
+        let mut session = data_proto::Session::decode(current_bytes.as_slice())
             .map_err(|e| tonic::Status::internal(format!("Failed to decode session: {}", e)))?;
 
         if session.status == "PROCESSING"
@@ -174,7 +174,7 @@ async fn release_clear_session_lock(
         let Some(current_bytes) = current.as_ref() else {
             return Err(tonic::Status::not_found("Session not found"));
         };
-        let mut session = models::Session::decode(current_bytes.as_slice())
+        let mut session = data_proto::Session::decode(current_bytes.as_slice())
             .map_err(|e| tonic::Status::internal(format!("Failed to decode session: {}", e)))?;
 
         if session.status != "PROCESSING" || session.last_active != expected_last_active {
@@ -211,11 +211,12 @@ impl GrpcGatewayHandler {
         let req = req.into_inner();
 
         // 1. Verify agent exists in namespace
-        let agent_db_key = keys::agent(&req.ns, &req.agent);
-        let agent_exists = self
-            .gateway
-            .kv
-            .get_msg::<models::Agent>(&agent_db_key)
+        let store = crate::control::resources::ResourceStore::new(
+            self.gateway.kv.clone(),
+            self.gateway.pubsub.clone(),
+        );
+        let agent_exists = store
+            .get_agent(&req.ns, &req.agent)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to verify agent: {}", e)))?;
 
@@ -229,7 +230,7 @@ impl GrpcGatewayHandler {
         // Use ULID (UUID v7 gives time-sorted guarantees like ULID)
         let session_id = uuid::Uuid::now_v7().to_string();
 
-        let session = models::Session {
+        let session = data_proto::Session {
             id: session_id.clone(),
             agent: req.agent.clone(),
             ns: req.ns.clone(),
@@ -290,7 +291,7 @@ impl GrpcGatewayHandler {
         let session = self
             .gateway
             .kv
-            .get_msg::<models::Session>(&session_db_key)
+            .get_msg::<data_proto::Session>(&session_db_key)
             .await
             .map_err(|e| {
                 tracing::error!(
@@ -394,7 +395,7 @@ impl GrpcGatewayHandler {
                             );
                         }
 
-                        match models::SessionMessage::decode(bytes.as_slice()) {
+                        match data_proto::SessionMessage::decode(bytes.as_slice()) {
                             Ok(msg) => messages.push(msg),
                             Err(e) => {
                                 tracing::error!(
@@ -468,7 +469,7 @@ impl GrpcGatewayHandler {
         let session = self
             .gateway
             .kv
-            .get_msg::<models::Session>(&session_db_key)
+            .get_msg::<data_proto::Session>(&session_db_key)
             .await
             .map_err(|e| {
                 tonic::Status::internal(format!("Failed to fetch session metadata: {}", e))
@@ -527,7 +528,7 @@ impl GrpcGatewayHandler {
                     );
                 }
 
-                let message = match models::SessionMessage::decode(bytes.as_slice()) {
+                let message = match data_proto::SessionMessage::decode(bytes.as_slice()) {
                     Ok(message) => message,
                     Err(e) => {
                         tracing::error!(
@@ -603,7 +604,7 @@ impl GrpcGatewayHandler {
                 let session = self
                     .gateway
                     .kv
-                    .get_msg::<models::Session>(&key)
+                    .get_msg::<data_proto::Session>(&key)
                     .await
                     .map_err(|e| {
                         tonic::Status::internal(format!("Failed to fetch session metadata: {}", e))
@@ -791,7 +792,7 @@ impl GrpcGatewayHandler {
         let mut session = self
             .gateway
             .kv
-            .get_msg::<models::Session>(&session_db_key)
+            .get_msg::<data_proto::Session>(&session_db_key)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?;
         let session = session
@@ -851,7 +852,7 @@ impl GrpcGatewayHandler {
         let session = self
             .gateway
             .kv
-            .get_msg::<models::Session>(&session_db_key)
+            .get_msg::<data_proto::Session>(&session_db_key)
             .await
             .map_err(|e| tonic::Status::internal(format!("Failed to fetch session: {}", e)))?;
 

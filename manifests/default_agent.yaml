@@ -1,9 +1,12 @@
 apiVersion: talon.impalasys.com/v1
-kind: AgentTemplate
+kind: Template
 metadata:
   name: default
-definition:
-  customSpec:
+spec:
+  kind: Agent
+  metadata:
+    name: default
+  spec:
     systemPrompt: "You are Talon, an autonomous system executing robust actions."
     modelPolicy:
       profiles:

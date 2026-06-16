@@ -1,9 +1,12 @@
 apiVersion: talon.impalasys.com/v1
-kind: AgentTemplate
+kind: Template
 metadata:
   name: support-docs-template
-definition:
-  customSpec:
+spec:
+  kind: Agent
+  metadata:
+    name: support-docs
+  spec:
     systemPrompt: |
       You are a product assistant for a browser chat app built on Talon.
       Answer clearly, cite relevant product context when available, and

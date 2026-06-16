@@ -1,0 +1,13 @@
+apiVersion: talon.impalasys.com/v1
+kind: SandboxClass
+metadata:
+  name: e2b-code
+  namespace: system
+spec:
+  provider: e2b
+  providerConfig:
+    templateId: node-22-rust
+  credentials:
+    apiKey:
+      source: env
+      key: E2B_API_KEY

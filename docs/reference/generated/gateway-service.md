@@ -9,7 +9,7 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 
 - Service: `talon.gateway.GatewayService`
 - Transport modes: gRPC, gRPC-web, REST via `google.api.http` annotations, and the browser-oriented `/v1/ui/... ` stream path documented separately in the hand-written guides
-- Total RPC methods: **60**
+- Total RPC methods: **66**
 
 ## Agents
 
@@ -78,31 +78,6 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Request: `DeleteNamespaceKnowledgeRequest`
 - Response: `DeleteNamespaceKnowledgeResponse`
 - REST mapping: `DELETE /v1/namespaces/{ns}/knowledge/{name}`
-
-### `CreateNamespaceSkill`
-
-- Request: `CreateNamespaceSkillRequest`
-- Response: `NamespaceSkillResponse`
-- REST mapping: `POST /v1/namespaces/{ns}/skills`
-- REST body: `*`
-
-### `GetNamespaceSkill`
-
-- Request: `GetNamespaceSkillRequest`
-- Response: `NamespaceSkillResponse`
-- REST mapping: `GET /v1/namespaces/{ns}/skills/{name}`
-
-### `ListNamespaceSkills`
-
-- Request: `ListNamespaceSkillsRequest`
-- Response: `ListNamespaceSkillsResponse`
-- REST mapping: `GET /v1/namespaces/{ns}/skills`
-
-### `DeleteNamespaceSkill`
-
-- Request: `DeleteNamespaceSkillRequest`
-- Response: `DeleteNamespaceSkillResponse`
-- REST mapping: `DELETE /v1/namespaces/{ns}/skills/{name}`
 
 ## Sessions
 
@@ -231,33 +206,6 @@ The Talon gateway is defined in `proto/gateway.proto`. It is the canonical contr
 - Request: `ListNamespacesRequest`
 - Response: `ListNamespacesResponse`
 - REST mapping: `GET /v1/namespaces`
-
-## Templates
-
-### `CreateAgentTemplate`
-
-- Request: `CreateAgentTemplateRequest`
-- Response: `AgentTemplateResponse`
-- REST mapping: `POST /v1/templates`
-- REST body: `*`
-
-### `GetAgentTemplate`
-
-- Request: `GetAgentTemplateRequest`
-- Response: `AgentTemplateResponse`
-- REST mapping: `GET /v1/templates/{name}`
-
-### `ListAgentTemplates`
-
-- Request: `ListAgentTemplatesRequest`
-- Response: `ListAgentTemplatesResponse`
-- REST mapping: `GET /v1/templates`
-
-### `DeleteAgentTemplate`
-
-- Request: `DeleteAgentTemplateRequest`
-- Response: `DeleteAgentTemplateResponse`
-- REST mapping: `DELETE /v1/templates/{name}`
 
 ## MCP
 
@@ -410,3 +358,96 @@ Channels
 - Request: `StreamChannelEventsRequest`
 - Response: `talon.events.ChannelEvent` (server stream)
 - REST mapping: `GET /v1/ns/{ns}/channels/{channel}/stream`
+
+### `CreateWorkflow`
+
+Workflows
+
+- Request: `CreateWorkflowRequest`
+- Response: `WorkflowResponse`
+- REST mapping: `POST /v1/ns/{ns}/workflows`
+- REST body: `*`
+
+### `GetWorkflow`
+
+- Request: `GetWorkflowRequest`
+- Response: `WorkflowResponse`
+- REST mapping: `GET /v1/ns/{ns}/workflows/{name}`
+
+### `ListWorkflows`
+
+- Request: `ListWorkflowsRequest`
+- Response: `ListWorkflowsResponse`
+- REST mapping: `GET /v1/ns/{ns}/workflows`
+
+### `DeleteWorkflow`
+
+- Request: `DeleteWorkflowRequest`
+- Response: `DeleteWorkflowResponse`
+- REST mapping: `DELETE /v1/ns/{ns}/workflows/{name}`
+
+### `CreateWorkflowRun`
+
+- Request: `CreateWorkflowRunRequest`
+- Response: `WorkflowRunResponse`
+- REST mapping: `POST /v1/ns/{ns}/workflows/{workflow}/runs`
+- REST body: `*`
+
+### `GetWorkflowRun`
+
+- Request: `GetWorkflowRunRequest`
+- Response: `WorkflowRunResponse`
+- REST mapping: `GET /v1/ns/{ns}/workflows/{workflow}/runs/{run_id}`
+
+### `ListWorkflowRuns`
+
+- Request: `ListWorkflowRunsRequest`
+- Response: `ListWorkflowRunsResponse`
+- REST mapping: `GET /v1/ns/{ns}/workflows/{workflow}/runs`
+
+### `ResumeWorkflowRun`
+
+- Request: `ResumeWorkflowRunRequest`
+- Response: `WorkflowRunResponse`
+- REST mapping: `POST /v1/ns/{ns}/workflows/{workflow}/runs/{run_id}:resume`
+- REST body: `*`
+
+### `CancelWorkflowRun`
+
+- Request: `CancelWorkflowRunRequest`
+- Response: `WorkflowRunResponse`
+- REST mapping: `POST /v1/ns/{ns}/workflows/{workflow}/runs/{run_id}:cancel`
+- REST body: `*`
+
+### `StreamWorkflowEvents`
+
+- Request: `StreamWorkflowEventsRequest`
+- Response: `talon.data.WorkflowRunEvent` (server stream)
+- REST mapping: `GET /v1/ns/{ns}/workflows/{workflow}/runs/{run_id}/stream`
+
+### `CreateResource`
+
+Generic v2 resources
+
+- Request: `CreateResourceRequest`
+- Response: `ResourceResponse`
+- REST mapping: `POST /v2/ns/{ns}/resources`
+- REST body: `*`
+
+### `GetResource`
+
+- Request: `GetResourceRequest`
+- Response: `ResourceResponse`
+- REST mapping: `GET /v2/ns/{ns}/resources/{kind}/{name}`
+
+### `ListResources`
+
+- Request: `ListResourcesRequest`
+- Response: `ListResourcesResponse`
+- REST mapping: `GET /v2/ns/{ns}/resources`
+
+### `DeleteResource`
+
+- Request: `DeleteResourceRequest`
+- Response: `DeleteResourceResponse`
+- REST mapping: `DELETE /v2/ns/{ns}/resources/{kind}/{name}`

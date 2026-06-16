@@ -19,6 +19,18 @@ pub struct TalonConfig {
     pub workspace_dir: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "6")]
     pub control_plane: ::core::option::Option<ControlPlaneConfig>,
+    #[prost(map = "string, message", tag = "7")]
+    pub controllers: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ControllerConfig,
+    >,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct ControllerConfig {
+    #[prost(bool, tag = "1")]
+    pub enabled: bool,
+    #[prost(uint32, tag = "2")]
+    pub workers: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct LlmProviderConfig {

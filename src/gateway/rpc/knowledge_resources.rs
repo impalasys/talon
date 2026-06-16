@@ -19,8 +19,9 @@ async fn hydrate_knowledge_manifest(
         .await
         .map_err(|e| tonic::Status::internal(format!("Failed to read knowledge artifact: {}", e)))?
     {
-        let entry =
-            crate::knowledge::KvKnowledgeBook::normalize_entry(namespace, &spec.path, &bytes);
+        let entry = crate::harness::knowledge::KvKnowledgeBook::normalize_entry(
+            namespace, &spec.path, &bytes,
+        );
         spec.path = entry.path();
         spec.content = entry.content;
     }
@@ -39,10 +40,6 @@ impl GrpcGatewayHandler {
         let mut knowledge = req
             .knowledge
             .ok_or_else(|| tonic::Status::invalid_argument("Knowledge manifest missing"))?;
-        if knowledge.kind.is_empty() {
-            knowledge.kind = "Knowledge".to_string();
-        }
-
         let meta = knowledge
             .metadata
             .as_mut()
@@ -76,7 +73,7 @@ impl GrpcGatewayHandler {
                 tonic::Status::internal(format!("Failed to read knowledge path: {}", e))
             })?
         {
-            let existing_entry = crate::knowledge::KvKnowledgeBook::normalize_entry(
+            let existing_entry = crate::harness::knowledge::KvKnowledgeBook::normalize_entry(
                 &req.ns,
                 &spec.path,
                 &existing_bytes,
@@ -112,7 +109,7 @@ impl GrpcGatewayHandler {
             }
         }
 
-        let entry = crate::knowledge::KnowledgeEntry {
+        let entry = crate::harness::knowledge::KnowledgeEntry {
             namespace: req.ns.clone(),
             name: meta.name.clone(),
             path: spec.path.clone(),
@@ -333,18 +330,18 @@ mod tests {
             namespace: namespace.to_string(),
             labels: HashMap::new(),
             annotations: HashMap::new(),
+            ..Default::default()
         }
     }
 
     fn manifest(name: &str, namespace: &str, path: &str, content: &str) -> manifests::Knowledge {
         manifests::Knowledge {
-            api_version: String::new(),
-            kind: String::new(),
             metadata: Some(metadata(name, namespace)),
             spec: Some(manifests::KnowledgeSpec {
                 path: path.to_string(),
                 content: content.to_string(),
             }),
+            status: Some(crate::control::resource_model::common_status(String::new())),
         }
     }
 
@@ -365,7 +362,7 @@ mod tests {
     #[tokio::test]
     async fn hydrate_knowledge_manifest_reads_normalized_content_from_kv() {
         let kv = Arc::new(MockKvStore::default());
-        let entry = crate::knowledge::KnowledgeEntry {
+        let entry = crate::harness::knowledge::KnowledgeEntry {
             namespace: "acme".to_string(),
             name: "guide".to_string(),
             path: "folder/guide.md".to_string(),
@@ -397,7 +394,7 @@ mod tests {
         let kv = Arc::new(MockKvStore::default());
         kv.set(
             &keys::knowledge("acme", "guide.md"),
-            &serde_json::to_vec(&crate::knowledge::KnowledgeEntry {
+            &serde_json::to_vec(&crate::harness::knowledge::KnowledgeEntry {
                 namespace: "acme".to_string(),
                 name: "other".to_string(),
                 path: "guide.md".to_string(),
@@ -433,7 +430,7 @@ mod tests {
         .unwrap();
         kv.set(
             &keys::knowledge("acme", "old.md"),
-            &serde_json::to_vec(&crate::knowledge::KnowledgeEntry {
+            &serde_json::to_vec(&crate::harness::knowledge::KnowledgeEntry {
                 namespace: "acme".to_string(),
                 name: "guide".to_string(),
                 path: "old.md".to_string(),

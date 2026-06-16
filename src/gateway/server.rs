@@ -137,7 +137,7 @@ mod tests {
         KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt,
     };
     use crate::gateway::auth::{AuthConfig, Claims};
-    use crate::gateway::rpc::models::{SessionMessagePart, SessionMessagePartType};
+    use crate::gateway::rpc::data_proto::{SessionMessagePart, SessionMessagePartType};
     use axum::body::Body;
     use axum::http::{header, Method, Request, StatusCode};
     use futures::stream;
@@ -265,14 +265,8 @@ mod tests {
             .kv
             .set(
                 &crate::control::keys::namespace_metadata(ns),
-                &crate::gateway::rpc::models::Namespace {
-                    name: ns.to_string(),
-                    parent: String::new(),
-                    is_deleted: false,
-                    deleted_at: 0,
-                    labels: HashMap::new(),
-                }
-                .encode_to_vec(),
+                &crate::control::resource_model::namespace(ns, String::new(), HashMap::new())
+                    .encode_to_vec(),
             )
             .await
             .unwrap();
@@ -280,14 +274,12 @@ mod tests {
             .kv
             .set(
                 &crate::control::keys::agent(ns, agent),
-                &crate::gateway::rpc::models::Agent {
-                    name: agent.to_string(),
-                    ns: ns.to_string(),
-                    definition: None,
-                    effective_spec: None,
-                    template_deps: Vec::new(),
-                    labels: HashMap::new(),
-                }
+                &crate::control::resource_model::agent_resource(
+                    ns,
+                    agent,
+                    crate::gateway::rpc::resources_proto::AgentSpec::default(),
+                    HashMap::new(),
+                )
                 .encode_to_vec(),
             )
             .await
@@ -318,57 +310,41 @@ mod tests {
         }
     }
 
-    fn published_agent_definition(
+    fn published_agent_spec(
         agent_card: crate::gateway::rpc::manifests::AgentCard,
-    ) -> crate::gateway::rpc::manifests::AgentDefinition {
-        crate::gateway::rpc::manifests::AgentDefinition {
-            source: Some(
-                crate::gateway::rpc::manifests::agent_definition::Source::CustomSpec(
-                    crate::gateway::rpc::manifests::AgentSpec {
-                        features: Vec::new(),
-                        model_policy: Some(crate::gateway::rpc::manifests::ModelPolicy {
-                            profiles: vec![crate::gateway::rpc::manifests::ModelProfile {
-                                name: "default".to_string(),
-                                model: Some(crate::gateway::rpc::manifests::Model {
-                                    provider: "test".to_string(),
-                                    name: "test".to_string(),
-                                    temperature: 0.0,
-                                    thinking: None,
-                                }),
-                            }],
-                        }),
-                        system_prompt: "test".to_string(),
-                        mcp_server_refs: Vec::new(),
-                        capabilities: HashMap::new(),
-                        a2a: Some(crate::gateway::rpc::manifests::A2a {
-                            connections: Vec::new(),
-                            agent_card: Some(agent_card),
-                        }),
-                    },
-                ),
-            ),
+    ) -> crate::gateway::rpc::manifests::AgentSpec {
+        crate::gateway::rpc::manifests::AgentSpec {
+            features: Vec::new(),
+            model_policy: Some(crate::gateway::rpc::manifests::ModelPolicy {
+                profiles: vec![crate::gateway::rpc::manifests::ModelProfile {
+                    name: "default".to_string(),
+                    model: Some(crate::gateway::rpc::manifests::Model {
+                        provider: "test".to_string(),
+                        name: "test".to_string(),
+                        temperature: 0.0,
+                        thinking: None,
+                    }),
+                }],
+            }),
+            system_prompt: "test".to_string(),
+            mcp_server_refs: Vec::new(),
+            capabilities: HashMap::new(),
+            a2a: Some(crate::gateway::rpc::manifests::A2a {
+                connections: Vec::new(),
+                agent_card: Some(agent_card),
+            }),
+            runtime: None,
         }
     }
 
     async fn seed_published_agent(gateway: &Gateway, ns: &str, agent: &str) {
         seed_namespace_and_agent(gateway, ns, agent).await;
-        let definition = published_agent_definition(a2a_agent_card());
-        let resolved =
-            crate::agents::resolver::resolve_agent_definition(gateway.kv.as_ref(), &definition)
-                .await
-                .unwrap();
+        let spec = published_agent_spec(a2a_agent_card());
         gateway
             .kv
             .set_msg(
                 &crate::control::keys::agent(ns, agent),
-                &crate::gateway::rpc::models::Agent {
-                    name: agent.to_string(),
-                    ns: ns.to_string(),
-                    definition: Some(definition),
-                    effective_spec: Some(resolved.effective_spec),
-                    template_deps: resolved.template_deps,
-                    labels: HashMap::new(),
-                },
+                &crate::control::resource_model::agent_resource(ns, agent, spec, HashMap::new()),
             )
             .await
             .unwrap();
@@ -380,7 +356,7 @@ mod tests {
         agent: Option<&str>,
         session: Option<&str>,
     ) -> String {
-        crate::security::install_jwt_crypto_provider();
+        crate::control::security::install_jwt_crypto_provider();
         let claims = Claims {
             sub: "test-user".to_string(),
             aud: "talon".to_string(),
@@ -814,7 +790,7 @@ mod tests {
             "support-docs",
             "019ec3f4-9fbd-7293-8269-8f6eb406cf0a",
         );
-        let mut session = crate::gateway::rpc::models::Session::decode(
+        let mut session = crate::gateway::rpc::data_proto::Session::decode(
             gateway
                 .kv
                 .get(&session_key)
@@ -840,30 +816,30 @@ mod tests {
                     "019ec3f4-9fbd-7293-8269-8f6eb406cf0a",
                     "000-agent",
                 ),
-                &crate::gateway::rpc::models::SessionMessage {
+                &crate::gateway::rpc::data_proto::SessionMessage {
                     id: "000-agent".to_string(),
-                    role: crate::gateway::rpc::models::MessageRole::RoleAssistant as i32,
+                    role: crate::gateway::rpc::data_proto::MessageRole::RoleAssistant as i32,
                     created_at: session.last_active,
                     labels: HashMap::new(),
-                    parts: vec![crate::gateway::rpc::models::SessionMessagePart {
+                    parts: vec![crate::gateway::rpc::data_proto::SessionMessagePart {
                         id: "000000".to_string(),
-                        part_type: crate::gateway::rpc::models::SessionMessagePartType::Usage as i32,
+                        part_type: crate::gateway::rpc::data_proto::SessionMessagePartType::Usage as i32,
                         content: String::new(),
                         name: String::new(),
                         payload_json: r#"{"input_tokens":0,"output_tokens":0,"reasoning_tokens":0,"total_tokens":0}"#.to_string(),
                         created_at: session.last_active,
                         object: None,
                     },
-                    crate::gateway::rpc::models::SessionMessagePart {
+                    crate::gateway::rpc::data_proto::SessionMessagePart {
                         id: "000001".to_string(),
-                        part_type: crate::gateway::rpc::models::SessionMessagePartType::Text as i32,
+                        part_type: crate::gateway::rpc::data_proto::SessionMessagePartType::Text as i32,
                         content: "assistant reply".to_string(),
                         name: String::new(),
                         payload_json: String::new(),
                         created_at: session.last_active,
                         object: None,
                     },
-                    crate::gateway::rpc::models::SessionMessagePart {
+                    crate::gateway::rpc::data_proto::SessionMessagePart {
                         id: "000002".to_string(),
                         part_type: 999,
                         content: String::new(),
@@ -1162,7 +1138,7 @@ mod tests {
             crate::gateway::rpc::proto::CreateAgentRequest {
                 ns: "support".to_string(),
                 name: Some("support-docs".to_string()),
-                definition: Some(published_agent_definition(agent_card)),
+                spec: Some(published_agent_spec(agent_card)),
                 labels: HashMap::new(),
             },
         ))

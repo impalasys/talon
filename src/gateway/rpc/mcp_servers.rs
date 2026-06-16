@@ -26,12 +26,6 @@ impl GrpcGatewayHandler {
             ));
         }
 
-        if server.api_version.is_empty() {
-            server.api_version = "v1".to_string();
-        }
-        if server.kind.is_empty() {
-            server.kind = "MCPServer".to_string();
-        }
         if !meta.namespace.is_empty() {
             return Err(tonic::Status::invalid_argument(
                 "MCPServer metadata.namespace is not supported; MCP servers are stored in Sys",
