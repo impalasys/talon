@@ -1121,35 +1121,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn agent_rejects_unsupported_a2a_agent_card_capabilities() {
-        let gateway = gateway();
-        seed_namespace_and_agent(&gateway, "support", "support-docs").await;
-        let mut agent_card = a2a_agent_card();
-        agent_card.capabilities = Some(crate::gateway::rpc::manifests::AgentCardCapabilities {
-            streaming: false,
-            push_notifications: true,
-            extended_agent_card: false,
-        });
-
-        let err = crate::gateway::rpc::GrpcGatewayHandler {
-            gateway: Arc::new(gateway),
-        }
-        .handle_create_agent(tonic::Request::new(
-            crate::gateway::rpc::proto::CreateAgentRequest {
-                ns: "support".to_string(),
-                name: Some("support-docs".to_string()),
-                spec: Some(published_agent_spec(agent_card)),
-                labels: HashMap::new(),
-            },
-        ))
-        .await
-        .unwrap_err();
-
-        assert_eq!(err.code(), tonic::Code::InvalidArgument);
-        assert!(err.message().contains("pushNotifications is not supported"));
-    }
-
-    #[tokio::test]
     async fn http_ui_router_allows_browser_preflight() {
         let response = gateway()
             .http_ui_router()

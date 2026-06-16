@@ -5,13 +5,7 @@ package talon.gateway;
 import "google/api/annotations.proto";
 import "proto/data/data.proto";
 import "proto/events.proto";
-import "proto/resources/agents.proto";
-import "proto/resources/channels.proto";
-import "proto/resources/knowledge.proto";
-import "proto/resources/mcp.proto";
 import "proto/resources/resource.proto";
-import "proto/resources/schedules.proto";
-import "proto/resources/workflows.proto";
 
 service GatewayService {
   // Agent knowledge data-plane queries
@@ -238,107 +232,6 @@ message DeleteResourceResponse {
   bool success = 1;
 }
 
-message CreateMcpServerRequest {
-  talon.resources.McpServer server = 1;
-}
-
-message GetMcpServerRequest {
-  string name = 1;
-}
-
-message ListMcpServersRequest {
-}
-
-message DeleteMcpServerRequest {
-  string name = 1;
-}
-
-message DeleteMcpServerResponse {
-  bool success = 1;
-}
-
-message McpServerResponse {
-  talon.resources.McpServer server = 1;
-}
-
-message ListMcpServersResponse {
-  repeated talon.resources.McpServer servers = 1;
-}
-
-message CreateMcpServerBindingRequest {
-  string ns = 1;
-  talon.resources.McpServerBinding binding = 2;
-}
-
-message GetMcpServerBindingRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListMcpServerBindingsRequest {
-  string ns = 1;
-}
-
-message DeleteMcpServerBindingRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteMcpServerBindingResponse {
-  bool success = 1;
-}
-
-message McpServerBindingResponse {
-  talon.resources.McpServerBinding binding = 1;
-}
-
-message ListMcpServerBindingsResponse {
-  repeated talon.resources.McpServerBinding bindings = 1;
-}
-
-message GetAgentResponse {
-  talon.resources.Agent agent = 1;
-}
-
-message GetAgentRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message CreateAgentRequest {
-  string ns = 1;
-  optional string name = 2;
-  reserved 3;
-  talon.resources.AgentSpec spec = 5;
-  map<string, string> labels = 4;
-}
-
-message AgentResponse {
-  string agent = 1;
-  string ns = 2;
-  map<string, string> labels = 4;
-}
-
-
-
-message ListAgentsRequest {
-  string ns = 1;
-}
-
-message ListAgentsResponse {
-  repeated string agents = 1;
-}
-
-
-
-message ModifyAgentRequest {
-  string agent = 1;
-  string ns = 2;
-  reserved 3;
-  talon.resources.AgentSpec spec = 5;
-  map<string, string> labels = 4;
-}
-
 // ---------------------------------------------------------
 // Agent Knowledge Data Models
 // ---------------------------------------------------------
@@ -361,37 +254,6 @@ message SearchKnowledgeRequest {
 
 message SearchKnowledgeResponse {
   repeated talon.data.KnowledgeSearchResult results = 1;
-}
-
-message CreateNamespaceKnowledgeRequest {
-  string ns = 1;
-  talon.resources.Knowledge knowledge = 2;
-}
-
-message GetNamespaceKnowledgeRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListNamespaceKnowledgeRequest {
-  string ns = 1;
-}
-
-message DeleteNamespaceKnowledgeRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteNamespaceKnowledgeResponse {
-  bool success = 1;
-}
-
-message NamespaceKnowledgeResponse {
-  talon.resources.Knowledge knowledge = 1;
-}
-
-message ListNamespaceKnowledgeResponse {
-  repeated talon.resources.Knowledge knowledge = 1;
 }
 
 // ---------------------------------------------------------
@@ -486,43 +348,6 @@ message ClearSessionResponse {
   bool success = 1;
 }
 
-message CreateChannelRequest {
-  string ns = 1;
-  talon.resources.Channel channel = 2;
-}
-
-message GetChannelRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ModifyChannelRequest {
-  string ns = 1;
-  string name = 2;
-  talon.resources.Channel channel = 3;
-}
-
-message ListChannelsRequest {
-  string ns = 1;
-}
-
-message DeleteChannelRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ChannelResponse {
-  talon.resources.Channel channel = 1;
-}
-
-message ListChannelsResponse {
-  repeated talon.resources.Channel channels = 1;
-}
-
-message DeleteChannelResponse {
-  bool success = 1;
-}
-
 message PostChannelMessageRequest {
   string ns = 1;
   string channel = 2;
@@ -569,115 +394,9 @@ message ListChannelMessagesResponse {
   optional string next_before_message_id = 3;
 }
 
-message CreateChannelSubscriptionRequest {
-  string ns = 1;
-  string channel = 2;
-  talon.resources.ChannelSubscription subscription = 3;
-}
-
-message GetChannelSubscriptionRequest {
-  string ns = 1;
-  string channel = 2;
-  string name = 3;
-}
-
-message ModifyChannelSubscriptionRequest {
-  string ns = 1;
-  string channel = 2;
-  string name = 3;
-  talon.resources.ChannelSubscription subscription = 4;
-}
-
-message ListChannelSubscriptionsRequest {
-  string ns = 1;
-  string channel = 2;
-}
-
-message DeleteChannelSubscriptionRequest {
-  string ns = 1;
-  string channel = 2;
-  string name = 3;
-}
-
-message ChannelSubscriptionResponse {
-  talon.resources.ChannelSubscription subscription = 1;
-}
-
-message ListChannelSubscriptionsResponse {
-  repeated talon.resources.ChannelSubscription subscriptions = 1;
-}
-
-message DeleteChannelSubscriptionResponse {
-  bool success = 1;
-}
-
 message StreamChannelEventsRequest {
   string ns = 1;
   string channel = 2;
-}
-
-message CreateScheduleRequest {
-  string ns = 1;
-  talon.resources.Schedule schedule = 2;
-}
-
-message GetScheduleRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ModifyScheduleRequest {
-  string ns = 1;
-  string name = 2;
-  talon.resources.Schedule schedule = 3;
-}
-
-message ListSchedulesRequest {
-  string ns = 1;
-}
-
-message ListSchedulesResponse {
-  repeated talon.resources.Schedule schedules = 1;
-}
-
-message DeleteScheduleRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteScheduleResponse {
-  bool success = 1;
-}
-
-message CreateWorkflowRequest {
-  string ns = 1;
-  talon.resources.Workflow workflow = 2;
-}
-
-message GetWorkflowRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListWorkflowsRequest {
-  string ns = 1;
-}
-
-message DeleteWorkflowRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message WorkflowResponse {
-  talon.resources.Workflow workflow = 1;
-}
-
-message ListWorkflowsResponse {
-  repeated talon.resources.Workflow workflows = 1;
-}
-
-message DeleteWorkflowResponse {
-  bool success = 1;
 }
 
 message CreateWorkflowRunRequest {
@@ -729,10 +448,6 @@ message ListWorkflowRunsResponse {
   repeated talon.data.WorkflowRun runs = 1;
   bool has_more = 2;
   string next_before_run_id = 3;
-}
-
-message ScheduleResponse {
-  talon.resources.Schedule schedule = 1;
 }
 
 // ---------------------------------------------------------

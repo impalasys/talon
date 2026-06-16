@@ -22,7 +22,7 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-from proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
+from talon_client.proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n proto/resources/namespaces.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\x9c\x01\n\tNamespace\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12,\n\x04spec\x18\x02 \x01(\x0b\x32\x1e.talon.resources.NamespaceSpec\x12\x30\n\x06status\x18\x03 \x01(\x0b\x32 .talon.resources.NamespaceStatus\"\x1f\n\rNamespaceSpec\x12\x0e\n\x06parent\x18\x01 \x01(\t\"\x9d\x01\n\x0fNamespaceStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12\x12\n\nis_deleted\x18\x04 \x01(\x08\x12\x12\n\ndeleted_at\x18\x05 \x01(\x03\x62\x06proto3')

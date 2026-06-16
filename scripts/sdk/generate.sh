@@ -135,8 +135,11 @@ text = path.read_text()
 
 
 def strip_region(source: str, start_marker: str, end_marker: str) -> str:
-    start = source.index(start_marker)
-    end = source.index(end_marker, start)
+    try:
+        start = source.index(start_marker)
+        end = source.index(end_marker, start)
+    except ValueError:
+        return source
     region = source[start:end]
     stripped = "\n".join(line.rstrip() for line in region.splitlines())
     if region.endswith("\n"):
@@ -219,6 +222,12 @@ root = Path("sdk/python/talon-client/src/talon_client")
 for path in root.rglob("*_pb2*.py"):
     text = path.read_text()
     text = text.replace("from proto import ", "from talon_client.proto import ")
+    text = text.replace("from proto.data import ", "from talon_client.proto.data import ")
+    text = text.replace("from proto.resources import ", "from talon_client.proto.resources import ")
+    text = text.replace("import proto.gateway_pb2 as ", "import talon_client.proto.gateway_pb2 as ")
+    text = text.replace("import proto.events_pb2 as ", "import talon_client.proto.events_pb2 as ")
+    text = text.replace("import proto.data.data_pb2 as ", "import talon_client.proto.data.data_pb2 as ")
+    text = text.replace("import proto.resources.", "import talon_client.proto.resources.")
     text = text.replace("from google.api import ", "from talon_client.google.api import ")
     path.write_text(text)
 PY

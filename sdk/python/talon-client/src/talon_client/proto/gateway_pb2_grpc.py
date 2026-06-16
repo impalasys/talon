@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from proto.data import data_pb2 as proto_dot_data_dot_data__pb2
+from talon_client.proto.data import data_pb2 as proto_dot_data_dot_data__pb2
 from talon_client.proto import events_pb2 as proto_dot_events__pb2
 from talon_client.proto import gateway_pb2 as proto_dot_gateway__pb2
 

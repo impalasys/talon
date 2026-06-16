@@ -8,11 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 final class GeneratedTypesTest {
     @Test
     void generatedGatewayTypesAreAvailable() {
-        Gateway.ListAgentsRequest request = Gateway.ListAgentsRequest.newBuilder()
+        Gateway.ListResourcesRequest request = Gateway.ListResourcesRequest.newBuilder()
             .setNs("default")
+            .setKind("Agent")
             .build();
 
         assertEquals("default", request.getNs());
+        assertEquals("Agent", request.getKind());
     }
 }
-

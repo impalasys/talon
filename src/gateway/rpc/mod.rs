@@ -6,15 +6,10 @@ use std::sync::Arc;
 
 use std::pin::Pin;
 
-pub mod agents;
 pub mod channels;
 pub mod knowledge;
-pub mod knowledge_resources;
-pub mod mcp_bindings;
-pub mod mcp_servers;
 pub mod namespaces;
 pub mod resources;
-pub mod schedules;
 pub mod sessions;
 pub mod workflows;
 

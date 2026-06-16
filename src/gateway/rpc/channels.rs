@@ -9,7 +9,7 @@ use crate::control::scheduling;
 use crate::control::topics;
 use crate::control::{events, keys, ControlPlane, KeyValueStore};
 use crate::control::{MessagePublisher, ProtoKeyValueStoreExt};
-use futures::{stream, StreamExt, TryStreamExt};
+use futures::StreamExt;
 use prost::Message;
 use std::collections::{HashMap, HashSet};
 
@@ -18,8 +18,6 @@ const MAX_CHANNEL_MESSAGES_LIMIT: usize = 200;
 const DEFAULT_CHANNEL_CONTEXT_MESSAGES: usize = 20;
 const MAX_CHANNEL_CONTEXT_MESSAGES: usize = 50;
 const CHANNEL_TIMESTAMP_CAS_RETRIES: usize = 8;
-const CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE: usize = 512;
-const CHANNEL_DELETE_DESCENDANTS_CONCURRENCY: usize = 32;
 const MAX_RESOURCE_NAME_LEN: usize = 253;
 
 pub const LABEL_CHANNEL: &str = "talon.impalasys.com/channel";
@@ -28,36 +26,6 @@ const LABEL_CHANNEL_SUBSCRIPTION: &str = "talon.impalasys.com/channel-subscripti
 const LABEL_CHANNEL_TRIGGER: &str = "talon.impalasys.com/channel-trigger";
 pub const LABEL_CHANNEL_REPLY_MODE: &str = "talon.impalasys.com/channel-reply-mode";
 const LABEL_MESSAGE_SOURCE: &str = "talon.impalasys.com/message-source";
-
-async fn delete_descendants(kv: &dyn KeyValueStore, ns: &str, channel: &str) -> anyhow::Result<()> {
-    delete_descendant_list(kv, &keys::channel_message_prefix(ns, channel)).await?;
-    delete_descendant_list(kv, &keys::channel_subscription_prefix(ns, channel)).await?;
-    Ok(())
-}
-
-async fn delete_descendant_list(
-    kv: &dyn KeyValueStore,
-    list: &keys::ResourceList,
-) -> anyhow::Result<()> {
-    loop {
-        let children = kv
-            .list_keys_page(list, None, CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE)
-            .await?;
-        if children.is_empty() {
-            break;
-        }
-        let child_count = children.len();
-        stream::iter(children)
-            .map(|child| async move { kv.delete(&child).await })
-            .buffer_unordered(CHANNEL_DELETE_DESCENDANTS_CONCURRENCY)
-            .try_collect::<Vec<_>>()
-            .await?;
-        if child_count < CHANNEL_DELETE_DESCENDANTS_PAGE_SIZE {
-            break;
-        }
-    }
-    Ok(())
-}
 
 fn validate_resource_name(kind: &str, name: &str) -> Result<(), tonic::Status> {
     if name.trim().is_empty() {
@@ -114,17 +82,6 @@ fn normalize_trigger(trigger: &str) -> Result<String, tonic::Status> {
         "mention" | "manual" | "all" | "routed" | "disabled" => Ok(trigger),
         other => Err(tonic::Status::invalid_argument(format!(
             "channel subscription trigger must be mention, manual, all, routed, or disabled; got {other}"
-        ))),
-    }
-}
-
-fn normalize_reply_mode(reply_mode: &str) -> Result<String, tonic::Status> {
-    let reply_mode = reply_mode.trim().to_ascii_lowercase();
-    match reply_mode.as_str() {
-        "" => Ok("tool".to_string()),
-        "tool" | "none" => Ok(reply_mode),
-        other => Err(tonic::Status::invalid_argument(format!(
-            "channel subscription replyMode must be tool or none; got {other}"
         ))),
     }
 }
@@ -376,146 +333,6 @@ pub async fn skip_channel_reply_from_session(
 }
 
 impl GrpcGatewayHandler {
-    pub async fn handle_create_channel(
-        &self,
-        req: tonic::Request<proto::CreateChannelRequest>,
-    ) -> Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        let mut channel = req
-            .channel
-            .ok_or_else(|| tonic::Status::invalid_argument("channel is required"))?;
-        channel.set_namespace(req.ns.clone());
-        validate_resource_name("channel", &channel.name())?;
-        if channel.phase().is_empty() {
-            channel.set_phase("open");
-        }
-        let now = chrono::Utc::now().timestamp_micros();
-        channel.set_created_at(now);
-        channel.set_updated_at(now);
-        let key = keys::channel(&req.ns, &channel.name());
-        if self
-            .gateway
-            .kv
-            .get_msg::<resources_proto::Channel>(&key)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to check channel: {e}")))?
-            .is_some()
-        {
-            return Err(tonic::Status::already_exists("channel already exists"));
-        }
-        self.gateway
-            .kv
-            .set_msg(&key, &channel)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to save channel: {e}")))?;
-        Ok(tonic::Response::new(proto::ChannelResponse {
-            channel: Some(channel),
-        }))
-    }
-
-    pub async fn handle_get_channel(
-        &self,
-        req: tonic::Request<proto::GetChannelRequest>,
-    ) -> Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        validate_resource_name("channel", &req.name)?;
-        let channel = self
-            .gateway
-            .kv
-            .get_msg::<resources_proto::Channel>(&keys::channel(&req.ns, &req.name))
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to load channel: {e}")))?
-            .ok_or_else(|| tonic::Status::not_found("channel not found"))?;
-        Ok(tonic::Response::new(proto::ChannelResponse {
-            channel: Some(channel),
-        }))
-    }
-
-    pub async fn handle_modify_channel(
-        &self,
-        req: tonic::Request<proto::ModifyChannelRequest>,
-    ) -> Result<tonic::Response<proto::ChannelResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        validate_resource_name("channel", &req.name)?;
-        let key = keys::channel(&req.ns, &req.name);
-        let existing = self
-            .gateway
-            .kv
-            .get_msg::<resources_proto::Channel>(&key)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to load channel: {e}")))?
-            .ok_or_else(|| tonic::Status::not_found("channel not found"))?;
-        let mut channel = req
-            .channel
-            .ok_or_else(|| tonic::Status::invalid_argument("channel is required"))?;
-        channel.set_namespace(req.ns.clone());
-        channel.set_name(req.name.clone());
-        channel.set_created_at(existing.created_at());
-        channel.set_updated_at(chrono::Utc::now().timestamp_micros());
-        if channel.phase().is_empty() {
-            channel.set_phase("open");
-        }
-        self.gateway
-            .kv
-            .set_msg(&key, &channel)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to save channel: {e}")))?;
-        Ok(tonic::Response::new(proto::ChannelResponse {
-            channel: Some(channel),
-        }))
-    }
-
-    pub async fn handle_list_channels(
-        &self,
-        req: tonic::Request<proto::ListChannelsRequest>,
-    ) -> Result<tonic::Response<proto::ListChannelsResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        let mut entries = self
-            .gateway
-            .kv
-            .list_entries(&keys::channel_prefix(&req.ns))
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to list channels: {e}")))?;
-        entries.sort_by(|a, b| a.0.cmp(&b.0));
-        let mut channels = Vec::new();
-        for (_, value) in entries {
-            channels.push(
-                resources_proto::Channel::decode(value.as_slice()).map_err(|e| {
-                    tonic::Status::internal(format!("failed to decode channel: {e}"))
-                })?,
-            );
-        }
-        Ok(tonic::Response::new(proto::ListChannelsResponse {
-            channels,
-        }))
-    }
-
-    pub async fn handle_delete_channel(
-        &self,
-        req: tonic::Request<proto::DeleteChannelRequest>,
-    ) -> Result<tonic::Response<proto::DeleteChannelResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        validate_resource_name("channel", &req.name)?;
-        self.gateway
-            .kv
-            .delete(&keys::channel(&req.ns, &req.name))
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to delete channel: {e}")))?;
-        delete_descendants(self.gateway.kv.as_ref(), &req.ns, &req.name)
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("failed to delete channel descendants: {e}"))
-            })?;
-        Ok(tonic::Response::new(proto::DeleteChannelResponse {
-            success: true,
-        }))
-    }
-
     pub async fn handle_post_channel_message(
         &self,
         req: tonic::Request<proto::PostChannelMessageRequest>,
@@ -690,143 +507,6 @@ impl GrpcGatewayHandler {
         }))
     }
 
-    pub async fn handle_create_channel_subscription(
-        &self,
-        req: tonic::Request<proto::CreateChannelSubscriptionRequest>,
-    ) -> Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        validate_resource_name("channel", &req.channel)?;
-        let mut subscription = req
-            .subscription
-            .ok_or_else(|| tonic::Status::invalid_argument("subscription is required"))?;
-        subscription.set_namespace(req.ns.clone());
-        subscription.spec_mut().channel = req.channel.clone();
-        validate_subscription(self, &mut subscription).await?;
-        let key = keys::channel_subscription(&req.ns, &req.channel, subscription.name());
-        if self
-            .gateway
-            .kv
-            .get_msg::<resources_proto::ChannelSubscription>(&key)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to check subscription: {e}")))?
-            .is_some()
-        {
-            return Err(tonic::Status::already_exists(
-                "channel subscription already exists",
-            ));
-        }
-        self.gateway
-            .kv
-            .set_msg(&key, &subscription)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to save subscription: {e}")))?;
-        Ok(tonic::Response::new(proto::ChannelSubscriptionResponse {
-            subscription: Some(subscription),
-        }))
-    }
-
-    pub async fn handle_get_channel_subscription(
-        &self,
-        req: tonic::Request<proto::GetChannelSubscriptionRequest>,
-    ) -> Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        validate_resource_name("channel", &req.channel)?;
-        validate_resource_name("channel subscription", &req.name)?;
-        let subscription = self
-            .gateway
-            .kv
-            .get_msg::<resources_proto::ChannelSubscription>(&keys::channel_subscription(
-                &req.ns,
-                &req.channel,
-                &req.name,
-            ))
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to load subscription: {e}")))?
-            .ok_or_else(|| tonic::Status::not_found("channel subscription not found"))?;
-        Ok(tonic::Response::new(proto::ChannelSubscriptionResponse {
-            subscription: Some(subscription),
-        }))
-    }
-
-    pub async fn handle_modify_channel_subscription(
-        &self,
-        req: tonic::Request<proto::ModifyChannelSubscriptionRequest>,
-    ) -> Result<tonic::Response<proto::ChannelSubscriptionResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        validate_resource_name("channel", &req.channel)?;
-        validate_resource_name("channel subscription", &req.name)?;
-        let mut subscription = req
-            .subscription
-            .ok_or_else(|| tonic::Status::invalid_argument("subscription is required"))?;
-        subscription.set_namespace(req.ns.clone());
-        subscription.spec_mut().channel = req.channel.clone();
-        subscription.set_name(req.name.clone());
-        validate_subscription(self, &mut subscription).await?;
-        self.gateway
-            .kv
-            .set_msg(
-                &keys::channel_subscription(&req.ns, &req.channel, &req.name),
-                &subscription,
-            )
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to save subscription: {e}")))?;
-        Ok(tonic::Response::new(proto::ChannelSubscriptionResponse {
-            subscription: Some(subscription),
-        }))
-    }
-
-    pub async fn handle_list_channel_subscriptions(
-        &self,
-        req: tonic::Request<proto::ListChannelSubscriptionsRequest>,
-    ) -> Result<tonic::Response<proto::ListChannelSubscriptionsResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        validate_resource_name("channel", &req.channel)?;
-        let mut entries = self
-            .gateway
-            .kv
-            .list_entries(&keys::channel_subscription_prefix(&req.ns, &req.channel))
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to list subscriptions: {e}")))?;
-        entries.sort_by(|a, b| a.0.cmp(&b.0));
-        let mut subscriptions = Vec::new();
-        for (_, value) in entries {
-            subscriptions.push(
-                resources_proto::ChannelSubscription::decode(value.as_slice()).map_err(|e| {
-                    tonic::Status::internal(format!("failed to decode subscription: {e}"))
-                })?,
-            );
-        }
-        Ok(tonic::Response::new(
-            proto::ListChannelSubscriptionsResponse { subscriptions },
-        ))
-    }
-
-    pub async fn handle_delete_channel_subscription(
-        &self,
-        req: tonic::Request<proto::DeleteChannelSubscriptionRequest>,
-    ) -> Result<tonic::Response<proto::DeleteChannelSubscriptionResponse>, tonic::Status> {
-        crate::require_auth!(self, req, &req.get_ref().ns);
-        let req = req.into_inner();
-        validate_resource_name("channel", &req.channel)?;
-        validate_resource_name("channel subscription", &req.name)?;
-        self.gateway
-            .kv
-            .delete(&keys::channel_subscription(
-                &req.ns,
-                &req.channel,
-                &req.name,
-            ))
-            .await
-            .map_err(|e| tonic::Status::internal(format!("failed to delete subscription: {e}")))?;
-        Ok(tonic::Response::new(
-            proto::DeleteChannelSubscriptionResponse { success: true },
-        ))
-    }
-
     pub async fn handle_stream_channel_events(
         &self,
         req: tonic::Request<proto::StreamChannelEventsRequest>,
@@ -858,43 +538,6 @@ impl GrpcGatewayHandler {
             });
         Ok(tonic::Response::new(Box::pin(stream)))
     }
-}
-
-async fn validate_subscription(
-    handler: &GrpcGatewayHandler,
-    subscription: &mut resources_proto::ChannelSubscription,
-) -> Result<(), tonic::Status> {
-    validate_resource_name("channel subscription", subscription.name())?;
-    validate_resource_name("channel", subscription.channel())?;
-    validate_resource_name("agent", subscription.agent())?;
-    subscription.spec_mut().trigger = normalize_trigger(subscription.trigger())?;
-    subscription.spec_mut().reply_mode = normalize_reply_mode(subscription.reply_mode())?;
-    handler
-        .gateway
-        .kv
-        .get_msg::<resources_proto::Channel>(&keys::channel(
-            subscription.namespace(),
-            subscription.channel(),
-        ))
-        .await
-        .map_err(|e| tonic::Status::internal(format!("failed to load channel: {e}")))?
-        .ok_or_else(|| tonic::Status::not_found("channel not found"))?;
-    let store = crate::control::resources::ResourceStore::new(
-        handler.gateway.kv.clone(),
-        handler.gateway.pubsub.clone(),
-    );
-    store
-        .get_agent(subscription.namespace(), subscription.agent())
-        .await
-        .map_err(|e| tonic::Status::internal(format!("failed to load agent: {e}")))?
-        .ok_or_else(|| tonic::Status::not_found("agent not found"))?;
-    if subscription.context_policy().is_none() {
-        subscription.spec_mut().context_policy = Some(resources_proto::ChannelContextPolicy {
-            mode: "recent_public".to_string(),
-            max_messages: DEFAULT_CHANNEL_CONTEXT_MESSAGES as u32,
-        });
-    }
-    Ok(())
 }
 
 async fn route_channel_message(
