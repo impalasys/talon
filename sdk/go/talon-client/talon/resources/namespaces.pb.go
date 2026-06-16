@@ -23,11 +23,9 @@ const (
 
 type Namespace struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Parent        string                 `protobuf:"bytes,2,opt,name=parent,proto3" json:"parent,omitempty"`
-	IsDeleted     bool                   `protobuf:"varint,3,opt,name=is_deleted,json=isDeleted,proto3" json:"is_deleted,omitempty"`
-	DeletedAt     int64                  `protobuf:"varint,4,opt,name=deleted_at,json=deletedAt,proto3" json:"deleted_at,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *NamespaceSpec         `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *NamespaceStatus       `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -62,37 +60,23 @@ func (*Namespace) Descriptor() ([]byte, []int) {
 	return file_proto_resources_namespaces_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Namespace) GetName() string {
+func (x *Namespace) GetMetadata() *ResourceMeta {
 	if x != nil {
-		return x.Name
+		return x.Metadata
 	}
-	return ""
+	return nil
 }
 
-func (x *Namespace) GetParent() string {
+func (x *Namespace) GetSpec() *NamespaceSpec {
 	if x != nil {
-		return x.Parent
+		return x.Spec
 	}
-	return ""
+	return nil
 }
 
-func (x *Namespace) GetIsDeleted() bool {
+func (x *Namespace) GetStatus() *NamespaceStatus {
 	if x != nil {
-		return x.IsDeleted
-	}
-	return false
-}
-
-func (x *Namespace) GetDeletedAt() int64 {
-	if x != nil {
-		return x.DeletedAt
-	}
-	return 0
-}
-
-func (x *Namespace) GetLabels() map[string]string {
-	if x != nil {
-		return x.Labels
+		return x.Status
 	}
 	return nil
 }
@@ -221,18 +205,11 @@ var File_proto_resources_namespaces_proto protoreflect.FileDescriptor
 
 const file_proto_resources_namespaces_proto_rawDesc = "" +
 	"\n" +
-	" proto/resources/namespaces.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xf0\x01\n" +
-	"\tNamespace\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
-	"\x06parent\x18\x02 \x01(\tR\x06parent\x12\x1d\n" +
-	"\n" +
-	"is_deleted\x18\x03 \x01(\bR\tisDeleted\x12\x1d\n" +
-	"\n" +
-	"deleted_at\x18\x04 \x01(\x03R\tdeletedAt\x12>\n" +
-	"\x06labels\x18\x05 \x03(\v2&.talon.resources.Namespace.LabelsEntryR\x06labels\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"'\n" +
+	" proto/resources/namespaces.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xb4\x01\n" +
+	"\tNamespace\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1e.talon.resources.NamespaceSpecR\x04spec\x128\n" +
+	"\x06status\x18\x03 \x01(\v2 .talon.resources.NamespaceStatusR\x06status\"'\n" +
 	"\rNamespaceSpec\x12\x16\n" +
 	"\x06parent\x18\x01 \x01(\tR\x06parent\"\xda\x01\n" +
 	"\x0fNamespaceStatus\x12/\n" +
@@ -258,22 +235,24 @@ func file_proto_resources_namespaces_proto_rawDescGZIP() []byte {
 	return file_proto_resources_namespaces_proto_rawDescData
 }
 
-var file_proto_resources_namespaces_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_resources_namespaces_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_proto_resources_namespaces_proto_goTypes = []any{
 	(*Namespace)(nil),         // 0: talon.resources.Namespace
 	(*NamespaceSpec)(nil),     // 1: talon.resources.NamespaceSpec
 	(*NamespaceStatus)(nil),   // 2: talon.resources.NamespaceStatus
-	nil,                       // 3: talon.resources.Namespace.LabelsEntry
+	(*ResourceMeta)(nil),      // 3: talon.resources.ResourceMeta
 	(*ResourceCondition)(nil), // 4: talon.resources.ResourceCondition
 }
 var file_proto_resources_namespaces_proto_depIdxs = []int32{
-	3, // 0: talon.resources.Namespace.labels:type_name -> talon.resources.Namespace.LabelsEntry
-	4, // 1: talon.resources.NamespaceStatus.conditions:type_name -> talon.resources.ResourceCondition
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	3, // 0: talon.resources.Namespace.metadata:type_name -> talon.resources.ResourceMeta
+	1, // 1: talon.resources.Namespace.spec:type_name -> talon.resources.NamespaceSpec
+	2, // 2: talon.resources.Namespace.status:type_name -> talon.resources.NamespaceStatus
+	4, // 3: talon.resources.NamespaceStatus.conditions:type_name -> talon.resources.ResourceCondition
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_namespaces_proto_init() }
@@ -288,7 +267,7 @@ func file_proto_resources_namespaces_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_namespaces_proto_rawDesc), len(file_proto_resources_namespaces_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

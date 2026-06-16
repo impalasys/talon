@@ -31,58 +31,49 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string api_version = 1;</code>
-     * @return The apiVersion.
-     */
-    java.lang.String getApiVersion();
-    /**
-     * <code>string api_version = 1;</code>
-     * @return The bytes for apiVersion.
-     */
-    com.google.protobuf.ByteString
-        getApiVersionBytes();
-
-    /**
-     * <code>string kind = 2;</code>
-     * @return The kind.
-     */
-    java.lang.String getKind();
-    /**
-     * <code>string kind = 2;</code>
-     * @return The bytes for kind.
-     */
-    com.google.protobuf.ByteString
-        getKindBytes();
-
-    /**
-     * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return Whether the metadata field is set.
      */
     boolean hasMetadata();
     /**
-     * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return The metadata.
      */
     talon.resources.Common.ResourceMeta getMetadata();
     /**
-     * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      */
     talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
 
     /**
-     * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+     * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     boolean hasSpec();
     /**
-     * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+     * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
      * @return The spec.
      */
     talon.resources.KnowledgeOuterClass.KnowledgeSpec getSpec();
     /**
-     * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+     * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
      */
     talon.resources.KnowledgeOuterClass.KnowledgeSpecOrBuilder getSpecOrBuilder();
+
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    boolean hasStatus();
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return The status.
+     */
+    talon.resources.Common.CommonResourceStatus getStatus();
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     */
+    talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.Knowledge}
@@ -106,8 +97,6 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       super(builder);
     }
     private Knowledge() {
-      apiVersion_ = "";
-      kind_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -129,88 +118,10 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
     }
 
     private int bitField0_;
-    public static final int API_VERSION_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object apiVersion_ = "";
-    /**
-     * <code>string api_version = 1;</code>
-     * @return The apiVersion.
-     */
-    @java.lang.Override
-    public java.lang.String getApiVersion() {
-      java.lang.Object ref = apiVersion_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        apiVersion_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string api_version = 1;</code>
-     * @return The bytes for apiVersion.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getApiVersionBytes() {
-      java.lang.Object ref = apiVersion_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        apiVersion_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int KIND_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object kind_ = "";
-    /**
-     * <code>string kind = 2;</code>
-     * @return The kind.
-     */
-    @java.lang.Override
-    public java.lang.String getKind() {
-      java.lang.Object ref = kind_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        kind_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string kind = 2;</code>
-     * @return The bytes for kind.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getKindBytes() {
-      java.lang.Object ref = kind_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        kind_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int METADATA_FIELD_NUMBER = 3;
+    public static final int METADATA_FIELD_NUMBER = 1;
     private talon.resources.Common.ResourceMeta metadata_;
     /**
-     * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return Whether the metadata field is set.
      */
     @java.lang.Override
@@ -218,7 +129,7 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      * @return The metadata.
      */
     @java.lang.Override
@@ -226,17 +137,17 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
     }
     /**
-     * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
      */
     @java.lang.Override
     public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
       return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
     }
 
-    public static final int SPEC_FIELD_NUMBER = 4;
+    public static final int SPEC_FIELD_NUMBER = 2;
     private talon.resources.KnowledgeOuterClass.KnowledgeSpec spec_;
     /**
-     * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+     * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     @java.lang.Override
@@ -244,7 +155,7 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+     * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
      * @return The spec.
      */
     @java.lang.Override
@@ -252,11 +163,37 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       return spec_ == null ? talon.resources.KnowledgeOuterClass.KnowledgeSpec.getDefaultInstance() : spec_;
     }
     /**
-     * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+     * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
      */
     @java.lang.Override
     public talon.resources.KnowledgeOuterClass.KnowledgeSpecOrBuilder getSpecOrBuilder() {
       return spec_ == null ? talon.resources.KnowledgeOuterClass.KnowledgeSpec.getDefaultInstance() : spec_;
+    }
+
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private talon.resources.Common.CommonResourceStatus status_;
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    @java.lang.Override
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public talon.resources.Common.CommonResourceStatus getStatus() {
+      return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+    }
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder() {
+      return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -273,17 +210,14 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(apiVersion_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, apiVersion_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, kind_);
-      }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(3, getMetadata());
+        output.writeMessage(1, getMetadata());
       }
       if (((bitField0_ & 0x00000002) != 0)) {
-        output.writeMessage(4, getSpec());
+        output.writeMessage(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
       }
       getUnknownFields().writeTo(output);
     }
@@ -294,19 +228,17 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(apiVersion_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, apiVersion_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(kind_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, kind_);
-      }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getMetadata());
+          .computeMessageSize(1, getMetadata());
       }
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, getSpec());
+          .computeMessageSize(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getStatus());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -323,10 +255,6 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       }
       talon.resources.KnowledgeOuterClass.Knowledge other = (talon.resources.KnowledgeOuterClass.Knowledge) obj;
 
-      if (!getApiVersion()
-          .equals(other.getApiVersion())) return false;
-      if (!getKind()
-          .equals(other.getKind())) return false;
       if (hasMetadata() != other.hasMetadata()) return false;
       if (hasMetadata()) {
         if (!getMetadata()
@@ -336,6 +264,11 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       if (hasSpec()) {
         if (!getSpec()
             .equals(other.getSpec())) return false;
+      }
+      if (hasStatus() != other.hasStatus()) return false;
+      if (hasStatus()) {
+        if (!getStatus()
+            .equals(other.getStatus())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -348,10 +281,6 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + API_VERSION_FIELD_NUMBER;
-      hash = (53 * hash) + getApiVersion().hashCode();
-      hash = (37 * hash) + KIND_FIELD_NUMBER;
-      hash = (53 * hash) + getKind().hashCode();
       if (hasMetadata()) {
         hash = (37 * hash) + METADATA_FIELD_NUMBER;
         hash = (53 * hash) + getMetadata().hashCode();
@@ -359,6 +288,10 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       if (hasSpec()) {
         hash = (37 * hash) + SPEC_FIELD_NUMBER;
         hash = (53 * hash) + getSpec().hashCode();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + getStatus().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -492,14 +425,13 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
                 .alwaysUseFieldBuilders) {
           internalGetMetadataFieldBuilder();
           internalGetSpecFieldBuilder();
+          internalGetStatusFieldBuilder();
         }
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        apiVersion_ = "";
-        kind_ = "";
         metadata_ = null;
         if (metadataBuilder_ != null) {
           metadataBuilder_.dispose();
@@ -509,6 +441,11 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         if (specBuilder_ != null) {
           specBuilder_.dispose();
           specBuilder_ = null;
+        }
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
         }
         return this;
       }
@@ -543,24 +480,24 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
 
       private void buildPartial0(talon.resources.KnowledgeOuterClass.Knowledge result) {
         int from_bitField0_ = bitField0_;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.apiVersion_ = apiVersion_;
-        }
-        if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.kind_ = kind_;
-        }
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (((from_bitField0_ & 0x00000001) != 0)) {
           result.metadata_ = metadataBuilder_ == null
               ? metadata_
               : metadataBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
+        if (((from_bitField0_ & 0x00000002) != 0)) {
           result.spec_ = specBuilder_ == null
               ? spec_
               : specBuilder_.build();
           to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.status_ = statusBuilder_ == null
+              ? status_
+              : statusBuilder_.build();
+          to_bitField0_ |= 0x00000004;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -577,21 +514,14 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
 
       public Builder mergeFrom(talon.resources.KnowledgeOuterClass.Knowledge other) {
         if (other == talon.resources.KnowledgeOuterClass.Knowledge.getDefaultInstance()) return this;
-        if (!other.getApiVersion().isEmpty()) {
-          apiVersion_ = other.apiVersion_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getKind().isEmpty()) {
-          kind_ = other.kind_;
-          bitField0_ |= 0x00000002;
-          onChanged();
-        }
         if (other.hasMetadata()) {
           mergeMetadata(other.getMetadata());
         }
         if (other.hasSpec()) {
           mergeSpec(other.getSpec());
+        }
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -620,29 +550,26 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
                 done = true;
                 break;
               case 10: {
-                apiVersion_ = input.readStringRequireUtf8();
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
               case 18: {
-                kind_ = input.readStringRequireUtf8();
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
               case 26: {
                 input.readMessage(
-                    internalGetMetadataFieldBuilder().getBuilder(),
+                    internalGetStatusFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
-              case 34: {
-                input.readMessage(
-                    internalGetSpecFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -660,162 +587,18 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       }
       private int bitField0_;
 
-      private java.lang.Object apiVersion_ = "";
-      /**
-       * <code>string api_version = 1;</code>
-       * @return The apiVersion.
-       */
-      public java.lang.String getApiVersion() {
-        java.lang.Object ref = apiVersion_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          apiVersion_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string api_version = 1;</code>
-       * @return The bytes for apiVersion.
-       */
-      public com.google.protobuf.ByteString
-          getApiVersionBytes() {
-        java.lang.Object ref = apiVersion_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          apiVersion_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string api_version = 1;</code>
-       * @param value The apiVersion to set.
-       * @return This builder for chaining.
-       */
-      public Builder setApiVersion(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        apiVersion_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string api_version = 1;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearApiVersion() {
-        apiVersion_ = getDefaultInstance().getApiVersion();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string api_version = 1;</code>
-       * @param value The bytes for apiVersion to set.
-       * @return This builder for chaining.
-       */
-      public Builder setApiVersionBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        apiVersion_ = value;
-        bitField0_ |= 0x00000001;
-        onChanged();
-        return this;
-      }
-
-      private java.lang.Object kind_ = "";
-      /**
-       * <code>string kind = 2;</code>
-       * @return The kind.
-       */
-      public java.lang.String getKind() {
-        java.lang.Object ref = kind_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          kind_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>string kind = 2;</code>
-       * @return The bytes for kind.
-       */
-      public com.google.protobuf.ByteString
-          getKindBytes() {
-        java.lang.Object ref = kind_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          kind_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>string kind = 2;</code>
-       * @param value The kind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setKind(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        kind_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string kind = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearKind() {
-        kind_ = getDefaultInstance().getKind();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string kind = 2;</code>
-       * @param value The bytes for kind to set.
-       * @return This builder for chaining.
-       */
-      public Builder setKindBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        kind_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-
       private talon.resources.Common.ResourceMeta metadata_;
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        * @return Whether the metadata field is set.
        */
       public boolean hasMetadata() {
-        return ((bitField0_ & 0x00000004) != 0);
+        return ((bitField0_ & 0x00000001) != 0);
       }
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        * @return The metadata.
        */
       public talon.resources.Common.ResourceMeta getMetadata() {
@@ -826,7 +609,7 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         }
       }
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
         if (metadataBuilder_ == null) {
@@ -837,12 +620,12 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         } else {
           metadataBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder setMetadata(
           talon.resources.Common.ResourceMeta.Builder builderForValue) {
@@ -851,16 +634,16 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         } else {
           metadataBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
         if (metadataBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) != 0) &&
+          if (((bitField0_ & 0x00000001) != 0) &&
             metadata_ != null &&
             metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
             getMetadataBuilder().mergeFrom(value);
@@ -871,16 +654,16 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
           metadataBuilder_.mergeFrom(value);
         }
         if (metadata_ != null) {
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000001;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public Builder clearMetadata() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000001);
         metadata_ = null;
         if (metadataBuilder_ != null) {
           metadataBuilder_.dispose();
@@ -890,15 +673,15 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         return this;
       }
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000001;
         onChanged();
         return internalGetMetadataFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
         if (metadataBuilder_ != null) {
@@ -909,7 +692,7 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         }
       }
       /**
-       * <code>.talon.resources.ResourceMeta metadata = 3;</code>
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
@@ -929,14 +712,14 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.KnowledgeOuterClass.KnowledgeSpec, talon.resources.KnowledgeOuterClass.KnowledgeSpec.Builder, talon.resources.KnowledgeOuterClass.KnowledgeSpecOrBuilder> specBuilder_;
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        * @return Whether the spec field is set.
        */
       public boolean hasSpec() {
-        return ((bitField0_ & 0x00000008) != 0);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        * @return The spec.
        */
       public talon.resources.KnowledgeOuterClass.KnowledgeSpec getSpec() {
@@ -947,7 +730,7 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         }
       }
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        */
       public Builder setSpec(talon.resources.KnowledgeOuterClass.KnowledgeSpec value) {
         if (specBuilder_ == null) {
@@ -958,12 +741,12 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         } else {
           specBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        */
       public Builder setSpec(
           talon.resources.KnowledgeOuterClass.KnowledgeSpec.Builder builderForValue) {
@@ -972,16 +755,16 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         } else {
           specBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        */
       public Builder mergeSpec(talon.resources.KnowledgeOuterClass.KnowledgeSpec value) {
         if (specBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) != 0) &&
+          if (((bitField0_ & 0x00000002) != 0) &&
             spec_ != null &&
             spec_ != talon.resources.KnowledgeOuterClass.KnowledgeSpec.getDefaultInstance()) {
             getSpecBuilder().mergeFrom(value);
@@ -992,16 +775,16 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
           specBuilder_.mergeFrom(value);
         }
         if (spec_ != null) {
-          bitField0_ |= 0x00000008;
+          bitField0_ |= 0x00000002;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        */
       public Builder clearSpec() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000002);
         spec_ = null;
         if (specBuilder_ != null) {
           specBuilder_.dispose();
@@ -1011,15 +794,15 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         return this;
       }
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        */
       public talon.resources.KnowledgeOuterClass.KnowledgeSpec.Builder getSpecBuilder() {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000002;
         onChanged();
         return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        */
       public talon.resources.KnowledgeOuterClass.KnowledgeSpecOrBuilder getSpecOrBuilder() {
         if (specBuilder_ != null) {
@@ -1030,7 +813,7 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
         }
       }
       /**
-       * <code>.talon.resources.KnowledgeSpec spec = 4;</code>
+       * <code>.talon.resources.KnowledgeSpec spec = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.KnowledgeOuterClass.KnowledgeSpec, talon.resources.KnowledgeOuterClass.KnowledgeSpec.Builder, talon.resources.KnowledgeOuterClass.KnowledgeSpecOrBuilder>
@@ -1044,6 +827,127 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
           spec_ = null;
         }
         return specBuilder_;
+      }
+
+      private talon.resources.Common.CommonResourceStatus status_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder> statusBuilder_;
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       * @return Whether the status field is set.
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       * @return The status.
+       */
+      public talon.resources.Common.CommonResourceStatus getStatus() {
+        if (statusBuilder_ == null) {
+          return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder setStatus(talon.resources.Common.CommonResourceStatus value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+        } else {
+          statusBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder setStatus(
+          talon.resources.Common.CommonResourceStatus.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder mergeStatus(talon.resources.Common.CommonResourceStatus value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            status_ != null &&
+            status_ != talon.resources.Common.CommonResourceStatus.getDefaultInstance()) {
+            getStatusBuilder().mergeFrom(value);
+          } else {
+            status_ = value;
+          }
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        if (status_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder clearStatus() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public talon.resources.Common.CommonResourceStatus.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetStatusFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_ == null ?
+              talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+        }
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>
+          internalGetStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>(
+                  getStatus(),
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
+        }
+        return statusBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.Knowledge)
@@ -1781,11 +1685,12 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
     java.lang.String[] descriptorData = {
       "\n\037proto/resources/knowledge.proto\022\017talon" +
       ".resources\032\034proto/resources/common.proto" +
-      "\"\215\001\n\tKnowledge\022\023\n\013api_version\030\001 \001(\t\022\014\n\004k" +
-      "ind\030\002 \001(\t\022/\n\010metadata\030\003 \001(\0132\035.talon.reso" +
-      "urces.ResourceMeta\022,\n\004spec\030\004 \001(\0132\036.talon" +
-      ".resources.KnowledgeSpec\".\n\rKnowledgeSpe" +
-      "c\022\014\n\004path\030\001 \001(\t\022\017\n\007content\030\002 \001(\tb\006proto3"
+      "\"\241\001\n\tKnowledge\022/\n\010metadata\030\001 \001(\0132\035.talon" +
+      ".resources.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036." +
+      "talon.resources.KnowledgeSpec\0225\n\006status\030" +
+      "\003 \001(\0132%.talon.resources.CommonResourceSt" +
+      "atus\".\n\rKnowledgeSpec\022\014\n\004path\030\001 \001(\t\022\017\n\007c" +
+      "ontent\030\002 \001(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -1797,7 +1702,7 @@ public final class KnowledgeOuterClass extends com.google.protobuf.GeneratedFile
     internal_static_talon_resources_Knowledge_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_Knowledge_descriptor,
-        new java.lang.String[] { "ApiVersion", "Kind", "Metadata", "Spec", });
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
     internal_static_talon_resources_KnowledgeSpec_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_talon_resources_KnowledgeSpec_fieldAccessorTable = new

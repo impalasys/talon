@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ResourceMeta } from "./common_pb";
+import type { CommonResourceStatus, ResourceMeta } from "./common_pb";
 import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,31 +12,26 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/mcp.proto.
  */
 export const file_proto_resources_mcp: GenFile = /*@__PURE__*/
-  fileDesc("Chlwcm90by9yZXNvdXJjZXMvbWNwLnByb3RvEg90YWxvbi5yZXNvdXJjZXMijQEKCU1jcFNlcnZlchITCgthcGlfdmVyc2lvbhgBIAEoCRIMCgRraW5kGAIgASgJEi8KCG1ldGFkYXRhGAMgASgLMh0udGFsb24ucmVzb3VyY2VzLlJlc291cmNlTWV0YRIsCgRzcGVjGAQgASgLMh4udGFsb24ucmVzb3VyY2VzLk1jcFNlcnZlclNwZWMiwAEKDU1jcFNlcnZlclNwZWMSEQoJdHJhbnNwb3J0GAEgASgJEg4KBnRhcmdldBgCIAEoCRIMCgRhcmdzGAMgAygJEjwKB2hlYWRlcnMYBCADKAsyKy50YWxvbi5yZXNvdXJjZXMuTWNwU2VydmVyU3BlYy5IZWFkZXJzRW50cnkSEAoIZGlzYWJsZWQYBSABKAgaLgoMSGVhZGVyc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEimwEKEE1jcFNlcnZlckJpbmRpbmcSEwoLYXBpX3ZlcnNpb24YASABKAkSDAoEa2luZBgCIAEoCRIvCghtZXRhZGF0YRgDIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESMwoEc3BlYxgEIAEoCzIlLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJCaW5kaW5nU3BlYyKUAgoUTWNwU2VydmVyQmluZGluZ1NwZWMSEgoKc2VydmVyX3JlZhgBIAEoCRIMCgRhcmdzGAIgAygJEkMKB2hlYWRlcnMYAyADKAsyMi50YWxvbi5yZXNvdXJjZXMuTWNwU2VydmVyQmluZGluZ1NwZWMuSGVhZGVyc0VudHJ5EhAKCGRpc2FibGVkGAQgASgIEjcKC2F1dGhfYnJva2VyGAUgASgLMiIudGFsb24ucmVzb3VyY2VzLk1jcEF1dGhCcm9rZXJTcGVjEhoKEmFsbG93ZWRfdG9vbF9uYW1lcxgGIAMoCRouCgxIZWFkZXJzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJbChFNY3BBdXRoQnJva2VyU3BlYxIMCgRraW5kGAEgASgJEgsKA3VybBgCIAEoCRIZChFjYWNoZV90dGxfc2Vjb25kcxgDIAEoBRIQCghhdWRpZW5jZRgEIAEoCWIGcHJvdG8z", [file_proto_resources_common]);
+  fileDesc("Chlwcm90by9yZXNvdXJjZXMvbWNwLnByb3RvEg90YWxvbi5yZXNvdXJjZXMioQEKCU1jcFNlcnZlchIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESLAoEc3BlYxgCIAEoCzIeLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJTcGVjEjUKBnN0YXR1cxgDIAEoCzIlLnRhbG9uLnJlc291cmNlcy5Db21tb25SZXNvdXJjZVN0YXR1cyLAAQoNTWNwU2VydmVyU3BlYxIRCgl0cmFuc3BvcnQYASABKAkSDgoGdGFyZ2V0GAIgASgJEgwKBGFyZ3MYAyADKAkSPAoHaGVhZGVycxgEIAMoCzIrLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJTcGVjLkhlYWRlcnNFbnRyeRIQCghkaXNhYmxlZBgFIAEoCBouCgxIZWFkZXJzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASKvAQoQTWNwU2VydmVyQmluZGluZxIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESMwoEc3BlYxgCIAEoCzIlLnRhbG9uLnJlc291cmNlcy5NY3BTZXJ2ZXJCaW5kaW5nU3BlYxI1CgZzdGF0dXMYAyABKAsyJS50YWxvbi5yZXNvdXJjZXMuQ29tbW9uUmVzb3VyY2VTdGF0dXMilAIKFE1jcFNlcnZlckJpbmRpbmdTcGVjEhIKCnNlcnZlcl9yZWYYASABKAkSDAoEYXJncxgCIAMoCRJDCgdoZWFkZXJzGAMgAygLMjIudGFsb24ucmVzb3VyY2VzLk1jcFNlcnZlckJpbmRpbmdTcGVjLkhlYWRlcnNFbnRyeRIQCghkaXNhYmxlZBgEIAEoCBI3CgthdXRoX2Jyb2tlchgFIAEoCzIiLnRhbG9uLnJlc291cmNlcy5NY3BBdXRoQnJva2VyU3BlYxIaChJhbGxvd2VkX3Rvb2xfbmFtZXMYBiADKAkaLgoMSGVhZGVyc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEiWwoRTWNwQXV0aEJyb2tlclNwZWMSDAoEa2luZBgBIAEoCRILCgN1cmwYAiABKAkSGQoRY2FjaGVfdHRsX3NlY29uZHMYAyABKAUSEAoIYXVkaWVuY2UYBCABKAliBnByb3RvMw", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.McpServer
  */
 export type McpServer = Message<"talon.resources.McpServer"> & {
   /**
-   * @generated from field: string api_version = 1;
-   */
-  apiVersion: string;
-
-  /**
-   * @generated from field: string kind = 2;
-   */
-  kind: string;
-
-  /**
-   * @generated from field: talon.resources.ResourceMeta metadata = 3;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
   metadata?: ResourceMeta;
 
   /**
-   * @generated from field: talon.resources.McpServerSpec spec = 4;
+   * @generated from field: talon.resources.McpServerSpec spec = 2;
    */
   spec?: McpServerSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
 };
 
 /**
@@ -88,24 +83,19 @@ export const McpServerSpecSchema: GenMessage<McpServerSpec> = /*@__PURE__*/
  */
 export type McpServerBinding = Message<"talon.resources.McpServerBinding"> & {
   /**
-   * @generated from field: string api_version = 1;
-   */
-  apiVersion: string;
-
-  /**
-   * @generated from field: string kind = 2;
-   */
-  kind: string;
-
-  /**
-   * @generated from field: talon.resources.ResourceMeta metadata = 3;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
   metadata?: ResourceMeta;
 
   /**
-   * @generated from field: talon.resources.McpServerBindingSpec spec = 4;
+   * @generated from field: talon.resources.McpServerBindingSpec spec = 2;
    */
   spec?: McpServerBindingSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
 };
 
 /**

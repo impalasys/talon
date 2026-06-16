@@ -4,13 +4,15 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { ResourceMeta } from "./common_pb";
+import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file proto/resources/schedules.proto.
  */
 export const file_proto_resources_schedules: GenFile = /*@__PURE__*/
-  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvc2NoZWR1bGVzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiWwoOU2NoZWR1bGVUYXJnZXQSDQoFYWdlbnQYASABKAkSFAoMc2Vzc2lvbl9tb2RlGAIgASgJEhIKCnNlc3Npb25faWQYAyABKAkSEAoId29ya2Zsb3cYBCABKAki0wEKDFNjaGVkdWxlU3BlYxIMCgRraW5kGAEgASgJEgwKBGNyb24YAiABKAkSGAoQaW50ZXJ2YWxfc2Vjb25kcxgDIAEoDRIOCgZydW5fYXQYBCABKAkSEAoIdGltZXpvbmUYBSABKAkSLwoGdGFyZ2V0GAYgASgLMh8udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlVGFyZ2V0EhUKDWlucHV0X21lc3NhZ2UYByABKAkSDwoHZW5hYmxlZBgIIAEoCBISCgppbnB1dF9qc29uGAkgASgJIrIDCg5TY2hlZHVsZVN0YXR1cxIQCghyZXZpc2lvbhgBIAEoBBIYCgtuZXh0X3J1bl9hdBgCIAEoA0gAiAEBEhsKDmJhY2tlbmRfaGFuZGxlGAMgASgJSAGIAQESFQoNYmFja2VuZF9hcm1lZBgEIAEoCBIYCgtsYXN0X3J1bl9hdBgFIAEoA0gCiAEBEhwKD2xhc3Rfc2Vzc2lvbl9pZBgGIAEoCUgDiAEBEhcKCmxhc3RfZXJyb3IYByABKAlIBIgBARIbCg5jbGFpbWVkX3J1bl9hdBgIIAEoA0gFiAEBEh0KEGNsYWltX2V4cGlyZXNfYXQYCSABKANIBogBARI1Cg1yZWNlbnRfZXZlbnRzGAogAygLMh4udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlRXZlbnRCDgoMX25leHRfcnVuX2F0QhEKD19iYWNrZW5kX2hhbmRsZUIOCgxfbGFzdF9ydW5fYXRCEgoQX2xhc3Rfc2Vzc2lvbl9pZEINCgtfbGFzdF9lcnJvckIRCg9fY2xhaW1lZF9ydW5fYXRCEwoRX2NsYWltX2V4cGlyZXNfYXQiUgoNU2NoZWR1bGVFdmVudBIRCgl0aW1lc3RhbXAYASABKAMSDQoFcGhhc2UYAiABKAkSDwoHb3V0Y29tZRgDIAEoCRIOCgZkZXRhaWwYBCABKAki6AEKCFNjaGVkdWxlEgwKBG5hbWUYASABKAkSCgoCbnMYAiABKAkSKwoEc3BlYxgDIAEoCzIdLnRhbG9uLnJlc291cmNlcy5TY2hlZHVsZVNwZWMSLwoGc3RhdHVzGAQgASgLMh8udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlU3RhdHVzEjUKBmxhYmVscxgFIAMoCzIlLnRhbG9uLnJlc291cmNlcy5TY2hlZHVsZS5MYWJlbHNFbnRyeRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBYgZwcm90bzM");
+  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvc2NoZWR1bGVzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiWwoOU2NoZWR1bGVUYXJnZXQSDQoFYWdlbnQYASABKAkSFAoMc2Vzc2lvbl9tb2RlGAIgASgJEhIKCnNlc3Npb25faWQYAyABKAkSEAoId29ya2Zsb3cYBCABKAki0wEKDFNjaGVkdWxlU3BlYxIMCgRraW5kGAEgASgJEgwKBGNyb24YAiABKAkSGAoQaW50ZXJ2YWxfc2Vjb25kcxgDIAEoDRIOCgZydW5fYXQYBCABKAkSEAoIdGltZXpvbmUYBSABKAkSLwoGdGFyZ2V0GAYgASgLMh8udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlVGFyZ2V0EhUKDWlucHV0X21lc3NhZ2UYByABKAkSDwoHZW5hYmxlZBgIIAEoCBISCgppbnB1dF9qc29uGAkgASgJIrIDCg5TY2hlZHVsZVN0YXR1cxIQCghyZXZpc2lvbhgBIAEoBBIYCgtuZXh0X3J1bl9hdBgCIAEoA0gAiAEBEhsKDmJhY2tlbmRfaGFuZGxlGAMgASgJSAGIAQESFQoNYmFja2VuZF9hcm1lZBgEIAEoCBIYCgtsYXN0X3J1bl9hdBgFIAEoA0gCiAEBEhwKD2xhc3Rfc2Vzc2lvbl9pZBgGIAEoCUgDiAEBEhcKCmxhc3RfZXJyb3IYByABKAlIBIgBARIbCg5jbGFpbWVkX3J1bl9hdBgIIAEoA0gFiAEBEh0KEGNsYWltX2V4cGlyZXNfYXQYCSABKANIBogBARI1Cg1yZWNlbnRfZXZlbnRzGAogAygLMh4udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlRXZlbnRCDgoMX25leHRfcnVuX2F0QhEKD19iYWNrZW5kX2hhbmRsZUIOCgxfbGFzdF9ydW5fYXRCEgoQX2xhc3Rfc2Vzc2lvbl9pZEINCgtfbGFzdF9lcnJvckIRCg9fY2xhaW1lZF9ydW5fYXRCEwoRX2NsYWltX2V4cGlyZXNfYXQiUgoNU2NoZWR1bGVFdmVudBIRCgl0aW1lc3RhbXAYASABKAMSDQoFcGhhc2UYAiABKAkSDwoHb3V0Y29tZRgDIAEoCRIOCgZkZXRhaWwYBCABKAkimQEKCFNjaGVkdWxlEi8KCG1ldGFkYXRhGAEgASgLMh0udGFsb24ucmVzb3VyY2VzLlJlc291cmNlTWV0YRIrCgRzcGVjGAIgASgLMh0udGFsb24ucmVzb3VyY2VzLlNjaGVkdWxlU3BlYxIvCgZzdGF0dXMYAyABKAsyHy50YWxvbi5yZXNvdXJjZXMuU2NoZWR1bGVTdGF0dXNiBnByb3RvMw", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.ScheduleTarget
@@ -200,29 +202,19 @@ export const ScheduleEventSchema: GenMessage<ScheduleEvent> = /*@__PURE__*/
  */
 export type Schedule = Message<"talon.resources.Schedule"> & {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name: string;
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string ns = 2;
-   */
-  ns: string;
-
-  /**
-   * @generated from field: talon.resources.ScheduleSpec spec = 3;
+   * @generated from field: talon.resources.ScheduleSpec spec = 2;
    */
   spec?: ScheduleSpec;
 
   /**
-   * @generated from field: talon.resources.ScheduleStatus status = 4;
+   * @generated from field: talon.resources.ScheduleStatus status = 3;
    */
   status?: ScheduleStatus;
-
-  /**
-   * @generated from field: map<string, string> labels = 5;
-   */
-  labels: { [key: string]: string };
 };
 
 /**

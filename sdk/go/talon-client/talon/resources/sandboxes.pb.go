@@ -136,6 +136,7 @@ func (x *SandboxWorkspaceSpec) GetMountPath() string {
 type SandboxSetupSpec struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Packages      []string               `protobuf:"bytes,1,rep,name=packages,proto3" json:"packages,omitempty"`
+	Commands      []string               `protobuf:"bytes,2,rep,name=commands,proto3" json:"commands,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -173,6 +174,13 @@ func (*SandboxSetupSpec) Descriptor() ([]byte, []int) {
 func (x *SandboxSetupSpec) GetPackages() []string {
 	if x != nil {
 		return x.Packages
+	}
+	return nil
+}
+
+func (x *SandboxSetupSpec) GetCommands() []string {
+	if x != nil {
+		return x.Commands
 	}
 	return nil
 }
@@ -785,9 +793,10 @@ const file_proto_resources_sandboxes_proto_rawDesc = "" +
 	"\x14SandboxWorkspaceSpec\x12\x12\n" +
 	"\x04mode\x18\x01 \x01(\tR\x04mode\x12\x1d\n" +
 	"\n" +
-	"mount_path\x18\x02 \x01(\tR\tmountPath\".\n" +
+	"mount_path\x18\x02 \x01(\tR\tmountPath\"J\n" +
 	"\x10SandboxSetupSpec\x12\x1a\n" +
-	"\bpackages\x18\x01 \x03(\tR\bpackages\"(\n" +
+	"\bpackages\x18\x01 \x03(\tR\bpackages\x12\x1a\n" +
+	"\bcommands\x18\x02 \x03(\tR\bcommands\"(\n" +
 	"\x12SandboxNetworkSpec\x12\x12\n" +
 	"\x04mode\x18\x01 \x01(\tR\x04mode\"O\n" +
 	"\x15SandboxFilesystemSpec\x12\x1a\n" +

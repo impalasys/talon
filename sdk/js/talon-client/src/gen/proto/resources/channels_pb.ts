@@ -5,51 +5,26 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ResourceCondition } from "./common_pb.js";
+import { CommonResourceStatus, ResourceCondition, ResourceMeta } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.Channel
  */
 export class Channel extends Message<Channel> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name = "";
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string ns = 2;
+   * @generated from field: talon.resources.ChannelSpec spec = 2;
    */
-  ns = "";
+  spec?: ChannelSpec;
 
   /**
-   * @generated from field: string title = 3;
+   * @generated from field: talon.resources.ChannelStatus status = 3;
    */
-  title = "";
-
-  /**
-   * @generated from field: string status = 4;
-   */
-  status = "";
-
-  /**
-   * @generated from field: int64 created_at = 5;
-   */
-  createdAt = protoInt64.zero;
-
-  /**
-   * @generated from field: int64 updated_at = 6;
-   */
-  updatedAt = protoInt64.zero;
-
-  /**
-   * @generated from field: map<string, string> metadata = 7;
-   */
-  metadata: { [key: string]: string } = {};
-
-  /**
-   * @generated from field: map<string, string> labels = 8;
-   */
-  labels: { [key: string]: string } = {};
+  status?: ChannelStatus;
 
   constructor(data?: PartialMessage<Channel>) {
     super();
@@ -59,14 +34,9 @@ export class Channel extends Message<Channel> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.Channel";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "title", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "status", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 6, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 7, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 8, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: ChannelSpec },
+    { no: 3, name: "status", kind: "message", T: ChannelStatus },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Channel {
@@ -148,6 +118,16 @@ export class ChannelStatus extends Message<ChannelStatus> {
    */
   conditions: ResourceCondition[] = [];
 
+  /**
+   * @generated from field: int64 created_at = 4;
+   */
+  createdAt = protoInt64.zero;
+
+  /**
+   * @generated from field: int64 updated_at = 5;
+   */
+  updatedAt = protoInt64.zero;
+
   constructor(data?: PartialMessage<ChannelStatus>) {
     super();
     proto3.util.initPartial(data, this);
@@ -159,6 +139,8 @@ export class ChannelStatus extends Message<ChannelStatus> {
     { no: 1, name: "observed_generation", kind: "scalar", T: 4 /* ScalarType.UINT64 */ },
     { no: 2, name: "phase", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 3, name: "conditions", kind: "message", T: ResourceCondition, repeated: true },
+    { no: 4, name: "created_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
+    { no: 5, name: "updated_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChannelStatus {
@@ -226,54 +208,19 @@ export class ChannelContextPolicy extends Message<ChannelContextPolicy> {
  */
 export class ChannelSubscription extends Message<ChannelSubscription> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name = "";
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string ns = 2;
+   * @generated from field: talon.resources.ChannelSubscriptionSpec spec = 2;
    */
-  ns = "";
+  spec?: ChannelSubscriptionSpec;
 
   /**
-   * @generated from field: string channel = 3;
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
    */
-  channel = "";
-
-  /**
-   * @generated from field: string agent = 4;
-   */
-  agent = "";
-
-  /**
-   * @generated from field: bool enabled = 5;
-   */
-  enabled = false;
-
-  /**
-   * @generated from field: string trigger = 6;
-   */
-  trigger = "";
-
-  /**
-   * @generated from field: talon.resources.ChannelContextPolicy context_policy = 7;
-   */
-  contextPolicy?: ChannelContextPolicy;
-
-  /**
-   * @generated from field: map<string, string> metadata = 8;
-   */
-  metadata: { [key: string]: string } = {};
-
-  /**
-   * @generated from field: map<string, string> labels = 9;
-   */
-  labels: { [key: string]: string } = {};
-
-  /**
-   * @generated from field: string reply_mode = 10;
-   */
-  replyMode = "";
+  status?: CommonResourceStatus;
 
   constructor(data?: PartialMessage<ChannelSubscription>) {
     super();
@@ -283,16 +230,9 @@ export class ChannelSubscription extends Message<ChannelSubscription> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.ChannelSubscription";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "channel", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "agent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 5, name: "enabled", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 6, name: "trigger", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 7, name: "context_policy", kind: "message", T: ChannelContextPolicy },
-    { no: 8, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 9, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
-    { no: 10, name: "reply_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: ChannelSubscriptionSpec },
+    { no: 3, name: "status", kind: "message", T: CommonResourceStatus },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChannelSubscription {
@@ -346,6 +286,11 @@ export class ChannelSubscriptionSpec extends Message<ChannelSubscriptionSpec> {
    */
   replyMode = "";
 
+  /**
+   * @generated from field: map<string, string> metadata = 7;
+   */
+  metadata: { [key: string]: string } = {};
+
   constructor(data?: PartialMessage<ChannelSubscriptionSpec>) {
     super();
     proto3.util.initPartial(data, this);
@@ -360,6 +305,7 @@ export class ChannelSubscriptionSpec extends Message<ChannelSubscriptionSpec> {
     { no: 4, name: "trigger", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 5, name: "context_policy", kind: "message", T: ChannelContextPolicy },
     { no: 6, name: "reply_mode", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 7, name: "metadata", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ChannelSubscriptionSpec {

@@ -4,7 +4,9 @@
 use super::{data_proto, proto, GrpcGatewayHandler};
 use crate::control::keys;
 use crate::control::ns;
-use crate::harness::knowledge::{KnowledgeBook, KnowledgeEntry, KvKnowledgeBook};
+use crate::control::resources::ResourceStore;
+use crate::gateway::rpc::resources_proto;
+use crate::harness::knowledge::KnowledgeEntry;
 use std::collections::HashSet;
 use std::sync::Arc;
 
@@ -20,12 +22,45 @@ fn decode_entry(namespace: &str, path: &str, bytes: &[u8]) -> KnowledgeEntry {
 
 async fn list_namespace_knowledge(
     kv: Arc<dyn crate::control::KeyValueStore>,
+    pubsub: Arc<dyn crate::control::MessagePublisher>,
     namespace: &str,
 ) -> std::result::Result<Vec<data_proto::Knowledge>, tonic::Status> {
     let mut modules = Vec::new();
     let mut seen_paths = HashSet::new();
+    let resource_store = ResourceStore::new(kv.clone(), pubsub);
 
     for candidate_ns in ns::ancestry(namespace) {
+        let resources = resource_store
+            .list(&candidate_ns, Some("Knowledge"))
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to list Knowledge resources: {e}"))
+            })?;
+        for resource in resources {
+            let Some(spec) = resource.spec.and_then(|spec| match spec.kind {
+                Some(resources_proto::resource_spec::Kind::Knowledge(spec)) => Some(spec),
+                _ => None,
+            }) else {
+                continue;
+            };
+            let path = spec.path.clone();
+            if path.is_empty() || !seen_paths.insert(path.clone()) {
+                continue;
+            }
+            modules.push(data_proto::Knowledge {
+                namespace: candidate_ns.clone(),
+                name: resource
+                    .metadata
+                    .as_ref()
+                    .map(|meta| meta.name.clone())
+                    .filter(|name| !name.is_empty())
+                    .unwrap_or_else(|| path.clone()),
+                path,
+                content: spec.content,
+                updated_at: 0,
+            });
+        }
+
         let prefix = keys::knowledge_prefix(&candidate_ns);
         let keys = kv.list_keys(&prefix).await.map_err(|e| {
             tonic::Status::internal(format!("Failed to list knowledge artifacts: {}", e))
@@ -59,29 +94,28 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::KnowledgeResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
-        let book = KvKnowledgeBook::new(self.gateway.kv.clone());
 
         let modules = if let Some(path) = req.path.filter(|p| !p.is_empty()) {
-            let Some(entry) = book.get(&req.ns, &path).await.map_err(|e| {
-                tonic::Status::internal(format!("Failed to fetch knowledge artifact: {}", e))
-            })?
-            else {
+            let modules = list_namespace_knowledge(
+                self.gateway.kv.clone(),
+                self.gateway.pubsub.clone(),
+                &req.ns,
+            )
+            .await?;
+            let Some(module) = modules.into_iter().find(|module| module.path == path) else {
                 return Err(tonic::Status::not_found(format!(
                     "Knowledge artifact '{}' not found",
                     path
                 )));
             };
-            let entry_path = entry.path();
-
-            vec![data_proto::Knowledge {
-                namespace: entry.namespace,
-                name: entry.name,
-                path: entry_path,
-                content: entry.content,
-                updated_at: entry.updated_at,
-            }]
+            vec![module]
         } else {
-            list_namespace_knowledge(self.gateway.kv.clone(), &req.ns).await?
+            list_namespace_knowledge(
+                self.gateway.kv.clone(),
+                self.gateway.pubsub.clone(),
+                &req.ns,
+            )
+            .await?
         };
 
         Ok(tonic::Response::new(proto::KnowledgeResponse { modules }))
@@ -93,19 +127,27 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::SearchKnowledgeResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns, &req.get_ref().agent);
         let req = req.into_inner();
-        let book = KvKnowledgeBook::new(self.gateway.kv.clone());
-
-        let results = book
-            .search(&req.ns, &req.query, 5)
-            .await
-            .map_err(|e| tonic::Status::internal(format!("Failed to search knowledge: {}", e)))?
+        let modules = list_namespace_knowledge(
+            self.gateway.kv.clone(),
+            self.gateway.pubsub.clone(),
+            &req.ns,
+        )
+        .await?;
+        let query = req.query.to_lowercase();
+        let results = modules
             .into_iter()
-            .map(|result| data_proto::KnowledgeSearchResult {
-                namespace: result.namespace,
-                path: result.path,
-                snippet: result.excerpt,
+            .filter(|module| {
+                query.is_empty()
+                    || module.path.to_lowercase().contains(&query)
+                    || module.content.to_lowercase().contains(&query)
+            })
+            .take(5)
+            .map(|module| data_proto::KnowledgeSearchResult {
+                namespace: module.namespace,
+                path: module.path,
+                snippet: module.content,
                 score: 1.0,
-                timestamp: result.updated_at,
+                timestamp: module.updated_at,
             })
             .collect();
 

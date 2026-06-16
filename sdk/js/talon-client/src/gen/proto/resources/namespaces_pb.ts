@@ -5,36 +5,26 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ResourceCondition } from "./common_pb.js";
+import { ResourceCondition, ResourceMeta } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.Namespace
  */
 export class Namespace extends Message<Namespace> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name = "";
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string parent = 2;
+   * @generated from field: talon.resources.NamespaceSpec spec = 2;
    */
-  parent = "";
+  spec?: NamespaceSpec;
 
   /**
-   * @generated from field: bool is_deleted = 3;
+   * @generated from field: talon.resources.NamespaceStatus status = 3;
    */
-  isDeleted = false;
-
-  /**
-   * @generated from field: int64 deleted_at = 4;
-   */
-  deletedAt = protoInt64.zero;
-
-  /**
-   * @generated from field: map<string, string> labels = 5;
-   */
-  labels: { [key: string]: string } = {};
+  status?: NamespaceStatus;
 
   constructor(data?: PartialMessage<Namespace>) {
     super();
@@ -44,11 +34,9 @@ export class Namespace extends Message<Namespace> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.Namespace";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "parent", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "is_deleted", kind: "scalar", T: 8 /* ScalarType.BOOL */ },
-    { no: 4, name: "deleted_at", kind: "scalar", T: 3 /* ScalarType.INT64 */ },
-    { no: 5, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: NamespaceSpec },
+    { no: 3, name: "status", kind: "message", T: NamespaceStatus },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Namespace {

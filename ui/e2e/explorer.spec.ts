@@ -13,25 +13,30 @@ test.describe('Explorer navigation', () => {
       await client.createNamespace({ name: 'conic:wks:13', recursive: true });
     }).toPass({ timeout: 60000 });
 
-    await client.createAgent({
+    await client.createResource({
       ns: 'conic:wks:13',
-      name: 'cmo',
-      definition: {
-        source: {
-          case: "customSpec",
-          value: {
-            modelPolicy: {
-              profiles: [
-                {
-                  name: "default",
-                  model: { provider: "mock", name: "minimax", temperature: 0.7 },
-                },
-              ],
+      resource: {
+        apiVersion: "talon.impalasys.com/v1",
+        kind: "Agent",
+        metadata: { name: "cmo", namespace: "conic:wks:13", labels: {}, annotations: {}, ownerReferences: [], finalizers: [], generation: BigInt(0), resourceVersion: "", uid: "" },
+        spec: {
+          kind: {
+            case: "agent",
+            value: {
+              modelPolicy: {
+                profiles: [
+                  {
+                    name: "default",
+                    model: { provider: "mock", name: "minimax", temperature: 0.7 },
+                  },
+                ],
+              },
+              systemPrompt: "Explorer test",
+              mcpServerRefs: [],
             },
-            systemPrompt: "Explorer test",
-            mcpServerRefs: [],
           },
         },
+        status: { kind: { case: "agent", value: { observedGeneration: BigInt(0), phase: "", conditions: [] } } },
       },
     });
 

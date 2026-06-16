@@ -5,11 +5,8 @@ use crate::control::resource_model::{self, ChannelSubscriptionResourceExt, Typed
 use crate::gateway::rpc::manifests::{Knowledge, KnowledgeSpec, ObjectMeta};
 use crate::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
 use crate::gateway::rpc::proto::{
-    CancelWorkflowRunRequest, CreateNamespaceKnowledgeRequest, CreateWorkflowRunRequest,
-    DeleteChannelRequest, DeleteChannelSubscriptionRequest, DeleteMcpServerRequest,
-    DeleteNamespaceKnowledgeRequest, DeleteWorkflowRequest, GetChannelRequest,
-    GetChannelSubscriptionRequest, GetMcpServerRequest, GetNamespaceKnowledgeRequest,
-    GetScheduleRequest, GetWorkflowRequest, GetWorkflowRunRequest, ListNamespaceKnowledgeRequest,
+    CancelWorkflowRunRequest, CreateResourceRequest, CreateWorkflowRunRequest,
+    DeleteResourceRequest, GetResourceRequest, GetWorkflowRunRequest, ListResourcesRequest,
     ListWorkflowRunsRequest, ResumeWorkflowRunRequest, StreamWorkflowEventsRequest,
 };
 use crate::gateway::rpc::{data_proto, resources_proto};
@@ -47,51 +44,6 @@ struct KnowledgeManifestFile {
 struct KnowledgeSpecFile {
     content: Option<String>,
     content_from_file: Option<String>,
-}
-
-fn schedule_json(schedule: &resources_proto::Schedule) -> serde_json::Value {
-    let spec = schedule.spec.as_ref();
-    let target = spec.and_then(|spec| spec.target.as_ref());
-    let status = schedule.status.as_ref();
-
-    json!({
-        "name": schedule.name(),
-        "ns": schedule.namespace(),
-        "labels": schedule.labels(),
-        "spec": spec.map(|spec| json!({
-            "kind": spec.kind,
-            "cron": spec.cron,
-            "intervalSeconds": spec.interval_seconds,
-            "runAt": spec.run_at,
-            "timezone": spec.timezone,
-            "target": target.map(|target| json!({
-                "agent": target.agent,
-                "workflow": target.workflow,
-                "sessionMode": target.session_mode,
-                "sessionId": target.session_id,
-            })),
-            "inputMessage": spec.input_message,
-            "inputJson": spec.input_json,
-            "enabled": spec.enabled,
-        })),
-        "status": status.map(|status| json!({
-            "revision": status.revision,
-            "nextRunAt": status.next_run_at,
-            "backendHandle": status.backend_handle,
-            "backendArmed": status.backend_armed,
-            "lastRunAt": status.last_run_at,
-            "lastSessionId": status.last_session_id,
-            "lastError": status.last_error,
-            "claimedRunAt": status.claimed_run_at,
-            "claimExpiresAt": status.claim_expires_at,
-            "recentEvents": status.recent_events.iter().map(|event| json!({
-                "timestamp": event.timestamp,
-                "phase": event.phase,
-                "outcome": event.outcome,
-                "detail": event.detail,
-            })).collect::<Vec<_>>(),
-        })),
-    })
 }
 
 fn workflow_run_json(
@@ -363,83 +315,16 @@ fn rest_get_path(
 }
 
 fn rest_delete_path(kind: &str, name: &str, namespace: Option<&String>) -> Result<String> {
-    match kind.to_lowercase().as_str() {
-        "agenttemplate" | "templates" | "template" => {
-            Ok(format!("/v1/templates/{}", urlencoding::encode(name)))
-        }
-        "mcpserver" | "mcpservers" | "mcp" => {
-            Ok(format!("/v1/mcp-servers/{}", urlencoding::encode(name)))
-        }
-        "agent" | "agents" => {
-            let ns = namespace
-                .as_ref()
-                .context("namespace is required for Agent delete")?;
-            Ok(format!(
-                "/v1/ns/{}/agents/{}",
-                urlencoding::encode(ns),
-                urlencoding::encode(name)
-            ))
-        }
-        "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
-            let ns = namespace
-                .as_ref()
-                .context("namespace is required for McpServerBinding delete")?;
-            Ok(format!(
-                "/v1/namespaces/{}/mcp-bindings/{}",
-                urlencoding::encode(ns),
-                urlencoding::encode(name)
-            ))
-        }
-        "namespace" | "namespaces" => Ok(format!("/v1/namespaces/{}", urlencoding::encode(name))),
-        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-            let ns = namespace
-                .as_ref()
-                .context("Knowledge delete requires --namespace")?;
-            Ok(format!(
-                "/v1/namespaces/{}/knowledge/{}",
-                urlencoding::encode(ns),
-                urlencoding::encode(name)
-            ))
-        }
-        "channel" | "channels" => {
-            let ns = namespace
-                .as_ref()
-                .context("Channel delete requires --namespace")?;
-            Ok(format!(
-                "/v1/ns/{}/channels/{}",
-                urlencoding::encode(ns),
-                urlencoding::encode(name)
-            ))
-        }
-        "channelsubscription"
-        | "channelsubscriptions"
-        | "channel-subscription"
-        | "channel-subscriptions" => {
-            let ns = namespace
-                .as_ref()
-                .context("ChannelSubscription delete requires --namespace")?;
-            let (channel, subscription) = name
-                .split_once('/')
-                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
-            Ok(format!(
-                "/v1/ns/{}/channels/{}/subscriptions/{}",
-                urlencoding::encode(ns),
-                urlencoding::encode(channel),
-                urlencoding::encode(subscription)
-            ))
-        }
-        "workflow" | "workflows" => {
-            let ns = namespace
-                .as_ref()
-                .context("Workflow delete requires --namespace")?;
-            Ok(format!(
-                "/v1/ns/{}/workflows/{}",
-                urlencoding::encode(ns),
-                urlencoding::encode(name)
-            ))
-        }
-        other => anyhow::bail!("Unsupported resource kind '{}' for REST mode", other),
+    if matches!(kind.to_lowercase().as_str(), "namespace" | "namespaces") {
+        return Ok(format!("/v1/namespaces/{}", urlencoding::encode(name)));
     }
+    let (ns, resource_kind, resource_name) = resource_lookup_target(kind, name, namespace)?;
+    Ok(format!(
+        "/v2/ns/{}/resources/{}/{}",
+        urlencoding::encode(&ns),
+        urlencoding::encode(&resource_kind),
+        urlencoding::encode(&resource_name)
+    ))
 }
 
 pub(super) fn render_json_payload(content: &str) -> Result<serde_json::Value> {
@@ -693,6 +578,80 @@ fn build_knowledge(namespace: &str, path: &str, content: String) -> Knowledge {
     }
 }
 
+fn knowledge_resource_proto(knowledge: &Knowledge) -> Result<resources_proto::Resource> {
+    Ok(resources_proto::Resource {
+        api_version: "talon.impalasys.com/v1".to_string(),
+        kind: "Knowledge".to_string(),
+        metadata: knowledge.metadata.clone(),
+        spec: Some(resources_proto::ResourceSpec {
+            kind: Some(resources_proto::resource_spec::Kind::Knowledge(
+                knowledge.spec.clone().context("Knowledge missing spec")?,
+            )),
+        }),
+        status: Some(resources_proto::ResourceStatus {
+            kind: Some(resources_proto::resource_status::Kind::Knowledge(
+                knowledge.status.clone().unwrap_or_default(),
+            )),
+        }),
+    })
+}
+
+fn knowledge_from_resource_proto(resource: resources_proto::Resource) -> Option<Knowledge> {
+    let spec = resource.spec.and_then(|spec| match spec.kind {
+        Some(resources_proto::resource_spec::Kind::Knowledge(spec)) => Some(spec),
+        _ => None,
+    })?;
+    let status = resource.status.and_then(|status| match status.kind {
+        Some(resources_proto::resource_status::Kind::Knowledge(status)) => Some(status),
+        _ => None,
+    });
+    Some(Knowledge {
+        metadata: resource.metadata,
+        spec: Some(spec),
+        status,
+    })
+}
+
+fn knowledge_resource_json(knowledge: &Knowledge) -> serde_json::Value {
+    json!({
+        "apiVersion": "talon.impalasys.com/v1",
+        "kind": "Knowledge",
+        "metadata": knowledge.metadata,
+        "spec": {
+            "knowledge": knowledge.spec,
+        },
+        "status": {
+            "knowledge": knowledge.status,
+        },
+    })
+}
+
+fn knowledge_from_resource_json(resource: serde_json::Value) -> Result<Option<Knowledge>> {
+    let metadata = resource.get("metadata").cloned();
+    let spec = resource
+        .get("spec")
+        .and_then(|spec| spec.get("knowledge"))
+        .cloned();
+    let status = resource
+        .get("status")
+        .and_then(|status| status.get("knowledge"))
+        .cloned();
+    let Some(spec) = spec else {
+        return Ok(None);
+    };
+    Ok(Some(Knowledge {
+        metadata: metadata
+            .map(serde_json::from_value)
+            .transpose()
+            .context("Failed to decode Knowledge metadata")?,
+        spec: Some(serde_json::from_value(spec).context("Failed to decode Knowledge spec")?),
+        status: status
+            .map(serde_json::from_value)
+            .transpose()
+            .context("Failed to decode Knowledge status")?,
+    }))
+}
+
 pub(super) fn read_knowledge_content(
     file: &Option<String>,
     content: &Option<String>,
@@ -757,24 +716,23 @@ pub(super) async fn knowledge_get(
     namespace: &str,
     path: &str,
 ) -> Result<Option<Knowledge>> {
+    let name = knowledge_resource_name(path);
     if cli.rest {
         let resp = rest_request_json(
             cli,
             reqwest::Method::GET,
             &format!(
-                "/v1/namespaces/{}/knowledge/{}",
+                "/v2/ns/{}/resources/Knowledge/{}",
                 urlencoding::encode(namespace),
-                urlencoding::encode(&knowledge_resource_name(path))
+                urlencoding::encode(&name)
             ),
             None,
         )
         .await?;
-        let Some(knowledge) = resp.get("knowledge").cloned() else {
+        let Some(resource) = resp.get("resource").cloned() else {
             return Ok(None);
         };
-        Ok(Some(
-            serde_json::from_value(knowledge).context("Failed to decode Knowledge JSON")?,
-        ))
+        Ok(knowledge_from_resource_json(resource)?)
     } else {
         let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
             .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
@@ -783,13 +741,17 @@ pub(super) async fn knowledge_get(
             .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
         let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
         let response = client
-            .get_namespace_knowledge(GetNamespaceKnowledgeRequest {
+            .get_resource(GetResourceRequest {
                 ns: namespace.to_string(),
-                name: knowledge_resource_name(path),
+                kind: "Knowledge".to_string(),
+                name,
             })
             .await;
         match response {
-            Ok(resp) => Ok(resp.into_inner().knowledge),
+            Ok(resp) => Ok(resp
+                .into_inner()
+                .resource
+                .and_then(knowledge_from_resource_proto)),
             Err(status) if status.code() == tonic::Code::NotFound => Ok(None),
             Err(status) => Err(status).context(format!(
                 "Failed to fetch Knowledge '{}/{}'",
@@ -810,11 +772,11 @@ pub(super) async fn knowledge_set(
         rest_request_json(
             cli,
             reqwest::Method::POST,
-            &format!(
-                "/v1/namespaces/{}/knowledge",
-                urlencoding::encode(namespace)
-            ),
-            Some(json!({ "knowledge": knowledge })),
+            &format!("/v2/ns/{}/resources", urlencoding::encode(namespace)),
+            Some(json!({
+                "ns": namespace,
+                "resource": knowledge_resource_json(&knowledge),
+            })),
         )
         .await
         .with_context(|| format!("Failed to write Knowledge '{}/{}'", namespace, path))?;
@@ -826,9 +788,9 @@ pub(super) async fn knowledge_set(
             .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
         let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
         client
-            .create_namespace_knowledge(CreateNamespaceKnowledgeRequest {
+            .create_resource(CreateResourceRequest {
                 ns: namespace.to_string(),
-                knowledge: Some(knowledge),
+                resource: Some(knowledge_resource_proto(&knowledge)?),
             })
             .await
             .with_context(|| format!("Failed to write Knowledge '{}/{}'", namespace, path))?;
@@ -843,7 +805,7 @@ pub(super) async fn knowledge_delete(cli: &Cli, namespace: &str, path: &str) -> 
             cli,
             reqwest::Method::DELETE,
             &format!(
-                "/v1/namespaces/{}/knowledge/{}",
+                "/v2/ns/{}/resources/Knowledge/{}",
                 urlencoding::encode(namespace),
                 urlencoding::encode(&name)
             ),
@@ -859,8 +821,9 @@ pub(super) async fn knowledge_delete(cli: &Cli, namespace: &str, path: &str) -> 
             .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
         let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
         client
-            .delete_namespace_knowledge(DeleteNamespaceKnowledgeRequest {
+            .delete_resource(DeleteResourceRequest {
                 ns: namespace.to_string(),
+                kind: "Knowledge".to_string(),
                 name,
             })
             .await
@@ -875,17 +838,22 @@ async fn knowledge_list(cli: &Cli, namespace: &str) -> Result<Vec<Knowledge>> {
             cli,
             reqwest::Method::GET,
             &format!(
-                "/v1/namespaces/{}/knowledge",
+                "/v2/ns/{}/resources?kind=Knowledge",
                 urlencoding::encode(namespace)
             ),
             None,
         )
         .await?;
-        let knowledge = resp
-            .get("knowledge")
+        let resources = resp
+            .get("resources")
             .cloned()
             .unwrap_or_else(|| serde_json::Value::Array(Vec::new()));
-        Ok(serde_json::from_value(knowledge).context("Failed to decode knowledge list JSON")?)
+        let resources = resources.as_array().cloned().unwrap_or_default();
+        resources
+            .into_iter()
+            .map(knowledge_from_resource_json)
+            .collect::<Result<Vec<_>>>()
+            .map(|items| items.into_iter().flatten().collect())
     } else {
         let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
             .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
@@ -894,13 +862,17 @@ async fn knowledge_list(cli: &Cli, namespace: &str) -> Result<Vec<Knowledge>> {
             .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
         let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
         Ok(client
-            .list_namespace_knowledge(ListNamespaceKnowledgeRequest {
+            .list_resources(ListResourcesRequest {
                 ns: namespace.to_string(),
+                kind: Some("Knowledge".to_string()),
             })
             .await
             .with_context(|| format!("Failed to list Knowledge for '{}'", namespace))?
             .into_inner()
-            .knowledge)
+            .resources
+            .into_iter()
+            .filter_map(knowledge_from_resource_proto)
+            .collect())
     }
 }
 
@@ -1263,59 +1235,100 @@ pub(super) async fn sync_knowledge_dir(
 }
 
 #[derive(Debug, PartialEq, Eq)]
-enum GrpcGetTarget {
-    Agent {
-        ns: String,
-        name: String,
-    },
-    McpServer {
-        name: String,
-    },
-    Knowledge {
-        ns: String,
-        name: String,
-    },
-    Schedule {
-        ns: String,
-        name: String,
-    },
-    Channel {
-        ns: String,
-        name: String,
-    },
-    ChannelSubscription {
-        ns: String,
-        channel: String,
-        name: String,
-    },
-    Workflow {
-        ns: String,
-        name: String,
-    },
+struct GrpcResourceTarget {
+    ns: String,
+    kind: String,
+    name: String,
 }
 
-#[derive(Debug, PartialEq, Eq)]
-enum GrpcDeleteTarget {
-    McpServer {
-        name: String,
-    },
-    Knowledge {
-        ns: String,
-        name: String,
-    },
-    Channel {
-        ns: String,
-        name: String,
-    },
-    ChannelSubscription {
-        ns: String,
-        channel: String,
-        name: String,
-    },
-    Workflow {
-        ns: String,
-        name: String,
-    },
+fn resource_lookup_target(
+    kind: &str,
+    name: &str,
+    namespace: Option<&String>,
+) -> Result<(String, String, String)> {
+    match kind.to_lowercase().as_str() {
+        "agent" | "agents" => {
+            let (ns, agent_name) = agent_lookup_target(name, namespace);
+            Ok((ns, "Agent".to_string(), agent_name))
+        }
+        "agenttemplate" | "templates" | "template" => Ok((
+            crate::control::ns::TALON_SYSTEM.to_string(),
+            "Template".to_string(),
+            name.to_string(),
+        )),
+        "mcpserver" | "mcpservers" | "mcp" => Ok((
+            crate::control::ns::TALON_SYSTEM.to_string(),
+            "McpServer".to_string(),
+            name.to_string(),
+        )),
+        "mcpserverbinding" | "mcpbindings" | "mcpbinding" => {
+            let ns = namespace
+                .cloned()
+                .context("McpServerBinding requires --namespace")?;
+            Ok((ns, "McpServerBinding".to_string(), name.to_string()))
+        }
+        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
+            let ns = namespace
+                .cloned()
+                .context("Knowledge requires --namespace")?;
+            Ok((ns, "Knowledge".to_string(), name.to_string()))
+        }
+        "schedule" | "schedules" => {
+            let ns = namespace
+                .cloned()
+                .context("Schedule requires --namespace")?;
+            Ok((ns, "Schedule".to_string(), name.to_string()))
+        }
+        "channel" | "channels" => {
+            let ns = namespace.cloned().context("Channel requires --namespace")?;
+            Ok((ns, "Channel".to_string(), name.to_string()))
+        }
+        "channelsubscription"
+        | "channelsubscriptions"
+        | "channel-subscription"
+        | "channel-subscriptions" => {
+            let ns = namespace
+                .cloned()
+                .context("ChannelSubscription requires --namespace")?;
+            let subscription = name
+                .split_once('/')
+                .map(|(_, subscription)| subscription)
+                .unwrap_or(name);
+            Ok((
+                ns,
+                "ChannelSubscription".to_string(),
+                subscription.to_string(),
+            ))
+        }
+        "workflow" | "workflows" => {
+            let ns = namespace
+                .cloned()
+                .context("Workflow requires --namespace")?;
+            Ok((ns, "Workflow".to_string(), name.to_string()))
+        }
+        "deployment" | "deployments" => {
+            let ns = namespace
+                .cloned()
+                .context("Deployment requires --namespace")?;
+            Ok((ns, "Deployment".to_string(), name.to_string()))
+        }
+        "sandboxclass" | "sandboxclasses" | "sandbox-class" | "sandbox-classes" => Ok((
+            crate::control::ns::TALON_SYSTEM.to_string(),
+            "SandboxClass".to_string(),
+            name.to_string(),
+        )),
+        "sandboxpolicy" | "sandboxpolicies" | "sandbox-policy" | "sandbox-policies" => {
+            let ns = namespace
+                .cloned()
+                .context("SandboxPolicy requires --namespace")?;
+            Ok((ns, "SandboxPolicy".to_string(), name.to_string()))
+        }
+        "sandbox" | "sandboxes" => {
+            let ns = namespace.cloned().context("Sandbox requires --namespace")?;
+            Ok((ns, "Sandbox".to_string(), name.to_string()))
+        }
+        other => anyhow::bail!("Unsupported resource kind '{}'", other),
+    }
 }
 
 pub(super) fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
@@ -1347,128 +1360,13 @@ pub(super) fn sdk_methods_from_dir(dir: &str) -> Result<Vec<String>> {
     Ok(class_methods)
 }
 
-fn grpc_get_target(kind: &str, name: &str, namespace: Option<&String>) -> Result<GrpcGetTarget> {
-    match kind.to_lowercase().as_str() {
-        "agent" | "agents" => {
-            let (ns, agent_name) = agent_lookup_target(name, namespace);
-            Ok(GrpcGetTarget::Agent {
-                ns,
-                name: agent_name,
-            })
-        }
-        "mcpserver" | "mcpservers" | "mcp" => Ok(GrpcGetTarget::McpServer {
-            name: name.to_string(),
-        }),
-        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-            let ns = namespace
-                .cloned()
-                .context("Knowledge get requires --namespace")?;
-            Ok(GrpcGetTarget::Knowledge {
-                ns,
-                name: name.to_string(),
-            })
-        }
-        "schedule" | "schedules" => {
-            let ns = namespace
-                .cloned()
-                .context("Schedule get requires --namespace")?;
-            Ok(GrpcGetTarget::Schedule {
-                ns,
-                name: name.to_string(),
-            })
-        }
-        "channel" | "channels" => {
-            let ns = namespace
-                .cloned()
-                .context("Channel get requires --namespace")?;
-            Ok(GrpcGetTarget::Channel {
-                ns,
-                name: name.to_string(),
-            })
-        }
-        "channelsubscription"
-        | "channelsubscriptions"
-        | "channel-subscription"
-        | "channel-subscriptions" => {
-            let ns = namespace
-                .cloned()
-                .context("ChannelSubscription get requires --namespace")?;
-            let (channel, subscription) = name
-                .split_once('/')
-                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
-            Ok(GrpcGetTarget::ChannelSubscription {
-                ns,
-                channel: channel.to_string(),
-                name: subscription.to_string(),
-            })
-        }
-        "workflow" | "workflows" => {
-            let ns = namespace
-                .cloned()
-                .context("Workflow get requires --namespace")?;
-            Ok(GrpcGetTarget::Workflow {
-                ns,
-                name: name.to_string(),
-            })
-        }
-        other => anyhow::bail!("Unsupported resource kind '{}'", other),
-    }
-}
-
-fn grpc_delete_target(
+fn grpc_get_target(
     kind: &str,
     name: &str,
     namespace: Option<&String>,
-) -> Result<GrpcDeleteTarget> {
-    match kind.to_lowercase().as_str() {
-        "mcpserver" | "mcpservers" | "mcp" => Ok(GrpcDeleteTarget::McpServer {
-            name: name.to_string(),
-        }),
-        "knowledge" | "knowledgeartifact" | "knowledgeartifacts" => {
-            let ns = namespace
-                .cloned()
-                .context("Knowledge delete requires --namespace")?;
-            Ok(GrpcDeleteTarget::Knowledge {
-                ns,
-                name: name.to_string(),
-            })
-        }
-        "channel" | "channels" => {
-            let ns = namespace
-                .cloned()
-                .context("Channel delete requires --namespace")?;
-            Ok(GrpcDeleteTarget::Channel {
-                ns,
-                name: name.to_string(),
-            })
-        }
-        "channelsubscription"
-        | "channelsubscriptions"
-        | "channel-subscription"
-        | "channel-subscriptions" => {
-            let ns = namespace
-                .cloned()
-                .context("ChannelSubscription delete requires --namespace")?;
-            let (channel, subscription) = name
-                .split_once('/')
-                .context("ChannelSubscription name must be '<channel>/<subscription>'")?;
-            Ok(GrpcDeleteTarget::ChannelSubscription {
-                ns,
-                channel: channel.to_string(),
-                name: subscription.to_string(),
-            })
-        }
-        "workflow" | "workflows" => {
-            let ns = namespace
-                .cloned()
-                .context("Workflow delete requires --namespace")?;
-            Ok(GrpcDeleteTarget::Workflow {
-                ns,
-                name: name.to_string(),
-            })
-        }
-        other => anyhow::bail!("Unsupported resource kind '{}'", other),
-    }
+) -> Result<GrpcResourceTarget> {
+    let (ns, kind, name) = resource_lookup_target(kind, name, namespace)?;
+    Ok(GrpcResourceTarget { ns, kind, name })
 }
 
 pub(super) async fn grpc_get_yaml(
@@ -1484,95 +1382,22 @@ pub(super) async fn grpc_get_yaml(
         .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
     let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
 
-    match grpc_get_target(kind, name, namespace)? {
-        GrpcGetTarget::Agent { ns, name } => {
-            let resp = client
-                .get_agent(crate::gateway::rpc::proto::GetAgentRequest {
-                    ns,
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to fetch Agent '{}'", name))?;
-            let agent = resp.into_inner().agent.context("Agent not found.")?;
-            crate::control::manifest::render_agent_yaml(&agent)
-        }
-        GrpcGetTarget::McpServer { name } => {
-            let resp = client
-                .get_mcp_server(GetMcpServerRequest { name: name.clone() })
-                .await
-                .with_context(|| format!("Failed to fetch MCPServer '{}'", name))?;
-            let server = resp.into_inner().server.context("Resource not found.")?;
-            crate::control::manifest::render_mcp_server_yaml(&server)
-        }
-        GrpcGetTarget::Knowledge { ns, name } => {
-            let resp = client
-                .get_namespace_knowledge(GetNamespaceKnowledgeRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to fetch Knowledge '{}/{}'", ns, name))?;
-            let knowledge = resp
-                .into_inner()
-                .knowledge
-                .context("Knowledge not found.")?;
-            crate::control::manifest::render_knowledge_yaml(&knowledge)
-        }
-        GrpcGetTarget::Schedule { ns, name } => {
-            let resp = client
-                .get_schedule(GetScheduleRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to fetch Schedule '{}/{}'", ns, name))?;
-            let schedule = resp.into_inner().schedule.context("Schedule not found.")?;
-            serde_yaml::to_string(&schedule_json(&schedule))
-                .context("Failed to serialize Schedule YAML")
-        }
-        GrpcGetTarget::Channel { ns, name } => {
-            let resp = client
-                .get_channel(GetChannelRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to fetch Channel '{}/{}'", ns, name))?;
-            let channel = resp.into_inner().channel.context("Channel not found.")?;
-            crate::control::manifest::render_channel_yaml(&channel)
-        }
-        GrpcGetTarget::ChannelSubscription { ns, channel, name } => {
-            let resp = client
-                .get_channel_subscription(GetChannelSubscriptionRequest {
-                    ns: ns.clone(),
-                    channel: channel.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| {
-                    format!(
-                        "Failed to fetch ChannelSubscription '{}/{}/{}'",
-                        ns, channel, name
-                    )
-                })?;
-            let subscription = resp
-                .into_inner()
-                .subscription
-                .context("ChannelSubscription not found.")?;
-            crate::control::manifest::render_channel_subscription_yaml(&subscription)
-        }
-        GrpcGetTarget::Workflow { ns, name } => {
-            let resp = client
-                .get_workflow(GetWorkflowRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to fetch Workflow '{}/{}'", ns, name))?;
-            let workflow = resp.into_inner().workflow.context("Workflow not found.")?;
-            crate::control::manifest::render_workflow_yaml(&workflow)
-        }
-    }
+    let target = grpc_get_target(kind, name, namespace)?;
+    let resp = client
+        .get_resource(GetResourceRequest {
+            ns: target.ns.clone(),
+            kind: target.kind.clone(),
+            name: target.name.clone(),
+        })
+        .await
+        .with_context(|| {
+            format!(
+                "Failed to fetch {} '{}/{}'",
+                target.kind, target.ns, target.name
+            )
+        })?;
+    let resource = resp.into_inner().resource.context("Resource not found.")?;
+    crate::control::manifest::render_resource_yaml(&resource)
 }
 
 pub(super) async fn grpc_delete_resource(
@@ -1588,70 +1413,19 @@ pub(super) async fn grpc_delete_resource(
         .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
     let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
 
-    match grpc_delete_target(kind, name, namespace)? {
-        GrpcDeleteTarget::McpServer { name } => {
-            client
-                .delete_mcp_server(DeleteMcpServerRequest { name: name.clone() })
-                .await
-                .with_context(|| format!("Failed to delete MCPServer '{}'", name))?;
-            Ok(format!("✓ MCPServer '{}' deleted successfully.", name))
-        }
-        GrpcDeleteTarget::Knowledge { ns, name } => {
-            client
-                .delete_namespace_knowledge(DeleteNamespaceKnowledgeRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to delete Knowledge '{}/{}'", ns, name))?;
-            Ok(format!(
-                "✓ Knowledge '{}/{}' deleted successfully.",
-                ns, name
-            ))
-        }
-        GrpcDeleteTarget::Channel { ns, name } => {
-            client
-                .delete_channel(DeleteChannelRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to delete Channel '{}/{}'", ns, name))?;
-            Ok(format!("✓ Channel '{}/{}' deleted successfully.", ns, name))
-        }
-        GrpcDeleteTarget::ChannelSubscription { ns, channel, name } => {
-            client
-                .delete_channel_subscription(DeleteChannelSubscriptionRequest {
-                    ns: ns.clone(),
-                    channel: channel.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| {
-                    format!(
-                        "Failed to delete ChannelSubscription '{}/{}/{}'",
-                        ns, channel, name
-                    )
-                })?;
-            Ok(format!(
-                "✓ ChannelSubscription '{}/{}/{}' deleted successfully.",
-                ns, channel, name
-            ))
-        }
-        GrpcDeleteTarget::Workflow { ns, name } => {
-            client
-                .delete_workflow(DeleteWorkflowRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await
-                .with_context(|| format!("Failed to delete Workflow '{}/{}'", ns, name))?;
-            Ok(format!(
-                "✓ Workflow '{}/{}' deleted successfully.",
-                ns, name
-            ))
-        }
-    }
+    let (ns, kind, name) = resource_lookup_target(kind, name, namespace)?;
+    client
+        .delete_resource(DeleteResourceRequest {
+            ns: ns.clone(),
+            kind: kind.clone(),
+            name: name.clone(),
+        })
+        .await
+        .with_context(|| format!("Failed to delete {} '{}/{}'", kind, ns, name))?;
+    Ok(format!(
+        "✓ {} '{}/{}' deleted successfully.",
+        kind, ns, name
+    ))
 }
 
 pub async fn main() -> Result<()> {

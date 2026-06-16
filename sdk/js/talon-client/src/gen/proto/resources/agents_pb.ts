@@ -5,31 +5,26 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { ListValue, Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ResourceCondition } from "./common_pb.js";
+import { ResourceCondition, ResourceMeta } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.Agent
  */
 export class Agent extends Message<Agent> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name = "";
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string ns = 2;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.resources.AgentSpec spec = 4;
+   * @generated from field: talon.resources.AgentSpec spec = 2;
    */
   spec?: AgentSpec;
 
   /**
-   * @generated from field: map<string, string> labels = 7;
+   * @generated from field: talon.resources.AgentStatus status = 3;
    */
-  labels: { [key: string]: string } = {};
+  status?: AgentStatus;
 
   constructor(data?: PartialMessage<Agent>) {
     super();
@@ -39,10 +34,9 @@ export class Agent extends Message<Agent> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.Agent";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 4, name: "spec", kind: "message", T: AgentSpec },
-    { no: 7, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: AgentSpec },
+    { no: 3, name: "status", kind: "message", T: AgentStatus },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Agent {

@@ -5,31 +5,26 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3 } from "@bufbuild/protobuf";
-import { ResourceMeta } from "./common_pb.js";
+import { CommonResourceStatus, ResourceMeta } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.McpServer
  */
 export class McpServer extends Message<McpServer> {
   /**
-   * @generated from field: string api_version = 1;
-   */
-  apiVersion = "";
-
-  /**
-   * @generated from field: string kind = 2;
-   */
-  kind = "";
-
-  /**
-   * @generated from field: talon.resources.ResourceMeta metadata = 3;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
   metadata?: ResourceMeta;
 
   /**
-   * @generated from field: talon.resources.McpServerSpec spec = 4;
+   * @generated from field: talon.resources.McpServerSpec spec = 2;
    */
   spec?: McpServerSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
 
   constructor(data?: PartialMessage<McpServer>) {
     super();
@@ -39,10 +34,9 @@ export class McpServer extends Message<McpServer> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.McpServer";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "api_version", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "metadata", kind: "message", T: ResourceMeta },
-    { no: 4, name: "spec", kind: "message", T: McpServerSpec },
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: McpServerSpec },
+    { no: 3, name: "status", kind: "message", T: CommonResourceStatus },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpServer {
@@ -128,24 +122,19 @@ export class McpServerSpec extends Message<McpServerSpec> {
  */
 export class McpServerBinding extends Message<McpServerBinding> {
   /**
-   * @generated from field: string api_version = 1;
-   */
-  apiVersion = "";
-
-  /**
-   * @generated from field: string kind = 2;
-   */
-  kind = "";
-
-  /**
-   * @generated from field: talon.resources.ResourceMeta metadata = 3;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
   metadata?: ResourceMeta;
 
   /**
-   * @generated from field: talon.resources.McpServerBindingSpec spec = 4;
+   * @generated from field: talon.resources.McpServerBindingSpec spec = 2;
    */
   spec?: McpServerBindingSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
 
   constructor(data?: PartialMessage<McpServerBinding>) {
     super();
@@ -155,10 +144,9 @@ export class McpServerBinding extends Message<McpServerBinding> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.McpServerBinding";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "api_version", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "kind", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "metadata", kind: "message", T: ResourceMeta },
-    { no: 4, name: "spec", kind: "message", T: McpServerBindingSpec },
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: McpServerBindingSpec },
+    { no: 3, name: "status", kind: "message", T: CommonResourceStatus },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): McpServerBinding {

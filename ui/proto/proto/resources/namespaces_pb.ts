@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ResourceCondition } from "./common_pb";
+import type { ResourceCondition, ResourceMeta } from "./common_pb";
 import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,36 +12,26 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/namespaces.proto.
  */
 export const file_proto_resources_namespaces: GenFile = /*@__PURE__*/
-  fileDesc("CiBwcm90by9yZXNvdXJjZXMvbmFtZXNwYWNlcy5wcm90bxIPdGFsb24ucmVzb3VyY2VzIrgBCglOYW1lc3BhY2USDAoEbmFtZRgBIAEoCRIOCgZwYXJlbnQYAiABKAkSEgoKaXNfZGVsZXRlZBgDIAEoCBISCgpkZWxldGVkX2F0GAQgASgDEjYKBmxhYmVscxgFIAMoCzImLnRhbG9uLnJlc291cmNlcy5OYW1lc3BhY2UuTGFiZWxzRW50cnkaLQoLTGFiZWxzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASIfCg1OYW1lc3BhY2VTcGVjEg4KBnBhcmVudBgBIAEoCSKdAQoPTmFtZXNwYWNlU3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhISCgppc19kZWxldGVkGAQgASgIEhIKCmRlbGV0ZWRfYXQYBSABKANiBnByb3RvMw", [file_proto_resources_common]);
+  fileDesc("CiBwcm90by9yZXNvdXJjZXMvbmFtZXNwYWNlcy5wcm90bxIPdGFsb24ucmVzb3VyY2VzIpwBCglOYW1lc3BhY2USLwoIbWV0YWRhdGEYASABKAsyHS50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VNZXRhEiwKBHNwZWMYAiABKAsyHi50YWxvbi5yZXNvdXJjZXMuTmFtZXNwYWNlU3BlYxIwCgZzdGF0dXMYAyABKAsyIC50YWxvbi5yZXNvdXJjZXMuTmFtZXNwYWNlU3RhdHVzIh8KDU5hbWVzcGFjZVNwZWMSDgoGcGFyZW50GAEgASgJIp0BCg9OYW1lc3BhY2VTdGF0dXMSGwoTb2JzZXJ2ZWRfZ2VuZXJhdGlvbhgBIAEoBBINCgVwaGFzZRgCIAEoCRI2Cgpjb25kaXRpb25zGAMgAygLMiIudGFsb24ucmVzb3VyY2VzLlJlc291cmNlQ29uZGl0aW9uEhIKCmlzX2RlbGV0ZWQYBCABKAgSEgoKZGVsZXRlZF9hdBgFIAEoA2IGcHJvdG8z", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.Namespace
  */
 export type Namespace = Message<"talon.resources.Namespace"> & {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name: string;
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string parent = 2;
+   * @generated from field: talon.resources.NamespaceSpec spec = 2;
    */
-  parent: string;
+  spec?: NamespaceSpec;
 
   /**
-   * @generated from field: bool is_deleted = 3;
+   * @generated from field: talon.resources.NamespaceStatus status = 3;
    */
-  isDeleted: boolean;
-
-  /**
-   * @generated from field: int64 deleted_at = 4;
-   */
-  deletedAt: bigint;
-
-  /**
-   * @generated from field: map<string, string> labels = 5;
-   */
-  labels: { [key: string]: string };
+  status?: NamespaceStatus;
 };
 
 /**

@@ -21,98 +21,46 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	GatewayService_CreateAgent_FullMethodName               = "/talon.gateway.GatewayService/CreateAgent"
-	GatewayService_GetAgent_FullMethodName                  = "/talon.gateway.GatewayService/GetAgent"
-	GatewayService_ModifyAgent_FullMethodName               = "/talon.gateway.GatewayService/ModifyAgent"
-	GatewayService_ListAgents_FullMethodName                = "/talon.gateway.GatewayService/ListAgents"
-	GatewayService_GetKnowledge_FullMethodName              = "/talon.gateway.GatewayService/GetKnowledge"
-	GatewayService_SearchKnowledge_FullMethodName           = "/talon.gateway.GatewayService/SearchKnowledge"
-	GatewayService_CreateNamespaceKnowledge_FullMethodName  = "/talon.gateway.GatewayService/CreateNamespaceKnowledge"
-	GatewayService_GetNamespaceKnowledge_FullMethodName     = "/talon.gateway.GatewayService/GetNamespaceKnowledge"
-	GatewayService_ListNamespaceKnowledge_FullMethodName    = "/talon.gateway.GatewayService/ListNamespaceKnowledge"
-	GatewayService_DeleteNamespaceKnowledge_FullMethodName  = "/talon.gateway.GatewayService/DeleteNamespaceKnowledge"
-	GatewayService_CreateNamespaceSkill_FullMethodName      = "/talon.gateway.GatewayService/CreateNamespaceSkill"
-	GatewayService_GetNamespaceSkill_FullMethodName         = "/talon.gateway.GatewayService/GetNamespaceSkill"
-	GatewayService_ListNamespaceSkills_FullMethodName       = "/talon.gateway.GatewayService/ListNamespaceSkills"
-	GatewayService_DeleteNamespaceSkill_FullMethodName      = "/talon.gateway.GatewayService/DeleteNamespaceSkill"
-	GatewayService_CreateSession_FullMethodName             = "/talon.gateway.GatewayService/CreateSession"
-	GatewayService_GetSession_FullMethodName                = "/talon.gateway.GatewayService/GetSession"
-	GatewayService_ListSessionMessages_FullMethodName       = "/talon.gateway.GatewayService/ListSessionMessages"
-	GatewayService_ListSessions_FullMethodName              = "/talon.gateway.GatewayService/ListSessions"
-	GatewayService_DeleteSession_FullMethodName             = "/talon.gateway.GatewayService/DeleteSession"
-	GatewayService_ClearSession_FullMethodName              = "/talon.gateway.GatewayService/ClearSession"
-	GatewayService_SendMessage_FullMethodName               = "/talon.gateway.GatewayService/SendMessage"
-	GatewayService_AppendSessionMessage_FullMethodName      = "/talon.gateway.GatewayService/AppendSessionMessage"
-	GatewayService_StopSessionGeneration_FullMethodName     = "/talon.gateway.GatewayService/StopSessionGeneration"
-	GatewayService_StreamSessionParts_FullMethodName        = "/talon.gateway.GatewayService/StreamSessionParts"
-	GatewayService_StreamSessionPartsBatch_FullMethodName   = "/talon.gateway.GatewayService/StreamSessionPartsBatch"
-	GatewayService_CreateChannel_FullMethodName             = "/talon.gateway.GatewayService/CreateChannel"
-	GatewayService_GetChannel_FullMethodName                = "/talon.gateway.GatewayService/GetChannel"
-	GatewayService_ModifyChannel_FullMethodName             = "/talon.gateway.GatewayService/ModifyChannel"
-	GatewayService_ListChannels_FullMethodName              = "/talon.gateway.GatewayService/ListChannels"
-	GatewayService_DeleteChannel_FullMethodName             = "/talon.gateway.GatewayService/DeleteChannel"
-	GatewayService_PostChannelMessage_FullMethodName        = "/talon.gateway.GatewayService/PostChannelMessage"
-	GatewayService_GetChannelMessage_FullMethodName         = "/talon.gateway.GatewayService/GetChannelMessage"
-	GatewayService_ListChannelMessages_FullMethodName       = "/talon.gateway.GatewayService/ListChannelMessages"
-	GatewayService_CreateChannelSubscription_FullMethodName = "/talon.gateway.GatewayService/CreateChannelSubscription"
-	GatewayService_GetChannelSubscription_FullMethodName    = "/talon.gateway.GatewayService/GetChannelSubscription"
-	GatewayService_ModifyChannelSubscription_FullMethodName = "/talon.gateway.GatewayService/ModifyChannelSubscription"
-	GatewayService_ListChannelSubscriptions_FullMethodName  = "/talon.gateway.GatewayService/ListChannelSubscriptions"
-	GatewayService_DeleteChannelSubscription_FullMethodName = "/talon.gateway.GatewayService/DeleteChannelSubscription"
-	GatewayService_StreamChannelEvents_FullMethodName       = "/talon.gateway.GatewayService/StreamChannelEvents"
-	GatewayService_CreateSchedule_FullMethodName            = "/talon.gateway.GatewayService/CreateSchedule"
-	GatewayService_GetSchedule_FullMethodName               = "/talon.gateway.GatewayService/GetSchedule"
-	GatewayService_ModifySchedule_FullMethodName            = "/talon.gateway.GatewayService/ModifySchedule"
-	GatewayService_ListSchedules_FullMethodName             = "/talon.gateway.GatewayService/ListSchedules"
-	GatewayService_DeleteSchedule_FullMethodName            = "/talon.gateway.GatewayService/DeleteSchedule"
-	GatewayService_CreateWorkflow_FullMethodName            = "/talon.gateway.GatewayService/CreateWorkflow"
-	GatewayService_GetWorkflow_FullMethodName               = "/talon.gateway.GatewayService/GetWorkflow"
-	GatewayService_ListWorkflows_FullMethodName             = "/talon.gateway.GatewayService/ListWorkflows"
-	GatewayService_DeleteWorkflow_FullMethodName            = "/talon.gateway.GatewayService/DeleteWorkflow"
-	GatewayService_CreateWorkflowRun_FullMethodName         = "/talon.gateway.GatewayService/CreateWorkflowRun"
-	GatewayService_GetWorkflowRun_FullMethodName            = "/talon.gateway.GatewayService/GetWorkflowRun"
-	GatewayService_ListWorkflowRuns_FullMethodName          = "/talon.gateway.GatewayService/ListWorkflowRuns"
-	GatewayService_ResumeWorkflowRun_FullMethodName         = "/talon.gateway.GatewayService/ResumeWorkflowRun"
-	GatewayService_CancelWorkflowRun_FullMethodName         = "/talon.gateway.GatewayService/CancelWorkflowRun"
-	GatewayService_StreamWorkflowEvents_FullMethodName      = "/talon.gateway.GatewayService/StreamWorkflowEvents"
-	GatewayService_CreateNamespace_FullMethodName           = "/talon.gateway.GatewayService/CreateNamespace"
-	GatewayService_GetNamespace_FullMethodName              = "/talon.gateway.GatewayService/GetNamespace"
-	GatewayService_DeleteNamespace_FullMethodName           = "/talon.gateway.GatewayService/DeleteNamespace"
-	GatewayService_ListNamespaces_FullMethodName            = "/talon.gateway.GatewayService/ListNamespaces"
-	GatewayService_CreateResource_FullMethodName            = "/talon.gateway.GatewayService/CreateResource"
-	GatewayService_GetResource_FullMethodName               = "/talon.gateway.GatewayService/GetResource"
-	GatewayService_ListResources_FullMethodName             = "/talon.gateway.GatewayService/ListResources"
-	GatewayService_DeleteResource_FullMethodName            = "/talon.gateway.GatewayService/DeleteResource"
-	GatewayService_CreateMcpServer_FullMethodName           = "/talon.gateway.GatewayService/CreateMcpServer"
-	GatewayService_GetMcpServer_FullMethodName              = "/talon.gateway.GatewayService/GetMcpServer"
-	GatewayService_ListMcpServers_FullMethodName            = "/talon.gateway.GatewayService/ListMcpServers"
-	GatewayService_DeleteMcpServer_FullMethodName           = "/talon.gateway.GatewayService/DeleteMcpServer"
-	GatewayService_CreateMcpServerBinding_FullMethodName    = "/talon.gateway.GatewayService/CreateMcpServerBinding"
-	GatewayService_GetMcpServerBinding_FullMethodName       = "/talon.gateway.GatewayService/GetMcpServerBinding"
-	GatewayService_ListMcpServerBindings_FullMethodName     = "/talon.gateway.GatewayService/ListMcpServerBindings"
-	GatewayService_DeleteMcpServerBinding_FullMethodName    = "/talon.gateway.GatewayService/DeleteMcpServerBinding"
+	GatewayService_GetKnowledge_FullMethodName            = "/talon.gateway.GatewayService/GetKnowledge"
+	GatewayService_SearchKnowledge_FullMethodName         = "/talon.gateway.GatewayService/SearchKnowledge"
+	GatewayService_CreateSession_FullMethodName           = "/talon.gateway.GatewayService/CreateSession"
+	GatewayService_GetSession_FullMethodName              = "/talon.gateway.GatewayService/GetSession"
+	GatewayService_ListSessionMessages_FullMethodName     = "/talon.gateway.GatewayService/ListSessionMessages"
+	GatewayService_ListSessions_FullMethodName            = "/talon.gateway.GatewayService/ListSessions"
+	GatewayService_DeleteSession_FullMethodName           = "/talon.gateway.GatewayService/DeleteSession"
+	GatewayService_ClearSession_FullMethodName            = "/talon.gateway.GatewayService/ClearSession"
+	GatewayService_SendMessage_FullMethodName             = "/talon.gateway.GatewayService/SendMessage"
+	GatewayService_AppendSessionMessage_FullMethodName    = "/talon.gateway.GatewayService/AppendSessionMessage"
+	GatewayService_StopSessionGeneration_FullMethodName   = "/talon.gateway.GatewayService/StopSessionGeneration"
+	GatewayService_StreamSessionParts_FullMethodName      = "/talon.gateway.GatewayService/StreamSessionParts"
+	GatewayService_StreamSessionPartsBatch_FullMethodName = "/talon.gateway.GatewayService/StreamSessionPartsBatch"
+	GatewayService_PostChannelMessage_FullMethodName      = "/talon.gateway.GatewayService/PostChannelMessage"
+	GatewayService_GetChannelMessage_FullMethodName       = "/talon.gateway.GatewayService/GetChannelMessage"
+	GatewayService_ListChannelMessages_FullMethodName     = "/talon.gateway.GatewayService/ListChannelMessages"
+	GatewayService_StreamChannelEvents_FullMethodName     = "/talon.gateway.GatewayService/StreamChannelEvents"
+	GatewayService_CreateWorkflowRun_FullMethodName       = "/talon.gateway.GatewayService/CreateWorkflowRun"
+	GatewayService_GetWorkflowRun_FullMethodName          = "/talon.gateway.GatewayService/GetWorkflowRun"
+	GatewayService_ListWorkflowRuns_FullMethodName        = "/talon.gateway.GatewayService/ListWorkflowRuns"
+	GatewayService_ResumeWorkflowRun_FullMethodName       = "/talon.gateway.GatewayService/ResumeWorkflowRun"
+	GatewayService_CancelWorkflowRun_FullMethodName       = "/talon.gateway.GatewayService/CancelWorkflowRun"
+	GatewayService_StreamWorkflowEvents_FullMethodName    = "/talon.gateway.GatewayService/StreamWorkflowEvents"
+	GatewayService_CreateNamespace_FullMethodName         = "/talon.gateway.GatewayService/CreateNamespace"
+	GatewayService_GetNamespace_FullMethodName            = "/talon.gateway.GatewayService/GetNamespace"
+	GatewayService_DeleteNamespace_FullMethodName         = "/talon.gateway.GatewayService/DeleteNamespace"
+	GatewayService_ListNamespaces_FullMethodName          = "/talon.gateway.GatewayService/ListNamespaces"
+	GatewayService_CreateResource_FullMethodName          = "/talon.gateway.GatewayService/CreateResource"
+	GatewayService_GetResource_FullMethodName             = "/talon.gateway.GatewayService/GetResource"
+	GatewayService_ListResources_FullMethodName           = "/talon.gateway.GatewayService/ListResources"
+	GatewayService_DeleteResource_FullMethodName          = "/talon.gateway.GatewayService/DeleteResource"
 )
 
 // GatewayServiceClient is the client API for GatewayService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GatewayServiceClient interface {
-	// Agent Lifecycle
-	CreateAgent(ctx context.Context, in *CreateAgentRequest, opts ...grpc.CallOption) (*AgentResponse, error)
-	GetAgent(ctx context.Context, in *GetAgentRequest, opts ...grpc.CallOption) (*GetAgentResponse, error)
-	ModifyAgent(ctx context.Context, in *ModifyAgentRequest, opts ...grpc.CallOption) (*AgentResponse, error)
-	ListAgents(ctx context.Context, in *ListAgentsRequest, opts ...grpc.CallOption) (*ListAgentsResponse, error)
-	// Agent Knowledge
+	// Agent knowledge data-plane queries
 	GetKnowledge(ctx context.Context, in *GetKnowledgeRequest, opts ...grpc.CallOption) (*KnowledgeResponse, error)
 	SearchKnowledge(ctx context.Context, in *SearchKnowledgeRequest, opts ...grpc.CallOption) (*SearchKnowledgeResponse, error)
-	CreateNamespaceKnowledge(ctx context.Context, in *CreateNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*NamespaceKnowledgeResponse, error)
-	GetNamespaceKnowledge(ctx context.Context, in *GetNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*NamespaceKnowledgeResponse, error)
-	ListNamespaceKnowledge(ctx context.Context, in *ListNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*ListNamespaceKnowledgeResponse, error)
-	DeleteNamespaceKnowledge(ctx context.Context, in *DeleteNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*DeleteNamespaceKnowledgeResponse, error)
-	CreateNamespaceSkill(ctx context.Context, in *CreateNamespaceSkillRequest, opts ...grpc.CallOption) (*NamespaceSkillResponse, error)
-	GetNamespaceSkill(ctx context.Context, in *GetNamespaceSkillRequest, opts ...grpc.CallOption) (*NamespaceSkillResponse, error)
-	ListNamespaceSkills(ctx context.Context, in *ListNamespaceSkillsRequest, opts ...grpc.CallOption) (*ListNamespaceSkillsResponse, error)
-	DeleteNamespaceSkill(ctx context.Context, in *DeleteNamespaceSkillRequest, opts ...grpc.CallOption) (*DeleteNamespaceSkillResponse, error)
 	// Agent Sessions
 	CreateSession(ctx context.Context, in *CreateSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
 	GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
@@ -126,32 +74,12 @@ type GatewayServiceClient interface {
 	StopSessionGeneration(ctx context.Context, in *StopSessionGenerationRequest, opts ...grpc.CallOption) (*StopSessionGenerationResponse, error)
 	StreamSessionParts(ctx context.Context, in *StreamSessionPartsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
 	StreamSessionPartsBatch(ctx context.Context, in *StreamSessionPartsBatchRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.SessionMessagePartEvent], error)
-	// Channels
-	CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpc.CallOption) (*ChannelResponse, error)
-	GetChannel(ctx context.Context, in *GetChannelRequest, opts ...grpc.CallOption) (*ChannelResponse, error)
-	ModifyChannel(ctx context.Context, in *ModifyChannelRequest, opts ...grpc.CallOption) (*ChannelResponse, error)
-	ListChannels(ctx context.Context, in *ListChannelsRequest, opts ...grpc.CallOption) (*ListChannelsResponse, error)
-	DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpc.CallOption) (*DeleteChannelResponse, error)
+	// Channel data-plane actions
 	PostChannelMessage(ctx context.Context, in *PostChannelMessageRequest, opts ...grpc.CallOption) (*PostChannelMessageResponse, error)
 	GetChannelMessage(ctx context.Context, in *GetChannelMessageRequest, opts ...grpc.CallOption) (*ChannelMessageResponse, error)
 	ListChannelMessages(ctx context.Context, in *ListChannelMessagesRequest, opts ...grpc.CallOption) (*ListChannelMessagesResponse, error)
-	CreateChannelSubscription(ctx context.Context, in *CreateChannelSubscriptionRequest, opts ...grpc.CallOption) (*ChannelSubscriptionResponse, error)
-	GetChannelSubscription(ctx context.Context, in *GetChannelSubscriptionRequest, opts ...grpc.CallOption) (*ChannelSubscriptionResponse, error)
-	ModifyChannelSubscription(ctx context.Context, in *ModifyChannelSubscriptionRequest, opts ...grpc.CallOption) (*ChannelSubscriptionResponse, error)
-	ListChannelSubscriptions(ctx context.Context, in *ListChannelSubscriptionsRequest, opts ...grpc.CallOption) (*ListChannelSubscriptionsResponse, error)
-	DeleteChannelSubscription(ctx context.Context, in *DeleteChannelSubscriptionRequest, opts ...grpc.CallOption) (*DeleteChannelSubscriptionResponse, error)
 	StreamChannelEvents(ctx context.Context, in *StreamChannelEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.ChannelEvent], error)
-	// Schedules
-	CreateSchedule(ctx context.Context, in *CreateScheduleRequest, opts ...grpc.CallOption) (*ScheduleResponse, error)
-	GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*ScheduleResponse, error)
-	ModifySchedule(ctx context.Context, in *ModifyScheduleRequest, opts ...grpc.CallOption) (*ScheduleResponse, error)
-	ListSchedules(ctx context.Context, in *ListSchedulesRequest, opts ...grpc.CallOption) (*ListSchedulesResponse, error)
-	DeleteSchedule(ctx context.Context, in *DeleteScheduleRequest, opts ...grpc.CallOption) (*DeleteScheduleResponse, error)
-	// Workflows
-	CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*WorkflowResponse, error)
-	GetWorkflow(ctx context.Context, in *GetWorkflowRequest, opts ...grpc.CallOption) (*WorkflowResponse, error)
-	ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error)
-	DeleteWorkflow(ctx context.Context, in *DeleteWorkflowRequest, opts ...grpc.CallOption) (*DeleteWorkflowResponse, error)
+	// Workflow data-plane actions
 	CreateWorkflowRun(ctx context.Context, in *CreateWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error)
 	GetWorkflowRun(ctx context.Context, in *GetWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error)
 	ListWorkflowRuns(ctx context.Context, in *ListWorkflowRunsRequest, opts ...grpc.CallOption) (*ListWorkflowRunsResponse, error)
@@ -168,15 +96,6 @@ type GatewayServiceClient interface {
 	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*ResourceResponse, error)
 	ListResources(ctx context.Context, in *ListResourcesRequest, opts ...grpc.CallOption) (*ListResourcesResponse, error)
 	DeleteResource(ctx context.Context, in *DeleteResourceRequest, opts ...grpc.CallOption) (*DeleteResourceResponse, error)
-	// MCP Servers
-	CreateMcpServer(ctx context.Context, in *CreateMcpServerRequest, opts ...grpc.CallOption) (*McpServerResponse, error)
-	GetMcpServer(ctx context.Context, in *GetMcpServerRequest, opts ...grpc.CallOption) (*McpServerResponse, error)
-	ListMcpServers(ctx context.Context, in *ListMcpServersRequest, opts ...grpc.CallOption) (*ListMcpServersResponse, error)
-	DeleteMcpServer(ctx context.Context, in *DeleteMcpServerRequest, opts ...grpc.CallOption) (*DeleteMcpServerResponse, error)
-	CreateMcpServerBinding(ctx context.Context, in *CreateMcpServerBindingRequest, opts ...grpc.CallOption) (*McpServerBindingResponse, error)
-	GetMcpServerBinding(ctx context.Context, in *GetMcpServerBindingRequest, opts ...grpc.CallOption) (*McpServerBindingResponse, error)
-	ListMcpServerBindings(ctx context.Context, in *ListMcpServerBindingsRequest, opts ...grpc.CallOption) (*ListMcpServerBindingsResponse, error)
-	DeleteMcpServerBinding(ctx context.Context, in *DeleteMcpServerBindingRequest, opts ...grpc.CallOption) (*DeleteMcpServerBindingResponse, error)
 }
 
 type gatewayServiceClient struct {
@@ -185,46 +104,6 @@ type gatewayServiceClient struct {
 
 func NewGatewayServiceClient(cc grpc.ClientConnInterface) GatewayServiceClient {
 	return &gatewayServiceClient{cc}
-}
-
-func (c *gatewayServiceClient) CreateAgent(ctx context.Context, in *CreateAgentRequest, opts ...grpc.CallOption) (*AgentResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AgentResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateAgent_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetAgent(ctx context.Context, in *GetAgentRequest, opts ...grpc.CallOption) (*GetAgentResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAgentResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetAgent_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ModifyAgent(ctx context.Context, in *ModifyAgentRequest, opts ...grpc.CallOption) (*AgentResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AgentResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ModifyAgent_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListAgents(ctx context.Context, in *ListAgentsRequest, opts ...grpc.CallOption) (*ListAgentsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListAgentsResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListAgents_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *gatewayServiceClient) GetKnowledge(ctx context.Context, in *GetKnowledgeRequest, opts ...grpc.CallOption) (*KnowledgeResponse, error) {
@@ -241,86 +120,6 @@ func (c *gatewayServiceClient) SearchKnowledge(ctx context.Context, in *SearchKn
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SearchKnowledgeResponse)
 	err := c.cc.Invoke(ctx, GatewayService_SearchKnowledge_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) CreateNamespaceKnowledge(ctx context.Context, in *CreateNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*NamespaceKnowledgeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NamespaceKnowledgeResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateNamespaceKnowledge_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetNamespaceKnowledge(ctx context.Context, in *GetNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*NamespaceKnowledgeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NamespaceKnowledgeResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetNamespaceKnowledge_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListNamespaceKnowledge(ctx context.Context, in *ListNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*ListNamespaceKnowledgeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListNamespaceKnowledgeResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListNamespaceKnowledge_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteNamespaceKnowledge(ctx context.Context, in *DeleteNamespaceKnowledgeRequest, opts ...grpc.CallOption) (*DeleteNamespaceKnowledgeResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteNamespaceKnowledgeResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteNamespaceKnowledge_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) CreateNamespaceSkill(ctx context.Context, in *CreateNamespaceSkillRequest, opts ...grpc.CallOption) (*NamespaceSkillResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NamespaceSkillResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateNamespaceSkill_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetNamespaceSkill(ctx context.Context, in *GetNamespaceSkillRequest, opts ...grpc.CallOption) (*NamespaceSkillResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NamespaceSkillResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetNamespaceSkill_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListNamespaceSkills(ctx context.Context, in *ListNamespaceSkillsRequest, opts ...grpc.CallOption) (*ListNamespaceSkillsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListNamespaceSkillsResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListNamespaceSkills_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteNamespaceSkill(ctx context.Context, in *DeleteNamespaceSkillRequest, opts ...grpc.CallOption) (*DeleteNamespaceSkillResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteNamespaceSkillResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteNamespaceSkill_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -455,56 +254,6 @@ func (c *gatewayServiceClient) StreamSessionPartsBatch(ctx context.Context, in *
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GatewayService_StreamSessionPartsBatchClient = grpc.ServerStreamingClient[events.SessionMessagePartEvent]
 
-func (c *gatewayServiceClient) CreateChannel(ctx context.Context, in *CreateChannelRequest, opts ...grpc.CallOption) (*ChannelResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChannelResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateChannel_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetChannel(ctx context.Context, in *GetChannelRequest, opts ...grpc.CallOption) (*ChannelResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChannelResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetChannel_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ModifyChannel(ctx context.Context, in *ModifyChannelRequest, opts ...grpc.CallOption) (*ChannelResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChannelResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ModifyChannel_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListChannels(ctx context.Context, in *ListChannelsRequest, opts ...grpc.CallOption) (*ListChannelsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListChannelsResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListChannels_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteChannel(ctx context.Context, in *DeleteChannelRequest, opts ...grpc.CallOption) (*DeleteChannelResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteChannelResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteChannel_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *gatewayServiceClient) PostChannelMessage(ctx context.Context, in *PostChannelMessageRequest, opts ...grpc.CallOption) (*PostChannelMessageResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PostChannelMessageResponse)
@@ -535,56 +284,6 @@ func (c *gatewayServiceClient) ListChannelMessages(ctx context.Context, in *List
 	return out, nil
 }
 
-func (c *gatewayServiceClient) CreateChannelSubscription(ctx context.Context, in *CreateChannelSubscriptionRequest, opts ...grpc.CallOption) (*ChannelSubscriptionResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChannelSubscriptionResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateChannelSubscription_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetChannelSubscription(ctx context.Context, in *GetChannelSubscriptionRequest, opts ...grpc.CallOption) (*ChannelSubscriptionResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChannelSubscriptionResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetChannelSubscription_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ModifyChannelSubscription(ctx context.Context, in *ModifyChannelSubscriptionRequest, opts ...grpc.CallOption) (*ChannelSubscriptionResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ChannelSubscriptionResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ModifyChannelSubscription_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListChannelSubscriptions(ctx context.Context, in *ListChannelSubscriptionsRequest, opts ...grpc.CallOption) (*ListChannelSubscriptionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListChannelSubscriptionsResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListChannelSubscriptions_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteChannelSubscription(ctx context.Context, in *DeleteChannelSubscriptionRequest, opts ...grpc.CallOption) (*DeleteChannelSubscriptionResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteChannelSubscriptionResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteChannelSubscription_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *gatewayServiceClient) StreamChannelEvents(ctx context.Context, in *StreamChannelEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.ChannelEvent], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &GatewayService_ServiceDesc.Streams[2], GatewayService_StreamChannelEvents_FullMethodName, cOpts...)
@@ -603,96 +302,6 @@ func (c *gatewayServiceClient) StreamChannelEvents(ctx context.Context, in *Stre
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GatewayService_StreamChannelEventsClient = grpc.ServerStreamingClient[events.ChannelEvent]
-
-func (c *gatewayServiceClient) CreateSchedule(ctx context.Context, in *CreateScheduleRequest, opts ...grpc.CallOption) (*ScheduleResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ScheduleResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateSchedule_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetSchedule(ctx context.Context, in *GetScheduleRequest, opts ...grpc.CallOption) (*ScheduleResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ScheduleResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetSchedule_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ModifySchedule(ctx context.Context, in *ModifyScheduleRequest, opts ...grpc.CallOption) (*ScheduleResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ScheduleResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ModifySchedule_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListSchedules(ctx context.Context, in *ListSchedulesRequest, opts ...grpc.CallOption) (*ListSchedulesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListSchedulesResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListSchedules_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteSchedule(ctx context.Context, in *DeleteScheduleRequest, opts ...grpc.CallOption) (*DeleteScheduleResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteScheduleResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteSchedule_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*WorkflowResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WorkflowResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateWorkflow_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetWorkflow(ctx context.Context, in *GetWorkflowRequest, opts ...grpc.CallOption) (*WorkflowResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(WorkflowResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetWorkflow_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListWorkflowsResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListWorkflows_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteWorkflow(ctx context.Context, in *DeleteWorkflowRequest, opts ...grpc.CallOption) (*DeleteWorkflowResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteWorkflowResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteWorkflow_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
 
 func (c *gatewayServiceClient) CreateWorkflowRun(ctx context.Context, in *CreateWorkflowRunRequest, opts ...grpc.CallOption) (*WorkflowRunResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -843,106 +452,13 @@ func (c *gatewayServiceClient) DeleteResource(ctx context.Context, in *DeleteRes
 	return out, nil
 }
 
-func (c *gatewayServiceClient) CreateMcpServer(ctx context.Context, in *CreateMcpServerRequest, opts ...grpc.CallOption) (*McpServerResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(McpServerResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateMcpServer_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetMcpServer(ctx context.Context, in *GetMcpServerRequest, opts ...grpc.CallOption) (*McpServerResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(McpServerResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetMcpServer_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListMcpServers(ctx context.Context, in *ListMcpServersRequest, opts ...grpc.CallOption) (*ListMcpServersResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListMcpServersResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListMcpServers_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteMcpServer(ctx context.Context, in *DeleteMcpServerRequest, opts ...grpc.CallOption) (*DeleteMcpServerResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteMcpServerResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteMcpServer_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) CreateMcpServerBinding(ctx context.Context, in *CreateMcpServerBindingRequest, opts ...grpc.CallOption) (*McpServerBindingResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(McpServerBindingResponse)
-	err := c.cc.Invoke(ctx, GatewayService_CreateMcpServerBinding_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) GetMcpServerBinding(ctx context.Context, in *GetMcpServerBindingRequest, opts ...grpc.CallOption) (*McpServerBindingResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(McpServerBindingResponse)
-	err := c.cc.Invoke(ctx, GatewayService_GetMcpServerBinding_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) ListMcpServerBindings(ctx context.Context, in *ListMcpServerBindingsRequest, opts ...grpc.CallOption) (*ListMcpServerBindingsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListMcpServerBindingsResponse)
-	err := c.cc.Invoke(ctx, GatewayService_ListMcpServerBindings_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gatewayServiceClient) DeleteMcpServerBinding(ctx context.Context, in *DeleteMcpServerBindingRequest, opts ...grpc.CallOption) (*DeleteMcpServerBindingResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteMcpServerBindingResponse)
-	err := c.cc.Invoke(ctx, GatewayService_DeleteMcpServerBinding_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GatewayServiceServer is the server API for GatewayService service.
 // All implementations must embed UnimplementedGatewayServiceServer
 // for forward compatibility.
 type GatewayServiceServer interface {
-	// Agent Lifecycle
-	CreateAgent(context.Context, *CreateAgentRequest) (*AgentResponse, error)
-	GetAgent(context.Context, *GetAgentRequest) (*GetAgentResponse, error)
-	ModifyAgent(context.Context, *ModifyAgentRequest) (*AgentResponse, error)
-	ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error)
-	// Agent Knowledge
+	// Agent knowledge data-plane queries
 	GetKnowledge(context.Context, *GetKnowledgeRequest) (*KnowledgeResponse, error)
 	SearchKnowledge(context.Context, *SearchKnowledgeRequest) (*SearchKnowledgeResponse, error)
-	CreateNamespaceKnowledge(context.Context, *CreateNamespaceKnowledgeRequest) (*NamespaceKnowledgeResponse, error)
-	GetNamespaceKnowledge(context.Context, *GetNamespaceKnowledgeRequest) (*NamespaceKnowledgeResponse, error)
-	ListNamespaceKnowledge(context.Context, *ListNamespaceKnowledgeRequest) (*ListNamespaceKnowledgeResponse, error)
-	DeleteNamespaceKnowledge(context.Context, *DeleteNamespaceKnowledgeRequest) (*DeleteNamespaceKnowledgeResponse, error)
-	CreateNamespaceSkill(context.Context, *CreateNamespaceSkillRequest) (*NamespaceSkillResponse, error)
-	GetNamespaceSkill(context.Context, *GetNamespaceSkillRequest) (*NamespaceSkillResponse, error)
-	ListNamespaceSkills(context.Context, *ListNamespaceSkillsRequest) (*ListNamespaceSkillsResponse, error)
-	DeleteNamespaceSkill(context.Context, *DeleteNamespaceSkillRequest) (*DeleteNamespaceSkillResponse, error)
 	// Agent Sessions
 	CreateSession(context.Context, *CreateSessionRequest) (*SessionResponse, error)
 	GetSession(context.Context, *GetSessionRequest) (*SessionResponse, error)
@@ -956,32 +472,12 @@ type GatewayServiceServer interface {
 	StopSessionGeneration(context.Context, *StopSessionGenerationRequest) (*StopSessionGenerationResponse, error)
 	StreamSessionParts(*StreamSessionPartsRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
 	StreamSessionPartsBatch(*StreamSessionPartsBatchRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error
-	// Channels
-	CreateChannel(context.Context, *CreateChannelRequest) (*ChannelResponse, error)
-	GetChannel(context.Context, *GetChannelRequest) (*ChannelResponse, error)
-	ModifyChannel(context.Context, *ModifyChannelRequest) (*ChannelResponse, error)
-	ListChannels(context.Context, *ListChannelsRequest) (*ListChannelsResponse, error)
-	DeleteChannel(context.Context, *DeleteChannelRequest) (*DeleteChannelResponse, error)
+	// Channel data-plane actions
 	PostChannelMessage(context.Context, *PostChannelMessageRequest) (*PostChannelMessageResponse, error)
 	GetChannelMessage(context.Context, *GetChannelMessageRequest) (*ChannelMessageResponse, error)
 	ListChannelMessages(context.Context, *ListChannelMessagesRequest) (*ListChannelMessagesResponse, error)
-	CreateChannelSubscription(context.Context, *CreateChannelSubscriptionRequest) (*ChannelSubscriptionResponse, error)
-	GetChannelSubscription(context.Context, *GetChannelSubscriptionRequest) (*ChannelSubscriptionResponse, error)
-	ModifyChannelSubscription(context.Context, *ModifyChannelSubscriptionRequest) (*ChannelSubscriptionResponse, error)
-	ListChannelSubscriptions(context.Context, *ListChannelSubscriptionsRequest) (*ListChannelSubscriptionsResponse, error)
-	DeleteChannelSubscription(context.Context, *DeleteChannelSubscriptionRequest) (*DeleteChannelSubscriptionResponse, error)
 	StreamChannelEvents(*StreamChannelEventsRequest, grpc.ServerStreamingServer[events.ChannelEvent]) error
-	// Schedules
-	CreateSchedule(context.Context, *CreateScheduleRequest) (*ScheduleResponse, error)
-	GetSchedule(context.Context, *GetScheduleRequest) (*ScheduleResponse, error)
-	ModifySchedule(context.Context, *ModifyScheduleRequest) (*ScheduleResponse, error)
-	ListSchedules(context.Context, *ListSchedulesRequest) (*ListSchedulesResponse, error)
-	DeleteSchedule(context.Context, *DeleteScheduleRequest) (*DeleteScheduleResponse, error)
-	// Workflows
-	CreateWorkflow(context.Context, *CreateWorkflowRequest) (*WorkflowResponse, error)
-	GetWorkflow(context.Context, *GetWorkflowRequest) (*WorkflowResponse, error)
-	ListWorkflows(context.Context, *ListWorkflowsRequest) (*ListWorkflowsResponse, error)
-	DeleteWorkflow(context.Context, *DeleteWorkflowRequest) (*DeleteWorkflowResponse, error)
+	// Workflow data-plane actions
 	CreateWorkflowRun(context.Context, *CreateWorkflowRunRequest) (*WorkflowRunResponse, error)
 	GetWorkflowRun(context.Context, *GetWorkflowRunRequest) (*WorkflowRunResponse, error)
 	ListWorkflowRuns(context.Context, *ListWorkflowRunsRequest) (*ListWorkflowRunsResponse, error)
@@ -998,15 +494,6 @@ type GatewayServiceServer interface {
 	GetResource(context.Context, *GetResourceRequest) (*ResourceResponse, error)
 	ListResources(context.Context, *ListResourcesRequest) (*ListResourcesResponse, error)
 	DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error)
-	// MCP Servers
-	CreateMcpServer(context.Context, *CreateMcpServerRequest) (*McpServerResponse, error)
-	GetMcpServer(context.Context, *GetMcpServerRequest) (*McpServerResponse, error)
-	ListMcpServers(context.Context, *ListMcpServersRequest) (*ListMcpServersResponse, error)
-	DeleteMcpServer(context.Context, *DeleteMcpServerRequest) (*DeleteMcpServerResponse, error)
-	CreateMcpServerBinding(context.Context, *CreateMcpServerBindingRequest) (*McpServerBindingResponse, error)
-	GetMcpServerBinding(context.Context, *GetMcpServerBindingRequest) (*McpServerBindingResponse, error)
-	ListMcpServerBindings(context.Context, *ListMcpServerBindingsRequest) (*ListMcpServerBindingsResponse, error)
-	DeleteMcpServerBinding(context.Context, *DeleteMcpServerBindingRequest) (*DeleteMcpServerBindingResponse, error)
 	mustEmbedUnimplementedGatewayServiceServer()
 }
 
@@ -1017,47 +504,11 @@ type GatewayServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedGatewayServiceServer struct{}
 
-func (UnimplementedGatewayServiceServer) CreateAgent(context.Context, *CreateAgentRequest) (*AgentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAgent not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetAgent(context.Context, *GetAgentRequest) (*GetAgentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAgent not implemented")
-}
-func (UnimplementedGatewayServiceServer) ModifyAgent(context.Context, *ModifyAgentRequest) (*AgentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ModifyAgent not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListAgents(context.Context, *ListAgentsRequest) (*ListAgentsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListAgents not implemented")
-}
 func (UnimplementedGatewayServiceServer) GetKnowledge(context.Context, *GetKnowledgeRequest) (*KnowledgeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKnowledge not implemented")
 }
 func (UnimplementedGatewayServiceServer) SearchKnowledge(context.Context, *SearchKnowledgeRequest) (*SearchKnowledgeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchKnowledge not implemented")
-}
-func (UnimplementedGatewayServiceServer) CreateNamespaceKnowledge(context.Context, *CreateNamespaceKnowledgeRequest) (*NamespaceKnowledgeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateNamespaceKnowledge not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetNamespaceKnowledge(context.Context, *GetNamespaceKnowledgeRequest) (*NamespaceKnowledgeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetNamespaceKnowledge not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListNamespaceKnowledge(context.Context, *ListNamespaceKnowledgeRequest) (*ListNamespaceKnowledgeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaceKnowledge not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteNamespaceKnowledge(context.Context, *DeleteNamespaceKnowledgeRequest) (*DeleteNamespaceKnowledgeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteNamespaceKnowledge not implemented")
-}
-func (UnimplementedGatewayServiceServer) CreateNamespaceSkill(context.Context, *CreateNamespaceSkillRequest) (*NamespaceSkillResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateNamespaceSkill not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetNamespaceSkill(context.Context, *GetNamespaceSkillRequest) (*NamespaceSkillResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetNamespaceSkill not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListNamespaceSkills(context.Context, *ListNamespaceSkillsRequest) (*ListNamespaceSkillsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaceSkills not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteNamespaceSkill(context.Context, *DeleteNamespaceSkillRequest) (*DeleteNamespaceSkillResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteNamespaceSkill not implemented")
 }
 func (UnimplementedGatewayServiceServer) CreateSession(context.Context, *CreateSessionRequest) (*SessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSession not implemented")
@@ -1092,21 +543,6 @@ func (UnimplementedGatewayServiceServer) StreamSessionParts(*StreamSessionPartsR
 func (UnimplementedGatewayServiceServer) StreamSessionPartsBatch(*StreamSessionPartsBatchRequest, grpc.ServerStreamingServer[events.SessionMessagePartEvent]) error {
 	return status.Errorf(codes.Unimplemented, "method StreamSessionPartsBatch not implemented")
 }
-func (UnimplementedGatewayServiceServer) CreateChannel(context.Context, *CreateChannelRequest) (*ChannelResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateChannel not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetChannel(context.Context, *GetChannelRequest) (*ChannelResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetChannel not implemented")
-}
-func (UnimplementedGatewayServiceServer) ModifyChannel(context.Context, *ModifyChannelRequest) (*ChannelResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ModifyChannel not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListChannels(context.Context, *ListChannelsRequest) (*ListChannelsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListChannels not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteChannel(context.Context, *DeleteChannelRequest) (*DeleteChannelResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteChannel not implemented")
-}
 func (UnimplementedGatewayServiceServer) PostChannelMessage(context.Context, *PostChannelMessageRequest) (*PostChannelMessageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PostChannelMessage not implemented")
 }
@@ -1116,50 +552,8 @@ func (UnimplementedGatewayServiceServer) GetChannelMessage(context.Context, *Get
 func (UnimplementedGatewayServiceServer) ListChannelMessages(context.Context, *ListChannelMessagesRequest) (*ListChannelMessagesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListChannelMessages not implemented")
 }
-func (UnimplementedGatewayServiceServer) CreateChannelSubscription(context.Context, *CreateChannelSubscriptionRequest) (*ChannelSubscriptionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateChannelSubscription not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetChannelSubscription(context.Context, *GetChannelSubscriptionRequest) (*ChannelSubscriptionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetChannelSubscription not implemented")
-}
-func (UnimplementedGatewayServiceServer) ModifyChannelSubscription(context.Context, *ModifyChannelSubscriptionRequest) (*ChannelSubscriptionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ModifyChannelSubscription not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListChannelSubscriptions(context.Context, *ListChannelSubscriptionsRequest) (*ListChannelSubscriptionsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListChannelSubscriptions not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteChannelSubscription(context.Context, *DeleteChannelSubscriptionRequest) (*DeleteChannelSubscriptionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteChannelSubscription not implemented")
-}
 func (UnimplementedGatewayServiceServer) StreamChannelEvents(*StreamChannelEventsRequest, grpc.ServerStreamingServer[events.ChannelEvent]) error {
 	return status.Errorf(codes.Unimplemented, "method StreamChannelEvents not implemented")
-}
-func (UnimplementedGatewayServiceServer) CreateSchedule(context.Context, *CreateScheduleRequest) (*ScheduleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateSchedule not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetSchedule(context.Context, *GetScheduleRequest) (*ScheduleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSchedule not implemented")
-}
-func (UnimplementedGatewayServiceServer) ModifySchedule(context.Context, *ModifyScheduleRequest) (*ScheduleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ModifySchedule not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListSchedules(context.Context, *ListSchedulesRequest) (*ListSchedulesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListSchedules not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteSchedule(context.Context, *DeleteScheduleRequest) (*DeleteScheduleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteSchedule not implemented")
-}
-func (UnimplementedGatewayServiceServer) CreateWorkflow(context.Context, *CreateWorkflowRequest) (*WorkflowResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateWorkflow not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetWorkflow(context.Context, *GetWorkflowRequest) (*WorkflowResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetWorkflow not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListWorkflows(context.Context, *ListWorkflowsRequest) (*ListWorkflowsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListWorkflows not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteWorkflow(context.Context, *DeleteWorkflowRequest) (*DeleteWorkflowResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteWorkflow not implemented")
 }
 func (UnimplementedGatewayServiceServer) CreateWorkflowRun(context.Context, *CreateWorkflowRunRequest) (*WorkflowRunResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateWorkflowRun not implemented")
@@ -1203,30 +597,6 @@ func (UnimplementedGatewayServiceServer) ListResources(context.Context, *ListRes
 func (UnimplementedGatewayServiceServer) DeleteResource(context.Context, *DeleteResourceRequest) (*DeleteResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteResource not implemented")
 }
-func (UnimplementedGatewayServiceServer) CreateMcpServer(context.Context, *CreateMcpServerRequest) (*McpServerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateMcpServer not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetMcpServer(context.Context, *GetMcpServerRequest) (*McpServerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMcpServer not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListMcpServers(context.Context, *ListMcpServersRequest) (*ListMcpServersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListMcpServers not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteMcpServer(context.Context, *DeleteMcpServerRequest) (*DeleteMcpServerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteMcpServer not implemented")
-}
-func (UnimplementedGatewayServiceServer) CreateMcpServerBinding(context.Context, *CreateMcpServerBindingRequest) (*McpServerBindingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateMcpServerBinding not implemented")
-}
-func (UnimplementedGatewayServiceServer) GetMcpServerBinding(context.Context, *GetMcpServerBindingRequest) (*McpServerBindingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMcpServerBinding not implemented")
-}
-func (UnimplementedGatewayServiceServer) ListMcpServerBindings(context.Context, *ListMcpServerBindingsRequest) (*ListMcpServerBindingsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListMcpServerBindings not implemented")
-}
-func (UnimplementedGatewayServiceServer) DeleteMcpServerBinding(context.Context, *DeleteMcpServerBindingRequest) (*DeleteMcpServerBindingResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteMcpServerBinding not implemented")
-}
 func (UnimplementedGatewayServiceServer) mustEmbedUnimplementedGatewayServiceServer() {}
 func (UnimplementedGatewayServiceServer) testEmbeddedByValue()                        {}
 
@@ -1246,78 +616,6 @@ func RegisterGatewayServiceServer(s grpc.ServiceRegistrar, srv GatewayServiceSer
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&GatewayService_ServiceDesc, srv)
-}
-
-func _GatewayService_CreateAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAgentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateAgent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateAgent_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateAgent(ctx, req.(*CreateAgentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAgentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetAgent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetAgent_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetAgent(ctx, req.(*GetAgentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ModifyAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ModifyAgentRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ModifyAgent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ModifyAgent_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ModifyAgent(ctx, req.(*ModifyAgentRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListAgents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListAgentsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListAgents(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListAgents_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListAgents(ctx, req.(*ListAgentsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _GatewayService_GetKnowledge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1352,150 +650,6 @@ func _GatewayService_SearchKnowledge_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GatewayServiceServer).SearchKnowledge(ctx, req.(*SearchKnowledgeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_CreateNamespaceKnowledge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateNamespaceKnowledgeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateNamespaceKnowledge(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateNamespaceKnowledge_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateNamespaceKnowledge(ctx, req.(*CreateNamespaceKnowledgeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetNamespaceKnowledge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetNamespaceKnowledgeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetNamespaceKnowledge(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetNamespaceKnowledge_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetNamespaceKnowledge(ctx, req.(*GetNamespaceKnowledgeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListNamespaceKnowledge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListNamespaceKnowledgeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListNamespaceKnowledge(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListNamespaceKnowledge_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListNamespaceKnowledge(ctx, req.(*ListNamespaceKnowledgeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteNamespaceKnowledge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteNamespaceKnowledgeRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteNamespaceKnowledge(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteNamespaceKnowledge_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteNamespaceKnowledge(ctx, req.(*DeleteNamespaceKnowledgeRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_CreateNamespaceSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateNamespaceSkillRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateNamespaceSkill(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateNamespaceSkill_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateNamespaceSkill(ctx, req.(*CreateNamespaceSkillRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetNamespaceSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetNamespaceSkillRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetNamespaceSkill(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetNamespaceSkill_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetNamespaceSkill(ctx, req.(*GetNamespaceSkillRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListNamespaceSkills_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListNamespaceSkillsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListNamespaceSkills(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListNamespaceSkills_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListNamespaceSkills(ctx, req.(*ListNamespaceSkillsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteNamespaceSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteNamespaceSkillRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteNamespaceSkill(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteNamespaceSkill_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteNamespaceSkill(ctx, req.(*DeleteNamespaceSkillRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1684,96 +838,6 @@ func _GatewayService_StreamSessionPartsBatch_Handler(srv interface{}, stream grp
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GatewayService_StreamSessionPartsBatchServer = grpc.ServerStreamingServer[events.SessionMessagePartEvent]
 
-func _GatewayService_CreateChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateChannelRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateChannel(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateChannel_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateChannel(ctx, req.(*CreateChannelRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetChannelRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetChannel(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetChannel_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetChannel(ctx, req.(*GetChannelRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ModifyChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ModifyChannelRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ModifyChannel(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ModifyChannel_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ModifyChannel(ctx, req.(*ModifyChannelRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListChannels_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListChannelsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListChannels(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListChannels_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListChannels(ctx, req.(*ListChannelsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteChannel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteChannelRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteChannel(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteChannel_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteChannel(ctx, req.(*DeleteChannelRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _GatewayService_PostChannelMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PostChannelMessageRequest)
 	if err := dec(in); err != nil {
@@ -1828,96 +892,6 @@ func _GatewayService_ListChannelMessages_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GatewayService_CreateChannelSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateChannelSubscriptionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateChannelSubscription(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateChannelSubscription_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateChannelSubscription(ctx, req.(*CreateChannelSubscriptionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetChannelSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetChannelSubscriptionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetChannelSubscription(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetChannelSubscription_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetChannelSubscription(ctx, req.(*GetChannelSubscriptionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ModifyChannelSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ModifyChannelSubscriptionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ModifyChannelSubscription(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ModifyChannelSubscription_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ModifyChannelSubscription(ctx, req.(*ModifyChannelSubscriptionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListChannelSubscriptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListChannelSubscriptionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListChannelSubscriptions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListChannelSubscriptions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListChannelSubscriptions(ctx, req.(*ListChannelSubscriptionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteChannelSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteChannelSubscriptionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteChannelSubscription(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteChannelSubscription_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteChannelSubscription(ctx, req.(*DeleteChannelSubscriptionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _GatewayService_StreamChannelEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(StreamChannelEventsRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1928,168 +902,6 @@ func _GatewayService_StreamChannelEvents_Handler(srv interface{}, stream grpc.Se
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type GatewayService_StreamChannelEventsServer = grpc.ServerStreamingServer[events.ChannelEvent]
-
-func _GatewayService_CreateSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateScheduleRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateSchedule(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateSchedule_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateSchedule(ctx, req.(*CreateScheduleRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetScheduleRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetSchedule(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetSchedule_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetSchedule(ctx, req.(*GetScheduleRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ModifySchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ModifyScheduleRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ModifySchedule(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ModifySchedule_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ModifySchedule(ctx, req.(*ModifyScheduleRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListSchedules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListSchedulesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListSchedules(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListSchedules_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListSchedules(ctx, req.(*ListSchedulesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteScheduleRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteSchedule(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteSchedule_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteSchedule(ctx, req.(*DeleteScheduleRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_CreateWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateWorkflowRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateWorkflow(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateWorkflow_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateWorkflow(ctx, req.(*CreateWorkflowRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetWorkflowRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetWorkflow(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetWorkflow_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetWorkflow(ctx, req.(*GetWorkflowRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListWorkflows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListWorkflowsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListWorkflows(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListWorkflows_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListWorkflows(ctx, req.(*ListWorkflowsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteWorkflowRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteWorkflow(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteWorkflow_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteWorkflow(ctx, req.(*DeleteWorkflowRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
 
 func _GatewayService_CreateWorkflowRun_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateWorkflowRunRequest)
@@ -2336,150 +1148,6 @@ func _GatewayService_DeleteResource_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GatewayService_CreateMcpServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMcpServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateMcpServer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateMcpServer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateMcpServer(ctx, req.(*CreateMcpServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetMcpServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMcpServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetMcpServer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetMcpServer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetMcpServer(ctx, req.(*GetMcpServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListMcpServers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListMcpServersRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListMcpServers(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListMcpServers_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListMcpServers(ctx, req.(*ListMcpServersRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteMcpServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteMcpServerRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteMcpServer(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteMcpServer_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteMcpServer(ctx, req.(*DeleteMcpServerRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_CreateMcpServerBinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateMcpServerBindingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).CreateMcpServerBinding(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_CreateMcpServerBinding_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).CreateMcpServerBinding(ctx, req.(*CreateMcpServerBindingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_GetMcpServerBinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMcpServerBindingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).GetMcpServerBinding(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_GetMcpServerBinding_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).GetMcpServerBinding(ctx, req.(*GetMcpServerBindingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_ListMcpServerBindings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListMcpServerBindingsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).ListMcpServerBindings(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_ListMcpServerBindings_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).ListMcpServerBindings(ctx, req.(*ListMcpServerBindingsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GatewayService_DeleteMcpServerBinding_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteMcpServerBindingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GatewayServiceServer).DeleteMcpServerBinding(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: GatewayService_DeleteMcpServerBinding_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GatewayServiceServer).DeleteMcpServerBinding(ctx, req.(*DeleteMcpServerBindingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // GatewayService_ServiceDesc is the grpc.ServiceDesc for GatewayService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2488,60 +1156,12 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*GatewayServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateAgent",
-			Handler:    _GatewayService_CreateAgent_Handler,
-		},
-		{
-			MethodName: "GetAgent",
-			Handler:    _GatewayService_GetAgent_Handler,
-		},
-		{
-			MethodName: "ModifyAgent",
-			Handler:    _GatewayService_ModifyAgent_Handler,
-		},
-		{
-			MethodName: "ListAgents",
-			Handler:    _GatewayService_ListAgents_Handler,
-		},
-		{
 			MethodName: "GetKnowledge",
 			Handler:    _GatewayService_GetKnowledge_Handler,
 		},
 		{
 			MethodName: "SearchKnowledge",
 			Handler:    _GatewayService_SearchKnowledge_Handler,
-		},
-		{
-			MethodName: "CreateNamespaceKnowledge",
-			Handler:    _GatewayService_CreateNamespaceKnowledge_Handler,
-		},
-		{
-			MethodName: "GetNamespaceKnowledge",
-			Handler:    _GatewayService_GetNamespaceKnowledge_Handler,
-		},
-		{
-			MethodName: "ListNamespaceKnowledge",
-			Handler:    _GatewayService_ListNamespaceKnowledge_Handler,
-		},
-		{
-			MethodName: "DeleteNamespaceKnowledge",
-			Handler:    _GatewayService_DeleteNamespaceKnowledge_Handler,
-		},
-		{
-			MethodName: "CreateNamespaceSkill",
-			Handler:    _GatewayService_CreateNamespaceSkill_Handler,
-		},
-		{
-			MethodName: "GetNamespaceSkill",
-			Handler:    _GatewayService_GetNamespaceSkill_Handler,
-		},
-		{
-			MethodName: "ListNamespaceSkills",
-			Handler:    _GatewayService_ListNamespaceSkills_Handler,
-		},
-		{
-			MethodName: "DeleteNamespaceSkill",
-			Handler:    _GatewayService_DeleteNamespaceSkill_Handler,
 		},
 		{
 			MethodName: "CreateSession",
@@ -2580,26 +1200,6 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GatewayService_StopSessionGeneration_Handler,
 		},
 		{
-			MethodName: "CreateChannel",
-			Handler:    _GatewayService_CreateChannel_Handler,
-		},
-		{
-			MethodName: "GetChannel",
-			Handler:    _GatewayService_GetChannel_Handler,
-		},
-		{
-			MethodName: "ModifyChannel",
-			Handler:    _GatewayService_ModifyChannel_Handler,
-		},
-		{
-			MethodName: "ListChannels",
-			Handler:    _GatewayService_ListChannels_Handler,
-		},
-		{
-			MethodName: "DeleteChannel",
-			Handler:    _GatewayService_DeleteChannel_Handler,
-		},
-		{
 			MethodName: "PostChannelMessage",
 			Handler:    _GatewayService_PostChannelMessage_Handler,
 		},
@@ -2610,62 +1210,6 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListChannelMessages",
 			Handler:    _GatewayService_ListChannelMessages_Handler,
-		},
-		{
-			MethodName: "CreateChannelSubscription",
-			Handler:    _GatewayService_CreateChannelSubscription_Handler,
-		},
-		{
-			MethodName: "GetChannelSubscription",
-			Handler:    _GatewayService_GetChannelSubscription_Handler,
-		},
-		{
-			MethodName: "ModifyChannelSubscription",
-			Handler:    _GatewayService_ModifyChannelSubscription_Handler,
-		},
-		{
-			MethodName: "ListChannelSubscriptions",
-			Handler:    _GatewayService_ListChannelSubscriptions_Handler,
-		},
-		{
-			MethodName: "DeleteChannelSubscription",
-			Handler:    _GatewayService_DeleteChannelSubscription_Handler,
-		},
-		{
-			MethodName: "CreateSchedule",
-			Handler:    _GatewayService_CreateSchedule_Handler,
-		},
-		{
-			MethodName: "GetSchedule",
-			Handler:    _GatewayService_GetSchedule_Handler,
-		},
-		{
-			MethodName: "ModifySchedule",
-			Handler:    _GatewayService_ModifySchedule_Handler,
-		},
-		{
-			MethodName: "ListSchedules",
-			Handler:    _GatewayService_ListSchedules_Handler,
-		},
-		{
-			MethodName: "DeleteSchedule",
-			Handler:    _GatewayService_DeleteSchedule_Handler,
-		},
-		{
-			MethodName: "CreateWorkflow",
-			Handler:    _GatewayService_CreateWorkflow_Handler,
-		},
-		{
-			MethodName: "GetWorkflow",
-			Handler:    _GatewayService_GetWorkflow_Handler,
-		},
-		{
-			MethodName: "ListWorkflows",
-			Handler:    _GatewayService_ListWorkflows_Handler,
-		},
-		{
-			MethodName: "DeleteWorkflow",
-			Handler:    _GatewayService_DeleteWorkflow_Handler,
 		},
 		{
 			MethodName: "CreateWorkflowRun",
@@ -2718,38 +1262,6 @@ var GatewayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteResource",
 			Handler:    _GatewayService_DeleteResource_Handler,
-		},
-		{
-			MethodName: "CreateMcpServer",
-			Handler:    _GatewayService_CreateMcpServer_Handler,
-		},
-		{
-			MethodName: "GetMcpServer",
-			Handler:    _GatewayService_GetMcpServer_Handler,
-		},
-		{
-			MethodName: "ListMcpServers",
-			Handler:    _GatewayService_ListMcpServers_Handler,
-		},
-		{
-			MethodName: "DeleteMcpServer",
-			Handler:    _GatewayService_DeleteMcpServer_Handler,
-		},
-		{
-			MethodName: "CreateMcpServerBinding",
-			Handler:    _GatewayService_CreateMcpServerBinding_Handler,
-		},
-		{
-			MethodName: "GetMcpServerBinding",
-			Handler:    _GatewayService_GetMcpServerBinding_Handler,
-		},
-		{
-			MethodName: "ListMcpServerBindings",
-			Handler:    _GatewayService_ListMcpServerBindings_Handler,
-		},
-		{
-			MethodName: "DeleteMcpServerBinding",
-			Handler:    _GatewayService_DeleteMcpServerBinding_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

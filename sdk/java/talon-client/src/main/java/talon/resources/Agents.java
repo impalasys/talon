@@ -31,77 +31,49 @@ public final class Agents extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string name = 1;</code>
-     * @return The name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
      */
-    java.lang.String getName();
+    boolean hasMetadata();
     /**
-     * <code>string name = 1;</code>
-     * @return The bytes for name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
      */
-    com.google.protobuf.ByteString
-        getNameBytes();
+    talon.resources.Common.ResourceMeta getMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
 
     /**
-     * <code>string ns = 2;</code>
-     * @return The ns.
-     */
-    java.lang.String getNs();
-    /**
-     * <code>string ns = 2;</code>
-     * @return The bytes for ns.
-     */
-    com.google.protobuf.ByteString
-        getNsBytes();
-
-    /**
-     * <code>.talon.resources.AgentSpec spec = 4;</code>
+     * <code>.talon.resources.AgentSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     boolean hasSpec();
     /**
-     * <code>.talon.resources.AgentSpec spec = 4;</code>
+     * <code>.talon.resources.AgentSpec spec = 2;</code>
      * @return The spec.
      */
     talon.resources.Agents.AgentSpec getSpec();
     /**
-     * <code>.talon.resources.AgentSpec spec = 4;</code>
+     * <code>.talon.resources.AgentSpec spec = 2;</code>
      */
     talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder();
 
     /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
+     * <code>.talon.resources.AgentStatus status = 3;</code>
+     * @return Whether the status field is set.
      */
-    int getLabelsCount();
+    boolean hasStatus();
     /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
+     * <code>.talon.resources.AgentStatus status = 3;</code>
+     * @return The status.
      */
-    boolean containsLabels(
-        java.lang.String key);
+    talon.resources.Agents.AgentStatus getStatus();
     /**
-     * Use {@link #getLabelsMap()} instead.
+     * <code>.talon.resources.AgentStatus status = 3;</code>
      */
-    @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
-    getLabels();
-    /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
-     */
-    java.util.Map<java.lang.String, java.lang.String>
-    getLabelsMap();
-    /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
-     */
-    /* nullable */
-java.lang.String getLabelsOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue);
-    /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
-     */
-    java.lang.String getLabelsOrThrow(
-        java.lang.String key);
+    talon.resources.Agents.AgentStatusOrBuilder getStatusOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.Agent}
@@ -125,8 +97,6 @@ java.lang.String defaultValue);
       super(builder);
     }
     private Agent() {
-      name_ = "";
-      ns_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -139,18 +109,6 @@ java.lang.String defaultValue);
       return talon.resources.Agents.internal_static_talon_resources_Agent_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    @java.lang.Override
-    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-        int number) {
-      switch (number) {
-        case 7:
-          return internalGetLabels();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
@@ -160,96 +118,44 @@ java.lang.String defaultValue);
     }
 
     private int bitField0_;
-    public static final int NAME_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object name_ = "";
+    public static final int METADATA_FIELD_NUMBER = 1;
+    private talon.resources.Common.ResourceMeta metadata_;
     /**
-     * <code>string name = 1;</code>
-     * @return The name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
      */
     @java.lang.Override
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        name_ = s;
-        return s;
-      }
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>string name = 1;</code>
-     * @return The bytes for name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        name_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public talon.resources.Common.ResourceMeta getMetadata() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
     }
 
-    public static final int NS_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object ns_ = "";
-    /**
-     * <code>string ns = 2;</code>
-     * @return The ns.
-     */
-    @java.lang.Override
-    public java.lang.String getNs() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        ns_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string ns = 2;</code>
-     * @return The bytes for ns.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNsBytes() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        ns_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SPEC_FIELD_NUMBER = 4;
+    public static final int SPEC_FIELD_NUMBER = 2;
     private talon.resources.Agents.AgentSpec spec_;
     /**
-     * <code>.talon.resources.AgentSpec spec = 4;</code>
+     * <code>.talon.resources.AgentSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     @java.lang.Override
     public boolean hasSpec() {
-      return ((bitField0_ & 0x00000001) != 0);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>.talon.resources.AgentSpec spec = 4;</code>
+     * <code>.talon.resources.AgentSpec spec = 2;</code>
      * @return The spec.
      */
     @java.lang.Override
@@ -257,90 +163,37 @@ java.lang.String defaultValue);
       return spec_ == null ? talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
     }
     /**
-     * <code>.talon.resources.AgentSpec spec = 4;</code>
+     * <code>.talon.resources.AgentSpec spec = 2;</code>
      */
     @java.lang.Override
     public talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder() {
       return spec_ == null ? talon.resources.Agents.AgentSpec.getDefaultInstance() : spec_;
     }
 
-    public static final int LABELS_FIELD_NUMBER = 7;
-    private static final class LabelsDefaultEntryHolder {
-      static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
-              com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.resources.Agents.internal_static_talon_resources_Agent_LabelsEntry_descriptor,
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
-    }
-    @SuppressWarnings("serial")
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> labels_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetLabels() {
-      if (labels_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            LabelsDefaultEntryHolder.defaultEntry);
-      }
-      return labels_;
-    }
-    public int getLabelsCount() {
-      return internalGetLabels().getMap().size();
-    }
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private talon.resources.Agents.AgentStatus status_;
     /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
+     * <code>.talon.resources.AgentStatus status = 3;</code>
+     * @return Whether the status field is set.
      */
     @java.lang.Override
-    public boolean containsLabels(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      return internalGetLabels().getMap().containsKey(key);
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
-     * Use {@link #getLabelsMap()} instead.
+     * <code>.talon.resources.AgentStatus status = 3;</code>
+     * @return The status.
      */
     @java.lang.Override
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
-      return getLabelsMap();
+    public talon.resources.Agents.AgentStatus getStatus() {
+      return status_ == null ? talon.resources.Agents.AgentStatus.getDefaultInstance() : status_;
     }
     /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
+     * <code>.talon.resources.AgentStatus status = 3;</code>
      */
     @java.lang.Override
-    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
-      return internalGetLabels().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
-     */
-    @java.lang.Override
-    public /* nullable */
-java.lang.String getLabelsOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetLabels().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 7;</code>
-     */
-    @java.lang.Override
-    public java.lang.String getLabelsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetLabels().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
+    public talon.resources.Agents.AgentStatusOrBuilder getStatusOrBuilder() {
+      return status_ == null ? talon.resources.Agents.AgentStatus.getDefaultInstance() : status_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -357,21 +210,15 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, ns_);
-      }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(4, getSpec());
+        output.writeMessage(1, getMetadata());
       }
-      com.google.protobuf.GeneratedMessage
-        .serializeStringMapTo(
-          output,
-          internalGetLabels(),
-          LabelsDefaultEntryHolder.defaultEntry,
-          7);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -381,25 +228,17 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, ns_);
-      }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, getSpec());
+          .computeMessageSize(1, getMetadata());
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-           : internalGetLabels().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
-            .setKey(entry.getKey())
-            .setValue(entry.getValue())
-            .buildPartial();
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(7, labels__);
+          .computeMessageSize(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getStatus());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -416,17 +255,21 @@ java.lang.String defaultValue) {
       }
       talon.resources.Agents.Agent other = (talon.resources.Agents.Agent) obj;
 
-      if (!getName()
-          .equals(other.getName())) return false;
-      if (!getNs()
-          .equals(other.getNs())) return false;
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
       if (hasSpec() != other.hasSpec()) return false;
       if (hasSpec()) {
         if (!getSpec()
             .equals(other.getSpec())) return false;
       }
-      if (!internalGetLabels().equals(
-          other.internalGetLabels())) return false;
+      if (hasStatus() != other.hasStatus()) return false;
+      if (hasStatus()) {
+        if (!getStatus()
+            .equals(other.getStatus())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -438,17 +281,17 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getName().hashCode();
-      hash = (37 * hash) + NS_FIELD_NUMBER;
-      hash = (53 * hash) + getNs().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
       if (hasSpec()) {
         hash = (37 * hash) + SPEC_FIELD_NUMBER;
         hash = (53 * hash) + getSpec().hashCode();
       }
-      if (!internalGetLabels().getMap().isEmpty()) {
-        hash = (37 * hash) + LABELS_FIELD_NUMBER;
-        hash = (53 * hash) + internalGetLabels().hashCode();
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + getStatus().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -559,28 +402,6 @@ java.lang.String defaultValue) {
         return talon.resources.Agents.internal_static_talon_resources_Agent_descriptor;
       }
 
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 7:
-            return internalGetLabels();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 7:
-            return internalGetMutableLabels();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
@@ -602,21 +423,30 @@ java.lang.String defaultValue) {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
           internalGetSpecFieldBuilder();
+          internalGetStatusFieldBuilder();
         }
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        name_ = "";
-        ns_ = "";
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
         spec_ = null;
         if (specBuilder_ != null) {
           specBuilder_.dispose();
           specBuilder_ = null;
         }
-        internalGetMutableLabels().clear();
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
         return this;
       }
 
@@ -650,22 +480,24 @@ java.lang.String defaultValue) {
 
       private void buildPartial0(talon.resources.Agents.Agent result) {
         int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.name_ = name_;
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.ns_ = ns_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000004) != 0)) {
           result.spec_ = specBuilder_ == null
               ? spec_
               : specBuilder_.build();
-          to_bitField0_ |= 0x00000001;
+          to_bitField0_ |= 0x00000002;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.labels_ = internalGetLabels();
-          result.labels_.makeImmutable();
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.status_ = statusBuilder_ == null
+              ? status_
+              : statusBuilder_.build();
+          to_bitField0_ |= 0x00000004;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -682,22 +514,15 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.resources.Agents.Agent other) {
         if (other == talon.resources.Agents.Agent.getDefaultInstance()) return this;
-        if (!other.getName().isEmpty()) {
-          name_ = other.name_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getNs().isEmpty()) {
-          ns_ = other.ns_;
-          bitField0_ |= 0x00000002;
-          onChanged();
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
         }
         if (other.hasSpec()) {
           mergeSpec(other.getSpec());
         }
-        internalGetMutableLabels().mergeFrom(
-            other.internalGetLabels());
-        bitField0_ |= 0x00000008;
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -725,31 +550,26 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                name_ = input.readStringRequireUtf8();
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
               case 18: {
-                ns_ = input.readStringRequireUtf8();
-                bitField0_ |= 0x00000002;
-                break;
-              } // case 18
-              case 34: {
                 input.readMessage(
                     internalGetSpecFieldBuilder().getBuilder(),
                     extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetStatusFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000004;
                 break;
-              } // case 34
-              case 58: {
-                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-                labels__ = input.readMessage(
-                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-                internalGetMutableLabels().getMutableMap().put(
-                    labels__.getKey(), labels__.getValue());
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 58
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -767,162 +587,139 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.lang.Object name_ = "";
+      private talon.resources.Common.ResourceMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
       /**
-       * <code>string name = 1;</code>
-       * @return The name.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return Whether the metadata field is set.
        */
-      public java.lang.String getName() {
-        java.lang.Object ref = name_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          name_ = s;
-          return s;
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return The metadata.
+       */
+      public talon.resources.Common.ResourceMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
         } else {
-          return (java.lang.String) ref;
+          return metadataBuilder_.getMessage();
         }
       }
       /**
-       * <code>string name = 1;</code>
-       * @return The bytes for name.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getNameBytes() {
-        java.lang.Object ref = name_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          name_ = b;
-          return b;
+      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
         } else {
-          return (com.google.protobuf.ByteString) ref;
+          metadataBuilder_.setMessage(value);
         }
-      }
-      /**
-       * <code>string name = 1;</code>
-       * @param value The name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        name_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
-       * @return This builder for chaining.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public Builder clearName() {
-        name_ = getDefaultInstance().getName();
+      public Builder setMetadata(
+          talon.resources.Common.ResourceMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder clearMetadata() {
         bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
-       * @param value The bytes for name to set.
-       * @return This builder for chaining.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public Builder setNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        name_ = value;
+      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
-        return this;
+        return internalGetMetadataFieldBuilder().getBuilder();
       }
-
-      private java.lang.Object ns_ = "";
       /**
-       * <code>string ns = 2;</code>
-       * @return The ns.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public java.lang.String getNs() {
-        java.lang.Object ref = ns_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          ns_ = s;
-          return s;
+      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
         } else {
-          return (java.lang.String) ref;
+          return metadata_ == null ?
+              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
         }
       }
       /**
-       * <code>string ns = 2;</code>
-       * @return The bytes for ns.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getNsBytes() {
-        java.lang.Object ref = ns_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          ns_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
         }
-      }
-      /**
-       * <code>string ns = 2;</code>
-       * @param value The ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNs(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ns_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNs() {
-        ns_ = getDefaultInstance().getNs();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 2;</code>
-       * @param value The bytes for ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ns_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
+        return metadataBuilder_;
       }
 
       private talon.resources.Agents.AgentSpec spec_;
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Agents.AgentSpec, talon.resources.Agents.AgentSpec.Builder, talon.resources.Agents.AgentSpecOrBuilder> specBuilder_;
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        * @return Whether the spec field is set.
        */
       public boolean hasSpec() {
-        return ((bitField0_ & 0x00000004) != 0);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        * @return The spec.
        */
       public talon.resources.Agents.AgentSpec getSpec() {
@@ -933,7 +730,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        */
       public Builder setSpec(talon.resources.Agents.AgentSpec value) {
         if (specBuilder_ == null) {
@@ -944,12 +741,12 @@ java.lang.String defaultValue) {
         } else {
           specBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        */
       public Builder setSpec(
           talon.resources.Agents.AgentSpec.Builder builderForValue) {
@@ -958,16 +755,16 @@ java.lang.String defaultValue) {
         } else {
           specBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        */
       public Builder mergeSpec(talon.resources.Agents.AgentSpec value) {
         if (specBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) != 0) &&
+          if (((bitField0_ & 0x00000002) != 0) &&
             spec_ != null &&
             spec_ != talon.resources.Agents.AgentSpec.getDefaultInstance()) {
             getSpecBuilder().mergeFrom(value);
@@ -978,16 +775,16 @@ java.lang.String defaultValue) {
           specBuilder_.mergeFrom(value);
         }
         if (spec_ != null) {
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000002;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        */
       public Builder clearSpec() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         spec_ = null;
         if (specBuilder_ != null) {
           specBuilder_.dispose();
@@ -997,15 +794,15 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        */
       public talon.resources.Agents.AgentSpec.Builder getSpecBuilder() {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        */
       public talon.resources.Agents.AgentSpecOrBuilder getSpecOrBuilder() {
         if (specBuilder_ != null) {
@@ -1016,7 +813,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>.talon.resources.AgentSpec spec = 4;</code>
+       * <code>.talon.resources.AgentSpec spec = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Agents.AgentSpec, talon.resources.Agents.AgentSpec.Builder, talon.resources.Agents.AgentSpecOrBuilder>
@@ -1032,131 +829,125 @@ java.lang.String defaultValue) {
         return specBuilder_;
       }
 
-      private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> labels_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetLabels() {
-        if (labels_ == null) {
-          return com.google.protobuf.MapField.emptyMapField(
-              LabelsDefaultEntryHolder.defaultEntry);
-        }
-        return labels_;
+      private talon.resources.Agents.AgentStatus status_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Agents.AgentStatus, talon.resources.Agents.AgentStatus.Builder, talon.resources.Agents.AgentStatusOrBuilder> statusBuilder_;
+      /**
+       * <code>.talon.resources.AgentStatus status = 3;</code>
+       * @return Whether the status field is set.
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000004) != 0);
       }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetMutableLabels() {
-        if (labels_ == null) {
-          labels_ = com.google.protobuf.MapField.newMapField(
-              LabelsDefaultEntryHolder.defaultEntry);
+      /**
+       * <code>.talon.resources.AgentStatus status = 3;</code>
+       * @return The status.
+       */
+      public talon.resources.Agents.AgentStatus getStatus() {
+        if (statusBuilder_ == null) {
+          return status_ == null ? talon.resources.Agents.AgentStatus.getDefaultInstance() : status_;
+        } else {
+          return statusBuilder_.getMessage();
         }
-        if (!labels_.isMutable()) {
-          labels_ = labels_.copy();
+      }
+      /**
+       * <code>.talon.resources.AgentStatus status = 3;</code>
+       */
+      public Builder setStatus(talon.resources.Agents.AgentStatus value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+        } else {
+          statusBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
-        return labels_;
-      }
-      public int getLabelsCount() {
-        return internalGetLabels().getMap().size();
+        return this;
       }
       /**
-       * <code>map&lt;string, string&gt; labels = 7;</code>
+       * <code>.talon.resources.AgentStatus status = 3;</code>
        */
-      @java.lang.Override
-      public boolean containsLabels(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        return internalGetLabels().getMap().containsKey(key);
-      }
-      /**
-       * Use {@link #getLabelsMap()} instead.
-       */
-      @java.lang.Override
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
-        return getLabelsMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 7;</code>
-       */
-      @java.lang.Override
-      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
-        return internalGetLabels().getMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 7;</code>
-       */
-      @java.lang.Override
-      public /* nullable */
-java.lang.String getLabelsOrDefault(
-          java.lang.String key,
-          /* nullable */
-java.lang.String defaultValue) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetLabels().getMap();
-        return map.containsKey(key) ? map.get(key) : defaultValue;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 7;</code>
-       */
-      @java.lang.Override
-      public java.lang.String getLabelsOrThrow(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetLabels().getMap();
-        if (!map.containsKey(key)) {
-          throw new java.lang.IllegalArgumentException();
+      public Builder setStatus(
+          talon.resources.Agents.AgentStatus.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
         }
-        return map.get(key);
-      }
-      public Builder clearLabels() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        internalGetMutableLabels().getMutableMap()
-            .clear();
+        bitField0_ |= 0x00000004;
+        onChanged();
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; labels = 7;</code>
+       * <code>.talon.resources.AgentStatus status = 3;</code>
        */
-      public Builder removeLabels(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        internalGetMutableLabels().getMutableMap()
-            .remove(key);
+      public Builder mergeStatus(talon.resources.Agents.AgentStatus value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            status_ != null &&
+            status_ != talon.resources.Agents.AgentStatus.getDefaultInstance()) {
+            getStatusBuilder().mergeFrom(value);
+          } else {
+            status_ = value;
+          }
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        if (status_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
         return this;
       }
       /**
-       * Use alternate mutation accessors instead.
+       * <code>.talon.resources.AgentStatus status = 3;</code>
        */
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
-          getMutableLabels() {
-        bitField0_ |= 0x00000008;
-        return internalGetMutableLabels().getMutableMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 7;</code>
-       */
-      public Builder putLabels(
-          java.lang.String key,
-          java.lang.String value) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        if (value == null) { throw new NullPointerException("map value"); }
-        internalGetMutableLabels().getMutableMap()
-            .put(key, value);
-        bitField0_ |= 0x00000008;
+      public Builder clearStatus() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        onChanged();
         return this;
       }
       /**
-       * <code>map&lt;string, string&gt; labels = 7;</code>
+       * <code>.talon.resources.AgentStatus status = 3;</code>
        */
-      public Builder putAllLabels(
-          java.util.Map<java.lang.String, java.lang.String> values) {
-        internalGetMutableLabels().getMutableMap()
-            .putAll(values);
-        bitField0_ |= 0x00000008;
-        return this;
+      public talon.resources.Agents.AgentStatus.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetStatusFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.AgentStatus status = 3;</code>
+       */
+      public talon.resources.Agents.AgentStatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_ == null ?
+              talon.resources.Agents.AgentStatus.getDefaultInstance() : status_;
+        }
+      }
+      /**
+       * <code>.talon.resources.AgentStatus status = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Agents.AgentStatus, talon.resources.Agents.AgentStatus.Builder, talon.resources.Agents.AgentStatusOrBuilder>
+          internalGetStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Agents.AgentStatus, talon.resources.Agents.AgentStatus.Builder, talon.resources.Agents.AgentStatusOrBuilder>(
+                  getStatus(),
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
+        }
+        return statusBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.Agent)
@@ -20243,11 +20034,6 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_Agent_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_Agent_LabelsEntry_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_Agent_LabelsEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_AgentSpec_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -20363,75 +20149,74 @@ java.lang.String defaultValue) {
     java.lang.String[] descriptorData = {
       "\n\034proto/resources/agents.proto\022\017talon.re" +
       "sources\032\034google/protobuf/struct.proto\032\034p" +
-      "roto/resources/common.proto\"\272\001\n\005Agent\022\014\n" +
-      "\004name\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022(\n\004spec\030\004 \001(\0132\032." +
-      "talon.resources.AgentSpec\0222\n\006labels\030\007 \003(" +
-      "\0132\".talon.resources.Agent.LabelsEntry\032-\n" +
-      "\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t" +
-      ":\0028\001J\004\010\003\020\004J\004\010\005\020\006\"\203\003\n\tAgentSpec\022*\n\010featur" +
-      "es\030\001 \003(\0132\030.talon.resources.Feature\0222\n\014mo" +
-      "del_policy\030\002 \001(\0132\034.talon.resources.Model" +
-      "Policy\022\025\n\rsystem_prompt\030\003 \001(\t\022\027\n\017mcp_ser" +
-      "ver_refs\030\004 \003(\t\022B\n\014capabilities\030\006 \003(\0132,.t" +
-      "alon.resources.AgentSpec.CapabilitiesEnt" +
-      "ry\022!\n\003a2a\030\007 \001(\0132\024.talon.resources.A2A\022.\n" +
-      "\007runtime\030\010 \001(\0132\035.talon.resources.AgentRu" +
-      "ntime\032O\n\021CapabilitiesEntry\022\013\n\003key\030\001 \001(\t\022" +
-      ")\n\005value\030\002 \001(\0132\032.google.protobuf.ListVal" +
-      "ue:\0028\001\"\243\001\n\013AgentStatus\022\033\n\023observed_gener" +
-      "ation\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions" +
-      "\030\003 \003(\0132\".talon.resources.ResourceConditi" +
-      "on\022\034\n\017last_session_id\030\004 \001(\tH\000\210\001\001B\022\n\020_las" +
-      "t_session_id\"F\n\014AgentRuntime\022\014\n\004kind\030\001 \001" +
-      "(\t\022(\n\003acp\030\002 \001(\0132\033.talon.resources.AcpRun" +
-      "time\"\350\002\n\nAcpRuntime\022\023\n\013harness_ref\030\001 \001(\t" +
-      "\022\017\n\007command\030\002 \001(\t\022\014\n\004args\030\003 \003(\t\022\013\n\003cwd\030\004" +
-      " \001(\t\022\032\n\022sandbox_policy_ref\030\005 \001(\t\022\027\n\017pers" +
-      "ist_session\030\006 \001(\010\0221\n\003env\030\007 \003(\0132$.talon.r" +
-      "esources.AcpRuntime.EnvEntry\022L\n\021permissi" +
-      "on_policy\030\010 \003(\01321.talon.resources.AcpRun" +
-      "time.PermissionPolicyEntry\032*\n\010EnvEntry\022\013" +
-      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\0327\n\025Permis" +
-      "sionPolicyEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
-      "\001(\t:\0028\001\"7\n\007Feature\022\014\n\004name\030\001 \001(\t\022\014\n\004type" +
-      "\030\002 \001(\t\022\020\n\010required\030\003 \001(\010\"o\n\005Model\022\020\n\010pro" +
-      "vider\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013temperature" +
-      "\030\003 \001(\002\0221\n\010thinking\030\004 \001(\0132\037.talon.resourc" +
-      "es.ThinkingConfig\"_\n\016ThinkingConfig\022\017\n\007e" +
-      "nabled\030\001 \001(\010\022\032\n\rbudget_tokens\030\002 \001(\rH\000\210\001\001" +
-      "\022\016\n\006effort\030\003 \001(\tB\020\n\016_budget_tokens\"C\n\014Mo" +
-      "delProfile\022\014\n\004name\030\001 \001(\t\022%\n\005model\030\002 \001(\0132" +
-      "\026.talon.resources.Model\">\n\013ModelPolicy\022/" +
-      "\n\010profiles\030\001 \003(\0132\035.talon.resources.Model" +
-      "Profile\"g\n\003A2A\0220\n\013connections\030\001 \003(\0132\033.ta" +
-      "lon.resources.Connection\022.\n\nagent_card\030\002" +
-      " \001(\0132\032.talon.resources.AgentCard\"\345\001\n\nCon" +
-      "nection\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001" +
-      "(\t\022.\n\006target\030\003 \001(\0132\036.talon.resources.Con" +
-      "nectionRef\022\023\n\013input_modes\030\004 \003(\t\022\024\n\014outpu" +
-      "t_modes\030\005 \003(\t\022\027\n\017timeout_seconds\030\006 \001(\r\022\021" +
-      "\n\tmax_depth\030\007 \001(\r\022-\n\004auth\030\010 \001(\0132\037.talon." +
-      "resources.ConnectionAuth\"\221\001\n\rConnectionR" +
-      "ef\022:\n\010internal\030\001 \001(\0132&.talon.resources.I" +
-      "nternalConnectionRefH\000\022:\n\010external\030\002 \001(\013" +
-      "2&.talon.resources.ExternalConnectionRef" +
-      "H\000B\010\n\006target\"9\n\025InternalConnectionRef\022\021\n" +
-      "\tnamespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"/\n\025Exter" +
-      "nalConnectionRef\022\026\n\016agent_card_url\030\001 \001(\t" +
-      "\"2\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n\nsecr" +
-      "et_ref\030\002 \001(\t\"\351\001\n\tAgentCard\022\014\n\004name\030\001 \001(\t" +
-      "\022\023\n\013description\030\002 \001(\t\022\017\n\007version\030\003 \001(\t\022<" +
-      "\n\014capabilities\030\004 \001(\0132&.talon.resources.A" +
-      "gentCardCapabilities\022\033\n\023default_input_mo" +
-      "des\030\005 \003(\t\022\034\n\024default_output_modes\030\006 \003(\t\022" +
-      "/\n\006skills\030\007 \003(\0132\037.talon.resources.AgentC" +
-      "ardSkill\"c\n\025AgentCardCapabilities\022\021\n\tstr" +
-      "eaming\030\001 \001(\010\022\032\n\022push_notifications\030\002 \001(\010" +
-      "\022\033\n\023extended_agent_card\030\003 \001(\010\"\212\001\n\016AgentC" +
-      "ardSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013de" +
-      "scription\030\003 \001(\t\022\014\n\004tags\030\004 \003(\t\022\020\n\010example" +
-      "s\030\005 \003(\t\022\023\n\013input_modes\030\006 \003(\t\022\024\n\014output_m" +
-      "odes\030\007 \003(\tb\006proto3"
+      "roto/resources/common.proto\"\220\001\n\005Agent\022/\n" +
+      "\010metadata\030\001 \001(\0132\035.talon.resources.Resour" +
+      "ceMeta\022(\n\004spec\030\002 \001(\0132\032.talon.resources.A" +
+      "gentSpec\022,\n\006status\030\003 \001(\0132\034.talon.resourc" +
+      "es.AgentStatus\"\203\003\n\tAgentSpec\022*\n\010features" +
+      "\030\001 \003(\0132\030.talon.resources.Feature\0222\n\014mode" +
+      "l_policy\030\002 \001(\0132\034.talon.resources.ModelPo" +
+      "licy\022\025\n\rsystem_prompt\030\003 \001(\t\022\027\n\017mcp_serve" +
+      "r_refs\030\004 \003(\t\022B\n\014capabilities\030\006 \003(\0132,.tal" +
+      "on.resources.AgentSpec.CapabilitiesEntry" +
+      "\022!\n\003a2a\030\007 \001(\0132\024.talon.resources.A2A\022.\n\007r" +
+      "untime\030\010 \001(\0132\035.talon.resources.AgentRunt" +
+      "ime\032O\n\021CapabilitiesEntry\022\013\n\003key\030\001 \001(\t\022)\n" +
+      "\005value\030\002 \001(\0132\032.google.protobuf.ListValue" +
+      ":\0028\001\"\243\001\n\013AgentStatus\022\033\n\023observed_generat" +
+      "ion\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003" +
+      " \003(\0132\".talon.resources.ResourceCondition" +
+      "\022\034\n\017last_session_id\030\004 \001(\tH\000\210\001\001B\022\n\020_last_" +
+      "session_id\"F\n\014AgentRuntime\022\014\n\004kind\030\001 \001(\t" +
+      "\022(\n\003acp\030\002 \001(\0132\033.talon.resources.AcpRunti" +
+      "me\"\350\002\n\nAcpRuntime\022\023\n\013harness_ref\030\001 \001(\t\022\017" +
+      "\n\007command\030\002 \001(\t\022\014\n\004args\030\003 \003(\t\022\013\n\003cwd\030\004 \001" +
+      "(\t\022\032\n\022sandbox_policy_ref\030\005 \001(\t\022\027\n\017persis" +
+      "t_session\030\006 \001(\010\0221\n\003env\030\007 \003(\0132$.talon.res" +
+      "ources.AcpRuntime.EnvEntry\022L\n\021permission" +
+      "_policy\030\010 \003(\01321.talon.resources.AcpRunti" +
+      "me.PermissionPolicyEntry\032*\n\010EnvEntry\022\013\n\003" +
+      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\0327\n\025Permissi" +
+      "onPolicyEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
+      "\t:\0028\001\"7\n\007Feature\022\014\n\004name\030\001 \001(\t\022\014\n\004type\030\002" +
+      " \001(\t\022\020\n\010required\030\003 \001(\010\"o\n\005Model\022\020\n\010provi" +
+      "der\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013temperature\030\003" +
+      " \001(\002\0221\n\010thinking\030\004 \001(\0132\037.talon.resources" +
+      ".ThinkingConfig\"_\n\016ThinkingConfig\022\017\n\007ena" +
+      "bled\030\001 \001(\010\022\032\n\rbudget_tokens\030\002 \001(\rH\000\210\001\001\022\016" +
+      "\n\006effort\030\003 \001(\tB\020\n\016_budget_tokens\"C\n\014Mode" +
+      "lProfile\022\014\n\004name\030\001 \001(\t\022%\n\005model\030\002 \001(\0132\026." +
+      "talon.resources.Model\">\n\013ModelPolicy\022/\n\010" +
+      "profiles\030\001 \003(\0132\035.talon.resources.ModelPr" +
+      "ofile\"g\n\003A2A\0220\n\013connections\030\001 \003(\0132\033.talo" +
+      "n.resources.Connection\022.\n\nagent_card\030\002 \001" +
+      "(\0132\032.talon.resources.AgentCard\"\345\001\n\nConne" +
+      "ction\022\014\n\004name\030\001 \001(\t\022\023\n\013description\030\002 \001(\t" +
+      "\022.\n\006target\030\003 \001(\0132\036.talon.resources.Conne" +
+      "ctionRef\022\023\n\013input_modes\030\004 \003(\t\022\024\n\014output_" +
+      "modes\030\005 \003(\t\022\027\n\017timeout_seconds\030\006 \001(\r\022\021\n\t" +
+      "max_depth\030\007 \001(\r\022-\n\004auth\030\010 \001(\0132\037.talon.re" +
+      "sources.ConnectionAuth\"\221\001\n\rConnectionRef" +
+      "\022:\n\010internal\030\001 \001(\0132&.talon.resources.Int" +
+      "ernalConnectionRefH\000\022:\n\010external\030\002 \001(\0132&" +
+      ".talon.resources.ExternalConnectionRefH\000" +
+      "B\010\n\006target\"9\n\025InternalConnectionRef\022\021\n\tn" +
+      "amespace\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\"/\n\025Externa" +
+      "lConnectionRef\022\026\n\016agent_card_url\030\001 \001(\t\"2" +
+      "\n\016ConnectionAuth\022\014\n\004kind\030\001 \001(\t\022\022\n\nsecret" +
+      "_ref\030\002 \001(\t\"\351\001\n\tAgentCard\022\014\n\004name\030\001 \001(\t\022\023" +
+      "\n\013description\030\002 \001(\t\022\017\n\007version\030\003 \001(\t\022<\n\014" +
+      "capabilities\030\004 \001(\0132&.talon.resources.Age" +
+      "ntCardCapabilities\022\033\n\023default_input_mode" +
+      "s\030\005 \003(\t\022\034\n\024default_output_modes\030\006 \003(\t\022/\n" +
+      "\006skills\030\007 \003(\0132\037.talon.resources.AgentCar" +
+      "dSkill\"c\n\025AgentCardCapabilities\022\021\n\tstrea" +
+      "ming\030\001 \001(\010\022\032\n\022push_notifications\030\002 \001(\010\022\033" +
+      "\n\023extended_agent_card\030\003 \001(\010\"\212\001\n\016AgentCar" +
+      "dSkill\022\n\n\002id\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022\023\n\013desc" +
+      "ription\030\003 \001(\t\022\014\n\004tags\030\004 \003(\t\022\020\n\010examples\030" +
+      "\005 \003(\t\022\023\n\013input_modes\030\006 \003(\t\022\024\n\014output_mod" +
+      "es\030\007 \003(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -20444,13 +20229,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_Agent_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_Agent_descriptor,
-        new java.lang.String[] { "Name", "Ns", "Spec", "Labels", });
-    internal_static_talon_resources_Agent_LabelsEntry_descriptor =
-      internal_static_talon_resources_Agent_descriptor.getNestedType(0);
-    internal_static_talon_resources_Agent_LabelsEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_Agent_LabelsEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
     internal_static_talon_resources_AgentSpec_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_talon_resources_AgentSpec_fieldAccessorTable = new

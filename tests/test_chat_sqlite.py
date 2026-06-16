@@ -15,15 +15,17 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "gene
 
 from proto.gateway_pb2_grpc import GatewayServiceStub
 from proto.gateway_pb2 import (
-    CreateAgentRequest,
     CreateNamespaceRequest,
+    CreateResourceRequest,
     CreateSessionRequest,
     GetSessionRequest,
     ListResourcesRequest,
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
-from proto.resources.agents_pb2 import AgentSpec, Model
+from proto.resources.agents_pb2 import AgentSpec, AgentStatus, Model
+from proto.resources.common_pb2 import ResourceMeta
+from proto.resources.resource_pb2 import Resource, ResourceSpec, ResourceStatus
 import conftest
 
 PART_TYPE_TEXT = 1
@@ -52,16 +54,31 @@ def ensure_namespace(stub, name):
             raise
 
 
+def create_agent_resource(stub, ns, name, spec):
+    return stub.CreateResource(
+        CreateResourceRequest(
+            ns=ns,
+            resource=Resource(
+                api_version="talon.impalasys.com/v1",
+                kind="Agent",
+                metadata=ResourceMeta(name=name, namespace=ns),
+                spec=ResourceSpec(agent=spec),
+                status=ResourceStatus(agent=AgentStatus()),
+            ),
+        )
+    ).resource
+
+
 def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_server):
     stub = GatewayServiceStub(gateway_channel_sqlite)
 
     ensure_namespace(stub, "talon-sqlite-test")
 
-    agent = stub.CreateAgent(
-        CreateAgentRequest(
-            ns="talon-sqlite-test",
-            name="test-llm-agent",
-            spec=AgentSpec(
+    agent = create_agent_resource(
+        stub,
+        "talon-sqlite-test",
+        "test-llm-agent",
+        AgentSpec(
                 model_policy={
                     "profiles": [
                         {
@@ -76,9 +93,8 @@ def test_single_turn_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_s
                 },
                 system_prompt="You are a helpful test assistant.",
             ),
-        )
     )
-    assert agent.agent == "test-llm-agent"
+    assert agent.metadata.name == "test-llm-agent"
 
     session = stub.CreateSession(
         CreateSessionRequest(agent="test-llm-agent", ns="talon-sqlite-test")
@@ -124,11 +140,11 @@ def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_ser
 
     ensure_namespace(stub, "talon-sqlite-stream-test")
 
-    stub.CreateAgent(
-        CreateAgentRequest(
-            ns="talon-sqlite-stream-test",
-            name="stream-agent",
-            spec=AgentSpec(
+    create_agent_resource(
+        stub,
+        "talon-sqlite-stream-test",
+        "stream-agent",
+        AgentSpec(
                 model_policy={
                     "profiles": [
                         {
@@ -143,7 +159,6 @@ def test_streaming_chat_sqlite_local_socket(gateway_channel_sqlite, mock_llm_ser
                 },
                 system_prompt="Stream me.",
             ),
-        )
     )
 
     session = stub.CreateSession(

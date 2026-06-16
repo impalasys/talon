@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fproto/resources/knowledge.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\x8d\x01\n\tKnowledge\x12\x13\n\x0b\x61pi_version\x18\x01 \x01(\t\x12\x0c\n\x04kind\x18\x02 \x01(\t\x12/\n\x08metadata\x18\x03 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12,\n\x04spec\x18\x04 \x01(\x0b\x32\x1e.talon.resources.KnowledgeSpec\".\n\rKnowledgeSpec\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\tb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1fproto/resources/knowledge.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xa1\x01\n\tKnowledge\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12,\n\x04spec\x18\x02 \x01(\x0b\x32\x1e.talon.resources.KnowledgeSpec\x12\x35\n\x06status\x18\x03 \x01(\x0b\x32%.talon.resources.CommonResourceStatus\".\n\rKnowledgeSpec\x12\x0c\n\x04path\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\tb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,7 +33,7 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.resources.knowledge_p
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_KNOWLEDGE']._serialized_start=83
-  _globals['_KNOWLEDGE']._serialized_end=224
-  _globals['_KNOWLEDGESPEC']._serialized_start=226
-  _globals['_KNOWLEDGESPEC']._serialized_end=272
+  _globals['_KNOWLEDGE']._serialized_end=244
+  _globals['_KNOWLEDGESPEC']._serialized_start=246
+  _globals['_KNOWLEDGESPEC']._serialized_end=292
 # @@protoc_insertion_point(module_scope)

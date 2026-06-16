@@ -1528,6 +1528,31 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
      */
     com.google.protobuf.ByteString
         getPackagesBytes(int index);
+
+    /**
+     * <code>repeated string commands = 2;</code>
+     * @return A list containing the commands.
+     */
+    java.util.List<java.lang.String>
+        getCommandsList();
+    /**
+     * <code>repeated string commands = 2;</code>
+     * @return The count of commands.
+     */
+    int getCommandsCount();
+    /**
+     * <code>repeated string commands = 2;</code>
+     * @param index The index of the element to return.
+     * @return The commands at the given index.
+     */
+    java.lang.String getCommands(int index);
+    /**
+     * <code>repeated string commands = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the commands at the given index.
+     */
+    com.google.protobuf.ByteString
+        getCommandsBytes(int index);
   }
   /**
    * Protobuf type {@code talon.resources.SandboxSetupSpec}
@@ -1552,6 +1577,8 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     }
     private SandboxSetupSpec() {
       packages_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      commands_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
     }
 
@@ -1610,6 +1637,43 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       return packages_.getByteString(index);
     }
 
+    public static final int COMMANDS_FIELD_NUMBER = 2;
+    @SuppressWarnings("serial")
+    private com.google.protobuf.LazyStringArrayList commands_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    /**
+     * <code>repeated string commands = 2;</code>
+     * @return A list containing the commands.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getCommandsList() {
+      return commands_;
+    }
+    /**
+     * <code>repeated string commands = 2;</code>
+     * @return The count of commands.
+     */
+    public int getCommandsCount() {
+      return commands_.size();
+    }
+    /**
+     * <code>repeated string commands = 2;</code>
+     * @param index The index of the element to return.
+     * @return The commands at the given index.
+     */
+    public java.lang.String getCommands(int index) {
+      return commands_.get(index);
+    }
+    /**
+     * <code>repeated string commands = 2;</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the commands at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getCommandsBytes(int index) {
+      return commands_.getByteString(index);
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -1626,6 +1690,9 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
                         throws java.io.IOException {
       for (int i = 0; i < packages_.size(); i++) {
         com.google.protobuf.GeneratedMessage.writeString(output, 1, packages_.getRaw(i));
+      }
+      for (int i = 0; i < commands_.size(); i++) {
+        com.google.protobuf.GeneratedMessage.writeString(output, 2, commands_.getRaw(i));
       }
       getUnknownFields().writeTo(output);
     }
@@ -1644,6 +1711,14 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         size += dataSize;
         size += 1 * getPackagesList().size();
       }
+      {
+        int dataSize = 0;
+        for (int i = 0; i < commands_.size(); i++) {
+          dataSize += computeStringSizeNoTag(commands_.getRaw(i));
+        }
+        size += dataSize;
+        size += 1 * getCommandsList().size();
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
       return size;
@@ -1661,6 +1736,8 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
       if (!getPackagesList()
           .equals(other.getPackagesList())) return false;
+      if (!getCommandsList()
+          .equals(other.getCommandsList())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -1675,6 +1752,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       if (getPackagesCount() > 0) {
         hash = (37 * hash) + PACKAGES_FIELD_NUMBER;
         hash = (53 * hash) + getPackagesList().hashCode();
+      }
+      if (getCommandsCount() > 0) {
+        hash = (37 * hash) + COMMANDS_FIELD_NUMBER;
+        hash = (53 * hash) + getCommandsList().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -1809,6 +1890,8 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         bitField0_ = 0;
         packages_ =
             com.google.protobuf.LazyStringArrayList.emptyList();
+        commands_ =
+            com.google.protobuf.LazyStringArrayList.emptyList();
         return this;
       }
 
@@ -1846,6 +1929,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
           packages_.makeImmutable();
           result.packages_ = packages_;
         }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          commands_.makeImmutable();
+          result.commands_ = commands_;
+        }
       }
 
       @java.lang.Override
@@ -1867,6 +1954,16 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
           } else {
             ensurePackagesIsMutable();
             packages_.addAll(other.packages_);
+          }
+          onChanged();
+        }
+        if (!other.commands_.isEmpty()) {
+          if (commands_.isEmpty()) {
+            commands_ = other.commands_;
+            bitField0_ |= 0x00000002;
+          } else {
+            ensureCommandsIsMutable();
+            commands_.addAll(other.commands_);
           }
           onChanged();
         }
@@ -1901,6 +1998,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
                 packages_.add(input.readStringRequireUtf8());
                 break;
               } // case 10
+              case 18: {
+                ensureCommandsIsMutable();
+                commands_.add(input.readStringRequireUtf8());
+                break;
+              } // case 18
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -2025,6 +2127,117 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         ensurePackagesIsMutable();
         packages_.add(value);
         bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.LazyStringArrayList commands_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      private void ensureCommandsIsMutable() {
+        if (!commands_.isModifiable()) {
+          commands_ = new com.google.protobuf.LazyStringArrayList(commands_);
+        }
+        bitField0_ |= 0x00000002;
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @return A list containing the commands.
+       */
+      public com.google.protobuf.ProtocolStringList
+          getCommandsList() {
+        commands_.makeImmutable();
+        return commands_;
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @return The count of commands.
+       */
+      public int getCommandsCount() {
+        return commands_.size();
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @param index The index of the element to return.
+       * @return The commands at the given index.
+       */
+      public java.lang.String getCommands(int index) {
+        return commands_.get(index);
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @param index The index of the value to return.
+       * @return The bytes of the commands at the given index.
+       */
+      public com.google.protobuf.ByteString
+          getCommandsBytes(int index) {
+        return commands_.getByteString(index);
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @param index The index to set the value at.
+       * @param value The commands to set.
+       * @return This builder for chaining.
+       */
+      public Builder setCommands(
+          int index, java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureCommandsIsMutable();
+        commands_.set(index, value);
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @param value The commands to add.
+       * @return This builder for chaining.
+       */
+      public Builder addCommands(
+          java.lang.String value) {
+        if (value == null) { throw new NullPointerException(); }
+        ensureCommandsIsMutable();
+        commands_.add(value);
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @param values The commands to add.
+       * @return This builder for chaining.
+       */
+      public Builder addAllCommands(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureCommandsIsMutable();
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, commands_);
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearCommands() {
+        commands_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000002);;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string commands = 2;</code>
+       * @param value The bytes of the commands to add.
+       * @return This builder for chaining.
+       */
+      public Builder addCommandsBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) { throw new NullPointerException(); }
+        checkByteStringIsUtf8(value);
+        ensureCommandsIsMutable();
+        commands_.add(value);
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
@@ -11276,40 +11489,40 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       "\"\\\n\020SandboxClassSpec\022\020\n\010provider\030\001 \001(\t\022\034" +
       "\n\024provider_config_json\030\002 \001(\t\022\030\n\020credenti" +
       "als_json\030\003 \001(\t\"8\n\024SandboxWorkspaceSpec\022\014" +
-      "\n\004mode\030\001 \001(\t\022\022\n\nmount_path\030\002 \001(\t\"$\n\020Sand" +
-      "boxSetupSpec\022\020\n\010packages\030\001 \003(\t\"\"\n\022Sandbo" +
-      "xNetworkSpec\022\014\n\004mode\030\001 \001(\t\";\n\025SandboxFil" +
-      "esystemSpec\022\020\n\010writable\030\001 \003(\t\022\020\n\010readonl" +
-      "y\030\002 \003(\t\"&\n\026SandboxLeasePolicySpec\022\014\n\004mod" +
-      "e\030\001 \001(\t\"\310\002\n\032SandboxRuntimeTemplateSpec\022\r" +
-      "\n\005image\030\001 \001(\t\0228\n\tworkspace\030\002 \001(\0132%.talon" +
-      ".resources.SandboxWorkspaceSpec\0220\n\005setup" +
-      "\030\003 \001(\0132!.talon.resources.SandboxSetupSpe" +
-      "c\0224\n\007network\030\004 \001(\0132#.talon.resources.San" +
-      "dboxNetworkSpec\022:\n\nfilesystem\030\005 \001(\0132&.ta" +
-      "lon.resources.SandboxFilesystemSpec\022=\n\014l" +
-      "ease_policy\030\006 \001(\0132\'.talon.resources.Sand" +
-      "boxLeasePolicySpec\"\233\001\n\021SandboxPolicySpec" +
-      "\022/\n\tclass_ref\030\001 \001(\0132\034.talon.resources.Re" +
-      "sourceRef\022=\n\010template\030\002 \001(\0132+.talon.reso" +
-      "urces.SandboxRuntimeTemplateSpec\022\026\n\016max_" +
-      "concurrent\030\003 \001(\r\"\237\001\n\014SandboxLease\022\022\n\nown" +
-      "er_kind\030\001 \001(\t\022\023\n\013owner_agent\030\002 \001(\t\022\030\n\020ow" +
-      "ner_session_id\030\003 \001(\t\022\r\n\005token\030\004 \001(\t\022\023\n\013a" +
-      "cquired_at\030\005 \001(\003\022\022\n\nexpires_at\030\006 \001(\003\022\024\n\014" +
-      "heartbeat_at\030\007 \001(\003\"b\n\024SandboxProcessStat" +
-      "us\022\n\n\002id\030\001 \001(\t\022\017\n\007command\030\002 \001(\t\022\014\n\004args\030" +
-      "\003 \003(\t\022\020\n\010protocol\030\004 \001(\t\022\r\n\005phase\030\005 \001(\t\"\357" +
-      "\001\n\rSandboxStatus\022\033\n\023observed_generation\030" +
-      "\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\013" +
-      "2\".talon.resources.ResourceCondition\022\022\n\n" +
-      "backend_id\030\004 \001(\t\022,\n\005lease\030\005 \001(\0132\035.talon." +
-      "resources.SandboxLease\0228\n\tprocesses\030\006 \003(" +
-      "\0132%.talon.resources.SandboxProcessStatus" +
-      "\"q\n\013SandboxSpec\022\022\n\npolicy_ref\030\001 \001(\t\022/\n\tc" +
-      "lass_ref\030\002 \001(\0132\034.talon.resources.Resourc" +
-      "eRef\022\035\n\025runtime_template_json\030\003 \001(\tb\006pro" +
-      "to3"
+      "\n\004mode\030\001 \001(\t\022\022\n\nmount_path\030\002 \001(\t\"6\n\020Sand" +
+      "boxSetupSpec\022\020\n\010packages\030\001 \003(\t\022\020\n\010comman" +
+      "ds\030\002 \003(\t\"\"\n\022SandboxNetworkSpec\022\014\n\004mode\030\001" +
+      " \001(\t\";\n\025SandboxFilesystemSpec\022\020\n\010writabl" +
+      "e\030\001 \003(\t\022\020\n\010readonly\030\002 \003(\t\"&\n\026SandboxLeas" +
+      "ePolicySpec\022\014\n\004mode\030\001 \001(\t\"\310\002\n\032SandboxRun" +
+      "timeTemplateSpec\022\r\n\005image\030\001 \001(\t\0228\n\tworks" +
+      "pace\030\002 \001(\0132%.talon.resources.SandboxWork" +
+      "spaceSpec\0220\n\005setup\030\003 \001(\0132!.talon.resourc" +
+      "es.SandboxSetupSpec\0224\n\007network\030\004 \001(\0132#.t" +
+      "alon.resources.SandboxNetworkSpec\022:\n\nfil" +
+      "esystem\030\005 \001(\0132&.talon.resources.SandboxF" +
+      "ilesystemSpec\022=\n\014lease_policy\030\006 \001(\0132\'.ta" +
+      "lon.resources.SandboxLeasePolicySpec\"\233\001\n" +
+      "\021SandboxPolicySpec\022/\n\tclass_ref\030\001 \001(\0132\034." +
+      "talon.resources.ResourceRef\022=\n\010template\030" +
+      "\002 \001(\0132+.talon.resources.SandboxRuntimeTe" +
+      "mplateSpec\022\026\n\016max_concurrent\030\003 \001(\r\"\237\001\n\014S" +
+      "andboxLease\022\022\n\nowner_kind\030\001 \001(\t\022\023\n\013owner" +
+      "_agent\030\002 \001(\t\022\030\n\020owner_session_id\030\003 \001(\t\022\r" +
+      "\n\005token\030\004 \001(\t\022\023\n\013acquired_at\030\005 \001(\003\022\022\n\nex" +
+      "pires_at\030\006 \001(\003\022\024\n\014heartbeat_at\030\007 \001(\003\"b\n\024" +
+      "SandboxProcessStatus\022\n\n\002id\030\001 \001(\t\022\017\n\007comm" +
+      "and\030\002 \001(\t\022\014\n\004args\030\003 \003(\t\022\020\n\010protocol\030\004 \001(" +
+      "\t\022\r\n\005phase\030\005 \001(\t\"\357\001\n\rSandboxStatus\022\033\n\023ob" +
+      "served_generation\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226" +
+      "\n\nconditions\030\003 \003(\0132\".talon.resources.Res" +
+      "ourceCondition\022\022\n\nbackend_id\030\004 \001(\t\022,\n\005le" +
+      "ase\030\005 \001(\0132\035.talon.resources.SandboxLease" +
+      "\0228\n\tprocesses\030\006 \003(\0132%.talon.resources.Sa" +
+      "ndboxProcessStatus\"q\n\013SandboxSpec\022\022\n\npol" +
+      "icy_ref\030\001 \001(\t\022/\n\tclass_ref\030\002 \001(\0132\034.talon" +
+      ".resources.ResourceRef\022\035\n\025runtime_templa" +
+      "te_json\030\003 \001(\tb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -11333,7 +11546,7 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_SandboxSetupSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxSetupSpec_descriptor,
-        new java.lang.String[] { "Packages", });
+        new java.lang.String[] { "Packages", "Commands", });
     internal_static_talon_resources_SandboxNetworkSpec_descriptor =
       getDescriptor().getMessageType(3);
     internal_static_talon_resources_SandboxNetworkSpec_fieldAccessorTable = new

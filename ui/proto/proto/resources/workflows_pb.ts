@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ResourceCondition } from "./common_pb";
+import type { ResourceCondition, ResourceMeta } from "./common_pb";
 import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/workflows.proto.
  */
 export const file_proto_resources_workflows: GenFile = /*@__PURE__*/
-  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvd29ya2Zsb3dzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiPwoYV29ya2Zsb3dTdGVwT3V0cHV0UG9saWN5Eg4KBmZvcm1hdBgBIAEoCRITCgtzY2hlbWFfanNvbhgCIAEoCSKBAQoXV29ya2Zsb3dTdGVwUmV0cnlQb2xpY3kSFAoMbWF4X2F0dGVtcHRzGAEgASgNEh8KF2luaXRpYWxfYmFja29mZl9zZWNvbmRzGAIgASgDEhsKE21heF9iYWNrb2ZmX3NlY29uZHMYAyABKAMSEgoKbXVsdGlwbGllchgEIAEoASLpAgoMV29ya2Zsb3dTdGVwEgoKAmlkGAEgASgJEgwKBHR5cGUYAiABKAkSDQoFYWZ0ZXIYAyADKAkSEQoJd2hlbl9qc29uGAQgASgJEg0KBWFnZW50GAUgASgJEg4KBnByb21wdBgGIAEoCRIMCgR0b29sGAcgASgJEhIKCmlucHV0X2pzb24YCCABKAkSEAoId29ya2Zsb3cYCSABKAkSOQoGb3V0cHV0GAogASgLMikudGFsb24ucmVzb3VyY2VzLldvcmtmbG93U3RlcE91dHB1dFBvbGljeRIaChJyZXN1bWVfc2NoZW1hX2pzb24YCyABKAkSNwoFcmV0cnkYDCABKAsyKC50YWxvbi5yZXNvdXJjZXMuV29ya2Zsb3dTdGVwUmV0cnlQb2xpY3kSDwoHdGltZW91dBgNIAEoCRIVCg13YWl0X2R1cmF0aW9uGA4gASgJEhIKCndhaXRfdW50aWwYDyABKAkisgEKDFdvcmtmbG93U3BlYxITCgtkZXNjcmlwdGlvbhgBIAEoCRIZChFpbnB1dF9zY2hlbWFfanNvbhgCIAEoCRIaChJvdXRwdXRfc2NoZW1hX2pzb24YAyABKAkSLAoFc3RlcHMYBCADKAsyHS50YWxvbi5yZXNvdXJjZXMuV29ya2Zsb3dTdGVwEhMKC291dHB1dF9qc29uGAUgASgJEhMKC2NvbmN1cnJlbmN5GAYgASgNIrcBCghXb3JrZmxvdxIMCgRuYW1lGAEgASgJEgoKAm5zGAIgASgJEisKBHNwZWMYAyABKAsyHS50YWxvbi5yZXNvdXJjZXMuV29ya2Zsb3dTcGVjEjUKBmxhYmVscxgEIAMoCzIlLnRhbG9uLnJlc291cmNlcy5Xb3JrZmxvdy5MYWJlbHNFbnRyeRotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBInQKDldvcmtmbG93U3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbmIGcHJvdG8z", [file_proto_resources_common]);
+  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvd29ya2Zsb3dzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiPwoYV29ya2Zsb3dTdGVwT3V0cHV0UG9saWN5Eg4KBmZvcm1hdBgBIAEoCRITCgtzY2hlbWFfanNvbhgCIAEoCSKBAQoXV29ya2Zsb3dTdGVwUmV0cnlQb2xpY3kSFAoMbWF4X2F0dGVtcHRzGAEgASgNEh8KF2luaXRpYWxfYmFja29mZl9zZWNvbmRzGAIgASgDEhsKE21heF9iYWNrb2ZmX3NlY29uZHMYAyABKAMSEgoKbXVsdGlwbGllchgEIAEoASLpAgoMV29ya2Zsb3dTdGVwEgoKAmlkGAEgASgJEgwKBHR5cGUYAiABKAkSDQoFYWZ0ZXIYAyADKAkSEQoJd2hlbl9qc29uGAQgASgJEg0KBWFnZW50GAUgASgJEg4KBnByb21wdBgGIAEoCRIMCgR0b29sGAcgASgJEhIKCmlucHV0X2pzb24YCCABKAkSEAoId29ya2Zsb3cYCSABKAkSOQoGb3V0cHV0GAogASgLMikudGFsb24ucmVzb3VyY2VzLldvcmtmbG93U3RlcE91dHB1dFBvbGljeRIaChJyZXN1bWVfc2NoZW1hX2pzb24YCyABKAkSNwoFcmV0cnkYDCABKAsyKC50YWxvbi5yZXNvdXJjZXMuV29ya2Zsb3dTdGVwUmV0cnlQb2xpY3kSDwoHdGltZW91dBgNIAEoCRIVCg13YWl0X2R1cmF0aW9uGA4gASgJEhIKCndhaXRfdW50aWwYDyABKAkisgEKDFdvcmtmbG93U3BlYxITCgtkZXNjcmlwdGlvbhgBIAEoCRIZChFpbnB1dF9zY2hlbWFfanNvbhgCIAEoCRIaChJvdXRwdXRfc2NoZW1hX2pzb24YAyABKAkSLAoFc3RlcHMYBCADKAsyHS50YWxvbi5yZXNvdXJjZXMuV29ya2Zsb3dTdGVwEhMKC291dHB1dF9qc29uGAUgASgJEhMKC2NvbmN1cnJlbmN5GAYgASgNIpkBCghXb3JrZmxvdxIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESKwoEc3BlYxgCIAEoCzIdLnRhbG9uLnJlc291cmNlcy5Xb3JrZmxvd1NwZWMSLwoGc3RhdHVzGAMgASgLMh8udGFsb24ucmVzb3VyY2VzLldvcmtmbG93U3RhdHVzInQKDldvcmtmbG93U3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbmIGcHJvdG8z", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.WorkflowStepOutputPolicy
@@ -202,24 +202,19 @@ export const WorkflowSpecSchema: GenMessage<WorkflowSpec> = /*@__PURE__*/
  */
 export type Workflow = Message<"talon.resources.Workflow"> & {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name: string;
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string ns = 2;
-   */
-  ns: string;
-
-  /**
-   * @generated from field: talon.resources.WorkflowSpec spec = 3;
+   * @generated from field: talon.resources.WorkflowSpec spec = 2;
    */
   spec?: WorkflowSpec;
 
   /**
-   * @generated from field: map<string, string> labels = 4;
+   * @generated from field: talon.resources.WorkflowStatus status = 3;
    */
-  labels: { [key: string]: string };
+  status?: WorkflowStatus;
 };
 
 /**

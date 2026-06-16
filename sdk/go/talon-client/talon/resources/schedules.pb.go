@@ -383,11 +383,9 @@ func (x *ScheduleEvent) GetDetail() string {
 
 type Schedule struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Ns            string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
-	Spec          *ScheduleSpec          `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
-	Status        *ScheduleStatus        `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *ScheduleSpec          `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *ScheduleStatus        `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -422,18 +420,11 @@ func (*Schedule) Descriptor() ([]byte, []int) {
 	return file_proto_resources_schedules_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *Schedule) GetName() string {
+func (x *Schedule) GetMetadata() *ResourceMeta {
 	if x != nil {
-		return x.Name
+		return x.Metadata
 	}
-	return ""
-}
-
-func (x *Schedule) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
+	return nil
 }
 
 func (x *Schedule) GetSpec() *ScheduleSpec {
@@ -450,18 +441,11 @@ func (x *Schedule) GetStatus() *ScheduleStatus {
 	return nil
 }
 
-func (x *Schedule) GetLabels() map[string]string {
-	if x != nil {
-		return x.Labels
-	}
-	return nil
-}
-
 var File_proto_resources_schedules_proto protoreflect.FileDescriptor
 
 const file_proto_resources_schedules_proto_rawDesc = "" +
 	"\n" +
-	"\x1fproto/resources/schedules.proto\x12\x0ftalon.resources\"\x84\x01\n" +
+	"\x1fproto/resources/schedules.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\x84\x01\n" +
 	"\x0eScheduleTarget\x12\x14\n" +
 	"\x05agent\x18\x01 \x01(\tR\x05agent\x12!\n" +
 	"\fsession_mode\x18\x02 \x01(\tR\vsessionMode\x12\x1d\n" +
@@ -503,16 +487,11 @@ const file_proto_resources_schedules_proto_rawDesc = "" +
 	"\ttimestamp\x18\x01 \x01(\x03R\ttimestamp\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12\x18\n" +
 	"\aoutcome\x18\x03 \x01(\tR\aoutcome\x12\x16\n" +
-	"\x06detail\x18\x04 \x01(\tR\x06detail\"\x94\x02\n" +
-	"\bSchedule\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x0e\n" +
-	"\x02ns\x18\x02 \x01(\tR\x02ns\x121\n" +
-	"\x04spec\x18\x03 \x01(\v2\x1d.talon.resources.ScheduleSpecR\x04spec\x127\n" +
-	"\x06status\x18\x04 \x01(\v2\x1f.talon.resources.ScheduleStatusR\x06status\x12=\n" +
-	"\x06labels\x18\x05 \x03(\v2%.talon.resources.Schedule.LabelsEntryR\x06labels\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01b\x06proto3"
+	"\x06detail\x18\x04 \x01(\tR\x06detail\"\xb1\x01\n" +
+	"\bSchedule\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x121\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1d.talon.resources.ScheduleSpecR\x04spec\x127\n" +
+	"\x06status\x18\x03 \x01(\v2\x1f.talon.resources.ScheduleStatusR\x06statusb\x06proto3"
 
 var (
 	file_proto_resources_schedules_proto_rawDescOnce sync.Once
@@ -526,21 +505,21 @@ func file_proto_resources_schedules_proto_rawDescGZIP() []byte {
 	return file_proto_resources_schedules_proto_rawDescData
 }
 
-var file_proto_resources_schedules_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_proto_resources_schedules_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_resources_schedules_proto_goTypes = []any{
 	(*ScheduleTarget)(nil), // 0: talon.resources.ScheduleTarget
 	(*ScheduleSpec)(nil),   // 1: talon.resources.ScheduleSpec
 	(*ScheduleStatus)(nil), // 2: talon.resources.ScheduleStatus
 	(*ScheduleEvent)(nil),  // 3: talon.resources.ScheduleEvent
 	(*Schedule)(nil),       // 4: talon.resources.Schedule
-	nil,                    // 5: talon.resources.Schedule.LabelsEntry
+	(*ResourceMeta)(nil),   // 5: talon.resources.ResourceMeta
 }
 var file_proto_resources_schedules_proto_depIdxs = []int32{
 	0, // 0: talon.resources.ScheduleSpec.target:type_name -> talon.resources.ScheduleTarget
 	3, // 1: talon.resources.ScheduleStatus.recent_events:type_name -> talon.resources.ScheduleEvent
-	1, // 2: talon.resources.Schedule.spec:type_name -> talon.resources.ScheduleSpec
-	2, // 3: talon.resources.Schedule.status:type_name -> talon.resources.ScheduleStatus
-	5, // 4: talon.resources.Schedule.labels:type_name -> talon.resources.Schedule.LabelsEntry
+	5, // 2: talon.resources.Schedule.metadata:type_name -> talon.resources.ResourceMeta
+	1, // 3: talon.resources.Schedule.spec:type_name -> talon.resources.ScheduleSpec
+	2, // 4: talon.resources.Schedule.status:type_name -> talon.resources.ScheduleStatus
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -553,6 +532,7 @@ func file_proto_resources_schedules_proto_init() {
 	if File_proto_resources_schedules_proto != nil {
 		return
 	}
+	file_proto_resources_common_proto_init()
 	file_proto_resources_schedules_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -560,7 +540,7 @@ func file_proto_resources_schedules_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_schedules_proto_rawDesc), len(file_proto_resources_schedules_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

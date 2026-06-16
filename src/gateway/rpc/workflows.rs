@@ -3,6 +3,7 @@
 
 use super::{data_proto, proto, resources_proto, GrpcGatewayHandler};
 use crate::control::resource_model::TypedResource;
+use crate::control::resources::ResourceStore;
 use crate::control::{keys, topics, KeyValueStore, ProtoKeyValueStoreExt};
 use crate::worker::workflows;
 use futures::{stream, StreamExt};
@@ -17,6 +18,24 @@ const DEFAULT_WORKFLOW_RUNS_PAGE_SIZE: usize = 50;
 const MAX_WORKFLOW_RUNS_PAGE_SIZE: usize = 200;
 const WORKFLOW_RUN_KEY_SCAN_BATCH_SIZE: usize = 512;
 const MAX_WORKFLOW_RUN_LIST_PAGES_SCANNED: usize = 10;
+
+fn workflow_from_resource(
+    resource: resources_proto::Resource,
+) -> Option<resources_proto::Workflow> {
+    let spec = resource.spec.and_then(|spec| match spec.kind {
+        Some(resources_proto::resource_spec::Kind::Workflow(spec)) => Some(spec),
+        _ => None,
+    })?;
+    let status = resource.status.and_then(|status| match status.kind {
+        Some(resources_proto::resource_status::Kind::Workflow(status)) => Some(status),
+        _ => None,
+    });
+    Some(resources_proto::Workflow {
+        metadata: resource.metadata,
+        spec: Some(spec),
+        status,
+    })
+}
 
 impl GrpcGatewayHandler {
     pub async fn handle_create_workflow(
@@ -134,13 +153,36 @@ impl GrpcGatewayHandler {
     ) -> Result<tonic::Response<proto::WorkflowRunResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let workflow = self
+        let workflow = match self
             .gateway
             .kv
-            .get_msg::<resources_proto::Workflow>(&keys::workflow(&req.ns, &req.workflow))
+            .get(&keys::workflow(&req.ns, &req.workflow))
             .await
             .map_err(|err| tonic::Status::internal(err.to_string()))?
-            .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
+        {
+            Some(bytes) => match resources_proto::Workflow::decode(bytes.as_slice()) {
+                Ok(workflow) => workflow,
+                Err(_) => {
+                    let resource = resources_proto::Resource::decode(bytes.as_slice())
+                        .map_err(|err| tonic::Status::internal(err.to_string()))?;
+                    workflow_from_resource(resource).ok_or_else(|| {
+                        tonic::Status::invalid_argument("Workflow resource missing workflow spec")
+                    })?
+                }
+            },
+            None => {
+                let store =
+                    ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
+                let resource = store
+                    .get(&req.ns, "Workflow", &req.workflow)
+                    .await
+                    .map_err(|err| tonic::Status::internal(err.to_string()))?
+                    .ok_or_else(|| tonic::Status::not_found("workflow not found"))?;
+                workflow_from_resource(resource).ok_or_else(|| {
+                    tonic::Status::invalid_argument("Workflow resource missing workflow spec")
+                })?
+            }
+        };
         let input = if req.input_json.trim().is_empty() {
             serde_json::json!({})
         } else {

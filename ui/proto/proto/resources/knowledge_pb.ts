@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ResourceMeta } from "./common_pb";
+import type { CommonResourceStatus, ResourceMeta } from "./common_pb";
 import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,31 +12,26 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/knowledge.proto.
  */
 export const file_proto_resources_knowledge: GenFile = /*@__PURE__*/
-  fileDesc("Ch9wcm90by9yZXNvdXJjZXMva25vd2xlZGdlLnByb3RvEg90YWxvbi5yZXNvdXJjZXMijQEKCUtub3dsZWRnZRITCgthcGlfdmVyc2lvbhgBIAEoCRIMCgRraW5kGAIgASgJEi8KCG1ldGFkYXRhGAMgASgLMh0udGFsb24ucmVzb3VyY2VzLlJlc291cmNlTWV0YRIsCgRzcGVjGAQgASgLMh4udGFsb24ucmVzb3VyY2VzLktub3dsZWRnZVNwZWMiLgoNS25vd2xlZGdlU3BlYxIMCgRwYXRoGAEgASgJEg8KB2NvbnRlbnQYAiABKAliBnByb3RvMw", [file_proto_resources_common]);
+  fileDesc("Ch9wcm90by9yZXNvdXJjZXMva25vd2xlZGdlLnByb3RvEg90YWxvbi5yZXNvdXJjZXMioQEKCUtub3dsZWRnZRIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESLAoEc3BlYxgCIAEoCzIeLnRhbG9uLnJlc291cmNlcy5Lbm93bGVkZ2VTcGVjEjUKBnN0YXR1cxgDIAEoCzIlLnRhbG9uLnJlc291cmNlcy5Db21tb25SZXNvdXJjZVN0YXR1cyIuCg1Lbm93bGVkZ2VTcGVjEgwKBHBhdGgYASABKAkSDwoHY29udGVudBgCIAEoCWIGcHJvdG8z", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.Knowledge
  */
 export type Knowledge = Message<"talon.resources.Knowledge"> & {
   /**
-   * @generated from field: string api_version = 1;
-   */
-  apiVersion: string;
-
-  /**
-   * @generated from field: string kind = 2;
-   */
-  kind: string;
-
-  /**
-   * @generated from field: talon.resources.ResourceMeta metadata = 3;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
   metadata?: ResourceMeta;
 
   /**
-   * @generated from field: talon.resources.KnowledgeSpec spec = 4;
+   * @generated from field: talon.resources.KnowledgeSpec spec = 2;
    */
   spec?: KnowledgeSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
 };
 
 /**

@@ -5,14 +5,10 @@ use anyhow::{Context, Result};
 use serde_json::json;
 use std::collections::HashMap;
 
-use crate::control::resource_model::{ChannelSubscriptionResourceExt, TypedResource};
+use crate::control::ns;
+use crate::control::resource_model::TypedResource;
 use crate::gateway::rpc::proto::gateway_service_client::GatewayServiceClient;
-use crate::gateway::rpc::proto::{
-    CreateAgentRequest, CreateChannelRequest, CreateChannelSubscriptionRequest,
-    CreateMcpServerRequest, CreateNamespaceKnowledgeRequest, CreateNamespaceRequest,
-    CreateResourceRequest, CreateWorkflowRequest, GetChannelRequest, GetChannelSubscriptionRequest,
-    ModifyAgentRequest, ModifyChannelRequest, ModifyChannelSubscriptionRequest,
-};
+use crate::gateway::rpc::proto::{CreateNamespaceRequest, CreateResourceRequest};
 use crate::gateway::rpc::resources_proto;
 
 use super::Cli;
@@ -32,23 +28,7 @@ pub(super) async fn run(cli: &Cli, command: &ApplyCommand) -> Result<()> {
 
     if cli.rest {
         rest_ensure_manifest_namespace(cli, &content).await?;
-        let agent_exists = if parse_raw_manifest(&content)?.kind == "Agent" {
-            let agent = crate::control::manifest::parse_agent(&content)?;
-            let get_path = format!(
-                "/v1/ns/{}/agents/{}",
-                urlencoding::encode(agent.namespace()),
-                urlencoding::encode(agent.name())
-            );
-            rest_request_json(cli, reqwest::Method::GET, &get_path, None)
-                .await
-                .is_ok()
-        } else {
-            false
-        };
-        println!(
-            "{}",
-            rest_apply_manifest(cli, &content, agent_exists).await?
-        );
+        println!("{}", rest_apply_manifest(cli, &content).await?);
         return Ok(());
     }
 
@@ -92,7 +72,16 @@ async fn rest_ensure_manifest_namespace(cli: &Cli, content: &str) -> Result<()> 
 fn is_generic_resource_kind(kind: &str) -> bool {
     matches!(
         kind,
-        "Template"
+        "Agent"
+            | "McpServer"
+            | "MCPServer"
+            | "McpServerBinding"
+            | "Knowledge"
+            | "Channel"
+            | "ChannelSubscription"
+            | "Schedule"
+            | "Workflow"
+            | "Template"
             | "Deployment"
             | "DeploymentReplica"
             | "SandboxClass"
@@ -101,111 +90,169 @@ fn is_generic_resource_kind(kind: &str) -> bool {
     )
 }
 
-fn manifest_json_payload(content: &str) -> Result<(String, serde_json::Value)> {
+fn resource_from_manifest(
+    content: &str,
+) -> Result<(String, String, String, resources_proto::Resource)> {
+    use resources_proto::resource_spec::Kind as SpecKind;
+    use resources_proto::resource_status::Kind as StatusKind;
+
     let raw = parse_raw_manifest(content)?;
-    let manifest_value: serde_yaml::Value =
-        serde_yaml::from_str(content).context("Failed to parse rendered manifest")?;
-    match raw.kind.as_str() {
+    let mut resource = match raw.kind.as_str() {
         "MCPServer" | "McpServer" => {
-            Ok(("server".to_string(), json!({ "server": manifest_value })))
+            let mut server = crate::control::manifest::parse_mcp_server(content)?;
+            let meta = server
+                .metadata
+                .as_mut()
+                .context("MCPServer missing metadata")?;
+            if meta.namespace.is_empty() {
+                meta.namespace = ns::TALON_SYSTEM.to_string();
+            }
+            resources_proto::Resource {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServer".to_string(),
+                metadata: server.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::McpServer(
+                        server.spec.clone().context("MCPServer missing spec")?,
+                    )),
+                }),
+                status: Some(resources_proto::ResourceStatus {
+                    kind: Some(StatusKind::McpServer(
+                        resources_proto::CommonResourceStatus::default(),
+                    )),
+                }),
+            }
         }
         "Agent" => {
             let agent = crate::control::manifest::parse_agent(content)?;
-            let spec = manifest_value
-                .get("spec")
-                .cloned()
-                .context("Agent manifest missing spec")?;
-            Ok((
-                "agent".to_string(),
-                json!({
-                    "ns": agent.namespace(),
-                    "name": agent.name(),
-                    "labels": agent.labels(),
-                    "spec": spec,
+            resources_proto::Resource {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "Agent".to_string(),
+                metadata: agent.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::Agent(
+                        agent.spec.clone().context("Agent missing spec")?,
+                    )),
                 }),
-            ))
+                status: Some(resources_proto::ResourceStatus {
+                    kind: Some(StatusKind::Agent(agent.status.clone().unwrap_or_default())),
+                }),
+            }
         }
         "McpServerBinding" => {
             let binding = crate::control::manifest::parse_mcp_server_binding(content)?;
-            let namespace = binding
-                .metadata
-                .as_ref()
-                .map(|meta| meta.namespace.clone())
-                .filter(|namespace| !namespace.is_empty())
-                .context("McpServerBinding missing metadata.namespace")?;
-            Ok((
-                "binding".to_string(),
-                json!({
-                    "ns": namespace,
-                    "binding": binding,
+            resources_proto::Resource {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "McpServerBinding".to_string(),
+                metadata: binding.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::McpServerBinding(
+                        binding
+                            .spec
+                            .clone()
+                            .context("McpServerBinding missing spec")?,
+                    )),
                 }),
-            ))
-        }
-        "Namespace" => {
-            let namespace = crate::control::manifest::parse_namespace(content)?;
-            Ok((
-                "namespace".to_string(),
-                json!({
-                    "name": namespace.name(),
-                    "recursive": true,
-                    "labels": namespace.labels(),
+                status: Some(resources_proto::ResourceStatus {
+                    kind: Some(StatusKind::McpServerBinding(
+                        resources_proto::CommonResourceStatus::default(),
+                    )),
                 }),
-            ))
+            }
         }
-        "Knowledge" => Ok((
-            "knowledge".to_string(),
-            json!({ "knowledge": manifest_value }),
-        )),
+        "Knowledge" => {
+            let knowledge = crate::control::manifest::parse_knowledge(content)?;
+            resources_proto::Resource {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "Knowledge".to_string(),
+                metadata: knowledge.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::Knowledge(
+                        knowledge.spec.clone().context("Knowledge missing spec")?,
+                    )),
+                }),
+                status: Some(resources_proto::ResourceStatus {
+                    kind: Some(StatusKind::Knowledge(
+                        resources_proto::CommonResourceStatus::default(),
+                    )),
+                }),
+            }
+        }
         "Channel" => {
             let channel = crate::control::manifest::parse_channel(content)?;
-            Ok((
-                "channel".to_string(),
-                json!({
-                    "ns": channel.namespace(),
-                    "channel": channel,
+            resources_proto::Resource {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "Channel".to_string(),
+                metadata: channel.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::Channel(
+                        channel.spec.clone().context("Channel missing spec")?,
+                    )),
                 }),
-            ))
+                status: Some(resources_proto::ResourceStatus {
+                    kind: Some(StatusKind::Channel(
+                        channel.status.clone().unwrap_or_default(),
+                    )),
+                }),
+            }
         }
         "ChannelSubscription" => {
             let subscription = crate::control::manifest::parse_channel_subscription(content)?;
-            Ok((
-                "subscription".to_string(),
-                json!({
-                    "ns": subscription.namespace(),
-                    "channel": subscription.channel(),
-                    "subscription": subscription,
+            resources_proto::Resource {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "ChannelSubscription".to_string(),
+                metadata: subscription.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::ChannelSubscription(
+                        subscription
+                            .spec
+                            .clone()
+                            .context("ChannelSubscription missing spec")?,
+                    )),
                 }),
-            ))
+                status: Some(resources_proto::ResourceStatus {
+                    kind: Some(StatusKind::ChannelSubscription(
+                        resources_proto::CommonResourceStatus::default(),
+                    )),
+                }),
+            }
         }
         "Workflow" => {
             let workflow = crate::control::manifest::parse_workflow(content)?;
-            Ok((
-                "workflow".to_string(),
-                json!({
-                    "ns": workflow.namespace(),
-                    "workflow": workflow,
+            resources_proto::Resource {
+                api_version: "talon.impalasys.com/v1".to_string(),
+                kind: "Workflow".to_string(),
+                metadata: workflow.metadata.clone(),
+                spec: Some(resources_proto::ResourceSpec {
+                    kind: Some(SpecKind::Workflow(
+                        workflow.spec.clone().context("Workflow missing spec")?,
+                    )),
                 }),
-            ))
+                status: Some(resources_proto::ResourceStatus {
+                    kind: Some(StatusKind::Workflow(
+                        workflow.status.clone().unwrap_or_default(),
+                    )),
+                }),
+            }
         }
         kind if is_generic_resource_kind(kind) => {
-            let resource = crate::control::manifest::parse_generic_resource(content)?;
-            let meta = resource
-                .metadata
-                .as_ref()
-                .context("generic resource missing metadata")?;
-            if meta.namespace.is_empty() {
-                anyhow::bail!("{} metadata.namespace is required", resource.kind);
-            }
-            Ok((
-                "resource".to_string(),
-                json!({
-                    "ns": meta.namespace.clone(),
-                    "resource": resource_proto_json(&resource),
-                }),
-            ))
+            crate::control::manifest::parse_resource(content)?
         }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
+    };
+    let meta = resource
+        .metadata
+        .as_mut()
+        .context("resource missing metadata")?;
+    if meta.namespace.is_empty() {
+        meta.namespace = ns::TALON_SYSTEM.to_string();
     }
+    Ok((
+        meta.namespace.clone(),
+        resource.kind.clone(),
+        meta.name.clone(),
+        resource,
+    ))
 }
 
 fn resource_proto_json(resource: &resources_proto::Resource) -> serde_json::Value {
@@ -460,13 +507,8 @@ fn sandbox_process_status_proto_json(
     })
 }
 
-pub(super) async fn rest_apply_manifest(
-    cli: &Cli,
-    content: &str,
-    agent_exists: bool,
-) -> Result<String> {
-    let (_, payload) = manifest_json_payload(content)?;
-    let plan = build_rest_apply_plan(content, payload, agent_exists)?;
+pub(super) async fn rest_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
+    let plan = build_rest_apply_plan(content)?;
     rest_request_json(cli, plan.method, &plan.path, Some(plan.payload))
         .await
         .with_context(|| format!("Gateway rejected {}", plan.success_label))?;
@@ -483,37 +525,6 @@ struct RestApplyPlan {
 
 #[derive(Debug)]
 enum GrpcApplyPlan {
-    Agent {
-        ns: String,
-        name: String,
-        labels: HashMap<String, String>,
-        spec: crate::gateway::rpc::manifests::AgentSpec,
-    },
-    McpServer {
-        name: String,
-        server: crate::gateway::rpc::manifests::McpServer,
-    },
-    Knowledge {
-        ns: String,
-        name: String,
-        knowledge: crate::gateway::rpc::manifests::Knowledge,
-    },
-    Channel {
-        ns: String,
-        name: String,
-        channel: resources_proto::Channel,
-    },
-    ChannelSubscription {
-        ns: String,
-        channel_name: String,
-        name: String,
-        subscription: resources_proto::ChannelSubscription,
-    },
-    Workflow {
-        ns: String,
-        name: String,
-        workflow: resources_proto::Workflow,
-    },
     Namespace {
         name: String,
         labels: HashMap<String, String>,
@@ -526,254 +537,36 @@ enum GrpcApplyPlan {
     },
 }
 
-fn build_rest_apply_plan(
-    content: &str,
-    payload: serde_json::Value,
-    agent_exists: bool,
-) -> Result<RestApplyPlan> {
+fn build_rest_apply_plan(content: &str) -> Result<RestApplyPlan> {
     let raw = parse_raw_manifest(content)?;
-    match raw.kind.as_str() {
-        "MCPServer" | "McpServer" => {
-            let server = crate::control::manifest::parse_mcp_server(content)?;
-            let meta = server
-                .metadata
-                .as_ref()
-                .context("MCPServer missing metadata")?;
-            if !meta.namespace.is_empty() {
-                anyhow::bail!(
-                    "MCPServer metadata.namespace is not supported; MCP servers are system resources in Sys"
-                );
-            }
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: "/v1/mcp-servers".to_string(),
-                payload,
-                success_label: format!("MCPServer '{}'", meta.name),
-            })
-        }
-        "Agent" => {
-            let agent = crate::control::manifest::parse_agent(content)?;
-            let spec = payload
-                .get("spec")
-                .cloned()
-                .context("Agent payload missing spec")?;
-            let labels = payload
-                .get("labels")
-                .cloned()
-                .context("Agent payload missing labels")?;
-            let path = if agent_exists {
-                format!(
-                    "/v1/ns/{}/agents/{}",
-                    urlencoding::encode(agent.namespace()),
-                    urlencoding::encode(agent.name())
-                )
-            } else {
-                format!("/v1/ns/{}/agents", urlencoding::encode(agent.namespace()))
-            };
-            let payload = if agent_exists {
-                json!({
-                    "ns": agent.namespace(),
-                    "agent": agent.name(),
-                    "labels": labels,
-                    "spec": spec,
-                })
-            } else {
-                json!({
-                    "ns": agent.namespace(),
-                    "name": agent.name(),
-                    "labels": labels,
-                    "spec": spec,
-                })
-            };
-            Ok(RestApplyPlan {
-                method: if agent_exists {
-                    reqwest::Method::PUT
-                } else {
-                    reqwest::Method::POST
-                },
-                path,
-                payload,
-                success_label: format!("Agent '{}/{}'", agent.namespace(), agent.name()),
-            })
-        }
-        "McpServerBinding" => {
-            let binding = crate::control::manifest::parse_mcp_server_binding(content)?;
-            let meta = binding
-                .metadata
-                .as_ref()
-                .context("McpServerBinding missing metadata")?;
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: format!(
-                    "/v1/namespaces/{}/mcp-bindings",
-                    urlencoding::encode(&meta.namespace)
-                ),
-                payload: json!({ "ns": meta.namespace, "binding": binding }),
-                success_label: format!("McpServerBinding '{}/{}'", meta.namespace, meta.name),
-            })
-        }
-        "Namespace" => {
-            let namespace = crate::control::manifest::parse_namespace(content)?;
-            let name = namespace.name();
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: format!("/v1/namespaces/{}", urlencoding::encode(&name)),
-                payload: json!({
-                    "name": name,
-                    "recursive": true,
-                    "labels": namespace.labels(),
-                }),
-                success_label: format!("Namespace '{}'", name),
-            })
-        }
-        "Knowledge" => {
-            let knowledge = crate::control::manifest::parse_knowledge(content)?;
-            let meta = knowledge
-                .metadata
-                .as_ref()
-                .context("Knowledge missing metadata")?;
-            if meta.namespace.is_empty() {
-                anyhow::bail!("Knowledge metadata.namespace is required");
-            }
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: format!(
-                    "/v1/namespaces/{}/knowledge",
-                    urlencoding::encode(&meta.namespace)
-                ),
-                payload,
-                success_label: format!("Knowledge '{}/{}'", meta.namespace, meta.name),
-            })
-        }
-        "Channel" => {
-            let channel = crate::control::manifest::parse_channel(content)?;
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: format!(
-                    "/v1/ns/{}/channels",
-                    urlencoding::encode(channel.namespace())
-                ),
-                payload: json!({ "ns": channel.namespace(), "channel": channel }),
-                success_label: "Channel".to_string(),
-            })
-        }
-        "ChannelSubscription" => {
-            let subscription = crate::control::manifest::parse_channel_subscription(content)?;
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: format!(
-                    "/v1/ns/{}/channels/{}/subscriptions",
-                    urlencoding::encode(subscription.namespace()),
-                    urlencoding::encode(subscription.channel())
-                ),
-                payload: json!({
-                    "ns": subscription.namespace(),
-                    "channel": subscription.channel(),
-                    "subscription": subscription,
-                }),
-                success_label: "ChannelSubscription".to_string(),
-            })
-        }
-        "Workflow" => {
-            let workflow = crate::control::manifest::parse_workflow(content)?;
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: format!(
-                    "/v1/ns/{}/workflows",
-                    urlencoding::encode(workflow.namespace())
-                ),
-                payload: json!({ "ns": workflow.namespace(), "workflow": workflow }),
-                success_label: "Workflow".to_string(),
-            })
-        }
-        kind if is_generic_resource_kind(kind) => {
-            let resource = crate::control::manifest::parse_generic_resource(content)?;
-            let meta = resource
-                .metadata
-                .as_ref()
-                .context("generic resource missing metadata")?;
-            if meta.namespace.is_empty() {
-                anyhow::bail!("{} metadata.namespace is required", resource.kind);
-            }
-            Ok(RestApplyPlan {
-                method: reqwest::Method::POST,
-                path: format!("/v2/ns/{}/resources", urlencoding::encode(&meta.namespace)),
-                payload,
-                success_label: format!("{} '{}/{}'", resource.kind, meta.namespace, meta.name),
-            })
-        }
-        other => anyhow::bail!("Unsupported manifest kind '{}'", other),
+    if raw.kind == "Namespace" {
+        let namespace = crate::control::manifest::parse_namespace(content)?;
+        let name = namespace.name();
+        return Ok(RestApplyPlan {
+            method: reqwest::Method::POST,
+            path: format!("/v1/namespaces/{}", urlencoding::encode(&name)),
+            payload: json!({
+                "name": name,
+                "recursive": true,
+                "labels": namespace.labels(),
+            }),
+            success_label: format!("Namespace '{}'", name),
+        });
     }
+    let (ns, kind, name, resource) = resource_from_manifest(content)?;
+    Ok(RestApplyPlan {
+        method: reqwest::Method::POST,
+        path: format!("/v2/ns/{}/resources", urlencoding::encode(&ns)),
+        payload: json!({
+            "ns": ns,
+            "resource": resource_proto_json(&resource),
+        }),
+        success_label: format!("{} '{}/{}'", kind, ns, name),
+    })
 }
 
 fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
     match parse_raw_manifest(content)?.kind.as_str() {
-        "Agent" => {
-            let agent = crate::control::manifest::parse_agent(content)?;
-            let spec = agent.spec.clone().context("Agent spec must be provided")?;
-            Ok(GrpcApplyPlan::Agent {
-                ns: agent.namespace().to_string(),
-                name: agent.name().to_string(),
-                labels: agent.labels().clone(),
-                spec,
-            })
-        }
-        "MCPServer" | "McpServer" => {
-            let server = crate::control::manifest::parse_mcp_server(content)?;
-            let meta = server
-                .metadata
-                .as_ref()
-                .context("MCPServer missing metadata")?;
-            if !meta.namespace.is_empty() {
-                anyhow::bail!(
-                    "MCPServer metadata.namespace is not supported; MCP servers are system resources in Sys"
-                );
-            }
-            Ok(GrpcApplyPlan::McpServer {
-                name: meta.name.clone(),
-                server,
-            })
-        }
-        "Knowledge" => {
-            let knowledge = crate::control::manifest::parse_knowledge(content)?;
-            let meta = knowledge
-                .metadata
-                .as_ref()
-                .context("Knowledge missing metadata")?;
-            if meta.namespace.is_empty() {
-                anyhow::bail!("Knowledge metadata.namespace is required");
-            }
-            Ok(GrpcApplyPlan::Knowledge {
-                ns: meta.namespace.clone(),
-                name: meta.name.clone(),
-                knowledge,
-            })
-        }
-        "Channel" => {
-            let channel = crate::control::manifest::parse_channel(content)?;
-            Ok(GrpcApplyPlan::Channel {
-                ns: channel.namespace().to_string(),
-                name: channel.name().to_string(),
-                channel,
-            })
-        }
-        "ChannelSubscription" => {
-            let subscription = crate::control::manifest::parse_channel_subscription(content)?;
-            Ok(GrpcApplyPlan::ChannelSubscription {
-                ns: subscription.namespace().to_string(),
-                channel_name: subscription.channel().to_string(),
-                name: subscription.name().to_string(),
-                subscription,
-            })
-        }
-        "Workflow" => {
-            let workflow = crate::control::manifest::parse_workflow(content)?;
-            Ok(GrpcApplyPlan::Workflow {
-                ns: workflow.namespace().to_string(),
-                name: workflow.name().to_string(),
-                workflow,
-            })
-        }
         "Namespace" => {
             let namespace = crate::control::manifest::parse_namespace(content)?;
             Ok(GrpcApplyPlan::Namespace {
@@ -781,35 +574,24 @@ fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
                 labels: namespace.labels().clone(),
             })
         }
-        kind if is_generic_resource_kind(kind) => {
-            let resource = crate::control::manifest::parse_generic_resource(content)?;
-            let meta = resource
-                .metadata
-                .as_ref()
-                .context("generic resource missing metadata")?;
-            if meta.namespace.is_empty() {
-                anyhow::bail!("{} metadata.namespace is required", resource.kind);
-            }
+        _ => {
+            let (ns, kind, name, resource) = resource_from_manifest(content)?;
             Ok(GrpcApplyPlan::Resource {
-                ns: meta.namespace.clone(),
-                kind: resource.kind.clone(),
-                name: meta.name.clone(),
+                ns,
+                kind,
+                name,
                 resource,
             })
         }
-        other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     }
 }
 
 fn grpc_plan_namespace_to_ensure(plan: &GrpcApplyPlan) -> Option<&str> {
     match plan {
-        GrpcApplyPlan::Agent { ns, .. }
-        | GrpcApplyPlan::Knowledge { ns, .. }
-        | GrpcApplyPlan::Channel { ns, .. }
-        | GrpcApplyPlan::ChannelSubscription { ns, .. }
-        | GrpcApplyPlan::Workflow { ns, .. }
-        | GrpcApplyPlan::Resource { ns, .. } => Some(ns.as_str()).filter(|ns| !ns.is_empty()),
-        GrpcApplyPlan::McpServer { .. } | GrpcApplyPlan::Namespace { .. } => None,
+        GrpcApplyPlan::Resource { ns, .. } => Some(ns.as_str())
+            .filter(|ns| !ns.is_empty())
+            .filter(|ns| *ns != crate::control::ns::TALON_SYSTEM),
+        GrpcApplyPlan::Namespace { .. } => None,
     }
 }
 
@@ -833,168 +615,6 @@ pub(super) async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<Stri
     }
 
     match plan {
-        GrpcApplyPlan::Agent {
-            ns,
-            name,
-            labels,
-            spec,
-        } => {
-            let existing = client
-                .get_agent(crate::gateway::rpc::proto::GetAgentRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await;
-
-            match existing {
-                Ok(_) => {
-                    client
-                        .modify_agent(ModifyAgentRequest {
-                            ns: ns.clone(),
-                            agent: name.clone(),
-                            spec: Some(spec),
-                            labels,
-                        })
-                        .await
-                        .with_context(|| format!("Gateway rejected Agent '{}/{}'", ns, name))?;
-                }
-                Err(status) if status.code() == tonic::Code::NotFound => {
-                    client
-                        .create_agent(CreateAgentRequest {
-                            ns: ns.clone(),
-                            name: Some(name.clone()),
-                            spec: Some(spec),
-                            labels,
-                        })
-                        .await
-                        .with_context(|| format!("Gateway rejected Agent '{}/{}'", ns, name))?;
-                }
-                Err(status) => return Err(status.into()),
-            }
-            Ok(format!("✓ Agent '{}/{}' applied successfully.", ns, name))
-        }
-        GrpcApplyPlan::McpServer { name, server } => {
-            client
-                .create_mcp_server(CreateMcpServerRequest {
-                    server: Some(server),
-                })
-                .await
-                .context("Gateway rejected MCPServer")?;
-            Ok(format!("✓ MCPServer '{}' applied successfully.", name))
-        }
-        GrpcApplyPlan::Knowledge {
-            ns,
-            name,
-            knowledge,
-        } => {
-            client
-                .create_namespace_knowledge(CreateNamespaceKnowledgeRequest {
-                    ns: ns.clone(),
-                    knowledge: Some(knowledge),
-                })
-                .await
-                .with_context(|| format!("Gateway rejected Knowledge '{}/{}'", ns, name))?;
-            Ok(format!(
-                "✓ Knowledge '{}/{}' applied successfully.",
-                ns, name
-            ))
-        }
-        GrpcApplyPlan::Channel { ns, name, channel } => {
-            let existing = client
-                .get_channel(GetChannelRequest {
-                    ns: ns.clone(),
-                    name: name.clone(),
-                })
-                .await;
-            match existing {
-                Ok(_) => {
-                    client
-                        .modify_channel(ModifyChannelRequest {
-                            ns: ns.clone(),
-                            name: name.clone(),
-                            channel: Some(channel),
-                        })
-                        .await
-                        .with_context(|| format!("Gateway rejected Channel '{}/{}'", ns, name))?;
-                }
-                Err(status) if status.code() == tonic::Code::NotFound => {
-                    client
-                        .create_channel(CreateChannelRequest {
-                            ns: ns.clone(),
-                            channel: Some(channel),
-                        })
-                        .await
-                        .with_context(|| format!("Gateway rejected Channel '{}/{}'", ns, name))?;
-                }
-                Err(status) => return Err(status.into()),
-            }
-            Ok(format!("✓ Channel '{}/{}' applied successfully.", ns, name))
-        }
-        GrpcApplyPlan::ChannelSubscription {
-            ns,
-            channel_name,
-            name,
-            subscription,
-        } => {
-            let existing = client
-                .get_channel_subscription(GetChannelSubscriptionRequest {
-                    ns: ns.clone(),
-                    channel: channel_name.clone(),
-                    name: name.clone(),
-                })
-                .await;
-            match existing {
-                Ok(_) => {
-                    client
-                        .modify_channel_subscription(ModifyChannelSubscriptionRequest {
-                            ns: ns.clone(),
-                            channel: channel_name.clone(),
-                            name: name.clone(),
-                            subscription: Some(subscription),
-                        })
-                        .await
-                        .with_context(|| {
-                            format!(
-                                "Gateway rejected ChannelSubscription '{}/{}/{}'",
-                                ns, channel_name, name
-                            )
-                        })?;
-                }
-                Err(status) if status.code() == tonic::Code::NotFound => {
-                    client
-                        .create_channel_subscription(CreateChannelSubscriptionRequest {
-                            ns: ns.clone(),
-                            channel: channel_name.clone(),
-                            subscription: Some(subscription),
-                        })
-                        .await
-                        .with_context(|| {
-                            format!(
-                                "Gateway rejected ChannelSubscription '{}/{}/{}'",
-                                ns, channel_name, name
-                            )
-                        })?;
-                }
-                Err(status) => return Err(status.into()),
-            }
-            Ok(format!(
-                "✓ ChannelSubscription '{}/{}/{}' applied successfully.",
-                ns, channel_name, name
-            ))
-        }
-        GrpcApplyPlan::Workflow { ns, name, workflow } => {
-            client
-                .create_workflow(CreateWorkflowRequest {
-                    ns: ns.clone(),
-                    workflow: Some(workflow),
-                })
-                .await
-                .with_context(|| format!("Gateway rejected Workflow '{}/{}'", ns, name))?;
-            Ok(format!(
-                "✓ Workflow '{}/{}' applied successfully.",
-                ns, name
-            ))
-        }
         GrpcApplyPlan::Namespace { name, labels } => {
             client
                 .create_namespace(CreateNamespaceRequest {

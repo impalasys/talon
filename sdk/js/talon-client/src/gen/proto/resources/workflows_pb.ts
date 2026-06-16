@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ResourceCondition } from "./common_pb.js";
+import { ResourceCondition, ResourceMeta } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.WorkflowStepOutputPolicy
@@ -298,24 +298,19 @@ export class WorkflowSpec extends Message<WorkflowSpec> {
  */
 export class Workflow extends Message<Workflow> {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name = "";
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string ns = 2;
-   */
-  ns = "";
-
-  /**
-   * @generated from field: talon.resources.WorkflowSpec spec = 3;
+   * @generated from field: talon.resources.WorkflowSpec spec = 2;
    */
   spec?: WorkflowSpec;
 
   /**
-   * @generated from field: map<string, string> labels = 4;
+   * @generated from field: talon.resources.WorkflowStatus status = 3;
    */
-  labels: { [key: string]: string } = {};
+  status?: WorkflowStatus;
 
   constructor(data?: PartialMessage<Workflow>) {
     super();
@@ -325,10 +320,9 @@ export class Workflow extends Message<Workflow> {
   static readonly runtime: typeof proto3 = proto3;
   static readonly typeName = "talon.resources.Workflow";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 3, name: "spec", kind: "message", T: WorkflowSpec },
-    { no: 4, name: "labels", kind: "map", K: 9 /* ScalarType.STRING */, V: {kind: "scalar", T: 9 /* ScalarType.STRING */} },
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: WorkflowSpec },
+    { no: 3, name: "status", kind: "message", T: WorkflowStatus },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Workflow {

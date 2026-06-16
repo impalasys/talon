@@ -31,74 +31,49 @@ public final class Namespaces extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string name = 1;</code>
-     * @return The name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
      */
-    java.lang.String getName();
+    boolean hasMetadata();
     /**
-     * <code>string name = 1;</code>
-     * @return The bytes for name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
      */
-    com.google.protobuf.ByteString
-        getNameBytes();
+    talon.resources.Common.ResourceMeta getMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
 
     /**
-     * <code>string parent = 2;</code>
-     * @return The parent.
+     * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+     * @return Whether the spec field is set.
      */
-    java.lang.String getParent();
+    boolean hasSpec();
     /**
-     * <code>string parent = 2;</code>
-     * @return The bytes for parent.
+     * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+     * @return The spec.
      */
-    com.google.protobuf.ByteString
-        getParentBytes();
+    talon.resources.Namespaces.NamespaceSpec getSpec();
+    /**
+     * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+     */
+    talon.resources.Namespaces.NamespaceSpecOrBuilder getSpecOrBuilder();
 
     /**
-     * <code>bool is_deleted = 3;</code>
-     * @return The isDeleted.
+     * <code>.talon.resources.NamespaceStatus status = 3;</code>
+     * @return Whether the status field is set.
      */
-    boolean getIsDeleted();
-
+    boolean hasStatus();
     /**
-     * <code>int64 deleted_at = 4;</code>
-     * @return The deletedAt.
+     * <code>.talon.resources.NamespaceStatus status = 3;</code>
+     * @return The status.
      */
-    long getDeletedAt();
-
+    talon.resources.Namespaces.NamespaceStatus getStatus();
     /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
+     * <code>.talon.resources.NamespaceStatus status = 3;</code>
      */
-    int getLabelsCount();
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    boolean containsLabels(
-        java.lang.String key);
-    /**
-     * Use {@link #getLabelsMap()} instead.
-     */
-    @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
-    getLabels();
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    java.util.Map<java.lang.String, java.lang.String>
-    getLabelsMap();
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    /* nullable */
-java.lang.String getLabelsOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue);
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    java.lang.String getLabelsOrThrow(
-        java.lang.String key);
+    talon.resources.Namespaces.NamespaceStatusOrBuilder getStatusOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.Namespace}
@@ -122,8 +97,6 @@ java.lang.String defaultValue);
       super(builder);
     }
     private Namespace() {
-      name_ = "";
-      parent_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -136,18 +109,6 @@ java.lang.String defaultValue);
       return talon.resources.Namespaces.internal_static_talon_resources_Namespace_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    @java.lang.Override
-    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-        int number) {
-      switch (number) {
-        case 5:
-          return internalGetLabels();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
@@ -156,183 +117,83 @@ java.lang.String defaultValue);
               talon.resources.Namespaces.Namespace.class, talon.resources.Namespaces.Namespace.Builder.class);
     }
 
-    public static final int NAME_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object name_ = "";
+    private int bitField0_;
+    public static final int METADATA_FIELD_NUMBER = 1;
+    private talon.resources.Common.ResourceMeta metadata_;
     /**
-     * <code>string name = 1;</code>
-     * @return The name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
      */
     @java.lang.Override
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        name_ = s;
-        return s;
-      }
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>string name = 1;</code>
-     * @return The bytes for name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        name_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public talon.resources.Common.ResourceMeta getMetadata() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
     }
 
-    public static final int PARENT_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object parent_ = "";
+    public static final int SPEC_FIELD_NUMBER = 2;
+    private talon.resources.Namespaces.NamespaceSpec spec_;
     /**
-     * <code>string parent = 2;</code>
-     * @return The parent.
+     * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+     * @return Whether the spec field is set.
      */
     @java.lang.Override
-    public java.lang.String getParent() {
-      java.lang.Object ref = parent_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        parent_ = s;
-        return s;
-      }
+    public boolean hasSpec() {
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>string parent = 2;</code>
-     * @return The bytes for parent.
+     * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+     * @return The spec.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString
-        getParentBytes() {
-      java.lang.Object ref = parent_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        parent_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public talon.resources.Namespaces.NamespaceSpec getSpec() {
+      return spec_ == null ? talon.resources.Namespaces.NamespaceSpec.getDefaultInstance() : spec_;
+    }
+    /**
+     * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Namespaces.NamespaceSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.resources.Namespaces.NamespaceSpec.getDefaultInstance() : spec_;
     }
 
-    public static final int IS_DELETED_FIELD_NUMBER = 3;
-    private boolean isDeleted_ = false;
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private talon.resources.Namespaces.NamespaceStatus status_;
     /**
-     * <code>bool is_deleted = 3;</code>
-     * @return The isDeleted.
+     * <code>.talon.resources.NamespaceStatus status = 3;</code>
+     * @return Whether the status field is set.
      */
     @java.lang.Override
-    public boolean getIsDeleted() {
-      return isDeleted_;
-    }
-
-    public static final int DELETED_AT_FIELD_NUMBER = 4;
-    private long deletedAt_ = 0L;
-    /**
-     * <code>int64 deleted_at = 4;</code>
-     * @return The deletedAt.
-     */
-    @java.lang.Override
-    public long getDeletedAt() {
-      return deletedAt_;
-    }
-
-    public static final int LABELS_FIELD_NUMBER = 5;
-    private static final class LabelsDefaultEntryHolder {
-      static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
-              com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.resources.Namespaces.internal_static_talon_resources_Namespace_LabelsEntry_descriptor,
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
-    }
-    @SuppressWarnings("serial")
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> labels_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetLabels() {
-      if (labels_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            LabelsDefaultEntryHolder.defaultEntry);
-      }
-      return labels_;
-    }
-    public int getLabelsCount() {
-      return internalGetLabels().getMap().size();
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
+     * <code>.talon.resources.NamespaceStatus status = 3;</code>
+     * @return The status.
      */
     @java.lang.Override
-    public boolean containsLabels(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      return internalGetLabels().getMap().containsKey(key);
+    public talon.resources.Namespaces.NamespaceStatus getStatus() {
+      return status_ == null ? talon.resources.Namespaces.NamespaceStatus.getDefaultInstance() : status_;
     }
     /**
-     * Use {@link #getLabelsMap()} instead.
+     * <code>.talon.resources.NamespaceStatus status = 3;</code>
      */
     @java.lang.Override
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
-      return getLabelsMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    @java.lang.Override
-    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
-      return internalGetLabels().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    @java.lang.Override
-    public /* nullable */
-java.lang.String getLabelsOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetLabels().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    @java.lang.Override
-    public java.lang.String getLabelsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetLabels().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
+    public talon.resources.Namespaces.NamespaceStatusOrBuilder getStatusOrBuilder() {
+      return status_ == null ? talon.resources.Namespaces.NamespaceStatus.getDefaultInstance() : status_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -349,24 +210,15 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, name_);
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getMetadata());
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parent_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, parent_);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getSpec());
       }
-      if (isDeleted_ != false) {
-        output.writeBool(3, isDeleted_);
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
       }
-      if (deletedAt_ != 0L) {
-        output.writeInt64(4, deletedAt_);
-      }
-      com.google.protobuf.GeneratedMessage
-        .serializeStringMapTo(
-          output,
-          internalGetLabels(),
-          LabelsDefaultEntryHolder.defaultEntry,
-          5);
       getUnknownFields().writeTo(output);
     }
 
@@ -376,29 +228,17 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(parent_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, parent_);
-      }
-      if (isDeleted_ != false) {
+      if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(3, isDeleted_);
+          .computeMessageSize(1, getMetadata());
       }
-      if (deletedAt_ != 0L) {
+      if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(4, deletedAt_);
+          .computeMessageSize(2, getSpec());
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-           : internalGetLabels().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
-            .setKey(entry.getKey())
-            .setValue(entry.getValue())
-            .buildPartial();
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(5, labels__);
+          .computeMessageSize(3, getStatus());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -415,16 +255,21 @@ java.lang.String defaultValue) {
       }
       talon.resources.Namespaces.Namespace other = (talon.resources.Namespaces.Namespace) obj;
 
-      if (!getName()
-          .equals(other.getName())) return false;
-      if (!getParent()
-          .equals(other.getParent())) return false;
-      if (getIsDeleted()
-          != other.getIsDeleted()) return false;
-      if (getDeletedAt()
-          != other.getDeletedAt()) return false;
-      if (!internalGetLabels().equals(
-          other.internalGetLabels())) return false;
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
+      }
+      if (hasStatus() != other.hasStatus()) return false;
+      if (hasStatus()) {
+        if (!getStatus()
+            .equals(other.getStatus())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -436,19 +281,17 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getName().hashCode();
-      hash = (37 * hash) + PARENT_FIELD_NUMBER;
-      hash = (53 * hash) + getParent().hashCode();
-      hash = (37 * hash) + IS_DELETED_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-          getIsDeleted());
-      hash = (37 * hash) + DELETED_AT_FIELD_NUMBER;
-      hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
-          getDeletedAt());
-      if (!internalGetLabels().getMap().isEmpty()) {
-        hash = (37 * hash) + LABELS_FIELD_NUMBER;
-        hash = (53 * hash) + internalGetLabels().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + getStatus().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -559,28 +402,6 @@ java.lang.String defaultValue) {
         return talon.resources.Namespaces.internal_static_talon_resources_Namespace_descriptor;
       }
 
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 5:
-            return internalGetLabels();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 5:
-            return internalGetMutableLabels();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
@@ -591,23 +412,41 @@ java.lang.String defaultValue) {
 
       // Construct using talon.resources.Namespaces.Namespace.newBuilder()
       private Builder() {
-
+        maybeForceBuilderInitialization();
       }
 
       private Builder(
           com.google.protobuf.GeneratedMessage.BuilderParent parent) {
         super(parent);
-
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
+          internalGetSpecFieldBuilder();
+          internalGetStatusFieldBuilder();
+        }
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        name_ = "";
-        parent_ = "";
-        isDeleted_ = false;
-        deletedAt_ = 0L;
-        internalGetMutableLabels().clear();
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
         return this;
       }
 
@@ -641,22 +480,26 @@ java.lang.String defaultValue) {
 
       private void buildPartial0(talon.resources.Namespaces.Namespace result) {
         int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.name_ = name_;
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.parent_ = parent_;
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
+          to_bitField0_ |= 0x00000002;
         }
         if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.isDeleted_ = isDeleted_;
+          result.status_ = statusBuilder_ == null
+              ? status_
+              : statusBuilder_.build();
+          to_bitField0_ |= 0x00000004;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
-          result.deletedAt_ = deletedAt_;
-        }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.labels_ = internalGetLabels();
-          result.labels_.makeImmutable();
-        }
+        result.bitField0_ |= to_bitField0_;
       }
 
       @java.lang.Override
@@ -671,25 +514,15 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.resources.Namespaces.Namespace other) {
         if (other == talon.resources.Namespaces.Namespace.getDefaultInstance()) return this;
-        if (!other.getName().isEmpty()) {
-          name_ = other.name_;
-          bitField0_ |= 0x00000001;
-          onChanged();
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
         }
-        if (!other.getParent().isEmpty()) {
-          parent_ = other.parent_;
-          bitField0_ |= 0x00000002;
-          onChanged();
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
         }
-        if (other.getIsDeleted() != false) {
-          setIsDeleted(other.getIsDeleted());
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
         }
-        if (other.getDeletedAt() != 0L) {
-          setDeletedAt(other.getDeletedAt());
-        }
-        internalGetMutableLabels().mergeFrom(
-            other.internalGetLabels());
-        bitField0_ |= 0x00000010;
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -717,34 +550,26 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                name_ = input.readStringRequireUtf8();
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
               case 18: {
-                parent_ = input.readStringRequireUtf8();
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
-              case 24: {
-                isDeleted_ = input.readBool();
+              case 26: {
+                input.readMessage(
+                    internalGetStatusFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000004;
                 break;
-              } // case 24
-              case 32: {
-                deletedAt_ = input.readInt64();
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 32
-              case 42: {
-                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-                labels__ = input.readMessage(
-                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-                internalGetMutableLabels().getMutableMap().put(
-                    labels__.getKey(), labels__.getValue());
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 42
+              } // case 26
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -762,339 +587,367 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.lang.Object name_ = "";
+      private talon.resources.Common.ResourceMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
       /**
-       * <code>string name = 1;</code>
-       * @return The name.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return Whether the metadata field is set.
        */
-      public java.lang.String getName() {
-        java.lang.Object ref = name_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          name_ = s;
-          return s;
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return The metadata.
+       */
+      public talon.resources.Common.ResourceMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
         } else {
-          return (java.lang.String) ref;
+          return metadataBuilder_.getMessage();
         }
       }
       /**
-       * <code>string name = 1;</code>
-       * @return The bytes for name.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getNameBytes() {
-        java.lang.Object ref = name_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          name_ = b;
-          return b;
+      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
         } else {
-          return (com.google.protobuf.ByteString) ref;
+          metadataBuilder_.setMessage(value);
         }
-      }
-      /**
-       * <code>string name = 1;</code>
-       * @param value The name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        name_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
-       * @return This builder for chaining.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public Builder clearName() {
-        name_ = getDefaultInstance().getName();
+      public Builder setMetadata(
+          talon.resources.Common.ResourceMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder clearMetadata() {
         bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
-       * @param value The bytes for name to set.
-       * @return This builder for chaining.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public Builder setNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        name_ = value;
+      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
-        return this;
+        return internalGetMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
+        } else {
+          return metadata_ == null ?
+              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
+        }
+        return metadataBuilder_;
       }
 
-      private java.lang.Object parent_ = "";
+      private talon.resources.Namespaces.NamespaceSpec spec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Namespaces.NamespaceSpec, talon.resources.Namespaces.NamespaceSpec.Builder, talon.resources.Namespaces.NamespaceSpecOrBuilder> specBuilder_;
       /**
-       * <code>string parent = 2;</code>
-       * @return The parent.
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+       * @return Whether the spec field is set.
        */
-      public java.lang.String getParent() {
-        java.lang.Object ref = parent_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          parent_ = s;
-          return s;
+      public boolean hasSpec() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+       * @return The spec.
+       */
+      public talon.resources.Namespaces.NamespaceSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.resources.Namespaces.NamespaceSpec.getDefaultInstance() : spec_;
         } else {
-          return (java.lang.String) ref;
+          return specBuilder_.getMessage();
         }
       }
       /**
-       * <code>string parent = 2;</code>
-       * @return The bytes for parent.
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
        */
-      public com.google.protobuf.ByteString
-          getParentBytes() {
-        java.lang.Object ref = parent_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          parent_ = b;
-          return b;
+      public Builder setSpec(talon.resources.Namespaces.NamespaceSpec value) {
+        if (specBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          spec_ = value;
         } else {
-          return (com.google.protobuf.ByteString) ref;
+          specBuilder_.setMessage(value);
         }
-      }
-      /**
-       * <code>string parent = 2;</code>
-       * @param value The parent to set.
-       * @return This builder for chaining.
-       */
-      public Builder setParent(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        parent_ = value;
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>string parent = 2;</code>
-       * @return This builder for chaining.
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
        */
-      public Builder clearParent() {
-        parent_ = getDefaultInstance().getParent();
+      public Builder setSpec(
+          talon.resources.Namespaces.NamespaceSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
+        } else {
+          specBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+       */
+      public Builder mergeSpec(talon.resources.Namespaces.NamespaceSpec value) {
+        if (specBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            spec_ != null &&
+            spec_ != talon.resources.Namespaces.NamespaceSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
+          } else {
+            spec_ = value;
+          }
+        } else {
+          specBuilder_.mergeFrom(value);
+        }
+        if (spec_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+       */
+      public Builder clearSpec() {
         bitField0_ = (bitField0_ & ~0x00000002);
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
         onChanged();
         return this;
       }
       /**
-       * <code>string parent = 2;</code>
-       * @param value The bytes for parent to set.
-       * @return This builder for chaining.
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
        */
-      public Builder setParentBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        parent_ = value;
+      public talon.resources.Namespaces.NamespaceSpec.Builder getSpecBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
-        return this;
-      }
-
-      private boolean isDeleted_ ;
-      /**
-       * <code>bool is_deleted = 3;</code>
-       * @return The isDeleted.
-       */
-      @java.lang.Override
-      public boolean getIsDeleted() {
-        return isDeleted_;
+        return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
-       * <code>bool is_deleted = 3;</code>
-       * @param value The isDeleted to set.
-       * @return This builder for chaining.
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
        */
-      public Builder setIsDeleted(boolean value) {
+      public talon.resources.Namespaces.NamespaceSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
+        } else {
+          return spec_ == null ?
+              talon.resources.Namespaces.NamespaceSpec.getDefaultInstance() : spec_;
+        }
+      }
+      /**
+       * <code>.talon.resources.NamespaceSpec spec = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Namespaces.NamespaceSpec, talon.resources.Namespaces.NamespaceSpec.Builder, talon.resources.Namespaces.NamespaceSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Namespaces.NamespaceSpec, talon.resources.Namespaces.NamespaceSpec.Builder, talon.resources.Namespaces.NamespaceSpecOrBuilder>(
+                  getSpec(),
+                  getParentForChildren(),
+                  isClean());
+          spec_ = null;
+        }
+        return specBuilder_;
+      }
 
-        isDeleted_ = value;
+      private talon.resources.Namespaces.NamespaceStatus status_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Namespaces.NamespaceStatus, talon.resources.Namespaces.NamespaceStatus.Builder, talon.resources.Namespaces.NamespaceStatusOrBuilder> statusBuilder_;
+      /**
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
+       * @return Whether the status field is set.
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
+       * @return The status.
+       */
+      public talon.resources.Namespaces.NamespaceStatus getStatus() {
+        if (statusBuilder_ == null) {
+          return status_ == null ? talon.resources.Namespaces.NamespaceStatus.getDefaultInstance() : status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
+       */
+      public Builder setStatus(talon.resources.Namespaces.NamespaceStatus value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+        } else {
+          statusBuilder_.setMessage(value);
+        }
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>bool is_deleted = 3;</code>
-       * @return This builder for chaining.
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
        */
-      public Builder clearIsDeleted() {
+      public Builder setStatus(
+          talon.resources.Namespaces.NamespaceStatus.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
+       */
+      public Builder mergeStatus(talon.resources.Namespaces.NamespaceStatus value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            status_ != null &&
+            status_ != talon.resources.Namespaces.NamespaceStatus.getDefaultInstance()) {
+            getStatusBuilder().mergeFrom(value);
+          } else {
+            status_ = value;
+          }
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        if (status_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
+       */
+      public Builder clearStatus() {
         bitField0_ = (bitField0_ & ~0x00000004);
-        isDeleted_ = false;
-        onChanged();
-        return this;
-      }
-
-      private long deletedAt_ ;
-      /**
-       * <code>int64 deleted_at = 4;</code>
-       * @return The deletedAt.
-       */
-      @java.lang.Override
-      public long getDeletedAt() {
-        return deletedAt_;
-      }
-      /**
-       * <code>int64 deleted_at = 4;</code>
-       * @param value The deletedAt to set.
-       * @return This builder for chaining.
-       */
-      public Builder setDeletedAt(long value) {
-
-        deletedAt_ = value;
-        bitField0_ |= 0x00000008;
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
         onChanged();
         return this;
       }
       /**
-       * <code>int64 deleted_at = 4;</code>
-       * @return This builder for chaining.
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
        */
-      public Builder clearDeletedAt() {
-        bitField0_ = (bitField0_ & ~0x00000008);
-        deletedAt_ = 0L;
+      public talon.resources.Namespaces.NamespaceStatus.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000004;
         onChanged();
-        return this;
+        return internalGetStatusFieldBuilder().getBuilder();
       }
-
-      private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> labels_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetLabels() {
-        if (labels_ == null) {
-          return com.google.protobuf.MapField.emptyMapField(
-              LabelsDefaultEntryHolder.defaultEntry);
+      /**
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
+       */
+      public talon.resources.Namespaces.NamespaceStatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_ == null ?
+              talon.resources.Namespaces.NamespaceStatus.getDefaultInstance() : status_;
         }
-        return labels_;
       }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetMutableLabels() {
-        if (labels_ == null) {
-          labels_ = com.google.protobuf.MapField.newMapField(
-              LabelsDefaultEntryHolder.defaultEntry);
+      /**
+       * <code>.talon.resources.NamespaceStatus status = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Namespaces.NamespaceStatus, talon.resources.Namespaces.NamespaceStatus.Builder, talon.resources.Namespaces.NamespaceStatusOrBuilder>
+          internalGetStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Namespaces.NamespaceStatus, talon.resources.Namespaces.NamespaceStatus.Builder, talon.resources.Namespaces.NamespaceStatusOrBuilder>(
+                  getStatus(),
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
         }
-        if (!labels_.isMutable()) {
-          labels_ = labels_.copy();
-        }
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return labels_;
-      }
-      public int getLabelsCount() {
-        return internalGetLabels().getMap().size();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      @java.lang.Override
-      public boolean containsLabels(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        return internalGetLabels().getMap().containsKey(key);
-      }
-      /**
-       * Use {@link #getLabelsMap()} instead.
-       */
-      @java.lang.Override
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
-        return getLabelsMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      @java.lang.Override
-      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
-        return internalGetLabels().getMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      @java.lang.Override
-      public /* nullable */
-java.lang.String getLabelsOrDefault(
-          java.lang.String key,
-          /* nullable */
-java.lang.String defaultValue) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetLabels().getMap();
-        return map.containsKey(key) ? map.get(key) : defaultValue;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      @java.lang.Override
-      public java.lang.String getLabelsOrThrow(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetLabels().getMap();
-        if (!map.containsKey(key)) {
-          throw new java.lang.IllegalArgumentException();
-        }
-        return map.get(key);
-      }
-      public Builder clearLabels() {
-        bitField0_ = (bitField0_ & ~0x00000010);
-        internalGetMutableLabels().getMutableMap()
-            .clear();
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      public Builder removeLabels(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        internalGetMutableLabels().getMutableMap()
-            .remove(key);
-        return this;
-      }
-      /**
-       * Use alternate mutation accessors instead.
-       */
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
-          getMutableLabels() {
-        bitField0_ |= 0x00000010;
-        return internalGetMutableLabels().getMutableMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      public Builder putLabels(
-          java.lang.String key,
-          java.lang.String value) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        if (value == null) { throw new NullPointerException("map value"); }
-        internalGetMutableLabels().getMutableMap()
-            .put(key, value);
-        bitField0_ |= 0x00000010;
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      public Builder putAllLabels(
-          java.util.Map<java.lang.String, java.lang.String> values) {
-        internalGetMutableLabels().getMutableMap()
-            .putAll(values);
-        bitField0_ |= 0x00000010;
-        return this;
+        return statusBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.Namespace)
@@ -2786,11 +2639,6 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_Namespace_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_Namespace_LabelsEntry_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_Namespace_LabelsEntry_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_NamespaceSpec_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -2811,16 +2659,16 @@ java.lang.String defaultValue) {
     java.lang.String[] descriptorData = {
       "\n proto/resources/namespaces.proto\022\017talo" +
       "n.resources\032\034proto/resources/common.prot" +
-      "o\"\270\001\n\tNamespace\022\014\n\004name\030\001 \001(\t\022\016\n\006parent\030" +
-      "\002 \001(\t\022\022\n\nis_deleted\030\003 \001(\010\022\022\n\ndeleted_at\030" +
-      "\004 \001(\003\0226\n\006labels\030\005 \003(\0132&.talon.resources." +
-      "Namespace.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003" +
-      "key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\037\n\rNamespac" +
-      "eSpec\022\016\n\006parent\030\001 \001(\t\"\235\001\n\017NamespaceStatu" +
-      "s\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005phase\030" +
-      "\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon.resour" +
-      "ces.ResourceCondition\022\022\n\nis_deleted\030\004 \001(" +
-      "\010\022\022\n\ndeleted_at\030\005 \001(\003b\006proto3"
+      "o\"\234\001\n\tNamespace\022/\n\010metadata\030\001 \001(\0132\035.talo" +
+      "n.resources.ResourceMeta\022,\n\004spec\030\002 \001(\0132\036" +
+      ".talon.resources.NamespaceSpec\0220\n\006status" +
+      "\030\003 \001(\0132 .talon.resources.NamespaceStatus" +
+      "\"\037\n\rNamespaceSpec\022\016\n\006parent\030\001 \001(\t\"\235\001\n\017Na" +
+      "mespaceStatus\022\033\n\023observed_generation\030\001 \001" +
+      "(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\"." +
+      "talon.resources.ResourceCondition\022\022\n\nis_" +
+      "deleted\030\004 \001(\010\022\022\n\ndeleted_at\030\005 \001(\003b\006proto" +
+      "3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -2832,13 +2680,7 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_Namespace_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_Namespace_descriptor,
-        new java.lang.String[] { "Name", "Parent", "IsDeleted", "DeletedAt", "Labels", });
-    internal_static_talon_resources_Namespace_LabelsEntry_descriptor =
-      internal_static_talon_resources_Namespace_descriptor.getNestedType(0);
-    internal_static_talon_resources_Namespace_LabelsEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_Namespace_LabelsEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
     internal_static_talon_resources_NamespaceSpec_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_talon_resources_NamespaceSpec_fieldAccessorTable = new

@@ -25,21 +25,17 @@ _sym_db = _symbol_database.Default()
 from proto.resources import common_pb2 as proto_dot_resources_dot_common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n proto/resources/namespaces.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xb8\x01\n\tNamespace\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0e\n\x06parent\x18\x02 \x01(\t\x12\x12\n\nis_deleted\x18\x03 \x01(\x08\x12\x12\n\ndeleted_at\x18\x04 \x01(\x03\x12\x36\n\x06labels\x18\x05 \x03(\x0b\x32&.talon.resources.Namespace.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\x1f\n\rNamespaceSpec\x12\x0e\n\x06parent\x18\x01 \x01(\t\"\x9d\x01\n\x0fNamespaceStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12\x12\n\nis_deleted\x18\x04 \x01(\x08\x12\x12\n\ndeleted_at\x18\x05 \x01(\x03\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n proto/resources/namespaces.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\x9c\x01\n\tNamespace\x12/\n\x08metadata\x18\x01 \x01(\x0b\x32\x1d.talon.resources.ResourceMeta\x12,\n\x04spec\x18\x02 \x01(\x0b\x32\x1e.talon.resources.NamespaceSpec\x12\x30\n\x06status\x18\x03 \x01(\x0b\x32 .talon.resources.NamespaceStatus\"\x1f\n\rNamespaceSpec\x12\x0e\n\x06parent\x18\x01 \x01(\t\"\x9d\x01\n\x0fNamespaceStatus\x12\x1b\n\x13observed_generation\x18\x01 \x01(\x04\x12\r\n\x05phase\x18\x02 \x01(\t\x12\x36\n\nconditions\x18\x03 \x03(\x0b\x32\".talon.resources.ResourceCondition\x12\x12\n\nis_deleted\x18\x04 \x01(\x08\x12\x12\n\ndeleted_at\x18\x05 \x01(\x03\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'proto.resources.namespaces_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_NAMESPACE_LABELSENTRY']._loaded_options = None
-  _globals['_NAMESPACE_LABELSENTRY']._serialized_options = b'8\001'
   _globals['_NAMESPACE']._serialized_start=84
-  _globals['_NAMESPACE']._serialized_end=268
-  _globals['_NAMESPACE_LABELSENTRY']._serialized_start=223
-  _globals['_NAMESPACE_LABELSENTRY']._serialized_end=268
-  _globals['_NAMESPACESPEC']._serialized_start=270
-  _globals['_NAMESPACESPEC']._serialized_end=301
-  _globals['_NAMESPACESTATUS']._serialized_start=304
-  _globals['_NAMESPACESTATUS']._serialized_end=461
+  _globals['_NAMESPACE']._serialized_end=240
+  _globals['_NAMESPACESPEC']._serialized_start=242
+  _globals['_NAMESPACESPEC']._serialized_end=273
+  _globals['_NAMESPACESTATUS']._serialized_start=276
+  _globals['_NAMESPACESTATUS']._serialized_end=433
 # @@protoc_insertion_point(module_scope)

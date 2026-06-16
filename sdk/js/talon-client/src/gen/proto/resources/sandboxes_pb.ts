@@ -108,6 +108,11 @@ export class SandboxSetupSpec extends Message<SandboxSetupSpec> {
    */
   packages: string[] = [];
 
+  /**
+   * @generated from field: repeated string commands = 2;
+   */
+  commands: string[] = [];
+
   constructor(data?: PartialMessage<SandboxSetupSpec>) {
     super();
     proto3.util.initPartial(data, this);
@@ -117,6 +122,7 @@ export class SandboxSetupSpec extends Message<SandboxSetupSpec> {
   static readonly typeName = "talon.resources.SandboxSetupSpec";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "packages", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 2, name: "commands", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SandboxSetupSpec {

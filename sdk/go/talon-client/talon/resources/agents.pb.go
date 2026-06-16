@@ -24,10 +24,9 @@ const (
 
 type Agent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Ns            string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
-	Spec          *AgentSpec             `protobuf:"bytes,4,opt,name=spec,proto3" json:"spec,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,7,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *AgentSpec             `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *AgentStatus           `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -62,18 +61,11 @@ func (*Agent) Descriptor() ([]byte, []int) {
 	return file_proto_resources_agents_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Agent) GetName() string {
+func (x *Agent) GetMetadata() *ResourceMeta {
 	if x != nil {
-		return x.Name
+		return x.Metadata
 	}
-	return ""
-}
-
-func (x *Agent) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
+	return nil
 }
 
 func (x *Agent) GetSpec() *AgentSpec {
@@ -83,9 +75,9 @@ func (x *Agent) GetSpec() *AgentSpec {
 	return nil
 }
 
-func (x *Agent) GetLabels() map[string]string {
+func (x *Agent) GetStatus() *AgentStatus {
 	if x != nil {
-		return x.Labels
+		return x.Status
 	}
 	return nil
 }
@@ -1316,15 +1308,11 @@ var File_proto_resources_agents_proto protoreflect.FileDescriptor
 
 const file_proto_resources_agents_proto_rawDesc = "" +
 	"\n" +
-	"\x1cproto/resources/agents.proto\x12\x0ftalon.resources\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1cproto/resources/common.proto\"\xde\x01\n" +
-	"\x05Agent\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x0e\n" +
-	"\x02ns\x18\x02 \x01(\tR\x02ns\x12.\n" +
-	"\x04spec\x18\x04 \x01(\v2\x1a.talon.resources.AgentSpecR\x04spec\x12:\n" +
-	"\x06labels\x18\a \x03(\v2\".talon.resources.Agent.LabelsEntryR\x06labels\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\x03\x10\x04J\x04\b\x05\x10\x06\"\xdf\x03\n" +
+	"\x1cproto/resources/agents.proto\x12\x0ftalon.resources\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1cproto/resources/common.proto\"\xa8\x01\n" +
+	"\x05Agent\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12.\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1a.talon.resources.AgentSpecR\x04spec\x124\n" +
+	"\x06status\x18\x03 \x01(\v2\x1c.talon.resources.AgentStatusR\x06status\"\xdf\x03\n" +
 	"\tAgentSpec\x124\n" +
 	"\bfeatures\x18\x01 \x03(\v2\x18.talon.resources.FeatureR\bfeatures\x12?\n" +
 	"\fmodel_policy\x18\x02 \x01(\v2\x1c.talon.resources.ModelPolicyR\vmodelPolicy\x12#\n" +
@@ -1445,7 +1433,7 @@ func file_proto_resources_agents_proto_rawDescGZIP() []byte {
 	return file_proto_resources_agents_proto_rawDescData
 }
 
-var file_proto_resources_agents_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_proto_resources_agents_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
 var file_proto_resources_agents_proto_goTypes = []any{
 	(*Agent)(nil),                 // 0: talon.resources.Agent
 	(*AgentSpec)(nil),             // 1: talon.resources.AgentSpec
@@ -1466,42 +1454,43 @@ var file_proto_resources_agents_proto_goTypes = []any{
 	(*AgentCard)(nil),             // 16: talon.resources.AgentCard
 	(*AgentCardCapabilities)(nil), // 17: talon.resources.AgentCardCapabilities
 	(*AgentCardSkill)(nil),        // 18: talon.resources.AgentCardSkill
-	nil,                           // 19: talon.resources.Agent.LabelsEntry
-	nil,                           // 20: talon.resources.AgentSpec.CapabilitiesEntry
-	nil,                           // 21: talon.resources.AcpRuntime.EnvEntry
-	nil,                           // 22: talon.resources.AcpRuntime.PermissionPolicyEntry
+	nil,                           // 19: talon.resources.AgentSpec.CapabilitiesEntry
+	nil,                           // 20: talon.resources.AcpRuntime.EnvEntry
+	nil,                           // 21: talon.resources.AcpRuntime.PermissionPolicyEntry
+	(*ResourceMeta)(nil),          // 22: talon.resources.ResourceMeta
 	(*ResourceCondition)(nil),     // 23: talon.resources.ResourceCondition
 	(*structpb.ListValue)(nil),    // 24: google.protobuf.ListValue
 }
 var file_proto_resources_agents_proto_depIdxs = []int32{
-	1,  // 0: talon.resources.Agent.spec:type_name -> talon.resources.AgentSpec
-	19, // 1: talon.resources.Agent.labels:type_name -> talon.resources.Agent.LabelsEntry
-	5,  // 2: talon.resources.AgentSpec.features:type_name -> talon.resources.Feature
-	9,  // 3: talon.resources.AgentSpec.model_policy:type_name -> talon.resources.ModelPolicy
-	20, // 4: talon.resources.AgentSpec.capabilities:type_name -> talon.resources.AgentSpec.CapabilitiesEntry
-	10, // 5: talon.resources.AgentSpec.a2a:type_name -> talon.resources.A2A
-	3,  // 6: talon.resources.AgentSpec.runtime:type_name -> talon.resources.AgentRuntime
-	23, // 7: talon.resources.AgentStatus.conditions:type_name -> talon.resources.ResourceCondition
-	4,  // 8: talon.resources.AgentRuntime.acp:type_name -> talon.resources.AcpRuntime
-	21, // 9: talon.resources.AcpRuntime.env:type_name -> talon.resources.AcpRuntime.EnvEntry
-	22, // 10: talon.resources.AcpRuntime.permission_policy:type_name -> talon.resources.AcpRuntime.PermissionPolicyEntry
-	7,  // 11: talon.resources.Model.thinking:type_name -> talon.resources.ThinkingConfig
-	6,  // 12: talon.resources.ModelProfile.model:type_name -> talon.resources.Model
-	8,  // 13: talon.resources.ModelPolicy.profiles:type_name -> talon.resources.ModelProfile
-	11, // 14: talon.resources.A2A.connections:type_name -> talon.resources.Connection
-	16, // 15: talon.resources.A2A.agent_card:type_name -> talon.resources.AgentCard
-	12, // 16: talon.resources.Connection.target:type_name -> talon.resources.ConnectionRef
-	15, // 17: talon.resources.Connection.auth:type_name -> talon.resources.ConnectionAuth
-	13, // 18: talon.resources.ConnectionRef.internal:type_name -> talon.resources.InternalConnectionRef
-	14, // 19: talon.resources.ConnectionRef.external:type_name -> talon.resources.ExternalConnectionRef
-	17, // 20: talon.resources.AgentCard.capabilities:type_name -> talon.resources.AgentCardCapabilities
-	18, // 21: talon.resources.AgentCard.skills:type_name -> talon.resources.AgentCardSkill
-	24, // 22: talon.resources.AgentSpec.CapabilitiesEntry.value:type_name -> google.protobuf.ListValue
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	22, // 0: talon.resources.Agent.metadata:type_name -> talon.resources.ResourceMeta
+	1,  // 1: talon.resources.Agent.spec:type_name -> talon.resources.AgentSpec
+	2,  // 2: talon.resources.Agent.status:type_name -> talon.resources.AgentStatus
+	5,  // 3: talon.resources.AgentSpec.features:type_name -> talon.resources.Feature
+	9,  // 4: talon.resources.AgentSpec.model_policy:type_name -> talon.resources.ModelPolicy
+	19, // 5: talon.resources.AgentSpec.capabilities:type_name -> talon.resources.AgentSpec.CapabilitiesEntry
+	10, // 6: talon.resources.AgentSpec.a2a:type_name -> talon.resources.A2A
+	3,  // 7: talon.resources.AgentSpec.runtime:type_name -> talon.resources.AgentRuntime
+	23, // 8: talon.resources.AgentStatus.conditions:type_name -> talon.resources.ResourceCondition
+	4,  // 9: talon.resources.AgentRuntime.acp:type_name -> talon.resources.AcpRuntime
+	20, // 10: talon.resources.AcpRuntime.env:type_name -> talon.resources.AcpRuntime.EnvEntry
+	21, // 11: talon.resources.AcpRuntime.permission_policy:type_name -> talon.resources.AcpRuntime.PermissionPolicyEntry
+	7,  // 12: talon.resources.Model.thinking:type_name -> talon.resources.ThinkingConfig
+	6,  // 13: talon.resources.ModelProfile.model:type_name -> talon.resources.Model
+	8,  // 14: talon.resources.ModelPolicy.profiles:type_name -> talon.resources.ModelProfile
+	11, // 15: talon.resources.A2A.connections:type_name -> talon.resources.Connection
+	16, // 16: talon.resources.A2A.agent_card:type_name -> talon.resources.AgentCard
+	12, // 17: talon.resources.Connection.target:type_name -> talon.resources.ConnectionRef
+	15, // 18: talon.resources.Connection.auth:type_name -> talon.resources.ConnectionAuth
+	13, // 19: talon.resources.ConnectionRef.internal:type_name -> talon.resources.InternalConnectionRef
+	14, // 20: talon.resources.ConnectionRef.external:type_name -> talon.resources.ExternalConnectionRef
+	17, // 21: talon.resources.AgentCard.capabilities:type_name -> talon.resources.AgentCardCapabilities
+	18, // 22: talon.resources.AgentCard.skills:type_name -> talon.resources.AgentCardSkill
+	24, // 23: talon.resources.AgentSpec.CapabilitiesEntry.value:type_name -> google.protobuf.ListValue
+	24, // [24:24] is the sub-list for method output_type
+	24, // [24:24] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_agents_proto_init() }
@@ -1522,7 +1511,7 @@ func file_proto_resources_agents_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_agents_proto_rawDesc), len(file_proto_resources_agents_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   22,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -5303,92 +5303,49 @@ public final class Schedules extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>string name = 1;</code>
-     * @return The name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
      */
-    java.lang.String getName();
+    boolean hasMetadata();
     /**
-     * <code>string name = 1;</code>
-     * @return The bytes for name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
      */
-    com.google.protobuf.ByteString
-        getNameBytes();
+    talon.resources.Common.ResourceMeta getMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
 
     /**
-     * <code>string ns = 2;</code>
-     * @return The ns.
-     */
-    java.lang.String getNs();
-    /**
-     * <code>string ns = 2;</code>
-     * @return The bytes for ns.
-     */
-    com.google.protobuf.ByteString
-        getNsBytes();
-
-    /**
-     * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+     * <code>.talon.resources.ScheduleSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     boolean hasSpec();
     /**
-     * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+     * <code>.talon.resources.ScheduleSpec spec = 2;</code>
      * @return The spec.
      */
     talon.resources.Schedules.ScheduleSpec getSpec();
     /**
-     * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+     * <code>.talon.resources.ScheduleSpec spec = 2;</code>
      */
     talon.resources.Schedules.ScheduleSpecOrBuilder getSpecOrBuilder();
 
     /**
-     * <code>.talon.resources.ScheduleStatus status = 4;</code>
+     * <code>.talon.resources.ScheduleStatus status = 3;</code>
      * @return Whether the status field is set.
      */
     boolean hasStatus();
     /**
-     * <code>.talon.resources.ScheduleStatus status = 4;</code>
+     * <code>.talon.resources.ScheduleStatus status = 3;</code>
      * @return The status.
      */
     talon.resources.Schedules.ScheduleStatus getStatus();
     /**
-     * <code>.talon.resources.ScheduleStatus status = 4;</code>
+     * <code>.talon.resources.ScheduleStatus status = 3;</code>
      */
     talon.resources.Schedules.ScheduleStatusOrBuilder getStatusOrBuilder();
-
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    int getLabelsCount();
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    boolean containsLabels(
-        java.lang.String key);
-    /**
-     * Use {@link #getLabelsMap()} instead.
-     */
-    @java.lang.Deprecated
-    java.util.Map<java.lang.String, java.lang.String>
-    getLabels();
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    java.util.Map<java.lang.String, java.lang.String>
-    getLabelsMap();
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    /* nullable */
-java.lang.String getLabelsOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue);
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    java.lang.String getLabelsOrThrow(
-        java.lang.String key);
   }
   /**
    * Protobuf type {@code talon.resources.Schedule}
@@ -5412,8 +5369,6 @@ java.lang.String defaultValue);
       super(builder);
     }
     private Schedule() {
-      name_ = "";
-      ns_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -5426,18 +5381,6 @@ java.lang.String defaultValue);
       return talon.resources.Schedules.internal_static_talon_resources_Schedule_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    @java.lang.Override
-    protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-        int number) {
-      switch (number) {
-        case 5:
-          return internalGetLabels();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
         internalGetFieldAccessorTable() {
@@ -5447,96 +5390,44 @@ java.lang.String defaultValue);
     }
 
     private int bitField0_;
-    public static final int NAME_FIELD_NUMBER = 1;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object name_ = "";
+    public static final int METADATA_FIELD_NUMBER = 1;
+    private talon.resources.Common.ResourceMeta metadata_;
     /**
-     * <code>string name = 1;</code>
-     * @return The name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
      */
     @java.lang.Override
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        name_ = s;
-        return s;
-      }
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>string name = 1;</code>
-     * @return The bytes for name.
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        name_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public talon.resources.Common.ResourceMeta getMetadata() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
     }
 
-    public static final int NS_FIELD_NUMBER = 2;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object ns_ = "";
-    /**
-     * <code>string ns = 2;</code>
-     * @return The ns.
-     */
-    @java.lang.Override
-    public java.lang.String getNs() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        ns_ = s;
-        return s;
-      }
-    }
-    /**
-     * <code>string ns = 2;</code>
-     * @return The bytes for ns.
-     */
-    @java.lang.Override
-    public com.google.protobuf.ByteString
-        getNsBytes() {
-      java.lang.Object ref = ns_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        ns_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int SPEC_FIELD_NUMBER = 3;
+    public static final int SPEC_FIELD_NUMBER = 2;
     private talon.resources.Schedules.ScheduleSpec spec_;
     /**
-     * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+     * <code>.talon.resources.ScheduleSpec spec = 2;</code>
      * @return Whether the spec field is set.
      */
     @java.lang.Override
     public boolean hasSpec() {
-      return ((bitField0_ & 0x00000001) != 0);
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+     * <code>.talon.resources.ScheduleSpec spec = 2;</code>
      * @return The spec.
      */
     @java.lang.Override
@@ -5544,25 +5435,25 @@ java.lang.String defaultValue);
       return spec_ == null ? talon.resources.Schedules.ScheduleSpec.getDefaultInstance() : spec_;
     }
     /**
-     * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+     * <code>.talon.resources.ScheduleSpec spec = 2;</code>
      */
     @java.lang.Override
     public talon.resources.Schedules.ScheduleSpecOrBuilder getSpecOrBuilder() {
       return spec_ == null ? talon.resources.Schedules.ScheduleSpec.getDefaultInstance() : spec_;
     }
 
-    public static final int STATUS_FIELD_NUMBER = 4;
+    public static final int STATUS_FIELD_NUMBER = 3;
     private talon.resources.Schedules.ScheduleStatus status_;
     /**
-     * <code>.talon.resources.ScheduleStatus status = 4;</code>
+     * <code>.talon.resources.ScheduleStatus status = 3;</code>
      * @return Whether the status field is set.
      */
     @java.lang.Override
     public boolean hasStatus() {
-      return ((bitField0_ & 0x00000002) != 0);
+      return ((bitField0_ & 0x00000004) != 0);
     }
     /**
-     * <code>.talon.resources.ScheduleStatus status = 4;</code>
+     * <code>.talon.resources.ScheduleStatus status = 3;</code>
      * @return The status.
      */
     @java.lang.Override
@@ -5570,90 +5461,11 @@ java.lang.String defaultValue);
       return status_ == null ? talon.resources.Schedules.ScheduleStatus.getDefaultInstance() : status_;
     }
     /**
-     * <code>.talon.resources.ScheduleStatus status = 4;</code>
+     * <code>.talon.resources.ScheduleStatus status = 3;</code>
      */
     @java.lang.Override
     public talon.resources.Schedules.ScheduleStatusOrBuilder getStatusOrBuilder() {
       return status_ == null ? talon.resources.Schedules.ScheduleStatus.getDefaultInstance() : status_;
-    }
-
-    public static final int LABELS_FIELD_NUMBER = 5;
-    private static final class LabelsDefaultEntryHolder {
-      static final com.google.protobuf.MapEntry<
-          java.lang.String, java.lang.String> defaultEntry =
-              com.google.protobuf.MapEntry
-              .<java.lang.String, java.lang.String>newDefaultInstance(
-                  talon.resources.Schedules.internal_static_talon_resources_Schedule_LabelsEntry_descriptor,
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "",
-                  com.google.protobuf.WireFormat.FieldType.STRING,
-                  "");
-    }
-    @SuppressWarnings("serial")
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> labels_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetLabels() {
-      if (labels_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            LabelsDefaultEntryHolder.defaultEntry);
-      }
-      return labels_;
-    }
-    public int getLabelsCount() {
-      return internalGetLabels().getMap().size();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    @java.lang.Override
-    public boolean containsLabels(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      return internalGetLabels().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getLabelsMap()} instead.
-     */
-    @java.lang.Override
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getLabels() {
-      return getLabelsMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    @java.lang.Override
-    public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
-      return internalGetLabels().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    @java.lang.Override
-    public /* nullable */
-java.lang.String getLabelsOrDefault(
-        java.lang.String key,
-        /* nullable */
-java.lang.String defaultValue) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetLabels().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; labels = 5;</code>
-     */
-    @java.lang.Override
-    public java.lang.String getLabelsOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetLabels().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
     }
 
     private byte memoizedIsInitialized = -1;
@@ -5670,24 +5482,15 @@ java.lang.String defaultValue) {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 1, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 2, ns_);
-      }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(3, getSpec());
+        output.writeMessage(1, getMetadata());
       }
       if (((bitField0_ & 0x00000002) != 0)) {
-        output.writeMessage(4, getStatus());
+        output.writeMessage(2, getSpec());
       }
-      com.google.protobuf.GeneratedMessage
-        .serializeStringMapTo(
-          output,
-          internalGetLabels(),
-          LabelsDefaultEntryHolder.defaultEntry,
-          5);
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -5697,29 +5500,17 @@ java.lang.String defaultValue) {
       if (size != -1) return size;
 
       size = 0;
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(name_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(1, name_);
-      }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(ns_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(2, ns_);
-      }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(3, getSpec());
+          .computeMessageSize(1, getMetadata());
       }
       if (((bitField0_ & 0x00000002) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(4, getStatus());
+          .computeMessageSize(2, getSpec());
       }
-      for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-           : internalGetLabels().getMap().entrySet()) {
-        com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-        labels__ = LabelsDefaultEntryHolder.defaultEntry.newBuilderForType()
-            .setKey(entry.getKey())
-            .setValue(entry.getValue())
-            .buildPartial();
+      if (((bitField0_ & 0x00000004) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-            .computeMessageSize(5, labels__);
+          .computeMessageSize(3, getStatus());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -5736,10 +5527,11 @@ java.lang.String defaultValue) {
       }
       talon.resources.Schedules.Schedule other = (talon.resources.Schedules.Schedule) obj;
 
-      if (!getName()
-          .equals(other.getName())) return false;
-      if (!getNs()
-          .equals(other.getNs())) return false;
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
       if (hasSpec() != other.hasSpec()) return false;
       if (hasSpec()) {
         if (!getSpec()
@@ -5750,8 +5542,6 @@ java.lang.String defaultValue) {
         if (!getStatus()
             .equals(other.getStatus())) return false;
       }
-      if (!internalGetLabels().equals(
-          other.internalGetLabels())) return false;
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -5763,10 +5553,10 @@ java.lang.String defaultValue) {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      hash = (37 * hash) + NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getName().hashCode();
-      hash = (37 * hash) + NS_FIELD_NUMBER;
-      hash = (53 * hash) + getNs().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
       if (hasSpec()) {
         hash = (37 * hash) + SPEC_FIELD_NUMBER;
         hash = (53 * hash) + getSpec().hashCode();
@@ -5774,10 +5564,6 @@ java.lang.String defaultValue) {
       if (hasStatus()) {
         hash = (37 * hash) + STATUS_FIELD_NUMBER;
         hash = (53 * hash) + getStatus().hashCode();
-      }
-      if (!internalGetLabels().getMap().isEmpty()) {
-        hash = (37 * hash) + LABELS_FIELD_NUMBER;
-        hash = (53 * hash) + internalGetLabels().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -5888,28 +5674,6 @@ java.lang.String defaultValue) {
         return talon.resources.Schedules.internal_static_talon_resources_Schedule_descriptor;
       }
 
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 5:
-            return internalGetLabels();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
-      @SuppressWarnings({"rawtypes"})
-      protected com.google.protobuf.MapFieldReflectionAccessor internalGetMutableMapFieldReflection(
-          int number) {
-        switch (number) {
-          case 5:
-            return internalGetMutableLabels();
-          default:
-            throw new RuntimeException(
-                "Invalid map field number: " + number);
-        }
-      }
       @java.lang.Override
       protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
           internalGetFieldAccessorTable() {
@@ -5931,6 +5695,7 @@ java.lang.String defaultValue) {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
           internalGetSpecFieldBuilder();
           internalGetStatusFieldBuilder();
         }
@@ -5939,8 +5704,11 @@ java.lang.String defaultValue) {
       public Builder clear() {
         super.clear();
         bitField0_ = 0;
-        name_ = "";
-        ns_ = "";
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
         spec_ = null;
         if (specBuilder_ != null) {
           specBuilder_.dispose();
@@ -5951,7 +5719,6 @@ java.lang.String defaultValue) {
           statusBuilder_.dispose();
           statusBuilder_ = null;
         }
-        internalGetMutableLabels().clear();
         return this;
       }
 
@@ -5985,28 +5752,24 @@ java.lang.String defaultValue) {
 
       private void buildPartial0(talon.resources.Schedules.Schedule result) {
         int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000001) != 0)) {
-          result.name_ = name_;
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.ns_ = ns_;
-        }
-        int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000004) != 0)) {
           result.spec_ = specBuilder_ == null
               ? spec_
               : specBuilder_.build();
-          to_bitField0_ |= 0x00000001;
+          to_bitField0_ |= 0x00000002;
         }
-        if (((from_bitField0_ & 0x00000008) != 0)) {
+        if (((from_bitField0_ & 0x00000004) != 0)) {
           result.status_ = statusBuilder_ == null
               ? status_
               : statusBuilder_.build();
-          to_bitField0_ |= 0x00000002;
-        }
-        if (((from_bitField0_ & 0x00000010) != 0)) {
-          result.labels_ = internalGetLabels();
-          result.labels_.makeImmutable();
+          to_bitField0_ |= 0x00000004;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -6023,15 +5786,8 @@ java.lang.String defaultValue) {
 
       public Builder mergeFrom(talon.resources.Schedules.Schedule other) {
         if (other == talon.resources.Schedules.Schedule.getDefaultInstance()) return this;
-        if (!other.getName().isEmpty()) {
-          name_ = other.name_;
-          bitField0_ |= 0x00000001;
-          onChanged();
-        }
-        if (!other.getNs().isEmpty()) {
-          ns_ = other.ns_;
-          bitField0_ |= 0x00000002;
-          onChanged();
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
         }
         if (other.hasSpec()) {
           mergeSpec(other.getSpec());
@@ -6039,9 +5795,6 @@ java.lang.String defaultValue) {
         if (other.hasStatus()) {
           mergeStatus(other.getStatus());
         }
-        internalGetMutableLabels().mergeFrom(
-            other.internalGetLabels());
-        bitField0_ |= 0x00000010;
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
         return this;
@@ -6069,38 +5822,26 @@ java.lang.String defaultValue) {
                 done = true;
                 break;
               case 10: {
-                name_ = input.readStringRequireUtf8();
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000001;
                 break;
               } // case 10
               case 18: {
-                ns_ = input.readStringRequireUtf8();
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000002;
                 break;
               } // case 18
               case 26: {
                 input.readMessage(
-                    internalGetSpecFieldBuilder().getBuilder(),
+                    internalGetStatusFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
-              case 34: {
-                input.readMessage(
-                    internalGetStatusFieldBuilder().getBuilder(),
-                    extensionRegistry);
-                bitField0_ |= 0x00000008;
-                break;
-              } // case 34
-              case 42: {
-                com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-                labels__ = input.readMessage(
-                    LabelsDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-                internalGetMutableLabels().getMutableMap().put(
-                    labels__.getKey(), labels__.getValue());
-                bitField0_ |= 0x00000010;
-                break;
-              } // case 42
               default: {
                 if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                   done = true; // was an endgroup tag
@@ -6118,162 +5859,139 @@ java.lang.String defaultValue) {
       }
       private int bitField0_;
 
-      private java.lang.Object name_ = "";
+      private talon.resources.Common.ResourceMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
       /**
-       * <code>string name = 1;</code>
-       * @return The name.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return Whether the metadata field is set.
        */
-      public java.lang.String getName() {
-        java.lang.Object ref = name_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          name_ = s;
-          return s;
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return The metadata.
+       */
+      public talon.resources.Common.ResourceMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
         } else {
-          return (java.lang.String) ref;
+          return metadataBuilder_.getMessage();
         }
       }
       /**
-       * <code>string name = 1;</code>
-       * @return The bytes for name.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getNameBytes() {
-        java.lang.Object ref = name_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          name_ = b;
-          return b;
+      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
         } else {
-          return (com.google.protobuf.ByteString) ref;
+          metadataBuilder_.setMessage(value);
         }
-      }
-      /**
-       * <code>string name = 1;</code>
-       * @param value The name to set.
-       * @return This builder for chaining.
-       */
-      public Builder setName(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        name_ = value;
         bitField0_ |= 0x00000001;
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
-       * @return This builder for chaining.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public Builder clearName() {
-        name_ = getDefaultInstance().getName();
+      public Builder setMetadata(
+          talon.resources.Common.ResourceMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder clearMetadata() {
         bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
         onChanged();
         return this;
       }
       /**
-       * <code>string name = 1;</code>
-       * @param value The bytes for name to set.
-       * @return This builder for chaining.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public Builder setNameBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        name_ = value;
+      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
-        return this;
+        return internalGetMetadataFieldBuilder().getBuilder();
       }
-
-      private java.lang.Object ns_ = "";
       /**
-       * <code>string ns = 2;</code>
-       * @return The ns.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public java.lang.String getNs() {
-        java.lang.Object ref = ns_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          ns_ = s;
-          return s;
+      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
         } else {
-          return (java.lang.String) ref;
+          return metadata_ == null ?
+              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
         }
       }
       /**
-       * <code>string ns = 2;</code>
-       * @return The bytes for ns.
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
        */
-      public com.google.protobuf.ByteString
-          getNsBytes() {
-        java.lang.Object ref = ns_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          ns_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
         }
-      }
-      /**
-       * <code>string ns = 2;</code>
-       * @param value The ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNs(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        ns_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 2;</code>
-       * @return This builder for chaining.
-       */
-      public Builder clearNs() {
-        ns_ = getDefaultInstance().getNs();
-        bitField0_ = (bitField0_ & ~0x00000002);
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>string ns = 2;</code>
-       * @param value The bytes for ns to set.
-       * @return This builder for chaining.
-       */
-      public Builder setNsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        ns_ = value;
-        bitField0_ |= 0x00000002;
-        onChanged();
-        return this;
+        return metadataBuilder_;
       }
 
       private talon.resources.Schedules.ScheduleSpec spec_;
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Schedules.ScheduleSpec, talon.resources.Schedules.ScheduleSpec.Builder, talon.resources.Schedules.ScheduleSpecOrBuilder> specBuilder_;
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        * @return Whether the spec field is set.
        */
       public boolean hasSpec() {
-        return ((bitField0_ & 0x00000004) != 0);
+        return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        * @return The spec.
        */
       public talon.resources.Schedules.ScheduleSpec getSpec() {
@@ -6284,7 +6002,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        */
       public Builder setSpec(talon.resources.Schedules.ScheduleSpec value) {
         if (specBuilder_ == null) {
@@ -6295,12 +6013,12 @@ java.lang.String defaultValue) {
         } else {
           specBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        */
       public Builder setSpec(
           talon.resources.Schedules.ScheduleSpec.Builder builderForValue) {
@@ -6309,16 +6027,16 @@ java.lang.String defaultValue) {
         } else {
           specBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        */
       public Builder mergeSpec(talon.resources.Schedules.ScheduleSpec value) {
         if (specBuilder_ == null) {
-          if (((bitField0_ & 0x00000004) != 0) &&
+          if (((bitField0_ & 0x00000002) != 0) &&
             spec_ != null &&
             spec_ != talon.resources.Schedules.ScheduleSpec.getDefaultInstance()) {
             getSpecBuilder().mergeFrom(value);
@@ -6329,16 +6047,16 @@ java.lang.String defaultValue) {
           specBuilder_.mergeFrom(value);
         }
         if (spec_ != null) {
-          bitField0_ |= 0x00000004;
+          bitField0_ |= 0x00000002;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        */
       public Builder clearSpec() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         spec_ = null;
         if (specBuilder_ != null) {
           specBuilder_.dispose();
@@ -6348,15 +6066,15 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        */
       public talon.resources.Schedules.ScheduleSpec.Builder getSpecBuilder() {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         onChanged();
         return internalGetSpecFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        */
       public talon.resources.Schedules.ScheduleSpecOrBuilder getSpecOrBuilder() {
         if (specBuilder_ != null) {
@@ -6367,7 +6085,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>.talon.resources.ScheduleSpec spec = 3;</code>
+       * <code>.talon.resources.ScheduleSpec spec = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Schedules.ScheduleSpec, talon.resources.Schedules.ScheduleSpec.Builder, talon.resources.Schedules.ScheduleSpecOrBuilder>
@@ -6387,14 +6105,14 @@ java.lang.String defaultValue) {
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Schedules.ScheduleStatus, talon.resources.Schedules.ScheduleStatus.Builder, talon.resources.Schedules.ScheduleStatusOrBuilder> statusBuilder_;
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        * @return Whether the status field is set.
        */
       public boolean hasStatus() {
-        return ((bitField0_ & 0x00000008) != 0);
+        return ((bitField0_ & 0x00000004) != 0);
       }
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        * @return The status.
        */
       public talon.resources.Schedules.ScheduleStatus getStatus() {
@@ -6405,7 +6123,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        */
       public Builder setStatus(talon.resources.Schedules.ScheduleStatus value) {
         if (statusBuilder_ == null) {
@@ -6416,12 +6134,12 @@ java.lang.String defaultValue) {
         } else {
           statusBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        */
       public Builder setStatus(
           talon.resources.Schedules.ScheduleStatus.Builder builderForValue) {
@@ -6430,16 +6148,16 @@ java.lang.String defaultValue) {
         } else {
           statusBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        */
       public Builder mergeStatus(talon.resources.Schedules.ScheduleStatus value) {
         if (statusBuilder_ == null) {
-          if (((bitField0_ & 0x00000008) != 0) &&
+          if (((bitField0_ & 0x00000004) != 0) &&
             status_ != null &&
             status_ != talon.resources.Schedules.ScheduleStatus.getDefaultInstance()) {
             getStatusBuilder().mergeFrom(value);
@@ -6450,16 +6168,16 @@ java.lang.String defaultValue) {
           statusBuilder_.mergeFrom(value);
         }
         if (status_ != null) {
-          bitField0_ |= 0x00000008;
+          bitField0_ |= 0x00000004;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        */
       public Builder clearStatus() {
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000004);
         status_ = null;
         if (statusBuilder_ != null) {
           statusBuilder_.dispose();
@@ -6469,15 +6187,15 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        */
       public talon.resources.Schedules.ScheduleStatus.Builder getStatusBuilder() {
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000004;
         onChanged();
         return internalGetStatusFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        */
       public talon.resources.Schedules.ScheduleStatusOrBuilder getStatusOrBuilder() {
         if (statusBuilder_ != null) {
@@ -6488,7 +6206,7 @@ java.lang.String defaultValue) {
         }
       }
       /**
-       * <code>.talon.resources.ScheduleStatus status = 4;</code>
+       * <code>.talon.resources.ScheduleStatus status = 3;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
           talon.resources.Schedules.ScheduleStatus, talon.resources.Schedules.ScheduleStatus.Builder, talon.resources.Schedules.ScheduleStatusOrBuilder>
@@ -6502,133 +6220,6 @@ java.lang.String defaultValue) {
           status_ = null;
         }
         return statusBuilder_;
-      }
-
-      private com.google.protobuf.MapField<
-          java.lang.String, java.lang.String> labels_;
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetLabels() {
-        if (labels_ == null) {
-          return com.google.protobuf.MapField.emptyMapField(
-              LabelsDefaultEntryHolder.defaultEntry);
-        }
-        return labels_;
-      }
-      private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-          internalGetMutableLabels() {
-        if (labels_ == null) {
-          labels_ = com.google.protobuf.MapField.newMapField(
-              LabelsDefaultEntryHolder.defaultEntry);
-        }
-        if (!labels_.isMutable()) {
-          labels_ = labels_.copy();
-        }
-        bitField0_ |= 0x00000010;
-        onChanged();
-        return labels_;
-      }
-      public int getLabelsCount() {
-        return internalGetLabels().getMap().size();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      @java.lang.Override
-      public boolean containsLabels(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        return internalGetLabels().getMap().containsKey(key);
-      }
-      /**
-       * Use {@link #getLabelsMap()} instead.
-       */
-      @java.lang.Override
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String> getLabels() {
-        return getLabelsMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      @java.lang.Override
-      public java.util.Map<java.lang.String, java.lang.String> getLabelsMap() {
-        return internalGetLabels().getMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      @java.lang.Override
-      public /* nullable */
-java.lang.String getLabelsOrDefault(
-          java.lang.String key,
-          /* nullable */
-java.lang.String defaultValue) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetLabels().getMap();
-        return map.containsKey(key) ? map.get(key) : defaultValue;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      @java.lang.Override
-      public java.lang.String getLabelsOrThrow(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        java.util.Map<java.lang.String, java.lang.String> map =
-            internalGetLabels().getMap();
-        if (!map.containsKey(key)) {
-          throw new java.lang.IllegalArgumentException();
-        }
-        return map.get(key);
-      }
-      public Builder clearLabels() {
-        bitField0_ = (bitField0_ & ~0x00000010);
-        internalGetMutableLabels().getMutableMap()
-            .clear();
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      public Builder removeLabels(
-          java.lang.String key) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        internalGetMutableLabels().getMutableMap()
-            .remove(key);
-        return this;
-      }
-      /**
-       * Use alternate mutation accessors instead.
-       */
-      @java.lang.Deprecated
-      public java.util.Map<java.lang.String, java.lang.String>
-          getMutableLabels() {
-        bitField0_ |= 0x00000010;
-        return internalGetMutableLabels().getMutableMap();
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      public Builder putLabels(
-          java.lang.String key,
-          java.lang.String value) {
-        if (key == null) { throw new NullPointerException("map key"); }
-        if (value == null) { throw new NullPointerException("map value"); }
-        internalGetMutableLabels().getMutableMap()
-            .put(key, value);
-        bitField0_ |= 0x00000010;
-        return this;
-      }
-      /**
-       * <code>map&lt;string, string&gt; labels = 5;</code>
-       */
-      public Builder putAllLabels(
-          java.util.Map<java.lang.String, java.lang.String> values) {
-        internalGetMutableLabels().getMutableMap()
-            .putAll(values);
-        bitField0_ |= 0x00000010;
-        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.Schedule)
@@ -6707,11 +6298,6 @@ java.lang.String defaultValue) {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_Schedule_fieldAccessorTable;
-  private static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_talon_resources_Schedule_LabelsEntry_descriptor;
-  private static final
-    com.google.protobuf.GeneratedMessage.FieldAccessorTable
-      internal_static_talon_resources_Schedule_LabelsEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -6722,38 +6308,37 @@ java.lang.String defaultValue) {
   static {
     java.lang.String[] descriptorData = {
       "\n\037proto/resources/schedules.proto\022\017talon" +
-      ".resources\"[\n\016ScheduleTarget\022\r\n\005agent\030\001 " +
-      "\001(\t\022\024\n\014session_mode\030\002 \001(\t\022\022\n\nsession_id\030" +
-      "\003 \001(\t\022\020\n\010workflow\030\004 \001(\t\"\323\001\n\014ScheduleSpec" +
-      "\022\014\n\004kind\030\001 \001(\t\022\014\n\004cron\030\002 \001(\t\022\030\n\020interval" +
-      "_seconds\030\003 \001(\r\022\016\n\006run_at\030\004 \001(\t\022\020\n\010timezo" +
-      "ne\030\005 \001(\t\022/\n\006target\030\006 \001(\0132\037.talon.resourc" +
-      "es.ScheduleTarget\022\025\n\rinput_message\030\007 \001(\t" +
-      "\022\017\n\007enabled\030\010 \001(\010\022\022\n\ninput_json\030\t \001(\t\"\262\003" +
-      "\n\016ScheduleStatus\022\020\n\010revision\030\001 \001(\004\022\030\n\013ne" +
-      "xt_run_at\030\002 \001(\003H\000\210\001\001\022\033\n\016backend_handle\030\003" +
-      " \001(\tH\001\210\001\001\022\025\n\rbackend_armed\030\004 \001(\010\022\030\n\013last" +
-      "_run_at\030\005 \001(\003H\002\210\001\001\022\034\n\017last_session_id\030\006 " +
-      "\001(\tH\003\210\001\001\022\027\n\nlast_error\030\007 \001(\tH\004\210\001\001\022\033\n\016cla" +
-      "imed_run_at\030\010 \001(\003H\005\210\001\001\022\035\n\020claim_expires_" +
-      "at\030\t \001(\003H\006\210\001\001\0225\n\rrecent_events\030\n \003(\0132\036.t" +
-      "alon.resources.ScheduleEventB\016\n\014_next_ru" +
-      "n_atB\021\n\017_backend_handleB\016\n\014_last_run_atB" +
-      "\022\n\020_last_session_idB\r\n\013_last_errorB\021\n\017_c" +
-      "laimed_run_atB\023\n\021_claim_expires_at\"R\n\rSc" +
-      "heduleEvent\022\021\n\ttimestamp\030\001 \001(\003\022\r\n\005phase\030" +
-      "\002 \001(\t\022\017\n\007outcome\030\003 \001(\t\022\016\n\006detail\030\004 \001(\t\"\350" +
-      "\001\n\010Schedule\022\014\n\004name\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022+\n" +
-      "\004spec\030\003 \001(\0132\035.talon.resources.ScheduleSp" +
-      "ec\022/\n\006status\030\004 \001(\0132\037.talon.resources.Sch" +
-      "eduleStatus\0225\n\006labels\030\005 \003(\0132%.talon.reso" +
-      "urces.Schedule.LabelsEntry\032-\n\013LabelsEntr" +
-      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001b\006proto" +
-      "3"
+      ".resources\032\034proto/resources/common.proto" +
+      "\"[\n\016ScheduleTarget\022\r\n\005agent\030\001 \001(\t\022\024\n\014ses" +
+      "sion_mode\030\002 \001(\t\022\022\n\nsession_id\030\003 \001(\t\022\020\n\010w" +
+      "orkflow\030\004 \001(\t\"\323\001\n\014ScheduleSpec\022\014\n\004kind\030\001" +
+      " \001(\t\022\014\n\004cron\030\002 \001(\t\022\030\n\020interval_seconds\030\003" +
+      " \001(\r\022\016\n\006run_at\030\004 \001(\t\022\020\n\010timezone\030\005 \001(\t\022/" +
+      "\n\006target\030\006 \001(\0132\037.talon.resources.Schedul" +
+      "eTarget\022\025\n\rinput_message\030\007 \001(\t\022\017\n\007enable" +
+      "d\030\010 \001(\010\022\022\n\ninput_json\030\t \001(\t\"\262\003\n\016Schedule" +
+      "Status\022\020\n\010revision\030\001 \001(\004\022\030\n\013next_run_at\030" +
+      "\002 \001(\003H\000\210\001\001\022\033\n\016backend_handle\030\003 \001(\tH\001\210\001\001\022" +
+      "\025\n\rbackend_armed\030\004 \001(\010\022\030\n\013last_run_at\030\005 " +
+      "\001(\003H\002\210\001\001\022\034\n\017last_session_id\030\006 \001(\tH\003\210\001\001\022\027" +
+      "\n\nlast_error\030\007 \001(\tH\004\210\001\001\022\033\n\016claimed_run_a" +
+      "t\030\010 \001(\003H\005\210\001\001\022\035\n\020claim_expires_at\030\t \001(\003H\006" +
+      "\210\001\001\0225\n\rrecent_events\030\n \003(\0132\036.talon.resou" +
+      "rces.ScheduleEventB\016\n\014_next_run_atB\021\n\017_b" +
+      "ackend_handleB\016\n\014_last_run_atB\022\n\020_last_s" +
+      "ession_idB\r\n\013_last_errorB\021\n\017_claimed_run" +
+      "_atB\023\n\021_claim_expires_at\"R\n\rScheduleEven" +
+      "t\022\021\n\ttimestamp\030\001 \001(\003\022\r\n\005phase\030\002 \001(\t\022\017\n\007o" +
+      "utcome\030\003 \001(\t\022\016\n\006detail\030\004 \001(\t\"\231\001\n\010Schedul" +
+      "e\022/\n\010metadata\030\001 \001(\0132\035.talon.resources.Re" +
+      "sourceMeta\022+\n\004spec\030\002 \001(\0132\035.talon.resourc" +
+      "es.ScheduleSpec\022/\n\006status\030\003 \001(\0132\037.talon." +
+      "resources.ScheduleStatusb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
+          talon.resources.Common.getDescriptor(),
         });
     internal_static_talon_resources_ScheduleTarget_descriptor =
       getDescriptor().getMessageType(0);
@@ -6784,14 +6369,9 @@ java.lang.String defaultValue) {
     internal_static_talon_resources_Schedule_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_Schedule_descriptor,
-        new java.lang.String[] { "Name", "Ns", "Spec", "Status", "Labels", });
-    internal_static_talon_resources_Schedule_LabelsEntry_descriptor =
-      internal_static_talon_resources_Schedule_descriptor.getNestedType(0);
-    internal_static_talon_resources_Schedule_LabelsEntry_fieldAccessorTable = new
-      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-        internal_static_talon_resources_Schedule_LabelsEntry_descriptor,
-        new java.lang.String[] { "Key", "Value", });
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
     descriptor.resolveAllFeaturesImmutable();
+    talon.resources.Common.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

@@ -91,17 +91,12 @@ pub struct NamespaceSelector {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Agent {
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub ns: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "4")]
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<AgentSpec>,
-    #[prost(map = "string, string", tag = "7")]
-    pub labels: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<AgentStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AgentSpec {
@@ -312,14 +307,12 @@ pub struct AgentCardSkill {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct McpServer {
-    #[prost(string, tag = "1")]
-    pub api_version: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub kind: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
+    #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
-    #[prost(message, optional, tag = "4")]
+    #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<McpServerSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<CommonResourceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct McpServerSpec {
@@ -339,14 +332,12 @@ pub struct McpServerSpec {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct McpServerBinding {
-    #[prost(string, tag = "1")]
-    pub api_version: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub kind: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
+    #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
-    #[prost(message, optional, tag = "4")]
+    #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<McpServerBindingSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<CommonResourceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct McpServerBindingSpec {
@@ -379,14 +370,12 @@ pub struct McpAuthBrokerSpec {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Knowledge {
-    #[prost(string, tag = "1")]
-    pub api_version: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub kind: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
+    #[prost(message, optional, tag = "1")]
     pub metadata: ::core::option::Option<ResourceMeta>,
-    #[prost(message, optional, tag = "4")]
+    #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<KnowledgeSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<CommonResourceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct KnowledgeSpec {
@@ -397,19 +386,12 @@ pub struct KnowledgeSpec {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Namespace {
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub parent: ::prost::alloc::string::String,
-    #[prost(bool, tag = "3")]
-    pub is_deleted: bool,
-    #[prost(int64, tag = "4")]
-    pub deleted_at: i64,
-    #[prost(map = "string, string", tag = "5")]
-    pub labels: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<NamespaceSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<NamespaceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NamespaceSpec {
@@ -431,28 +413,12 @@ pub struct NamespaceStatus {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Channel {
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub ns: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub title: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub status: ::prost::alloc::string::String,
-    #[prost(int64, tag = "5")]
-    pub created_at: i64,
-    #[prost(int64, tag = "6")]
-    pub updated_at: i64,
-    #[prost(map = "string, string", tag = "7")]
-    pub metadata: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    #[prost(map = "string, string", tag = "8")]
-    pub labels: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<ChannelSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<ChannelStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChannelSpec {
@@ -472,6 +438,10 @@ pub struct ChannelStatus {
     pub phase: ::prost::alloc::string::String,
     #[prost(message, repeated, tag = "3")]
     pub conditions: ::prost::alloc::vec::Vec<ResourceCondition>,
+    #[prost(int64, tag = "4")]
+    pub created_at: i64,
+    #[prost(int64, tag = "5")]
+    pub updated_at: i64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChannelContextPolicy {
@@ -482,32 +452,12 @@ pub struct ChannelContextPolicy {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChannelSubscription {
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub ns: ::prost::alloc::string::String,
-    #[prost(string, tag = "3")]
-    pub channel: ::prost::alloc::string::String,
-    #[prost(string, tag = "4")]
-    pub agent: ::prost::alloc::string::String,
-    #[prost(bool, tag = "5")]
-    pub enabled: bool,
-    #[prost(string, tag = "6")]
-    pub trigger: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "7")]
-    pub context_policy: ::core::option::Option<ChannelContextPolicy>,
-    #[prost(map = "string, string", tag = "8")]
-    pub metadata: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    #[prost(map = "string, string", tag = "9")]
-    pub labels: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
-    #[prost(string, tag = "10")]
-    pub reply_mode: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<ChannelSubscriptionSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<CommonResourceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChannelSubscriptionSpec {
@@ -523,6 +473,11 @@ pub struct ChannelSubscriptionSpec {
     pub context_policy: ::core::option::Option<ChannelContextPolicy>,
     #[prost(string, tag = "6")]
     pub reply_mode: ::prost::alloc::string::String,
+    #[prost(map = "string, string", tag = "7")]
+    pub metadata: ::std::collections::HashMap<
+        ::prost::alloc::string::String,
+        ::prost::alloc::string::String,
+    >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ScheduleTarget {
@@ -592,19 +547,12 @@ pub struct ScheduleEvent {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Schedule {
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub ns: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<ScheduleSpec>,
-    #[prost(message, optional, tag = "4")]
+    #[prost(message, optional, tag = "3")]
     pub status: ::core::option::Option<ScheduleStatus>,
-    #[prost(map = "string, string", tag = "5")]
-    pub labels: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WorkflowStepOutputPolicy {
@@ -674,17 +622,12 @@ pub struct WorkflowSpec {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Workflow {
-    #[prost(string, tag = "1")]
-    pub name: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub ns: ::prost::alloc::string::String,
-    #[prost(message, optional, tag = "3")]
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
     pub spec: ::core::option::Option<WorkflowSpec>,
-    #[prost(map = "string, string", tag = "4")]
-    pub labels: ::std::collections::HashMap<
-        ::prost::alloc::string::String,
-        ::prost::alloc::string::String,
-    >,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<WorkflowStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct WorkflowStatus {
@@ -775,6 +718,8 @@ pub struct SandboxWorkspaceSpec {
 pub struct SandboxSetupSpec {
     #[prost(string, repeated, tag = "1")]
     pub packages: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(string, repeated, tag = "2")]
+    pub commands: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SandboxNetworkSpec {

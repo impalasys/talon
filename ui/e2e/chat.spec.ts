@@ -19,26 +19,31 @@ async function createTestSession() {
     await client.createNamespace({ name: testNs, recursive: true });
   }).toPass({ timeout: 60000 });
 
-  await client.createAgent({
+  await client.createResource({
     ns: testNs,
-    name: testAgent,
-    definition: {
-      source: {
-        case: "customSpec",
-        value: {
-          modelPolicy: {
-            profiles: [
-              {
-                name: "default",
-                model: { provider: "mock", name: "minimax", temperature: 0.7 },
-              },
-            ],
+    resource: {
+      apiVersion: "talon.impalasys.com/v1",
+      kind: "Agent",
+      metadata: { name: testAgent, namespace: testNs, labels: {}, annotations: {}, ownerReferences: [], finalizers: [], generation: BigInt(0), resourceVersion: "", uid: "" },
+      spec: {
+        kind: {
+          case: "agent",
+          value: {
+            modelPolicy: {
+              profiles: [
+                {
+                  name: "default",
+                  model: { provider: "mock", name: "minimax", temperature: 0.7 },
+                },
+              ],
+            },
+            systemPrompt: "Stream me",
+            mcpServerRefs: [],
           },
-          systemPrompt: "Stream me",
-          mcpServerRefs: []
-        }
-      }
-    }
+        },
+      },
+      status: { kind: { case: "agent", value: { observedGeneration: BigInt(0), phase: "", conditions: [] } } },
+    },
   });
 
   const sessionRes = await client.createSession({

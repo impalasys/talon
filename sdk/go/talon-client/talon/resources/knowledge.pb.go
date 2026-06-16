@@ -23,10 +23,9 @@ const (
 
 type Knowledge struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ApiVersion    string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
-	Metadata      *ResourceMeta          `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *KnowledgeSpec         `protobuf:"bytes,4,opt,name=spec,proto3" json:"spec,omitempty"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *KnowledgeSpec         `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *CommonResourceStatus  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -61,20 +60,6 @@ func (*Knowledge) Descriptor() ([]byte, []int) {
 	return file_proto_resources_knowledge_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Knowledge) GetApiVersion() string {
-	if x != nil {
-		return x.ApiVersion
-	}
-	return ""
-}
-
-func (x *Knowledge) GetKind() string {
-	if x != nil {
-		return x.Kind
-	}
-	return ""
-}
-
 func (x *Knowledge) GetMetadata() *ResourceMeta {
 	if x != nil {
 		return x.Metadata
@@ -85,6 +70,13 @@ func (x *Knowledge) GetMetadata() *ResourceMeta {
 func (x *Knowledge) GetSpec() *KnowledgeSpec {
 	if x != nil {
 		return x.Spec
+	}
+	return nil
+}
+
+func (x *Knowledge) GetStatus() *CommonResourceStatus {
+	if x != nil {
+		return x.Status
 	}
 	return nil
 }
@@ -145,13 +137,11 @@ var File_proto_resources_knowledge_proto protoreflect.FileDescriptor
 
 const file_proto_resources_knowledge_proto_rawDesc = "" +
 	"\n" +
-	"\x1fproto/resources/knowledge.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xaf\x01\n" +
-	"\tKnowledge\x12\x1f\n" +
-	"\vapi_version\x18\x01 \x01(\tR\n" +
-	"apiVersion\x12\x12\n" +
-	"\x04kind\x18\x02 \x01(\tR\x04kind\x129\n" +
-	"\bmetadata\x18\x03 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
-	"\x04spec\x18\x04 \x01(\v2\x1e.talon.resources.KnowledgeSpecR\x04spec\"=\n" +
+	"\x1fproto/resources/knowledge.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xb9\x01\n" +
+	"\tKnowledge\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1e.talon.resources.KnowledgeSpecR\x04spec\x12=\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"=\n" +
 	"\rKnowledgeSpec\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontentb\x06proto3"
@@ -170,18 +160,20 @@ func file_proto_resources_knowledge_proto_rawDescGZIP() []byte {
 
 var file_proto_resources_knowledge_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_resources_knowledge_proto_goTypes = []any{
-	(*Knowledge)(nil),     // 0: talon.resources.Knowledge
-	(*KnowledgeSpec)(nil), // 1: talon.resources.KnowledgeSpec
-	(*ResourceMeta)(nil),  // 2: talon.resources.ResourceMeta
+	(*Knowledge)(nil),            // 0: talon.resources.Knowledge
+	(*KnowledgeSpec)(nil),        // 1: talon.resources.KnowledgeSpec
+	(*ResourceMeta)(nil),         // 2: talon.resources.ResourceMeta
+	(*CommonResourceStatus)(nil), // 3: talon.resources.CommonResourceStatus
 }
 var file_proto_resources_knowledge_proto_depIdxs = []int32{
 	2, // 0: talon.resources.Knowledge.metadata:type_name -> talon.resources.ResourceMeta
 	1, // 1: talon.resources.Knowledge.spec:type_name -> talon.resources.KnowledgeSpec
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	3, // 2: talon.resources.Knowledge.status:type_name -> talon.resources.CommonResourceStatus
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_knowledge_proto_init() }

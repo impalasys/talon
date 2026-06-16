@@ -156,6 +156,128 @@ type ExplorerChannelSubscription = {
   reply_mode?: string;
 };
 
+const API_VERSION = 'talon.impalasys.com/v1';
+const SYSTEM_NAMESPACE = 'Sys';
+
+type ResourceEnvelope = {
+  apiVersion?: string;
+  kind?: string;
+  metadata?: {
+    name?: string;
+    namespace?: string;
+    labels?: Record<string, string>;
+  };
+  spec?: {
+    kind?: {
+      case?: string;
+      value?: any;
+    };
+  };
+  status?: {
+    kind?: {
+      case?: string;
+      value?: any;
+    };
+  };
+};
+
+function resourceSpec(resource: ResourceEnvelope, caseName: string) {
+  return resource.spec?.kind?.case === caseName ? resource.spec.kind.value || {} : {};
+}
+
+function resourceStatus(resource: ResourceEnvelope, caseName: string) {
+  return resource.status?.kind?.case === caseName ? resource.status.kind.value || {} : {};
+}
+
+async function listResourceKind(ns: string, kind: string, options?: { signal?: AbortSignal }) {
+  const response = await getGatewayClient().listResources({ ns, kind }, options);
+  return (response.resources || []) as ResourceEnvelope[];
+}
+
+function resourceMetadata(name: string, namespace: string) {
+  return {
+    name,
+    namespace,
+    labels: {},
+    annotations: {},
+    ownerReferences: [],
+    finalizers: [],
+    generation: BigInt(0),
+    resourceVersion: '',
+    uid: '',
+  };
+}
+
+function commonStatus(caseName: string): any {
+  return {
+    kind: {
+      case: caseName,
+      value: {
+        observedGeneration: BigInt(0),
+        phase: '',
+        conditions: [],
+      },
+    },
+  };
+}
+
+function channelFromResource(resource: ResourceEnvelope): ExplorerChannel {
+  const spec = resourceSpec(resource, 'channel');
+  const status = resourceStatus(resource, 'channel');
+  return {
+    name: resource.metadata?.name,
+    ns: resource.metadata?.namespace,
+    title: spec.title,
+    status: status.phase,
+    updatedAt: status.updatedAt,
+    labels: resource.metadata?.labels,
+  };
+}
+
+function channelSubscriptionFromResource(resource: ResourceEnvelope): ExplorerChannelSubscription {
+  const spec = resourceSpec(resource, 'channelSubscription');
+  return {
+    name: resource.metadata?.name,
+    ns: resource.metadata?.namespace,
+    channel: spec.channel,
+    agent: spec.agent,
+    enabled: spec.enabled,
+    trigger: spec.trigger,
+    replyMode: spec.replyMode,
+  };
+}
+
+function scheduleFromResource(resource: ResourceEnvelope): ExplorerSchedule {
+  return {
+    name: resource.metadata?.name,
+    ns: resource.metadata?.namespace,
+    labels: resource.metadata?.labels,
+    spec: resourceSpec(resource, 'schedule'),
+    status: resourceStatus(resource, 'schedule'),
+  };
+}
+
+function knowledgeFromResource(resource: ResourceEnvelope): ExplorerKnowledge {
+  return {
+    metadata: resource.metadata,
+    spec: resourceSpec(resource, 'knowledge'),
+  };
+}
+
+function mcpServerFromResource(resource: ResourceEnvelope): ExplorerMcpServer {
+  return {
+    metadata: resource.metadata,
+    spec: resourceSpec(resource, 'mcpServer'),
+  };
+}
+
+function mcpBindingFromResource(resource: ResourceEnvelope): ExplorerMcpBinding {
+  return {
+    metadata: resource.metadata,
+    spec: resourceSpec(resource, 'mcpServerBinding'),
+  };
+}
+
 function namespaceLabel(labels?: Record<string, string>) {
   return labels?.workspace_name || labels?.workspace || labels?.display_name || labels?.name;
 }
@@ -622,8 +744,10 @@ export function NamespaceExplorer({
 
             // Fetch agents for this namespace
             try {
-              const agentRes = await getGatewayClient().listAgents({ ns });
-              for (const agent of (agentRes.agents || [])) {
+              const agentResources = await listResourceKind(ns, 'Agent');
+              for (const agentResource of agentResources) {
+                const agent = agentResource.metadata?.name || '';
+                if (!agent) continue;
                 const agentId = `${ns}:${agent}`;
                 currentLevel.children[agent] = {
                   id: agentId,
@@ -784,10 +908,10 @@ export function NamespaceExplorer({
     }
 
     try {
-      const res = await getGatewayClient().listAgentTemplates({});
-      setTemplates(res.templates || []);
+      const templates = await listResourceKind(SYSTEM_NAMESPACE, 'Template');
+      setTemplates(templates);
     } catch (e) {
-      console.warn('Could not fetch agent templates', e);
+      console.warn('Could not fetch templates', e);
       setTemplates([]);
     }
   }, [isConnected]);
@@ -799,8 +923,8 @@ export function NamespaceExplorer({
     }
 
     try {
-      const res = await getGatewayClient().listMcpServers({});
-      setMcpServers(res.servers || []);
+      const servers = await listResourceKind(SYSTEM_NAMESPACE, 'McpServer');
+      setMcpServers(servers.map(mcpServerFromResource));
     } catch (e) {
       console.warn('Could not fetch MCP servers', e);
       setMcpServers([]);
@@ -818,8 +942,8 @@ export function NamespaceExplorer({
       const bindingEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const response = await getGatewayClient().listMcpServerBindings({ ns });
-            return [ns, response.bindings || []] as const;
+            const resources = await listResourceKind(ns, 'McpServerBinding');
+            return [ns, resources.map(mcpBindingFromResource)] as const;
           } catch (e) {
             console.warn(`Could not fetch MCP bindings for ns ${ns}`, e);
             return [ns, []] as const;
@@ -844,8 +968,8 @@ export function NamespaceExplorer({
       const scheduleEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const response = await getGatewayClient().listSchedules({ ns });
-            return [ns, response.schedules || []] as const;
+            const resources = await listResourceKind(ns, 'Schedule');
+            return [ns, resources.map(scheduleFromResource)] as const;
           } catch (e) {
             console.warn(`Could not fetch schedules for ns ${ns}`, e);
             return [ns, []] as const;
@@ -870,8 +994,8 @@ export function NamespaceExplorer({
       const knowledgeEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const response = await getGatewayClient().listNamespaceKnowledge({ ns });
-            return [ns, response.knowledge || []] as const;
+            const resources = await listResourceKind(ns, 'Knowledge');
+            return [ns, resources.map(knowledgeFromResource)] as const;
           } catch (e) {
             console.warn(`Could not fetch knowledge for ns ${ns}`, e);
             return [ns, []] as const;
@@ -910,8 +1034,8 @@ export function NamespaceExplorer({
       const channelEntries = await Promise.all(
         Array.from(namespaces).map(async (ns) => {
           try {
-            const response = await getGatewayClient().listChannels({ ns }, { signal: abortController.signal });
-            return [ns, response.channels || []] as const;
+            const resources = await listResourceKind(ns, 'Channel', { signal: abortController.signal });
+            return [ns, resources.map(channelFromResource)] as const;
           } catch (e) {
             if (abortController.signal.aborted) throw e;
             console.warn(`Could not fetch channels for ns ${ns}`, e);
@@ -942,11 +1066,11 @@ export function NamespaceExplorer({
       const subscriptionEntries = await Promise.all(
         expandedChannels.map(async ({ ns, name }) => {
           try {
-            const response = await getGatewayClient().listChannelSubscriptions(
-              { ns, channel: name },
-              { signal: abortController.signal },
-            );
-            return [`${ns}/${name}`, response.subscriptions || []] as const;
+            const resources = await listResourceKind(ns, 'ChannelSubscription', { signal: abortController.signal });
+            const subscriptions = resources
+              .map(channelSubscriptionFromResource)
+              .filter((subscription) => subscription.channel === name);
+            return [`${ns}/${name}`, subscriptions] as const;
           } catch (e) {
             if (abortController.signal.aborted) throw e;
             console.warn(`Could not fetch channel subscriptions for ${ns}/${name}`, e);
@@ -1071,18 +1195,15 @@ export function NamespaceExplorer({
     e.preventDefault();
     setIsSubmittingAgent(true);
     try {
-      await getGatewayClient().createAgent({
+      await getGatewayClient().createResource({
         ns: agentModalOpen.ns,
-        name: agentForm.name,
-        definition: {
-          source: {
-            case: 'templated',
-            value: {
-              templateName: agentForm.template,
-              delta: {}
-            }
-          }
-        }
+        resource: {
+          apiVersion: API_VERSION,
+          kind: 'Agent',
+          metadata: resourceMetadata(agentForm.name.trim(), agentModalOpen.ns),
+          spec: { kind: { case: 'agent', value: { systemPrompt: '' } } },
+          status: commonStatus('agent'),
+        },
       });
       setExpanded(prev => new Set(prev).add(agentModalOpen.ns));
       await refreshData();
@@ -1101,17 +1222,23 @@ export function NamespaceExplorer({
     if (!channelForm.name.trim()) return;
     setIsSubmittingChannel(true);
     try {
-      await getGatewayClient().createChannel({
+      await getGatewayClient().createResource({
         ns: channelModalOpen.ns,
-        channel: {
-          name: channelForm.name.trim(),
-          title: channelForm.title.trim(),
-          status: 'open',
-          ns: channelModalOpen.ns,
-          createdAt: BigInt(0),
-          updatedAt: BigInt(0),
-          metadata: {},
-          labels: {},
+        resource: {
+          apiVersion: API_VERSION,
+          kind: 'Channel',
+          metadata: resourceMetadata(channelForm.name.trim(), channelModalOpen.ns),
+          spec: { kind: { case: 'channel', value: { title: channelForm.title.trim(), metadata: {} } } },
+          status: {
+            kind: {
+              case: 'channel',
+              value: {
+                observedGeneration: BigInt(0),
+                phase: 'open',
+                conditions: [],
+              },
+            },
+          },
         },
       });
       setExpanded(prev => new Set(prev).add(channelModalOpen.ns));
@@ -1132,20 +1259,25 @@ export function NamespaceExplorer({
     if (!subscriptionForm.name.trim() || !subscriptionForm.agent.trim()) return;
     setIsSubmittingSubscription(true);
     try {
-      await getGatewayClient().createChannelSubscription({
+      await getGatewayClient().createResource({
         ns: subscriptionModalOpen.ns,
-        channel: subscriptionModalOpen.channel,
-        subscription: {
-          name: subscriptionForm.name.trim(),
-          ns: subscriptionModalOpen.ns,
-          channel: subscriptionModalOpen.channel,
-          agent: subscriptionForm.agent.trim(),
-          enabled: subscriptionForm.enabled,
-          trigger: subscriptionForm.trigger,
-          replyMode: subscriptionForm.replyMode,
-          contextPolicy: undefined,
-          metadata: {},
-          labels: {},
+        resource: {
+          apiVersion: API_VERSION,
+          kind: 'ChannelSubscription',
+          metadata: resourceMetadata(subscriptionForm.name.trim(), subscriptionModalOpen.ns),
+          spec: {
+            kind: {
+              case: 'channelSubscription',
+              value: {
+                channel: subscriptionModalOpen.channel,
+                agent: subscriptionForm.agent.trim(),
+                enabled: subscriptionForm.enabled,
+                trigger: subscriptionForm.trigger,
+                replyMode: subscriptionForm.replyMode,
+              },
+            },
+          },
+          status: commonStatus('channelSubscription'),
         },
       });
       setExpanded(prev => new Set(prev).add(`${subscriptionModalOpen.ns}:channel:${subscriptionModalOpen.channel}`));
@@ -1169,19 +1301,15 @@ export function NamespaceExplorer({
       if (selection.type === 'namespace') {
         await getGatewayClient().deleteNamespace({ name: selection.ns });
       } else if (selection.type === 'agent') {
-        alert("DeleteAgent is currently not supported by the GatewayService");
+        await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'Agent', name: selection.agent || '' });
       } else if (selection.type === 'session') {
         await getGatewayClient().deleteSession({ ns: selection.ns, agent: selection.agent!, sessionId: selection.sessionId! });
       } else if (selection.type === 'channel') {
-        await getGatewayClient().deleteChannel({ ns: selection.ns, name: selection.resourceName || selection.channel || '' });
+        await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'Channel', name: selection.resourceName || selection.channel || '' });
       } else if (selection.type === 'channel-subscription') {
-        await getGatewayClient().deleteChannelSubscription({
-          ns: selection.ns,
-          channel: selection.channel || '',
-          name: selection.resourceName || '',
-        });
+        await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'ChannelSubscription', name: selection.resourceName || '' });
       } else if (selection.type === 'schedule') {
-        await getGatewayClient().deleteSchedule({ ns: selection.ns, name: selection.resourceName || '' });
+        await getGatewayClient().deleteResource({ ns: selection.ns, kind: 'Schedule', name: selection.resourceName || '' });
       }
       await refreshChannels();
       await refreshData();
@@ -1401,8 +1529,8 @@ export function NamespaceExplorer({
                onAction={async () => {
                 setContextMenu(null);
                 try {
-                  const res = await getGatewayClient().listAgentTemplates({});
-                  setTemplates(res.templates || []);
+                  const templates = await listResourceKind(SYSTEM_NAMESPACE, 'Template');
+                  setTemplates(templates);
                 } catch (e) {
                   console.warn(e);
                 }

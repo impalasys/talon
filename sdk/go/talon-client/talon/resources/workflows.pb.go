@@ -383,10 +383,9 @@ func (x *WorkflowSpec) GetConcurrency() uint32 {
 
 type Workflow struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Ns            string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
-	Spec          *WorkflowSpec          `protobuf:"bytes,3,opt,name=spec,proto3" json:"spec,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,4,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *WorkflowSpec          `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *WorkflowStatus        `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -421,18 +420,11 @@ func (*Workflow) Descriptor() ([]byte, []int) {
 	return file_proto_resources_workflows_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *Workflow) GetName() string {
+func (x *Workflow) GetMetadata() *ResourceMeta {
 	if x != nil {
-		return x.Name
+		return x.Metadata
 	}
-	return ""
-}
-
-func (x *Workflow) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
+	return nil
 }
 
 func (x *Workflow) GetSpec() *WorkflowSpec {
@@ -442,9 +434,9 @@ func (x *Workflow) GetSpec() *WorkflowSpec {
 	return nil
 }
 
-func (x *Workflow) GetLabels() map[string]string {
+func (x *Workflow) GetStatus() *WorkflowStatus {
 	if x != nil {
-		return x.Labels
+		return x.Status
 	}
 	return nil
 }
@@ -551,15 +543,11 @@ const file_proto_resources_workflows_proto_rawDesc = "" +
 	"\x05steps\x18\x04 \x03(\v2\x1d.talon.resources.WorkflowStepR\x05steps\x12\x1f\n" +
 	"\voutput_json\x18\x05 \x01(\tR\n" +
 	"outputJson\x12 \n" +
-	"\vconcurrency\x18\x06 \x01(\rR\vconcurrency\"\xdb\x01\n" +
-	"\bWorkflow\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x0e\n" +
-	"\x02ns\x18\x02 \x01(\tR\x02ns\x121\n" +
-	"\x04spec\x18\x03 \x01(\v2\x1d.talon.resources.WorkflowSpecR\x04spec\x12=\n" +
-	"\x06labels\x18\x04 \x03(\v2%.talon.resources.Workflow.LabelsEntryR\x06labels\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9b\x01\n" +
+	"\vconcurrency\x18\x06 \x01(\rR\vconcurrency\"\xb1\x01\n" +
+	"\bWorkflow\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x121\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1d.talon.resources.WorkflowSpecR\x04spec\x127\n" +
+	"\x06status\x18\x03 \x01(\v2\x1f.talon.resources.WorkflowStatusR\x06status\"\x9b\x01\n" +
 	"\x0eWorkflowStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
@@ -579,7 +567,7 @@ func file_proto_resources_workflows_proto_rawDescGZIP() []byte {
 	return file_proto_resources_workflows_proto_rawDescData
 }
 
-var file_proto_resources_workflows_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_resources_workflows_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_resources_workflows_proto_goTypes = []any{
 	(*WorkflowStepOutputPolicy)(nil), // 0: talon.resources.WorkflowStepOutputPolicy
 	(*WorkflowStepRetryPolicy)(nil),  // 1: talon.resources.WorkflowStepRetryPolicy
@@ -587,21 +575,22 @@ var file_proto_resources_workflows_proto_goTypes = []any{
 	(*WorkflowSpec)(nil),             // 3: talon.resources.WorkflowSpec
 	(*Workflow)(nil),                 // 4: talon.resources.Workflow
 	(*WorkflowStatus)(nil),           // 5: talon.resources.WorkflowStatus
-	nil,                              // 6: talon.resources.Workflow.LabelsEntry
+	(*ResourceMeta)(nil),             // 6: talon.resources.ResourceMeta
 	(*ResourceCondition)(nil),        // 7: talon.resources.ResourceCondition
 }
 var file_proto_resources_workflows_proto_depIdxs = []int32{
 	0, // 0: talon.resources.WorkflowStep.output:type_name -> talon.resources.WorkflowStepOutputPolicy
 	1, // 1: talon.resources.WorkflowStep.retry:type_name -> talon.resources.WorkflowStepRetryPolicy
 	2, // 2: talon.resources.WorkflowSpec.steps:type_name -> talon.resources.WorkflowStep
-	3, // 3: talon.resources.Workflow.spec:type_name -> talon.resources.WorkflowSpec
-	6, // 4: talon.resources.Workflow.labels:type_name -> talon.resources.Workflow.LabelsEntry
-	7, // 5: talon.resources.WorkflowStatus.conditions:type_name -> talon.resources.ResourceCondition
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	6, // 3: talon.resources.Workflow.metadata:type_name -> talon.resources.ResourceMeta
+	3, // 4: talon.resources.Workflow.spec:type_name -> talon.resources.WorkflowSpec
+	5, // 5: talon.resources.Workflow.status:type_name -> talon.resources.WorkflowStatus
+	7, // 6: talon.resources.WorkflowStatus.conditions:type_name -> talon.resources.ResourceCondition
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_workflows_proto_init() }
@@ -616,7 +605,7 @@ func file_proto_resources_workflows_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_workflows_proto_rawDesc), len(file_proto_resources_workflows_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

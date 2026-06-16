@@ -33,6 +33,7 @@ import { NamespaceExplorer, type Selection } from '../components/Namespaces/Name
 import { updateGatewayClient, getGatewayClient } from '../lib/grpc';
 
 const isStaticExport = process.env.NEXT_PUBLIC_TALON_STATIC_EXPORT === '1';
+const SYSTEM_NAMESPACE = 'Sys';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -49,6 +50,73 @@ function yamlSafeValue(value: any): any {
     );
   }
   return value;
+}
+
+type ResourceEnvelope = {
+  apiVersion?: string;
+  kind?: string;
+  metadata?: {
+    name?: string;
+    namespace?: string;
+    labels?: Record<string, string>;
+  };
+  spec?: {
+    kind?: {
+      case?: string;
+      value?: any;
+    };
+  };
+  status?: {
+    kind?: {
+      case?: string;
+      value?: any;
+    };
+  };
+};
+
+function resourceSpec(resource: ResourceEnvelope, caseName: string) {
+  return resource.spec?.kind?.case === caseName ? resource.spec.kind.value || {} : {};
+}
+
+function resourceStatus(resource: ResourceEnvelope, caseName: string) {
+  return resource.status?.kind?.case === caseName ? resource.status.kind.value || {} : {};
+}
+
+function channelDocumentFromResource(resource: ResourceEnvelope): ChannelDocument {
+  const spec = resourceSpec(resource, 'channel');
+  const status = resourceStatus(resource, 'channel');
+  return {
+    name: resource.metadata?.name,
+    ns: resource.metadata?.namespace,
+    title: spec.title,
+    status: status.phase,
+    metadata: spec.metadata,
+    labels: resource.metadata?.labels,
+  };
+}
+
+function channelSubscriptionDocumentFromResource(resource: ResourceEnvelope): ChannelSubscriptionDocument {
+  const spec = resourceSpec(resource, 'channelSubscription');
+  return {
+    name: resource.metadata?.name,
+    ns: resource.metadata?.namespace,
+    channel: spec.channel,
+    agent: spec.agent,
+    enabled: spec.enabled,
+    trigger: spec.trigger,
+    replyMode: spec.replyMode,
+    contextPolicy: spec.contextPolicy,
+  };
+}
+
+function scheduleDocumentFromResource(resource: ResourceEnvelope): ScheduleDocument {
+  return {
+    name: resource.metadata?.name,
+    ns: resource.metadata?.namespace,
+    labels: resource.metadata?.labels,
+    spec: resourceSpec(resource, 'schedule'),
+    status: resourceStatus(resource, 'schedule'),
+  };
 }
 
 function areSelectionsEqual(left: Selection | null, right: Selection | null) {
@@ -342,6 +410,8 @@ type ChannelSubscriptionDocument = {
   agent?: string;
   enabled?: boolean;
   trigger?: string;
+  replyMode?: string;
+  reply_mode?: string;
   contextPolicy?: {
     mode?: string;
     maxMessages?: number;
@@ -557,9 +627,9 @@ function ChannelInspector({
     setIsLoading(true);
     setError(null);
     try {
-      const subscriptionsPayload = await getGatewayClient().listChannelSubscriptions({
+      const subscriptionsPayload = await getGatewayClient().listResources({
         ns: requestNs,
-        channel: requestChannelName,
+        kind: 'ChannelSubscription',
       });
       if (
         requestNs !== currentChannelRef.current.ns ||
@@ -567,7 +637,11 @@ function ChannelInspector({
       ) {
         return;
       }
-      setSubscriptions(subscriptionsPayload.subscriptions || []);
+      setSubscriptions(
+        ((subscriptionsPayload.resources || []) as ResourceEnvelope[])
+          .map(channelSubscriptionDocumentFromResource)
+          .filter((subscription) => subscription.channel === requestChannelName),
+      );
     } catch (err: any) {
       if (
         requestNs === currentChannelRef.current.ns &&
@@ -918,41 +992,60 @@ function DebuggerPageContent() {
             document = await getGatewayClient().getNamespace({ name: selection.ns });
             break;
           case 'agent':
-            document = (await getGatewayClient().getAgent({ ns: selection.ns, name: selection.agent || '' })).agent;
+            document = (await getGatewayClient().getResource({
+              ns: selection.ns,
+              kind: 'Agent',
+              name: selection.agent || '',
+            })).resource;
             break;
           case 'channel':
-            document = (await getGatewayClient().getChannel({
+            document = channelDocumentFromResource(((await getGatewayClient().getResource({
               ns: selection.ns,
+              kind: 'Channel',
               name: selection.resourceName || selection.channel || '',
-            })).channel;
+            })).resource || {}) as ResourceEnvelope);
             break;
           case 'channel-subscription':
-            document = (await getGatewayClient().getChannelSubscription({
+            document = channelSubscriptionDocumentFromResource(((await getGatewayClient().getResource({
               ns: selection.ns,
-              channel: selection.channel || '',
+              kind: 'ChannelSubscription',
               name: selection.resourceName || '',
-            })).subscription;
+            })).resource || {}) as ResourceEnvelope);
             break;
           case 'schedule':
-            document = (await getGatewayClient().getSchedule({ ns: selection.ns, name: selection.resourceName || '' })).schedule;
+            document = scheduleDocumentFromResource(((await getGatewayClient().getResource({
+              ns: selection.ns,
+              kind: 'Schedule',
+              name: selection.resourceName || '',
+            })).resource || {}) as ResourceEnvelope);
             break;
           case 'template':
-            document = (await getGatewayClient().getAgentTemplate({ name: selection.resourceName || '' })).template;
+            document = (await getGatewayClient().getResource({
+              ns: SYSTEM_NAMESPACE,
+              kind: 'Template',
+              name: selection.resourceName || '',
+            })).resource;
             break;
           case 'mcp-server':
-            document = (await getGatewayClient().getMcpServer({ name: selection.resourceName || '' })).server;
+            document = (await getGatewayClient().getResource({
+              ns: SYSTEM_NAMESPACE,
+              kind: 'McpServer',
+              name: selection.resourceName || '',
+            })).resource;
             break;
           case 'mcp-binding':
-            document = (await getGatewayClient().getMcpServerBinding({
+            document = (await getGatewayClient().getResource({
               ns: selection.ns,
+              kind: 'McpServerBinding',
               name: selection.resourceName || '',
-            })).binding;
+            })).resource;
             break;
           case 'knowledge':
-            document = (await getGatewayClient().getNamespaceKnowledge({
+            document = (await getGatewayClient().getResource({
               ns: selection.ns,
+              kind: 'Knowledge',
               name: selection.resourceName || '',
-            })).knowledge;
+            })).resource;
             break;
         }
         if (!document) {

@@ -23,10 +23,9 @@ const (
 
 type McpServer struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ApiVersion    string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
-	Metadata      *ResourceMeta          `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *McpServerSpec         `protobuf:"bytes,4,opt,name=spec,proto3" json:"spec,omitempty"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *McpServerSpec         `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *CommonResourceStatus  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -61,20 +60,6 @@ func (*McpServer) Descriptor() ([]byte, []int) {
 	return file_proto_resources_mcp_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *McpServer) GetApiVersion() string {
-	if x != nil {
-		return x.ApiVersion
-	}
-	return ""
-}
-
-func (x *McpServer) GetKind() string {
-	if x != nil {
-		return x.Kind
-	}
-	return ""
-}
-
 func (x *McpServer) GetMetadata() *ResourceMeta {
 	if x != nil {
 		return x.Metadata
@@ -85,6 +70,13 @@ func (x *McpServer) GetMetadata() *ResourceMeta {
 func (x *McpServer) GetSpec() *McpServerSpec {
 	if x != nil {
 		return x.Spec
+	}
+	return nil
+}
+
+func (x *McpServer) GetStatus() *CommonResourceStatus {
+	if x != nil {
+		return x.Status
 	}
 	return nil
 }
@@ -167,10 +159,9 @@ func (x *McpServerSpec) GetDisabled() bool {
 
 type McpServerBinding struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ApiVersion    string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
-	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
-	Metadata      *ResourceMeta          `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	Spec          *McpServerBindingSpec  `protobuf:"bytes,4,opt,name=spec,proto3" json:"spec,omitempty"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *McpServerBindingSpec  `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *CommonResourceStatus  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,20 +196,6 @@ func (*McpServerBinding) Descriptor() ([]byte, []int) {
 	return file_proto_resources_mcp_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *McpServerBinding) GetApiVersion() string {
-	if x != nil {
-		return x.ApiVersion
-	}
-	return ""
-}
-
-func (x *McpServerBinding) GetKind() string {
-	if x != nil {
-		return x.Kind
-	}
-	return ""
-}
-
 func (x *McpServerBinding) GetMetadata() *ResourceMeta {
 	if x != nil {
 		return x.Metadata
@@ -229,6 +206,13 @@ func (x *McpServerBinding) GetMetadata() *ResourceMeta {
 func (x *McpServerBinding) GetSpec() *McpServerBindingSpec {
 	if x != nil {
 		return x.Spec
+	}
+	return nil
+}
+
+func (x *McpServerBinding) GetStatus() *CommonResourceStatus {
+	if x != nil {
+		return x.Status
 	}
 	return nil
 }
@@ -389,13 +373,11 @@ var File_proto_resources_mcp_proto protoreflect.FileDescriptor
 
 const file_proto_resources_mcp_proto_rawDesc = "" +
 	"\n" +
-	"\x19proto/resources/mcp.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xaf\x01\n" +
-	"\tMcpServer\x12\x1f\n" +
-	"\vapi_version\x18\x01 \x01(\tR\n" +
-	"apiVersion\x12\x12\n" +
-	"\x04kind\x18\x02 \x01(\tR\x04kind\x129\n" +
-	"\bmetadata\x18\x03 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
-	"\x04spec\x18\x04 \x01(\v2\x1e.talon.resources.McpServerSpecR\x04spec\"\xf8\x01\n" +
+	"\x19proto/resources/mcp.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xb9\x01\n" +
+	"\tMcpServer\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x122\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1e.talon.resources.McpServerSpecR\x04spec\x12=\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\xf8\x01\n" +
 	"\rMcpServerSpec\x12\x1c\n" +
 	"\ttransport\x18\x01 \x01(\tR\ttransport\x12\x16\n" +
 	"\x06target\x18\x02 \x01(\tR\x06target\x12\x12\n" +
@@ -404,13 +386,11 @@ const file_proto_resources_mcp_proto_rawDesc = "" +
 	"\bdisabled\x18\x05 \x01(\bR\bdisabled\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbd\x01\n" +
-	"\x10McpServerBinding\x12\x1f\n" +
-	"\vapi_version\x18\x01 \x01(\tR\n" +
-	"apiVersion\x12\x12\n" +
-	"\x04kind\x18\x02 \x01(\tR\x04kind\x129\n" +
-	"\bmetadata\x18\x03 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x129\n" +
-	"\x04spec\x18\x04 \x01(\v2%.talon.resources.McpServerBindingSpecR\x04spec\"\xe2\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc7\x01\n" +
+	"\x10McpServerBinding\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x129\n" +
+	"\x04spec\x18\x02 \x01(\v2%.talon.resources.McpServerBindingSpecR\x04spec\x12=\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\xe2\x02\n" +
 	"\x14McpServerBindingSpec\x12\x1d\n" +
 	"\n" +
 	"server_ref\x18\x01 \x01(\tR\tserverRef\x12\x12\n" +
@@ -451,20 +431,23 @@ var file_proto_resources_mcp_proto_goTypes = []any{
 	nil,                          // 5: talon.resources.McpServerSpec.HeadersEntry
 	nil,                          // 6: talon.resources.McpServerBindingSpec.HeadersEntry
 	(*ResourceMeta)(nil),         // 7: talon.resources.ResourceMeta
+	(*CommonResourceStatus)(nil), // 8: talon.resources.CommonResourceStatus
 }
 var file_proto_resources_mcp_proto_depIdxs = []int32{
 	7, // 0: talon.resources.McpServer.metadata:type_name -> talon.resources.ResourceMeta
 	1, // 1: talon.resources.McpServer.spec:type_name -> talon.resources.McpServerSpec
-	5, // 2: talon.resources.McpServerSpec.headers:type_name -> talon.resources.McpServerSpec.HeadersEntry
-	7, // 3: talon.resources.McpServerBinding.metadata:type_name -> talon.resources.ResourceMeta
-	3, // 4: talon.resources.McpServerBinding.spec:type_name -> talon.resources.McpServerBindingSpec
-	6, // 5: talon.resources.McpServerBindingSpec.headers:type_name -> talon.resources.McpServerBindingSpec.HeadersEntry
-	4, // 6: talon.resources.McpServerBindingSpec.auth_broker:type_name -> talon.resources.McpAuthBrokerSpec
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	8, // 2: talon.resources.McpServer.status:type_name -> talon.resources.CommonResourceStatus
+	5, // 3: talon.resources.McpServerSpec.headers:type_name -> talon.resources.McpServerSpec.HeadersEntry
+	7, // 4: talon.resources.McpServerBinding.metadata:type_name -> talon.resources.ResourceMeta
+	3, // 5: talon.resources.McpServerBinding.spec:type_name -> talon.resources.McpServerBindingSpec
+	8, // 6: talon.resources.McpServerBinding.status:type_name -> talon.resources.CommonResourceStatus
+	6, // 7: talon.resources.McpServerBindingSpec.headers:type_name -> talon.resources.McpServerBindingSpec.HeadersEntry
+	4, // 8: talon.resources.McpServerBindingSpec.auth_broker:type_name -> talon.resources.McpAuthBrokerSpec
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_mcp_proto_init() }

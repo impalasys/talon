@@ -14,33 +14,7 @@ import "proto/resources/schedules.proto";
 import "proto/resources/workflows.proto";
 
 service GatewayService {
-  // Agent Lifecycle
-  rpc CreateAgent(CreateAgentRequest) returns (AgentResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/agents"
-      body: "*"
-    };
-  }
-
-  rpc GetAgent(GetAgentRequest) returns (GetAgentResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/agents/{name}"
-    };
-  }
-
-  rpc ModifyAgent(ModifyAgentRequest) returns (AgentResponse) {
-    option (google.api.http) = {
-      put: "/v1/ns/{ns}/agents/{agent}"
-      body: "*"
-    };
-  }
-  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/agents"
-    };
-  }
-
-  // Agent Knowledge
+  // Agent knowledge data-plane queries
   rpc GetKnowledge(GetKnowledgeRequest) returns (KnowledgeResponse) {
     option (google.api.http) = {
       get: "/v1/ns/{ns}/agents/{agent}/knowledge"
@@ -50,48 +24,6 @@ service GatewayService {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/agents/{agent}/knowledge/search"
       body: "*"
-    };
-  }
-  rpc CreateNamespaceKnowledge(CreateNamespaceKnowledgeRequest) returns (NamespaceKnowledgeResponse) {
-    option (google.api.http) = {
-      post: "/v1/namespaces/{ns}/knowledge"
-      body: "*"
-    };
-  }
-  rpc GetNamespaceKnowledge(GetNamespaceKnowledgeRequest) returns (NamespaceKnowledgeResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/knowledge/{name}"
-    };
-  }
-  rpc ListNamespaceKnowledge(ListNamespaceKnowledgeRequest) returns (ListNamespaceKnowledgeResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/knowledge"
-    };
-  }
-  rpc DeleteNamespaceKnowledge(DeleteNamespaceKnowledgeRequest) returns (DeleteNamespaceKnowledgeResponse) {
-    option (google.api.http) = {
-      delete: "/v1/namespaces/{ns}/knowledge/{name}"
-    };
-  }
-  rpc CreateNamespaceSkill(CreateNamespaceSkillRequest) returns (NamespaceSkillResponse) {
-    option (google.api.http) = {
-      post: "/v1/namespaces/{ns}/skills"
-      body: "*"
-    };
-  }
-  rpc GetNamespaceSkill(GetNamespaceSkillRequest) returns (NamespaceSkillResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/skills/{name}"
-    };
-  }
-  rpc ListNamespaceSkills(ListNamespaceSkillsRequest) returns (ListNamespaceSkillsResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/skills"
-    };
-  }
-  rpc DeleteNamespaceSkill(DeleteNamespaceSkillRequest) returns (DeleteNamespaceSkillResponse) {
-    option (google.api.http) = {
-      delete: "/v1/namespaces/{ns}/skills/{name}"
     };
   }
 
@@ -166,34 +98,7 @@ service GatewayService {
     };
   }
 
-  // Channels
-  rpc CreateChannel(CreateChannelRequest) returns (ChannelResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/channels"
-      body: "*"
-    };
-  }
-  rpc GetChannel(GetChannelRequest) returns (ChannelResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/channels/{name}"
-    };
-  }
-  rpc ModifyChannel(ModifyChannelRequest) returns (ChannelResponse) {
-    option (google.api.http) = {
-      put: "/v1/ns/{ns}/channels/{name}"
-      body: "*"
-    };
-  }
-  rpc ListChannels(ListChannelsRequest) returns (ListChannelsResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/channels"
-    };
-  }
-  rpc DeleteChannel(DeleteChannelRequest) returns (DeleteChannelResponse) {
-    option (google.api.http) = {
-      delete: "/v1/ns/{ns}/channels/{name}"
-    };
-  }
+  // Channel data-plane actions
   rpc PostChannelMessage(PostChannelMessageRequest) returns (PostChannelMessageResponse) {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/channels/{channel}/messages"
@@ -210,90 +115,13 @@ service GatewayService {
       get: "/v1/ns/{ns}/channels/{channel}/messages"
     };
   }
-  rpc CreateChannelSubscription(CreateChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/channels/{channel}/subscriptions"
-      body: "*"
-    };
-  }
-  rpc GetChannelSubscription(GetChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
-    };
-  }
-  rpc ModifyChannelSubscription(ModifyChannelSubscriptionRequest) returns (ChannelSubscriptionResponse) {
-    option (google.api.http) = {
-      put: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
-      body: "*"
-    };
-  }
-  rpc ListChannelSubscriptions(ListChannelSubscriptionsRequest) returns (ListChannelSubscriptionsResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/channels/{channel}/subscriptions"
-    };
-  }
-  rpc DeleteChannelSubscription(DeleteChannelSubscriptionRequest) returns (DeleteChannelSubscriptionResponse) {
-    option (google.api.http) = {
-      delete: "/v1/ns/{ns}/channels/{channel}/subscriptions/{name}"
-    };
-  }
   rpc StreamChannelEvents(StreamChannelEventsRequest) returns (stream talon.events.ChannelEvent) {
     option (google.api.http) = {
       get: "/v1/ns/{ns}/channels/{channel}/stream"
     };
   }
 
-  // Schedules
-  rpc CreateSchedule(CreateScheduleRequest) returns (ScheduleResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/schedules"
-      body: "*"
-    };
-  }
-  rpc GetSchedule(GetScheduleRequest) returns (ScheduleResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/schedules/{name}"
-    };
-  }
-  rpc ModifySchedule(ModifyScheduleRequest) returns (ScheduleResponse) {
-    option (google.api.http) = {
-      put: "/v1/ns/{ns}/schedules/{name}"
-      body: "*"
-    };
-  }
-  rpc ListSchedules(ListSchedulesRequest) returns (ListSchedulesResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/schedules"
-    };
-  }
-  rpc DeleteSchedule(DeleteScheduleRequest) returns (DeleteScheduleResponse) {
-    option (google.api.http) = {
-      delete: "/v1/ns/{ns}/schedules/{name}"
-    };
-  }
-
-  // Workflows
-  rpc CreateWorkflow(CreateWorkflowRequest) returns (WorkflowResponse) {
-    option (google.api.http) = {
-      post: "/v1/ns/{ns}/workflows"
-      body: "*"
-    };
-  }
-  rpc GetWorkflow(GetWorkflowRequest) returns (WorkflowResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/workflows/{name}"
-    };
-  }
-  rpc ListWorkflows(ListWorkflowsRequest) returns (ListWorkflowsResponse) {
-    option (google.api.http) = {
-      get: "/v1/ns/{ns}/workflows"
-    };
-  }
-  rpc DeleteWorkflow(DeleteWorkflowRequest) returns (DeleteWorkflowResponse) {
-    option (google.api.http) = {
-      delete: "/v1/ns/{ns}/workflows/{name}"
-    };
-  }
+  // Workflow data-plane actions
   rpc CreateWorkflowRun(CreateWorkflowRunRequest) returns (WorkflowRunResponse) {
     option (google.api.http) = {
       post: "/v1/ns/{ns}/workflows/{workflow}/runs"
@@ -371,51 +199,6 @@ service GatewayService {
   rpc DeleteResource(DeleteResourceRequest) returns (DeleteResourceResponse) {
     option (google.api.http) = {
       delete: "/v2/ns/{ns}/resources/{kind}/{name}"
-    };
-  }
-
-  // MCP Servers
-  rpc CreateMcpServer(CreateMcpServerRequest) returns (McpServerResponse) {
-    option (google.api.http) = {
-      post: "/v1/mcp-servers"
-      body: "*"
-    };
-  }
-  rpc GetMcpServer(GetMcpServerRequest) returns (McpServerResponse) {
-    option (google.api.http) = {
-      get: "/v1/mcp-servers/{name}"
-    };
-  }
-  rpc ListMcpServers(ListMcpServersRequest) returns (ListMcpServersResponse) {
-    option (google.api.http) = {
-      get: "/v1/mcp-servers"
-    };
-  }
-  rpc DeleteMcpServer(DeleteMcpServerRequest) returns (DeleteMcpServerResponse) {
-    option (google.api.http) = {
-      delete: "/v1/mcp-servers/{name}"
-    };
-  }
-
-  rpc CreateMcpServerBinding(CreateMcpServerBindingRequest) returns (McpServerBindingResponse) {
-    option (google.api.http) = {
-      post: "/v1/namespaces/{ns}/mcp-bindings"
-      body: "*"
-    };
-  }
-  rpc GetMcpServerBinding(GetMcpServerBindingRequest) returns (McpServerBindingResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/mcp-bindings/{name}"
-    };
-  }
-  rpc ListMcpServerBindings(ListMcpServerBindingsRequest) returns (ListMcpServerBindingsResponse) {
-    option (google.api.http) = {
-      get: "/v1/namespaces/{ns}/mcp-bindings"
-    };
-  }
-  rpc DeleteMcpServerBinding(DeleteMcpServerBindingRequest) returns (DeleteMcpServerBindingResponse) {
-    option (google.api.http) = {
-      delete: "/v1/namespaces/{ns}/mcp-bindings/{name}"
     };
   }
 
@@ -609,37 +392,6 @@ message NamespaceKnowledgeResponse {
 
 message ListNamespaceKnowledgeResponse {
   repeated talon.resources.Knowledge knowledge = 1;
-}
-
-message CreateNamespaceSkillRequest {
-  string ns = 1;
-  talon.manifests.Skill skill = 2;
-}
-
-message GetNamespaceSkillRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message ListNamespaceSkillsRequest {
-  string ns = 1;
-}
-
-message DeleteNamespaceSkillRequest {
-  string ns = 1;
-  string name = 2;
-}
-
-message DeleteNamespaceSkillResponse {
-  bool success = 1;
-}
-
-message NamespaceSkillResponse {
-  talon.manifests.Skill skill = 1;
-}
-
-message ListNamespaceSkillsResponse {
-  repeated talon.manifests.Skill skills = 1;
 }
 
 // ---------------------------------------------------------

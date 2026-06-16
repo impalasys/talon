@@ -23,14 +23,9 @@ const (
 
 type Channel struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Ns            string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
-	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Metadata      map[string]string      `protobuf:"bytes,7,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Labels        map[string]string      `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *ChannelSpec           `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *ChannelStatus         `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -65,58 +60,23 @@ func (*Channel) Descriptor() ([]byte, []int) {
 	return file_proto_resources_channels_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Channel) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *Channel) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
-func (x *Channel) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *Channel) GetStatus() string {
-	if x != nil {
-		return x.Status
-	}
-	return ""
-}
-
-func (x *Channel) GetCreatedAt() int64 {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return 0
-}
-
-func (x *Channel) GetUpdatedAt() int64 {
-	if x != nil {
-		return x.UpdatedAt
-	}
-	return 0
-}
-
-func (x *Channel) GetMetadata() map[string]string {
+func (x *Channel) GetMetadata() *ResourceMeta {
 	if x != nil {
 		return x.Metadata
 	}
 	return nil
 }
 
-func (x *Channel) GetLabels() map[string]string {
+func (x *Channel) GetSpec() *ChannelSpec {
 	if x != nil {
-		return x.Labels
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *Channel) GetStatus() *ChannelStatus {
+	if x != nil {
+		return x.Status
 	}
 	return nil
 }
@@ -178,6 +138,8 @@ type ChannelStatus struct {
 	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
 	Phase              string                 `protobuf:"bytes,2,opt,name=phase,proto3" json:"phase,omitempty"`
 	Conditions         []*ResourceCondition   `protobuf:"bytes,3,rep,name=conditions,proto3" json:"conditions,omitempty"`
+	CreatedAt          int64                  `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt          int64                  `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -233,6 +195,20 @@ func (x *ChannelStatus) GetConditions() []*ResourceCondition {
 	return nil
 }
 
+func (x *ChannelStatus) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *ChannelStatus) GetUpdatedAt() int64 {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return 0
+}
+
 type ChannelContextPolicy struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Mode          string                 `protobuf:"bytes,1,opt,name=mode,proto3" json:"mode,omitempty"`
@@ -286,17 +262,10 @@ func (x *ChannelContextPolicy) GetMaxMessages() uint32 {
 }
 
 type ChannelSubscription struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Ns            string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
-	Channel       string                 `protobuf:"bytes,3,opt,name=channel,proto3" json:"channel,omitempty"`
-	Agent         string                 `protobuf:"bytes,4,opt,name=agent,proto3" json:"agent,omitempty"`
-	Enabled       bool                   `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	Trigger       string                 `protobuf:"bytes,6,opt,name=trigger,proto3" json:"trigger,omitempty"`
-	ContextPolicy *ChannelContextPolicy  `protobuf:"bytes,7,opt,name=context_policy,json=contextPolicy,proto3" json:"context_policy,omitempty"`
-	Metadata      map[string]string      `protobuf:"bytes,8,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Labels        map[string]string      `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	ReplyMode     string                 `protobuf:"bytes,10,opt,name=reply_mode,json=replyMode,proto3" json:"reply_mode,omitempty"`
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Metadata      *ResourceMeta            `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *ChannelSubscriptionSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *CommonResourceStatus    `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -331,74 +300,25 @@ func (*ChannelSubscription) Descriptor() ([]byte, []int) {
 	return file_proto_resources_channels_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ChannelSubscription) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *ChannelSubscription) GetNs() string {
-	if x != nil {
-		return x.Ns
-	}
-	return ""
-}
-
-func (x *ChannelSubscription) GetChannel() string {
-	if x != nil {
-		return x.Channel
-	}
-	return ""
-}
-
-func (x *ChannelSubscription) GetAgent() string {
-	if x != nil {
-		return x.Agent
-	}
-	return ""
-}
-
-func (x *ChannelSubscription) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
-	}
-	return false
-}
-
-func (x *ChannelSubscription) GetTrigger() string {
-	if x != nil {
-		return x.Trigger
-	}
-	return ""
-}
-
-func (x *ChannelSubscription) GetContextPolicy() *ChannelContextPolicy {
-	if x != nil {
-		return x.ContextPolicy
-	}
-	return nil
-}
-
-func (x *ChannelSubscription) GetMetadata() map[string]string {
+func (x *ChannelSubscription) GetMetadata() *ResourceMeta {
 	if x != nil {
 		return x.Metadata
 	}
 	return nil
 }
 
-func (x *ChannelSubscription) GetLabels() map[string]string {
+func (x *ChannelSubscription) GetSpec() *ChannelSubscriptionSpec {
 	if x != nil {
-		return x.Labels
+		return x.Spec
 	}
 	return nil
 }
 
-func (x *ChannelSubscription) GetReplyMode() string {
+func (x *ChannelSubscription) GetStatus() *CommonResourceStatus {
 	if x != nil {
-		return x.ReplyMode
+		return x.Status
 	}
-	return ""
+	return nil
 }
 
 type ChannelSubscriptionSpec struct {
@@ -409,6 +329,7 @@ type ChannelSubscriptionSpec struct {
 	Trigger       string                 `protobuf:"bytes,4,opt,name=trigger,proto3" json:"trigger,omitempty"`
 	ContextPolicy *ChannelContextPolicy  `protobuf:"bytes,5,opt,name=context_policy,json=contextPolicy,proto3" json:"context_policy,omitempty"`
 	ReplyMode     string                 `protobuf:"bytes,6,opt,name=reply_mode,json=replyMode,proto3" json:"reply_mode,omitempty"`
+	Metadata      map[string]string      `protobuf:"bytes,7,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -485,62 +406,45 @@ func (x *ChannelSubscriptionSpec) GetReplyMode() string {
 	return ""
 }
 
+func (x *ChannelSubscriptionSpec) GetMetadata() map[string]string {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 var File_proto_resources_channels_proto protoreflect.FileDescriptor
 
 const file_proto_resources_channels_proto_rawDesc = "" +
 	"\n" +
-	"\x1eproto/resources/channels.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\x93\x03\n" +
-	"\aChannel\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x0e\n" +
-	"\x02ns\x18\x02 \x01(\tR\x02ns\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1d\n" +
-	"\n" +
-	"created_at\x18\x05 \x01(\x03R\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\x06 \x01(\x03R\tupdatedAt\x12B\n" +
-	"\bmetadata\x18\a \x03(\v2&.talon.resources.Channel.MetadataEntryR\bmetadata\x12<\n" +
-	"\x06labels\x18\b \x03(\v2$.talon.resources.Channel.LabelsEntryR\x06labels\x1a;\n" +
-	"\rMetadataEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa8\x01\n" +
+	"\x1eproto/resources/channels.proto\x12\x0ftalon.resources\x1a\x1cproto/resources/common.proto\"\xae\x01\n" +
+	"\aChannel\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x120\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1c.talon.resources.ChannelSpecR\x04spec\x126\n" +
+	"\x06status\x18\x03 \x01(\v2\x1e.talon.resources.ChannelStatusR\x06status\"\xa8\x01\n" +
 	"\vChannelSpec\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12F\n" +
 	"\bmetadata\x18\x02 \x03(\v2*.talon.resources.ChannelSpec.MetadataEntryR\bmetadata\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9a\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xd8\x01\n" +
 	"\rChannelStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
 	"\n" +
 	"conditions\x18\x03 \x03(\v2\".talon.resources.ResourceConditionR\n" +
-	"conditions\"M\n" +
+	"conditions\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x04 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\x05 \x01(\x03R\tupdatedAt\"M\n" +
 	"\x14ChannelContextPolicy\x12\x12\n" +
 	"\x04mode\x18\x01 \x01(\tR\x04mode\x12!\n" +
-	"\fmax_messages\x18\x02 \x01(\rR\vmaxMessages\"\x9c\x04\n" +
-	"\x13ChannelSubscription\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x0e\n" +
-	"\x02ns\x18\x02 \x01(\tR\x02ns\x12\x18\n" +
-	"\achannel\x18\x03 \x01(\tR\achannel\x12\x14\n" +
-	"\x05agent\x18\x04 \x01(\tR\x05agent\x12\x18\n" +
-	"\aenabled\x18\x05 \x01(\bR\aenabled\x12\x18\n" +
-	"\atrigger\x18\x06 \x01(\tR\atrigger\x12L\n" +
-	"\x0econtext_policy\x18\a \x01(\v2%.talon.resources.ChannelContextPolicyR\rcontextPolicy\x12N\n" +
-	"\bmetadata\x18\b \x03(\v22.talon.resources.ChannelSubscription.MetadataEntryR\bmetadata\x12H\n" +
-	"\x06labels\x18\t \x03(\v20.talon.resources.ChannelSubscription.LabelsEntryR\x06labels\x12\x1d\n" +
-	"\n" +
-	"reply_mode\x18\n" +
-	" \x01(\tR\treplyMode\x1a;\n" +
-	"\rMetadataEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
-	"\vLabelsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xea\x01\n" +
+	"\fmax_messages\x18\x02 \x01(\rR\vmaxMessages\"\xcd\x01\n" +
+	"\x13ChannelSubscription\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12<\n" +
+	"\x04spec\x18\x02 \x01(\v2(.talon.resources.ChannelSubscriptionSpecR\x04spec\x12=\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\xfb\x02\n" +
 	"\x17ChannelSubscriptionSpec\x12\x18\n" +
 	"\achannel\x18\x01 \x01(\tR\achannel\x12\x14\n" +
 	"\x05agent\x18\x02 \x01(\tR\x05agent\x12\x18\n" +
@@ -548,7 +452,11 @@ const file_proto_resources_channels_proto_rawDesc = "" +
 	"\atrigger\x18\x04 \x01(\tR\atrigger\x12L\n" +
 	"\x0econtext_policy\x18\x05 \x01(\v2%.talon.resources.ChannelContextPolicyR\rcontextPolicy\x12\x1d\n" +
 	"\n" +
-	"reply_mode\x18\x06 \x01(\tR\treplyModeb\x06proto3"
+	"reply_mode\x18\x06 \x01(\tR\treplyMode\x12R\n" +
+	"\bmetadata\x18\a \x03(\v26.talon.resources.ChannelSubscriptionSpec.MetadataEntryR\bmetadata\x1a;\n" +
+	"\rMetadataEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01b\x06proto3"
 
 var (
 	file_proto_resources_channels_proto_rawDescOnce sync.Once
@@ -562,7 +470,7 @@ func file_proto_resources_channels_proto_rawDescGZIP() []byte {
 	return file_proto_resources_channels_proto_rawDescData
 }
 
-var file_proto_resources_channels_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_proto_resources_channels_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_resources_channels_proto_goTypes = []any{
 	(*Channel)(nil),                 // 0: talon.resources.Channel
 	(*ChannelSpec)(nil),             // 1: talon.resources.ChannelSpec
@@ -570,27 +478,28 @@ var file_proto_resources_channels_proto_goTypes = []any{
 	(*ChannelContextPolicy)(nil),    // 3: talon.resources.ChannelContextPolicy
 	(*ChannelSubscription)(nil),     // 4: talon.resources.ChannelSubscription
 	(*ChannelSubscriptionSpec)(nil), // 5: talon.resources.ChannelSubscriptionSpec
-	nil,                             // 6: talon.resources.Channel.MetadataEntry
-	nil,                             // 7: talon.resources.Channel.LabelsEntry
-	nil,                             // 8: talon.resources.ChannelSpec.MetadataEntry
-	nil,                             // 9: talon.resources.ChannelSubscription.MetadataEntry
-	nil,                             // 10: talon.resources.ChannelSubscription.LabelsEntry
-	(*ResourceCondition)(nil),       // 11: talon.resources.ResourceCondition
+	nil,                             // 6: talon.resources.ChannelSpec.MetadataEntry
+	nil,                             // 7: talon.resources.ChannelSubscriptionSpec.MetadataEntry
+	(*ResourceMeta)(nil),            // 8: talon.resources.ResourceMeta
+	(*ResourceCondition)(nil),       // 9: talon.resources.ResourceCondition
+	(*CommonResourceStatus)(nil),    // 10: talon.resources.CommonResourceStatus
 }
 var file_proto_resources_channels_proto_depIdxs = []int32{
-	6,  // 0: talon.resources.Channel.metadata:type_name -> talon.resources.Channel.MetadataEntry
-	7,  // 1: talon.resources.Channel.labels:type_name -> talon.resources.Channel.LabelsEntry
-	8,  // 2: talon.resources.ChannelSpec.metadata:type_name -> talon.resources.ChannelSpec.MetadataEntry
-	11, // 3: talon.resources.ChannelStatus.conditions:type_name -> talon.resources.ResourceCondition
-	3,  // 4: talon.resources.ChannelSubscription.context_policy:type_name -> talon.resources.ChannelContextPolicy
-	9,  // 5: talon.resources.ChannelSubscription.metadata:type_name -> talon.resources.ChannelSubscription.MetadataEntry
-	10, // 6: talon.resources.ChannelSubscription.labels:type_name -> talon.resources.ChannelSubscription.LabelsEntry
-	3,  // 7: talon.resources.ChannelSubscriptionSpec.context_policy:type_name -> talon.resources.ChannelContextPolicy
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	8,  // 0: talon.resources.Channel.metadata:type_name -> talon.resources.ResourceMeta
+	1,  // 1: talon.resources.Channel.spec:type_name -> talon.resources.ChannelSpec
+	2,  // 2: talon.resources.Channel.status:type_name -> talon.resources.ChannelStatus
+	6,  // 3: talon.resources.ChannelSpec.metadata:type_name -> talon.resources.ChannelSpec.MetadataEntry
+	9,  // 4: talon.resources.ChannelStatus.conditions:type_name -> talon.resources.ResourceCondition
+	8,  // 5: talon.resources.ChannelSubscription.metadata:type_name -> talon.resources.ResourceMeta
+	5,  // 6: talon.resources.ChannelSubscription.spec:type_name -> talon.resources.ChannelSubscriptionSpec
+	10, // 7: talon.resources.ChannelSubscription.status:type_name -> talon.resources.CommonResourceStatus
+	3,  // 8: talon.resources.ChannelSubscriptionSpec.context_policy:type_name -> talon.resources.ChannelContextPolicy
+	7,  // 9: talon.resources.ChannelSubscriptionSpec.metadata:type_name -> talon.resources.ChannelSubscriptionSpec.MetadataEntry
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_channels_proto_init() }
@@ -605,7 +514,7 @@ func file_proto_resources_channels_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_channels_proto_rawDesc), len(file_proto_resources_channels_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

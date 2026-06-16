@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ResourceCondition } from "./common_pb";
+import type { CommonResourceStatus, ResourceCondition, ResourceMeta } from "./common_pb";
 import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,51 +12,26 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/channels.proto.
  */
 export const file_proto_resources_channels: GenFile = /*@__PURE__*/
-  fileDesc("Ch5wcm90by9yZXNvdXJjZXMvY2hhbm5lbHMucHJvdG8SD3RhbG9uLnJlc291cmNlcyK6AgoHQ2hhbm5lbBIMCgRuYW1lGAEgASgJEgoKAm5zGAIgASgJEg0KBXRpdGxlGAMgASgJEg4KBnN0YXR1cxgEIAEoCRISCgpjcmVhdGVkX2F0GAUgASgDEhIKCnVwZGF0ZWRfYXQYBiABKAMSOAoIbWV0YWRhdGEYByADKAsyJi50YWxvbi5yZXNvdXJjZXMuQ2hhbm5lbC5NZXRhZGF0YUVudHJ5EjQKBmxhYmVscxgIIAMoCzIkLnRhbG9uLnJlc291cmNlcy5DaGFubmVsLkxhYmVsc0VudHJ5Gi8KDU1ldGFkYXRhRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIosBCgtDaGFubmVsU3BlYxINCgV0aXRsZRgBIAEoCRI8CghtZXRhZGF0YRgCIAMoCzIqLnRhbG9uLnJlc291cmNlcy5DaGFubmVsU3BlYy5NZXRhZGF0YUVudHJ5Gi8KDU1ldGFkYXRhRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ASJzCg1DaGFubmVsU3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbiI6ChRDaGFubmVsQ29udGV4dFBvbGljeRIMCgRtb2RlGAEgASgJEhQKDG1heF9tZXNzYWdlcxgCIAEoDSKsAwoTQ2hhbm5lbFN1YnNjcmlwdGlvbhIMCgRuYW1lGAEgASgJEgoKAm5zGAIgASgJEg8KB2NoYW5uZWwYAyABKAkSDQoFYWdlbnQYBCABKAkSDwoHZW5hYmxlZBgFIAEoCBIPCgd0cmlnZ2VyGAYgASgJEj0KDmNvbnRleHRfcG9saWN5GAcgASgLMiUudGFsb24ucmVzb3VyY2VzLkNoYW5uZWxDb250ZXh0UG9saWN5EkQKCG1ldGFkYXRhGAggAygLMjIudGFsb24ucmVzb3VyY2VzLkNoYW5uZWxTdWJzY3JpcHRpb24uTWV0YWRhdGFFbnRyeRJACgZsYWJlbHMYCSADKAsyMC50YWxvbi5yZXNvdXJjZXMuQ2hhbm5lbFN1YnNjcmlwdGlvbi5MYWJlbHNFbnRyeRISCgpyZXBseV9tb2RlGAogASgJGi8KDU1ldGFkYXRhRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgJOgI4ARotCgtMYWJlbHNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAk6AjgBIq4BChdDaGFubmVsU3Vic2NyaXB0aW9uU3BlYxIPCgdjaGFubmVsGAEgASgJEg0KBWFnZW50GAIgASgJEg8KB2VuYWJsZWQYAyABKAgSDwoHdHJpZ2dlchgEIAEoCRI9Cg5jb250ZXh0X3BvbGljeRgFIAEoCzIlLnRhbG9uLnJlc291cmNlcy5DaGFubmVsQ29udGV4dFBvbGljeRISCgpyZXBseV9tb2RlGAYgASgJYgZwcm90bzM", [file_proto_resources_common]);
+  fileDesc("Ch5wcm90by9yZXNvdXJjZXMvY2hhbm5lbHMucHJvdG8SD3RhbG9uLnJlc291cmNlcyKWAQoHQ2hhbm5lbBIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESKgoEc3BlYxgCIAEoCzIcLnRhbG9uLnJlc291cmNlcy5DaGFubmVsU3BlYxIuCgZzdGF0dXMYAyABKAsyHi50YWxvbi5yZXNvdXJjZXMuQ2hhbm5lbFN0YXR1cyKLAQoLQ2hhbm5lbFNwZWMSDQoFdGl0bGUYASABKAkSPAoIbWV0YWRhdGEYAiADKAsyKi50YWxvbi5yZXNvdXJjZXMuQ2hhbm5lbFNwZWMuTWV0YWRhdGFFbnRyeRovCg1NZXRhZGF0YUVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEimwEKDUNoYW5uZWxTdGF0dXMSGwoTb2JzZXJ2ZWRfZ2VuZXJhdGlvbhgBIAEoBBINCgVwaGFzZRgCIAEoCRI2Cgpjb25kaXRpb25zGAMgAygLMiIudGFsb24ucmVzb3VyY2VzLlJlc291cmNlQ29uZGl0aW9uEhIKCmNyZWF0ZWRfYXQYBCABKAMSEgoKdXBkYXRlZF9hdBgFIAEoAyI6ChRDaGFubmVsQ29udGV4dFBvbGljeRIMCgRtb2RlGAEgASgJEhQKDG1heF9tZXNzYWdlcxgCIAEoDSK1AQoTQ2hhbm5lbFN1YnNjcmlwdGlvbhIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESNgoEc3BlYxgCIAEoCzIoLnRhbG9uLnJlc291cmNlcy5DaGFubmVsU3Vic2NyaXB0aW9uU3BlYxI1CgZzdGF0dXMYAyABKAsyJS50YWxvbi5yZXNvdXJjZXMuQ29tbW9uUmVzb3VyY2VTdGF0dXMiqQIKF0NoYW5uZWxTdWJzY3JpcHRpb25TcGVjEg8KB2NoYW5uZWwYASABKAkSDQoFYWdlbnQYAiABKAkSDwoHZW5hYmxlZBgDIAEoCBIPCgd0cmlnZ2VyGAQgASgJEj0KDmNvbnRleHRfcG9saWN5GAUgASgLMiUudGFsb24ucmVzb3VyY2VzLkNoYW5uZWxDb250ZXh0UG9saWN5EhIKCnJlcGx5X21vZGUYBiABKAkSSAoIbWV0YWRhdGEYByADKAsyNi50YWxvbi5yZXNvdXJjZXMuQ2hhbm5lbFN1YnNjcmlwdGlvblNwZWMuTWV0YWRhdGFFbnRyeRovCg1NZXRhZGF0YUVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFiBnByb3RvMw", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.Channel
  */
 export type Channel = Message<"talon.resources.Channel"> & {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name: string;
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string ns = 2;
+   * @generated from field: talon.resources.ChannelSpec spec = 2;
    */
-  ns: string;
+  spec?: ChannelSpec;
 
   /**
-   * @generated from field: string title = 3;
+   * @generated from field: talon.resources.ChannelStatus status = 3;
    */
-  title: string;
-
-  /**
-   * @generated from field: string status = 4;
-   */
-  status: string;
-
-  /**
-   * @generated from field: int64 created_at = 5;
-   */
-  createdAt: bigint;
-
-  /**
-   * @generated from field: int64 updated_at = 6;
-   */
-  updatedAt: bigint;
-
-  /**
-   * @generated from field: map<string, string> metadata = 7;
-   */
-  metadata: { [key: string]: string };
-
-  /**
-   * @generated from field: map<string, string> labels = 8;
-   */
-  labels: { [key: string]: string };
+  status?: ChannelStatus;
 };
 
 /**
@@ -106,6 +81,16 @@ export type ChannelStatus = Message<"talon.resources.ChannelStatus"> & {
    * @generated from field: repeated talon.resources.ResourceCondition conditions = 3;
    */
   conditions: ResourceCondition[];
+
+  /**
+   * @generated from field: int64 created_at = 4;
+   */
+  createdAt: bigint;
+
+  /**
+   * @generated from field: int64 updated_at = 5;
+   */
+  updatedAt: bigint;
 };
 
 /**
@@ -142,54 +127,19 @@ export const ChannelContextPolicySchema: GenMessage<ChannelContextPolicy> = /*@_
  */
 export type ChannelSubscription = Message<"talon.resources.ChannelSubscription"> & {
   /**
-   * @generated from field: string name = 1;
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
    */
-  name: string;
+  metadata?: ResourceMeta;
 
   /**
-   * @generated from field: string ns = 2;
+   * @generated from field: talon.resources.ChannelSubscriptionSpec spec = 2;
    */
-  ns: string;
+  spec?: ChannelSubscriptionSpec;
 
   /**
-   * @generated from field: string channel = 3;
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
    */
-  channel: string;
-
-  /**
-   * @generated from field: string agent = 4;
-   */
-  agent: string;
-
-  /**
-   * @generated from field: bool enabled = 5;
-   */
-  enabled: boolean;
-
-  /**
-   * @generated from field: string trigger = 6;
-   */
-  trigger: string;
-
-  /**
-   * @generated from field: talon.resources.ChannelContextPolicy context_policy = 7;
-   */
-  contextPolicy?: ChannelContextPolicy;
-
-  /**
-   * @generated from field: map<string, string> metadata = 8;
-   */
-  metadata: { [key: string]: string };
-
-  /**
-   * @generated from field: map<string, string> labels = 9;
-   */
-  labels: { [key: string]: string };
-
-  /**
-   * @generated from field: string reply_mode = 10;
-   */
-  replyMode: string;
+  status?: CommonResourceStatus;
 };
 
 /**
@@ -232,6 +182,11 @@ export type ChannelSubscriptionSpec = Message<"talon.resources.ChannelSubscripti
    * @generated from field: string reply_mode = 6;
    */
   replyMode: string;
+
+  /**
+   * @generated from field: map<string, string> metadata = 7;
+   */
+  metadata: { [key: string]: string };
 };
 
 /**
