@@ -6,7 +6,11 @@ import "proto/resources/common.proto";
 
 message SandboxClassSpec {
   string provider = 1;
+  // Internal canonical JSON for provider-specific settings. User-facing YAML
+  // uses `providerConfig: {...}` and the manifest parser normalizes it here.
   string provider_config_json = 2;
+  // Internal canonical JSON for provider credentials. User-facing YAML uses
+  // `credentials: {...}` and the manifest parser normalizes it here.
   string credentials_json = 3;
 }
 

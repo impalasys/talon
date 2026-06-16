@@ -7,6 +7,8 @@ import "proto/resources/common.proto";
 message TemplateSpec {
   string kind = 1;
   ResourceMeta metadata = 2;
+  // Internal canonical JSON for the templated spec. User-facing YAML uses
+  // `spec: {...}` and the manifest parser normalizes it into this field.
   string spec_json = 3;
 }
 

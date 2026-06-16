@@ -804,7 +804,7 @@ fn resource_spec_status_to_yaml_values(
         }))?,
         Some(SpecKind::SandboxPolicy(spec)) => serde_json::to_string(&serde_json::json!({
             "classRef": spec.class_ref.as_ref().map(resource_ref_json),
-            "template": { "spec": json_string_to_json_value(&spec.template.as_ref().map(|t| t.image.clone()).unwrap_or_default())? },
+            "template": { "spec": sandbox_runtime_template_to_json_value(spec.template.as_ref()) },
             "quota": { "maxConcurrent": spec.max_concurrent },
         }))?,
         Some(SpecKind::Sandbox(spec)) => serde_json::to_string(&serde_json::json!({
@@ -892,7 +892,7 @@ fn template_spec_from_value(value: serde_json::Value) -> Result<resources_proto:
         .map(serde_json::from_value::<ObjectMetaManifest>)
         .transpose()?
         .map(ObjectMetaManifest::into_resource_meta);
-    let spec_json = serde_json::to_string(value.get("spec").unwrap_or(&serde_json::Value::Null))?;
+    let spec_json = json_field_or_string(&value, "spec", "specJson")?;
     Ok(resources_proto::TemplateSpec {
         kind,
         metadata,
@@ -959,16 +959,8 @@ fn sandbox_class_spec_from_value(
             .and_then(|value| value.as_str())
             .unwrap_or_default()
             .to_string(),
-        provider_config_json: serde_json::to_string(
-            value
-                .get("providerConfig")
-                .unwrap_or(&serde_json::Value::Object(Default::default())),
-        )?,
-        credentials_json: serde_json::to_string(
-            value
-                .get("credentials")
-                .unwrap_or(&serde_json::Value::Object(Default::default())),
-        )?,
+        provider_config_json: json_field_or_string(&value, "providerConfig", "providerConfigJson")?,
+        credentials_json: json_field_or_string(&value, "credentials", "credentialsJson")?,
     })
 }
 
@@ -983,13 +975,63 @@ fn sandbox_policy_spec_from_value(
         template: Some(sandbox_runtime_template_from_value(
             value
                 .pointer("/template/spec")
+                .or_else(|| value.get("template"))
                 .cloned()
                 .unwrap_or_else(|| serde_json::json!({})),
         )),
         max_concurrent: value
             .pointer("/quota/maxConcurrent")
+            .or_else(|| value.get("maxConcurrent"))
             .and_then(|value| value.as_u64())
             .unwrap_or(0) as u32,
+    })
+}
+
+fn json_field_or_string(
+    value: &serde_json::Value,
+    object_key: &str,
+    string_key: &str,
+) -> Result<String> {
+    if let Some(value) = value.get(object_key) {
+        return serde_json::to_string(value).context("Failed to serialize embedded JSON field");
+    }
+    if let Some(value) = value.get(string_key) {
+        if let Some(json) = value.as_str() {
+            let _: serde_json::Value = serde_json::from_str(json)
+                .with_context(|| format!("{} must contain valid JSON", string_key))?;
+            return Ok(json.to_string());
+        }
+        return serde_json::to_string(value).context("Failed to serialize embedded JSON field");
+    }
+    Ok("{}".to_string())
+}
+
+fn sandbox_runtime_template_to_json_value(
+    template: Option<&resources_proto::SandboxRuntimeTemplateSpec>,
+) -> serde_json::Value {
+    let Some(template) = template else {
+        return serde_json::json!({});
+    };
+    serde_json::json!({
+        "image": template.image,
+        "workspace": template.workspace.as_ref().map(|workspace| serde_json::json!({
+            "mode": workspace.mode,
+            "mountPath": workspace.mount_path,
+        })),
+        "setup": template.setup.as_ref().map(|setup| serde_json::json!({
+            "packages": setup.packages,
+            "commands": setup.commands,
+        })),
+        "network": template.network.as_ref().map(|network| serde_json::json!({
+            "mode": network.mode,
+        })),
+        "filesystem": template.filesystem.as_ref().map(|filesystem| serde_json::json!({
+            "writable": filesystem.writable,
+            "readonly": filesystem.readonly,
+        })),
+        "leasePolicy": template.lease_policy.as_ref().map(|lease_policy| serde_json::json!({
+            "mode": lease_policy.mode,
+        })),
     })
 }
 
@@ -2131,5 +2173,138 @@ impl ModelPolicyManifest {
                 .map(ModelProfileManifest::from_proto)
                 .collect(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::gateway::rpc::resources_proto::{resource_spec, resource_status};
+
+    #[test]
+    fn template_manifest_normalizes_nested_spec_to_json() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: Template
+metadata:
+  name: coding-agent
+  namespace: customers
+spec:
+  kind: Agent
+  metadata:
+    name: coding
+  spec:
+    systemPrompt: hello
+"#,
+        )
+        .expect("template manifest parses");
+
+        let Some(resource_spec::Kind::Template(spec)) = manifest.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected Template spec");
+        };
+        let rendered_spec: serde_json::Value =
+            serde_json::from_str(&spec.spec_json).expect("template spec JSON");
+        assert_eq!(rendered_spec["systemPrompt"], "hello");
+    }
+
+    #[test]
+    fn sandbox_class_manifest_normalizes_config_maps_to_json() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: SandboxClass
+metadata:
+  name: docker-code
+  namespace: system
+spec:
+  provider: docker
+  providerConfig:
+    image: talon-codex-acp:local
+  credentials:
+    apiKey:
+      source: env
+      key: E2B_API_KEY
+"#,
+        )
+        .expect("sandbox class manifest parses");
+
+        let Some(resource_spec::Kind::SandboxClass(spec)) =
+            manifest.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected SandboxClass spec");
+        };
+        let provider_config: serde_json::Value =
+            serde_json::from_str(&spec.provider_config_json).expect("provider config JSON");
+        let credentials: serde_json::Value =
+            serde_json::from_str(&spec.credentials_json).expect("credentials JSON");
+        assert_eq!(provider_config["image"], "talon-codex-acp:local");
+        assert_eq!(credentials["apiKey"]["key"], "E2B_API_KEY");
+    }
+
+    #[test]
+    fn sandbox_policy_manifest_accepts_and_renders_template_spec_shape() {
+        let manifest = parse_resource_manifest(
+            r#"
+apiVersion: talon.impalasys.com/v1
+kind: SandboxPolicy
+metadata:
+  name: coding
+  namespace: customers
+spec:
+  classRef:
+    namespace: system
+    name: docker-code
+  template:
+    spec:
+      image: talon-codex-acp:local
+      workspace:
+        mode: customer-repo
+        mountPath: /workspace
+      filesystem:
+        writable:
+          - /workspace
+      leasePolicy:
+        mode: exclusive
+  quota:
+    maxConcurrent: 5
+"#,
+        )
+        .expect("sandbox policy manifest parses");
+
+        let Some(resource_spec::Kind::SandboxPolicy(spec)) =
+            manifest.spec.clone().and_then(|spec| spec.kind)
+        else {
+            panic!("expected SandboxPolicy spec");
+        };
+        assert_eq!(spec.max_concurrent, 5);
+        let template = spec.template.expect("runtime template");
+        assert_eq!(template.image, "talon-codex-acp:local");
+        assert_eq!(
+            template.workspace.expect("workspace").mount_path,
+            "/workspace"
+        );
+
+        let rendered = render_resource_yaml(&resources_proto::Resource {
+            api_version: manifest.api_version,
+            kind: manifest.kind,
+            metadata: manifest.metadata,
+            spec: manifest.spec,
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resource_status::Kind::SandboxPolicy(Default::default())),
+            }),
+        })
+        .expect("render sandbox policy");
+        let rendered_yaml: serde_yaml::Value =
+            serde_yaml::from_str(&rendered).expect("rendered YAML parses");
+        assert_eq!(
+            rendered_yaml["spec"]["template"]["spec"]["image"].as_str(),
+            Some("talon-codex-acp:local")
+        );
+        assert_eq!(
+            rendered_yaml["spec"]["template"]["spec"]["workspace"]["mountPath"].as_str(),
+            Some("/workspace")
+        );
     }
 }
