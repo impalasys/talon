@@ -311,6 +311,15 @@ impl DeploymentController {
             .metadata
             .as_ref()
             .ok_or_else(|| anyhow!("Template metadata is required"))?;
+        let namespace_meta = namespace
+            .metadata
+            .as_ref()
+            .ok_or_else(|| anyhow!("Namespace metadata is required"))?;
+        let customer_name = namespace_meta
+            .annotations
+            .get("vibiz.io/customer-name")
+            .map(String::as_str)
+            .unwrap_or_else(|| namespace.name());
         let env = minijinja::Environment::new();
         let rendered_spec = env.render_str(
             &spec.spec_json,
@@ -318,9 +327,10 @@ impl DeploymentController {
                 namespace => serde_json::json!({
                     "name": namespace.name(),
                     "parent": namespace.parent(),
+                    "customerName": customer_name,
                     "metadata": {
-                        "labels": namespace.labels(),
-                        "annotations": {},
+                        "labels": namespace_meta.labels,
+                        "annotations": namespace_meta.annotations,
                     }
                 }),
                 deployment => serde_json::json!({
@@ -370,4 +380,122 @@ fn stable_hash(value: &str) -> String {
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     value.hash(&mut hasher);
     format!("{:016x}", hasher.finish())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_support::{MockKvStore, RecordingPubSub};
+    use std::sync::Arc;
+
+    fn controller() -> DeploymentController {
+        DeploymentController::new(ResourceStore::new(
+            Arc::new(MockKvStore::default()),
+            Arc::new(RecordingPubSub::default()),
+        ))
+    }
+
+    fn deployment() -> resources_proto::Resource {
+        resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Deployment".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "company-builder".to_string(),
+                namespace: "customers".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Deployment(
+                    resources_proto::DeploymentSpec::default(),
+                )),
+            }),
+            status: None,
+        }
+    }
+
+    fn coding_template() -> resources_proto::Resource {
+        resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Template".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "coding-agent".to_string(),
+                namespace: "customers".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Template(
+                    resources_proto::TemplateSpec {
+                        kind: "Agent".to_string(),
+                        metadata: Some(resources_proto::ResourceMeta {
+                            name: "coding".to_string(),
+                            ..Default::default()
+                        }),
+                        spec_json: serde_json::json!({
+                            "systemPrompt": "You are the coding agent for {{ namespace.customerName }}."
+                        })
+                        .to_string(),
+                    },
+                )),
+            }),
+            status: None,
+        }
+    }
+
+    fn target_namespace(annotation: Option<&str>) -> resources_proto::Namespace {
+        let mut annotations = std::collections::HashMap::new();
+        if let Some(value) = annotation {
+            annotations.insert("vibiz.io/customer-name".to_string(), value.to_string());
+        }
+        resources_proto::Namespace {
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "customers:acme".to_string(),
+                annotations,
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::NamespaceSpec {
+                parent: "customers".to_string(),
+            }),
+            status: Some(resources_proto::NamespaceStatus::default()),
+        }
+    }
+
+    fn rendered_prompt(resource: resources_proto::Resource) -> String {
+        let Some(resources_proto::resource_spec::Kind::Agent(spec)) =
+            resource.spec.and_then(|spec| spec.kind)
+        else {
+            panic!("expected rendered Agent");
+        };
+        spec.system_prompt
+    }
+
+    #[test]
+    fn render_template_uses_namespace_annotation_with_name_fallback() {
+        let rendered = controller()
+            .render_template_with_namespace(
+                "customers",
+                "customers:acme",
+                &target_namespace(Some("Acme")),
+                &deployment(),
+                &coding_template(),
+            )
+            .expect("render with annotation");
+        assert_eq!(
+            rendered_prompt(rendered),
+            "You are the coding agent for Acme."
+        );
+
+        let rendered = controller()
+            .render_template_with_namespace(
+                "customers",
+                "customers:acme",
+                &target_namespace(None),
+                &deployment(),
+                &coding_template(),
+            )
+            .expect("render without annotation");
+        assert_eq!(
+            rendered_prompt(rendered),
+            "You are the coding agent for customers:acme."
+        );
+    }
 }
