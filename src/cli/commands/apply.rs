@@ -96,6 +96,7 @@ fn resource_manifest_from_manifest(
     use resources_proto::resource_spec::Kind as SpecKind;
 
     let raw = parse_raw_manifest(content)?;
+    reject_status_field(content)?;
     let mut manifest = match raw.kind.as_str() {
         "MCPServer" | "McpServer" => {
             let mut server = crate::control::manifest::parse_mcp_server(content)?;
@@ -219,6 +220,19 @@ fn resource_manifest_from_manifest(
         meta.name.clone(),
         manifest,
     ))
+}
+
+fn reject_status_field(content: &str) -> Result<()> {
+    let value: serde_yaml::Value =
+        serde_yaml::from_str(content).context("Failed to parse resource manifest YAML")?;
+    let has_status = value
+        .as_mapping()
+        .map(|mapping| mapping.contains_key(serde_yaml::Value::String("status".to_string())))
+        .unwrap_or(false);
+    if has_status {
+        anyhow::bail!("Resource manifests cannot set status; status is controller-owned");
+    }
+    Ok(())
 }
 
 fn resource_manifest_proto_json(resource: &resources_proto::ResourceManifest) -> serde_json::Value {
@@ -452,13 +466,13 @@ fn grpc_plan_namespace_to_ensure(plan: &GrpcApplyPlan) -> Option<&str> {
 }
 
 pub(super) async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
+    let plan = build_grpc_apply_plan(content)?;
     let channel = tonic::transport::Channel::from_shared(cli.gateway.clone())
         .with_context(|| format!("Invalid gateway URL {}", cli.gateway))?
         .connect()
         .await
         .with_context(|| format!("Could not connect to gateway at {}", cli.gateway))?;
     let mut client = GatewayServiceClient::with_interceptor(channel, auth_interceptor(cli)?);
-    let plan = build_grpc_apply_plan(content)?;
     if let Some(namespace) = grpc_plan_namespace_to_ensure(&plan) {
         client
             .create_namespace(CreateNamespaceRequest {

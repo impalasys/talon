@@ -240,6 +240,40 @@ def apply_manifest_with_cli(path, grpc_port):
     return result.stdout
 
 
+def test_cli_apply_rejects_status_in_resource_manifest(sqlite_test_grpc_port, tmp_path):
+    manifest = tmp_path / "agent-with-status.yaml"
+    manifest.write_text(
+        """
+apiVersion: talon.impalasys.com/v1
+kind: Agent
+metadata:
+  name: status-owned
+  namespace: status-owned-test
+spec:
+  systemPrompt: This manifest should fail before apply.
+status:
+  phase: Ready
+"""
+    )
+    cli = conftest.get_binary_path("talon_cli")
+    result = subprocess.run(
+        [
+            cli,
+            "--gateway",
+            f"http://127.0.0.1:{sqlite_test_grpc_port}",
+            "apply",
+            "-f",
+            str(manifest),
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "Resource manifests cannot set status" in (result.stderr + result.stdout)
+
+
 def list_resources(stub, namespace, kind):
     return list(stub.ListResources(ListResourcesRequest(ns=namespace, kind=kind)).resources)
 
