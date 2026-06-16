@@ -29,6 +29,9 @@ export type TemplateSpec = Message<"talon.resources.TemplateSpec"> & {
   metadata?: ResourceMeta;
 
   /**
+   * Internal canonical JSON for the templated spec. User-facing YAML uses
+   * `spec: {...}` and the manifest parser normalizes it into this field.
+   *
    * @generated from field: string spec_json = 3;
    */
   specJson: string;

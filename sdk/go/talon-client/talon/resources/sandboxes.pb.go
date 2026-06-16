@@ -22,12 +22,16 @@ const (
 )
 
 type SandboxClassSpec struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Provider           string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
-	ProviderConfigJson string                 `protobuf:"bytes,2,opt,name=provider_config_json,json=providerConfigJson,proto3" json:"provider_config_json,omitempty"`
-	CredentialsJson    string                 `protobuf:"bytes,3,opt,name=credentials_json,json=credentialsJson,proto3" json:"credentials_json,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Provider string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
+	// Internal canonical JSON for provider-specific settings. User-facing YAML
+	// uses `providerConfig: {...}` and the manifest parser normalizes it here.
+	ProviderConfigJson string `protobuf:"bytes,2,opt,name=provider_config_json,json=providerConfigJson,proto3" json:"provider_config_json,omitempty"`
+	// Internal canonical JSON for provider credentials. User-facing YAML uses
+	// `credentials: {...}` and the manifest parser normalizes it here.
+	CredentialsJson string `protobuf:"bytes,3,opt,name=credentials_json,json=credentialsJson,proto3" json:"credentials_json,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SandboxClassSpec) Reset() {
@@ -82,9 +86,11 @@ func (x *SandboxClassSpec) GetCredentialsJson() string {
 }
 
 type SandboxWorkspaceSpec struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Mode          string                 `protobuf:"bytes,1,opt,name=mode,proto3" json:"mode,omitempty"`
-	MountPath     string                 `protobuf:"bytes,2,opt,name=mount_path,json=mountPath,proto3" json:"mount_path,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Mode  string                 `protobuf:"bytes,1,opt,name=mode,proto3" json:"mode,omitempty"`
+	// Absolute workspace path inside the sandbox. The manifest parser rejects
+	// root/system mount points such as /, /etc, /usr, /proc, and /sys.
+	MountPath     string `protobuf:"bytes,2,opt,name=mount_path,json=mountPath,proto3" json:"mount_path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -475,11 +481,14 @@ type SandboxLease struct {
 	OwnerAgent     string                 `protobuf:"bytes,2,opt,name=owner_agent,json=ownerAgent,proto3" json:"owner_agent,omitempty"`
 	OwnerSessionId string                 `protobuf:"bytes,3,opt,name=owner_session_id,json=ownerSessionId,proto3" json:"owner_session_id,omitempty"`
 	Token          string                 `protobuf:"bytes,4,opt,name=token,proto3" json:"token,omitempty"`
-	AcquiredAt     int64                  `protobuf:"varint,5,opt,name=acquired_at,json=acquiredAt,proto3" json:"acquired_at,omitempty"`
-	ExpiresAt      int64                  `protobuf:"varint,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
-	HeartbeatAt    int64                  `protobuf:"varint,7,opt,name=heartbeat_at,json=heartbeatAt,proto3" json:"heartbeat_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Unix timestamp in microseconds.
+	AcquiredAt int64 `protobuf:"varint,5,opt,name=acquired_at,json=acquiredAt,proto3" json:"acquired_at,omitempty"`
+	// Unix timestamp in microseconds.
+	ExpiresAt int64 `protobuf:"varint,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// Unix timestamp in microseconds.
+	HeartbeatAt   int64 `protobuf:"varint,7,opt,name=heartbeat_at,json=heartbeatAt,proto3" json:"heartbeat_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SandboxLease) Reset() {
@@ -722,12 +731,13 @@ func (x *SandboxStatus) GetProcesses() []*SandboxProcessStatus {
 }
 
 type SandboxSpec struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	PolicyRef           string                 `protobuf:"bytes,1,opt,name=policy_ref,json=policyRef,proto3" json:"policy_ref,omitempty"`
-	ClassRef            *ResourceRef           `protobuf:"bytes,2,opt,name=class_ref,json=classRef,proto3" json:"class_ref,omitempty"`
-	RuntimeTemplateJson string                 `protobuf:"bytes,3,opt,name=runtime_template_json,json=runtimeTemplateJson,proto3" json:"runtime_template_json,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// SandboxPolicy name resolved in the sandbox namespace.
+	PolicyRef       string                      `protobuf:"bytes,1,opt,name=policy_ref,json=policyRef,proto3" json:"policy_ref,omitempty"`
+	ClassRef        *ResourceRef                `protobuf:"bytes,2,opt,name=class_ref,json=classRef,proto3" json:"class_ref,omitempty"`
+	RuntimeTemplate *SandboxRuntimeTemplateSpec `protobuf:"bytes,3,opt,name=runtime_template,json=runtimeTemplate,proto3" json:"runtime_template,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *SandboxSpec) Reset() {
@@ -774,11 +784,11 @@ func (x *SandboxSpec) GetClassRef() *ResourceRef {
 	return nil
 }
 
-func (x *SandboxSpec) GetRuntimeTemplateJson() string {
+func (x *SandboxSpec) GetRuntimeTemplate() *SandboxRuntimeTemplateSpec {
 	if x != nil {
-		return x.RuntimeTemplateJson
+		return x.RuntimeTemplate
 	}
-	return ""
+	return nil
 }
 
 var File_proto_resources_sandboxes_proto protoreflect.FileDescriptor
@@ -844,12 +854,12 @@ const file_proto_resources_sandboxes_proto_rawDesc = "" +
 	"\n" +
 	"backend_id\x18\x04 \x01(\tR\tbackendId\x123\n" +
 	"\x05lease\x18\x05 \x01(\v2\x1d.talon.resources.SandboxLeaseR\x05lease\x12C\n" +
-	"\tprocesses\x18\x06 \x03(\v2%.talon.resources.SandboxProcessStatusR\tprocesses\"\x9b\x01\n" +
+	"\tprocesses\x18\x06 \x03(\v2%.talon.resources.SandboxProcessStatusR\tprocesses\"\xbf\x01\n" +
 	"\vSandboxSpec\x12\x1d\n" +
 	"\n" +
 	"policy_ref\x18\x01 \x01(\tR\tpolicyRef\x129\n" +
-	"\tclass_ref\x18\x02 \x01(\v2\x1c.talon.resources.ResourceRefR\bclassRef\x122\n" +
-	"\x15runtime_template_json\x18\x03 \x01(\tR\x13runtimeTemplateJsonb\x06proto3"
+	"\tclass_ref\x18\x02 \x01(\v2\x1c.talon.resources.ResourceRefR\bclassRef\x12V\n" +
+	"\x10runtime_template\x18\x03 \x01(\v2+.talon.resources.SandboxRuntimeTemplateSpecR\x0fruntimeTemplateb\x06proto3"
 
 var (
 	file_proto_resources_sandboxes_proto_rawDescOnce sync.Once
@@ -892,11 +902,12 @@ var file_proto_resources_sandboxes_proto_depIdxs = []int32{
 	8,  // 8: talon.resources.SandboxStatus.lease:type_name -> talon.resources.SandboxLease
 	9,  // 9: talon.resources.SandboxStatus.processes:type_name -> talon.resources.SandboxProcessStatus
 	12, // 10: talon.resources.SandboxSpec.class_ref:type_name -> talon.resources.ResourceRef
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	6,  // 11: talon.resources.SandboxSpec.runtime_template:type_name -> talon.resources.SandboxRuntimeTemplateSpec
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_sandboxes_proto_init() }

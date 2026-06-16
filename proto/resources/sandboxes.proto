@@ -88,5 +88,5 @@ message SandboxSpec {
   // SandboxPolicy name resolved in the sandbox namespace.
   string policy_ref = 1;
   ResourceRef class_ref = 2;
-  string runtime_template_json = 3;
+  SandboxRuntimeTemplateSpec runtime_template = 3;
 }

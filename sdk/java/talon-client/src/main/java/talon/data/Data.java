@@ -1768,6 +1768,10 @@ java.lang.String defaultValue) {
         getPayloadJsonBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 6;</code>
      * @return The createdAt.
      */
@@ -2013,6 +2017,10 @@ java.lang.String defaultValue) {
     public static final int CREATED_AT_FIELD_NUMBER = 6;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 6;</code>
      * @return The createdAt.
      */
@@ -2846,6 +2854,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 6;</code>
        * @return The createdAt.
        */
@@ -2854,6 +2866,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 6;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -2866,6 +2882,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 6;</code>
        * @return This builder for chaining.
        */
@@ -3076,6 +3096,10 @@ java.lang.String defaultValue) {
     talon.data.Data.MessageRole getRole();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 4;</code>
      * @return The createdAt.
      */
@@ -3256,6 +3280,10 @@ java.lang.String defaultValue);
     public static final int CREATED_AT_FIELD_NUMBER = 4;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 4;</code>
      * @return The createdAt.
      */
@@ -3988,6 +4016,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 4;</code>
        * @return The createdAt.
        */
@@ -3996,6 +4028,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 4;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -4008,6 +4044,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 4;</code>
        * @return This builder for chaining.
        */
@@ -4489,12 +4529,20 @@ java.lang.String defaultValue) {
         getStatusBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 5;</code>
      * @return The createdAt.
      */
     long getCreatedAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 last_active = 6;</code>
      * @return The lastActive.
      */
@@ -4787,6 +4835,10 @@ java.lang.String defaultValue);
     public static final int CREATED_AT_FIELD_NUMBER = 5;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 5;</code>
      * @return The createdAt.
      */
@@ -4798,6 +4850,10 @@ java.lang.String defaultValue);
     public static final int LAST_ACTIVE_FIELD_NUMBER = 6;
     private long lastActive_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 last_active = 6;</code>
      * @return The lastActive.
      */
@@ -5772,6 +5828,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 5;</code>
        * @return The createdAt.
        */
@@ -5780,6 +5840,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 5;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -5792,6 +5856,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 5;</code>
        * @return This builder for chaining.
        */
@@ -5804,6 +5872,10 @@ java.lang.String defaultValue) {
 
       private long lastActive_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 last_active = 6;</code>
        * @return The lastActive.
        */
@@ -5812,6 +5884,10 @@ java.lang.String defaultValue) {
         return lastActive_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 last_active = 6;</code>
        * @param value The lastActive to set.
        * @return This builder for chaining.
@@ -5824,6 +5900,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 last_active = 6;</code>
        * @return This builder for chaining.
        */
@@ -6216,6 +6296,10 @@ java.lang.String defaultValue) {
         getContentBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 7;</code>
      * @return The createdAt.
      */
@@ -6578,6 +6662,10 @@ java.lang.String defaultValue);
     public static final int CREATED_AT_FIELD_NUMBER = 7;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 7;</code>
      * @return The createdAt.
      */
@@ -7724,6 +7812,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 7;</code>
        * @return The createdAt.
        */
@@ -7732,6 +7824,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 7;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -7744,6 +7840,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 7;</code>
        * @return This builder for chaining.
        */
@@ -8105,6 +8205,10 @@ java.lang.String defaultValue) {
         getContentBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 updated_at = 3;</code>
      * @return The updatedAt.
      */
@@ -8261,6 +8365,10 @@ java.lang.String defaultValue) {
     public static final int UPDATED_AT_FIELD_NUMBER = 3;
     private long updatedAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 updated_at = 3;</code>
      * @return The updatedAt.
      */
@@ -8883,6 +8991,10 @@ java.lang.String defaultValue) {
 
       private long updatedAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 3;</code>
        * @return The updatedAt.
        */
@@ -8891,6 +9003,10 @@ java.lang.String defaultValue) {
         return updatedAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 3;</code>
        * @param value The updatedAt to set.
        * @return This builder for chaining.
@@ -8903,6 +9019,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 3;</code>
        * @return This builder for chaining.
        */
@@ -9143,6 +9263,10 @@ java.lang.String defaultValue) {
     float getScore();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 timestamp = 4;</code>
      * @return The timestamp.
      */
@@ -9297,6 +9421,10 @@ java.lang.String defaultValue) {
     public static final int TIMESTAMP_FIELD_NUMBER = 4;
     private long timestamp_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 timestamp = 4;</code>
      * @return The timestamp.
      */
@@ -9913,6 +10041,10 @@ java.lang.String defaultValue) {
 
       private long timestamp_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 timestamp = 4;</code>
        * @return The timestamp.
        */
@@ -9921,6 +10053,10 @@ java.lang.String defaultValue) {
         return timestamp_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 timestamp = 4;</code>
        * @param value The timestamp to set.
        * @return This builder for chaining.
@@ -9933,6 +10069,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 timestamp = 4;</code>
        * @return This builder for chaining.
        */
@@ -10155,12 +10295,20 @@ java.lang.String defaultValue) {
         getOutputJsonBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 8;</code>
      * @return The createdAt.
      */
     long getCreatedAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 updated_at = 9;</code>
      * @return The updatedAt.
      */
@@ -10201,11 +10349,19 @@ java.lang.String defaultValue);
         java.lang.String key);
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 claim_expires_at = 11;</code>
      * @return Whether the claimExpiresAt field is set.
      */
     boolean hasClaimExpiresAt();
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 claim_expires_at = 11;</code>
      * @return The claimExpiresAt.
      */
@@ -10613,6 +10769,10 @@ java.lang.String defaultValue);
     public static final int CREATED_AT_FIELD_NUMBER = 8;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 8;</code>
      * @return The createdAt.
      */
@@ -10624,6 +10784,10 @@ java.lang.String defaultValue);
     public static final int UPDATED_AT_FIELD_NUMBER = 9;
     private long updatedAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 updated_at = 9;</code>
      * @return The updatedAt.
      */
@@ -10714,6 +10878,10 @@ java.lang.String defaultValue) {
     public static final int CLAIM_EXPIRES_AT_FIELD_NUMBER = 11;
     private long claimExpiresAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 claim_expires_at = 11;</code>
      * @return Whether the claimExpiresAt field is set.
      */
@@ -10722,6 +10890,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 claim_expires_at = 11;</code>
      * @return The claimExpiresAt.
      */
@@ -12136,6 +12308,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 8;</code>
        * @return The createdAt.
        */
@@ -12144,6 +12320,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 8;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -12156,6 +12336,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 8;</code>
        * @return This builder for chaining.
        */
@@ -12168,6 +12352,10 @@ java.lang.String defaultValue) {
 
       private long updatedAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 9;</code>
        * @return The updatedAt.
        */
@@ -12176,6 +12364,10 @@ java.lang.String defaultValue) {
         return updatedAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 9;</code>
        * @param value The updatedAt to set.
        * @return This builder for chaining.
@@ -12188,6 +12380,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 9;</code>
        * @return This builder for chaining.
        */
@@ -12327,6 +12523,10 @@ java.lang.String defaultValue) {
 
       private long claimExpiresAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 claim_expires_at = 11;</code>
        * @return Whether the claimExpiresAt field is set.
        */
@@ -12335,6 +12535,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00000400) != 0);
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 claim_expires_at = 11;</code>
        * @return The claimExpiresAt.
        */
@@ -12343,6 +12547,10 @@ java.lang.String defaultValue) {
         return claimExpiresAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 claim_expires_at = 11;</code>
        * @param value The claimExpiresAt to set.
        * @return This builder for chaining.
@@ -12355,6 +12563,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 claim_expires_at = 11;</code>
        * @return This builder for chaining.
        */
@@ -12899,34 +13111,58 @@ java.lang.String defaultValue) {
         getSuspendJsonBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 12;</code>
      * @return The createdAt.
      */
     long getCreatedAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 updated_at = 13;</code>
      * @return The updatedAt.
      */
     long getUpdatedAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 next_retry_at = 14;</code>
      * @return Whether the nextRetryAt field is set.
      */
     boolean hasNextRetryAt();
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 next_retry_at = 14;</code>
      * @return The nextRetryAt.
      */
     long getNextRetryAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 timeout_at = 15;</code>
      * @return Whether the timeoutAt field is set.
      */
     boolean hasTimeoutAt();
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 timeout_at = 15;</code>
      * @return The timeoutAt.
      */
@@ -12945,11 +13181,19 @@ java.lang.String defaultValue) {
         getWaitWakeupHandleBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 wait_until_at = 17;</code>
      * @return Whether the waitUntilAt field is set.
      */
     boolean hasWaitUntilAt();
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 wait_until_at = 17;</code>
      * @return The waitUntilAt.
      */
@@ -13413,6 +13657,10 @@ java.lang.String defaultValue) {
     public static final int CREATED_AT_FIELD_NUMBER = 12;
     private long createdAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 created_at = 12;</code>
      * @return The createdAt.
      */
@@ -13424,6 +13672,10 @@ java.lang.String defaultValue) {
     public static final int UPDATED_AT_FIELD_NUMBER = 13;
     private long updatedAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 updated_at = 13;</code>
      * @return The updatedAt.
      */
@@ -13435,6 +13687,10 @@ java.lang.String defaultValue) {
     public static final int NEXT_RETRY_AT_FIELD_NUMBER = 14;
     private long nextRetryAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 next_retry_at = 14;</code>
      * @return Whether the nextRetryAt field is set.
      */
@@ -13443,6 +13699,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 next_retry_at = 14;</code>
      * @return The nextRetryAt.
      */
@@ -13454,6 +13714,10 @@ java.lang.String defaultValue) {
     public static final int TIMEOUT_AT_FIELD_NUMBER = 15;
     private long timeoutAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 timeout_at = 15;</code>
      * @return Whether the timeoutAt field is set.
      */
@@ -13462,6 +13726,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000002) != 0);
     }
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 timeout_at = 15;</code>
      * @return The timeoutAt.
      */
@@ -13512,6 +13780,10 @@ java.lang.String defaultValue) {
     public static final int WAIT_UNTIL_AT_FIELD_NUMBER = 17;
     private long waitUntilAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 wait_until_at = 17;</code>
      * @return Whether the waitUntilAt field is set.
      */
@@ -13520,6 +13792,10 @@ java.lang.String defaultValue) {
       return ((bitField0_ & 0x00000004) != 0);
     }
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>optional int64 wait_until_at = 17;</code>
      * @return The waitUntilAt.
      */
@@ -14979,6 +15255,10 @@ java.lang.String defaultValue) {
 
       private long createdAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 12;</code>
        * @return The createdAt.
        */
@@ -14987,6 +15267,10 @@ java.lang.String defaultValue) {
         return createdAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 12;</code>
        * @param value The createdAt to set.
        * @return This builder for chaining.
@@ -14999,6 +15283,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 created_at = 12;</code>
        * @return This builder for chaining.
        */
@@ -15011,6 +15299,10 @@ java.lang.String defaultValue) {
 
       private long updatedAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 13;</code>
        * @return The updatedAt.
        */
@@ -15019,6 +15311,10 @@ java.lang.String defaultValue) {
         return updatedAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 13;</code>
        * @param value The updatedAt to set.
        * @return This builder for chaining.
@@ -15031,6 +15327,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 updated_at = 13;</code>
        * @return This builder for chaining.
        */
@@ -15043,6 +15343,10 @@ java.lang.String defaultValue) {
 
       private long nextRetryAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 next_retry_at = 14;</code>
        * @return Whether the nextRetryAt field is set.
        */
@@ -15051,6 +15355,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00002000) != 0);
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 next_retry_at = 14;</code>
        * @return The nextRetryAt.
        */
@@ -15059,6 +15367,10 @@ java.lang.String defaultValue) {
         return nextRetryAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 next_retry_at = 14;</code>
        * @param value The nextRetryAt to set.
        * @return This builder for chaining.
@@ -15071,6 +15383,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 next_retry_at = 14;</code>
        * @return This builder for chaining.
        */
@@ -15083,6 +15399,10 @@ java.lang.String defaultValue) {
 
       private long timeoutAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 timeout_at = 15;</code>
        * @return Whether the timeoutAt field is set.
        */
@@ -15091,6 +15411,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00004000) != 0);
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 timeout_at = 15;</code>
        * @return The timeoutAt.
        */
@@ -15099,6 +15423,10 @@ java.lang.String defaultValue) {
         return timeoutAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 timeout_at = 15;</code>
        * @param value The timeoutAt to set.
        * @return This builder for chaining.
@@ -15111,6 +15439,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 timeout_at = 15;</code>
        * @return This builder for chaining.
        */
@@ -15195,6 +15527,10 @@ java.lang.String defaultValue) {
 
       private long waitUntilAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 wait_until_at = 17;</code>
        * @return Whether the waitUntilAt field is set.
        */
@@ -15203,6 +15539,10 @@ java.lang.String defaultValue) {
         return ((bitField0_ & 0x00010000) != 0);
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 wait_until_at = 17;</code>
        * @return The waitUntilAt.
        */
@@ -15211,6 +15551,10 @@ java.lang.String defaultValue) {
         return waitUntilAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 wait_until_at = 17;</code>
        * @param value The waitUntilAt to set.
        * @return This builder for chaining.
@@ -15223,6 +15567,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>optional int64 wait_until_at = 17;</code>
        * @return This builder for chaining.
        */

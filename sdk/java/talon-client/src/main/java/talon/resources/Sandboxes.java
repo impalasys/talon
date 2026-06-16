@@ -43,11 +43,21 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         getProviderBytes();
 
     /**
+     * <pre>
+     * Internal canonical JSON for provider-specific settings. User-facing YAML
+     * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+     * </pre>
+     *
      * <code>string provider_config_json = 2;</code>
      * @return The providerConfigJson.
      */
     java.lang.String getProviderConfigJson();
     /**
+     * <pre>
+     * Internal canonical JSON for provider-specific settings. User-facing YAML
+     * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+     * </pre>
+     *
      * <code>string provider_config_json = 2;</code>
      * @return The bytes for providerConfigJson.
      */
@@ -55,11 +65,21 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         getProviderConfigJsonBytes();
 
     /**
+     * <pre>
+     * Internal canonical JSON for provider credentials. User-facing YAML uses
+     * `credentials: {...}` and the manifest parser normalizes it here.
+     * </pre>
+     *
      * <code>string credentials_json = 3;</code>
      * @return The credentialsJson.
      */
     java.lang.String getCredentialsJson();
     /**
+     * <pre>
+     * Internal canonical JSON for provider credentials. User-facing YAML uses
+     * `credentials: {...}` and the manifest parser normalizes it here.
+     * </pre>
+     *
      * <code>string credentials_json = 3;</code>
      * @return The bytes for credentialsJson.
      */
@@ -154,6 +174,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object providerConfigJson_ = "";
     /**
+     * <pre>
+     * Internal canonical JSON for provider-specific settings. User-facing YAML
+     * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+     * </pre>
+     *
      * <code>string provider_config_json = 2;</code>
      * @return The providerConfigJson.
      */
@@ -171,6 +196,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Internal canonical JSON for provider-specific settings. User-facing YAML
+     * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+     * </pre>
+     *
      * <code>string provider_config_json = 2;</code>
      * @return The bytes for providerConfigJson.
      */
@@ -193,6 +223,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object credentialsJson_ = "";
     /**
+     * <pre>
+     * Internal canonical JSON for provider credentials. User-facing YAML uses
+     * `credentials: {...}` and the manifest parser normalizes it here.
+     * </pre>
+     *
      * <code>string credentials_json = 3;</code>
      * @return The credentialsJson.
      */
@@ -210,6 +245,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Internal canonical JSON for provider credentials. User-facing YAML uses
+     * `credentials: {...}` and the manifest parser normalizes it here.
+     * </pre>
+     *
      * <code>string credentials_json = 3;</code>
      * @return The bytes for credentialsJson.
      */
@@ -644,6 +684,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object providerConfigJson_ = "";
       /**
+       * <pre>
+       * Internal canonical JSON for provider-specific settings. User-facing YAML
+       * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string provider_config_json = 2;</code>
        * @return The providerConfigJson.
        */
@@ -660,6 +705,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Internal canonical JSON for provider-specific settings. User-facing YAML
+       * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string provider_config_json = 2;</code>
        * @return The bytes for providerConfigJson.
        */
@@ -677,6 +727,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Internal canonical JSON for provider-specific settings. User-facing YAML
+       * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string provider_config_json = 2;</code>
        * @param value The providerConfigJson to set.
        * @return This builder for chaining.
@@ -690,6 +745,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Internal canonical JSON for provider-specific settings. User-facing YAML
+       * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string provider_config_json = 2;</code>
        * @return This builder for chaining.
        */
@@ -700,6 +760,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Internal canonical JSON for provider-specific settings. User-facing YAML
+       * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string provider_config_json = 2;</code>
        * @param value The bytes for providerConfigJson to set.
        * @return This builder for chaining.
@@ -716,6 +781,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object credentialsJson_ = "";
       /**
+       * <pre>
+       * Internal canonical JSON for provider credentials. User-facing YAML uses
+       * `credentials: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string credentials_json = 3;</code>
        * @return The credentialsJson.
        */
@@ -732,6 +802,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Internal canonical JSON for provider credentials. User-facing YAML uses
+       * `credentials: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string credentials_json = 3;</code>
        * @return The bytes for credentialsJson.
        */
@@ -749,6 +824,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Internal canonical JSON for provider credentials. User-facing YAML uses
+       * `credentials: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string credentials_json = 3;</code>
        * @param value The credentialsJson to set.
        * @return This builder for chaining.
@@ -762,6 +842,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Internal canonical JSON for provider credentials. User-facing YAML uses
+       * `credentials: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string credentials_json = 3;</code>
        * @return This builder for chaining.
        */
@@ -772,6 +857,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Internal canonical JSON for provider credentials. User-facing YAML uses
+       * `credentials: {...}` and the manifest parser normalizes it here.
+       * </pre>
+       *
        * <code>string credentials_json = 3;</code>
        * @param value The bytes for credentialsJson to set.
        * @return This builder for chaining.
@@ -854,11 +944,21 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         getModeBytes();
 
     /**
+     * <pre>
+     * Absolute workspace path inside the sandbox. The manifest parser rejects
+     * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+     * </pre>
+     *
      * <code>string mount_path = 2;</code>
      * @return The mountPath.
      */
     java.lang.String getMountPath();
     /**
+     * <pre>
+     * Absolute workspace path inside the sandbox. The manifest parser rejects
+     * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+     * </pre>
+     *
      * <code>string mount_path = 2;</code>
      * @return The bytes for mountPath.
      */
@@ -952,6 +1052,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object mountPath_ = "";
     /**
+     * <pre>
+     * Absolute workspace path inside the sandbox. The manifest parser rejects
+     * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+     * </pre>
+     *
      * <code>string mount_path = 2;</code>
      * @return The mountPath.
      */
@@ -969,6 +1074,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Absolute workspace path inside the sandbox. The manifest parser rejects
+     * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+     * </pre>
+     *
      * <code>string mount_path = 2;</code>
      * @return The bytes for mountPath.
      */
@@ -1379,6 +1489,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object mountPath_ = "";
       /**
+       * <pre>
+       * Absolute workspace path inside the sandbox. The manifest parser rejects
+       * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+       * </pre>
+       *
        * <code>string mount_path = 2;</code>
        * @return The mountPath.
        */
@@ -1395,6 +1510,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Absolute workspace path inside the sandbox. The manifest parser rejects
+       * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+       * </pre>
+       *
        * <code>string mount_path = 2;</code>
        * @return The bytes for mountPath.
        */
@@ -1412,6 +1532,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Absolute workspace path inside the sandbox. The manifest parser rejects
+       * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+       * </pre>
+       *
        * <code>string mount_path = 2;</code>
        * @param value The mountPath to set.
        * @return This builder for chaining.
@@ -1425,6 +1550,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Absolute workspace path inside the sandbox. The manifest parser rejects
+       * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+       * </pre>
+       *
        * <code>string mount_path = 2;</code>
        * @return This builder for chaining.
        */
@@ -1435,6 +1565,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Absolute workspace path inside the sandbox. The manifest parser rejects
+       * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+       * </pre>
+       *
        * <code>string mount_path = 2;</code>
        * @param value The bytes for mountPath to set.
        * @return This builder for chaining.
@@ -6539,18 +6674,30 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         getTokenBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 acquired_at = 5;</code>
      * @return The acquiredAt.
      */
     long getAcquiredAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 expires_at = 6;</code>
      * @return The expiresAt.
      */
     long getExpiresAt();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 heartbeat_at = 7;</code>
      * @return The heartbeatAt.
      */
@@ -6761,6 +6908,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     public static final int ACQUIRED_AT_FIELD_NUMBER = 5;
     private long acquiredAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 acquired_at = 5;</code>
      * @return The acquiredAt.
      */
@@ -6772,6 +6923,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     public static final int EXPIRES_AT_FIELD_NUMBER = 6;
     private long expiresAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 expires_at = 6;</code>
      * @return The expiresAt.
      */
@@ -6783,6 +6938,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     public static final int HEARTBEAT_AT_FIELD_NUMBER = 7;
     private long heartbeatAt_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 heartbeat_at = 7;</code>
      * @return The heartbeatAt.
      */
@@ -7519,6 +7678,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
       private long acquiredAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 acquired_at = 5;</code>
        * @return The acquiredAt.
        */
@@ -7527,6 +7690,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return acquiredAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 acquired_at = 5;</code>
        * @param value The acquiredAt to set.
        * @return This builder for chaining.
@@ -7539,6 +7706,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 acquired_at = 5;</code>
        * @return This builder for chaining.
        */
@@ -7551,6 +7722,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
       private long expiresAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 expires_at = 6;</code>
        * @return The expiresAt.
        */
@@ -7559,6 +7734,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return expiresAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 expires_at = 6;</code>
        * @param value The expiresAt to set.
        * @return This builder for chaining.
@@ -7571,6 +7750,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 expires_at = 6;</code>
        * @return This builder for chaining.
        */
@@ -7583,6 +7766,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
       private long heartbeatAt_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 heartbeat_at = 7;</code>
        * @return The heartbeatAt.
        */
@@ -7591,6 +7778,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return heartbeatAt_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 heartbeat_at = 7;</code>
        * @param value The heartbeatAt to set.
        * @return This builder for chaining.
@@ -7603,6 +7794,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 heartbeat_at = 7;</code>
        * @return This builder for chaining.
        */
@@ -10549,11 +10744,19 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.MessageOrBuilder {
 
     /**
+     * <pre>
+     * SandboxPolicy name resolved in the sandbox namespace.
+     * </pre>
+     *
      * <code>string policy_ref = 1;</code>
      * @return The policyRef.
      */
     java.lang.String getPolicyRef();
     /**
+     * <pre>
+     * SandboxPolicy name resolved in the sandbox namespace.
+     * </pre>
+     *
      * <code>string policy_ref = 1;</code>
      * @return The bytes for policyRef.
      */
@@ -10576,16 +10779,19 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     talon.resources.Common.ResourceRefOrBuilder getClassRefOrBuilder();
 
     /**
-     * <code>string runtime_template_json = 3;</code>
-     * @return The runtimeTemplateJson.
+     * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+     * @return Whether the runtimeTemplate field is set.
      */
-    java.lang.String getRuntimeTemplateJson();
+    boolean hasRuntimeTemplate();
     /**
-     * <code>string runtime_template_json = 3;</code>
-     * @return The bytes for runtimeTemplateJson.
+     * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+     * @return The runtimeTemplate.
      */
-    com.google.protobuf.ByteString
-        getRuntimeTemplateJsonBytes();
+    talon.resources.Sandboxes.SandboxRuntimeTemplateSpec getRuntimeTemplate();
+    /**
+     * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+     */
+    talon.resources.Sandboxes.SandboxRuntimeTemplateSpecOrBuilder getRuntimeTemplateOrBuilder();
   }
   /**
    * Protobuf type {@code talon.resources.SandboxSpec}
@@ -10610,7 +10816,6 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     }
     private SandboxSpec() {
       policyRef_ = "";
-      runtimeTemplateJson_ = "";
     }
 
     public static final com.google.protobuf.Descriptors.Descriptor
@@ -10636,6 +10841,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object policyRef_ = "";
     /**
+     * <pre>
+     * SandboxPolicy name resolved in the sandbox namespace.
+     * </pre>
+     *
      * <code>string policy_ref = 1;</code>
      * @return The policyRef.
      */
@@ -10653,6 +10862,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * SandboxPolicy name resolved in the sandbox namespace.
+     * </pre>
+     *
      * <code>string policy_ref = 1;</code>
      * @return The bytes for policyRef.
      */
@@ -10697,43 +10910,30 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       return classRef_ == null ? talon.resources.Common.ResourceRef.getDefaultInstance() : classRef_;
     }
 
-    public static final int RUNTIME_TEMPLATE_JSON_FIELD_NUMBER = 3;
-    @SuppressWarnings("serial")
-    private volatile java.lang.Object runtimeTemplateJson_ = "";
+    public static final int RUNTIME_TEMPLATE_FIELD_NUMBER = 3;
+    private talon.resources.Sandboxes.SandboxRuntimeTemplateSpec runtimeTemplate_;
     /**
-     * <code>string runtime_template_json = 3;</code>
-     * @return The runtimeTemplateJson.
+     * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+     * @return Whether the runtimeTemplate field is set.
      */
     @java.lang.Override
-    public java.lang.String getRuntimeTemplateJson() {
-      java.lang.Object ref = runtimeTemplateJson_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        runtimeTemplateJson_ = s;
-        return s;
-      }
+    public boolean hasRuntimeTemplate() {
+      return ((bitField0_ & 0x00000002) != 0);
     }
     /**
-     * <code>string runtime_template_json = 3;</code>
-     * @return The bytes for runtimeTemplateJson.
+     * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+     * @return The runtimeTemplate.
      */
     @java.lang.Override
-    public com.google.protobuf.ByteString
-        getRuntimeTemplateJsonBytes() {
-      java.lang.Object ref = runtimeTemplateJson_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b =
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        runtimeTemplateJson_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
+    public talon.resources.Sandboxes.SandboxRuntimeTemplateSpec getRuntimeTemplate() {
+      return runtimeTemplate_ == null ? talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.getDefaultInstance() : runtimeTemplate_;
+    }
+    /**
+     * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxRuntimeTemplateSpecOrBuilder getRuntimeTemplateOrBuilder() {
+      return runtimeTemplate_ == null ? talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.getDefaultInstance() : runtimeTemplate_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -10756,8 +10956,8 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       if (((bitField0_ & 0x00000001) != 0)) {
         output.writeMessage(2, getClassRef());
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(runtimeTemplateJson_)) {
-        com.google.protobuf.GeneratedMessage.writeString(output, 3, runtimeTemplateJson_);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(3, getRuntimeTemplate());
       }
       getUnknownFields().writeTo(output);
     }
@@ -10775,8 +10975,9 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, getClassRef());
       }
-      if (!com.google.protobuf.GeneratedMessage.isStringEmpty(runtimeTemplateJson_)) {
-        size += com.google.protobuf.GeneratedMessage.computeStringSize(3, runtimeTemplateJson_);
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getRuntimeTemplate());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -10800,8 +11001,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         if (!getClassRef()
             .equals(other.getClassRef())) return false;
       }
-      if (!getRuntimeTemplateJson()
-          .equals(other.getRuntimeTemplateJson())) return false;
+      if (hasRuntimeTemplate() != other.hasRuntimeTemplate()) return false;
+      if (hasRuntimeTemplate()) {
+        if (!getRuntimeTemplate()
+            .equals(other.getRuntimeTemplate())) return false;
+      }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
     }
@@ -10819,8 +11023,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         hash = (37 * hash) + CLASS_REF_FIELD_NUMBER;
         hash = (53 * hash) + getClassRef().hashCode();
       }
-      hash = (37 * hash) + RUNTIME_TEMPLATE_JSON_FIELD_NUMBER;
-      hash = (53 * hash) + getRuntimeTemplateJson().hashCode();
+      if (hasRuntimeTemplate()) {
+        hash = (37 * hash) + RUNTIME_TEMPLATE_FIELD_NUMBER;
+        hash = (53 * hash) + getRuntimeTemplate().hashCode();
+      }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -10952,6 +11158,7 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
           internalGetClassRefFieldBuilder();
+          internalGetRuntimeTemplateFieldBuilder();
         }
       }
       @java.lang.Override
@@ -10964,7 +11171,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
           classRefBuilder_.dispose();
           classRefBuilder_ = null;
         }
-        runtimeTemplateJson_ = "";
+        runtimeTemplate_ = null;
+        if (runtimeTemplateBuilder_ != null) {
+          runtimeTemplateBuilder_.dispose();
+          runtimeTemplateBuilder_ = null;
+        }
         return this;
       }
 
@@ -11009,7 +11220,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
           to_bitField0_ |= 0x00000001;
         }
         if (((from_bitField0_ & 0x00000004) != 0)) {
-          result.runtimeTemplateJson_ = runtimeTemplateJson_;
+          result.runtimeTemplate_ = runtimeTemplateBuilder_ == null
+              ? runtimeTemplate_
+              : runtimeTemplateBuilder_.build();
+          to_bitField0_ |= 0x00000002;
         }
         result.bitField0_ |= to_bitField0_;
       }
@@ -11034,10 +11248,8 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         if (other.hasClassRef()) {
           mergeClassRef(other.getClassRef());
         }
-        if (!other.getRuntimeTemplateJson().isEmpty()) {
-          runtimeTemplateJson_ = other.runtimeTemplateJson_;
-          bitField0_ |= 0x00000004;
-          onChanged();
+        if (other.hasRuntimeTemplate()) {
+          mergeRuntimeTemplate(other.getRuntimeTemplate());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -11078,7 +11290,9 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
                 break;
               } // case 18
               case 26: {
-                runtimeTemplateJson_ = input.readStringRequireUtf8();
+                input.readMessage(
+                    internalGetRuntimeTemplateFieldBuilder().getBuilder(),
+                    extensionRegistry);
                 bitField0_ |= 0x00000004;
                 break;
               } // case 26
@@ -11101,6 +11315,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object policyRef_ = "";
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the sandbox namespace.
+       * </pre>
+       *
        * <code>string policy_ref = 1;</code>
        * @return The policyRef.
        */
@@ -11117,6 +11335,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the sandbox namespace.
+       * </pre>
+       *
        * <code>string policy_ref = 1;</code>
        * @return The bytes for policyRef.
        */
@@ -11134,6 +11356,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the sandbox namespace.
+       * </pre>
+       *
        * <code>string policy_ref = 1;</code>
        * @param value The policyRef to set.
        * @return This builder for chaining.
@@ -11147,6 +11373,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the sandbox namespace.
+       * </pre>
+       *
        * <code>string policy_ref = 1;</code>
        * @return This builder for chaining.
        */
@@ -11157,6 +11387,10 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the sandbox namespace.
+       * </pre>
+       *
        * <code>string policy_ref = 1;</code>
        * @param value The bytes for policyRef to set.
        * @return This builder for chaining.
@@ -11292,76 +11526,125 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
         return classRefBuilder_;
       }
 
-      private java.lang.Object runtimeTemplateJson_ = "";
+      private talon.resources.Sandboxes.SandboxRuntimeTemplateSpec runtimeTemplate_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxRuntimeTemplateSpec, talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.Builder, talon.resources.Sandboxes.SandboxRuntimeTemplateSpecOrBuilder> runtimeTemplateBuilder_;
       /**
-       * <code>string runtime_template_json = 3;</code>
-       * @return The runtimeTemplateJson.
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+       * @return Whether the runtimeTemplate field is set.
        */
-      public java.lang.String getRuntimeTemplateJson() {
-        java.lang.Object ref = runtimeTemplateJson_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          runtimeTemplateJson_ = s;
-          return s;
+      public boolean hasRuntimeTemplate() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+       * @return The runtimeTemplate.
+       */
+      public talon.resources.Sandboxes.SandboxRuntimeTemplateSpec getRuntimeTemplate() {
+        if (runtimeTemplateBuilder_ == null) {
+          return runtimeTemplate_ == null ? talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.getDefaultInstance() : runtimeTemplate_;
         } else {
-          return (java.lang.String) ref;
+          return runtimeTemplateBuilder_.getMessage();
         }
       }
       /**
-       * <code>string runtime_template_json = 3;</code>
-       * @return The bytes for runtimeTemplateJson.
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
        */
-      public com.google.protobuf.ByteString
-          getRuntimeTemplateJsonBytes() {
-        java.lang.Object ref = runtimeTemplateJson_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b =
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          runtimeTemplateJson_ = b;
-          return b;
+      public Builder setRuntimeTemplate(talon.resources.Sandboxes.SandboxRuntimeTemplateSpec value) {
+        if (runtimeTemplateBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          runtimeTemplate_ = value;
         } else {
-          return (com.google.protobuf.ByteString) ref;
+          runtimeTemplateBuilder_.setMessage(value);
         }
-      }
-      /**
-       * <code>string runtime_template_json = 3;</code>
-       * @param value The runtimeTemplateJson to set.
-       * @return This builder for chaining.
-       */
-      public Builder setRuntimeTemplateJson(
-          java.lang.String value) {
-        if (value == null) { throw new NullPointerException(); }
-        runtimeTemplateJson_ = value;
         bitField0_ |= 0x00000004;
         onChanged();
         return this;
       }
       /**
-       * <code>string runtime_template_json = 3;</code>
-       * @return This builder for chaining.
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
        */
-      public Builder clearRuntimeTemplateJson() {
-        runtimeTemplateJson_ = getDefaultInstance().getRuntimeTemplateJson();
+      public Builder setRuntimeTemplate(
+          talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.Builder builderForValue) {
+        if (runtimeTemplateBuilder_ == null) {
+          runtimeTemplate_ = builderForValue.build();
+        } else {
+          runtimeTemplateBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+       */
+      public Builder mergeRuntimeTemplate(talon.resources.Sandboxes.SandboxRuntimeTemplateSpec value) {
+        if (runtimeTemplateBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            runtimeTemplate_ != null &&
+            runtimeTemplate_ != talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.getDefaultInstance()) {
+            getRuntimeTemplateBuilder().mergeFrom(value);
+          } else {
+            runtimeTemplate_ = value;
+          }
+        } else {
+          runtimeTemplateBuilder_.mergeFrom(value);
+        }
+        if (runtimeTemplate_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+       */
+      public Builder clearRuntimeTemplate() {
         bitField0_ = (bitField0_ & ~0x00000004);
+        runtimeTemplate_ = null;
+        if (runtimeTemplateBuilder_ != null) {
+          runtimeTemplateBuilder_.dispose();
+          runtimeTemplateBuilder_ = null;
+        }
         onChanged();
         return this;
       }
       /**
-       * <code>string runtime_template_json = 3;</code>
-       * @param value The bytes for runtimeTemplateJson to set.
-       * @return This builder for chaining.
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
        */
-      public Builder setRuntimeTemplateJsonBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) { throw new NullPointerException(); }
-        checkByteStringIsUtf8(value);
-        runtimeTemplateJson_ = value;
+      public talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.Builder getRuntimeTemplateBuilder() {
         bitField0_ |= 0x00000004;
         onChanged();
-        return this;
+        return internalGetRuntimeTemplateFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+       */
+      public talon.resources.Sandboxes.SandboxRuntimeTemplateSpecOrBuilder getRuntimeTemplateOrBuilder() {
+        if (runtimeTemplateBuilder_ != null) {
+          return runtimeTemplateBuilder_.getMessageOrBuilder();
+        } else {
+          return runtimeTemplate_ == null ?
+              talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.getDefaultInstance() : runtimeTemplate_;
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxRuntimeTemplateSpec, talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.Builder, talon.resources.Sandboxes.SandboxRuntimeTemplateSpecOrBuilder>
+          internalGetRuntimeTemplateFieldBuilder() {
+        if (runtimeTemplateBuilder_ == null) {
+          runtimeTemplateBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sandboxes.SandboxRuntimeTemplateSpec, talon.resources.Sandboxes.SandboxRuntimeTemplateSpec.Builder, talon.resources.Sandboxes.SandboxRuntimeTemplateSpecOrBuilder>(
+                  getRuntimeTemplate(),
+                  getParentForChildren(),
+                  isClean());
+          runtimeTemplate_ = null;
+        }
+        return runtimeTemplateBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.resources.SandboxSpec)
@@ -11519,10 +11802,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       "ourceCondition\022\022\n\nbackend_id\030\004 \001(\t\022,\n\005le" +
       "ase\030\005 \001(\0132\035.talon.resources.SandboxLease" +
       "\0228\n\tprocesses\030\006 \003(\0132%.talon.resources.Sa" +
-      "ndboxProcessStatus\"q\n\013SandboxSpec\022\022\n\npol" +
-      "icy_ref\030\001 \001(\t\022/\n\tclass_ref\030\002 \001(\0132\034.talon" +
-      ".resources.ResourceRef\022\035\n\025runtime_templa" +
-      "te_json\030\003 \001(\tb\006proto3"
+      "ndboxProcessStatus\"\231\001\n\013SandboxSpec\022\022\n\npo" +
+      "licy_ref\030\001 \001(\t\022/\n\tclass_ref\030\002 \001(\0132\034.talo" +
+      "n.resources.ResourceRef\022E\n\020runtime_templ" +
+      "ate\030\003 \001(\0132+.talon.resources.SandboxRunti" +
+      "meTemplateSpecb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -11600,7 +11884,7 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     internal_static_talon_resources_SandboxSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxSpec_descriptor,
-        new java.lang.String[] { "PolicyRef", "ClassRef", "RuntimeTemplateJson", });
+        new java.lang.String[] { "PolicyRef", "ClassRef", "RuntimeTemplate", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Common.getDescriptor();
   }

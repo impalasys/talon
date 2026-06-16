@@ -17,11 +17,17 @@ export class SandboxClassSpec extends Message<SandboxClassSpec> {
   provider = "";
 
   /**
+   * Internal canonical JSON for provider-specific settings. User-facing YAML
+   * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+   *
    * @generated from field: string provider_config_json = 2;
    */
   providerConfigJson = "";
 
   /**
+   * Internal canonical JSON for provider credentials. User-facing YAML uses
+   * `credentials: {...}` and the manifest parser normalizes it here.
+   *
    * @generated from field: string credentials_json = 3;
    */
   credentialsJson = "";
@@ -66,6 +72,9 @@ export class SandboxWorkspaceSpec extends Message<SandboxWorkspaceSpec> {
   mode = "";
 
   /**
+   * Absolute workspace path inside the sandbox. The manifest parser rejects
+   * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+   *
    * @generated from field: string mount_path = 2;
    */
   mountPath = "";
@@ -400,16 +409,22 @@ export class SandboxLease extends Message<SandboxLease> {
   token = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 acquired_at = 5;
    */
   acquiredAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 expires_at = 6;
    */
   expiresAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 heartbeat_at = 7;
    */
   heartbeatAt = protoInt64.zero;
@@ -581,6 +596,8 @@ export class SandboxStatus extends Message<SandboxStatus> {
  */
 export class SandboxSpec extends Message<SandboxSpec> {
   /**
+   * SandboxPolicy name resolved in the sandbox namespace.
+   *
    * @generated from field: string policy_ref = 1;
    */
   policyRef = "";
@@ -591,9 +608,9 @@ export class SandboxSpec extends Message<SandboxSpec> {
   classRef?: ResourceRef;
 
   /**
-   * @generated from field: string runtime_template_json = 3;
+   * @generated from field: talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;
    */
-  runtimeTemplateJson = "";
+  runtimeTemplate?: SandboxRuntimeTemplateSpec;
 
   constructor(data?: PartialMessage<SandboxSpec>) {
     super();
@@ -605,7 +622,7 @@ export class SandboxSpec extends Message<SandboxSpec> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "policy_ref", kind: "scalar", T: 9 /* ScalarType.STRING */ },
     { no: 2, name: "class_ref", kind: "message", T: ResourceRef },
-    { no: 3, name: "runtime_template_json", kind: "scalar", T: 9 /* ScalarType.STRING */ },
+    { no: 3, name: "runtime_template", kind: "message", T: SandboxRuntimeTemplateSpec },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SandboxSpec {

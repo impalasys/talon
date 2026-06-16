@@ -22,10 +22,12 @@ const (
 )
 
 type TemplateSpec struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
-	Metadata      *ResourceMeta          `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	SpecJson      string                 `protobuf:"bytes,3,opt,name=spec_json,json=specJson,proto3" json:"spec_json,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Kind     string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Metadata *ResourceMeta          `protobuf:"bytes,2,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Internal canonical JSON for the templated spec. User-facing YAML uses
+	// `spec: {...}` and the manifest parser normalizes it into this field.
+	SpecJson      string `protobuf:"bytes,3,opt,name=spec_json,json=specJson,proto3" json:"spec_json,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

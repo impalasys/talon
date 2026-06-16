@@ -81,9 +81,10 @@ type SessionStatus struct {
 	CreatedAt          int64                  `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	LastActive         int64                  `protobuf:"varint,5,opt,name=last_active,json=lastActive,proto3" json:"last_active,omitempty"`
 	AcpSessionId       string                 `protobuf:"bytes,6,opt,name=acp_session_id,json=acpSessionId,proto3" json:"acp_session_id,omitempty"`
-	SandboxRef         string                 `protobuf:"bytes,7,opt,name=sandbox_ref,json=sandboxRef,proto3" json:"sandbox_ref,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Sandbox resource name in the same namespace as this Session.
+	SandboxRef    string `protobuf:"bytes,7,opt,name=sandbox_ref,json=sandboxRef,proto3" json:"sandbox_ref,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SessionStatus) Reset() {

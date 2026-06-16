@@ -230,13 +230,14 @@ func (x *ResourceMeta) GetDeletionTimestamp() int64 {
 }
 
 type ResourceCondition struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Type               string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Status             string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
-	Reason             string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
-	Message            string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
-	LastTransitionTime int64                  `protobuf:"varint,5,opt,name=last_transition_time,json=lastTransitionTime,proto3" json:"last_transition_time,omitempty"`
-	ObservedGeneration uint64                 `protobuf:"varint,6,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Type    string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Status  string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	Reason  string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	Message string                 `protobuf:"bytes,4,opt,name=message,proto3" json:"message,omitempty"`
+	// Unix timestamp in microseconds.
+	LastTransitionTime int64  `protobuf:"varint,5,opt,name=last_transition_time,json=lastTransitionTime,proto3" json:"last_transition_time,omitempty"`
+	ObservedGeneration uint64 `protobuf:"varint,6,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }

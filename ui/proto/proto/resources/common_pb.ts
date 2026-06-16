@@ -146,6 +146,8 @@ export type ResourceCondition = Message<"talon.resources.ResourceCondition"> & {
   message: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 last_transition_time = 5;
    */
   lastTransitionTime: bigint;

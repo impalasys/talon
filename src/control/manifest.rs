@@ -810,7 +810,7 @@ fn resource_spec_status_to_yaml_values(
         Some(SpecKind::Sandbox(spec)) => serde_json::to_string(&serde_json::json!({
             "policyRef": spec.policy_ref,
             "classRef": spec.class_ref.as_ref().map(resource_ref_json),
-            "runtimeTemplate": json_string_to_json_value(&spec.runtime_template_json)?,
+            "runtimeTemplate": sandbox_runtime_template_to_json_value(spec.runtime_template.as_ref()),
         }))?,
         Some(SpecKind::PermissionRequest(spec)) => serde_json::to_string(&serde_json::json!({
             "agent": spec.agent,
@@ -1156,11 +1156,12 @@ fn sandbox_spec_from_value(value: serde_json::Value) -> Result<resources_proto::
             .get("classRef")
             .map(resource_ref_from_value)
             .transpose()?,
-        runtime_template_json: serde_json::to_string(
+        runtime_template: Some(sandbox_runtime_template_from_value(
             value
                 .get("runtimeTemplate")
-                .unwrap_or(&serde_json::Value::Object(Default::default())),
-        )?,
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({})),
+        )?),
     })
 }
 

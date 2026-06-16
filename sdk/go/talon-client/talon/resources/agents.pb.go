@@ -295,15 +295,18 @@ func (x *AgentRuntime) GetAcp() *AcpRuntime {
 }
 
 type AcpRuntime struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	HarnessRef       string                 `protobuf:"bytes,1,opt,name=harness_ref,json=harnessRef,proto3" json:"harness_ref,omitempty"`
-	Command          string                 `protobuf:"bytes,2,opt,name=command,proto3" json:"command,omitempty"`
-	Args             []string               `protobuf:"bytes,3,rep,name=args,proto3" json:"args,omitempty"`
-	Cwd              string                 `protobuf:"bytes,4,opt,name=cwd,proto3" json:"cwd,omitempty"`
-	SandboxPolicyRef string                 `protobuf:"bytes,5,opt,name=sandbox_policy_ref,json=sandboxPolicyRef,proto3" json:"sandbox_policy_ref,omitempty"`
-	PersistSession   bool                   `protobuf:"varint,6,opt,name=persist_session,json=persistSession,proto3" json:"persist_session,omitempty"`
-	Env              map[string]string      `protobuf:"bytes,7,rep,name=env,proto3" json:"env,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	PermissionPolicy map[string]string      `protobuf:"bytes,8,rep,name=permission_policy,json=permissionPolicy,proto3" json:"permission_policy,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	HarnessRef string                 `protobuf:"bytes,1,opt,name=harness_ref,json=harnessRef,proto3" json:"harness_ref,omitempty"`
+	Command    string                 `protobuf:"bytes,2,opt,name=command,proto3" json:"command,omitempty"`
+	Args       []string               `protobuf:"bytes,3,rep,name=args,proto3" json:"args,omitempty"`
+	Cwd        string                 `protobuf:"bytes,4,opt,name=cwd,proto3" json:"cwd,omitempty"`
+	// SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+	SandboxPolicyRef string            `protobuf:"bytes,5,opt,name=sandbox_policy_ref,json=sandboxPolicyRef,proto3" json:"sandbox_policy_ref,omitempty"`
+	PersistSession   bool              `protobuf:"varint,6,opt,name=persist_session,json=persistSession,proto3" json:"persist_session,omitempty"`
+	Env              map[string]string `protobuf:"bytes,7,rep,name=env,proto3" json:"env,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Keys: default, filesystemRead, filesystemWrite, terminal.
+	// Values: allow, ask, deny.
+	PermissionPolicy map[string]string `protobuf:"bytes,8,rep,name=permission_policy,json=permissionPolicy,proto3" json:"permission_policy,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }

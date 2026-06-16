@@ -32,6 +32,7 @@ pub struct SessionMessagePart {
     pub name: ::prost::alloc::string::String,
     #[prost(string, tag = "5")]
     pub payload_json: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "6")]
     pub created_at: i64,
     #[prost(message, optional, tag = "7")]
@@ -43,6 +44,7 @@ pub struct SessionMessage {
     pub id: ::prost::alloc::string::String,
     #[prost(enumeration = "MessageRole", tag = "2")]
     pub role: i32,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "4")]
     pub created_at: i64,
     #[prost(map = "string, string", tag = "5")]
@@ -63,8 +65,10 @@ pub struct Session {
     pub ns: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
     pub status: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "5")]
     pub created_at: i64,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "6")]
     pub last_active: i64,
     #[prost(map = "string, string", tag = "7")]
@@ -92,6 +96,7 @@ pub struct ChannelMessage {
     pub author: ::prost::alloc::string::String,
     #[prost(string, tag = "6")]
     pub content: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "7")]
     pub created_at: i64,
     #[prost(string, tag = "8")]
@@ -110,6 +115,7 @@ pub struct Knowledge {
     pub path: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub content: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "3")]
     pub updated_at: i64,
     #[prost(string, tag = "4")]
@@ -125,6 +131,7 @@ pub struct KnowledgeSearchResult {
     pub snippet: ::prost::alloc::string::String,
     #[prost(float, tag = "3")]
     pub score: f32,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "4")]
     pub timestamp: i64,
     #[prost(string, tag = "5")]
@@ -146,8 +153,10 @@ pub struct WorkflowRun {
     pub state_json: ::prost::alloc::string::String,
     #[prost(string, tag = "7")]
     pub output_json: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "8")]
     pub created_at: i64,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "9")]
     pub updated_at: i64,
     #[prost(map = "string, string", tag = "10")]
@@ -155,6 +164,7 @@ pub struct WorkflowRun {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// Unix timestamp in microseconds.
     #[prost(int64, optional, tag = "11")]
     pub claim_expires_at: ::core::option::Option<i64>,
     #[prost(string, tag = "12")]
@@ -194,16 +204,21 @@ pub struct WorkflowStepRun {
     pub resume_json: ::prost::alloc::string::String,
     #[prost(string, tag = "11")]
     pub suspend_json: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "12")]
     pub created_at: i64,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "13")]
     pub updated_at: i64,
+    /// Unix timestamp in microseconds.
     #[prost(int64, optional, tag = "14")]
     pub next_retry_at: ::core::option::Option<i64>,
+    /// Unix timestamp in microseconds.
     #[prost(int64, optional, tag = "15")]
     pub timeout_at: ::core::option::Option<i64>,
     #[prost(string, tag = "16")]
     pub wait_wakeup_handle: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, optional, tag = "17")]
     pub wait_until_at: ::core::option::Option<i64>,
 }

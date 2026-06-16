@@ -209,6 +209,8 @@ export class SessionMessagePart extends Message<SessionMessagePart> {
   payloadJson = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 6;
    */
   createdAt = protoInt64.zero;
@@ -267,6 +269,8 @@ export class SessionMessage extends Message<SessionMessage> {
   role = MessageRole.ROLE_UNSPECIFIED;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 4;
    */
   createdAt = protoInt64.zero;
@@ -338,11 +342,15 @@ export class Session extends Message<Session> {
   status = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 5;
    */
   createdAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 last_active = 6;
    */
   lastActive = protoInt64.zero;
@@ -427,6 +435,8 @@ export class ChannelMessage extends Message<ChannelMessage> {
   content = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 7;
    */
   createdAt = protoInt64.zero;
@@ -498,6 +508,8 @@ export class Knowledge extends Message<Knowledge> {
   content = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 updated_at = 3;
    */
   updatedAt = protoInt64.zero;
@@ -564,6 +576,8 @@ export class KnowledgeSearchResult extends Message<KnowledgeSearchResult> {
   score = 0;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 timestamp = 4;
    */
   timestamp = protoInt64.zero;
@@ -645,11 +659,15 @@ export class WorkflowRun extends Message<WorkflowRun> {
   outputJson = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 8;
    */
   createdAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 updated_at = 9;
    */
   updatedAt = protoInt64.zero;
@@ -660,6 +678,8 @@ export class WorkflowRun extends Message<WorkflowRun> {
   labels: { [key: string]: string } = {};
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: optional int64 claim_expires_at = 11;
    */
   claimExpiresAt?: bigint;
@@ -798,21 +818,29 @@ export class WorkflowStepRun extends Message<WorkflowStepRun> {
   suspendJson = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 12;
    */
   createdAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 updated_at = 13;
    */
   updatedAt = protoInt64.zero;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: optional int64 next_retry_at = 14;
    */
   nextRetryAt?: bigint;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: optional int64 timeout_at = 15;
    */
   timeoutAt?: bigint;
@@ -823,6 +851,8 @@ export class WorkflowStepRun extends Message<WorkflowStepRun> {
   waitWakeupHandle = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: optional int64 wait_until_at = 17;
    */
   waitUntilAt?: bigint;

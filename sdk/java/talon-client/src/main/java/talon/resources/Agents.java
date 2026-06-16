@@ -4998,11 +4998,19 @@ com.google.protobuf.ListValue defaultValue) {
         getCwdBytes();
 
     /**
+     * <pre>
+     * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+     * </pre>
+     *
      * <code>string sandbox_policy_ref = 5;</code>
      * @return The sandboxPolicyRef.
      */
     java.lang.String getSandboxPolicyRef();
     /**
+     * <pre>
+     * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+     * </pre>
+     *
      * <code>string sandbox_policy_ref = 5;</code>
      * @return The bytes for sandboxPolicyRef.
      */
@@ -5050,10 +5058,20 @@ java.lang.String defaultValue);
         java.lang.String key);
 
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     int getPermissionPolicyCount();
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     boolean containsPermissionPolicy(
@@ -5065,11 +5083,21 @@ java.lang.String defaultValue);
     java.util.Map<java.lang.String, java.lang.String>
     getPermissionPolicy();
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     java.util.Map<java.lang.String, java.lang.String>
     getPermissionPolicyMap();
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     /* nullable */
@@ -5078,6 +5106,11 @@ java.lang.String getPermissionPolicyOrDefault(
         /* nullable */
 java.lang.String defaultValue);
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     java.lang.String getPermissionPolicyOrThrow(
@@ -5303,6 +5336,10 @@ java.lang.String defaultValue);
     @SuppressWarnings("serial")
     private volatile java.lang.Object sandboxPolicyRef_ = "";
     /**
+     * <pre>
+     * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+     * </pre>
+     *
      * <code>string sandbox_policy_ref = 5;</code>
      * @return The sandboxPolicyRef.
      */
@@ -5320,6 +5357,10 @@ java.lang.String defaultValue);
       }
     }
     /**
+     * <pre>
+     * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+     * </pre>
+     *
      * <code>string sandbox_policy_ref = 5;</code>
      * @return The bytes for sandboxPolicyRef.
      */
@@ -5455,6 +5496,11 @@ java.lang.String defaultValue) {
       return internalGetPermissionPolicy().getMap().size();
     }
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     @java.lang.Override
@@ -5472,6 +5518,11 @@ java.lang.String defaultValue) {
       return getPermissionPolicyMap();
     }
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     @java.lang.Override
@@ -5479,6 +5530,11 @@ java.lang.String defaultValue) {
       return internalGetPermissionPolicy().getMap();
     }
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     @java.lang.Override
@@ -5493,6 +5549,11 @@ java.lang.String defaultValue) {
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
+     * <pre>
+     * Keys: default, filesystemRead, filesystemWrite, terminal.
+     * Values: allow, ask, deny.
+     * </pre>
+     *
      * <code>map&lt;string, string&gt; permission_policy = 8;</code>
      */
     @java.lang.Override
@@ -6368,6 +6429,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object sandboxPolicyRef_ = "";
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+       * </pre>
+       *
        * <code>string sandbox_policy_ref = 5;</code>
        * @return The sandboxPolicyRef.
        */
@@ -6384,6 +6449,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+       * </pre>
+       *
        * <code>string sandbox_policy_ref = 5;</code>
        * @return The bytes for sandboxPolicyRef.
        */
@@ -6401,6 +6470,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+       * </pre>
+       *
        * <code>string sandbox_policy_ref = 5;</code>
        * @param value The sandboxPolicyRef to set.
        * @return This builder for chaining.
@@ -6414,6 +6487,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+       * </pre>
+       *
        * <code>string sandbox_policy_ref = 5;</code>
        * @return This builder for chaining.
        */
@@ -6424,6 +6501,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+       * </pre>
+       *
        * <code>string sandbox_policy_ref = 5;</code>
        * @param value The bytes for sandboxPolicyRef to set.
        * @return This builder for chaining.
@@ -6624,6 +6705,11 @@ java.lang.String defaultValue) {
         return internalGetPermissionPolicy().getMap().size();
       }
       /**
+       * <pre>
+       * Keys: default, filesystemRead, filesystemWrite, terminal.
+       * Values: allow, ask, deny.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; permission_policy = 8;</code>
        */
       @java.lang.Override
@@ -6641,6 +6727,11 @@ java.lang.String defaultValue) {
         return getPermissionPolicyMap();
       }
       /**
+       * <pre>
+       * Keys: default, filesystemRead, filesystemWrite, terminal.
+       * Values: allow, ask, deny.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; permission_policy = 8;</code>
        */
       @java.lang.Override
@@ -6648,6 +6739,11 @@ java.lang.String defaultValue) {
         return internalGetPermissionPolicy().getMap();
       }
       /**
+       * <pre>
+       * Keys: default, filesystemRead, filesystemWrite, terminal.
+       * Values: allow, ask, deny.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; permission_policy = 8;</code>
        */
       @java.lang.Override
@@ -6662,6 +6758,11 @@ java.lang.String defaultValue) {
         return map.containsKey(key) ? map.get(key) : defaultValue;
       }
       /**
+       * <pre>
+       * Keys: default, filesystemRead, filesystemWrite, terminal.
+       * Values: allow, ask, deny.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; permission_policy = 8;</code>
        */
       @java.lang.Override
@@ -6682,6 +6783,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Keys: default, filesystemRead, filesystemWrite, terminal.
+       * Values: allow, ask, deny.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; permission_policy = 8;</code>
        */
       public Builder removePermissionPolicy(
@@ -6701,6 +6807,11 @@ java.lang.String defaultValue) {
         return internalGetMutablePermissionPolicy().getMutableMap();
       }
       /**
+       * <pre>
+       * Keys: default, filesystemRead, filesystemWrite, terminal.
+       * Values: allow, ask, deny.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; permission_policy = 8;</code>
        */
       public Builder putPermissionPolicy(
@@ -6714,6 +6825,11 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Keys: default, filesystemRead, filesystemWrite, terminal.
+       * Values: allow, ask, deny.
+       * </pre>
+       *
        * <code>map&lt;string, string&gt; permission_policy = 8;</code>
        */
       public Builder putAllPermissionPolicy(

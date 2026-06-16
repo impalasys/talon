@@ -925,11 +925,19 @@ java.lang.String defaultValue) {
         getAcpSessionIdBytes();
 
     /**
+     * <pre>
+     * Sandbox resource name in the same namespace as this Session.
+     * </pre>
+     *
      * <code>string sandbox_ref = 7;</code>
      * @return The sandboxRef.
      */
     java.lang.String getSandboxRef();
     /**
+     * <pre>
+     * Sandbox resource name in the same namespace as this Session.
+     * </pre>
+     *
      * <code>string sandbox_ref = 7;</code>
      * @return The bytes for sandboxRef.
      */
@@ -1138,6 +1146,10 @@ java.lang.String defaultValue) {
     @SuppressWarnings("serial")
     private volatile java.lang.Object sandboxRef_ = "";
     /**
+     * <pre>
+     * Sandbox resource name in the same namespace as this Session.
+     * </pre>
+     *
      * <code>string sandbox_ref = 7;</code>
      * @return The sandboxRef.
      */
@@ -1155,6 +1167,10 @@ java.lang.String defaultValue) {
       }
     }
     /**
+     * <pre>
+     * Sandbox resource name in the same namespace as this Session.
+     * </pre>
+     *
      * <code>string sandbox_ref = 7;</code>
      * @return The bytes for sandboxRef.
      */
@@ -2146,6 +2162,10 @@ java.lang.String defaultValue) {
 
       private java.lang.Object sandboxRef_ = "";
       /**
+       * <pre>
+       * Sandbox resource name in the same namespace as this Session.
+       * </pre>
+       *
        * <code>string sandbox_ref = 7;</code>
        * @return The sandboxRef.
        */
@@ -2162,6 +2182,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Sandbox resource name in the same namespace as this Session.
+       * </pre>
+       *
        * <code>string sandbox_ref = 7;</code>
        * @return The bytes for sandboxRef.
        */
@@ -2179,6 +2203,10 @@ java.lang.String defaultValue) {
         }
       }
       /**
+       * <pre>
+       * Sandbox resource name in the same namespace as this Session.
+       * </pre>
+       *
        * <code>string sandbox_ref = 7;</code>
        * @param value The sandboxRef to set.
        * @return This builder for chaining.
@@ -2192,6 +2220,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Sandbox resource name in the same namespace as this Session.
+       * </pre>
+       *
        * <code>string sandbox_ref = 7;</code>
        * @return This builder for chaining.
        */
@@ -2202,6 +2234,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Sandbox resource name in the same namespace as this Session.
+       * </pre>
+       *
        * <code>string sandbox_ref = 7;</code>
        * @param value The bytes for sandboxRef to set.
        * @return This builder for chaining.

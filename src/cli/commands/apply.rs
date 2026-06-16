@@ -324,7 +324,7 @@ fn resource_spec_proto_json(spec: &resources_proto::ResourceSpec) -> serde_json:
             "sandbox": {
                 "policyRef": spec.policy_ref,
                 "classRef": spec.class_ref.as_ref().map(resource_ref_proto_json),
-                "runtimeTemplateJson": spec.runtime_template_json,
+                "runtimeTemplate": spec.runtime_template.as_ref().map(sandbox_runtime_template_proto_json),
             }
         }),
         Some(Kind::PermissionRequest(spec)) => json!({

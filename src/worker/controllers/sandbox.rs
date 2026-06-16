@@ -373,7 +373,7 @@ impl<B: SandboxBackend> SandboxController<B> {
                     resources_proto::SandboxSpec {
                         policy_ref: policy_meta.name.clone(),
                         class_ref: policy_spec_proto.class_ref.clone(),
-                        runtime_template_json: serde_json::to_string(&policy_spec.template.spec)?,
+                        runtime_template: policy_spec_proto.template.clone(),
                     },
                 )),
             }),
@@ -460,7 +460,7 @@ fn sandbox_policy_json_from_proto(
                 .unwrap_or_default(),
         },
         template: SandboxPolicyTemplateJson {
-            spec: sandbox_runtime_template_json(spec.template.as_ref()),
+            spec: sandbox_runtime_template_value(spec.template.as_ref()),
         },
         quota: SandboxQuotaJson {
             max_concurrent: spec.max_concurrent,
@@ -468,7 +468,7 @@ fn sandbox_policy_json_from_proto(
     })
 }
 
-fn sandbox_runtime_template_json(
+fn sandbox_runtime_template_value(
     template: Option<&resources_proto::SandboxRuntimeTemplateSpec>,
 ) -> serde_json::Value {
     let Some(template) = template else {

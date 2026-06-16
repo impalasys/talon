@@ -195,6 +195,8 @@ export class ResourceCondition extends Message<ResourceCondition> {
   message = "";
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 last_transition_time = 5;
    */
   lastTransitionTime = protoInt64.zero;

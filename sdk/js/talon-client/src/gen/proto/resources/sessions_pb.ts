@@ -85,6 +85,8 @@ export class SessionStatus extends Message<SessionStatus> {
   acpSessionId = "";
 
   /**
+   * Sandbox resource name in the same namespace as this Session.
+   *
    * @generated from field: string sandbox_ref = 7;
    */
   sandboxRef = "";

@@ -58,6 +58,7 @@ pub struct ResourceCondition {
     pub reason: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
     pub message: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "5")]
     pub last_transition_time: i64,
     #[prost(uint64, tag = "6")]
@@ -146,6 +147,7 @@ pub struct AcpRuntime {
     pub args: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     #[prost(string, tag = "4")]
     pub cwd: ::prost::alloc::string::String,
+    /// SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
     #[prost(string, tag = "5")]
     pub sandbox_policy_ref: ::prost::alloc::string::String,
     #[prost(bool, tag = "6")]
@@ -155,6 +157,8 @@ pub struct AcpRuntime {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+    /// Keys: default, filesystemRead, filesystemWrite, terminal.
+    /// Values: allow, ask, deny.
     #[prost(map = "string, string", tag = "8")]
     pub permission_policy: ::std::collections::HashMap<
         ::prost::alloc::string::String,
@@ -644,6 +648,8 @@ pub struct TemplateSpec {
     pub kind: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "2")]
     pub metadata: ::core::option::Option<ResourceMeta>,
+    /// Internal canonical JSON for the templated spec. User-facing YAML uses
+    /// `spec: {...}` and the manifest parser normalizes it into this field.
     #[prost(string, tag = "3")]
     pub spec_json: ::prost::alloc::string::String,
 }
@@ -702,8 +708,12 @@ pub struct DeploymentReplicaStatus {
 pub struct SandboxClassSpec {
     #[prost(string, tag = "1")]
     pub provider: ::prost::alloc::string::String,
+    /// Internal canonical JSON for provider-specific settings. User-facing YAML
+    /// uses `providerConfig: {...}` and the manifest parser normalizes it here.
     #[prost(string, tag = "2")]
     pub provider_config_json: ::prost::alloc::string::String,
+    /// Internal canonical JSON for provider credentials. User-facing YAML uses
+    /// `credentials: {...}` and the manifest parser normalizes it here.
     #[prost(string, tag = "3")]
     pub credentials_json: ::prost::alloc::string::String,
 }
@@ -711,6 +721,8 @@ pub struct SandboxClassSpec {
 pub struct SandboxWorkspaceSpec {
     #[prost(string, tag = "1")]
     pub mode: ::prost::alloc::string::String,
+    /// Absolute workspace path inside the sandbox. The manifest parser rejects
+    /// root/system mount points such as /, /etc, /usr, /proc, and /sys.
     #[prost(string, tag = "2")]
     pub mount_path: ::prost::alloc::string::String,
 }
@@ -772,10 +784,13 @@ pub struct SandboxLease {
     pub owner_session_id: ::prost::alloc::string::String,
     #[prost(string, tag = "4")]
     pub token: ::prost::alloc::string::String,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "5")]
     pub acquired_at: i64,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "6")]
     pub expires_at: i64,
+    /// Unix timestamp in microseconds.
     #[prost(int64, tag = "7")]
     pub heartbeat_at: i64,
 }
@@ -809,12 +824,13 @@ pub struct SandboxStatus {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SandboxSpec {
+    /// SandboxPolicy name resolved in the sandbox namespace.
     #[prost(string, tag = "1")]
     pub policy_ref: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "2")]
     pub class_ref: ::core::option::Option<ResourceRef>,
-    #[prost(string, tag = "3")]
-    pub runtime_template_json: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "3")]
+    pub runtime_template: ::core::option::Option<SandboxRuntimeTemplateSpec>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionSpec {
@@ -840,6 +856,7 @@ pub struct SessionStatus {
     pub last_active: i64,
     #[prost(string, tag = "6")]
     pub acp_session_id: ::prost::alloc::string::String,
+    /// Sandbox resource name in the same namespace as this Session.
     #[prost(string, tag = "7")]
     pub sandbox_ref: ::prost::alloc::string::String,
 }

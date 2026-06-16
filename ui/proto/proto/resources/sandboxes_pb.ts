@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/sandboxes.proto.
  */
 export const file_proto_resources_sandboxes: GenFile = /*@__PURE__*/
-  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvc2FuZGJveGVzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiXAoQU2FuZGJveENsYXNzU3BlYxIQCghwcm92aWRlchgBIAEoCRIcChRwcm92aWRlcl9jb25maWdfanNvbhgCIAEoCRIYChBjcmVkZW50aWFsc19qc29uGAMgASgJIjgKFFNhbmRib3hXb3Jrc3BhY2VTcGVjEgwKBG1vZGUYASABKAkSEgoKbW91bnRfcGF0aBgCIAEoCSI2ChBTYW5kYm94U2V0dXBTcGVjEhAKCHBhY2thZ2VzGAEgAygJEhAKCGNvbW1hbmRzGAIgAygJIiIKElNhbmRib3hOZXR3b3JrU3BlYxIMCgRtb2RlGAEgASgJIjsKFVNhbmRib3hGaWxlc3lzdGVtU3BlYxIQCgh3cml0YWJsZRgBIAMoCRIQCghyZWFkb25seRgCIAMoCSImChZTYW5kYm94TGVhc2VQb2xpY3lTcGVjEgwKBG1vZGUYASABKAkiyAIKGlNhbmRib3hSdW50aW1lVGVtcGxhdGVTcGVjEg0KBWltYWdlGAEgASgJEjgKCXdvcmtzcGFjZRgCIAEoCzIlLnRhbG9uLnJlc291cmNlcy5TYW5kYm94V29ya3NwYWNlU3BlYxIwCgVzZXR1cBgDIAEoCzIhLnRhbG9uLnJlc291cmNlcy5TYW5kYm94U2V0dXBTcGVjEjQKB25ldHdvcmsYBCABKAsyIy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveE5ldHdvcmtTcGVjEjoKCmZpbGVzeXN0ZW0YBSABKAsyJi50YWxvbi5yZXNvdXJjZXMuU2FuZGJveEZpbGVzeXN0ZW1TcGVjEj0KDGxlYXNlX3BvbGljeRgGIAEoCzInLnRhbG9uLnJlc291cmNlcy5TYW5kYm94TGVhc2VQb2xpY3lTcGVjIpsBChFTYW5kYm94UG9saWN5U3BlYxIvCgljbGFzc19yZWYYASABKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYSPQoIdGVtcGxhdGUYAiABKAsyKy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFJ1bnRpbWVUZW1wbGF0ZVNwZWMSFgoObWF4X2NvbmN1cnJlbnQYAyABKA0inwEKDFNhbmRib3hMZWFzZRISCgpvd25lcl9raW5kGAEgASgJEhMKC293bmVyX2FnZW50GAIgASgJEhgKEG93bmVyX3Nlc3Npb25faWQYAyABKAkSDQoFdG9rZW4YBCABKAkSEwoLYWNxdWlyZWRfYXQYBSABKAMSEgoKZXhwaXJlc19hdBgGIAEoAxIUCgxoZWFydGJlYXRfYXQYByABKAMiYgoUU2FuZGJveFByb2Nlc3NTdGF0dXMSCgoCaWQYASABKAkSDwoHY29tbWFuZBgCIAEoCRIMCgRhcmdzGAMgAygJEhAKCHByb3RvY29sGAQgASgJEg0KBXBoYXNlGAUgASgJIu8BCg1TYW5kYm94U3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhISCgpiYWNrZW5kX2lkGAQgASgJEiwKBWxlYXNlGAUgASgLMh0udGFsb24ucmVzb3VyY2VzLlNhbmRib3hMZWFzZRI4Cglwcm9jZXNzZXMYBiADKAsyJS50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFByb2Nlc3NTdGF0dXMicQoLU2FuZGJveFNwZWMSEgoKcG9saWN5X3JlZhgBIAEoCRIvCgljbGFzc19yZWYYAiABKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYSHQoVcnVudGltZV90ZW1wbGF0ZV9qc29uGAMgASgJYgZwcm90bzM", [file_proto_resources_common]);
+  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvc2FuZGJveGVzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiXAoQU2FuZGJveENsYXNzU3BlYxIQCghwcm92aWRlchgBIAEoCRIcChRwcm92aWRlcl9jb25maWdfanNvbhgCIAEoCRIYChBjcmVkZW50aWFsc19qc29uGAMgASgJIjgKFFNhbmRib3hXb3Jrc3BhY2VTcGVjEgwKBG1vZGUYASABKAkSEgoKbW91bnRfcGF0aBgCIAEoCSI2ChBTYW5kYm94U2V0dXBTcGVjEhAKCHBhY2thZ2VzGAEgAygJEhAKCGNvbW1hbmRzGAIgAygJIiIKElNhbmRib3hOZXR3b3JrU3BlYxIMCgRtb2RlGAEgASgJIjsKFVNhbmRib3hGaWxlc3lzdGVtU3BlYxIQCgh3cml0YWJsZRgBIAMoCRIQCghyZWFkb25seRgCIAMoCSImChZTYW5kYm94TGVhc2VQb2xpY3lTcGVjEgwKBG1vZGUYASABKAkiyAIKGlNhbmRib3hSdW50aW1lVGVtcGxhdGVTcGVjEg0KBWltYWdlGAEgASgJEjgKCXdvcmtzcGFjZRgCIAEoCzIlLnRhbG9uLnJlc291cmNlcy5TYW5kYm94V29ya3NwYWNlU3BlYxIwCgVzZXR1cBgDIAEoCzIhLnRhbG9uLnJlc291cmNlcy5TYW5kYm94U2V0dXBTcGVjEjQKB25ldHdvcmsYBCABKAsyIy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveE5ldHdvcmtTcGVjEjoKCmZpbGVzeXN0ZW0YBSABKAsyJi50YWxvbi5yZXNvdXJjZXMuU2FuZGJveEZpbGVzeXN0ZW1TcGVjEj0KDGxlYXNlX3BvbGljeRgGIAEoCzInLnRhbG9uLnJlc291cmNlcy5TYW5kYm94TGVhc2VQb2xpY3lTcGVjIpsBChFTYW5kYm94UG9saWN5U3BlYxIvCgljbGFzc19yZWYYASABKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYSPQoIdGVtcGxhdGUYAiABKAsyKy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFJ1bnRpbWVUZW1wbGF0ZVNwZWMSFgoObWF4X2NvbmN1cnJlbnQYAyABKA0inwEKDFNhbmRib3hMZWFzZRISCgpvd25lcl9raW5kGAEgASgJEhMKC293bmVyX2FnZW50GAIgASgJEhgKEG93bmVyX3Nlc3Npb25faWQYAyABKAkSDQoFdG9rZW4YBCABKAkSEwoLYWNxdWlyZWRfYXQYBSABKAMSEgoKZXhwaXJlc19hdBgGIAEoAxIUCgxoZWFydGJlYXRfYXQYByABKAMiYgoUU2FuZGJveFByb2Nlc3NTdGF0dXMSCgoCaWQYASABKAkSDwoHY29tbWFuZBgCIAEoCRIMCgRhcmdzGAMgAygJEhAKCHByb3RvY29sGAQgASgJEg0KBXBoYXNlGAUgASgJIu8BCg1TYW5kYm94U3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhISCgpiYWNrZW5kX2lkGAQgASgJEiwKBWxlYXNlGAUgASgLMh0udGFsb24ucmVzb3VyY2VzLlNhbmRib3hMZWFzZRI4Cglwcm9jZXNzZXMYBiADKAsyJS50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFByb2Nlc3NTdGF0dXMimQEKC1NhbmRib3hTcGVjEhIKCnBvbGljeV9yZWYYASABKAkSLwoJY2xhc3NfcmVmGAIgASgLMhwudGFsb24ucmVzb3VyY2VzLlJlc291cmNlUmVmEkUKEHJ1bnRpbWVfdGVtcGxhdGUYAyABKAsyKy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFJ1bnRpbWVUZW1wbGF0ZVNwZWNiBnByb3RvMw", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.SandboxClassSpec
@@ -24,11 +24,17 @@ export type SandboxClassSpec = Message<"talon.resources.SandboxClassSpec"> & {
   provider: string;
 
   /**
+   * Internal canonical JSON for provider-specific settings. User-facing YAML
+   * uses `providerConfig: {...}` and the manifest parser normalizes it here.
+   *
    * @generated from field: string provider_config_json = 2;
    */
   providerConfigJson: string;
 
   /**
+   * Internal canonical JSON for provider credentials. User-facing YAML uses
+   * `credentials: {...}` and the manifest parser normalizes it here.
+   *
    * @generated from field: string credentials_json = 3;
    */
   credentialsJson: string;
@@ -51,6 +57,9 @@ export type SandboxWorkspaceSpec = Message<"talon.resources.SandboxWorkspaceSpec
   mode: string;
 
   /**
+   * Absolute workspace path inside the sandbox. The manifest parser rejects
+   * root/system mount points such as /, /etc, /usr, /proc, and /sys.
+   *
    * @generated from field: string mount_path = 2;
    */
   mountPath: string;
@@ -235,16 +244,22 @@ export type SandboxLease = Message<"talon.resources.SandboxLease"> & {
   token: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 acquired_at = 5;
    */
   acquiredAt: bigint;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 expires_at = 6;
    */
   expiresAt: bigint;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 heartbeat_at = 7;
    */
   heartbeatAt: bigint;
@@ -341,6 +356,8 @@ export const SandboxStatusSchema: GenMessage<SandboxStatus> = /*@__PURE__*/
  */
 export type SandboxSpec = Message<"talon.resources.SandboxSpec"> & {
   /**
+   * SandboxPolicy name resolved in the sandbox namespace.
+   *
    * @generated from field: string policy_ref = 1;
    */
   policyRef: string;
@@ -351,9 +368,9 @@ export type SandboxSpec = Message<"talon.resources.SandboxSpec"> & {
   classRef?: ResourceRef;
 
   /**
-   * @generated from field: string runtime_template_json = 3;
+   * @generated from field: talon.resources.SandboxRuntimeTemplateSpec runtime_template = 3;
    */
-  runtimeTemplateJson: string;
+  runtimeTemplate?: SandboxRuntimeTemplateSpec;
 };
 
 /**

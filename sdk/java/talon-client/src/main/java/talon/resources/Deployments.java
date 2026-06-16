@@ -58,11 +58,21 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
     talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
 
     /**
+     * <pre>
+     * Internal canonical JSON for the templated spec. User-facing YAML uses
+     * `spec: {...}` and the manifest parser normalizes it into this field.
+     * </pre>
+     *
      * <code>string spec_json = 3;</code>
      * @return The specJson.
      */
     java.lang.String getSpecJson();
     /**
+     * <pre>
+     * Internal canonical JSON for the templated spec. User-facing YAML uses
+     * `spec: {...}` and the manifest parser normalizes it into this field.
+     * </pre>
+     *
      * <code>string spec_json = 3;</code>
      * @return The bytes for specJson.
      */
@@ -183,6 +193,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
     @SuppressWarnings("serial")
     private volatile java.lang.Object specJson_ = "";
     /**
+     * <pre>
+     * Internal canonical JSON for the templated spec. User-facing YAML uses
+     * `spec: {...}` and the manifest parser normalizes it into this field.
+     * </pre>
+     *
      * <code>string spec_json = 3;</code>
      * @return The specJson.
      */
@@ -200,6 +215,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
       }
     }
     /**
+     * <pre>
+     * Internal canonical JSON for the templated spec. User-facing YAML uses
+     * `spec: {...}` and the manifest parser normalizes it into this field.
+     * </pre>
+     *
      * <code>string spec_json = 3;</code>
      * @return The bytes for specJson.
      */
@@ -776,6 +796,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
 
       private java.lang.Object specJson_ = "";
       /**
+       * <pre>
+       * Internal canonical JSON for the templated spec. User-facing YAML uses
+       * `spec: {...}` and the manifest parser normalizes it into this field.
+       * </pre>
+       *
        * <code>string spec_json = 3;</code>
        * @return The specJson.
        */
@@ -792,6 +817,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Internal canonical JSON for the templated spec. User-facing YAML uses
+       * `spec: {...}` and the manifest parser normalizes it into this field.
+       * </pre>
+       *
        * <code>string spec_json = 3;</code>
        * @return The bytes for specJson.
        */
@@ -809,6 +839,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
         }
       }
       /**
+       * <pre>
+       * Internal canonical JSON for the templated spec. User-facing YAML uses
+       * `spec: {...}` and the manifest parser normalizes it into this field.
+       * </pre>
+       *
        * <code>string spec_json = 3;</code>
        * @param value The specJson to set.
        * @return This builder for chaining.
@@ -822,6 +857,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Internal canonical JSON for the templated spec. User-facing YAML uses
+       * `spec: {...}` and the manifest parser normalizes it into this field.
+       * </pre>
+       *
        * <code>string spec_json = 3;</code>
        * @return This builder for chaining.
        */
@@ -832,6 +872,11 @@ public final class Deployments extends com.google.protobuf.GeneratedFile {
         return this;
       }
       /**
+       * <pre>
+       * Internal canonical JSON for the templated spec. User-facing YAML uses
+       * `spec: {...}` and the manifest parser normalizes it into this field.
+       * </pre>
+       *
        * <code>string spec_json = 3;</code>
        * @param value The bytes for specJson to set.
        * @return This builder for chaining.

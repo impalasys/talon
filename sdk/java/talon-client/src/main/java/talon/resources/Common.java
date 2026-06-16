@@ -3661,6 +3661,10 @@ java.lang.String defaultValue) {
         getMessageBytes();
 
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 last_transition_time = 5;</code>
      * @return The lastTransitionTime.
      */
@@ -3877,6 +3881,10 @@ java.lang.String defaultValue) {
     public static final int LAST_TRANSITION_TIME_FIELD_NUMBER = 5;
     private long lastTransitionTime_ = 0L;
     /**
+     * <pre>
+     * Unix timestamp in microseconds.
+     * </pre>
+     *
      * <code>int64 last_transition_time = 5;</code>
      * @return The lastTransitionTime.
      */
@@ -4600,6 +4608,10 @@ java.lang.String defaultValue) {
 
       private long lastTransitionTime_ ;
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 last_transition_time = 5;</code>
        * @return The lastTransitionTime.
        */
@@ -4608,6 +4620,10 @@ java.lang.String defaultValue) {
         return lastTransitionTime_;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 last_transition_time = 5;</code>
        * @param value The lastTransitionTime to set.
        * @return This builder for chaining.
@@ -4620,6 +4636,10 @@ java.lang.String defaultValue) {
         return this;
       }
       /**
+       * <pre>
+       * Unix timestamp in microseconds.
+       * </pre>
+       *
        * <code>int64 last_transition_time = 5;</code>
        * @return This builder for chaining.
        */

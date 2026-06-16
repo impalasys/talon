@@ -252,6 +252,8 @@ export class AcpRuntime extends Message<AcpRuntime> {
   cwd = "";
 
   /**
+   * SandboxPolicy name resolved in the agent namespace, then namespace ancestry.
+   *
    * @generated from field: string sandbox_policy_ref = 5;
    */
   sandboxPolicyRef = "";
@@ -267,6 +269,9 @@ export class AcpRuntime extends Message<AcpRuntime> {
   env: { [key: string]: string } = {};
 
   /**
+   * Keys: default, filesystemRead, filesystemWrite, terminal.
+   * Values: allow, ask, deny.
+   *
    * @generated from field: map<string, string> permission_policy = 8;
    */
   permissionPolicy: { [key: string]: string } = {};

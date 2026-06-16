@@ -231,14 +231,15 @@ func (x *ObjectRef) GetMetadata() map[string]string {
 }
 
 type SessionMessagePart struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	PartType      SessionMessagePartType `protobuf:"varint,2,opt,name=part_type,json=partType,proto3,enum=talon.data.SessionMessagePartType" json:"part_type,omitempty"`
-	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	Name          string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	PayloadJson   string                 `protobuf:"bytes,5,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Object        *ObjectRef             `protobuf:"bytes,7,opt,name=object,proto3" json:"object,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PartType    SessionMessagePartType `protobuf:"varint,2,opt,name=part_type,json=partType,proto3,enum=talon.data.SessionMessagePartType" json:"part_type,omitempty"`
+	Content     string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	Name        string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	PayloadJson string                 `protobuf:"bytes,5,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
+	// Unix timestamp in microseconds.
+	CreatedAt     int64      `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Object        *ObjectRef `protobuf:"bytes,7,opt,name=object,proto3" json:"object,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -323,12 +324,13 @@ func (x *SessionMessagePart) GetObject() *ObjectRef {
 }
 
 type SessionMessage struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Role          MessageRole            `protobuf:"varint,2,opt,name=role,proto3,enum=talon.data.MessageRole" json:"role,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Parts         []*SessionMessagePart  `protobuf:"bytes,6,rep,name=parts,proto3" json:"parts,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Role  MessageRole            `protobuf:"varint,2,opt,name=role,proto3,enum=talon.data.MessageRole" json:"role,omitempty"`
+	// Unix timestamp in microseconds.
+	CreatedAt     int64                 `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Labels        map[string]string     `protobuf:"bytes,5,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Parts         []*SessionMessagePart `protobuf:"bytes,6,rep,name=parts,proto3" json:"parts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -399,15 +401,17 @@ func (x *SessionMessage) GetParts() []*SessionMessagePart {
 }
 
 type Session struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Agent         string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
-	Ns            string                 `protobuf:"bytes,3,opt,name=ns,proto3" json:"ns,omitempty"`
-	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	CreatedAt     int64                  `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	LastActive    int64                  `protobuf:"varint,6,opt,name=last_active,json=lastActive,proto3" json:"last_active,omitempty"`
-	Metadata      map[string]string      `protobuf:"bytes,7,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Labels        map[string]string      `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Id     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Agent  string                 `protobuf:"bytes,2,opt,name=agent,proto3" json:"agent,omitempty"`
+	Ns     string                 `protobuf:"bytes,3,opt,name=ns,proto3" json:"ns,omitempty"`
+	Status string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	// Unix timestamp in microseconds.
+	CreatedAt int64 `protobuf:"varint,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Unix timestamp in microseconds.
+	LastActive    int64             `protobuf:"varint,6,opt,name=last_active,json=lastActive,proto3" json:"last_active,omitempty"`
+	Metadata      map[string]string `protobuf:"bytes,7,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Labels        map[string]string `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -499,17 +503,18 @@ func (x *Session) GetLabels() map[string]string {
 }
 
 type ChannelMessage struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Ns              string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
-	Channel         string                 `protobuf:"bytes,3,opt,name=channel,proto3" json:"channel,omitempty"`
-	AuthorKind      string                 `protobuf:"bytes,4,opt,name=author_kind,json=authorKind,proto3" json:"author_kind,omitempty"`
-	Author          string                 `protobuf:"bytes,5,opt,name=author,proto3" json:"author,omitempty"`
-	Content         string                 `protobuf:"bytes,6,opt,name=content,proto3" json:"content,omitempty"`
-	CreatedAt       int64                  `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	SourceAgent     string                 `protobuf:"bytes,8,opt,name=source_agent,json=sourceAgent,proto3" json:"source_agent,omitempty"`
-	SourceSessionId string                 `protobuf:"bytes,9,opt,name=source_session_id,json=sourceSessionId,proto3" json:"source_session_id,omitempty"`
-	Labels          map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Id         string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Ns         string                 `protobuf:"bytes,2,opt,name=ns,proto3" json:"ns,omitempty"`
+	Channel    string                 `protobuf:"bytes,3,opt,name=channel,proto3" json:"channel,omitempty"`
+	AuthorKind string                 `protobuf:"bytes,4,opt,name=author_kind,json=authorKind,proto3" json:"author_kind,omitempty"`
+	Author     string                 `protobuf:"bytes,5,opt,name=author,proto3" json:"author,omitempty"`
+	Content    string                 `protobuf:"bytes,6,opt,name=content,proto3" json:"content,omitempty"`
+	// Unix timestamp in microseconds.
+	CreatedAt       int64             `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	SourceAgent     string            `protobuf:"bytes,8,opt,name=source_agent,json=sourceAgent,proto3" json:"source_agent,omitempty"`
+	SourceSessionId string            `protobuf:"bytes,9,opt,name=source_session_id,json=sourceSessionId,proto3" json:"source_session_id,omitempty"`
+	Labels          map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -615,12 +620,13 @@ func (x *ChannelMessage) GetLabels() map[string]string {
 }
 
 type Knowledge struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	UpdatedAt     int64                  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Namespace     string                 `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
-	Name          string                 `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Path    string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Content string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	// Unix timestamp in microseconds.
+	UpdatedAt     int64  `protobuf:"varint,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Namespace     string `protobuf:"bytes,4,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	Name          string `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -691,12 +697,13 @@ func (x *Knowledge) GetName() string {
 }
 
 type KnowledgeSearchResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Snippet       string                 `protobuf:"bytes,2,opt,name=snippet,proto3" json:"snippet,omitempty"`
-	Score         float32                `protobuf:"fixed32,3,opt,name=score,proto3" json:"score,omitempty"`
-	Timestamp     int64                  `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Namespace     string                 `protobuf:"bytes,5,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Path    string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Snippet string                 `protobuf:"bytes,2,opt,name=snippet,proto3" json:"snippet,omitempty"`
+	Score   float32                `protobuf:"fixed32,3,opt,name=score,proto3" json:"score,omitempty"`
+	// Unix timestamp in microseconds.
+	Timestamp     int64  `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Namespace     string `protobuf:"bytes,5,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -767,24 +774,27 @@ func (x *KnowledgeSearchResult) GetNamespace() string {
 }
 
 type WorkflowRun struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Workflow           string                 `protobuf:"bytes,2,opt,name=workflow,proto3" json:"workflow,omitempty"`
-	Ns                 string                 `protobuf:"bytes,3,opt,name=ns,proto3" json:"ns,omitempty"`
-	Status             string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
-	InputJson          string                 `protobuf:"bytes,5,opt,name=input_json,json=inputJson,proto3" json:"input_json,omitempty"`
-	StateJson          string                 `protobuf:"bytes,6,opt,name=state_json,json=stateJson,proto3" json:"state_json,omitempty"`
-	OutputJson         string                 `protobuf:"bytes,7,opt,name=output_json,json=outputJson,proto3" json:"output_json,omitempty"`
-	CreatedAt          int64                  `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt          int64                  `protobuf:"varint,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	Labels             map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	ClaimExpiresAt     *int64                 `protobuf:"varint,11,opt,name=claim_expires_at,json=claimExpiresAt,proto3,oneof" json:"claim_expires_at,omitempty"`
-	Error              string                 `protobuf:"bytes,12,opt,name=error,proto3" json:"error,omitempty"`
-	SpecJson           string                 `protobuf:"bytes,13,opt,name=spec_json,json=specJson,proto3" json:"spec_json,omitempty"`
-	WorkflowRevision   uint64                 `protobuf:"varint,14,opt,name=workflow_revision,json=workflowRevision,proto3" json:"workflow_revision,omitempty"`
-	ClaimOwner         string                 `protobuf:"bytes,15,opt,name=claim_owner,json=claimOwner,proto3" json:"claim_owner,omitempty"`
-	ClaimAttempt       uint32                 `protobuf:"varint,16,opt,name=claim_attempt,json=claimAttempt,proto3" json:"claim_attempt,omitempty"`
-	LastDispatchReason string                 `protobuf:"bytes,17,opt,name=last_dispatch_reason,json=lastDispatchReason,proto3" json:"last_dispatch_reason,omitempty"`
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Id         string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Workflow   string                 `protobuf:"bytes,2,opt,name=workflow,proto3" json:"workflow,omitempty"`
+	Ns         string                 `protobuf:"bytes,3,opt,name=ns,proto3" json:"ns,omitempty"`
+	Status     string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	InputJson  string                 `protobuf:"bytes,5,opt,name=input_json,json=inputJson,proto3" json:"input_json,omitempty"`
+	StateJson  string                 `protobuf:"bytes,6,opt,name=state_json,json=stateJson,proto3" json:"state_json,omitempty"`
+	OutputJson string                 `protobuf:"bytes,7,opt,name=output_json,json=outputJson,proto3" json:"output_json,omitempty"`
+	// Unix timestamp in microseconds.
+	CreatedAt int64 `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Unix timestamp in microseconds.
+	UpdatedAt int64             `protobuf:"varint,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Labels    map[string]string `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Unix timestamp in microseconds.
+	ClaimExpiresAt     *int64 `protobuf:"varint,11,opt,name=claim_expires_at,json=claimExpiresAt,proto3,oneof" json:"claim_expires_at,omitempty"`
+	Error              string `protobuf:"bytes,12,opt,name=error,proto3" json:"error,omitempty"`
+	SpecJson           string `protobuf:"bytes,13,opt,name=spec_json,json=specJson,proto3" json:"spec_json,omitempty"`
+	WorkflowRevision   uint64 `protobuf:"varint,14,opt,name=workflow_revision,json=workflowRevision,proto3" json:"workflow_revision,omitempty"`
+	ClaimOwner         string `protobuf:"bytes,15,opt,name=claim_owner,json=claimOwner,proto3" json:"claim_owner,omitempty"`
+	ClaimAttempt       uint32 `protobuf:"varint,16,opt,name=claim_attempt,json=claimAttempt,proto3" json:"claim_attempt,omitempty"`
+	LastDispatchReason string `protobuf:"bytes,17,opt,name=last_dispatch_reason,json=lastDispatchReason,proto3" json:"last_dispatch_reason,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -951,14 +961,19 @@ type WorkflowStepRun struct {
 	ChildWorkflowRunId string                 `protobuf:"bytes,9,opt,name=child_workflow_run_id,json=childWorkflowRunId,proto3" json:"child_workflow_run_id,omitempty"`
 	ResumeJson         string                 `protobuf:"bytes,10,opt,name=resume_json,json=resumeJson,proto3" json:"resume_json,omitempty"`
 	SuspendJson        string                 `protobuf:"bytes,11,opt,name=suspend_json,json=suspendJson,proto3" json:"suspend_json,omitempty"`
-	CreatedAt          int64                  `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt          int64                  `protobuf:"varint,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	NextRetryAt        *int64                 `protobuf:"varint,14,opt,name=next_retry_at,json=nextRetryAt,proto3,oneof" json:"next_retry_at,omitempty"`
-	TimeoutAt          *int64                 `protobuf:"varint,15,opt,name=timeout_at,json=timeoutAt,proto3,oneof" json:"timeout_at,omitempty"`
-	WaitWakeupHandle   string                 `protobuf:"bytes,16,opt,name=wait_wakeup_handle,json=waitWakeupHandle,proto3" json:"wait_wakeup_handle,omitempty"`
-	WaitUntilAt        *int64                 `protobuf:"varint,17,opt,name=wait_until_at,json=waitUntilAt,proto3,oneof" json:"wait_until_at,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Unix timestamp in microseconds.
+	CreatedAt int64 `protobuf:"varint,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// Unix timestamp in microseconds.
+	UpdatedAt int64 `protobuf:"varint,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// Unix timestamp in microseconds.
+	NextRetryAt *int64 `protobuf:"varint,14,opt,name=next_retry_at,json=nextRetryAt,proto3,oneof" json:"next_retry_at,omitempty"`
+	// Unix timestamp in microseconds.
+	TimeoutAt        *int64 `protobuf:"varint,15,opt,name=timeout_at,json=timeoutAt,proto3,oneof" json:"timeout_at,omitempty"`
+	WaitWakeupHandle string `protobuf:"bytes,16,opt,name=wait_wakeup_handle,json=waitWakeupHandle,proto3" json:"wait_wakeup_handle,omitempty"`
+	// Unix timestamp in microseconds.
+	WaitUntilAt   *int64 `protobuf:"varint,17,opt,name=wait_until_at,json=waitUntilAt,proto3,oneof" json:"wait_until_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WorkflowStepRun) Reset() {

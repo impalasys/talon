@@ -84,6 +84,8 @@ export type SessionMessagePart = Message<"talon.data.SessionMessagePart"> & {
   payloadJson: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 6;
    */
   createdAt: bigint;
@@ -116,6 +118,8 @@ export type SessionMessage = Message<"talon.data.SessionMessage"> & {
   role: MessageRole;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 4;
    */
   createdAt: bigint;
@@ -163,11 +167,15 @@ export type Session = Message<"talon.data.Session"> & {
   status: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 5;
    */
   createdAt: bigint;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 last_active = 6;
    */
   lastActive: bigint;
@@ -225,6 +233,8 @@ export type ChannelMessage = Message<"talon.data.ChannelMessage"> & {
   content: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 7;
    */
   createdAt: bigint;
@@ -267,6 +277,8 @@ export type Knowledge = Message<"talon.data.Knowledge"> & {
   content: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 updated_at = 3;
    */
   updatedAt: bigint;
@@ -309,6 +321,8 @@ export type KnowledgeSearchResult = Message<"talon.data.KnowledgeSearchResult"> 
   score: number;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 timestamp = 4;
    */
   timestamp: bigint;
@@ -366,11 +380,15 @@ export type WorkflowRun = Message<"talon.data.WorkflowRun"> & {
   outputJson: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 8;
    */
   createdAt: bigint;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 updated_at = 9;
    */
   updatedAt: bigint;
@@ -381,6 +399,8 @@ export type WorkflowRun = Message<"talon.data.WorkflowRun"> & {
   labels: { [key: string]: string };
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: optional int64 claim_expires_at = 11;
    */
   claimExpiresAt?: bigint;
@@ -483,21 +503,29 @@ export type WorkflowStepRun = Message<"talon.data.WorkflowStepRun"> & {
   suspendJson: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 created_at = 12;
    */
   createdAt: bigint;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: int64 updated_at = 13;
    */
   updatedAt: bigint;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: optional int64 next_retry_at = 14;
    */
   nextRetryAt?: bigint;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: optional int64 timeout_at = 15;
    */
   timeoutAt?: bigint;
@@ -508,6 +536,8 @@ export type WorkflowStepRun = Message<"talon.data.WorkflowStepRun"> & {
   waitWakeupHandle: string;
 
   /**
+   * Unix timestamp in microseconds.
+   *
    * @generated from field: optional int64 wait_until_at = 17;
    */
   waitUntilAt?: bigint;
