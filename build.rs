@@ -7,6 +7,8 @@ fn main() -> std::io::Result<()> {
     // The rename_all = "camelCase" matches the YAML convention (systemPrompt, apiVersion, etc.)
     let serde_default_types = [
         ".talon.resources.AcpRuntime",
+        ".talon.resources.A2A",
+        ".talon.resources.Agent",
         ".talon.resources.AgentCard",
         ".talon.resources.AgentCardCapabilities",
         ".talon.resources.AgentCardSkill",
@@ -19,15 +21,19 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.ChannelSubscription",
         ".talon.resources.ChannelSubscriptionSpec",
         ".talon.resources.CommonResourceStatus",
+        ".talon.resources.Connection",
+        ".talon.resources.ConnectionAuth",
         ".talon.resources.ConnectionPoolPolicy",
         ".talon.resources.ConnectionSpec",
         ".talon.resources.ConnectionTransport",
+        ".talon.resources.ExternalConnectionRef",
         ".talon.resources.DeploymentPlacement",
         ".talon.resources.DeploymentReplicaSpec",
         ".talon.resources.DeploymentReplicaStatus",
         ".talon.resources.DeploymentSpec",
         ".talon.resources.DeploymentStatus",
         ".talon.resources.Feature",
+        ".talon.resources.InternalConnectionRef",
         ".talon.resources.Knowledge",
         ".talon.resources.KnowledgeSpec",
         ".talon.resources.McpAuthBrokerSpec",
@@ -47,7 +53,9 @@ fn main() -> std::io::Result<()> {
         ".talon.resources.PermissionRequestStatus",
         ".talon.resources.RawResourceSpec",
         ".talon.resources.RawResourceStatus",
+        ".talon.resources.Resource",
         ".talon.resources.ResourceCondition",
+        ".talon.resources.ResourceManifest",
         ".talon.resources.ResourceMeta",
         ".talon.resources.ResourceRef",
         ".talon.resources.Sandbox",
@@ -90,7 +98,12 @@ fn main() -> std::io::Result<()> {
         ".talon.data.WorkflowStepRun",
         ".talon.events.WorkflowDispatchEvent",
     ];
-    let serde_derive_only_types: [&str; 0] = [];
+    let serde_derive_only_types = [
+        ".talon.resources.AgentSpec",
+        ".talon.resources.ConnectionRef",
+        ".talon.resources.ResourceSpec",
+        ".talon.resources.ResourceStatus",
+    ];
 
     let mut builder = tonic_build::configure().protoc_arg("--experimental_allow_proto3_optional");
     for t in &serde_default_types {
@@ -101,6 +114,10 @@ fn main() -> std::io::Result<()> {
     for t in &serde_derive_only_types {
         builder = builder.type_attribute(t, "#[derive(serde::Serialize, serde::Deserialize)]");
     }
+    builder = builder.field_attribute(
+        ".talon.resources.AgentSpec.capabilities",
+        "#[serde(skip, default)]",
+    );
     builder.compile_protos(
         &[
             "proto/config.proto",

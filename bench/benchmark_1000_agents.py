@@ -42,8 +42,8 @@ sys.path.insert(0, str(GENERATED_DIR))
 sys.path.insert(0, str(TESTS_DIR))
 
 from proto.gateway_pb2 import (  # noqa: E402
-    CreateAgentRequest,
     CreateNamespaceRequest,
+    CreateResourceRequest,
     CreateSessionRequest,
     SendMessageRequest,
     StreamSessionPartsBatchRequest,
@@ -55,7 +55,9 @@ from proto.events_pb2 import (  # noqa: E402
     SESSION_MESSAGE_PART_EVENT_KIND_ERROR,
 )
 from proto.data.data_pb2 import SESSION_MESSAGE_PART_TYPE_TEXT  # noqa: E402
-from proto.resources.agents_pb2 import AgentSpec, Model  # noqa: E402
+from proto.resources.agents_pb2 import AgentSpec  # noqa: E402
+from proto.resources.common_pb2 import ResourceMeta  # noqa: E402
+from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec  # noqa: E402
 
 
 MOCK_LLM_PORT = 8000
@@ -536,32 +538,36 @@ async def wait_for_channel(address: str, timeout_seconds: float = 60.0) -> None:
 
 
 def agent_spec() -> AgentSpec:
-    return AgentSpec(
-        model_policy={
-            "profiles": [
-                {
-                    "name": "default",
-                    "model": Model(
-                        provider="mock",
-                        name="talon-bench-mock",
-                        temperature=0.0,
-                    ),
-                }
-            ]
-        },
+    spec = AgentSpec(
         system_prompt="You are a deterministic benchmark assistant.",
+    )
+    profile = spec.model_policy.profiles.add()
+    profile.name = "default"
+    profile.model.provider = "mock"
+    profile.model.name = "talon-bench-mock"
+    profile.model.temperature = 0.0
+    return spec
+
+
+def agent_manifest(ns: str, name: str) -> ResourceManifest:
+    return ResourceManifest(
+        api_version="talon.impalasys.com/v1",
+        kind="Agent",
+        metadata=ResourceMeta(name=name, namespace=ns),
+        spec=ResourceSpec(agent=agent_spec()),
     )
 
 
 async def provision(stub: GatewayServiceStub, ns: str, agents: int, concurrency: int) -> list[str]:
     await stub.CreateNamespace(CreateNamespaceRequest(name=ns, recursive=True))
-    spec = agent_spec()
     sem = asyncio.Semaphore(concurrency)
 
     async def create_agent(index: int) -> str:
         name = f"agent-{index:04d}"
         async with sem:
-            await stub.CreateAgent(CreateAgentRequest(ns=ns, name=name, spec=spec))
+            await stub.CreateResource(
+                CreateResourceRequest(ns=ns, manifest=agent_manifest(ns, name))
+            )
             return name
 
     agent_names = await asyncio.gather(*(create_agent(i) for i in range(agents)))
