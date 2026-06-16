@@ -12,17 +12,15 @@ spec:
       namespace: system
       name: docker-code
     template:
-      spec:
-        workspace:
-          mode: customer-repo
-          mountPath: /workspace
-        network:
-          mode: bridge
-        filesystem:
-          writable:
-            - /workspace
-            - /tmp
-        leasePolicy:
-          mode: exclusive
-    quota:
-      maxConcurrent: 5
+      workspace:
+        mode: customer-repo
+        mountPath: /workspace
+      network:
+        mode: bridge
+      filesystem:
+        writable:
+          - /workspace
+          - /tmp
+      leasePolicy:
+        mode: exclusive
+    maxConcurrent: 5

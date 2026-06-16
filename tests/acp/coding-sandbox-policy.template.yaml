@@ -12,16 +12,14 @@ spec:
       namespace: system
       name: e2e-code-__RUN_ID__
     template:
-      spec:
-        workspace:
-          mode: customer-repo
-          mountPath: /workspace
-        network:
-          mode: restricted
-        filesystem:
-          writable:
-            - /workspace
-        leasePolicy:
-          mode: exclusive
-    quota:
-      maxConcurrent: 2
+      workspace:
+        mode: customer-repo
+        mountPath: /workspace
+      network:
+        mode: restricted
+      filesystem:
+        writable:
+          - /workspace
+      leasePolicy:
+        mode: exclusive
+    maxConcurrent: 2

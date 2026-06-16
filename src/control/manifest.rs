@@ -804,8 +804,8 @@ fn resource_spec_status_to_yaml_values(
         }))?,
         Some(SpecKind::SandboxPolicy(spec)) => serde_json::to_string(&serde_json::json!({
             "classRef": spec.class_ref.as_ref().map(resource_ref_json),
-            "template": { "spec": sandbox_runtime_template_to_json_value(spec.template.as_ref()) },
-            "quota": { "maxConcurrent": spec.max_concurrent },
+            "template": sandbox_runtime_template_to_json_value(spec.template.as_ref()),
+            "maxConcurrent": spec.max_concurrent,
         }))?,
         Some(SpecKind::Sandbox(spec)) => serde_json::to_string(&serde_json::json!({
             "policyRef": spec.policy_ref,
@@ -2376,11 +2376,11 @@ spec:
         let rendered_yaml: serde_yaml::Value =
             serde_yaml::from_str(&rendered).expect("rendered YAML parses");
         assert_eq!(
-            rendered_yaml["spec"]["template"]["spec"]["image"].as_str(),
+            rendered_yaml["spec"]["template"]["image"].as_str(),
             Some("talon-codex-acp:local")
         );
         assert_eq!(
-            rendered_yaml["spec"]["template"]["spec"]["workspace"]["mountPath"].as_str(),
+            rendered_yaml["spec"]["template"]["workspace"]["mountPath"].as_str(),
             Some("/workspace")
         );
     }

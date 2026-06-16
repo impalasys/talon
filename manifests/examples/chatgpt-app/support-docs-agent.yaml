@@ -42,6 +42,3 @@ spec:
             - text/plain
           outputModes:
             - text/plain
-      auth:
-        discovery: public
-        operations: public
