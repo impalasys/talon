@@ -208,19 +208,6 @@ function resourceMetadata(name: string, namespace: string) {
   };
 }
 
-function commonStatus(caseName: string): any {
-  return {
-    kind: {
-      case: caseName,
-      value: {
-        observedGeneration: BigInt(0),
-        phase: '',
-        conditions: [],
-      },
-    },
-  };
-}
-
 function channelFromResource(resource: ResourceEnvelope): ExplorerChannel {
   const spec = resourceSpec(resource, 'channel');
   const status = resourceStatus(resource, 'channel');
@@ -1197,12 +1184,11 @@ export function NamespaceExplorer({
     try {
       await getGatewayClient().createResource({
         ns: agentModalOpen.ns,
-        resource: {
+        manifest: {
           apiVersion: API_VERSION,
           kind: 'Agent',
           metadata: resourceMetadata(agentForm.name.trim(), agentModalOpen.ns),
           spec: { kind: { case: 'agent', value: { systemPrompt: '' } } },
-          status: commonStatus('agent'),
         },
       });
       setExpanded(prev => new Set(prev).add(agentModalOpen.ns));
@@ -1224,21 +1210,11 @@ export function NamespaceExplorer({
     try {
       await getGatewayClient().createResource({
         ns: channelModalOpen.ns,
-        resource: {
+        manifest: {
           apiVersion: API_VERSION,
           kind: 'Channel',
           metadata: resourceMetadata(channelForm.name.trim(), channelModalOpen.ns),
           spec: { kind: { case: 'channel', value: { title: channelForm.title.trim(), metadata: {} } } },
-          status: {
-            kind: {
-              case: 'channel',
-              value: {
-                observedGeneration: BigInt(0),
-                phase: 'open',
-                conditions: [],
-              },
-            },
-          },
         },
       });
       setExpanded(prev => new Set(prev).add(channelModalOpen.ns));
@@ -1261,7 +1237,7 @@ export function NamespaceExplorer({
     try {
       await getGatewayClient().createResource({
         ns: subscriptionModalOpen.ns,
-        resource: {
+        manifest: {
           apiVersion: API_VERSION,
           kind: 'ChannelSubscription',
           metadata: resourceMetadata(subscriptionForm.name.trim(), subscriptionModalOpen.ns),
@@ -1277,7 +1253,6 @@ export function NamespaceExplorer({
               },
             },
           },
-          status: commonStatus('channelSubscription'),
         },
       });
       setExpanded(prev => new Set(prev).add(`${subscriptionModalOpen.ns}:channel:${subscriptionModalOpen.channel}`));

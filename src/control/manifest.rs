@@ -23,7 +23,7 @@ pub struct RawManifest {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct ResourceManifest {
+struct ResourceYamlDocument {
     api_version: String,
     kind: String,
     metadata: ObjectMetaManifest,
@@ -31,6 +31,17 @@ struct ResourceManifest {
     spec: serde_yaml::Value,
     #[serde(default)]
     status: serde_yaml::Value,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DesiredResourceManifest {
+    api_version: String,
+    kind: String,
+    metadata: ObjectMetaManifest,
+    #[serde(default)]
+    spec: serde_yaml::Value,
+    status: Option<serde_yaml::Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -591,7 +602,7 @@ pub fn parse_workflow(yaml: &str) -> Result<resources_proto::Workflow> {
 }
 
 pub fn parse_resource(yaml: &str) -> Result<resources_proto::Resource> {
-    let manifest: ResourceManifest =
+    let manifest: ResourceYamlDocument =
         serde_yaml::from_str(yaml).context("Failed to parse resource YAML")?;
     let metadata = manifest.metadata.into_resource_meta();
     let spec_json = non_empty_json_object(yaml_value_to_json_string(manifest.spec)?);
@@ -603,6 +614,23 @@ pub fn parse_resource(yaml: &str) -> Result<resources_proto::Resource> {
         metadata: Some(metadata),
         spec: Some(spec),
         status: Some(status),
+    })
+}
+
+pub fn parse_resource_manifest(yaml: &str) -> Result<resources_proto::ResourceManifest> {
+    let manifest: DesiredResourceManifest =
+        serde_yaml::from_str(yaml).context("Failed to parse resource manifest YAML")?;
+    if manifest.status.is_some() {
+        bail!("Resource manifests cannot set status; status is controller-owned");
+    }
+    let metadata = manifest.metadata.into_resource_meta();
+    let spec_json = non_empty_json_object(yaml_value_to_json_string(manifest.spec)?);
+    let (spec, _) = resource_spec_status_from_json(&manifest.kind, &spec_json, "{}")?;
+    Ok(resources_proto::ResourceManifest {
+        api_version: manifest.api_version,
+        kind: manifest.kind,
+        metadata: Some(metadata),
+        spec: Some(spec),
     })
 }
 
@@ -624,7 +652,7 @@ pub fn render_resource_yaml(resource: &resources_proto::Resource) -> Result<Stri
         .as_ref()
         .ok_or_else(|| anyhow!("Resource missing metadata"))?;
     let (spec, status) = resource_spec_status_to_yaml_values(resource)?;
-    let yaml = ResourceManifest {
+    let yaml = ResourceYamlDocument {
         api_version: resource.api_version.clone(),
         kind: resource.kind.clone(),
         metadata: ObjectMetaManifest::from_resource_meta(metadata),

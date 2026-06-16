@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { Resource } from "./resources/resource_pb.js";
+import { Resource, ResourceManifest } from "./resources/resource_pb.js";
 import { McpServer, McpServerBinding } from "./resources/mcp_pb.js";
 import { Agent, AgentSpec } from "./resources/agents_pb.js";
 import { ChannelMessage, Knowledge, KnowledgeSearchResult, SessionMessage, WorkflowRun, WorkflowStepRun } from "./data/data_pb.js";
@@ -24,9 +24,9 @@ export class CreateResourceRequest extends Message<CreateResourceRequest> {
   ns = "";
 
   /**
-   * @generated from field: talon.resources.Resource resource = 2;
+   * @generated from field: talon.resources.ResourceManifest manifest = 2;
    */
-  resource?: Resource;
+  manifest?: ResourceManifest;
 
   constructor(data?: PartialMessage<CreateResourceRequest>) {
     super();
@@ -37,7 +37,7 @@ export class CreateResourceRequest extends Message<CreateResourceRequest> {
   static readonly typeName = "talon.gateway.CreateResourceRequest";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "ns", kind: "scalar", T: 9 /* ScalarType.STRING */ },
-    { no: 2, name: "resource", kind: "message", T: Resource },
+    { no: 2, name: "manifest", kind: "message", T: ResourceManifest },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): CreateResourceRequest {

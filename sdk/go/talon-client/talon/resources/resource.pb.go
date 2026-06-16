@@ -97,6 +97,74 @@ func (x *Resource) GetStatus() *ResourceStatus {
 	return nil
 }
 
+type ResourceManifest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiVersion    string                 `protobuf:"bytes,1,opt,name=api_version,json=apiVersion,proto3" json:"api_version,omitempty"`
+	Kind          string                 `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *ResourceSpec          `protobuf:"bytes,4,opt,name=spec,proto3" json:"spec,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResourceManifest) Reset() {
+	*x = ResourceManifest{}
+	mi := &file_proto_resources_resource_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResourceManifest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourceManifest) ProtoMessage() {}
+
+func (x *ResourceManifest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_resource_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResourceManifest.ProtoReflect.Descriptor instead.
+func (*ResourceManifest) Descriptor() ([]byte, []int) {
+	return file_proto_resources_resource_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ResourceManifest) GetApiVersion() string {
+	if x != nil {
+		return x.ApiVersion
+	}
+	return ""
+}
+
+func (x *ResourceManifest) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ResourceManifest) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *ResourceManifest) GetSpec() *ResourceSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
 type RawResourceSpec struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Json          string                 `protobuf:"bytes,1,opt,name=json,proto3" json:"json,omitempty"`
@@ -106,7 +174,7 @@ type RawResourceSpec struct {
 
 func (x *RawResourceSpec) Reset() {
 	*x = RawResourceSpec{}
-	mi := &file_proto_resources_resource_proto_msgTypes[1]
+	mi := &file_proto_resources_resource_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -118,7 +186,7 @@ func (x *RawResourceSpec) String() string {
 func (*RawResourceSpec) ProtoMessage() {}
 
 func (x *RawResourceSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_resource_proto_msgTypes[1]
+	mi := &file_proto_resources_resource_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -131,7 +199,7 @@ func (x *RawResourceSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RawResourceSpec.ProtoReflect.Descriptor instead.
 func (*RawResourceSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_resource_proto_rawDescGZIP(), []int{1}
+	return file_proto_resources_resource_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *RawResourceSpec) GetJson() string {
@@ -150,7 +218,7 @@ type RawResourceStatus struct {
 
 func (x *RawResourceStatus) Reset() {
 	*x = RawResourceStatus{}
-	mi := &file_proto_resources_resource_proto_msgTypes[2]
+	mi := &file_proto_resources_resource_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -162,7 +230,7 @@ func (x *RawResourceStatus) String() string {
 func (*RawResourceStatus) ProtoMessage() {}
 
 func (x *RawResourceStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_resource_proto_msgTypes[2]
+	mi := &file_proto_resources_resource_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -175,7 +243,7 @@ func (x *RawResourceStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RawResourceStatus.ProtoReflect.Descriptor instead.
 func (*RawResourceStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_resource_proto_rawDescGZIP(), []int{2}
+	return file_proto_resources_resource_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *RawResourceStatus) GetJson() string {
@@ -214,7 +282,7 @@ type ResourceSpec struct {
 
 func (x *ResourceSpec) Reset() {
 	*x = ResourceSpec{}
-	mi := &file_proto_resources_resource_proto_msgTypes[3]
+	mi := &file_proto_resources_resource_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -226,7 +294,7 @@ func (x *ResourceSpec) String() string {
 func (*ResourceSpec) ProtoMessage() {}
 
 func (x *ResourceSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_resource_proto_msgTypes[3]
+	mi := &file_proto_resources_resource_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -239,7 +307,7 @@ func (x *ResourceSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceSpec.ProtoReflect.Descriptor instead.
 func (*ResourceSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_resource_proto_rawDescGZIP(), []int{3}
+	return file_proto_resources_resource_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ResourceSpec) GetKind() isResourceSpec_Kind {
@@ -552,7 +620,7 @@ type ResourceStatus struct {
 
 func (x *ResourceStatus) Reset() {
 	*x = ResourceStatus{}
-	mi := &file_proto_resources_resource_proto_msgTypes[4]
+	mi := &file_proto_resources_resource_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -564,7 +632,7 @@ func (x *ResourceStatus) String() string {
 func (*ResourceStatus) ProtoMessage() {}
 
 func (x *ResourceStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_resource_proto_msgTypes[4]
+	mi := &file_proto_resources_resource_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -577,7 +645,7 @@ func (x *ResourceStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceStatus.ProtoReflect.Descriptor instead.
 func (*ResourceStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_resource_proto_rawDescGZIP(), []int{4}
+	return file_proto_resources_resource_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ResourceStatus) GetKind() isResourceStatus_Kind {
@@ -872,7 +940,13 @@ const file_proto_resources_resource_proto_rawDesc = "" +
 	"\x04kind\x18\x02 \x01(\tR\x04kind\x129\n" +
 	"\bmetadata\x18\x03 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x121\n" +
 	"\x04spec\x18\x04 \x01(\v2\x1d.talon.resources.ResourceSpecR\x04spec\x127\n" +
-	"\x06status\x18\x05 \x01(\v2\x1f.talon.resources.ResourceStatusR\x06status\"%\n" +
+	"\x06status\x18\x05 \x01(\v2\x1f.talon.resources.ResourceStatusR\x06status\"\xb5\x01\n" +
+	"\x10ResourceManifest\x12\x1f\n" +
+	"\vapi_version\x18\x01 \x01(\tR\n" +
+	"apiVersion\x12\x12\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\x129\n" +
+	"\bmetadata\x18\x03 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x121\n" +
+	"\x04spec\x18\x04 \x01(\v2\x1d.talon.resources.ResourceSpecR\x04spec\"%\n" +
 	"\x0fRawResourceSpec\x12\x12\n" +
 	"\x04json\x18\x01 \x01(\tR\x04json\"'\n" +
 	"\x11RawResourceStatus\x12\x12\n" +
@@ -939,88 +1013,91 @@ func file_proto_resources_resource_proto_rawDescGZIP() []byte {
 	return file_proto_resources_resource_proto_rawDescData
 }
 
-var file_proto_resources_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_resources_resource_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_resources_resource_proto_goTypes = []any{
 	(*Resource)(nil),                // 0: talon.resources.Resource
-	(*RawResourceSpec)(nil),         // 1: talon.resources.RawResourceSpec
-	(*RawResourceStatus)(nil),       // 2: talon.resources.RawResourceStatus
-	(*ResourceSpec)(nil),            // 3: talon.resources.ResourceSpec
-	(*ResourceStatus)(nil),          // 4: talon.resources.ResourceStatus
-	(*ResourceMeta)(nil),            // 5: talon.resources.ResourceMeta
-	(*AgentSpec)(nil),               // 6: talon.resources.AgentSpec
-	(*WorkflowSpec)(nil),            // 7: talon.resources.WorkflowSpec
-	(*ScheduleSpec)(nil),            // 8: talon.resources.ScheduleSpec
-	(*ChannelSpec)(nil),             // 9: talon.resources.ChannelSpec
-	(*ChannelSubscriptionSpec)(nil), // 10: talon.resources.ChannelSubscriptionSpec
-	(*McpServerSpec)(nil),           // 11: talon.resources.McpServerSpec
-	(*McpServerBindingSpec)(nil),    // 12: talon.resources.McpServerBindingSpec
-	(*KnowledgeSpec)(nil),           // 13: talon.resources.KnowledgeSpec
-	(*NamespaceSpec)(nil),           // 14: talon.resources.NamespaceSpec
-	(*SessionSpec)(nil),             // 15: talon.resources.SessionSpec
-	(*TemplateSpec)(nil),            // 16: talon.resources.TemplateSpec
-	(*DeploymentSpec)(nil),          // 17: talon.resources.DeploymentSpec
-	(*DeploymentReplicaSpec)(nil),   // 18: talon.resources.DeploymentReplicaSpec
-	(*SandboxClassSpec)(nil),        // 19: talon.resources.SandboxClassSpec
-	(*SandboxPolicySpec)(nil),       // 20: talon.resources.SandboxPolicySpec
-	(*SandboxSpec)(nil),             // 21: talon.resources.SandboxSpec
-	(*PermissionRequestSpec)(nil),   // 22: talon.resources.PermissionRequestSpec
-	(*AgentStatus)(nil),             // 23: talon.resources.AgentStatus
-	(*WorkflowStatus)(nil),          // 24: talon.resources.WorkflowStatus
-	(*ScheduleStatus)(nil),          // 25: talon.resources.ScheduleStatus
-	(*ChannelStatus)(nil),           // 26: talon.resources.ChannelStatus
-	(*CommonResourceStatus)(nil),    // 27: talon.resources.CommonResourceStatus
-	(*NamespaceStatus)(nil),         // 28: talon.resources.NamespaceStatus
-	(*SessionStatus)(nil),           // 29: talon.resources.SessionStatus
-	(*DeploymentStatus)(nil),        // 30: talon.resources.DeploymentStatus
-	(*DeploymentReplicaStatus)(nil), // 31: talon.resources.DeploymentReplicaStatus
-	(*SandboxStatus)(nil),           // 32: talon.resources.SandboxStatus
-	(*PermissionRequestStatus)(nil), // 33: talon.resources.PermissionRequestStatus
+	(*ResourceManifest)(nil),        // 1: talon.resources.ResourceManifest
+	(*RawResourceSpec)(nil),         // 2: talon.resources.RawResourceSpec
+	(*RawResourceStatus)(nil),       // 3: talon.resources.RawResourceStatus
+	(*ResourceSpec)(nil),            // 4: talon.resources.ResourceSpec
+	(*ResourceStatus)(nil),          // 5: talon.resources.ResourceStatus
+	(*ResourceMeta)(nil),            // 6: talon.resources.ResourceMeta
+	(*AgentSpec)(nil),               // 7: talon.resources.AgentSpec
+	(*WorkflowSpec)(nil),            // 8: talon.resources.WorkflowSpec
+	(*ScheduleSpec)(nil),            // 9: talon.resources.ScheduleSpec
+	(*ChannelSpec)(nil),             // 10: talon.resources.ChannelSpec
+	(*ChannelSubscriptionSpec)(nil), // 11: talon.resources.ChannelSubscriptionSpec
+	(*McpServerSpec)(nil),           // 12: talon.resources.McpServerSpec
+	(*McpServerBindingSpec)(nil),    // 13: talon.resources.McpServerBindingSpec
+	(*KnowledgeSpec)(nil),           // 14: talon.resources.KnowledgeSpec
+	(*NamespaceSpec)(nil),           // 15: talon.resources.NamespaceSpec
+	(*SessionSpec)(nil),             // 16: talon.resources.SessionSpec
+	(*TemplateSpec)(nil),            // 17: talon.resources.TemplateSpec
+	(*DeploymentSpec)(nil),          // 18: talon.resources.DeploymentSpec
+	(*DeploymentReplicaSpec)(nil),   // 19: talon.resources.DeploymentReplicaSpec
+	(*SandboxClassSpec)(nil),        // 20: talon.resources.SandboxClassSpec
+	(*SandboxPolicySpec)(nil),       // 21: talon.resources.SandboxPolicySpec
+	(*SandboxSpec)(nil),             // 22: talon.resources.SandboxSpec
+	(*PermissionRequestSpec)(nil),   // 23: talon.resources.PermissionRequestSpec
+	(*AgentStatus)(nil),             // 24: talon.resources.AgentStatus
+	(*WorkflowStatus)(nil),          // 25: talon.resources.WorkflowStatus
+	(*ScheduleStatus)(nil),          // 26: talon.resources.ScheduleStatus
+	(*ChannelStatus)(nil),           // 27: talon.resources.ChannelStatus
+	(*CommonResourceStatus)(nil),    // 28: talon.resources.CommonResourceStatus
+	(*NamespaceStatus)(nil),         // 29: talon.resources.NamespaceStatus
+	(*SessionStatus)(nil),           // 30: talon.resources.SessionStatus
+	(*DeploymentStatus)(nil),        // 31: talon.resources.DeploymentStatus
+	(*DeploymentReplicaStatus)(nil), // 32: talon.resources.DeploymentReplicaStatus
+	(*SandboxStatus)(nil),           // 33: talon.resources.SandboxStatus
+	(*PermissionRequestStatus)(nil), // 34: talon.resources.PermissionRequestStatus
 }
 var file_proto_resources_resource_proto_depIdxs = []int32{
-	5,  // 0: talon.resources.Resource.metadata:type_name -> talon.resources.ResourceMeta
-	3,  // 1: talon.resources.Resource.spec:type_name -> talon.resources.ResourceSpec
-	4,  // 2: talon.resources.Resource.status:type_name -> talon.resources.ResourceStatus
-	6,  // 3: talon.resources.ResourceSpec.agent:type_name -> talon.resources.AgentSpec
-	7,  // 4: talon.resources.ResourceSpec.workflow:type_name -> talon.resources.WorkflowSpec
-	8,  // 5: talon.resources.ResourceSpec.schedule:type_name -> talon.resources.ScheduleSpec
-	9,  // 6: talon.resources.ResourceSpec.channel:type_name -> talon.resources.ChannelSpec
-	10, // 7: talon.resources.ResourceSpec.channel_subscription:type_name -> talon.resources.ChannelSubscriptionSpec
-	11, // 8: talon.resources.ResourceSpec.mcp_server:type_name -> talon.resources.McpServerSpec
-	12, // 9: talon.resources.ResourceSpec.mcp_server_binding:type_name -> talon.resources.McpServerBindingSpec
-	13, // 10: talon.resources.ResourceSpec.knowledge:type_name -> talon.resources.KnowledgeSpec
-	14, // 11: talon.resources.ResourceSpec.namespace:type_name -> talon.resources.NamespaceSpec
-	15, // 12: talon.resources.ResourceSpec.session:type_name -> talon.resources.SessionSpec
-	16, // 13: talon.resources.ResourceSpec.template:type_name -> talon.resources.TemplateSpec
-	17, // 14: talon.resources.ResourceSpec.deployment:type_name -> talon.resources.DeploymentSpec
-	18, // 15: talon.resources.ResourceSpec.deployment_replica:type_name -> talon.resources.DeploymentReplicaSpec
-	19, // 16: talon.resources.ResourceSpec.sandbox_class:type_name -> talon.resources.SandboxClassSpec
-	20, // 17: talon.resources.ResourceSpec.sandbox_policy:type_name -> talon.resources.SandboxPolicySpec
-	21, // 18: talon.resources.ResourceSpec.sandbox:type_name -> talon.resources.SandboxSpec
-	22, // 19: talon.resources.ResourceSpec.permission_request:type_name -> talon.resources.PermissionRequestSpec
-	1,  // 20: talon.resources.ResourceSpec.raw:type_name -> talon.resources.RawResourceSpec
-	23, // 21: talon.resources.ResourceStatus.agent:type_name -> talon.resources.AgentStatus
-	24, // 22: talon.resources.ResourceStatus.workflow:type_name -> talon.resources.WorkflowStatus
-	25, // 23: talon.resources.ResourceStatus.schedule:type_name -> talon.resources.ScheduleStatus
-	26, // 24: talon.resources.ResourceStatus.channel:type_name -> talon.resources.ChannelStatus
-	27, // 25: talon.resources.ResourceStatus.channel_subscription:type_name -> talon.resources.CommonResourceStatus
-	27, // 26: talon.resources.ResourceStatus.mcp_server:type_name -> talon.resources.CommonResourceStatus
-	27, // 27: talon.resources.ResourceStatus.mcp_server_binding:type_name -> talon.resources.CommonResourceStatus
-	27, // 28: talon.resources.ResourceStatus.knowledge:type_name -> talon.resources.CommonResourceStatus
-	28, // 29: talon.resources.ResourceStatus.namespace:type_name -> talon.resources.NamespaceStatus
-	29, // 30: talon.resources.ResourceStatus.session:type_name -> talon.resources.SessionStatus
-	27, // 31: talon.resources.ResourceStatus.template:type_name -> talon.resources.CommonResourceStatus
-	30, // 32: talon.resources.ResourceStatus.deployment:type_name -> talon.resources.DeploymentStatus
-	31, // 33: talon.resources.ResourceStatus.deployment_replica:type_name -> talon.resources.DeploymentReplicaStatus
-	27, // 34: talon.resources.ResourceStatus.sandbox_class:type_name -> talon.resources.CommonResourceStatus
-	27, // 35: talon.resources.ResourceStatus.sandbox_policy:type_name -> talon.resources.CommonResourceStatus
-	32, // 36: talon.resources.ResourceStatus.sandbox:type_name -> talon.resources.SandboxStatus
-	33, // 37: talon.resources.ResourceStatus.permission_request:type_name -> talon.resources.PermissionRequestStatus
-	2,  // 38: talon.resources.ResourceStatus.raw:type_name -> talon.resources.RawResourceStatus
-	39, // [39:39] is the sub-list for method output_type
-	39, // [39:39] is the sub-list for method input_type
-	39, // [39:39] is the sub-list for extension type_name
-	39, // [39:39] is the sub-list for extension extendee
-	0,  // [0:39] is the sub-list for field type_name
+	6,  // 0: talon.resources.Resource.metadata:type_name -> talon.resources.ResourceMeta
+	4,  // 1: talon.resources.Resource.spec:type_name -> talon.resources.ResourceSpec
+	5,  // 2: talon.resources.Resource.status:type_name -> talon.resources.ResourceStatus
+	6,  // 3: talon.resources.ResourceManifest.metadata:type_name -> talon.resources.ResourceMeta
+	4,  // 4: talon.resources.ResourceManifest.spec:type_name -> talon.resources.ResourceSpec
+	7,  // 5: talon.resources.ResourceSpec.agent:type_name -> talon.resources.AgentSpec
+	8,  // 6: talon.resources.ResourceSpec.workflow:type_name -> talon.resources.WorkflowSpec
+	9,  // 7: talon.resources.ResourceSpec.schedule:type_name -> talon.resources.ScheduleSpec
+	10, // 8: talon.resources.ResourceSpec.channel:type_name -> talon.resources.ChannelSpec
+	11, // 9: talon.resources.ResourceSpec.channel_subscription:type_name -> talon.resources.ChannelSubscriptionSpec
+	12, // 10: talon.resources.ResourceSpec.mcp_server:type_name -> talon.resources.McpServerSpec
+	13, // 11: talon.resources.ResourceSpec.mcp_server_binding:type_name -> talon.resources.McpServerBindingSpec
+	14, // 12: talon.resources.ResourceSpec.knowledge:type_name -> talon.resources.KnowledgeSpec
+	15, // 13: talon.resources.ResourceSpec.namespace:type_name -> talon.resources.NamespaceSpec
+	16, // 14: talon.resources.ResourceSpec.session:type_name -> talon.resources.SessionSpec
+	17, // 15: talon.resources.ResourceSpec.template:type_name -> talon.resources.TemplateSpec
+	18, // 16: talon.resources.ResourceSpec.deployment:type_name -> talon.resources.DeploymentSpec
+	19, // 17: talon.resources.ResourceSpec.deployment_replica:type_name -> talon.resources.DeploymentReplicaSpec
+	20, // 18: talon.resources.ResourceSpec.sandbox_class:type_name -> talon.resources.SandboxClassSpec
+	21, // 19: talon.resources.ResourceSpec.sandbox_policy:type_name -> talon.resources.SandboxPolicySpec
+	22, // 20: talon.resources.ResourceSpec.sandbox:type_name -> talon.resources.SandboxSpec
+	23, // 21: talon.resources.ResourceSpec.permission_request:type_name -> talon.resources.PermissionRequestSpec
+	2,  // 22: talon.resources.ResourceSpec.raw:type_name -> talon.resources.RawResourceSpec
+	24, // 23: talon.resources.ResourceStatus.agent:type_name -> talon.resources.AgentStatus
+	25, // 24: talon.resources.ResourceStatus.workflow:type_name -> talon.resources.WorkflowStatus
+	26, // 25: talon.resources.ResourceStatus.schedule:type_name -> talon.resources.ScheduleStatus
+	27, // 26: talon.resources.ResourceStatus.channel:type_name -> talon.resources.ChannelStatus
+	28, // 27: talon.resources.ResourceStatus.channel_subscription:type_name -> talon.resources.CommonResourceStatus
+	28, // 28: talon.resources.ResourceStatus.mcp_server:type_name -> talon.resources.CommonResourceStatus
+	28, // 29: talon.resources.ResourceStatus.mcp_server_binding:type_name -> talon.resources.CommonResourceStatus
+	28, // 30: talon.resources.ResourceStatus.knowledge:type_name -> talon.resources.CommonResourceStatus
+	29, // 31: talon.resources.ResourceStatus.namespace:type_name -> talon.resources.NamespaceStatus
+	30, // 32: talon.resources.ResourceStatus.session:type_name -> talon.resources.SessionStatus
+	28, // 33: talon.resources.ResourceStatus.template:type_name -> talon.resources.CommonResourceStatus
+	31, // 34: talon.resources.ResourceStatus.deployment:type_name -> talon.resources.DeploymentStatus
+	32, // 35: talon.resources.ResourceStatus.deployment_replica:type_name -> talon.resources.DeploymentReplicaStatus
+	28, // 36: talon.resources.ResourceStatus.sandbox_class:type_name -> talon.resources.CommonResourceStatus
+	28, // 37: talon.resources.ResourceStatus.sandbox_policy:type_name -> talon.resources.CommonResourceStatus
+	33, // 38: talon.resources.ResourceStatus.sandbox:type_name -> talon.resources.SandboxStatus
+	34, // 39: talon.resources.ResourceStatus.permission_request:type_name -> talon.resources.PermissionRequestStatus
+	3,  // 40: talon.resources.ResourceStatus.raw:type_name -> talon.resources.RawResourceStatus
+	41, // [41:41] is the sub-list for method output_type
+	41, // [41:41] is the sub-list for method input_type
+	41, // [41:41] is the sub-list for extension type_name
+	41, // [41:41] is the sub-list for extension extendee
+	0,  // [0:41] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_resource_proto_init() }
@@ -1039,7 +1116,7 @@ func file_proto_resources_resource_proto_init() {
 	file_proto_resources_schedules_proto_init()
 	file_proto_resources_sessions_proto_init()
 	file_proto_resources_workflows_proto_init()
-	file_proto_resources_resource_proto_msgTypes[3].OneofWrappers = []any{
+	file_proto_resources_resource_proto_msgTypes[4].OneofWrappers = []any{
 		(*ResourceSpec_Agent)(nil),
 		(*ResourceSpec_Workflow)(nil),
 		(*ResourceSpec_Schedule)(nil),
@@ -1059,7 +1136,7 @@ func file_proto_resources_resource_proto_init() {
 		(*ResourceSpec_PermissionRequest)(nil),
 		(*ResourceSpec_Raw)(nil),
 	}
-	file_proto_resources_resource_proto_msgTypes[4].OneofWrappers = []any{
+	file_proto_resources_resource_proto_msgTypes[5].OneofWrappers = []any{
 		(*ResourceStatus_Agent)(nil),
 		(*ResourceStatus_Workflow)(nil),
 		(*ResourceStatus_Schedule)(nil),
@@ -1085,7 +1162,7 @@ func file_proto_resources_resource_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_resource_proto_rawDesc), len(file_proto_resources_resource_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

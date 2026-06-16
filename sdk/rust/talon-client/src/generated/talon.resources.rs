@@ -885,6 +885,17 @@ pub struct Resource {
     pub status: ::core::option::Option<ResourceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ResourceManifest {
+    #[prost(string, tag = "1")]
+    pub api_version: ::prost::alloc::string::String,
+    #[prost(string, tag = "2")]
+    pub kind: ::prost::alloc::string::String,
+    #[prost(message, optional, tag = "3")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "4")]
+    pub spec: ::core::option::Option<ResourceSpec>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RawResourceSpec {
     #[prost(string, tag = "1")]
     pub json: ::prost::alloc::string::String,

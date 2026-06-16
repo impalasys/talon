@@ -308,7 +308,9 @@ mod tests {
         .await
         .unwrap();
 
-        let modules = list_namespace_knowledge(kv, "acme:child").await.unwrap();
+        let modules = list_namespace_knowledge(kv, Arc::new(MockPubSub), "acme:child")
+            .await
+            .unwrap();
         assert_eq!(modules.len(), 2);
         assert!(modules
             .iter()

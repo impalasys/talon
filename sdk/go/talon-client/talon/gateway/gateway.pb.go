@@ -26,9 +26,9 @@ const (
 )
 
 type CreateResourceRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ns            string                 `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
-	Resource      *resources.Resource    `protobuf:"bytes,2,opt,name=resource,proto3" json:"resource,omitempty"`
+	state         protoimpl.MessageState      `protogen:"open.v1"`
+	Ns            string                      `protobuf:"bytes,1,opt,name=ns,proto3" json:"ns,omitempty"`
+	Manifest      *resources.ResourceManifest `protobuf:"bytes,2,opt,name=manifest,proto3" json:"manifest,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -70,9 +70,9 @@ func (x *CreateResourceRequest) GetNs() string {
 	return ""
 }
 
-func (x *CreateResourceRequest) GetResource() *resources.Resource {
+func (x *CreateResourceRequest) GetManifest() *resources.ResourceManifest {
 	if x != nil {
-		return x.Resource
+		return x.Manifest
 	}
 	return nil
 }
@@ -6044,10 +6044,10 @@ var File_proto_gateway_proto protoreflect.FileDescriptor
 
 const file_proto_gateway_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/gateway.proto\x12\rtalon.gateway\x1a\x1cgoogle/api/annotations.proto\x1a\x15proto/data/data.proto\x1a\x12proto/events.proto\x1a\x1cproto/resources/agents.proto\x1a\x1eproto/resources/channels.proto\x1a\x1fproto/resources/knowledge.proto\x1a\x19proto/resources/mcp.proto\x1a\x1eproto/resources/resource.proto\x1a\x1fproto/resources/schedules.proto\x1a\x1fproto/resources/workflows.proto\"^\n" +
+	"\x13proto/gateway.proto\x12\rtalon.gateway\x1a\x1cgoogle/api/annotations.proto\x1a\x15proto/data/data.proto\x1a\x12proto/events.proto\x1a\x1cproto/resources/agents.proto\x1a\x1eproto/resources/channels.proto\x1a\x1fproto/resources/knowledge.proto\x1a\x19proto/resources/mcp.proto\x1a\x1eproto/resources/resource.proto\x1a\x1fproto/resources/schedules.proto\x1a\x1fproto/resources/workflows.proto\"f\n" +
 	"\x15CreateResourceRequest\x12\x0e\n" +
-	"\x02ns\x18\x01 \x01(\tR\x02ns\x125\n" +
-	"\bresource\x18\x02 \x01(\v2\x19.talon.resources.ResourceR\bresource\"L\n" +
+	"\x02ns\x18\x01 \x01(\tR\x02ns\x12=\n" +
+	"\bmanifest\x18\x02 \x01(\v2!.talon.resources.ResourceManifestR\bmanifest\"L\n" +
 	"\x12GetResourceRequest\x12\x0e\n" +
 	"\x02ns\x18\x01 \x01(\tR\x02ns\x12\x12\n" +
 	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x12\n" +
@@ -6640,81 +6640,82 @@ var file_proto_gateway_proto_goTypes = []any{
 	nil,                                       // 121: talon.gateway.SendMessageRequest.LabelsEntry
 	nil,                                       // 122: talon.gateway.CreateNamespaceRequest.LabelsEntry
 	nil,                                       // 123: talon.gateway.NamespaceResponse.LabelsEntry
-	(*resources.Resource)(nil),                // 124: talon.resources.Resource
-	(*resources.McpServer)(nil),               // 125: talon.resources.McpServer
-	(*resources.McpServerBinding)(nil),        // 126: talon.resources.McpServerBinding
-	(*resources.Agent)(nil),                   // 127: talon.resources.Agent
-	(*resources.AgentSpec)(nil),               // 128: talon.resources.AgentSpec
-	(*data.Knowledge)(nil),                    // 129: talon.data.Knowledge
-	(*data.KnowledgeSearchResult)(nil),        // 130: talon.data.KnowledgeSearchResult
-	(*resources.Knowledge)(nil),               // 131: talon.resources.Knowledge
-	(*data.SessionMessage)(nil),               // 132: talon.data.SessionMessage
-	(*resources.Channel)(nil),                 // 133: talon.resources.Channel
-	(*data.ChannelMessage)(nil),               // 134: talon.data.ChannelMessage
-	(*resources.ChannelSubscription)(nil),     // 135: talon.resources.ChannelSubscription
-	(*resources.Schedule)(nil),                // 136: talon.resources.Schedule
-	(*resources.Workflow)(nil),                // 137: talon.resources.Workflow
-	(*data.WorkflowRun)(nil),                  // 138: talon.data.WorkflowRun
-	(*data.WorkflowStepRun)(nil),              // 139: talon.data.WorkflowStepRun
-	(*events.SessionMessagePartEvent)(nil),    // 140: talon.events.SessionMessagePartEvent
-	(*events.ChannelEvent)(nil),               // 141: talon.events.ChannelEvent
-	(*data.WorkflowRunEvent)(nil),             // 142: talon.data.WorkflowRunEvent
+	(*resources.ResourceManifest)(nil),        // 124: talon.resources.ResourceManifest
+	(*resources.Resource)(nil),                // 125: talon.resources.Resource
+	(*resources.McpServer)(nil),               // 126: talon.resources.McpServer
+	(*resources.McpServerBinding)(nil),        // 127: talon.resources.McpServerBinding
+	(*resources.Agent)(nil),                   // 128: talon.resources.Agent
+	(*resources.AgentSpec)(nil),               // 129: talon.resources.AgentSpec
+	(*data.Knowledge)(nil),                    // 130: talon.data.Knowledge
+	(*data.KnowledgeSearchResult)(nil),        // 131: talon.data.KnowledgeSearchResult
+	(*resources.Knowledge)(nil),               // 132: talon.resources.Knowledge
+	(*data.SessionMessage)(nil),               // 133: talon.data.SessionMessage
+	(*resources.Channel)(nil),                 // 134: talon.resources.Channel
+	(*data.ChannelMessage)(nil),               // 135: talon.data.ChannelMessage
+	(*resources.ChannelSubscription)(nil),     // 136: talon.resources.ChannelSubscription
+	(*resources.Schedule)(nil),                // 137: talon.resources.Schedule
+	(*resources.Workflow)(nil),                // 138: talon.resources.Workflow
+	(*data.WorkflowRun)(nil),                  // 139: talon.data.WorkflowRun
+	(*data.WorkflowStepRun)(nil),              // 140: talon.data.WorkflowStepRun
+	(*events.SessionMessagePartEvent)(nil),    // 141: talon.events.SessionMessagePartEvent
+	(*events.ChannelEvent)(nil),               // 142: talon.events.ChannelEvent
+	(*data.WorkflowRunEvent)(nil),             // 143: talon.data.WorkflowRunEvent
 }
 var file_proto_gateway_proto_depIdxs = []int32{
-	124, // 0: talon.gateway.CreateResourceRequest.resource:type_name -> talon.resources.Resource
-	124, // 1: talon.gateway.ResourceResponse.resource:type_name -> talon.resources.Resource
-	124, // 2: talon.gateway.ListResourcesResponse.resources:type_name -> talon.resources.Resource
-	125, // 3: talon.gateway.CreateMcpServerRequest.server:type_name -> talon.resources.McpServer
-	125, // 4: talon.gateway.McpServerResponse.server:type_name -> talon.resources.McpServer
-	125, // 5: talon.gateway.ListMcpServersResponse.servers:type_name -> talon.resources.McpServer
-	126, // 6: talon.gateway.CreateMcpServerBindingRequest.binding:type_name -> talon.resources.McpServerBinding
-	126, // 7: talon.gateway.McpServerBindingResponse.binding:type_name -> talon.resources.McpServerBinding
-	126, // 8: talon.gateway.ListMcpServerBindingsResponse.bindings:type_name -> talon.resources.McpServerBinding
-	127, // 9: talon.gateway.GetAgentResponse.agent:type_name -> talon.resources.Agent
-	128, // 10: talon.gateway.CreateAgentRequest.spec:type_name -> talon.resources.AgentSpec
+	124, // 0: talon.gateway.CreateResourceRequest.manifest:type_name -> talon.resources.ResourceManifest
+	125, // 1: talon.gateway.ResourceResponse.resource:type_name -> talon.resources.Resource
+	125, // 2: talon.gateway.ListResourcesResponse.resources:type_name -> talon.resources.Resource
+	126, // 3: talon.gateway.CreateMcpServerRequest.server:type_name -> talon.resources.McpServer
+	126, // 4: talon.gateway.McpServerResponse.server:type_name -> talon.resources.McpServer
+	126, // 5: talon.gateway.ListMcpServersResponse.servers:type_name -> talon.resources.McpServer
+	127, // 6: talon.gateway.CreateMcpServerBindingRequest.binding:type_name -> talon.resources.McpServerBinding
+	127, // 7: talon.gateway.McpServerBindingResponse.binding:type_name -> talon.resources.McpServerBinding
+	127, // 8: talon.gateway.ListMcpServerBindingsResponse.bindings:type_name -> talon.resources.McpServerBinding
+	128, // 9: talon.gateway.GetAgentResponse.agent:type_name -> talon.resources.Agent
+	129, // 10: talon.gateway.CreateAgentRequest.spec:type_name -> talon.resources.AgentSpec
 	113, // 11: talon.gateway.CreateAgentRequest.labels:type_name -> talon.gateway.CreateAgentRequest.LabelsEntry
 	114, // 12: talon.gateway.AgentResponse.labels:type_name -> talon.gateway.AgentResponse.LabelsEntry
-	128, // 13: talon.gateway.ModifyAgentRequest.spec:type_name -> talon.resources.AgentSpec
+	129, // 13: talon.gateway.ModifyAgentRequest.spec:type_name -> talon.resources.AgentSpec
 	115, // 14: talon.gateway.ModifyAgentRequest.labels:type_name -> talon.gateway.ModifyAgentRequest.LabelsEntry
-	129, // 15: talon.gateway.KnowledgeResponse.modules:type_name -> talon.data.Knowledge
-	130, // 16: talon.gateway.SearchKnowledgeResponse.results:type_name -> talon.data.KnowledgeSearchResult
-	131, // 17: talon.gateway.CreateNamespaceKnowledgeRequest.knowledge:type_name -> talon.resources.Knowledge
-	131, // 18: talon.gateway.NamespaceKnowledgeResponse.knowledge:type_name -> talon.resources.Knowledge
-	131, // 19: talon.gateway.ListNamespaceKnowledgeResponse.knowledge:type_name -> talon.resources.Knowledge
+	130, // 15: talon.gateway.KnowledgeResponse.modules:type_name -> talon.data.Knowledge
+	131, // 16: talon.gateway.SearchKnowledgeResponse.results:type_name -> talon.data.KnowledgeSearchResult
+	132, // 17: talon.gateway.CreateNamespaceKnowledgeRequest.knowledge:type_name -> talon.resources.Knowledge
+	132, // 18: talon.gateway.NamespaceKnowledgeResponse.knowledge:type_name -> talon.resources.Knowledge
+	132, // 19: talon.gateway.ListNamespaceKnowledgeResponse.knowledge:type_name -> talon.resources.Knowledge
 	116, // 20: talon.gateway.CreateSessionRequest.labels:type_name -> talon.gateway.CreateSessionRequest.LabelsEntry
-	132, // 21: talon.gateway.ListSessionMessagesResponseItem.message:type_name -> talon.data.SessionMessage
+	133, // 21: talon.gateway.ListSessionMessagesResponseItem.message:type_name -> talon.data.SessionMessage
 	42,  // 22: talon.gateway.ListSessionMessagesResponse.items:type_name -> talon.gateway.ListSessionMessagesResponseItem
 	117, // 23: talon.gateway.SessionListItem.labels:type_name -> talon.gateway.SessionListItem.LabelsEntry
 	45,  // 24: talon.gateway.ListSessionsResponse.sessions:type_name -> talon.gateway.SessionListItem
-	132, // 25: talon.gateway.SessionResponse.messages:type_name -> talon.data.SessionMessage
+	133, // 25: talon.gateway.SessionResponse.messages:type_name -> talon.data.SessionMessage
 	118, // 26: talon.gateway.SessionResponse.labels:type_name -> talon.gateway.SessionResponse.LabelsEntry
-	133, // 27: talon.gateway.CreateChannelRequest.channel:type_name -> talon.resources.Channel
-	133, // 28: talon.gateway.ModifyChannelRequest.channel:type_name -> talon.resources.Channel
-	133, // 29: talon.gateway.ChannelResponse.channel:type_name -> talon.resources.Channel
-	133, // 30: talon.gateway.ListChannelsResponse.channels:type_name -> talon.resources.Channel
+	134, // 27: talon.gateway.CreateChannelRequest.channel:type_name -> talon.resources.Channel
+	134, // 28: talon.gateway.ModifyChannelRequest.channel:type_name -> talon.resources.Channel
+	134, // 29: talon.gateway.ChannelResponse.channel:type_name -> talon.resources.Channel
+	134, // 30: talon.gateway.ListChannelsResponse.channels:type_name -> talon.resources.Channel
 	119, // 31: talon.gateway.PostChannelMessageRequest.labels:type_name -> talon.gateway.PostChannelMessageRequest.LabelsEntry
-	134, // 32: talon.gateway.PostChannelMessageResponse.message:type_name -> talon.data.ChannelMessage
+	135, // 32: talon.gateway.PostChannelMessageResponse.message:type_name -> talon.data.ChannelMessage
 	61,  // 33: talon.gateway.PostChannelMessageResponse.routed_sessions:type_name -> talon.gateway.RoutedChannelSession
-	134, // 34: talon.gateway.ChannelMessageResponse.message:type_name -> talon.data.ChannelMessage
-	134, // 35: talon.gateway.ListChannelMessagesResponse.messages:type_name -> talon.data.ChannelMessage
-	135, // 36: talon.gateway.CreateChannelSubscriptionRequest.subscription:type_name -> talon.resources.ChannelSubscription
-	135, // 37: talon.gateway.ModifyChannelSubscriptionRequest.subscription:type_name -> talon.resources.ChannelSubscription
-	135, // 38: talon.gateway.ChannelSubscriptionResponse.subscription:type_name -> talon.resources.ChannelSubscription
-	135, // 39: talon.gateway.ListChannelSubscriptionsResponse.subscriptions:type_name -> talon.resources.ChannelSubscription
-	136, // 40: talon.gateway.CreateScheduleRequest.schedule:type_name -> talon.resources.Schedule
-	136, // 41: talon.gateway.ModifyScheduleRequest.schedule:type_name -> talon.resources.Schedule
-	136, // 42: talon.gateway.ListSchedulesResponse.schedules:type_name -> talon.resources.Schedule
-	137, // 43: talon.gateway.CreateWorkflowRequest.workflow:type_name -> talon.resources.Workflow
-	137, // 44: talon.gateway.WorkflowResponse.workflow:type_name -> talon.resources.Workflow
-	137, // 45: talon.gateway.ListWorkflowsResponse.workflows:type_name -> talon.resources.Workflow
+	135, // 34: talon.gateway.ChannelMessageResponse.message:type_name -> talon.data.ChannelMessage
+	135, // 35: talon.gateway.ListChannelMessagesResponse.messages:type_name -> talon.data.ChannelMessage
+	136, // 36: talon.gateway.CreateChannelSubscriptionRequest.subscription:type_name -> talon.resources.ChannelSubscription
+	136, // 37: talon.gateway.ModifyChannelSubscriptionRequest.subscription:type_name -> talon.resources.ChannelSubscription
+	136, // 38: talon.gateway.ChannelSubscriptionResponse.subscription:type_name -> talon.resources.ChannelSubscription
+	136, // 39: talon.gateway.ListChannelSubscriptionsResponse.subscriptions:type_name -> talon.resources.ChannelSubscription
+	137, // 40: talon.gateway.CreateScheduleRequest.schedule:type_name -> talon.resources.Schedule
+	137, // 41: talon.gateway.ModifyScheduleRequest.schedule:type_name -> talon.resources.Schedule
+	137, // 42: talon.gateway.ListSchedulesResponse.schedules:type_name -> talon.resources.Schedule
+	138, // 43: talon.gateway.CreateWorkflowRequest.workflow:type_name -> talon.resources.Workflow
+	138, // 44: talon.gateway.WorkflowResponse.workflow:type_name -> talon.resources.Workflow
+	138, // 45: talon.gateway.ListWorkflowsResponse.workflows:type_name -> talon.resources.Workflow
 	120, // 46: talon.gateway.CreateWorkflowRunRequest.labels:type_name -> talon.gateway.CreateWorkflowRunRequest.LabelsEntry
-	138, // 47: talon.gateway.WorkflowRunResponse.run:type_name -> talon.data.WorkflowRun
-	139, // 48: talon.gateway.WorkflowRunResponse.steps:type_name -> talon.data.WorkflowStepRun
-	138, // 49: talon.gateway.ListWorkflowRunsResponse.runs:type_name -> talon.data.WorkflowRun
-	136, // 50: talon.gateway.ScheduleResponse.schedule:type_name -> talon.resources.Schedule
+	139, // 47: talon.gateway.WorkflowRunResponse.run:type_name -> talon.data.WorkflowRun
+	140, // 48: talon.gateway.WorkflowRunResponse.steps:type_name -> talon.data.WorkflowStepRun
+	139, // 49: talon.gateway.ListWorkflowRunsResponse.runs:type_name -> talon.data.WorkflowRun
+	137, // 50: talon.gateway.ScheduleResponse.schedule:type_name -> talon.resources.Schedule
 	121, // 51: talon.gateway.SendMessageRequest.labels:type_name -> talon.gateway.SendMessageRequest.LabelsEntry
-	132, // 52: talon.gateway.AppendSessionMessageRequest.message:type_name -> talon.data.SessionMessage
-	132, // 53: talon.gateway.AppendSessionMessageResponse.message:type_name -> talon.data.SessionMessage
+	133, // 52: talon.gateway.AppendSessionMessageRequest.message:type_name -> talon.data.SessionMessage
+	133, // 53: talon.gateway.AppendSessionMessageResponse.message:type_name -> talon.data.SessionMessage
 	122, // 54: talon.gateway.CreateNamespaceRequest.labels:type_name -> talon.gateway.CreateNamespaceRequest.LabelsEntry
 	123, // 55: talon.gateway.NamespaceResponse.labels:type_name -> talon.gateway.NamespaceResponse.LabelsEntry
 	111, // 56: talon.gateway.ListNamespacesResponse.namespaces:type_name -> talon.gateway.NamespaceResponse
@@ -6760,18 +6761,18 @@ var file_proto_gateway_proto_depIdxs = []int32{
 	100, // 96: talon.gateway.GatewayService.SendMessage:output_type -> talon.gateway.SendMessageResponse
 	102, // 97: talon.gateway.GatewayService.AppendSessionMessage:output_type -> talon.gateway.AppendSessionMessageResponse
 	104, // 98: talon.gateway.GatewayService.StopSessionGeneration:output_type -> talon.gateway.StopSessionGenerationResponse
-	140, // 99: talon.gateway.GatewayService.StreamSessionParts:output_type -> talon.events.SessionMessagePartEvent
-	140, // 100: talon.gateway.GatewayService.StreamSessionPartsBatch:output_type -> talon.events.SessionMessagePartEvent
+	141, // 99: talon.gateway.GatewayService.StreamSessionParts:output_type -> talon.events.SessionMessagePartEvent
+	141, // 100: talon.gateway.GatewayService.StreamSessionPartsBatch:output_type -> talon.events.SessionMessagePartEvent
 	62,  // 101: talon.gateway.GatewayService.PostChannelMessage:output_type -> talon.gateway.PostChannelMessageResponse
 	64,  // 102: talon.gateway.GatewayService.GetChannelMessage:output_type -> talon.gateway.ChannelMessageResponse
 	66,  // 103: talon.gateway.GatewayService.ListChannelMessages:output_type -> talon.gateway.ListChannelMessagesResponse
-	141, // 104: talon.gateway.GatewayService.StreamChannelEvents:output_type -> talon.events.ChannelEvent
+	142, // 104: talon.gateway.GatewayService.StreamChannelEvents:output_type -> talon.events.ChannelEvent
 	96,  // 105: talon.gateway.GatewayService.CreateWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
 	96,  // 106: talon.gateway.GatewayService.GetWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
 	97,  // 107: talon.gateway.GatewayService.ListWorkflowRuns:output_type -> talon.gateway.ListWorkflowRunsResponse
 	96,  // 108: talon.gateway.GatewayService.ResumeWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
 	96,  // 109: talon.gateway.GatewayService.CancelWorkflowRun:output_type -> talon.gateway.WorkflowRunResponse
-	142, // 110: talon.gateway.GatewayService.StreamWorkflowEvents:output_type -> talon.data.WorkflowRunEvent
+	143, // 110: talon.gateway.GatewayService.StreamWorkflowEvents:output_type -> talon.data.WorkflowRunEvent
 	111, // 111: talon.gateway.GatewayService.CreateNamespace:output_type -> talon.gateway.NamespaceResponse
 	111, // 112: talon.gateway.GatewayService.GetNamespace:output_type -> talon.gateway.NamespaceResponse
 	111, // 113: talon.gateway.GatewayService.DeleteNamespace:output_type -> talon.gateway.NamespaceResponse

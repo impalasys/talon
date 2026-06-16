@@ -578,19 +578,16 @@ fn build_knowledge(namespace: &str, path: &str, content: String) -> Knowledge {
     }
 }
 
-fn knowledge_resource_proto(knowledge: &Knowledge) -> Result<resources_proto::Resource> {
-    Ok(resources_proto::Resource {
+fn knowledge_resource_manifest_proto(
+    knowledge: &Knowledge,
+) -> Result<resources_proto::ResourceManifest> {
+    Ok(resources_proto::ResourceManifest {
         api_version: "talon.impalasys.com/v1".to_string(),
         kind: "Knowledge".to_string(),
         metadata: knowledge.metadata.clone(),
         spec: Some(resources_proto::ResourceSpec {
             kind: Some(resources_proto::resource_spec::Kind::Knowledge(
                 knowledge.spec.clone().context("Knowledge missing spec")?,
-            )),
-        }),
-        status: Some(resources_proto::ResourceStatus {
-            kind: Some(resources_proto::resource_status::Kind::Knowledge(
-                knowledge.status.clone().unwrap_or_default(),
             )),
         }),
     })
@@ -612,16 +609,13 @@ fn knowledge_from_resource_proto(resource: resources_proto::Resource) -> Option<
     })
 }
 
-fn knowledge_resource_json(knowledge: &Knowledge) -> serde_json::Value {
+fn knowledge_resource_manifest_json(knowledge: &Knowledge) -> serde_json::Value {
     json!({
         "apiVersion": "talon.impalasys.com/v1",
         "kind": "Knowledge",
         "metadata": knowledge.metadata,
         "spec": {
             "knowledge": knowledge.spec,
-        },
-        "status": {
-            "knowledge": knowledge.status,
         },
     })
 }
@@ -775,7 +769,7 @@ pub(super) async fn knowledge_set(
             &format!("/v2/ns/{}/resources", urlencoding::encode(namespace)),
             Some(json!({
                 "ns": namespace,
-                "resource": knowledge_resource_json(&knowledge),
+                "manifest": knowledge_resource_manifest_json(&knowledge),
             })),
         )
         .await
@@ -790,7 +784,7 @@ pub(super) async fn knowledge_set(
         client
             .create_resource(CreateResourceRequest {
                 ns: namespace.to_string(),
-                resource: Some(knowledge_resource_proto(&knowledge)?),
+                manifest: Some(knowledge_resource_manifest_proto(&knowledge)?),
             })
             .await
             .with_context(|| format!("Failed to write Knowledge '{}/{}'", namespace, path))?;

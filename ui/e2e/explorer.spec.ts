@@ -15,7 +15,7 @@ test.describe('Explorer navigation', () => {
 
     await client.createResource({
       ns: 'conic:wks:13',
-      resource: {
+      manifest: {
         apiVersion: "talon.impalasys.com/v1",
         kind: "Agent",
         metadata: { name: "cmo", namespace: "conic:wks:13", labels: {}, annotations: {}, ownerReferences: [], finalizers: [], generation: BigInt(0), resourceVersion: "", uid: "" },
@@ -36,7 +36,6 @@ test.describe('Explorer navigation', () => {
             },
           },
         },
-        status: { kind: { case: "agent", value: { observedGeneration: BigInt(0), phase: "", conditions: [] } } },
       },
     });
 

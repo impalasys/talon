@@ -206,7 +206,7 @@ service GatewayService {
 
 message CreateResourceRequest {
   string ns = 1;
-  talon.resources.Resource resource = 2;
+  talon.resources.ResourceManifest manifest = 2;
 }
 
 message GetResourceRequest {

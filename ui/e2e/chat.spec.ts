@@ -21,7 +21,7 @@ async function createTestSession() {
 
   await client.createResource({
     ns: testNs,
-    resource: {
+    manifest: {
       apiVersion: "talon.impalasys.com/v1",
       kind: "Agent",
       metadata: { name: testAgent, namespace: testNs, labels: {}, annotations: {}, ownerReferences: [], finalizers: [], generation: BigInt(0), resourceVersion: "", uid: "" },
@@ -42,7 +42,6 @@ async function createTestSession() {
           },
         },
       },
-      status: { kind: { case: "agent", value: { observedGeneration: BigInt(0), phase: "", conditions: [] } } },
     },
   });
 

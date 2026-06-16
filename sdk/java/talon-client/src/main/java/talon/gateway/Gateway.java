@@ -43,19 +43,19 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         getNsBytes();
 
     /**
-     * <code>.talon.resources.Resource resource = 2;</code>
-     * @return Whether the resource field is set.
+     * <code>.talon.resources.ResourceManifest manifest = 2;</code>
+     * @return Whether the manifest field is set.
      */
-    boolean hasResource();
+    boolean hasManifest();
     /**
-     * <code>.talon.resources.Resource resource = 2;</code>
-     * @return The resource.
+     * <code>.talon.resources.ResourceManifest manifest = 2;</code>
+     * @return The manifest.
      */
-    talon.resources.ResourceOuterClass.Resource getResource();
+    talon.resources.ResourceOuterClass.ResourceManifest getManifest();
     /**
-     * <code>.talon.resources.Resource resource = 2;</code>
+     * <code>.talon.resources.ResourceManifest manifest = 2;</code>
      */
-    talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder();
+    talon.resources.ResourceOuterClass.ResourceManifestOrBuilder getManifestOrBuilder();
   }
   /**
    * Protobuf type {@code talon.gateway.CreateResourceRequest}
@@ -140,30 +140,30 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
     }
 
-    public static final int RESOURCE_FIELD_NUMBER = 2;
-    private talon.resources.ResourceOuterClass.Resource resource_;
+    public static final int MANIFEST_FIELD_NUMBER = 2;
+    private talon.resources.ResourceOuterClass.ResourceManifest manifest_;
     /**
-     * <code>.talon.resources.Resource resource = 2;</code>
-     * @return Whether the resource field is set.
+     * <code>.talon.resources.ResourceManifest manifest = 2;</code>
+     * @return Whether the manifest field is set.
      */
     @java.lang.Override
-    public boolean hasResource() {
+    public boolean hasManifest() {
       return ((bitField0_ & 0x00000001) != 0);
     }
     /**
-     * <code>.talon.resources.Resource resource = 2;</code>
-     * @return The resource.
+     * <code>.talon.resources.ResourceManifest manifest = 2;</code>
+     * @return The manifest.
      */
     @java.lang.Override
-    public talon.resources.ResourceOuterClass.Resource getResource() {
-      return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
+    public talon.resources.ResourceOuterClass.ResourceManifest getManifest() {
+      return manifest_ == null ? talon.resources.ResourceOuterClass.ResourceManifest.getDefaultInstance() : manifest_;
     }
     /**
-     * <code>.talon.resources.Resource resource = 2;</code>
+     * <code>.talon.resources.ResourceManifest manifest = 2;</code>
      */
     @java.lang.Override
-    public talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder() {
-      return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
+    public talon.resources.ResourceOuterClass.ResourceManifestOrBuilder getManifestOrBuilder() {
+      return manifest_ == null ? talon.resources.ResourceOuterClass.ResourceManifest.getDefaultInstance() : manifest_;
     }
 
     private byte memoizedIsInitialized = -1;
@@ -184,7 +184,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         com.google.protobuf.GeneratedMessage.writeString(output, 1, ns_);
       }
       if (((bitField0_ & 0x00000001) != 0)) {
-        output.writeMessage(2, getResource());
+        output.writeMessage(2, getManifest());
       }
       getUnknownFields().writeTo(output);
     }
@@ -200,7 +200,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       }
       if (((bitField0_ & 0x00000001) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(2, getResource());
+          .computeMessageSize(2, getManifest());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSize = size;
@@ -219,10 +219,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
 
       if (!getNs()
           .equals(other.getNs())) return false;
-      if (hasResource() != other.hasResource()) return false;
-      if (hasResource()) {
-        if (!getResource()
-            .equals(other.getResource())) return false;
+      if (hasManifest() != other.hasManifest()) return false;
+      if (hasManifest()) {
+        if (!getManifest()
+            .equals(other.getManifest())) return false;
       }
       if (!getUnknownFields().equals(other.getUnknownFields())) return false;
       return true;
@@ -237,9 +237,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       hash = (19 * hash) + getDescriptor().hashCode();
       hash = (37 * hash) + NS_FIELD_NUMBER;
       hash = (53 * hash) + getNs().hashCode();
-      if (hasResource()) {
-        hash = (37 * hash) + RESOURCE_FIELD_NUMBER;
-        hash = (53 * hash) + getResource().hashCode();
+      if (hasManifest()) {
+        hash = (37 * hash) + MANIFEST_FIELD_NUMBER;
+        hash = (53 * hash) + getManifest().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -371,7 +371,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage
                 .alwaysUseFieldBuilders) {
-          internalGetResourceFieldBuilder();
+          internalGetManifestFieldBuilder();
         }
       }
       @java.lang.Override
@@ -379,10 +379,10 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         super.clear();
         bitField0_ = 0;
         ns_ = "";
-        resource_ = null;
-        if (resourceBuilder_ != null) {
-          resourceBuilder_.dispose();
-          resourceBuilder_ = null;
+        manifest_ = null;
+        if (manifestBuilder_ != null) {
+          manifestBuilder_.dispose();
+          manifestBuilder_ = null;
         }
         return this;
       }
@@ -422,9 +422,9 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         }
         int to_bitField0_ = 0;
         if (((from_bitField0_ & 0x00000002) != 0)) {
-          result.resource_ = resourceBuilder_ == null
-              ? resource_
-              : resourceBuilder_.build();
+          result.manifest_ = manifestBuilder_ == null
+              ? manifest_
+              : manifestBuilder_.build();
           to_bitField0_ |= 0x00000001;
         }
         result.bitField0_ |= to_bitField0_;
@@ -447,8 +447,8 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
           bitField0_ |= 0x00000001;
           onChanged();
         }
-        if (other.hasResource()) {
-          mergeResource(other.getResource());
+        if (other.hasManifest()) {
+          mergeManifest(other.getManifest());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         onChanged();
@@ -483,7 +483,7 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
               } // case 10
               case 18: {
                 input.readMessage(
-                    internalGetResourceFieldBuilder().getBuilder(),
+                    internalGetManifestFieldBuilder().getBuilder(),
                     extensionRegistry);
                 bitField0_ |= 0x00000002;
                 break;
@@ -577,125 +577,125 @@ public final class Gateway extends com.google.protobuf.GeneratedFile {
         return this;
       }
 
-      private talon.resources.ResourceOuterClass.Resource resource_;
+      private talon.resources.ResourceOuterClass.ResourceManifest manifest_;
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder> resourceBuilder_;
+          talon.resources.ResourceOuterClass.ResourceManifest, talon.resources.ResourceOuterClass.ResourceManifest.Builder, talon.resources.ResourceOuterClass.ResourceManifestOrBuilder> manifestBuilder_;
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
-       * @return Whether the resource field is set.
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
+       * @return Whether the manifest field is set.
        */
-      public boolean hasResource() {
+      public boolean hasManifest() {
         return ((bitField0_ & 0x00000002) != 0);
       }
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
-       * @return The resource.
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
+       * @return The manifest.
        */
-      public talon.resources.ResourceOuterClass.Resource getResource() {
-        if (resourceBuilder_ == null) {
-          return resource_ == null ? talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
+      public talon.resources.ResourceOuterClass.ResourceManifest getManifest() {
+        if (manifestBuilder_ == null) {
+          return manifest_ == null ? talon.resources.ResourceOuterClass.ResourceManifest.getDefaultInstance() : manifest_;
         } else {
-          return resourceBuilder_.getMessage();
+          return manifestBuilder_.getMessage();
         }
       }
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
        */
-      public Builder setResource(talon.resources.ResourceOuterClass.Resource value) {
-        if (resourceBuilder_ == null) {
+      public Builder setManifest(talon.resources.ResourceOuterClass.ResourceManifest value) {
+        if (manifestBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          resource_ = value;
+          manifest_ = value;
         } else {
-          resourceBuilder_.setMessage(value);
+          manifestBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
        */
-      public Builder setResource(
-          talon.resources.ResourceOuterClass.Resource.Builder builderForValue) {
-        if (resourceBuilder_ == null) {
-          resource_ = builderForValue.build();
+      public Builder setManifest(
+          talon.resources.ResourceOuterClass.ResourceManifest.Builder builderForValue) {
+        if (manifestBuilder_ == null) {
+          manifest_ = builderForValue.build();
         } else {
-          resourceBuilder_.setMessage(builderForValue.build());
+          manifestBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000002;
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
        */
-      public Builder mergeResource(talon.resources.ResourceOuterClass.Resource value) {
-        if (resourceBuilder_ == null) {
+      public Builder mergeManifest(talon.resources.ResourceOuterClass.ResourceManifest value) {
+        if (manifestBuilder_ == null) {
           if (((bitField0_ & 0x00000002) != 0) &&
-            resource_ != null &&
-            resource_ != talon.resources.ResourceOuterClass.Resource.getDefaultInstance()) {
-            getResourceBuilder().mergeFrom(value);
+            manifest_ != null &&
+            manifest_ != talon.resources.ResourceOuterClass.ResourceManifest.getDefaultInstance()) {
+            getManifestBuilder().mergeFrom(value);
           } else {
-            resource_ = value;
+            manifest_ = value;
           }
         } else {
-          resourceBuilder_.mergeFrom(value);
+          manifestBuilder_.mergeFrom(value);
         }
-        if (resource_ != null) {
+        if (manifest_ != null) {
           bitField0_ |= 0x00000002;
           onChanged();
         }
         return this;
       }
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
        */
-      public Builder clearResource() {
+      public Builder clearManifest() {
         bitField0_ = (bitField0_ & ~0x00000002);
-        resource_ = null;
-        if (resourceBuilder_ != null) {
-          resourceBuilder_.dispose();
-          resourceBuilder_ = null;
+        manifest_ = null;
+        if (manifestBuilder_ != null) {
+          manifestBuilder_.dispose();
+          manifestBuilder_ = null;
         }
         onChanged();
         return this;
       }
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
        */
-      public talon.resources.ResourceOuterClass.Resource.Builder getResourceBuilder() {
+      public talon.resources.ResourceOuterClass.ResourceManifest.Builder getManifestBuilder() {
         bitField0_ |= 0x00000002;
         onChanged();
-        return internalGetResourceFieldBuilder().getBuilder();
+        return internalGetManifestFieldBuilder().getBuilder();
       }
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
        */
-      public talon.resources.ResourceOuterClass.ResourceOrBuilder getResourceOrBuilder() {
-        if (resourceBuilder_ != null) {
-          return resourceBuilder_.getMessageOrBuilder();
+      public talon.resources.ResourceOuterClass.ResourceManifestOrBuilder getManifestOrBuilder() {
+        if (manifestBuilder_ != null) {
+          return manifestBuilder_.getMessageOrBuilder();
         } else {
-          return resource_ == null ?
-              talon.resources.ResourceOuterClass.Resource.getDefaultInstance() : resource_;
+          return manifest_ == null ?
+              talon.resources.ResourceOuterClass.ResourceManifest.getDefaultInstance() : manifest_;
         }
       }
       /**
-       * <code>.talon.resources.Resource resource = 2;</code>
+       * <code>.talon.resources.ResourceManifest manifest = 2;</code>
        */
       private com.google.protobuf.SingleFieldBuilder<
-          talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder>
-          internalGetResourceFieldBuilder() {
-        if (resourceBuilder_ == null) {
-          resourceBuilder_ = new com.google.protobuf.SingleFieldBuilder<
-              talon.resources.ResourceOuterClass.Resource, talon.resources.ResourceOuterClass.Resource.Builder, talon.resources.ResourceOuterClass.ResourceOrBuilder>(
-                  getResource(),
+          talon.resources.ResourceOuterClass.ResourceManifest, talon.resources.ResourceOuterClass.ResourceManifest.Builder, talon.resources.ResourceOuterClass.ResourceManifestOrBuilder>
+          internalGetManifestFieldBuilder() {
+        if (manifestBuilder_ == null) {
+          manifestBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.ResourceOuterClass.ResourceManifest, talon.resources.ResourceOuterClass.ResourceManifest.Builder, talon.resources.ResourceOuterClass.ResourceManifestOrBuilder>(
+                  getManifest(),
                   getParentForChildren(),
                   isClean());
-          resource_ = null;
+          manifest_ = null;
         }
-        return resourceBuilder_;
+        return manifestBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:talon.gateway.CreateResourceRequest)
@@ -84759,362 +84759,362 @@ java.lang.String defaultValue) {
       "roto\032\031proto/resources/mcp.proto\032\036proto/r" +
       "esources/resource.proto\032\037proto/resources" +
       "/schedules.proto\032\037proto/resources/workfl" +
-      "ows.proto\"P\n\025CreateResourceRequest\022\n\n\002ns" +
-      "\030\001 \001(\t\022+\n\010resource\030\002 \001(\0132\031.talon.resourc" +
-      "es.Resource\"<\n\022GetResourceRequest\022\n\n\002ns\030" +
-      "\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\">\n\024Lis" +
-      "tResourcesRequest\022\n\n\002ns\030\001 \001(\t\022\021\n\004kind\030\002 " +
-      "\001(\tH\000\210\001\001B\007\n\005_kind\"?\n\025DeleteResourceReque" +
-      "st\022\n\n\002ns\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022\014\n\004name\030\003 \001" +
-      "(\t\"?\n\020ResourceResponse\022+\n\010resource\030\001 \001(\013" +
-      "2\031.talon.resources.Resource\"E\n\025ListResou" +
-      "rcesResponse\022,\n\tresources\030\001 \003(\0132\031.talon." +
-      "resources.Resource\")\n\026DeleteResourceResp" +
-      "onse\022\017\n\007success\030\001 \001(\010\"D\n\026CreateMcpServer" +
-      "Request\022*\n\006server\030\001 \001(\0132\032.talon.resource" +
-      "s.McpServer\"#\n\023GetMcpServerRequest\022\014\n\004na" +
-      "me\030\001 \001(\t\"\027\n\025ListMcpServersRequest\"&\n\026Del" +
-      "eteMcpServerRequest\022\014\n\004name\030\001 \001(\t\"*\n\027Del" +
-      "eteMcpServerResponse\022\017\n\007success\030\001 \001(\010\"?\n" +
-      "\021McpServerResponse\022*\n\006server\030\001 \001(\0132\032.tal" +
-      "on.resources.McpServer\"E\n\026ListMcpServers" +
-      "Response\022+\n\007servers\030\001 \003(\0132\032.talon.resour" +
-      "ces.McpServer\"_\n\035CreateMcpServerBindingR" +
-      "equest\022\n\n\002ns\030\001 \001(\t\0222\n\007binding\030\002 \001(\0132!.ta" +
-      "lon.resources.McpServerBinding\"6\n\032GetMcp" +
-      "ServerBindingRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name" +
-      "\030\002 \001(\t\"*\n\034ListMcpServerBindingsRequest\022\n" +
-      "\n\002ns\030\001 \001(\t\"9\n\035DeleteMcpServerBindingRequ" +
-      "est\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"1\n\036DeleteM" +
-      "cpServerBindingResponse\022\017\n\007success\030\001 \001(\010" +
-      "\"N\n\030McpServerBindingResponse\0222\n\007binding\030" +
-      "\001 \001(\0132!.talon.resources.McpServerBinding" +
-      "\"T\n\035ListMcpServerBindingsResponse\0223\n\010bin" +
-      "dings\030\001 \003(\0132!.talon.resources.McpServerB" +
-      "inding\"9\n\020GetAgentResponse\022%\n\005agent\030\001 \001(" +
-      "\0132\026.talon.resources.Agent\"+\n\017GetAgentReq" +
-      "uest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"\332\001\n\022Creat" +
-      "eAgentRequest\022\n\n\002ns\030\001 \001(\t\022\021\n\004name\030\002 \001(\tH" +
-      "\000\210\001\001\022(\n\004spec\030\005 \001(\0132\032.talon.resources.Age" +
-      "ntSpec\022=\n\006labels\030\004 \003(\0132-.talon.gateway.C" +
-      "reateAgentRequest.LabelsEntry\032-\n\013LabelsE" +
-      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\007\n\005" +
-      "_nameJ\004\010\003\020\004\"\223\001\n\rAgentResponse\022\r\n\005agent\030\001" +
-      " \001(\t\022\n\n\002ns\030\002 \001(\t\0228\n\006labels\030\004 \003(\0132(.talon" +
-      ".gateway.AgentResponse.LabelsEntry\032-\n\013La" +
-      "belsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028" +
-      "\001\"\037\n\021ListAgentsRequest\022\n\n\002ns\030\001 \001(\t\"$\n\022Li" +
-      "stAgentsResponse\022\016\n\006agents\030\001 \003(\t\"\315\001\n\022Mod" +
-      "ifyAgentRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001" +
-      "(\t\022(\n\004spec\030\005 \001(\0132\032.talon.resources.Agent" +
-      "Spec\022=\n\006labels\030\004 \003(\0132-.talon.gateway.Mod" +
-      "ifyAgentRequest.LabelsEntry\032-\n\013LabelsEnt" +
-      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\003\020\004" +
-      "\"L\n\023GetKnowledgeRequest\022\r\n\005agent\030\001 \001(\t\022\n" +
-      "\n\002ns\030\002 \001(\t\022\021\n\004path\030\003 \001(\tH\000\210\001\001B\007\n\005_path\";" +
-      "\n\021KnowledgeResponse\022&\n\007modules\030\001 \003(\0132\025.t" +
-      "alon.data.Knowledge\"B\n\026SearchKnowledgeRe" +
-      "quest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\r\n\005quer" +
-      "y\030\003 \001(\t\"M\n\027SearchKnowledgeResponse\0222\n\007re" +
-      "sults\030\001 \003(\0132!.talon.data.KnowledgeSearch" +
-      "Result\"\\\n\037CreateNamespaceKnowledgeReques" +
-      "t\022\n\n\002ns\030\001 \001(\t\022-\n\tknowledge\030\002 \001(\0132\032.talon" +
-      ".resources.Knowledge\"8\n\034GetNamespaceKnow" +
-      "ledgeRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"+" +
-      "\n\035ListNamespaceKnowledgeRequest\022\n\n\002ns\030\001 " +
-      "\001(\t\";\n\037DeleteNamespaceKnowledgeRequest\022\n" +
-      "\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"3\n DeleteNamesp" +
-      "aceKnowledgeResponse\022\017\n\007success\030\001 \001(\010\"K\n" +
-      "\032NamespaceKnowledgeResponse\022-\n\tknowledge" +
-      "\030\001 \001(\0132\032.talon.resources.Knowledge\"O\n\036Li" +
-      "stNamespaceKnowledgeResponse\022-\n\tknowledg" +
-      "e\030\001 \003(\0132\032.talon.resources.Knowledge\"\241\001\n\024" +
-      "CreateSessionRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002n" +
-      "s\030\002 \001(\t\022?\n\006labels\030\003 \003(\0132/.talon.gateway." +
-      "CreateSessionRequest.LabelsEntry\032-\n\013Labe" +
-      "lsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"" +
-      "k\n\021GetSessionRequest\022\022\n\nsession_id\030\001 \001(\t" +
-      "\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\025\n\rmessage_l" +
-      "imit\030\004 \001(\005J\004\010\005\020\006R\nstep_limit\"\224\001\n\032ListSes" +
-      "sionMessagesRequest\022\022\n\nsession_id\030\001 \001(\t\022" +
-      "\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\021\n\tpage_size\030" +
-      "\004 \001(\005\022\036\n\021before_message_id\030\005 \001(\tH\000\210\001\001B\024\n" +
-      "\022_before_message_id\"[\n\037ListSessionMessag" +
-      "esResponseItem\022+\n\007message\030\001 \001(\0132\032.talon." +
-      "data.SessionMessageJ\004\010\002\020\003R\005steps\"\340\001\n\033Lis" +
-      "tSessionMessagesResponse\022\022\n\nsession_id\030\001" +
-      " \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005state\030\003 \001(\t\022=\n\005it" +
-      "ems\030\004 \003(\0132..talon.gateway.ListSessionMes" +
-      "sagesResponseItem\022\020\n\010has_more\030\005 \001(\010\022#\n\026n" +
-      "ext_before_message_id\030\006 \001(\tH\000\210\001\001B\031\n\027_nex" +
-      "t_before_message_id\"0\n\023ListSessionsReque" +
-      "st\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\"\244\001\n\017Sessio" +
-      "nListItem\022\022\n\nsession_id\030\001 \001(\t\022\022\n\nupdated" +
-      "_at\030\002 \001(\003\022:\n\006labels\030\003 \003(\0132*.talon.gatewa" +
-      "y.SessionListItem.LabelsEntry\032-\n\013LabelsE" +
-      "ntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"]\n\024" +
-      "ListSessionsResponse\022\023\n\013session_ids\030\001 \003(" +
-      "\t\0220\n\010sessions\030\002 \003(\0132\036.talon.gateway.Sess" +
-      "ionListItem\"\351\001\n\017SessionResponse\022\022\n\nsessi" +
-      "on_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005state\030\003 \001(" +
-      "\t\022,\n\010messages\030\004 \003(\0132\032.talon.data.Session" +
-      "Message\022:\n\006labels\030\006 \003(\0132*.talon.gateway." +
-      "SessionResponse.LabelsEntry\032-\n\013LabelsEnt" +
-      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001J\004\010\005\020\006" +
-      "R\005steps\"E\n\024DeleteSessionRequest\022\022\n\nsessi" +
-      "on_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"(" +
-      "\n\025DeleteSessionResponse\022\017\n\007success\030\001 \001(\010" +
-      "\"D\n\023ClearSessionRequest\022\022\n\nsession_id\030\001 " +
-      "\001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"\'\n\024ClearS" +
-      "essionResponse\022\017\n\007success\030\001 \001(\010\"M\n\024Creat" +
-      "eChannelRequest\022\n\n\002ns\030\001 \001(\t\022)\n\007channel\030\002" +
-      " \001(\0132\030.talon.resources.Channel\"-\n\021GetCha" +
-      "nnelRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"[\n" +
-      "\024ModifyChannelRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004nam" +
-      "e\030\002 \001(\t\022)\n\007channel\030\003 \001(\0132\030.talon.resourc" +
-      "es.Channel\"!\n\023ListChannelsRequest\022\n\n\002ns\030" +
-      "\001 \001(\t\"0\n\024DeleteChannelRequest\022\n\n\002ns\030\001 \001(" +
-      "\t\022\014\n\004name\030\002 \001(\t\"<\n\017ChannelResponse\022)\n\007ch" +
-      "annel\030\001 \001(\0132\030.talon.resources.Channel\"B\n" +
-      "\024ListChannelsResponse\022*\n\010channels\030\001 \003(\0132" +
-      "\030.talon.resources.Channel\"(\n\025DeleteChann" +
-      "elResponse\022\017\n\007success\030\001 \001(\010\"\377\001\n\031PostChan" +
-      "nelMessageRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel" +
-      "\030\002 \001(\t\022\023\n\013author_kind\030\003 \001(\t\022\016\n\006author\030\004 " +
-      "\001(\t\022\017\n\007content\030\005 \001(\t\022\032\n\022subscription_nam" +
-      "es\030\006 \003(\t\022D\n\006labels\030\007 \003(\01324.talon.gateway" +
-      ".PostChannelMessageRequest.LabelsEntry\032-" +
-      "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001\"^\n\024RoutedChannelSession\022\024\n\014subscri" +
-      "ption\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nsession_id" +
-      "\030\003 \001(\t\022\r\n\005error\030\004 \001(\t\"\207\001\n\032PostChannelMes" +
-      "sageResponse\022+\n\007message\030\001 \001(\0132\032.talon.da" +
-      "ta.ChannelMessage\022<\n\017routed_sessions\030\002 \003" +
-      "(\0132#.talon.gateway.RoutedChannelSession\"" +
-      "K\n\030GetChannelMessageRequest\022\n\n\002ns\030\001 \001(\t\022" +
-      "\017\n\007channel\030\002 \001(\t\022\022\n\nmessage_id\030\003 \001(\t\"E\n\026" +
-      "ChannelMessageResponse\022+\n\007message\030\001 \001(\0132" +
-      "\032.talon.data.ChannelMessage\"\221\001\n\032ListChan" +
-      "nelMessagesRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channe" +
-      "l\030\002 \001(\t\022\r\n\005limit\030\003 \001(\005\022\021\n\tpage_size\030\004 \001(" +
-      "\005\022\036\n\021before_message_id\030\005 \001(\tH\000\210\001\001B\024\n\022_be" +
-      "fore_message_id\"\235\001\n\033ListChannelMessagesR" +
-      "esponse\022,\n\010messages\030\001 \003(\0132\032.talon.data.C" +
-      "hannelMessage\022\020\n\010has_more\030\002 \001(\010\022#\n\026next_" +
-      "before_message_id\030\003 \001(\tH\000\210\001\001B\031\n\027_next_be" +
-      "fore_message_id\"{\n CreateChannelSubscrip" +
-      "tionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t" +
-      "\022:\n\014subscription\030\003 \001(\0132$.talon.resources" +
-      ".ChannelSubscription\"J\n\035GetChannelSubscr" +
-      "iptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001" +
-      "(\t\022\014\n\004name\030\003 \001(\t\"\211\001\n ModifyChannelSubscr" +
-      "iptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001" +
-      "(\t\022\014\n\004name\030\003 \001(\t\022:\n\014subscription\030\004 \001(\0132$" +
-      ".talon.resources.ChannelSubscription\">\n\037" +
-      "ListChannelSubscriptionsRequest\022\n\n\002ns\030\001 " +
-      "\001(\t\022\017\n\007channel\030\002 \001(\t\"M\n DeleteChannelSub" +
-      "scriptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030" +
-      "\002 \001(\t\022\014\n\004name\030\003 \001(\t\"Y\n\033ChannelSubscripti" +
-      "onResponse\022:\n\014subscription\030\001 \001(\0132$.talon" +
-      ".resources.ChannelSubscription\"_\n ListCh" +
-      "annelSubscriptionsResponse\022;\n\rsubscripti" +
-      "ons\030\001 \003(\0132$.talon.resources.ChannelSubsc" +
-      "ription\"4\n!DeleteChannelSubscriptionResp" +
-      "onse\022\017\n\007success\030\001 \001(\010\"9\n\032StreamChannelEv" +
-      "entsRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t" +
-      "\"P\n\025CreateScheduleRequest\022\n\n\002ns\030\001 \001(\t\022+\n" +
-      "\010schedule\030\002 \001(\0132\031.talon.resources.Schedu" +
-      "le\".\n\022GetScheduleRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004" +
-      "name\030\002 \001(\t\"^\n\025ModifyScheduleRequest\022\n\n\002n" +
-      "s\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022+\n\010schedule\030\003 \001(\0132" +
-      "\031.talon.resources.Schedule\"\"\n\024ListSchedu" +
-      "lesRequest\022\n\n\002ns\030\001 \001(\t\"E\n\025ListSchedulesR" +
-      "esponse\022,\n\tschedules\030\001 \003(\0132\031.talon.resou" +
-      "rces.Schedule\"1\n\025DeleteScheduleRequest\022\n" +
-      "\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\")\n\026DeleteSchedu" +
-      "leResponse\022\017\n\007success\030\001 \001(\010\"P\n\025CreateWor" +
-      "kflowRequest\022\n\n\002ns\030\001 \001(\t\022+\n\010workflow\030\002 \001" +
-      "(\0132\031.talon.resources.Workflow\".\n\022GetWork" +
-      "flowRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"\"\n" +
-      "\024ListWorkflowsRequest\022\n\n\002ns\030\001 \001(\t\"1\n\025Del" +
-      "eteWorkflowRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002" +
-      " \001(\t\"?\n\020WorkflowResponse\022+\n\010workflow\030\001 \001" +
-      "(\0132\031.talon.resources.Workflow\"E\n\025ListWor" +
-      "kflowsResponse\022,\n\tworkflows\030\001 \003(\0132\031.talo" +
-      "n.resources.Workflow\")\n\026DeleteWorkflowRe" +
-      "sponse\022\017\n\007success\030\001 \001(\010\"\300\001\n\030CreateWorkfl" +
-      "owRunRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001" +
-      "(\t\022\022\n\ninput_json\030\003 \001(\t\022C\n\006labels\030\004 \003(\01323" +
-      ".talon.gateway.CreateWorkflowRunRequest." +
-      "LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "\r\n\005value\030\002 \001(\t:\0028\001\"E\n\025GetWorkflowRunRequ" +
-      "est\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006run" +
-      "_id\030\003 \001(\t\"a\n\027ListWorkflowRunsRequest\022\n\n\002" +
-      "ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\021\n\tpage_size\030" +
-      "\003 \001(\005\022\025\n\rbefore_run_id\030\004 \001(\t\"n\n\030ResumeWo" +
+      "ows.proto\"X\n\025CreateResourceRequest\022\n\n\002ns" +
+      "\030\001 \001(\t\0223\n\010manifest\030\002 \001(\0132!.talon.resourc" +
+      "es.ResourceManifest\"<\n\022GetResourceReques" +
+      "t\022\n\n\002ns\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022\014\n\004name\030\003 \001(" +
+      "\t\">\n\024ListResourcesRequest\022\n\n\002ns\030\001 \001(\t\022\021\n" +
+      "\004kind\030\002 \001(\tH\000\210\001\001B\007\n\005_kind\"?\n\025DeleteResou" +
+      "rceRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004kind\030\002 \001(\t\022\014\n\004" +
+      "name\030\003 \001(\t\"?\n\020ResourceResponse\022+\n\010resour" +
+      "ce\030\001 \001(\0132\031.talon.resources.Resource\"E\n\025L" +
+      "istResourcesResponse\022,\n\tresources\030\001 \003(\0132" +
+      "\031.talon.resources.Resource\")\n\026DeleteReso" +
+      "urceResponse\022\017\n\007success\030\001 \001(\010\"D\n\026CreateM" +
+      "cpServerRequest\022*\n\006server\030\001 \001(\0132\032.talon." +
+      "resources.McpServer\"#\n\023GetMcpServerReque" +
+      "st\022\014\n\004name\030\001 \001(\t\"\027\n\025ListMcpServersReques" +
+      "t\"&\n\026DeleteMcpServerRequest\022\014\n\004name\030\001 \001(" +
+      "\t\"*\n\027DeleteMcpServerResponse\022\017\n\007success\030" +
+      "\001 \001(\010\"?\n\021McpServerResponse\022*\n\006server\030\001 \001" +
+      "(\0132\032.talon.resources.McpServer\"E\n\026ListMc" +
+      "pServersResponse\022+\n\007servers\030\001 \003(\0132\032.talo" +
+      "n.resources.McpServer\"_\n\035CreateMcpServer" +
+      "BindingRequest\022\n\n\002ns\030\001 \001(\t\0222\n\007binding\030\002 " +
+      "\001(\0132!.talon.resources.McpServerBinding\"6" +
+      "\n\032GetMcpServerBindingRequest\022\n\n\002ns\030\001 \001(\t" +
+      "\022\014\n\004name\030\002 \001(\t\"*\n\034ListMcpServerBindingsR" +
+      "equest\022\n\n\002ns\030\001 \001(\t\"9\n\035DeleteMcpServerBin" +
+      "dingRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"1\n" +
+      "\036DeleteMcpServerBindingResponse\022\017\n\007succe" +
+      "ss\030\001 \001(\010\"N\n\030McpServerBindingResponse\0222\n\007" +
+      "binding\030\001 \001(\0132!.talon.resources.McpServe" +
+      "rBinding\"T\n\035ListMcpServerBindingsRespons" +
+      "e\0223\n\010bindings\030\001 \003(\0132!.talon.resources.Mc" +
+      "pServerBinding\"9\n\020GetAgentResponse\022%\n\005ag" +
+      "ent\030\001 \001(\0132\026.talon.resources.Agent\"+\n\017Get" +
+      "AgentRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"\332" +
+      "\001\n\022CreateAgentRequest\022\n\n\002ns\030\001 \001(\t\022\021\n\004nam" +
+      "e\030\002 \001(\tH\000\210\001\001\022(\n\004spec\030\005 \001(\0132\032.talon.resou" +
+      "rces.AgentSpec\022=\n\006labels\030\004 \003(\0132-.talon.g" +
+      "ateway.CreateAgentRequest.LabelsEntry\032-\n" +
+      "\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t" +
+      ":\0028\001B\007\n\005_nameJ\004\010\003\020\004\"\223\001\n\rAgentResponse\022\r\n" +
+      "\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\0228\n\006labels\030\004 \003(\013" +
+      "2(.talon.gateway.AgentResponse.LabelsEnt" +
+      "ry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030" +
+      "\002 \001(\t:\0028\001\"\037\n\021ListAgentsRequest\022\n\n\002ns\030\001 \001" +
+      "(\t\"$\n\022ListAgentsResponse\022\016\n\006agents\030\001 \003(\t" +
+      "\"\315\001\n\022ModifyAgentRequest\022\r\n\005agent\030\001 \001(\t\022\n" +
+      "\n\002ns\030\002 \001(\t\022(\n\004spec\030\005 \001(\0132\032.talon.resourc" +
+      "es.AgentSpec\022=\n\006labels\030\004 \003(\0132-.talon.gat" +
+      "eway.ModifyAgentRequest.LabelsEntry\032-\n\013L" +
+      "abelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002" +
+      "8\001J\004\010\003\020\004\"L\n\023GetKnowledgeRequest\022\r\n\005agent" +
+      "\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\022\021\n\004path\030\003 \001(\tH\000\210\001\001B\007\n" +
+      "\005_path\";\n\021KnowledgeResponse\022&\n\007modules\030\001" +
+      " \003(\0132\025.talon.data.Knowledge\"B\n\026SearchKno" +
+      "wledgeRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t" +
+      "\022\r\n\005query\030\003 \001(\t\"M\n\027SearchKnowledgeRespon" +
+      "se\0222\n\007results\030\001 \003(\0132!.talon.data.Knowled" +
+      "geSearchResult\"\\\n\037CreateNamespaceKnowled" +
+      "geRequest\022\n\n\002ns\030\001 \001(\t\022-\n\tknowledge\030\002 \001(\013" +
+      "2\032.talon.resources.Knowledge\"8\n\034GetNames" +
+      "paceKnowledgeRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name" +
+      "\030\002 \001(\t\"+\n\035ListNamespaceKnowledgeRequest\022" +
+      "\n\n\002ns\030\001 \001(\t\";\n\037DeleteNamespaceKnowledgeR" +
+      "equest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"3\n Dele" +
+      "teNamespaceKnowledgeResponse\022\017\n\007success\030" +
+      "\001 \001(\010\"K\n\032NamespaceKnowledgeResponse\022-\n\tk" +
+      "nowledge\030\001 \001(\0132\032.talon.resources.Knowled" +
+      "ge\"O\n\036ListNamespaceKnowledgeResponse\022-\n\t" +
+      "knowledge\030\001 \003(\0132\032.talon.resources.Knowle" +
+      "dge\"\241\001\n\024CreateSessionRequest\022\r\n\005agent\030\001 " +
+      "\001(\t\022\n\n\002ns\030\002 \001(\t\022?\n\006labels\030\003 \003(\0132/.talon." +
+      "gateway.CreateSessionRequest.LabelsEntry" +
+      "\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 " +
+      "\001(\t:\0028\001\"k\n\021GetSessionRequest\022\022\n\nsession_" +
+      "id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\025\n\rm" +
+      "essage_limit\030\004 \001(\005J\004\010\005\020\006R\nstep_limit\"\224\001\n" +
+      "\032ListSessionMessagesRequest\022\022\n\nsession_i" +
+      "d\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022\021\n\tpa" +
+      "ge_size\030\004 \001(\005\022\036\n\021before_message_id\030\005 \001(\t" +
+      "H\000\210\001\001B\024\n\022_before_message_id\"[\n\037ListSessi" +
+      "onMessagesResponseItem\022+\n\007message\030\001 \001(\0132" +
+      "\032.talon.data.SessionMessageJ\004\010\002\020\003R\005steps" +
+      "\"\340\001\n\033ListSessionMessagesResponse\022\022\n\nsess" +
+      "ion_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005state\030\003 \001" +
+      "(\t\022=\n\005items\030\004 \003(\0132..talon.gateway.ListSe" +
+      "ssionMessagesResponseItem\022\020\n\010has_more\030\005 " +
+      "\001(\010\022#\n\026next_before_message_id\030\006 \001(\tH\000\210\001\001" +
+      "B\031\n\027_next_before_message_id\"0\n\023ListSessi" +
+      "onsRequest\022\r\n\005agent\030\001 \001(\t\022\n\n\002ns\030\002 \001(\t\"\244\001" +
+      "\n\017SessionListItem\022\022\n\nsession_id\030\001 \001(\t\022\022\n" +
+      "\nupdated_at\030\002 \001(\003\022:\n\006labels\030\003 \003(\0132*.talo" +
+      "n.gateway.SessionListItem.LabelsEntry\032-\n" +
+      "\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t" +
+      ":\0028\001\"]\n\024ListSessionsResponse\022\023\n\013session_" +
+      "ids\030\001 \003(\t\0220\n\010sessions\030\002 \003(\0132\036.talon.gate" +
+      "way.SessionListItem\"\351\001\n\017SessionResponse\022" +
+      "\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\r\n\005st" +
+      "ate\030\003 \001(\t\022,\n\010messages\030\004 \003(\0132\032.talon.data" +
+      ".SessionMessage\022:\n\006labels\030\006 \003(\0132*.talon." +
+      "gateway.SessionResponse.LabelsEntry\032-\n\013L" +
+      "abelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002" +
+      "8\001J\004\010\005\020\006R\005steps\"E\n\024DeleteSessionRequest\022" +
+      "\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns" +
+      "\030\003 \001(\t\"(\n\025DeleteSessionResponse\022\017\n\007succe" +
+      "ss\030\001 \001(\010\"D\n\023ClearSessionRequest\022\022\n\nsessi" +
+      "on_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"\'" +
+      "\n\024ClearSessionResponse\022\017\n\007success\030\001 \001(\010\"" +
+      "M\n\024CreateChannelRequest\022\n\n\002ns\030\001 \001(\t\022)\n\007c" +
+      "hannel\030\002 \001(\0132\030.talon.resources.Channel\"-" +
+      "\n\021GetChannelRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030" +
+      "\002 \001(\t\"[\n\024ModifyChannelRequest\022\n\n\002ns\030\001 \001(" +
+      "\t\022\014\n\004name\030\002 \001(\t\022)\n\007channel\030\003 \001(\0132\030.talon" +
+      ".resources.Channel\"!\n\023ListChannelsReques" +
+      "t\022\n\n\002ns\030\001 \001(\t\"0\n\024DeleteChannelRequest\022\n\n" +
+      "\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"<\n\017ChannelRespon" +
+      "se\022)\n\007channel\030\001 \001(\0132\030.talon.resources.Ch" +
+      "annel\"B\n\024ListChannelsResponse\022*\n\010channel" +
+      "s\030\001 \003(\0132\030.talon.resources.Channel\"(\n\025Del" +
+      "eteChannelResponse\022\017\n\007success\030\001 \001(\010\"\377\001\n\031" +
+      "PostChannelMessageRequest\022\n\n\002ns\030\001 \001(\t\022\017\n" +
+      "\007channel\030\002 \001(\t\022\023\n\013author_kind\030\003 \001(\t\022\016\n\006a" +
+      "uthor\030\004 \001(\t\022\017\n\007content\030\005 \001(\t\022\032\n\022subscrip" +
+      "tion_names\030\006 \003(\t\022D\n\006labels\030\007 \003(\01324.talon" +
+      ".gateway.PostChannelMessageRequest.Label" +
+      "sEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
+      "lue\030\002 \001(\t:\0028\001\"^\n\024RoutedChannelSession\022\024\n" +
+      "\014subscription\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\022\n\nse" +
+      "ssion_id\030\003 \001(\t\022\r\n\005error\030\004 \001(\t\"\207\001\n\032PostCh" +
+      "annelMessageResponse\022+\n\007message\030\001 \001(\0132\032." +
+      "talon.data.ChannelMessage\022<\n\017routed_sess" +
+      "ions\030\002 \003(\0132#.talon.gateway.RoutedChannel" +
+      "Session\"K\n\030GetChannelMessageRequest\022\n\n\002n" +
+      "s\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t\022\022\n\nmessage_id\030\003" +
+      " \001(\t\"E\n\026ChannelMessageResponse\022+\n\007messag" +
+      "e\030\001 \001(\0132\032.talon.data.ChannelMessage\"\221\001\n\032" +
+      "ListChannelMessagesRequest\022\n\n\002ns\030\001 \001(\t\022\017" +
+      "\n\007channel\030\002 \001(\t\022\r\n\005limit\030\003 \001(\005\022\021\n\tpage_s" +
+      "ize\030\004 \001(\005\022\036\n\021before_message_id\030\005 \001(\tH\000\210\001" +
+      "\001B\024\n\022_before_message_id\"\235\001\n\033ListChannelM" +
+      "essagesResponse\022,\n\010messages\030\001 \003(\0132\032.talo" +
+      "n.data.ChannelMessage\022\020\n\010has_more\030\002 \001(\010\022" +
+      "#\n\026next_before_message_id\030\003 \001(\tH\000\210\001\001B\031\n\027" +
+      "_next_before_message_id\"{\n CreateChannel" +
+      "SubscriptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007chann" +
+      "el\030\002 \001(\t\022:\n\014subscription\030\003 \001(\0132$.talon.r" +
+      "esources.ChannelSubscription\"J\n\035GetChann" +
+      "elSubscriptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007cha" +
+      "nnel\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\"\211\001\n ModifyChann" +
+      "elSubscriptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007cha" +
+      "nnel\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\022:\n\014subscription" +
+      "\030\004 \001(\0132$.talon.resources.ChannelSubscrip" +
+      "tion\">\n\037ListChannelSubscriptionsRequest\022" +
+      "\n\n\002ns\030\001 \001(\t\022\017\n\007channel\030\002 \001(\t\"M\n DeleteCh" +
+      "annelSubscriptionRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007" +
+      "channel\030\002 \001(\t\022\014\n\004name\030\003 \001(\t\"Y\n\033ChannelSu" +
+      "bscriptionResponse\022:\n\014subscription\030\001 \001(\013" +
+      "2$.talon.resources.ChannelSubscription\"_" +
+      "\n ListChannelSubscriptionsResponse\022;\n\rsu" +
+      "bscriptions\030\001 \003(\0132$.talon.resources.Chan" +
+      "nelSubscription\"4\n!DeleteChannelSubscrip" +
+      "tionResponse\022\017\n\007success\030\001 \001(\010\"9\n\032StreamC" +
+      "hannelEventsRequest\022\n\n\002ns\030\001 \001(\t\022\017\n\007chann" +
+      "el\030\002 \001(\t\"P\n\025CreateScheduleRequest\022\n\n\002ns\030" +
+      "\001 \001(\t\022+\n\010schedule\030\002 \001(\0132\031.talon.resource" +
+      "s.Schedule\".\n\022GetScheduleRequest\022\n\n\002ns\030\001" +
+      " \001(\t\022\014\n\004name\030\002 \001(\t\"^\n\025ModifyScheduleRequ" +
+      "est\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\022+\n\010schedul" +
+      "e\030\003 \001(\0132\031.talon.resources.Schedule\"\"\n\024Li" +
+      "stSchedulesRequest\022\n\n\002ns\030\001 \001(\t\"E\n\025ListSc" +
+      "hedulesResponse\022,\n\tschedules\030\001 \003(\0132\031.tal" +
+      "on.resources.Schedule\"1\n\025DeleteScheduleR" +
+      "equest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\")\n\026Dele" +
+      "teScheduleResponse\022\017\n\007success\030\001 \001(\010\"P\n\025C" +
+      "reateWorkflowRequest\022\n\n\002ns\030\001 \001(\t\022+\n\010work" +
+      "flow\030\002 \001(\0132\031.talon.resources.Workflow\".\n" +
+      "\022GetWorkflowRequest\022\n\n\002ns\030\001 \001(\t\022\014\n\004name\030" +
+      "\002 \001(\t\"\"\n\024ListWorkflowsRequest\022\n\n\002ns\030\001 \001(" +
+      "\t\"1\n\025DeleteWorkflowRequest\022\n\n\002ns\030\001 \001(\t\022\014" +
+      "\n\004name\030\002 \001(\t\"?\n\020WorkflowResponse\022+\n\010work" +
+      "flow\030\001 \001(\0132\031.talon.resources.Workflow\"E\n" +
+      "\025ListWorkflowsResponse\022,\n\tworkflows\030\001 \003(" +
+      "\0132\031.talon.resources.Workflow\")\n\026DeleteWo" +
+      "rkflowResponse\022\017\n\007success\030\001 \001(\010\"\300\001\n\030Crea" +
+      "teWorkflowRunRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010work" +
+      "flow\030\002 \001(\t\022\022\n\ninput_json\030\003 \001(\t\022C\n\006labels" +
+      "\030\004 \003(\01323.talon.gateway.CreateWorkflowRun" +
+      "Request.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003ke" +
+      "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"E\n\025GetWorkflo" +
+      "wRunRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(" +
+      "\t\022\016\n\006run_id\030\003 \001(\t\"a\n\027ListWorkflowRunsReq" +
+      "uest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\021\n\tpa" +
+      "ge_size\030\003 \001(\005\022\025\n\rbefore_run_id\030\004 \001(\t\"n\n\030" +
+      "ResumeWorkflowRunRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010" +
+      "workflow\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\017\n\007step_i" +
+      "d\030\004 \001(\t\022\023\n\013resume_json\030\005 \001(\t\"H\n\030CancelWo" +
       "rkflowRunRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow" +
-      "\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\022\017\n\007step_id\030\004 \001(\t\022" +
-      "\023\n\013resume_json\030\005 \001(\t\"H\n\030CancelWorkflowRu" +
-      "nRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016" +
-      "\n\006run_id\030\003 \001(\t\"K\n\033StreamWorkflowEventsRe" +
-      "quest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 \001(\t\022\016\n\006r" +
-      "un_id\030\003 \001(\t\"g\n\023WorkflowRunResponse\022$\n\003ru" +
-      "n\030\001 \001(\0132\027.talon.data.WorkflowRun\022*\n\005step" +
-      "s\030\002 \003(\0132\033.talon.data.WorkflowStepRun\"o\n\030" +
-      "ListWorkflowRunsResponse\022%\n\004runs\030\001 \003(\0132\027" +
-      ".talon.data.WorkflowRun\022\020\n\010has_more\030\002 \001(" +
-      "\010\022\032\n\022next_before_run_id\030\003 \001(\t\"?\n\020Schedul" +
-      "eResponse\022+\n\010schedule\030\001 \001(\0132\031.talon.reso" +
-      "urces.Schedule\"\302\001\n\022SendMessageRequest\022\022\n" +
-      "\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003" +
-      " \001(\t\022\017\n\007message\030\004 \001(\t\022=\n\006labels\030\005 \003(\0132-." +
-      "talon.gateway.SendMessageRequest.LabelsE" +
-      "ntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005valu" +
-      "e\030\002 \001(\t:\0028\001\"8\n\023SendMessageResponse\022\r\n\005re" +
-      "ply\030\001 \001(\t\022\022\n\nsession_id\030\004 \001(\t\"y\n\033AppendS" +
-      "essionMessageRequest\022\022\n\nsession_id\030\001 \001(\t" +
-      "\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022+\n\007message\030\004" +
-      " \001(\0132\032.talon.data.SessionMessage\"_\n\034Appe" +
-      "ndSessionMessageResponse\022\022\n\nsession_id\030\001" +
-      " \001(\t\022+\n\007message\030\002 \001(\0132\032.talon.data.Sessi" +
-      "onMessage\"M\n\034StopSessionGenerationReques" +
-      "t\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002" +
-      "ns\030\003 \001(\t\"0\n\035StopSessionGenerationRespons" +
-      "e\022\017\n\007success\030\001 \001(\010\"J\n\031StreamSessionParts" +
-      "Request\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001" +
-      "(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSessionPartsBatc" +
-      "hRequest\022\025\n\rsession_names\030\001 \003(\t\"\253\001\n\026Crea" +
-      "teNamespaceRequest\022\014\n\004name\030\001 \001(\t\022\021\n\trecu" +
-      "rsive\030\002 \001(\010\022A\n\006labels\030\003 \003(\01321.talon.gate" +
-      "way.CreateNamespaceRequest.LabelsEntry\032-" +
-      "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(" +
-      "\t:\0028\001\"#\n\023GetNamespaceRequest\022\014\n\004name\030\001 \001" +
-      "(\t\"&\n\026DeleteNamespaceRequest\022\014\n\004name\030\001 \001" +
-      "(\t\"7\n\025ListNamespacesRequest\022\023\n\006parent\030\001 " +
-      "\001(\tH\000\210\001\001B\t\n\007_parent\"\326\001\n\021NamespaceRespons" +
-      "e\022\014\n\004name\030\001 \001(\t\022\023\n\006parent\030\002 \001(\tH\000\210\001\001\022\022\n\n" +
-      "is_deleted\030\003 \001(\010\022\022\n\ndeleted_at\030\004 \001(\003\022<\n\006" +
-      "labels\030\005 \003(\0132,.talon.gateway.NamespaceRe" +
-      "sponse.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key" +
-      "\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\t\n\007_parent\"N\n\026" +
-      "ListNamespacesResponse\0224\n\nnamespaces\030\001 \003" +
-      "(\0132 .talon.gateway.NamespaceResponse2\217$\n" +
-      "\016GatewayService\022\202\001\n\014GetKnowledge\022\".talon" +
-      ".gateway.GetKnowledgeRequest\032 .talon.gat" +
-      "eway.KnowledgeResponse\",\202\323\344\223\002&\022$/v1/ns/{" +
-      "ns}/agents/{agent}/knowledge\022\230\001\n\017SearchK" +
-      "nowledge\022%.talon.gateway.SearchKnowledge" +
-      "Request\032&.talon.gateway.SearchKnowledgeR" +
-      "esponse\"6\202\323\344\223\0020\"+/v1/ns/{ns}/agents/{age" +
-      "nt}/knowledge/search:\001*\022\204\001\n\rCreateSessio" +
-      "n\022#.talon.gateway.CreateSessionRequest\032\036" +
-      ".talon.gateway.SessionResponse\".\202\323\344\223\002(\"#" +
-      "/v1/ns/{ns}/agents/{agent}/sessions:\001*\022\210" +
-      "\001\n\nGetSession\022 .talon.gateway.GetSession" +
-      "Request\032\036.talon.gateway.SessionResponse\"" +
-      "8\202\323\344\223\0022\0220/v1/ns/{ns}/agents/{agent}/sess" +
-      "ions/{session_id}\022\257\001\n\023ListSessionMessage" +
-      "s\022).talon.gateway.ListSessionMessagesReq" +
-      "uest\032*.talon.gateway.ListSessionMessages" +
-      "Response\"A\202\323\344\223\002;\0229/v1/ns/{ns}/agents/{ag" +
-      "ent}/sessions/{session_id}/messages\022\204\001\n\014" +
-      "ListSessions\022\".talon.gateway.ListSession" +
-      "sRequest\032#.talon.gateway.ListSessionsRes" +
-      "ponse\"+\202\323\344\223\002%\022#/v1/ns/{ns}/agents/{agent" +
-      "}/sessions\022\224\001\n\rDeleteSession\022#.talon.gat" +
-      "eway.DeleteSessionRequest\032$.talon.gatewa" +
-      "y.DeleteSessionResponse\"8\202\323\344\223\0022*0/v1/ns/" +
-      "{ns}/agents/{agent}/sessions/{session_id" +
-      "}\022\232\001\n\014ClearSession\022\".talon.gateway.Clear" +
-      "SessionRequest\032#.talon.gateway.ClearSess" +
-      "ionResponse\"A\202\323\344\223\002;\"6/v1/ns/{ns}/agents/" +
-      "{agent}/sessions/{session_id}:clear:\001*\022\231" +
-      "\001\n\013SendMessage\022!.talon.gateway.SendMessa" +
-      "geRequest\032\".talon.gateway.SendMessageRes" +
-      "ponse\"C\202\323\344\223\002=\"8/v1/ns/{ns}/agents/{agent" +
-      "}/sessions/{session_id}/message:\001*\022\274\001\n\024A" +
-      "ppendSessionMessage\022*.talon.gateway.Appe" +
-      "ndSessionMessageRequest\032+.talon.gateway." +
-      "AppendSessionMessageResponse\"K\202\323\344\223\002E\"@/v" +
-      "1/ns/{ns}/agents/{agent}/sessions/{sessi" +
-      "on_id}/messages:append:\001*\022\264\001\n\025StopSessio" +
-      "nGeneration\022+.talon.gateway.StopSessionG" +
-      "enerationRequest\032,.talon.gateway.StopSes" +
-      "sionGenerationResponse\"@\202\323\344\223\002:\"5/v1/ns/{" +
-      "ns}/agents/{agent}/sessions/{session_id}" +
-      ":stop:\001*\022\250\001\n\022StreamSessionParts\022(.talon." +
-      "gateway.StreamSessionPartsRequest\032%.talo" +
-      "n.events.SessionMessagePartEvent\"?\202\323\344\223\0029" +
-      "\0227/v1/ns/{ns}/agents/{agent}/sessions/{s" +
-      "ession_id}/stream0\001\022\227\001\n\027StreamSessionPar" +
-      "tsBatch\022-.talon.gateway.StreamSessionPar" +
-      "tsBatchRequest\032%.talon.events.SessionMes" +
-      "sagePartEvent\"$\202\323\344\223\002\036\"\031/v1/session-strea" +
-      "ms:batch:\001*0\001\022\235\001\n\022PostChannelMessage\022(.t" +
-      "alon.gateway.PostChannelMessageRequest\032)" +
-      ".talon.gateway.PostChannelMessageRespons" +
-      "e\"2\202\323\344\223\002,\"\'/v1/ns/{ns}/channels/{channel" +
-      "}/messages:\001*\022\241\001\n\021GetChannelMessage\022\'.ta" +
-      "lon.gateway.GetChannelMessageRequest\032%.t" +
-      "alon.gateway.ChannelMessageResponse\"<\202\323\344" +
-      "\223\0026\0224/v1/ns/{ns}/channels/{channel}/mess" +
-      "ages/{message_id}\022\235\001\n\023ListChannelMessage" +
-      "s\022).talon.gateway.ListChannelMessagesReq" +
-      "uest\032*.talon.gateway.ListChannelMessages" +
-      "Response\"/\202\323\344\223\002)\022\'/v1/ns/{ns}/channels/{" +
-      "channel}/messages\022\215\001\n\023StreamChannelEvent" +
-      "s\022).talon.gateway.StreamChannelEventsReq" +
-      "uest\032\032.talon.events.ChannelEvent\"-\202\323\344\223\002\'" +
-      "\022%/v1/ns/{ns}/channels/{channel}/stream0" +
-      "\001\022\222\001\n\021CreateWorkflowRun\022\'.talon.gateway." +
-      "CreateWorkflowRunRequest\032\".talon.gateway" +
-      ".WorkflowRunResponse\"0\202\323\344\223\002*\"%/v1/ns/{ns" +
-      "}/workflows/{workflow}/runs:\001*\022\222\001\n\016GetWo" +
-      "rkflowRun\022$.talon.gateway.GetWorkflowRun" +
-      "Request\032\".talon.gateway.WorkflowRunRespo" +
-      "nse\"6\202\323\344\223\0020\022./v1/ns/{ns}/workflows/{work" +
-      "flow}/runs/{run_id}\022\222\001\n\020ListWorkflowRuns" +
-      "\022&.talon.gateway.ListWorkflowRunsRequest" +
-      "\032\'.talon.gateway.ListWorkflowRunsRespons" +
-      "e\"-\202\323\344\223\002\'\022%/v1/ns/{ns}/workflows/{workfl" +
-      "ow}/runs\022\242\001\n\021ResumeWorkflowRun\022\'.talon.g" +
-      "ateway.ResumeWorkflowRunRequest\032\".talon." +
-      "gateway.WorkflowRunResponse\"@\202\323\344\223\002:\"5/v1" +
-      "/ns/{ns}/workflows/{workflow}/runs/{run_" +
-      "id}:resume:\001*\022\242\001\n\021CancelWorkflowRun\022\'.ta" +
-      "lon.gateway.CancelWorkflowRunRequest\032\".t" +
-      "alon.gateway.WorkflowRunResponse\"@\202\323\344\223\002:" +
-      "\"5/v1/ns/{ns}/workflows/{workflow}/runs/" +
-      "{run_id}:cancel:\001*\022\241\001\n\024StreamWorkflowEve" +
-      "nts\022*.talon.gateway.StreamWorkflowEvents" +
-      "Request\032\034.talon.data.WorkflowRunEvent\"=\202" +
-      "\323\344\223\0027\0225/v1/ns/{ns}/workflows/{workflow}/" +
-      "runs/{run_id}/stream0\001\022|\n\017CreateNamespac" +
-      "e\022%.talon.gateway.CreateNamespaceRequest" +
-      "\032 .talon.gateway.NamespaceResponse\" \202\323\344\223" +
-      "\002\032\"\025/v1/namespaces/{name}:\001*\022s\n\014GetNames" +
-      "pace\022\".talon.gateway.GetNamespaceRequest" +
-      "\032 .talon.gateway.NamespaceResponse\"\035\202\323\344\223" +
-      "\002\027\022\025/v1/namespaces/{name}\022y\n\017DeleteNames" +
-      "pace\022%.talon.gateway.DeleteNamespaceRequ" +
-      "est\032 .talon.gateway.NamespaceResponse\"\035\202" +
-      "\323\344\223\002\027*\025/v1/namespaces/{name}\022u\n\016ListName" +
-      "spaces\022$.talon.gateway.ListNamespacesReq" +
-      "uest\032%.talon.gateway.ListNamespacesRespo" +
-      "nse\"\026\202\323\344\223\002\020\022\016/v1/namespaces\022y\n\016CreateRes" +
-      "ource\022$.talon.gateway.CreateResourceRequ" +
-      "est\032\037.talon.gateway.ResourceResponse\" \202\323" +
-      "\344\223\002\032\"\025/v2/ns/{ns}/resources:\001*\022~\n\013GetRes" +
-      "ource\022!.talon.gateway.GetResourceRequest" +
-      "\032\037.talon.gateway.ResourceResponse\"+\202\323\344\223\002" +
-      "%\022#/v2/ns/{ns}/resources/{kind}/{name}\022y" +
-      "\n\rListResources\022#.talon.gateway.ListReso" +
-      "urcesRequest\032$.talon.gateway.ListResourc" +
-      "esResponse\"\035\202\323\344\223\002\027\022\025/v2/ns/{ns}/resource" +
-      "s\022\212\001\n\016DeleteResource\022$.talon.gateway.Del" +
-      "eteResourceRequest\032%.talon.gateway.Delet" +
-      "eResourceResponse\"+\202\323\344\223\002%*#/v2/ns/{ns}/r" +
-      "esources/{kind}/{name}b\006proto3"
+      "\030\002 \001(\t\022\016\n\006run_id\030\003 \001(\t\"K\n\033StreamWorkflow" +
+      "EventsRequest\022\n\n\002ns\030\001 \001(\t\022\020\n\010workflow\030\002 " +
+      "\001(\t\022\016\n\006run_id\030\003 \001(\t\"g\n\023WorkflowRunRespon" +
+      "se\022$\n\003run\030\001 \001(\0132\027.talon.data.WorkflowRun" +
+      "\022*\n\005steps\030\002 \003(\0132\033.talon.data.WorkflowSte" +
+      "pRun\"o\n\030ListWorkflowRunsResponse\022%\n\004runs" +
+      "\030\001 \003(\0132\027.talon.data.WorkflowRun\022\020\n\010has_m" +
+      "ore\030\002 \001(\010\022\032\n\022next_before_run_id\030\003 \001(\t\"?\n" +
+      "\020ScheduleResponse\022+\n\010schedule\030\001 \001(\0132\031.ta" +
+      "lon.resources.Schedule\"\302\001\n\022SendMessageRe" +
+      "quest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t" +
+      "\022\n\n\002ns\030\003 \001(\t\022\017\n\007message\030\004 \001(\t\022=\n\006labels\030" +
+      "\005 \003(\0132-.talon.gateway.SendMessageRequest" +
+      ".LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t" +
+      "\022\r\n\005value\030\002 \001(\t:\0028\001\"8\n\023SendMessageRespon" +
+      "se\022\r\n\005reply\030\001 \001(\t\022\022\n\nsession_id\030\004 \001(\t\"y\n" +
+      "\033AppendSessionMessageRequest\022\022\n\nsession_" +
+      "id\030\001 \001(\t\022\r\n\005agent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\022+\n\007m" +
+      "essage\030\004 \001(\0132\032.talon.data.SessionMessage" +
+      "\"_\n\034AppendSessionMessageResponse\022\022\n\nsess" +
+      "ion_id\030\001 \001(\t\022+\n\007message\030\002 \001(\0132\032.talon.da" +
+      "ta.SessionMessage\"M\n\034StopSessionGenerati" +
+      "onRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005agent\030\002" +
+      " \001(\t\022\n\n\002ns\030\003 \001(\t\"0\n\035StopSessionGeneratio" +
+      "nResponse\022\017\n\007success\030\001 \001(\010\"J\n\031StreamSess" +
+      "ionPartsRequest\022\022\n\nsession_id\030\001 \001(\t\022\r\n\005a" +
+      "gent\030\002 \001(\t\022\n\n\002ns\030\003 \001(\t\"7\n\036StreamSessionP" +
+      "artsBatchRequest\022\025\n\rsession_names\030\001 \003(\t\"" +
+      "\253\001\n\026CreateNamespaceRequest\022\014\n\004name\030\001 \001(\t" +
+      "\022\021\n\trecursive\030\002 \001(\010\022A\n\006labels\030\003 \003(\01321.ta" +
+      "lon.gateway.CreateNamespaceRequest.Label" +
+      "sEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
+      "lue\030\002 \001(\t:\0028\001\"#\n\023GetNamespaceRequest\022\014\n\004" +
+      "name\030\001 \001(\t\"&\n\026DeleteNamespaceRequest\022\014\n\004" +
+      "name\030\001 \001(\t\"7\n\025ListNamespacesRequest\022\023\n\006p" +
+      "arent\030\001 \001(\tH\000\210\001\001B\t\n\007_parent\"\326\001\n\021Namespac" +
+      "eResponse\022\014\n\004name\030\001 \001(\t\022\023\n\006parent\030\002 \001(\tH" +
+      "\000\210\001\001\022\022\n\nis_deleted\030\003 \001(\010\022\022\n\ndeleted_at\030\004" +
+      " \001(\003\022<\n\006labels\030\005 \003(\0132,.talon.gateway.Nam" +
+      "espaceResponse.LabelsEntry\032-\n\013LabelsEntr" +
+      "y\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\t\n\007_pa" +
+      "rent\"N\n\026ListNamespacesResponse\0224\n\nnamesp" +
+      "aces\030\001 \003(\0132 .talon.gateway.NamespaceResp" +
+      "onse2\217$\n\016GatewayService\022\202\001\n\014GetKnowledge" +
+      "\022\".talon.gateway.GetKnowledgeRequest\032 .t" +
+      "alon.gateway.KnowledgeResponse\",\202\323\344\223\002&\022$" +
+      "/v1/ns/{ns}/agents/{agent}/knowledge\022\230\001\n" +
+      "\017SearchKnowledge\022%.talon.gateway.SearchK" +
+      "nowledgeRequest\032&.talon.gateway.SearchKn" +
+      "owledgeResponse\"6\202\323\344\223\0020\"+/v1/ns/{ns}/age" +
+      "nts/{agent}/knowledge/search:\001*\022\204\001\n\rCrea" +
+      "teSession\022#.talon.gateway.CreateSessionR" +
+      "equest\032\036.talon.gateway.SessionResponse\"." +
+      "\202\323\344\223\002(\"#/v1/ns/{ns}/agents/{agent}/sessi" +
+      "ons:\001*\022\210\001\n\nGetSession\022 .talon.gateway.Ge" +
+      "tSessionRequest\032\036.talon.gateway.SessionR" +
+      "esponse\"8\202\323\344\223\0022\0220/v1/ns/{ns}/agents/{age" +
+      "nt}/sessions/{session_id}\022\257\001\n\023ListSessio" +
+      "nMessages\022).talon.gateway.ListSessionMes" +
+      "sagesRequest\032*.talon.gateway.ListSession" +
+      "MessagesResponse\"A\202\323\344\223\002;\0229/v1/ns/{ns}/ag" +
+      "ents/{agent}/sessions/{session_id}/messa" +
+      "ges\022\204\001\n\014ListSessions\022\".talon.gateway.Lis" +
+      "tSessionsRequest\032#.talon.gateway.ListSes" +
+      "sionsResponse\"+\202\323\344\223\002%\022#/v1/ns/{ns}/agent" +
+      "s/{agent}/sessions\022\224\001\n\rDeleteSession\022#.t" +
+      "alon.gateway.DeleteSessionRequest\032$.talo" +
+      "n.gateway.DeleteSessionResponse\"8\202\323\344\223\0022*" +
+      "0/v1/ns/{ns}/agents/{agent}/sessions/{se" +
+      "ssion_id}\022\232\001\n\014ClearSession\022\".talon.gatew" +
+      "ay.ClearSessionRequest\032#.talon.gateway.C" +
+      "learSessionResponse\"A\202\323\344\223\002;\"6/v1/ns/{ns}" +
+      "/agents/{agent}/sessions/{session_id}:cl" +
+      "ear:\001*\022\231\001\n\013SendMessage\022!.talon.gateway.S" +
+      "endMessageRequest\032\".talon.gateway.SendMe" +
+      "ssageResponse\"C\202\323\344\223\002=\"8/v1/ns/{ns}/agent" +
+      "s/{agent}/sessions/{session_id}/message:" +
+      "\001*\022\274\001\n\024AppendSessionMessage\022*.talon.gate" +
+      "way.AppendSessionMessageRequest\032+.talon." +
+      "gateway.AppendSessionMessageResponse\"K\202\323" +
+      "\344\223\002E\"@/v1/ns/{ns}/agents/{agent}/session" +
+      "s/{session_id}/messages:append:\001*\022\264\001\n\025St" +
+      "opSessionGeneration\022+.talon.gateway.Stop" +
+      "SessionGenerationRequest\032,.talon.gateway" +
+      ".StopSessionGenerationResponse\"@\202\323\344\223\002:\"5" +
+      "/v1/ns/{ns}/agents/{agent}/sessions/{ses" +
+      "sion_id}:stop:\001*\022\250\001\n\022StreamSessionParts\022" +
+      "(.talon.gateway.StreamSessionPartsReques" +
+      "t\032%.talon.events.SessionMessagePartEvent" +
+      "\"?\202\323\344\223\0029\0227/v1/ns/{ns}/agents/{agent}/ses" +
+      "sions/{session_id}/stream0\001\022\227\001\n\027StreamSe" +
+      "ssionPartsBatch\022-.talon.gateway.StreamSe" +
+      "ssionPartsBatchRequest\032%.talon.events.Se" +
+      "ssionMessagePartEvent\"$\202\323\344\223\002\036\"\031/v1/sessi" +
+      "on-streams:batch:\001*0\001\022\235\001\n\022PostChannelMes" +
+      "sage\022(.talon.gateway.PostChannelMessageR" +
+      "equest\032).talon.gateway.PostChannelMessag" +
+      "eResponse\"2\202\323\344\223\002,\"\'/v1/ns/{ns}/channels/" +
+      "{channel}/messages:\001*\022\241\001\n\021GetChannelMess" +
+      "age\022\'.talon.gateway.GetChannelMessageReq" +
+      "uest\032%.talon.gateway.ChannelMessageRespo" +
+      "nse\"<\202\323\344\223\0026\0224/v1/ns/{ns}/channels/{chann" +
+      "el}/messages/{message_id}\022\235\001\n\023ListChanne" +
+      "lMessages\022).talon.gateway.ListChannelMes" +
+      "sagesRequest\032*.talon.gateway.ListChannel" +
+      "MessagesResponse\"/\202\323\344\223\002)\022\'/v1/ns/{ns}/ch" +
+      "annels/{channel}/messages\022\215\001\n\023StreamChan" +
+      "nelEvents\022).talon.gateway.StreamChannelE" +
+      "ventsRequest\032\032.talon.events.ChannelEvent" +
+      "\"-\202\323\344\223\002\'\022%/v1/ns/{ns}/channels/{channel}" +
+      "/stream0\001\022\222\001\n\021CreateWorkflowRun\022\'.talon." +
+      "gateway.CreateWorkflowRunRequest\032\".talon" +
+      ".gateway.WorkflowRunResponse\"0\202\323\344\223\002*\"%/v" +
+      "1/ns/{ns}/workflows/{workflow}/runs:\001*\022\222" +
+      "\001\n\016GetWorkflowRun\022$.talon.gateway.GetWor" +
+      "kflowRunRequest\032\".talon.gateway.Workflow" +
+      "RunResponse\"6\202\323\344\223\0020\022./v1/ns/{ns}/workflo" +
+      "ws/{workflow}/runs/{run_id}\022\222\001\n\020ListWork" +
+      "flowRuns\022&.talon.gateway.ListWorkflowRun" +
+      "sRequest\032\'.talon.gateway.ListWorkflowRun" +
+      "sResponse\"-\202\323\344\223\002\'\022%/v1/ns/{ns}/workflows" +
+      "/{workflow}/runs\022\242\001\n\021ResumeWorkflowRun\022\'" +
+      ".talon.gateway.ResumeWorkflowRunRequest\032" +
+      "\".talon.gateway.WorkflowRunResponse\"@\202\323\344" +
+      "\223\002:\"5/v1/ns/{ns}/workflows/{workflow}/ru" +
+      "ns/{run_id}:resume:\001*\022\242\001\n\021CancelWorkflow" +
+      "Run\022\'.talon.gateway.CancelWorkflowRunReq" +
+      "uest\032\".talon.gateway.WorkflowRunResponse" +
+      "\"@\202\323\344\223\002:\"5/v1/ns/{ns}/workflows/{workflo" +
+      "w}/runs/{run_id}:cancel:\001*\022\241\001\n\024StreamWor" +
+      "kflowEvents\022*.talon.gateway.StreamWorkfl" +
+      "owEventsRequest\032\034.talon.data.WorkflowRun" +
+      "Event\"=\202\323\344\223\0027\0225/v1/ns/{ns}/workflows/{wo" +
+      "rkflow}/runs/{run_id}/stream0\001\022|\n\017Create" +
+      "Namespace\022%.talon.gateway.CreateNamespac" +
+      "eRequest\032 .talon.gateway.NamespaceRespon" +
+      "se\" \202\323\344\223\002\032\"\025/v1/namespaces/{name}:\001*\022s\n\014" +
+      "GetNamespace\022\".talon.gateway.GetNamespac" +
+      "eRequest\032 .talon.gateway.NamespaceRespon" +
+      "se\"\035\202\323\344\223\002\027\022\025/v1/namespaces/{name}\022y\n\017Del" +
+      "eteNamespace\022%.talon.gateway.DeleteNames" +
+      "paceRequest\032 .talon.gateway.NamespaceRes" +
+      "ponse\"\035\202\323\344\223\002\027*\025/v1/namespaces/{name}\022u\n\016" +
+      "ListNamespaces\022$.talon.gateway.ListNames" +
+      "pacesRequest\032%.talon.gateway.ListNamespa" +
+      "cesResponse\"\026\202\323\344\223\002\020\022\016/v1/namespaces\022y\n\016C" +
+      "reateResource\022$.talon.gateway.CreateReso" +
+      "urceRequest\032\037.talon.gateway.ResourceResp" +
+      "onse\" \202\323\344\223\002\032\"\025/v2/ns/{ns}/resources:\001*\022~" +
+      "\n\013GetResource\022!.talon.gateway.GetResourc" +
+      "eRequest\032\037.talon.gateway.ResourceRespons" +
+      "e\"+\202\323\344\223\002%\022#/v2/ns/{ns}/resources/{kind}/" +
+      "{name}\022y\n\rListResources\022#.talon.gateway." +
+      "ListResourcesRequest\032$.talon.gateway.Lis" +
+      "tResourcesResponse\"\035\202\323\344\223\002\027\022\025/v2/ns/{ns}/" +
+      "resources\022\212\001\n\016DeleteResource\022$.talon.gat" +
+      "eway.DeleteResourceRequest\032%.talon.gatew" +
+      "ay.DeleteResourceResponse\"+\202\323\344\223\002%*#/v2/n" +
+      "s/{ns}/resources/{kind}/{name}b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -85135,7 +85135,7 @@ java.lang.String defaultValue) {
     internal_static_talon_gateway_CreateResourceRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_gateway_CreateResourceRequest_descriptor,
-        new java.lang.String[] { "Ns", "Resource", });
+        new java.lang.String[] { "Ns", "Manifest", });
     internal_static_talon_gateway_GetResourceRequest_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_talon_gateway_GetResourceRequest_fieldAccessorTable = new

@@ -7,7 +7,7 @@ pub struct CreateResourceRequest {
     #[prost(string, tag = "1")]
     pub ns: ::prost::alloc::string::String,
     #[prost(message, optional, tag = "2")]
-    pub resource: ::core::option::Option<super::resources::Resource>,
+    pub manifest: ::core::option::Option<super::resources::ResourceManifest>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetResourceRequest {

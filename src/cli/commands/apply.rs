@@ -90,14 +90,13 @@ fn is_generic_resource_kind(kind: &str) -> bool {
     )
 }
 
-fn resource_from_manifest(
+fn resource_manifest_from_manifest(
     content: &str,
-) -> Result<(String, String, String, resources_proto::Resource)> {
+) -> Result<(String, String, String, resources_proto::ResourceManifest)> {
     use resources_proto::resource_spec::Kind as SpecKind;
-    use resources_proto::resource_status::Kind as StatusKind;
 
     let raw = parse_raw_manifest(content)?;
-    let mut resource = match raw.kind.as_str() {
+    let mut manifest = match raw.kind.as_str() {
         "MCPServer" | "McpServer" => {
             let mut server = crate::control::manifest::parse_mcp_server(content)?;
             let meta = server
@@ -107,7 +106,7 @@ fn resource_from_manifest(
             if meta.namespace.is_empty() {
                 meta.namespace = ns::TALON_SYSTEM.to_string();
             }
-            resources_proto::Resource {
+            resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "McpServer".to_string(),
                 metadata: server.metadata.clone(),
@@ -116,16 +115,11 @@ fn resource_from_manifest(
                         server.spec.clone().context("MCPServer missing spec")?,
                     )),
                 }),
-                status: Some(resources_proto::ResourceStatus {
-                    kind: Some(StatusKind::McpServer(
-                        resources_proto::CommonResourceStatus::default(),
-                    )),
-                }),
             }
         }
         "Agent" => {
             let agent = crate::control::manifest::parse_agent(content)?;
-            resources_proto::Resource {
+            resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "Agent".to_string(),
                 metadata: agent.metadata.clone(),
@@ -134,14 +128,11 @@ fn resource_from_manifest(
                         agent.spec.clone().context("Agent missing spec")?,
                     )),
                 }),
-                status: Some(resources_proto::ResourceStatus {
-                    kind: Some(StatusKind::Agent(agent.status.clone().unwrap_or_default())),
-                }),
             }
         }
         "McpServerBinding" => {
             let binding = crate::control::manifest::parse_mcp_server_binding(content)?;
-            resources_proto::Resource {
+            resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "McpServerBinding".to_string(),
                 metadata: binding.metadata.clone(),
@@ -153,16 +144,11 @@ fn resource_from_manifest(
                             .context("McpServerBinding missing spec")?,
                     )),
                 }),
-                status: Some(resources_proto::ResourceStatus {
-                    kind: Some(StatusKind::McpServerBinding(
-                        resources_proto::CommonResourceStatus::default(),
-                    )),
-                }),
             }
         }
         "Knowledge" => {
             let knowledge = crate::control::manifest::parse_knowledge(content)?;
-            resources_proto::Resource {
+            resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "Knowledge".to_string(),
                 metadata: knowledge.metadata.clone(),
@@ -171,16 +157,11 @@ fn resource_from_manifest(
                         knowledge.spec.clone().context("Knowledge missing spec")?,
                     )),
                 }),
-                status: Some(resources_proto::ResourceStatus {
-                    kind: Some(StatusKind::Knowledge(
-                        resources_proto::CommonResourceStatus::default(),
-                    )),
-                }),
             }
         }
         "Channel" => {
             let channel = crate::control::manifest::parse_channel(content)?;
-            resources_proto::Resource {
+            resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "Channel".to_string(),
                 metadata: channel.metadata.clone(),
@@ -189,16 +170,11 @@ fn resource_from_manifest(
                         channel.spec.clone().context("Channel missing spec")?,
                     )),
                 }),
-                status: Some(resources_proto::ResourceStatus {
-                    kind: Some(StatusKind::Channel(
-                        channel.status.clone().unwrap_or_default(),
-                    )),
-                }),
             }
         }
         "ChannelSubscription" => {
             let subscription = crate::control::manifest::parse_channel_subscription(content)?;
-            resources_proto::Resource {
+            resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "ChannelSubscription".to_string(),
                 metadata: subscription.metadata.clone(),
@@ -210,16 +186,11 @@ fn resource_from_manifest(
                             .context("ChannelSubscription missing spec")?,
                     )),
                 }),
-                status: Some(resources_proto::ResourceStatus {
-                    kind: Some(StatusKind::ChannelSubscription(
-                        resources_proto::CommonResourceStatus::default(),
-                    )),
-                }),
             }
         }
         "Workflow" => {
             let workflow = crate::control::manifest::parse_workflow(content)?;
-            resources_proto::Resource {
+            resources_proto::ResourceManifest {
                 api_version: "talon.impalasys.com/v1".to_string(),
                 kind: "Workflow".to_string(),
                 metadata: workflow.metadata.clone(),
@@ -228,19 +199,14 @@ fn resource_from_manifest(
                         workflow.spec.clone().context("Workflow missing spec")?,
                     )),
                 }),
-                status: Some(resources_proto::ResourceStatus {
-                    kind: Some(StatusKind::Workflow(
-                        workflow.status.clone().unwrap_or_default(),
-                    )),
-                }),
             }
         }
         kind if is_generic_resource_kind(kind) => {
-            crate::control::manifest::parse_resource(content)?
+            crate::control::manifest::parse_resource_manifest(content)?
         }
         other => anyhow::bail!("Unsupported manifest kind '{}'", other),
     };
-    let meta = resource
+    let meta = manifest
         .metadata
         .as_mut()
         .context("resource missing metadata")?;
@@ -249,19 +215,18 @@ fn resource_from_manifest(
     }
     Ok((
         meta.namespace.clone(),
-        resource.kind.clone(),
+        manifest.kind.clone(),
         meta.name.clone(),
-        resource,
+        manifest,
     ))
 }
 
-fn resource_proto_json(resource: &resources_proto::Resource) -> serde_json::Value {
+fn resource_manifest_proto_json(resource: &resources_proto::ResourceManifest) -> serde_json::Value {
     json!({
         "apiVersion": resource.api_version,
         "kind": resource.kind,
         "metadata": resource.metadata.as_ref().map(resource_meta_proto_json),
         "spec": resource.spec.as_ref().map(resource_spec_proto_json),
-        "status": resource.status.as_ref().map(resource_status_proto_json),
     })
 }
 
@@ -398,115 +363,6 @@ fn sandbox_runtime_template_proto_json(
     })
 }
 
-fn resource_status_proto_json(status: &resources_proto::ResourceStatus) -> serde_json::Value {
-    use resources_proto::resource_status::Kind;
-
-    match status.kind.as_ref() {
-        Some(Kind::Template(status)) => json!({
-            "template": common_status_proto_json(status),
-        }),
-        Some(Kind::SandboxClass(status)) => json!({
-            "sandboxClass": common_status_proto_json(status),
-        }),
-        Some(Kind::SandboxPolicy(status)) => json!({
-            "sandboxPolicy": common_status_proto_json(status),
-        }),
-        Some(Kind::Deployment(status)) => json!({
-            "deployment": {
-                "observedGeneration": status.observed_generation,
-                "phase": status.phase,
-                "conditions": status.conditions.iter().map(condition_proto_json).collect::<Vec<_>>(),
-                "replicas": status.replicas.iter().map(resource_ref_proto_json).collect::<Vec<_>>(),
-            }
-        }),
-        Some(Kind::DeploymentReplica(status)) => json!({
-            "deploymentReplica": {
-                "renderedResources": status.rendered_resources,
-                "renderedHashes": status.rendered_hashes,
-                "conflicts": status.conflicts,
-                "lastRenderedJson": status.last_rendered_json,
-                "ownedJsonPointers": status.owned_json_pointers,
-                "phase": status.phase,
-            }
-        }),
-        Some(Kind::Sandbox(status)) => json!({
-            "sandbox": {
-                "observedGeneration": status.observed_generation,
-                "phase": status.phase,
-                "conditions": status.conditions.iter().map(condition_proto_json).collect::<Vec<_>>(),
-                "backendId": status.backend_id,
-                "lease": status.lease.as_ref().map(sandbox_lease_proto_json),
-                "processes": status.processes.iter().map(sandbox_process_status_proto_json).collect::<Vec<_>>(),
-            }
-        }),
-        Some(Kind::PermissionRequest(status)) => json!({
-            "permissionRequest": {
-                "observedGeneration": status.observed_generation,
-                "phase": status.phase,
-                "conditions": status.conditions.iter().map(condition_proto_json).collect::<Vec<_>>(),
-                "decision": status.decision,
-                "decidedBy": status.decided_by,
-                "decidedAt": status.decided_at,
-            }
-        }),
-        Some(Kind::Raw(status)) => json!({ "raw": { "json": status.json } }),
-        Some(Kind::Agent(_))
-        | Some(Kind::Workflow(_))
-        | Some(Kind::Schedule(_))
-        | Some(Kind::Channel(_))
-        | Some(Kind::ChannelSubscription(_))
-        | Some(Kind::McpServer(_))
-        | Some(Kind::McpServerBinding(_))
-        | Some(Kind::Knowledge(_))
-        | Some(Kind::Namespace(_))
-        | Some(Kind::Session(_))
-        | None => json!({}),
-    }
-}
-
-fn common_status_proto_json(status: &resources_proto::CommonResourceStatus) -> serde_json::Value {
-    json!({
-        "observedGeneration": status.observed_generation,
-        "phase": status.phase,
-        "conditions": status.conditions.iter().map(condition_proto_json).collect::<Vec<_>>(),
-    })
-}
-
-fn condition_proto_json(condition: &resources_proto::ResourceCondition) -> serde_json::Value {
-    json!({
-        "type": condition.r#type,
-        "status": condition.status,
-        "reason": condition.reason,
-        "message": condition.message,
-        "lastTransitionTime": condition.last_transition_time,
-        "observedGeneration": condition.observed_generation,
-    })
-}
-
-fn sandbox_lease_proto_json(lease: &resources_proto::SandboxLease) -> serde_json::Value {
-    json!({
-        "ownerKind": lease.owner_kind,
-        "ownerAgent": lease.owner_agent,
-        "ownerSessionId": lease.owner_session_id,
-        "token": lease.token,
-        "acquiredAt": lease.acquired_at,
-        "expiresAt": lease.expires_at,
-        "heartbeatAt": lease.heartbeat_at,
-    })
-}
-
-fn sandbox_process_status_proto_json(
-    status: &resources_proto::SandboxProcessStatus,
-) -> serde_json::Value {
-    json!({
-        "id": status.id,
-        "command": status.command,
-        "args": status.args,
-        "protocol": status.protocol,
-        "phase": status.phase,
-    })
-}
-
 pub(super) async fn rest_apply_manifest(cli: &Cli, content: &str) -> Result<String> {
     let plan = build_rest_apply_plan(content)?;
     rest_request_json(cli, plan.method, &plan.path, Some(plan.payload))
@@ -533,7 +389,7 @@ enum GrpcApplyPlan {
         ns: String,
         kind: String,
         name: String,
-        resource: resources_proto::Resource,
+        manifest: resources_proto::ResourceManifest,
     },
 }
 
@@ -553,13 +409,13 @@ fn build_rest_apply_plan(content: &str) -> Result<RestApplyPlan> {
             success_label: format!("Namespace '{}'", name),
         });
     }
-    let (ns, kind, name, resource) = resource_from_manifest(content)?;
+    let (ns, kind, name, manifest) = resource_manifest_from_manifest(content)?;
     Ok(RestApplyPlan {
         method: reqwest::Method::POST,
         path: format!("/v2/ns/{}/resources", urlencoding::encode(&ns)),
         payload: json!({
             "ns": ns,
-            "resource": resource_proto_json(&resource),
+            "manifest": resource_manifest_proto_json(&manifest),
         }),
         success_label: format!("{} '{}/{}'", kind, ns, name),
     })
@@ -575,12 +431,12 @@ fn build_grpc_apply_plan(content: &str) -> Result<GrpcApplyPlan> {
             })
         }
         _ => {
-            let (ns, kind, name, resource) = resource_from_manifest(content)?;
+            let (ns, kind, name, manifest) = resource_manifest_from_manifest(content)?;
             Ok(GrpcApplyPlan::Resource {
                 ns,
                 kind,
                 name,
-                resource,
+                manifest,
             })
         }
     }
@@ -630,12 +486,12 @@ pub(super) async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<Stri
             ns,
             kind,
             name,
-            resource,
+            manifest,
         } => {
             client
                 .create_resource(CreateResourceRequest {
                     ns: ns.clone(),
-                    resource: Some(resource),
+                    manifest: Some(manifest),
                 })
                 .await
                 .with_context(|| format!("Gateway rejected {} '{}/{}'", kind, ns, name))?;

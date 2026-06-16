@@ -27,7 +27,31 @@ impl ResourceStore {
     pub async fn upsert(
         &self,
         namespace: &str,
+        resource: resources_proto::Resource,
+    ) -> Result<resources_proto::Resource> {
+        self.upsert_resource(namespace, resource, false).await
+    }
+
+    pub async fn upsert_manifest(
+        &self,
+        namespace: &str,
+        manifest: resources_proto::ResourceManifest,
+    ) -> Result<resources_proto::Resource> {
+        let resource = resources_proto::Resource {
+            api_version: manifest.api_version,
+            kind: manifest.kind,
+            metadata: manifest.metadata,
+            spec: manifest.spec,
+            status: None,
+        };
+        self.upsert_resource(namespace, resource, true).await
+    }
+
+    async fn upsert_resource(
+        &self,
+        namespace: &str,
         mut resource: resources_proto::Resource,
+        preserve_existing_status: bool,
     ) -> Result<resources_proto::Resource> {
         normalize_resource(namespace, &mut resource)?;
         let key = resource_key(&resource);
@@ -50,6 +74,13 @@ impl ResourceStore {
             .filter(|uid| !uid.is_empty())
             .unwrap_or_else(|| uuid::Uuid::now_v7().to_string());
         let resource_version = uuid::Uuid::now_v7().to_string();
+
+        if preserve_existing_status {
+            resource.status = existing
+                .as_ref()
+                .and_then(|existing| existing.status.clone())
+                .or_else(|| Some(default_status_for_resource(&resource)));
+        }
 
         let meta = resource
             .metadata
@@ -387,6 +418,39 @@ fn validate_resource_kind(resource: &resources_proto::Resource) -> Result<()> {
     Ok(())
 }
 
+fn default_status_for_resource(
+    resource: &resources_proto::Resource,
+) -> resources_proto::ResourceStatus {
+    use resources_proto::resource_spec::Kind as SpecKind;
+    use resources_proto::resource_status::Kind as StatusKind;
+
+    let kind = match resource.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+        Some(SpecKind::Agent(_)) => StatusKind::Agent(Default::default()),
+        Some(SpecKind::Workflow(_)) => StatusKind::Workflow(Default::default()),
+        Some(SpecKind::Schedule(_)) => StatusKind::Schedule(Default::default()),
+        Some(SpecKind::Channel(_)) => StatusKind::Channel(Default::default()),
+        Some(SpecKind::ChannelSubscription(_)) => {
+            StatusKind::ChannelSubscription(Default::default())
+        }
+        Some(SpecKind::McpServer(_)) => StatusKind::McpServer(Default::default()),
+        Some(SpecKind::McpServerBinding(_)) => StatusKind::McpServerBinding(Default::default()),
+        Some(SpecKind::Knowledge(_)) => StatusKind::Knowledge(Default::default()),
+        Some(SpecKind::Namespace(_)) => StatusKind::Namespace(Default::default()),
+        Some(SpecKind::Session(_)) => StatusKind::Session(Default::default()),
+        Some(SpecKind::Template(_)) => StatusKind::Template(Default::default()),
+        Some(SpecKind::Deployment(_)) => StatusKind::Deployment(Default::default()),
+        Some(SpecKind::DeploymentReplica(_)) => StatusKind::DeploymentReplica(Default::default()),
+        Some(SpecKind::SandboxClass(_)) => StatusKind::SandboxClass(Default::default()),
+        Some(SpecKind::SandboxPolicy(_)) => StatusKind::SandboxPolicy(Default::default()),
+        Some(SpecKind::Sandbox(_)) => StatusKind::Sandbox(Default::default()),
+        Some(SpecKind::PermissionRequest(_)) => StatusKind::PermissionRequest(Default::default()),
+        Some(SpecKind::Raw(_)) | None => StatusKind::Raw(resources_proto::RawResourceStatus {
+            json: "{}".to_string(),
+        }),
+    };
+    resources_proto::ResourceStatus { kind: Some(kind) }
+}
+
 fn resource_key(resource: &resources_proto::Resource) -> keys::ResourceKey {
     let meta = resource
         .metadata
@@ -529,5 +593,92 @@ mod tests {
             "acp"
         );
         assert_eq!(agent.status.as_ref().unwrap().phase, "Ready");
+    }
+
+    #[tokio::test]
+    async fn manifest_upsert_preserves_controller_owned_status() {
+        let store = ResourceStore::new(
+            Arc::new(MockKvStore::new()),
+            Arc::new(RecordingPubSub::default()),
+        );
+        let manifest = resources_proto::ResourceManifest {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Agent".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "coding".to_string(),
+                namespace: "customers:acme".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Agent(
+                    resources_proto::AgentSpec {
+                        system_prompt: "first".to_string(),
+                        ..Default::default()
+                    },
+                )),
+            }),
+        };
+
+        let created = store
+            .upsert_manifest("customers:acme", manifest.clone())
+            .await
+            .unwrap();
+        assert_eq!(created.metadata.as_ref().unwrap().generation, 1);
+        assert!(matches!(
+            created
+                .status
+                .as_ref()
+                .and_then(|status| status.kind.as_ref()),
+            Some(resources_proto::resource_status::Kind::Agent(_))
+        ));
+
+        store
+            .patch_status(
+                "customers:acme",
+                "Agent",
+                "coding",
+                None,
+                resources_proto::ResourceStatus {
+                    kind: Some(resources_proto::resource_status::Kind::Agent(
+                        resources_proto::AgentStatus {
+                            observed_generation: 1,
+                            phase: "Ready".to_string(),
+                            conditions: Vec::new(),
+                            last_session_id: Some("session-1".to_string()),
+                        },
+                    )),
+                },
+            )
+            .await
+            .unwrap();
+
+        let mut next = manifest;
+        next.spec = Some(resources_proto::ResourceSpec {
+            kind: Some(resources_proto::resource_spec::Kind::Agent(
+                resources_proto::AgentSpec {
+                    system_prompt: "second".to_string(),
+                    ..Default::default()
+                },
+            )),
+        });
+        let updated = store.upsert_manifest("customers:acme", next).await.unwrap();
+        assert_eq!(updated.metadata.as_ref().unwrap().generation, 2);
+        match updated
+            .status
+            .as_ref()
+            .and_then(|status| status.kind.as_ref())
+        {
+            Some(resources_proto::resource_status::Kind::Agent(status)) => {
+                assert_eq!(status.phase, "Ready");
+                assert_eq!(status.last_session_id.as_deref(), Some("session-1"));
+            }
+            other => panic!("expected Agent status, got {other:?}"),
+        }
+        match updated.spec.as_ref().and_then(|spec| spec.kind.as_ref()) {
+            Some(resources_proto::resource_spec::Kind::Agent(spec)) => {
+                assert_eq!(spec.system_prompt, "second");
+            }
+            other => panic!("expected Agent spec, got {other:?}"),
+        }
     }
 }

@@ -11,12 +11,12 @@ impl GrpcGatewayHandler {
     ) -> std::result::Result<tonic::Response<proto::ResourceResponse>, tonic::Status> {
         crate::require_auth!(self, req, &req.get_ref().ns);
         let req = req.into_inner();
-        let resource = req
-            .resource
-            .ok_or_else(|| tonic::Status::invalid_argument("resource is required"))?;
+        let manifest = req
+            .manifest
+            .ok_or_else(|| tonic::Status::invalid_argument("manifest is required"))?;
         let store = ResourceStore::new(self.gateway.kv.clone(), self.gateway.pubsub.clone());
         let resource = store
-            .upsert(&req.ns, resource)
+            .upsert_manifest(&req.ns, manifest)
             .await
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         Ok(tonic::Response::new(proto::ResourceResponse {

@@ -23,9 +23,9 @@ from proto.gateway_pb2 import (
     SendMessageRequest,
     StreamSessionPartsRequest,
 )
-from proto.resources.agents_pb2 import AgentSpec, AgentStatus, Model
+from proto.resources.agents_pb2 import AgentSpec, Model
 from proto.resources.common_pb2 import ResourceMeta
-from proto.resources.resource_pb2 import Resource, ResourceSpec, ResourceStatus
+from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
 import conftest
 
 PART_TYPE_TEXT = 1
@@ -58,12 +58,11 @@ def create_agent_resource(stub, ns, name, spec):
     return stub.CreateResource(
         CreateResourceRequest(
             ns=ns,
-            resource=Resource(
+            manifest=ResourceManifest(
                 api_version="talon.impalasys.com/v1",
                 kind="Agent",
                 metadata=ResourceMeta(name=name, namespace=ns),
                 spec=ResourceSpec(agent=spec),
-                status=ResourceStatus(agent=AgentStatus()),
             ),
         )
     ).resource

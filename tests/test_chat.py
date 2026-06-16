@@ -29,12 +29,12 @@ from proto.gateway_pb2 import (
     ListWorkflowRunsRequest,
     StreamWorkflowEventsRequest,
 )
-from proto.resources.agents_pb2 import AgentSpec, AgentStatus, Model
-from proto.resources.common_pb2 import CommonResourceStatus, ResourceMeta
+from proto.resources.agents_pb2 import AgentSpec, Model
+from proto.resources.common_pb2 import ResourceMeta
 from proto.resources.knowledge_pb2 import KnowledgeSpec
-from proto.resources.resource_pb2 import Resource, ResourceSpec, ResourceStatus
-from proto.resources.schedules_pb2 import ScheduleSpec, ScheduleStatus, ScheduleTarget
-from proto.resources.workflows_pb2 import WorkflowSpec, WorkflowStatus, WorkflowStep
+from proto.resources.resource_pb2 import ResourceManifest, ResourceSpec
+from proto.resources.schedules_pb2 import ScheduleSpec, ScheduleTarget
+from proto.resources.workflows_pb2 import WorkflowSpec, WorkflowStep
 import threading
 import uuid
 
@@ -45,15 +45,14 @@ PART_TYPE_USAGE = 5
 def message_text(message):
     return "".join(part.content for part in message.parts if part.part_type == PART_TYPE_TEXT)
 
-def create_resource(stub, ns, kind, name, spec, status):
+def create_resource(stub, ns, kind, name, spec):
     return stub.CreateResource(CreateResourceRequest(
         ns=ns,
-        resource=Resource(
+        manifest=ResourceManifest(
             api_version="talon.impalasys.com/v1",
             kind=kind,
             metadata=ResourceMeta(name=name, namespace=ns),
             spec=spec,
-            status=status,
         ),
     )).resource
 
@@ -64,7 +63,6 @@ def create_agent_resource(stub, ns, name, spec):
         "Agent",
         name,
         ResourceSpec(agent=spec),
-        ResourceStatus(agent=AgentStatus()),
     )
 
 @pytest.fixture
@@ -272,7 +270,6 @@ def test_knowledge_crud_and_search(gateway_channel, mock_llm_server):
                 content="Talon stores runtime facts in guide documents.",
             )
         ),
-        ResourceStatus(knowledge=CommonResourceStatus()),
     )
     assert created.metadata.name == "guide"
 
@@ -349,7 +346,6 @@ def test_schedule_crud_round_trip(gateway_channel, mock_llm_server):
                 enabled=True,
             ),
         ),
-        ResourceStatus(schedule=ScheduleStatus()),
     )
     assert created.metadata.name == schedule_name
     assert created.metadata.namespace == namespace
@@ -411,7 +407,6 @@ def test_workflow_transform_run_completes_through_worker(gateway_channel, mock_l
                 }),
             ),
         ),
-        ResourceStatus(workflow=WorkflowStatus()),
     )
     assert created.metadata.name == workflow_name
 
