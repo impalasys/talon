@@ -12,6 +12,12 @@ message TemplateSpec {
   string spec_json = 3;
 }
 
+message Template {
+  ResourceMeta metadata = 1;
+  TemplateSpec spec = 2;
+  CommonResourceStatus status = 3;
+}
+
 message DeploymentPlacement {
   NamespaceSelector namespace_selector = 1;
 }
@@ -21,9 +27,21 @@ message DeploymentSpec {
   repeated string templates = 2;
 }
 
+message Deployment {
+  ResourceMeta metadata = 1;
+  DeploymentSpec spec = 2;
+  DeploymentStatus status = 3;
+}
+
 message DeploymentReplicaSpec {
   ResourceRef deployment_ref = 1;
   string target_namespace = 2;
+}
+
+message DeploymentReplica {
+  ResourceMeta metadata = 1;
+  DeploymentReplicaSpec spec = 2;
+  DeploymentReplicaStatus status = 3;
 }
 
 message DeploymentStatus {

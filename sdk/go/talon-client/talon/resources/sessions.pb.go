@@ -73,6 +73,66 @@ func (x *SessionSpec) GetLabels() map[string]string {
 	return nil
 }
 
+type Session struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *SessionSpec           `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *SessionStatus         `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Session) Reset() {
+	*x = Session{}
+	mi := &file_proto_resources_sessions_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Session) ProtoMessage() {}
+
+func (x *Session) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_sessions_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Session.ProtoReflect.Descriptor instead.
+func (*Session) Descriptor() ([]byte, []int) {
+	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Session) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *Session) GetSpec() *SessionSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *Session) GetStatus() *SessionStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 type SessionStatus struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
@@ -89,7 +149,7 @@ type SessionStatus struct {
 
 func (x *SessionStatus) Reset() {
 	*x = SessionStatus{}
-	mi := &file_proto_resources_sessions_proto_msgTypes[1]
+	mi := &file_proto_resources_sessions_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -101,7 +161,7 @@ func (x *SessionStatus) String() string {
 func (*SessionStatus) ProtoMessage() {}
 
 func (x *SessionStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sessions_proto_msgTypes[1]
+	mi := &file_proto_resources_sessions_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -114,7 +174,7 @@ func (x *SessionStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionStatus.ProtoReflect.Descriptor instead.
 func (*SessionStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{1}
+	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SessionStatus) GetObservedGeneration() uint64 {
@@ -179,7 +239,7 @@ type PermissionRequestSpec struct {
 
 func (x *PermissionRequestSpec) Reset() {
 	*x = PermissionRequestSpec{}
-	mi := &file_proto_resources_sessions_proto_msgTypes[2]
+	mi := &file_proto_resources_sessions_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -191,7 +251,7 @@ func (x *PermissionRequestSpec) String() string {
 func (*PermissionRequestSpec) ProtoMessage() {}
 
 func (x *PermissionRequestSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sessions_proto_msgTypes[2]
+	mi := &file_proto_resources_sessions_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -204,7 +264,7 @@ func (x *PermissionRequestSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionRequestSpec.ProtoReflect.Descriptor instead.
 func (*PermissionRequestSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{2}
+	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PermissionRequestSpec) GetAgent() string {
@@ -242,6 +302,66 @@ func (x *PermissionRequestSpec) GetPayloadJson() string {
 	return ""
 }
 
+type PermissionRequest struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Metadata      *ResourceMeta            `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *PermissionRequestSpec   `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *PermissionRequestStatus `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PermissionRequest) Reset() {
+	*x = PermissionRequest{}
+	mi := &file_proto_resources_sessions_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PermissionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PermissionRequest) ProtoMessage() {}
+
+func (x *PermissionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_sessions_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PermissionRequest.ProtoReflect.Descriptor instead.
+func (*PermissionRequest) Descriptor() ([]byte, []int) {
+	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PermissionRequest) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *PermissionRequest) GetSpec() *PermissionRequestSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *PermissionRequest) GetStatus() *PermissionRequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 type PermissionRequestStatus struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
@@ -256,7 +376,7 @@ type PermissionRequestStatus struct {
 
 func (x *PermissionRequestStatus) Reset() {
 	*x = PermissionRequestStatus{}
-	mi := &file_proto_resources_sessions_proto_msgTypes[3]
+	mi := &file_proto_resources_sessions_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -268,7 +388,7 @@ func (x *PermissionRequestStatus) String() string {
 func (*PermissionRequestStatus) ProtoMessage() {}
 
 func (x *PermissionRequestStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sessions_proto_msgTypes[3]
+	mi := &file_proto_resources_sessions_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -281,7 +401,7 @@ func (x *PermissionRequestStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PermissionRequestStatus.ProtoReflect.Descriptor instead.
 func (*PermissionRequestStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{3}
+	return file_proto_resources_sessions_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *PermissionRequestStatus) GetObservedGeneration() uint64 {
@@ -336,7 +456,11 @@ const file_proto_resources_sessions_proto_rawDesc = "" +
 	"\x06labels\x18\x02 \x03(\v2(.talon.resources.SessionSpec.LabelsEntryR\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa1\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xae\x01\n" +
+	"\aSession\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x120\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1c.talon.resources.SessionSpecR\x04spec\x126\n" +
+	"\x06status\x18\x03 \x01(\v2\x1e.talon.resources.SessionStatusR\x06status\"\xa1\x02\n" +
 	"\rSessionStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
@@ -356,7 +480,11 @@ const file_proto_resources_sessions_proto_rawDesc = "" +
 	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x16\n" +
 	"\x06action\x18\x03 \x01(\tR\x06action\x12\x16\n" +
 	"\x06prompt\x18\x04 \x01(\tR\x06prompt\x12!\n" +
-	"\fpayload_json\x18\x05 \x01(\tR\vpayloadJson\"\xfe\x01\n" +
+	"\fpayload_json\x18\x05 \x01(\tR\vpayloadJson\"\xcc\x01\n" +
+	"\x11PermissionRequest\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12:\n" +
+	"\x04spec\x18\x02 \x01(\v2&.talon.resources.PermissionRequestSpecR\x04spec\x12@\n" +
+	"\x06status\x18\x03 \x01(\v2(.talon.resources.PermissionRequestStatusR\x06status\"\xfe\x01\n" +
 	"\x17PermissionRequestStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
@@ -381,24 +509,33 @@ func file_proto_resources_sessions_proto_rawDescGZIP() []byte {
 	return file_proto_resources_sessions_proto_rawDescData
 }
 
-var file_proto_resources_sessions_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_resources_sessions_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_proto_resources_sessions_proto_goTypes = []any{
 	(*SessionSpec)(nil),             // 0: talon.resources.SessionSpec
-	(*SessionStatus)(nil),           // 1: talon.resources.SessionStatus
-	(*PermissionRequestSpec)(nil),   // 2: talon.resources.PermissionRequestSpec
-	(*PermissionRequestStatus)(nil), // 3: talon.resources.PermissionRequestStatus
-	nil,                             // 4: talon.resources.SessionSpec.LabelsEntry
-	(*ResourceCondition)(nil),       // 5: talon.resources.ResourceCondition
+	(*Session)(nil),                 // 1: talon.resources.Session
+	(*SessionStatus)(nil),           // 2: talon.resources.SessionStatus
+	(*PermissionRequestSpec)(nil),   // 3: talon.resources.PermissionRequestSpec
+	(*PermissionRequest)(nil),       // 4: talon.resources.PermissionRequest
+	(*PermissionRequestStatus)(nil), // 5: talon.resources.PermissionRequestStatus
+	nil,                             // 6: talon.resources.SessionSpec.LabelsEntry
+	(*ResourceMeta)(nil),            // 7: talon.resources.ResourceMeta
+	(*ResourceCondition)(nil),       // 8: talon.resources.ResourceCondition
 }
 var file_proto_resources_sessions_proto_depIdxs = []int32{
-	4, // 0: talon.resources.SessionSpec.labels:type_name -> talon.resources.SessionSpec.LabelsEntry
-	5, // 1: talon.resources.SessionStatus.conditions:type_name -> talon.resources.ResourceCondition
-	5, // 2: talon.resources.PermissionRequestStatus.conditions:type_name -> talon.resources.ResourceCondition
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	6, // 0: talon.resources.SessionSpec.labels:type_name -> talon.resources.SessionSpec.LabelsEntry
+	7, // 1: talon.resources.Session.metadata:type_name -> talon.resources.ResourceMeta
+	0, // 2: talon.resources.Session.spec:type_name -> talon.resources.SessionSpec
+	2, // 3: talon.resources.Session.status:type_name -> talon.resources.SessionStatus
+	8, // 4: talon.resources.SessionStatus.conditions:type_name -> talon.resources.ResourceCondition
+	7, // 5: talon.resources.PermissionRequest.metadata:type_name -> talon.resources.ResourceMeta
+	3, // 6: talon.resources.PermissionRequest.spec:type_name -> talon.resources.PermissionRequestSpec
+	5, // 7: talon.resources.PermissionRequest.status:type_name -> talon.resources.PermissionRequestStatus
+	8, // 8: talon.resources.PermissionRequestStatus.conditions:type_name -> talon.resources.ResourceCondition
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_sessions_proto_init() }
@@ -413,7 +550,7 @@ func file_proto_resources_sessions_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_sessions_proto_rawDesc), len(file_proto_resources_sessions_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

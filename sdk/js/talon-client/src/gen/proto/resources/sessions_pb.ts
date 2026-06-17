@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ResourceCondition } from "./common_pb.js";
+import { ResourceCondition, ResourceMeta } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.SessionSpec
@@ -47,6 +47,55 @@ export class SessionSpec extends Message<SessionSpec> {
 
   static equals(a: SessionSpec | PlainMessage<SessionSpec> | undefined, b: SessionSpec | PlainMessage<SessionSpec> | undefined): boolean {
     return proto3.util.equals(SessionSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.Session
+ */
+export class Session extends Message<Session> {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.SessionSpec spec = 2;
+   */
+  spec?: SessionSpec;
+
+  /**
+   * @generated from field: talon.resources.SessionStatus status = 3;
+   */
+  status?: SessionStatus;
+
+  constructor(data?: PartialMessage<Session>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.Session";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: SessionSpec },
+    { no: 3, name: "status", kind: "message", T: SessionStatus },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Session {
+    return new Session().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Session {
+    return new Session().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Session {
+    return new Session().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Session | PlainMessage<Session> | undefined, b: Session | PlainMessage<Session> | undefined): boolean {
+    return proto3.util.equals(Session, a, b);
   }
 }
 
@@ -183,6 +232,55 @@ export class PermissionRequestSpec extends Message<PermissionRequestSpec> {
 
   static equals(a: PermissionRequestSpec | PlainMessage<PermissionRequestSpec> | undefined, b: PermissionRequestSpec | PlainMessage<PermissionRequestSpec> | undefined): boolean {
     return proto3.util.equals(PermissionRequestSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.PermissionRequest
+ */
+export class PermissionRequest extends Message<PermissionRequest> {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.PermissionRequestSpec spec = 2;
+   */
+  spec?: PermissionRequestSpec;
+
+  /**
+   * @generated from field: talon.resources.PermissionRequestStatus status = 3;
+   */
+  status?: PermissionRequestStatus;
+
+  constructor(data?: PartialMessage<PermissionRequest>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.PermissionRequest";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: PermissionRequestSpec },
+    { no: 3, name: "status", kind: "message", T: PermissionRequestStatus },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): PermissionRequest {
+    return new PermissionRequest().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): PermissionRequest {
+    return new PermissionRequest().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): PermissionRequest {
+    return new PermissionRequest().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: PermissionRequest | PlainMessage<PermissionRequest> | undefined, b: PermissionRequest | PlainMessage<PermissionRequest> | undefined): boolean {
+    return proto3.util.equals(PermissionRequest, a, b);
   }
 }
 

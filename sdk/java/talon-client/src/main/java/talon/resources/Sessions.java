@@ -854,6 +854,981 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface SessionOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.Session)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    boolean hasMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    talon.resources.Common.ResourceMeta getMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
+
+    /**
+     * <code>.talon.resources.SessionSpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    boolean hasSpec();
+    /**
+     * <code>.talon.resources.SessionSpec spec = 2;</code>
+     * @return The spec.
+     */
+    talon.resources.Sessions.SessionSpec getSpec();
+    /**
+     * <code>.talon.resources.SessionSpec spec = 2;</code>
+     */
+    talon.resources.Sessions.SessionSpecOrBuilder getSpecOrBuilder();
+
+    /**
+     * <code>.talon.resources.SessionStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    boolean hasStatus();
+    /**
+     * <code>.talon.resources.SessionStatus status = 3;</code>
+     * @return The status.
+     */
+    talon.resources.Sessions.SessionStatus getStatus();
+    /**
+     * <code>.talon.resources.SessionStatus status = 3;</code>
+     */
+    talon.resources.Sessions.SessionStatusOrBuilder getStatusOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.resources.Session}
+   */
+  public static final class Session extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.Session)
+      SessionOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Session");
+    }
+    // Use Session.newBuilder() to construct.
+    private Session(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Session() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Sessions.internal_static_talon_resources_Session_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Sessions.internal_static_talon_resources_Session_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Sessions.internal_static_talon_resources_Session_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Sessions.Session.class, talon.resources.Sessions.Session.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int METADATA_FIELD_NUMBER = 1;
+    private talon.resources.Common.ResourceMeta metadata_;
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    @java.lang.Override
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMeta getMetadata() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+
+    public static final int SPEC_FIELD_NUMBER = 2;
+    private talon.resources.Sessions.SessionSpec spec_;
+    /**
+     * <code>.talon.resources.SessionSpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    @java.lang.Override
+    public boolean hasSpec() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.resources.SessionSpec spec = 2;</code>
+     * @return The spec.
+     */
+    @java.lang.Override
+    public talon.resources.Sessions.SessionSpec getSpec() {
+      return spec_ == null ? talon.resources.Sessions.SessionSpec.getDefaultInstance() : spec_;
+    }
+    /**
+     * <code>.talon.resources.SessionSpec spec = 2;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sessions.SessionSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.resources.Sessions.SessionSpec.getDefaultInstance() : spec_;
+    }
+
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private talon.resources.Sessions.SessionStatus status_;
+    /**
+     * <code>.talon.resources.SessionStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    @java.lang.Override
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>.talon.resources.SessionStatus status = 3;</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public talon.resources.Sessions.SessionStatus getStatus() {
+      return status_ == null ? talon.resources.Sessions.SessionStatus.getDefaultInstance() : status_;
+    }
+    /**
+     * <code>.talon.resources.SessionStatus status = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sessions.SessionStatusOrBuilder getStatusOrBuilder() {
+      return status_ == null ? talon.resources.Sessions.SessionStatus.getDefaultInstance() : status_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getStatus());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Sessions.Session)) {
+        return super.equals(obj);
+      }
+      talon.resources.Sessions.Session other = (talon.resources.Sessions.Session) obj;
+
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
+      }
+      if (hasStatus() != other.hasStatus()) return false;
+      if (hasStatus()) {
+        if (!getStatus()
+            .equals(other.getStatus())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + getStatus().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Sessions.Session parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sessions.Session parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sessions.Session parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sessions.Session parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sessions.Session parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sessions.Session parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sessions.Session parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sessions.Session parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Sessions.Session parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Sessions.Session parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Sessions.Session parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sessions.Session parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Sessions.Session prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.Session}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.Session)
+        talon.resources.Sessions.SessionOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Sessions.internal_static_talon_resources_Session_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Sessions.internal_static_talon_resources_Session_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Sessions.Session.class, talon.resources.Sessions.Session.Builder.class);
+      }
+
+      // Construct using talon.resources.Sessions.Session.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
+          internalGetSpecFieldBuilder();
+          internalGetStatusFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Sessions.internal_static_talon_resources_Session_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sessions.Session getDefaultInstanceForType() {
+        return talon.resources.Sessions.Session.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Sessions.Session build() {
+        talon.resources.Sessions.Session result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sessions.Session buildPartial() {
+        talon.resources.Sessions.Session result = new talon.resources.Sessions.Session(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Sessions.Session result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.status_ = statusBuilder_ == null
+              ? status_
+              : statusBuilder_.build();
+          to_bitField0_ |= 0x00000004;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Sessions.Session) {
+          return mergeFrom((talon.resources.Sessions.Session)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Sessions.Session other) {
+        if (other == talon.resources.Sessions.Session.getDefaultInstance()) return this;
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
+        }
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
+        }
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetStatusFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.resources.Common.ResourceMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return Whether the metadata field is set.
+       */
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return The metadata.
+       */
+      public talon.resources.Common.ResourceMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        } else {
+          return metadataBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
+        } else {
+          metadataBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(
+          talon.resources.Common.ResourceMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
+        } else {
+          return metadata_ == null ?
+              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
+        }
+        return metadataBuilder_;
+      }
+
+      private talon.resources.Sessions.SessionSpec spec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sessions.SessionSpec, talon.resources.Sessions.SessionSpec.Builder, talon.resources.Sessions.SessionSpecOrBuilder> specBuilder_;
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       * @return Whether the spec field is set.
+       */
+      public boolean hasSpec() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       * @return The spec.
+       */
+      public talon.resources.Sessions.SessionSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.resources.Sessions.SessionSpec.getDefaultInstance() : spec_;
+        } else {
+          return specBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       */
+      public Builder setSpec(talon.resources.Sessions.SessionSpec value) {
+        if (specBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          spec_ = value;
+        } else {
+          specBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       */
+      public Builder setSpec(
+          talon.resources.Sessions.SessionSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
+        } else {
+          specBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       */
+      public Builder mergeSpec(talon.resources.Sessions.SessionSpec value) {
+        if (specBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            spec_ != null &&
+            spec_ != talon.resources.Sessions.SessionSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
+          } else {
+            spec_ = value;
+          }
+        } else {
+          specBuilder_.mergeFrom(value);
+        }
+        if (spec_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       */
+      public Builder clearSpec() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       */
+      public talon.resources.Sessions.SessionSpec.Builder getSpecBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return internalGetSpecFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       */
+      public talon.resources.Sessions.SessionSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
+        } else {
+          return spec_ == null ?
+              talon.resources.Sessions.SessionSpec.getDefaultInstance() : spec_;
+        }
+      }
+      /**
+       * <code>.talon.resources.SessionSpec spec = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sessions.SessionSpec, talon.resources.Sessions.SessionSpec.Builder, talon.resources.Sessions.SessionSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sessions.SessionSpec, talon.resources.Sessions.SessionSpec.Builder, talon.resources.Sessions.SessionSpecOrBuilder>(
+                  getSpec(),
+                  getParentForChildren(),
+                  isClean());
+          spec_ = null;
+        }
+        return specBuilder_;
+      }
+
+      private talon.resources.Sessions.SessionStatus status_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sessions.SessionStatus, talon.resources.Sessions.SessionStatus.Builder, talon.resources.Sessions.SessionStatusOrBuilder> statusBuilder_;
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       * @return Whether the status field is set.
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       * @return The status.
+       */
+      public talon.resources.Sessions.SessionStatus getStatus() {
+        if (statusBuilder_ == null) {
+          return status_ == null ? talon.resources.Sessions.SessionStatus.getDefaultInstance() : status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       */
+      public Builder setStatus(talon.resources.Sessions.SessionStatus value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+        } else {
+          statusBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       */
+      public Builder setStatus(
+          talon.resources.Sessions.SessionStatus.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       */
+      public Builder mergeStatus(talon.resources.Sessions.SessionStatus value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            status_ != null &&
+            status_ != talon.resources.Sessions.SessionStatus.getDefaultInstance()) {
+            getStatusBuilder().mergeFrom(value);
+          } else {
+            status_ = value;
+          }
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        if (status_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       */
+      public Builder clearStatus() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       */
+      public talon.resources.Sessions.SessionStatus.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetStatusFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       */
+      public talon.resources.Sessions.SessionStatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_ == null ?
+              talon.resources.Sessions.SessionStatus.getDefaultInstance() : status_;
+        }
+      }
+      /**
+       * <code>.talon.resources.SessionStatus status = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sessions.SessionStatus, talon.resources.Sessions.SessionStatus.Builder, talon.resources.Sessions.SessionStatusOrBuilder>
+          internalGetStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sessions.SessionStatus, talon.resources.Sessions.SessionStatus.Builder, talon.resources.Sessions.SessionStatusOrBuilder>(
+                  getStatus(),
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
+        }
+        return statusBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.Session)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.Session)
+    private static final talon.resources.Sessions.Session DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Sessions.Session();
+    }
+
+    public static talon.resources.Sessions.Session getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Session>
+        PARSER = new com.google.protobuf.AbstractParser<Session>() {
+      @java.lang.Override
+      public Session parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Session> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Session> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Sessions.Session getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface SessionStatusOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.resources.SessionStatus)
       com.google.protobuf.MessageOrBuilder {
@@ -3410,6 +4385,981 @@ java.lang.String defaultValue) {
 
   }
 
+  public interface PermissionRequestOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.PermissionRequest)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    boolean hasMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    talon.resources.Common.ResourceMeta getMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
+
+    /**
+     * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    boolean hasSpec();
+    /**
+     * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+     * @return The spec.
+     */
+    talon.resources.Sessions.PermissionRequestSpec getSpec();
+    /**
+     * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+     */
+    talon.resources.Sessions.PermissionRequestSpecOrBuilder getSpecOrBuilder();
+
+    /**
+     * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    boolean hasStatus();
+    /**
+     * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+     * @return The status.
+     */
+    talon.resources.Sessions.PermissionRequestStatus getStatus();
+    /**
+     * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+     */
+    talon.resources.Sessions.PermissionRequestStatusOrBuilder getStatusOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.resources.PermissionRequest}
+   */
+  public static final class PermissionRequest extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.PermissionRequest)
+      PermissionRequestOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "PermissionRequest");
+    }
+    // Use PermissionRequest.newBuilder() to construct.
+    private PermissionRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private PermissionRequest() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Sessions.internal_static_talon_resources_PermissionRequest_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Sessions.internal_static_talon_resources_PermissionRequest_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Sessions.internal_static_talon_resources_PermissionRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Sessions.PermissionRequest.class, talon.resources.Sessions.PermissionRequest.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int METADATA_FIELD_NUMBER = 1;
+    private talon.resources.Common.ResourceMeta metadata_;
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    @java.lang.Override
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMeta getMetadata() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+
+    public static final int SPEC_FIELD_NUMBER = 2;
+    private talon.resources.Sessions.PermissionRequestSpec spec_;
+    /**
+     * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    @java.lang.Override
+    public boolean hasSpec() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+     * @return The spec.
+     */
+    @java.lang.Override
+    public talon.resources.Sessions.PermissionRequestSpec getSpec() {
+      return spec_ == null ? talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance() : spec_;
+    }
+    /**
+     * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sessions.PermissionRequestSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance() : spec_;
+    }
+
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private talon.resources.Sessions.PermissionRequestStatus status_;
+    /**
+     * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    @java.lang.Override
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public talon.resources.Sessions.PermissionRequestStatus getStatus() {
+      return status_ == null ? talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance() : status_;
+    }
+    /**
+     * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sessions.PermissionRequestStatusOrBuilder getStatusOrBuilder() {
+      return status_ == null ? talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance() : status_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getStatus());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Sessions.PermissionRequest)) {
+        return super.equals(obj);
+      }
+      talon.resources.Sessions.PermissionRequest other = (talon.resources.Sessions.PermissionRequest) obj;
+
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
+      }
+      if (hasStatus() != other.hasStatus()) return false;
+      if (hasStatus()) {
+        if (!getStatus()
+            .equals(other.getStatus())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + getStatus().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Sessions.PermissionRequest parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Sessions.PermissionRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Sessions.PermissionRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sessions.PermissionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Sessions.PermissionRequest prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.PermissionRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.PermissionRequest)
+        talon.resources.Sessions.PermissionRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Sessions.internal_static_talon_resources_PermissionRequest_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Sessions.internal_static_talon_resources_PermissionRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Sessions.PermissionRequest.class, talon.resources.Sessions.PermissionRequest.Builder.class);
+      }
+
+      // Construct using talon.resources.Sessions.PermissionRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
+          internalGetSpecFieldBuilder();
+          internalGetStatusFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Sessions.internal_static_talon_resources_PermissionRequest_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sessions.PermissionRequest getDefaultInstanceForType() {
+        return talon.resources.Sessions.PermissionRequest.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Sessions.PermissionRequest build() {
+        talon.resources.Sessions.PermissionRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sessions.PermissionRequest buildPartial() {
+        talon.resources.Sessions.PermissionRequest result = new talon.resources.Sessions.PermissionRequest(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Sessions.PermissionRequest result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.status_ = statusBuilder_ == null
+              ? status_
+              : statusBuilder_.build();
+          to_bitField0_ |= 0x00000004;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Sessions.PermissionRequest) {
+          return mergeFrom((talon.resources.Sessions.PermissionRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Sessions.PermissionRequest other) {
+        if (other == talon.resources.Sessions.PermissionRequest.getDefaultInstance()) return this;
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
+        }
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
+        }
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetStatusFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.resources.Common.ResourceMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return Whether the metadata field is set.
+       */
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return The metadata.
+       */
+      public talon.resources.Common.ResourceMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        } else {
+          return metadataBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
+        } else {
+          metadataBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(
+          talon.resources.Common.ResourceMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
+        } else {
+          return metadata_ == null ?
+              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
+        }
+        return metadataBuilder_;
+      }
+
+      private talon.resources.Sessions.PermissionRequestSpec spec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sessions.PermissionRequestSpec, talon.resources.Sessions.PermissionRequestSpec.Builder, talon.resources.Sessions.PermissionRequestSpecOrBuilder> specBuilder_;
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       * @return Whether the spec field is set.
+       */
+      public boolean hasSpec() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       * @return The spec.
+       */
+      public talon.resources.Sessions.PermissionRequestSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance() : spec_;
+        } else {
+          return specBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       */
+      public Builder setSpec(talon.resources.Sessions.PermissionRequestSpec value) {
+        if (specBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          spec_ = value;
+        } else {
+          specBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       */
+      public Builder setSpec(
+          talon.resources.Sessions.PermissionRequestSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
+        } else {
+          specBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       */
+      public Builder mergeSpec(talon.resources.Sessions.PermissionRequestSpec value) {
+        if (specBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            spec_ != null &&
+            spec_ != talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
+          } else {
+            spec_ = value;
+          }
+        } else {
+          specBuilder_.mergeFrom(value);
+        }
+        if (spec_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       */
+      public Builder clearSpec() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       */
+      public talon.resources.Sessions.PermissionRequestSpec.Builder getSpecBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return internalGetSpecFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       */
+      public talon.resources.Sessions.PermissionRequestSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
+        } else {
+          return spec_ == null ?
+              talon.resources.Sessions.PermissionRequestSpec.getDefaultInstance() : spec_;
+        }
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestSpec spec = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sessions.PermissionRequestSpec, talon.resources.Sessions.PermissionRequestSpec.Builder, talon.resources.Sessions.PermissionRequestSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sessions.PermissionRequestSpec, talon.resources.Sessions.PermissionRequestSpec.Builder, talon.resources.Sessions.PermissionRequestSpecOrBuilder>(
+                  getSpec(),
+                  getParentForChildren(),
+                  isClean());
+          spec_ = null;
+        }
+        return specBuilder_;
+      }
+
+      private talon.resources.Sessions.PermissionRequestStatus status_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sessions.PermissionRequestStatus, talon.resources.Sessions.PermissionRequestStatus.Builder, talon.resources.Sessions.PermissionRequestStatusOrBuilder> statusBuilder_;
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       * @return Whether the status field is set.
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       * @return The status.
+       */
+      public talon.resources.Sessions.PermissionRequestStatus getStatus() {
+        if (statusBuilder_ == null) {
+          return status_ == null ? talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance() : status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       */
+      public Builder setStatus(talon.resources.Sessions.PermissionRequestStatus value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+        } else {
+          statusBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       */
+      public Builder setStatus(
+          talon.resources.Sessions.PermissionRequestStatus.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       */
+      public Builder mergeStatus(talon.resources.Sessions.PermissionRequestStatus value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            status_ != null &&
+            status_ != talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance()) {
+            getStatusBuilder().mergeFrom(value);
+          } else {
+            status_ = value;
+          }
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        if (status_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       */
+      public Builder clearStatus() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       */
+      public talon.resources.Sessions.PermissionRequestStatus.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetStatusFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       */
+      public talon.resources.Sessions.PermissionRequestStatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_ == null ?
+              talon.resources.Sessions.PermissionRequestStatus.getDefaultInstance() : status_;
+        }
+      }
+      /**
+       * <code>.talon.resources.PermissionRequestStatus status = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sessions.PermissionRequestStatus, talon.resources.Sessions.PermissionRequestStatus.Builder, talon.resources.Sessions.PermissionRequestStatusOrBuilder>
+          internalGetStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sessions.PermissionRequestStatus, talon.resources.Sessions.PermissionRequestStatus.Builder, talon.resources.Sessions.PermissionRequestStatusOrBuilder>(
+                  getStatus(),
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
+        }
+        return statusBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.PermissionRequest)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.PermissionRequest)
+    private static final talon.resources.Sessions.PermissionRequest DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Sessions.PermissionRequest();
+    }
+
+    public static talon.resources.Sessions.PermissionRequest getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<PermissionRequest>
+        PARSER = new com.google.protobuf.AbstractParser<PermissionRequest>() {
+      @java.lang.Override
+      public PermissionRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<PermissionRequest> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<PermissionRequest> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Sessions.PermissionRequest getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface PermissionRequestStatusOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.resources.PermissionRequestStatus)
       com.google.protobuf.MessageOrBuilder {
@@ -4761,6 +6711,11 @@ java.lang.String defaultValue) {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_SessionSpec_LabelsEntry_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_Session_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_Session_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_SessionStatus_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -4770,6 +6725,11 @@ java.lang.String defaultValue) {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_PermissionRequestSpec_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_PermissionRequest_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_PermissionRequest_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_PermissionRequestStatus_descriptor;
   private static final
@@ -4789,20 +6749,28 @@ java.lang.String defaultValue) {
       "\205\001\n\013SessionSpec\022\r\n\005agent\030\001 \001(\t\0228\n\006labels" +
       "\030\002 \003(\0132(.talon.resources.SessionSpec.Lab" +
       "elsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005" +
-      "value\030\002 \001(\t:\0028\001\"\311\001\n\rSessionStatus\022\033\n\023obs" +
-      "erved_generation\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n" +
-      "\nconditions\030\003 \003(\0132\".talon.resources.Reso" +
-      "urceCondition\022\022\n\ncreated_at\030\004 \001(\003\022\023\n\013las" +
-      "t_active\030\005 \001(\003\022\026\n\016acp_session_id\030\006 \001(\t\022\023" +
-      "\n\013sandbox_ref\030\007 \001(\t\"p\n\025PermissionRequest" +
-      "Spec\022\r\n\005agent\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(\t\022" +
-      "\016\n\006action\030\003 \001(\t\022\016\n\006prompt\030\004 \001(\t\022\024\n\014paylo" +
-      "ad_json\030\005 \001(\t\"\267\001\n\027PermissionRequestStatu" +
-      "s\022\033\n\023observed_generation\030\001 \001(\004\022\r\n\005phase\030" +
-      "\002 \001(\t\0226\n\nconditions\030\003 \003(\0132\".talon.resour" +
-      "ces.ResourceCondition\022\020\n\010decision\030\004 \001(\t\022" +
-      "\022\n\ndecided_by\030\005 \001(\t\022\022\n\ndecided_at\030\006 \001(\003b" +
-      "\006proto3"
+      "value\030\002 \001(\t:\0028\001\"\226\001\n\007Session\022/\n\010metadata\030" +
+      "\001 \001(\0132\035.talon.resources.ResourceMeta\022*\n\004" +
+      "spec\030\002 \001(\0132\034.talon.resources.SessionSpec" +
+      "\022.\n\006status\030\003 \001(\0132\036.talon.resources.Sessi" +
+      "onStatus\"\311\001\n\rSessionStatus\022\033\n\023observed_g" +
+      "eneration\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\ncondit" +
+      "ions\030\003 \003(\0132\".talon.resources.ResourceCon" +
+      "dition\022\022\n\ncreated_at\030\004 \001(\003\022\023\n\013last_activ" +
+      "e\030\005 \001(\003\022\026\n\016acp_session_id\030\006 \001(\t\022\023\n\013sandb" +
+      "ox_ref\030\007 \001(\t\"p\n\025PermissionRequestSpec\022\r\n" +
+      "\005agent\030\001 \001(\t\022\022\n\nsession_id\030\002 \001(\t\022\016\n\006acti" +
+      "on\030\003 \001(\t\022\016\n\006prompt\030\004 \001(\t\022\024\n\014payload_json" +
+      "\030\005 \001(\t\"\264\001\n\021PermissionRequest\022/\n\010metadata" +
+      "\030\001 \001(\0132\035.talon.resources.ResourceMeta\0224\n" +
+      "\004spec\030\002 \001(\0132&.talon.resources.Permission" +
+      "RequestSpec\0228\n\006status\030\003 \001(\0132(.talon.reso" +
+      "urces.PermissionRequestStatus\"\267\001\n\027Permis" +
+      "sionRequestStatus\022\033\n\023observed_generation" +
+      "\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(" +
+      "\0132\".talon.resources.ResourceCondition\022\020\n" +
+      "\010decision\030\004 \001(\t\022\022\n\ndecided_by\030\005 \001(\t\022\022\n\nd" +
+      "ecided_at\030\006 \001(\003b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -4821,20 +6789,32 @@ java.lang.String defaultValue) {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SessionSpec_LabelsEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_talon_resources_SessionStatus_descriptor =
+    internal_static_talon_resources_Session_descriptor =
       getDescriptor().getMessageType(1);
+    internal_static_talon_resources_Session_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_Session_descriptor,
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
+    internal_static_talon_resources_SessionStatus_descriptor =
+      getDescriptor().getMessageType(2);
     internal_static_talon_resources_SessionStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SessionStatus_descriptor,
         new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "CreatedAt", "LastActive", "AcpSessionId", "SandboxRef", });
     internal_static_talon_resources_PermissionRequestSpec_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(3);
     internal_static_talon_resources_PermissionRequestSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_PermissionRequestSpec_descriptor,
         new java.lang.String[] { "Agent", "SessionId", "Action", "Prompt", "PayloadJson", });
+    internal_static_talon_resources_PermissionRequest_descriptor =
+      getDescriptor().getMessageType(4);
+    internal_static_talon_resources_PermissionRequest_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_PermissionRequest_descriptor,
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
     internal_static_talon_resources_PermissionRequestStatus_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(5);
     internal_static_talon_resources_PermissionRequestStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_PermissionRequestStatus_descriptor,

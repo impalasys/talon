@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use crate::control::events;
-use crate::control::{keys, topics, KeyValueStore, MessagePublisher, ProtoKeyValueStoreExt};
+use crate::control::{keys, topics, KeyValueStore, MessagePublisher};
 use crate::gateway::rpc::resources_proto;
 use anyhow::{anyhow, Result};
 use prost::Message;
@@ -56,7 +56,7 @@ impl ResourceStore {
         normalize_resource(namespace, &mut resource)?;
         let key = resource_key(&resource);
         validate_resource_kind(&resource)?;
-        let existing = self.kv.get_msg::<resources_proto::Resource>(&key).await?;
+        let existing = self.get_by_key(&key).await?;
         let change_type = if existing.is_some() {
             events::ResourceChangeType::Updated
         } else {
@@ -90,7 +90,9 @@ impl ResourceStore {
         meta.uid = uid;
         meta.resource_version = resource_version;
 
-        self.kv.set_msg(&key, &resource).await?;
+        self.kv
+            .set(&key, &encode_stored_resource(&resource)?)
+            .await?;
         self.publish_changed(&resource, change_type, &["metadata", "spec"])
             .await?;
         Ok(resource)
@@ -155,7 +157,7 @@ impl ResourceStore {
             let current = self.kv.get(&key).await?.ok_or_else(|| {
                 anyhow!("{} '{}' not found in namespace '{}'", kind, name, namespace)
             })?;
-            let mut resource = resources_proto::Resource::decode(current.as_slice())?;
+            let mut resource = decode_stored_resource(kind, current.as_slice())?;
             if let Some(expected) = expected_resource_version {
                 let actual = resource
                     .metadata
@@ -180,7 +182,7 @@ impl ResourceStore {
                 .ok_or_else(|| anyhow!("resource metadata missing"))?;
             meta.resource_version = uuid::Uuid::now_v7().to_string();
             validate_resource_kind(&resource)?;
-            let next = resource.encode_to_vec();
+            let next = encode_stored_resource(&resource)?;
             if self
                 .kv
                 .compare_and_swap(&key, Some(current.as_slice()), &next)
@@ -210,13 +212,7 @@ impl ResourceStore {
         kind: &str,
         name: &str,
     ) -> Result<Option<resources_proto::Resource>> {
-        self.kv
-            .get_msg::<resources_proto::Resource>(&keys::ResourceKey::new(
-                namespace,
-                &[],
-                kind,
-                name,
-            ))
+        self.get_by_key(&keys::ResourceKey::new(namespace, &[], kind, name))
             .await
     }
 
@@ -230,15 +226,15 @@ impl ResourceStore {
             .list_entries(&keys::ResourceParent::root(namespace).list(kind))
             .await?;
         let mut resources = Vec::with_capacity(entries.len());
-        for (_, value) in entries {
-            resources.push(resources_proto::Resource::decode(value.as_slice())?);
+        for (key, value) in entries {
+            resources.push(decode_stored_resource(&key.kind, value.as_slice())?);
         }
         Ok(resources)
     }
 
     pub async fn delete(&self, namespace: &str, kind: &str, name: &str) -> Result<bool> {
         let key = keys::ResourceKey::new(namespace, &[], kind, name);
-        let Some(mut resource) = self.kv.get_msg::<resources_proto::Resource>(&key).await? else {
+        let Some(mut resource) = self.get_by_key(&key).await? else {
             return Ok(false);
         };
         let has_finalizers = resource
@@ -254,7 +250,9 @@ impl ResourceStore {
                 .ok_or_else(|| anyhow!("resource metadata missing"))?;
             meta.deletion_timestamp = Some(now);
             meta.resource_version = uuid::Uuid::now_v7().to_string();
-            self.kv.set_msg(&key, &resource).await?;
+            self.kv
+                .set(&key, &encode_stored_resource(&resource)?)
+                .await?;
             self.publish_changed(
                 &resource,
                 events::ResourceChangeType::Updated,
@@ -312,6 +310,17 @@ impl ResourceStore {
             .map(agent_from_resource)
             .transpose()
     }
+
+    async fn get_by_key(
+        &self,
+        key: &keys::ResourceKey,
+    ) -> Result<Option<resources_proto::Resource>> {
+        self.kv
+            .get(key)
+            .await?
+            .map(|bytes| decode_stored_resource(&key.kind, bytes.as_slice()))
+            .transpose()
+    }
 }
 
 pub fn agent_from_resource(resource: resources_proto::Resource) -> Result<resources_proto::Agent> {
@@ -340,6 +349,599 @@ pub fn agent_from_resource(resource: resources_proto::Resource) -> Result<resour
         spec: Some(spec),
         status: Some(status),
     })
+}
+
+fn decode_stored_resource(kind: &str, bytes: &[u8]) -> Result<resources_proto::Resource> {
+    let decoded = match kind {
+        "Agent" => decode_typed_resource::<resources_proto::Agent, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Agent,
+            resources_proto::resource_status::Kind::Agent,
+        ),
+        "Workflow" => decode_typed_resource::<resources_proto::Workflow, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Workflow,
+            resources_proto::resource_status::Kind::Workflow,
+        ),
+        "Schedule" => decode_typed_resource::<resources_proto::Schedule, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Schedule,
+            resources_proto::resource_status::Kind::Schedule,
+        ),
+        "Channel" => decode_typed_resource::<resources_proto::Channel, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Channel,
+            resources_proto::resource_status::Kind::Channel,
+        ),
+        "ChannelSubscription" => {
+            decode_typed_resource::<resources_proto::ChannelSubscription, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::ChannelSubscription,
+                resources_proto::resource_status::Kind::ChannelSubscription,
+            )
+        }
+        "McpServer" => decode_typed_resource::<resources_proto::McpServer, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::McpServer,
+            resources_proto::resource_status::Kind::McpServer,
+        ),
+        "McpServerBinding" => {
+            decode_typed_resource::<resources_proto::McpServerBinding, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::McpServerBinding,
+                resources_proto::resource_status::Kind::McpServerBinding,
+            )
+        }
+        "Knowledge" => decode_typed_resource::<resources_proto::Knowledge, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Knowledge,
+            resources_proto::resource_status::Kind::Knowledge,
+        ),
+        "Namespace" => decode_typed_resource::<resources_proto::Namespace, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Namespace,
+            resources_proto::resource_status::Kind::Namespace,
+        ),
+        "Session" => decode_typed_resource::<resources_proto::Session, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Session,
+            resources_proto::resource_status::Kind::Session,
+        ),
+        "Template" => decode_typed_resource::<resources_proto::Template, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Template,
+            resources_proto::resource_status::Kind::Template,
+        ),
+        "Deployment" => decode_typed_resource::<resources_proto::Deployment, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Deployment,
+            resources_proto::resource_status::Kind::Deployment,
+        ),
+        "DeploymentReplica" => {
+            decode_typed_resource::<resources_proto::DeploymentReplica, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::DeploymentReplica,
+                resources_proto::resource_status::Kind::DeploymentReplica,
+            )
+        }
+        "SandboxClass" => decode_typed_resource::<resources_proto::SandboxClass, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::SandboxClass,
+            resources_proto::resource_status::Kind::SandboxClass,
+        ),
+        "SandboxPolicy" => decode_typed_resource::<resources_proto::SandboxPolicy, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::SandboxPolicy,
+            resources_proto::resource_status::Kind::SandboxPolicy,
+        ),
+        "Sandbox" => decode_typed_resource::<resources_proto::Sandbox, _, _, _, _>(
+            kind,
+            bytes,
+            resources_proto::resource_spec::Kind::Sandbox,
+            resources_proto::resource_status::Kind::Sandbox,
+        ),
+        "PermissionRequest" => {
+            decode_typed_resource::<resources_proto::PermissionRequest, _, _, _, _>(
+                kind,
+                bytes,
+                resources_proto::resource_spec::Kind::PermissionRequest,
+                resources_proto::resource_status::Kind::PermissionRequest,
+            )
+        }
+        _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
+    };
+
+    match decoded {
+        Ok(resource) if resource.metadata.is_some() => Ok(resource),
+        _ => resources_proto::Resource::decode(bytes).map_err(Into::into),
+    }
+}
+
+trait StoredTypedResource<S, T>: prost::Message + Default {
+    fn into_parts(self) -> (Option<resources_proto::ResourceMeta>, Option<S>, Option<T>);
+    fn from_parts(
+        metadata: Option<resources_proto::ResourceMeta>,
+        spec: Option<S>,
+        status: Option<T>,
+    ) -> Self;
+}
+
+macro_rules! impl_stored_typed_resource {
+    ($ty:ty, $spec:ty, $status:ty) => {
+        impl StoredTypedResource<$spec, $status> for $ty {
+            fn into_parts(
+                self,
+            ) -> (
+                Option<resources_proto::ResourceMeta>,
+                Option<$spec>,
+                Option<$status>,
+            ) {
+                (self.metadata, self.spec, self.status)
+            }
+
+            fn from_parts(
+                metadata: Option<resources_proto::ResourceMeta>,
+                spec: Option<$spec>,
+                status: Option<$status>,
+            ) -> Self {
+                Self {
+                    metadata,
+                    spec,
+                    status,
+                }
+            }
+        }
+    };
+}
+
+impl_stored_typed_resource!(
+    resources_proto::Agent,
+    resources_proto::AgentSpec,
+    resources_proto::AgentStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Workflow,
+    resources_proto::WorkflowSpec,
+    resources_proto::WorkflowStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Schedule,
+    resources_proto::ScheduleSpec,
+    resources_proto::ScheduleStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Channel,
+    resources_proto::ChannelSpec,
+    resources_proto::ChannelStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::ChannelSubscription,
+    resources_proto::ChannelSubscriptionSpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::McpServer,
+    resources_proto::McpServerSpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::McpServerBinding,
+    resources_proto::McpServerBindingSpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Knowledge,
+    resources_proto::KnowledgeSpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Namespace,
+    resources_proto::NamespaceSpec,
+    resources_proto::NamespaceStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Session,
+    resources_proto::SessionSpec,
+    resources_proto::SessionStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Template,
+    resources_proto::TemplateSpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Deployment,
+    resources_proto::DeploymentSpec,
+    resources_proto::DeploymentStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::DeploymentReplica,
+    resources_proto::DeploymentReplicaSpec,
+    resources_proto::DeploymentReplicaStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::SandboxClass,
+    resources_proto::SandboxClassSpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::SandboxPolicy,
+    resources_proto::SandboxPolicySpec,
+    resources_proto::CommonResourceStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::Sandbox,
+    resources_proto::SandboxSpec,
+    resources_proto::SandboxStatus
+);
+impl_stored_typed_resource!(
+    resources_proto::PermissionRequest,
+    resources_proto::PermissionRequestSpec,
+    resources_proto::PermissionRequestStatus
+);
+
+fn decode_typed_resource<W, S, T, SpecArm, StatusArm>(
+    kind: &str,
+    bytes: &[u8],
+    spec_arm: SpecArm,
+    status_arm: StatusArm,
+) -> Result<resources_proto::Resource>
+where
+    W: StoredTypedResource<S, T>,
+    S: Default,
+    T: Default,
+    SpecArm: FnOnce(S) -> resources_proto::resource_spec::Kind,
+    StatusArm: FnOnce(T) -> resources_proto::resource_status::Kind,
+{
+    let (metadata, spec, status) = W::decode(bytes)?.into_parts();
+    Ok(resources_proto::Resource {
+        api_version: API_VERSION.to_string(),
+        kind: kind.to_string(),
+        metadata,
+        spec: Some(resources_proto::ResourceSpec {
+            kind: Some(spec_arm(spec.unwrap_or_default())),
+        }),
+        status: Some(resources_proto::ResourceStatus {
+            kind: Some(status_arm(status.unwrap_or_default())),
+        }),
+    })
+}
+
+fn encode_stored_resource(resource: &resources_proto::Resource) -> Result<Vec<u8>> {
+    match resource.kind.as_str() {
+        "Agent" => encode_typed_resource::<
+            resources_proto::Agent,
+            resources_proto::AgentSpec,
+            resources_proto::AgentStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Agent(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Agent(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Workflow" => encode_typed_resource::<
+            resources_proto::Workflow,
+            resources_proto::WorkflowSpec,
+            resources_proto::WorkflowStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Workflow(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Workflow(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Schedule" => encode_typed_resource::<
+            resources_proto::Schedule,
+            resources_proto::ScheduleSpec,
+            resources_proto::ScheduleStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Schedule(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Schedule(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Channel" => encode_typed_resource::<
+            resources_proto::Channel,
+            resources_proto::ChannelSpec,
+            resources_proto::ChannelStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Channel(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Channel(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "ChannelSubscription" => encode_typed_resource::<
+            resources_proto::ChannelSubscription,
+            resources_proto::ChannelSubscriptionSpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::ChannelSubscription(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::ChannelSubscription(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "McpServer" => encode_typed_resource::<
+            resources_proto::McpServer,
+            resources_proto::McpServerSpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::McpServer(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::McpServer(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "McpServerBinding" => encode_typed_resource::<
+            resources_proto::McpServerBinding,
+            resources_proto::McpServerBindingSpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::McpServerBinding(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::McpServerBinding(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Knowledge" => encode_typed_resource::<
+            resources_proto::Knowledge,
+            resources_proto::KnowledgeSpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Knowledge(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Knowledge(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Namespace" => encode_typed_resource::<
+            resources_proto::Namespace,
+            resources_proto::NamespaceSpec,
+            resources_proto::NamespaceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Namespace(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Namespace(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Session" => encode_typed_resource::<
+            resources_proto::Session,
+            resources_proto::SessionSpec,
+            resources_proto::SessionStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Session(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Session(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Template" => encode_typed_resource::<
+            resources_proto::Template,
+            resources_proto::TemplateSpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Template(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Template(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Deployment" => encode_typed_resource::<
+            resources_proto::Deployment,
+            resources_proto::DeploymentSpec,
+            resources_proto::DeploymentStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Deployment(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Deployment(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "DeploymentReplica" => encode_typed_resource::<
+            resources_proto::DeploymentReplica,
+            resources_proto::DeploymentReplicaSpec,
+            resources_proto::DeploymentReplicaStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::DeploymentReplica(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::DeploymentReplica(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "SandboxClass" => encode_typed_resource::<
+            resources_proto::SandboxClass,
+            resources_proto::SandboxClassSpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::SandboxClass(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::SandboxClass(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "SandboxPolicy" => encode_typed_resource::<
+            resources_proto::SandboxPolicy,
+            resources_proto::SandboxPolicySpec,
+            resources_proto::CommonResourceStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::SandboxPolicy(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::SandboxPolicy(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "Sandbox" => encode_typed_resource::<
+            resources_proto::Sandbox,
+            resources_proto::SandboxSpec,
+            resources_proto::SandboxStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::Sandbox(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::Sandbox(status) => Some(status),
+                _ => None,
+            },
+        ),
+        "PermissionRequest" => encode_typed_resource::<
+            resources_proto::PermissionRequest,
+            resources_proto::PermissionRequestSpec,
+            resources_proto::PermissionRequestStatus,
+            _,
+            _,
+        >(
+            resource,
+            |kind| match kind {
+                resources_proto::resource_spec::Kind::PermissionRequest(spec) => Some(spec),
+                _ => None,
+            },
+            |kind| match kind {
+                resources_proto::resource_status::Kind::PermissionRequest(status) => Some(status),
+                _ => None,
+            },
+        ),
+        _ => Ok(resource.encode_to_vec()),
+    }
+}
+
+fn encode_typed_resource<W, S, T, SpecExtract, StatusExtract>(
+    resource: &resources_proto::Resource,
+    spec_extract: SpecExtract,
+    status_extract: StatusExtract,
+) -> Result<Vec<u8>>
+where
+    W: StoredTypedResource<S, T>,
+    S: Default,
+    T: Default,
+    SpecExtract: FnOnce(resources_proto::resource_spec::Kind) -> Option<S>,
+    StatusExtract: FnOnce(resources_proto::resource_status::Kind) -> Option<T>,
+{
+    let spec = resource
+        .spec
+        .clone()
+        .and_then(|spec| spec.kind)
+        .and_then(spec_extract)
+        .ok_or_else(|| anyhow!("{} resource is missing matching spec", resource.kind))?;
+    let status = resource
+        .status
+        .clone()
+        .and_then(|status| status.kind)
+        .and_then(status_extract)
+        .unwrap_or_default();
+    Ok(W::from_parts(resource.metadata.clone(), Some(spec), Some(status)).encode_to_vec())
 }
 
 pub fn normalize_resource(namespace: &str, resource: &mut resources_proto::Resource) -> Result<()> {
@@ -464,6 +1066,7 @@ mod tests {
     use super::ResourceStore;
     use crate::control::events;
     use crate::control::topics;
+    use crate::control::KeyValueStore;
     use crate::gateway::rpc::resources_proto;
     use crate::test_support::{MockKvStore, RecordingPubSub};
     use prost::Message;
@@ -531,10 +1134,8 @@ mod tests {
 
     #[tokio::test]
     async fn resource_store_returns_agent_typed_view_from_resource() {
-        let store = ResourceStore::new(
-            Arc::new(MockKvStore::new()),
-            Arc::new(RecordingPubSub::default()),
-        );
+        let kv = Arc::new(MockKvStore::new());
+        let store = ResourceStore::new(kv.clone(), Arc::new(RecordingPubSub::default()));
         let resource = resources_proto::Resource {
             api_version: "talon.impalasys.com/v1".to_string(),
             kind: "Agent".to_string(),
@@ -582,6 +1183,20 @@ mod tests {
         };
 
         store.upsert("customers:acme", resource).await.unwrap();
+        let stored = kv
+            .get(&crate::control::keys::agent("customers:acme", "coding"))
+            .await
+            .unwrap()
+            .expect("stored Agent payload");
+        let stored_agent =
+            resources_proto::Agent::decode(stored.as_slice()).expect("stored payload is Agent");
+        assert_eq!(
+            stored_agent.spec.as_ref().unwrap().system_prompt,
+            "You are a coding agent."
+        );
+        if let Ok(decoded_resource) = resources_proto::Resource::decode(stored.as_slice()) {
+            assert_ne!(decoded_resource.kind, "Agent");
+        }
 
         let agent = store
             .get_agent("customers:acme", "coding")
@@ -593,6 +1208,52 @@ mod tests {
             "acp"
         );
         assert_eq!(agent.status.as_ref().unwrap().phase, "Ready");
+    }
+
+    #[tokio::test]
+    async fn resource_store_reads_legacy_generic_resource_payloads() {
+        let kv = Arc::new(MockKvStore::new());
+        let store = ResourceStore::new(kv.clone(), Arc::new(RecordingPubSub::default()));
+        let legacy = resources_proto::Resource {
+            api_version: "talon.impalasys.com/v1".to_string(),
+            kind: "Agent".to_string(),
+            metadata: Some(resources_proto::ResourceMeta {
+                name: "legacy".to_string(),
+                namespace: "customers:acme".to_string(),
+                ..Default::default()
+            }),
+            spec: Some(resources_proto::ResourceSpec {
+                kind: Some(resources_proto::resource_spec::Kind::Agent(
+                    resources_proto::AgentSpec {
+                        system_prompt: "legacy payload".to_string(),
+                        ..Default::default()
+                    },
+                )),
+            }),
+            status: Some(resources_proto::ResourceStatus {
+                kind: Some(resources_proto::resource_status::Kind::Agent(
+                    Default::default(),
+                )),
+            }),
+        };
+        kv.set(
+            &crate::control::keys::agent("customers:acme", "legacy"),
+            &legacy.encode_to_vec(),
+        )
+        .await
+        .unwrap();
+
+        let loaded = store
+            .get("customers:acme", "Agent", "legacy")
+            .await
+            .unwrap()
+            .expect("legacy Resource payload should decode");
+        match loaded.spec.and_then(|spec| spec.kind) {
+            Some(resources_proto::resource_spec::Kind::Agent(spec)) => {
+                assert_eq!(spec.system_prompt, "legacy payload");
+            }
+            other => panic!("expected Agent spec, got {other:?}"),
+        }
     }
 
     #[tokio::test]

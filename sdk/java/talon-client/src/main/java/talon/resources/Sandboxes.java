@@ -927,6 +927,981 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface SandboxClassOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.SandboxClass)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    boolean hasMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    talon.resources.Common.ResourceMeta getMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
+
+    /**
+     * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    boolean hasSpec();
+    /**
+     * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+     * @return The spec.
+     */
+    talon.resources.Sandboxes.SandboxClassSpec getSpec();
+    /**
+     * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+     */
+    talon.resources.Sandboxes.SandboxClassSpecOrBuilder getSpecOrBuilder();
+
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    boolean hasStatus();
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return The status.
+     */
+    talon.resources.Common.CommonResourceStatus getStatus();
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     */
+    talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.resources.SandboxClass}
+   */
+  public static final class SandboxClass extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.SandboxClass)
+      SandboxClassOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "SandboxClass");
+    }
+    // Use SandboxClass.newBuilder() to construct.
+    private SandboxClass(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private SandboxClass() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_SandboxClass_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_SandboxClass_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_SandboxClass_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Sandboxes.SandboxClass.class, talon.resources.Sandboxes.SandboxClass.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int METADATA_FIELD_NUMBER = 1;
+    private talon.resources.Common.ResourceMeta metadata_;
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    @java.lang.Override
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMeta getMetadata() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+
+    public static final int SPEC_FIELD_NUMBER = 2;
+    private talon.resources.Sandboxes.SandboxClassSpec spec_;
+    /**
+     * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    @java.lang.Override
+    public boolean hasSpec() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+     * @return The spec.
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxClassSpec getSpec() {
+      return spec_ == null ? talon.resources.Sandboxes.SandboxClassSpec.getDefaultInstance() : spec_;
+    }
+    /**
+     * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxClassSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.resources.Sandboxes.SandboxClassSpec.getDefaultInstance() : spec_;
+    }
+
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private talon.resources.Common.CommonResourceStatus status_;
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    @java.lang.Override
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public talon.resources.Common.CommonResourceStatus getStatus() {
+      return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+    }
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder() {
+      return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getStatus());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Sandboxes.SandboxClass)) {
+        return super.equals(obj);
+      }
+      talon.resources.Sandboxes.SandboxClass other = (talon.resources.Sandboxes.SandboxClass) obj;
+
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
+      }
+      if (hasStatus() != other.hasStatus()) return false;
+      if (hasStatus()) {
+        if (!getStatus()
+            .equals(other.getStatus())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + getStatus().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Sandboxes.SandboxClass parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Sandboxes.SandboxClass parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sandboxes.SandboxClass parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Sandboxes.SandboxClass prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.SandboxClass}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.SandboxClass)
+        talon.resources.Sandboxes.SandboxClassOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_SandboxClass_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_SandboxClass_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Sandboxes.SandboxClass.class, talon.resources.Sandboxes.SandboxClass.Builder.class);
+      }
+
+      // Construct using talon.resources.Sandboxes.SandboxClass.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
+          internalGetSpecFieldBuilder();
+          internalGetStatusFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_SandboxClass_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.SandboxClass getDefaultInstanceForType() {
+        return talon.resources.Sandboxes.SandboxClass.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.SandboxClass build() {
+        talon.resources.Sandboxes.SandboxClass result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.SandboxClass buildPartial() {
+        talon.resources.Sandboxes.SandboxClass result = new talon.resources.Sandboxes.SandboxClass(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Sandboxes.SandboxClass result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.status_ = statusBuilder_ == null
+              ? status_
+              : statusBuilder_.build();
+          to_bitField0_ |= 0x00000004;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Sandboxes.SandboxClass) {
+          return mergeFrom((talon.resources.Sandboxes.SandboxClass)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Sandboxes.SandboxClass other) {
+        if (other == talon.resources.Sandboxes.SandboxClass.getDefaultInstance()) return this;
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
+        }
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
+        }
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetStatusFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.resources.Common.ResourceMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return Whether the metadata field is set.
+       */
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return The metadata.
+       */
+      public talon.resources.Common.ResourceMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        } else {
+          return metadataBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
+        } else {
+          metadataBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(
+          talon.resources.Common.ResourceMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
+        } else {
+          return metadata_ == null ?
+              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
+        }
+        return metadataBuilder_;
+      }
+
+      private talon.resources.Sandboxes.SandboxClassSpec spec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxClassSpec, talon.resources.Sandboxes.SandboxClassSpec.Builder, talon.resources.Sandboxes.SandboxClassSpecOrBuilder> specBuilder_;
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       * @return Whether the spec field is set.
+       */
+      public boolean hasSpec() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       * @return The spec.
+       */
+      public talon.resources.Sandboxes.SandboxClassSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.resources.Sandboxes.SandboxClassSpec.getDefaultInstance() : spec_;
+        } else {
+          return specBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       */
+      public Builder setSpec(talon.resources.Sandboxes.SandboxClassSpec value) {
+        if (specBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          spec_ = value;
+        } else {
+          specBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       */
+      public Builder setSpec(
+          talon.resources.Sandboxes.SandboxClassSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
+        } else {
+          specBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       */
+      public Builder mergeSpec(talon.resources.Sandboxes.SandboxClassSpec value) {
+        if (specBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            spec_ != null &&
+            spec_ != talon.resources.Sandboxes.SandboxClassSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
+          } else {
+            spec_ = value;
+          }
+        } else {
+          specBuilder_.mergeFrom(value);
+        }
+        if (spec_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       */
+      public Builder clearSpec() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       */
+      public talon.resources.Sandboxes.SandboxClassSpec.Builder getSpecBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return internalGetSpecFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       */
+      public talon.resources.Sandboxes.SandboxClassSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
+        } else {
+          return spec_ == null ?
+              talon.resources.Sandboxes.SandboxClassSpec.getDefaultInstance() : spec_;
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxClassSpec spec = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxClassSpec, talon.resources.Sandboxes.SandboxClassSpec.Builder, talon.resources.Sandboxes.SandboxClassSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sandboxes.SandboxClassSpec, talon.resources.Sandboxes.SandboxClassSpec.Builder, talon.resources.Sandboxes.SandboxClassSpecOrBuilder>(
+                  getSpec(),
+                  getParentForChildren(),
+                  isClean());
+          spec_ = null;
+        }
+        return specBuilder_;
+      }
+
+      private talon.resources.Common.CommonResourceStatus status_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder> statusBuilder_;
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       * @return Whether the status field is set.
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       * @return The status.
+       */
+      public talon.resources.Common.CommonResourceStatus getStatus() {
+        if (statusBuilder_ == null) {
+          return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder setStatus(talon.resources.Common.CommonResourceStatus value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+        } else {
+          statusBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder setStatus(
+          talon.resources.Common.CommonResourceStatus.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder mergeStatus(talon.resources.Common.CommonResourceStatus value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            status_ != null &&
+            status_ != talon.resources.Common.CommonResourceStatus.getDefaultInstance()) {
+            getStatusBuilder().mergeFrom(value);
+          } else {
+            status_ = value;
+          }
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        if (status_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder clearStatus() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public talon.resources.Common.CommonResourceStatus.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetStatusFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_ == null ?
+              talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+        }
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>
+          internalGetStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>(
+                  getStatus(),
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
+        }
+        return statusBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.SandboxClass)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.SandboxClass)
+    private static final talon.resources.Sandboxes.SandboxClass DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Sandboxes.SandboxClass();
+    }
+
+    public static talon.resources.Sandboxes.SandboxClass getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<SandboxClass>
+        PARSER = new com.google.protobuf.AbstractParser<SandboxClass>() {
+      @java.lang.Override
+      public SandboxClass parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<SandboxClass> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<SandboxClass> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxClass getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface SandboxWorkspaceSpecOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.resources.SandboxWorkspaceSpec)
       com.google.protobuf.MessageOrBuilder {
@@ -6621,6 +7596,981 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface SandboxPolicyOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.SandboxPolicy)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    boolean hasMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    talon.resources.Common.ResourceMeta getMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
+
+    /**
+     * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    boolean hasSpec();
+    /**
+     * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+     * @return The spec.
+     */
+    talon.resources.Sandboxes.SandboxPolicySpec getSpec();
+    /**
+     * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+     */
+    talon.resources.Sandboxes.SandboxPolicySpecOrBuilder getSpecOrBuilder();
+
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    boolean hasStatus();
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return The status.
+     */
+    talon.resources.Common.CommonResourceStatus getStatus();
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     */
+    talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.resources.SandboxPolicy}
+   */
+  public static final class SandboxPolicy extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.SandboxPolicy)
+      SandboxPolicyOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "SandboxPolicy");
+    }
+    // Use SandboxPolicy.newBuilder() to construct.
+    private SandboxPolicy(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private SandboxPolicy() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_SandboxPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_SandboxPolicy_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_SandboxPolicy_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Sandboxes.SandboxPolicy.class, talon.resources.Sandboxes.SandboxPolicy.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int METADATA_FIELD_NUMBER = 1;
+    private talon.resources.Common.ResourceMeta metadata_;
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    @java.lang.Override
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMeta getMetadata() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+
+    public static final int SPEC_FIELD_NUMBER = 2;
+    private talon.resources.Sandboxes.SandboxPolicySpec spec_;
+    /**
+     * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    @java.lang.Override
+    public boolean hasSpec() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+     * @return The spec.
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxPolicySpec getSpec() {
+      return spec_ == null ? talon.resources.Sandboxes.SandboxPolicySpec.getDefaultInstance() : spec_;
+    }
+    /**
+     * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxPolicySpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.resources.Sandboxes.SandboxPolicySpec.getDefaultInstance() : spec_;
+    }
+
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private talon.resources.Common.CommonResourceStatus status_;
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    @java.lang.Override
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public talon.resources.Common.CommonResourceStatus getStatus() {
+      return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+    }
+    /**
+     * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder() {
+      return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getStatus());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Sandboxes.SandboxPolicy)) {
+        return super.equals(obj);
+      }
+      talon.resources.Sandboxes.SandboxPolicy other = (talon.resources.Sandboxes.SandboxPolicy) obj;
+
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
+      }
+      if (hasStatus() != other.hasStatus()) return false;
+      if (hasStatus()) {
+        if (!getStatus()
+            .equals(other.getStatus())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + getStatus().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Sandboxes.SandboxPolicy parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Sandboxes.SandboxPolicy parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sandboxes.SandboxPolicy parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Sandboxes.SandboxPolicy prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.SandboxPolicy}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.SandboxPolicy)
+        talon.resources.Sandboxes.SandboxPolicyOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_SandboxPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_SandboxPolicy_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Sandboxes.SandboxPolicy.class, talon.resources.Sandboxes.SandboxPolicy.Builder.class);
+      }
+
+      // Construct using talon.resources.Sandboxes.SandboxPolicy.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
+          internalGetSpecFieldBuilder();
+          internalGetStatusFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_SandboxPolicy_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.SandboxPolicy getDefaultInstanceForType() {
+        return talon.resources.Sandboxes.SandboxPolicy.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.SandboxPolicy build() {
+        talon.resources.Sandboxes.SandboxPolicy result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.SandboxPolicy buildPartial() {
+        talon.resources.Sandboxes.SandboxPolicy result = new talon.resources.Sandboxes.SandboxPolicy(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Sandboxes.SandboxPolicy result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.status_ = statusBuilder_ == null
+              ? status_
+              : statusBuilder_.build();
+          to_bitField0_ |= 0x00000004;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Sandboxes.SandboxPolicy) {
+          return mergeFrom((talon.resources.Sandboxes.SandboxPolicy)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Sandboxes.SandboxPolicy other) {
+        if (other == talon.resources.Sandboxes.SandboxPolicy.getDefaultInstance()) return this;
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
+        }
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
+        }
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetStatusFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.resources.Common.ResourceMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return Whether the metadata field is set.
+       */
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return The metadata.
+       */
+      public talon.resources.Common.ResourceMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        } else {
+          return metadataBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
+        } else {
+          metadataBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(
+          talon.resources.Common.ResourceMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
+        } else {
+          return metadata_ == null ?
+              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
+        }
+        return metadataBuilder_;
+      }
+
+      private talon.resources.Sandboxes.SandboxPolicySpec spec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxPolicySpec, talon.resources.Sandboxes.SandboxPolicySpec.Builder, talon.resources.Sandboxes.SandboxPolicySpecOrBuilder> specBuilder_;
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       * @return Whether the spec field is set.
+       */
+      public boolean hasSpec() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       * @return The spec.
+       */
+      public talon.resources.Sandboxes.SandboxPolicySpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.resources.Sandboxes.SandboxPolicySpec.getDefaultInstance() : spec_;
+        } else {
+          return specBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       */
+      public Builder setSpec(talon.resources.Sandboxes.SandboxPolicySpec value) {
+        if (specBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          spec_ = value;
+        } else {
+          specBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       */
+      public Builder setSpec(
+          talon.resources.Sandboxes.SandboxPolicySpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
+        } else {
+          specBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       */
+      public Builder mergeSpec(talon.resources.Sandboxes.SandboxPolicySpec value) {
+        if (specBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            spec_ != null &&
+            spec_ != talon.resources.Sandboxes.SandboxPolicySpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
+          } else {
+            spec_ = value;
+          }
+        } else {
+          specBuilder_.mergeFrom(value);
+        }
+        if (spec_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       */
+      public Builder clearSpec() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       */
+      public talon.resources.Sandboxes.SandboxPolicySpec.Builder getSpecBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return internalGetSpecFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       */
+      public talon.resources.Sandboxes.SandboxPolicySpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
+        } else {
+          return spec_ == null ?
+              talon.resources.Sandboxes.SandboxPolicySpec.getDefaultInstance() : spec_;
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxPolicySpec spec = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxPolicySpec, talon.resources.Sandboxes.SandboxPolicySpec.Builder, talon.resources.Sandboxes.SandboxPolicySpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sandboxes.SandboxPolicySpec, talon.resources.Sandboxes.SandboxPolicySpec.Builder, talon.resources.Sandboxes.SandboxPolicySpecOrBuilder>(
+                  getSpec(),
+                  getParentForChildren(),
+                  isClean());
+          spec_ = null;
+        }
+        return specBuilder_;
+      }
+
+      private talon.resources.Common.CommonResourceStatus status_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder> statusBuilder_;
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       * @return Whether the status field is set.
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       * @return The status.
+       */
+      public talon.resources.Common.CommonResourceStatus getStatus() {
+        if (statusBuilder_ == null) {
+          return status_ == null ? talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder setStatus(talon.resources.Common.CommonResourceStatus value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+        } else {
+          statusBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder setStatus(
+          talon.resources.Common.CommonResourceStatus.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder mergeStatus(talon.resources.Common.CommonResourceStatus value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            status_ != null &&
+            status_ != talon.resources.Common.CommonResourceStatus.getDefaultInstance()) {
+            getStatusBuilder().mergeFrom(value);
+          } else {
+            status_ = value;
+          }
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        if (status_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public Builder clearStatus() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public talon.resources.Common.CommonResourceStatus.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetStatusFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      public talon.resources.Common.CommonResourceStatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_ == null ?
+              talon.resources.Common.CommonResourceStatus.getDefaultInstance() : status_;
+        }
+      }
+      /**
+       * <code>.talon.resources.CommonResourceStatus status = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>
+          internalGetStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.CommonResourceStatus, talon.resources.Common.CommonResourceStatus.Builder, talon.resources.Common.CommonResourceStatusOrBuilder>(
+                  getStatus(),
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
+        }
+        return statusBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.SandboxPolicy)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.SandboxPolicy)
+    private static final talon.resources.Sandboxes.SandboxPolicy DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Sandboxes.SandboxPolicy();
+    }
+
+    public static talon.resources.Sandboxes.SandboxPolicy getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<SandboxPolicy>
+        PARSER = new com.google.protobuf.AbstractParser<SandboxPolicy>() {
+      @java.lang.Override
+      public SandboxPolicy parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<SandboxPolicy> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<SandboxPolicy> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxPolicy getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface SandboxLeaseOrBuilder extends
       // @@protoc_insertion_point(interface_extends:talon.resources.SandboxLease)
       com.google.protobuf.MessageOrBuilder {
@@ -11698,11 +13648,991 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
 
   }
 
+  public interface SandboxOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:talon.resources.Sandbox)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    boolean hasMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    talon.resources.Common.ResourceMeta getMetadata();
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder();
+
+    /**
+     * <code>.talon.resources.SandboxSpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    boolean hasSpec();
+    /**
+     * <code>.talon.resources.SandboxSpec spec = 2;</code>
+     * @return The spec.
+     */
+    talon.resources.Sandboxes.SandboxSpec getSpec();
+    /**
+     * <code>.talon.resources.SandboxSpec spec = 2;</code>
+     */
+    talon.resources.Sandboxes.SandboxSpecOrBuilder getSpecOrBuilder();
+
+    /**
+     * <code>.talon.resources.SandboxStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    boolean hasStatus();
+    /**
+     * <code>.talon.resources.SandboxStatus status = 3;</code>
+     * @return The status.
+     */
+    talon.resources.Sandboxes.SandboxStatus getStatus();
+    /**
+     * <code>.talon.resources.SandboxStatus status = 3;</code>
+     */
+    talon.resources.Sandboxes.SandboxStatusOrBuilder getStatusOrBuilder();
+  }
+  /**
+   * Protobuf type {@code talon.resources.Sandbox}
+   */
+  public static final class Sandbox extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:talon.resources.Sandbox)
+      SandboxOrBuilder {
+  private static final long serialVersionUID = 0L;
+    static {
+      com.google.protobuf.RuntimeVersion.validateProtobufGencodeVersion(
+        com.google.protobuf.RuntimeVersion.RuntimeDomain.PUBLIC,
+        /* major= */ 4,
+        /* minor= */ 34,
+        /* patch= */ 1,
+        /* suffix= */ "",
+        "Sandbox");
+    }
+    // Use Sandbox.newBuilder() to construct.
+    private Sandbox(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+    }
+    private Sandbox() {
+    }
+
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_Sandbox_descriptor;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Descriptors.Descriptor getDescriptorForType() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_Sandbox_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return talon.resources.Sandboxes.internal_static_talon_resources_Sandbox_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              talon.resources.Sandboxes.Sandbox.class, talon.resources.Sandboxes.Sandbox.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int METADATA_FIELD_NUMBER = 1;
+    private talon.resources.Common.ResourceMeta metadata_;
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return Whether the metadata field is set.
+     */
+    @java.lang.Override
+    public boolean hasMetadata() {
+      return ((bitField0_ & 0x00000001) != 0);
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     * @return The metadata.
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMeta getMetadata() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+    /**
+     * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+      return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+    }
+
+    public static final int SPEC_FIELD_NUMBER = 2;
+    private talon.resources.Sandboxes.SandboxSpec spec_;
+    /**
+     * <code>.talon.resources.SandboxSpec spec = 2;</code>
+     * @return Whether the spec field is set.
+     */
+    @java.lang.Override
+    public boolean hasSpec() {
+      return ((bitField0_ & 0x00000002) != 0);
+    }
+    /**
+     * <code>.talon.resources.SandboxSpec spec = 2;</code>
+     * @return The spec.
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxSpec getSpec() {
+      return spec_ == null ? talon.resources.Sandboxes.SandboxSpec.getDefaultInstance() : spec_;
+    }
+    /**
+     * <code>.talon.resources.SandboxSpec spec = 2;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxSpecOrBuilder getSpecOrBuilder() {
+      return spec_ == null ? talon.resources.Sandboxes.SandboxSpec.getDefaultInstance() : spec_;
+    }
+
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private talon.resources.Sandboxes.SandboxStatus status_;
+    /**
+     * <code>.talon.resources.SandboxStatus status = 3;</code>
+     * @return Whether the status field is set.
+     */
+    @java.lang.Override
+    public boolean hasStatus() {
+      return ((bitField0_ & 0x00000004) != 0);
+    }
+    /**
+     * <code>.talon.resources.SandboxStatus status = 3;</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxStatus getStatus() {
+      return status_ == null ? talon.resources.Sandboxes.SandboxStatus.getDefaultInstance() : status_;
+    }
+    /**
+     * <code>.talon.resources.SandboxStatus status = 3;</code>
+     */
+    @java.lang.Override
+    public talon.resources.Sandboxes.SandboxStatusOrBuilder getStatusOrBuilder() {
+      return status_ == null ? talon.resources.Sandboxes.SandboxStatus.getDefaultInstance() : status_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) != 0)) {
+        output.writeMessage(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        output.writeMessage(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        output.writeMessage(3, getStatus());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getMetadata());
+      }
+      if (((bitField0_ & 0x00000002) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(2, getSpec());
+      }
+      if (((bitField0_ & 0x00000004) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getStatus());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof talon.resources.Sandboxes.Sandbox)) {
+        return super.equals(obj);
+      }
+      talon.resources.Sandboxes.Sandbox other = (talon.resources.Sandboxes.Sandbox) obj;
+
+      if (hasMetadata() != other.hasMetadata()) return false;
+      if (hasMetadata()) {
+        if (!getMetadata()
+            .equals(other.getMetadata())) return false;
+      }
+      if (hasSpec() != other.hasSpec()) return false;
+      if (hasSpec()) {
+        if (!getSpec()
+            .equals(other.getSpec())) return false;
+      }
+      if (hasStatus() != other.hasStatus()) return false;
+      if (hasStatus()) {
+        if (!getStatus()
+            .equals(other.getStatus())) return false;
+      }
+      if (!getUnknownFields().equals(other.getUnknownFields())) return false;
+      return true;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasMetadata()) {
+        hash = (37 * hash) + METADATA_FIELD_NUMBER;
+        hash = (53 * hash) + getMetadata().hashCode();
+      }
+      if (hasSpec()) {
+        hash = (37 * hash) + SPEC_FIELD_NUMBER;
+        hash = (53 * hash) + getSpec().hashCode();
+      }
+      if (hasStatus()) {
+        hash = (37 * hash) + STATUS_FIELD_NUMBER;
+        hash = (53 * hash) + getStatus().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static talon.resources.Sandboxes.Sandbox parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    public static talon.resources.Sandboxes.Sandbox parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+
+    public static talon.resources.Sandboxes.Sandbox parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input);
+    }
+    public static talon.resources.Sandboxes.Sandbox parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessage
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(talon.resources.Sandboxes.Sandbox prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code talon.resources.Sandbox}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:talon.resources.Sandbox)
+        talon.resources.Sandboxes.SandboxOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_Sandbox_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_Sandbox_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                talon.resources.Sandboxes.Sandbox.class, talon.resources.Sandboxes.Sandbox.Builder.class);
+      }
+
+      // Construct using talon.resources.Sandboxes.Sandbox.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage
+                .alwaysUseFieldBuilders) {
+          internalGetMetadataFieldBuilder();
+          internalGetSpecFieldBuilder();
+          internalGetStatusFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        bitField0_ = 0;
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return talon.resources.Sandboxes.internal_static_talon_resources_Sandbox_descriptor;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.Sandbox getDefaultInstanceForType() {
+        return talon.resources.Sandboxes.Sandbox.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.Sandbox build() {
+        talon.resources.Sandboxes.Sandbox result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public talon.resources.Sandboxes.Sandbox buildPartial() {
+        talon.resources.Sandboxes.Sandbox result = new talon.resources.Sandboxes.Sandbox(this);
+        if (bitField0_ != 0) { buildPartial0(result); }
+        onBuilt();
+        return result;
+      }
+
+      private void buildPartial0(talon.resources.Sandboxes.Sandbox result) {
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) != 0)) {
+          result.metadata_ = metadataBuilder_ == null
+              ? metadata_
+              : metadataBuilder_.build();
+          to_bitField0_ |= 0x00000001;
+        }
+        if (((from_bitField0_ & 0x00000002) != 0)) {
+          result.spec_ = specBuilder_ == null
+              ? spec_
+              : specBuilder_.build();
+          to_bitField0_ |= 0x00000002;
+        }
+        if (((from_bitField0_ & 0x00000004) != 0)) {
+          result.status_ = statusBuilder_ == null
+              ? status_
+              : statusBuilder_.build();
+          to_bitField0_ |= 0x00000004;
+        }
+        result.bitField0_ |= to_bitField0_;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof talon.resources.Sandboxes.Sandbox) {
+          return mergeFrom((talon.resources.Sandboxes.Sandbox)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(talon.resources.Sandboxes.Sandbox other) {
+        if (other == talon.resources.Sandboxes.Sandbox.getDefaultInstance()) return this;
+        if (other.hasMetadata()) {
+          mergeMetadata(other.getMetadata());
+        }
+        if (other.hasSpec()) {
+          mergeSpec(other.getSpec());
+        }
+        if (other.hasStatus()) {
+          mergeStatus(other.getStatus());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        if (extensionRegistry == null) {
+          throw new java.lang.NullPointerException();
+        }
+        try {
+          boolean done = false;
+          while (!done) {
+            int tag = input.readTag();
+            switch (tag) {
+              case 0:
+                done = true;
+                break;
+              case 10: {
+                input.readMessage(
+                    internalGetMetadataFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000001;
+                break;
+              } // case 10
+              case 18: {
+                input.readMessage(
+                    internalGetSpecFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000002;
+                break;
+              } // case 18
+              case 26: {
+                input.readMessage(
+                    internalGetStatusFieldBuilder().getBuilder(),
+                    extensionRegistry);
+                bitField0_ |= 0x00000004;
+                break;
+              } // case 26
+              default: {
+                if (!super.parseUnknownField(input, extensionRegistry, tag)) {
+                  done = true; // was an endgroup tag
+                }
+                break;
+              } // default:
+            } // switch (tag)
+          } // while (!done)
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.unwrapIOException();
+        } finally {
+          onChanged();
+        } // finally
+        return this;
+      }
+      private int bitField0_;
+
+      private talon.resources.Common.ResourceMeta metadata_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder> metadataBuilder_;
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return Whether the metadata field is set.
+       */
+      public boolean hasMetadata() {
+        return ((bitField0_ & 0x00000001) != 0);
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       * @return The metadata.
+       */
+      public talon.resources.Common.ResourceMeta getMetadata() {
+        if (metadataBuilder_ == null) {
+          return metadata_ == null ? talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        } else {
+          return metadataBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          metadata_ = value;
+        } else {
+          metadataBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder setMetadata(
+          talon.resources.Common.ResourceMeta.Builder builderForValue) {
+        if (metadataBuilder_ == null) {
+          metadata_ = builderForValue.build();
+        } else {
+          metadataBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder mergeMetadata(talon.resources.Common.ResourceMeta value) {
+        if (metadataBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) != 0) &&
+            metadata_ != null &&
+            metadata_ != talon.resources.Common.ResourceMeta.getDefaultInstance()) {
+            getMetadataBuilder().mergeFrom(value);
+          } else {
+            metadata_ = value;
+          }
+        } else {
+          metadataBuilder_.mergeFrom(value);
+        }
+        if (metadata_ != null) {
+          bitField0_ |= 0x00000001;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public Builder clearMetadata() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        metadata_ = null;
+        if (metadataBuilder_ != null) {
+          metadataBuilder_.dispose();
+          metadataBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMeta.Builder getMetadataBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return internalGetMetadataFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      public talon.resources.Common.ResourceMetaOrBuilder getMetadataOrBuilder() {
+        if (metadataBuilder_ != null) {
+          return metadataBuilder_.getMessageOrBuilder();
+        } else {
+          return metadata_ == null ?
+              talon.resources.Common.ResourceMeta.getDefaultInstance() : metadata_;
+        }
+      }
+      /**
+       * <code>.talon.resources.ResourceMeta metadata = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>
+          internalGetMetadataFieldBuilder() {
+        if (metadataBuilder_ == null) {
+          metadataBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Common.ResourceMeta, talon.resources.Common.ResourceMeta.Builder, talon.resources.Common.ResourceMetaOrBuilder>(
+                  getMetadata(),
+                  getParentForChildren(),
+                  isClean());
+          metadata_ = null;
+        }
+        return metadataBuilder_;
+      }
+
+      private talon.resources.Sandboxes.SandboxSpec spec_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxSpec, talon.resources.Sandboxes.SandboxSpec.Builder, talon.resources.Sandboxes.SandboxSpecOrBuilder> specBuilder_;
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       * @return Whether the spec field is set.
+       */
+      public boolean hasSpec() {
+        return ((bitField0_ & 0x00000002) != 0);
+      }
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       * @return The spec.
+       */
+      public talon.resources.Sandboxes.SandboxSpec getSpec() {
+        if (specBuilder_ == null) {
+          return spec_ == null ? talon.resources.Sandboxes.SandboxSpec.getDefaultInstance() : spec_;
+        } else {
+          return specBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       */
+      public Builder setSpec(talon.resources.Sandboxes.SandboxSpec value) {
+        if (specBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          spec_ = value;
+        } else {
+          specBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       */
+      public Builder setSpec(
+          talon.resources.Sandboxes.SandboxSpec.Builder builderForValue) {
+        if (specBuilder_ == null) {
+          spec_ = builderForValue.build();
+        } else {
+          specBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       */
+      public Builder mergeSpec(talon.resources.Sandboxes.SandboxSpec value) {
+        if (specBuilder_ == null) {
+          if (((bitField0_ & 0x00000002) != 0) &&
+            spec_ != null &&
+            spec_ != talon.resources.Sandboxes.SandboxSpec.getDefaultInstance()) {
+            getSpecBuilder().mergeFrom(value);
+          } else {
+            spec_ = value;
+          }
+        } else {
+          specBuilder_.mergeFrom(value);
+        }
+        if (spec_ != null) {
+          bitField0_ |= 0x00000002;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       */
+      public Builder clearSpec() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        spec_ = null;
+        if (specBuilder_ != null) {
+          specBuilder_.dispose();
+          specBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       */
+      public talon.resources.Sandboxes.SandboxSpec.Builder getSpecBuilder() {
+        bitField0_ |= 0x00000002;
+        onChanged();
+        return internalGetSpecFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       */
+      public talon.resources.Sandboxes.SandboxSpecOrBuilder getSpecOrBuilder() {
+        if (specBuilder_ != null) {
+          return specBuilder_.getMessageOrBuilder();
+        } else {
+          return spec_ == null ?
+              talon.resources.Sandboxes.SandboxSpec.getDefaultInstance() : spec_;
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxSpec spec = 2;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxSpec, talon.resources.Sandboxes.SandboxSpec.Builder, talon.resources.Sandboxes.SandboxSpecOrBuilder>
+          internalGetSpecFieldBuilder() {
+        if (specBuilder_ == null) {
+          specBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sandboxes.SandboxSpec, talon.resources.Sandboxes.SandboxSpec.Builder, talon.resources.Sandboxes.SandboxSpecOrBuilder>(
+                  getSpec(),
+                  getParentForChildren(),
+                  isClean());
+          spec_ = null;
+        }
+        return specBuilder_;
+      }
+
+      private talon.resources.Sandboxes.SandboxStatus status_;
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxStatus, talon.resources.Sandboxes.SandboxStatus.Builder, talon.resources.Sandboxes.SandboxStatusOrBuilder> statusBuilder_;
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       * @return Whether the status field is set.
+       */
+      public boolean hasStatus() {
+        return ((bitField0_ & 0x00000004) != 0);
+      }
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       * @return The status.
+       */
+      public talon.resources.Sandboxes.SandboxStatus getStatus() {
+        if (statusBuilder_ == null) {
+          return status_ == null ? talon.resources.Sandboxes.SandboxStatus.getDefaultInstance() : status_;
+        } else {
+          return statusBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       */
+      public Builder setStatus(talon.resources.Sandboxes.SandboxStatus value) {
+        if (statusBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          status_ = value;
+        } else {
+          statusBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       */
+      public Builder setStatus(
+          talon.resources.Sandboxes.SandboxStatus.Builder builderForValue) {
+        if (statusBuilder_ == null) {
+          status_ = builderForValue.build();
+        } else {
+          statusBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       */
+      public Builder mergeStatus(talon.resources.Sandboxes.SandboxStatus value) {
+        if (statusBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) != 0) &&
+            status_ != null &&
+            status_ != talon.resources.Sandboxes.SandboxStatus.getDefaultInstance()) {
+            getStatusBuilder().mergeFrom(value);
+          } else {
+            status_ = value;
+          }
+        } else {
+          statusBuilder_.mergeFrom(value);
+        }
+        if (status_ != null) {
+          bitField0_ |= 0x00000004;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       */
+      public Builder clearStatus() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        status_ = null;
+        if (statusBuilder_ != null) {
+          statusBuilder_.dispose();
+          statusBuilder_ = null;
+        }
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       */
+      public talon.resources.Sandboxes.SandboxStatus.Builder getStatusBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return internalGetStatusFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       */
+      public talon.resources.Sandboxes.SandboxStatusOrBuilder getStatusOrBuilder() {
+        if (statusBuilder_ != null) {
+          return statusBuilder_.getMessageOrBuilder();
+        } else {
+          return status_ == null ?
+              talon.resources.Sandboxes.SandboxStatus.getDefaultInstance() : status_;
+        }
+      }
+      /**
+       * <code>.talon.resources.SandboxStatus status = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          talon.resources.Sandboxes.SandboxStatus, talon.resources.Sandboxes.SandboxStatus.Builder, talon.resources.Sandboxes.SandboxStatusOrBuilder>
+          internalGetStatusFieldBuilder() {
+        if (statusBuilder_ == null) {
+          statusBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              talon.resources.Sandboxes.SandboxStatus, talon.resources.Sandboxes.SandboxStatus.Builder, talon.resources.Sandboxes.SandboxStatusOrBuilder>(
+                  getStatus(),
+                  getParentForChildren(),
+                  isClean());
+          status_ = null;
+        }
+        return statusBuilder_;
+      }
+
+      // @@protoc_insertion_point(builder_scope:talon.resources.Sandbox)
+    }
+
+    // @@protoc_insertion_point(class_scope:talon.resources.Sandbox)
+    private static final talon.resources.Sandboxes.Sandbox DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new talon.resources.Sandboxes.Sandbox();
+    }
+
+    public static talon.resources.Sandboxes.Sandbox getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    private static final com.google.protobuf.Parser<Sandbox>
+        PARSER = new com.google.protobuf.AbstractParser<Sandbox>() {
+      @java.lang.Override
+      public Sandbox parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        Builder builder = newBuilder();
+        try {
+          builder.mergeFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          throw e.setUnfinishedMessage(builder.buildPartial());
+        } catch (com.google.protobuf.UninitializedMessageException e) {
+          throw e.asInvalidProtocolBufferException().setUnfinishedMessage(builder.buildPartial());
+        } catch (java.io.IOException e) {
+          throw new com.google.protobuf.InvalidProtocolBufferException(e)
+              .setUnfinishedMessage(builder.buildPartial());
+        }
+        return builder.buildPartial();
+      }
+    };
+
+    public static com.google.protobuf.Parser<Sandbox> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<Sandbox> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public talon.resources.Sandboxes.Sandbox getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_SandboxClassSpec_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_SandboxClassSpec_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_SandboxClass_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_SandboxClass_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_SandboxWorkspaceSpec_descriptor;
   private static final
@@ -11739,6 +14669,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_SandboxPolicySpec_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_SandboxPolicy_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_SandboxPolicy_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_talon_resources_SandboxLease_descriptor;
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -11758,6 +14693,11 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
   private static final
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_talon_resources_SandboxSpec_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_talon_resources_Sandbox_descriptor;
+  private static final
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_talon_resources_Sandbox_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -11771,42 +14711,54 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       ".resources\032\034proto/resources/common.proto" +
       "\"\\\n\020SandboxClassSpec\022\020\n\010provider\030\001 \001(\t\022\034" +
       "\n\024provider_config_json\030\002 \001(\t\022\030\n\020credenti" +
-      "als_json\030\003 \001(\t\"8\n\024SandboxWorkspaceSpec\022\014" +
-      "\n\004mode\030\001 \001(\t\022\022\n\nmount_path\030\002 \001(\t\"6\n\020Sand" +
-      "boxSetupSpec\022\020\n\010packages\030\001 \003(\t\022\020\n\010comman" +
-      "ds\030\002 \003(\t\"\"\n\022SandboxNetworkSpec\022\014\n\004mode\030\001" +
-      " \001(\t\";\n\025SandboxFilesystemSpec\022\020\n\010writabl" +
-      "e\030\001 \003(\t\022\020\n\010readonly\030\002 \003(\t\"&\n\026SandboxLeas" +
-      "ePolicySpec\022\014\n\004mode\030\001 \001(\t\"\310\002\n\032SandboxRun" +
-      "timeTemplateSpec\022\r\n\005image\030\001 \001(\t\0228\n\tworks" +
-      "pace\030\002 \001(\0132%.talon.resources.SandboxWork" +
-      "spaceSpec\0220\n\005setup\030\003 \001(\0132!.talon.resourc" +
-      "es.SandboxSetupSpec\0224\n\007network\030\004 \001(\0132#.t" +
-      "alon.resources.SandboxNetworkSpec\022:\n\nfil" +
-      "esystem\030\005 \001(\0132&.talon.resources.SandboxF" +
-      "ilesystemSpec\022=\n\014lease_policy\030\006 \001(\0132\'.ta" +
-      "lon.resources.SandboxLeasePolicySpec\"\233\001\n" +
-      "\021SandboxPolicySpec\022/\n\tclass_ref\030\001 \001(\0132\034." +
-      "talon.resources.ResourceRef\022=\n\010template\030" +
-      "\002 \001(\0132+.talon.resources.SandboxRuntimeTe" +
-      "mplateSpec\022\026\n\016max_concurrent\030\003 \001(\r\"\237\001\n\014S" +
-      "andboxLease\022\022\n\nowner_kind\030\001 \001(\t\022\023\n\013owner" +
-      "_agent\030\002 \001(\t\022\030\n\020owner_session_id\030\003 \001(\t\022\r" +
-      "\n\005token\030\004 \001(\t\022\023\n\013acquired_at\030\005 \001(\003\022\022\n\nex" +
-      "pires_at\030\006 \001(\003\022\024\n\014heartbeat_at\030\007 \001(\003\"b\n\024" +
-      "SandboxProcessStatus\022\n\n\002id\030\001 \001(\t\022\017\n\007comm" +
-      "and\030\002 \001(\t\022\014\n\004args\030\003 \003(\t\022\020\n\010protocol\030\004 \001(" +
-      "\t\022\r\n\005phase\030\005 \001(\t\"\357\001\n\rSandboxStatus\022\033\n\023ob" +
-      "served_generation\030\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226" +
-      "\n\nconditions\030\003 \003(\0132\".talon.resources.Res" +
-      "ourceCondition\022\022\n\nbackend_id\030\004 \001(\t\022,\n\005le" +
-      "ase\030\005 \001(\0132\035.talon.resources.SandboxLease" +
-      "\0228\n\tprocesses\030\006 \003(\0132%.talon.resources.Sa" +
-      "ndboxProcessStatus\"\231\001\n\013SandboxSpec\022\022\n\npo" +
-      "licy_ref\030\001 \001(\t\022/\n\tclass_ref\030\002 \001(\0132\034.talo" +
-      "n.resources.ResourceRef\022E\n\020runtime_templ" +
-      "ate\030\003 \001(\0132+.talon.resources.SandboxRunti" +
-      "meTemplateSpecb\006proto3"
+      "als_json\030\003 \001(\t\"\247\001\n\014SandboxClass\022/\n\010metad" +
+      "ata\030\001 \001(\0132\035.talon.resources.ResourceMeta" +
+      "\022/\n\004spec\030\002 \001(\0132!.talon.resources.Sandbox" +
+      "ClassSpec\0225\n\006status\030\003 \001(\0132%.talon.resour" +
+      "ces.CommonResourceStatus\"8\n\024SandboxWorks" +
+      "paceSpec\022\014\n\004mode\030\001 \001(\t\022\022\n\nmount_path\030\002 \001" +
+      "(\t\"6\n\020SandboxSetupSpec\022\020\n\010packages\030\001 \003(\t" +
+      "\022\020\n\010commands\030\002 \003(\t\"\"\n\022SandboxNetworkSpec" +
+      "\022\014\n\004mode\030\001 \001(\t\";\n\025SandboxFilesystemSpec\022" +
+      "\020\n\010writable\030\001 \003(\t\022\020\n\010readonly\030\002 \003(\t\"&\n\026S" +
+      "andboxLeasePolicySpec\022\014\n\004mode\030\001 \001(\t\"\310\002\n\032" +
+      "SandboxRuntimeTemplateSpec\022\r\n\005image\030\001 \001(" +
+      "\t\0228\n\tworkspace\030\002 \001(\0132%.talon.resources.S" +
+      "andboxWorkspaceSpec\0220\n\005setup\030\003 \001(\0132!.tal" +
+      "on.resources.SandboxSetupSpec\0224\n\007network" +
+      "\030\004 \001(\0132#.talon.resources.SandboxNetworkS" +
+      "pec\022:\n\nfilesystem\030\005 \001(\0132&.talon.resource" +
+      "s.SandboxFilesystemSpec\022=\n\014lease_policy\030" +
+      "\006 \001(\0132\'.talon.resources.SandboxLeasePoli" +
+      "cySpec\"\233\001\n\021SandboxPolicySpec\022/\n\tclass_re" +
+      "f\030\001 \001(\0132\034.talon.resources.ResourceRef\022=\n" +
+      "\010template\030\002 \001(\0132+.talon.resources.Sandbo" +
+      "xRuntimeTemplateSpec\022\026\n\016max_concurrent\030\003" +
+      " \001(\r\"\251\001\n\rSandboxPolicy\022/\n\010metadata\030\001 \001(\013" +
+      "2\035.talon.resources.ResourceMeta\0220\n\004spec\030" +
+      "\002 \001(\0132\".talon.resources.SandboxPolicySpe" +
+      "c\0225\n\006status\030\003 \001(\0132%.talon.resources.Comm" +
+      "onResourceStatus\"\237\001\n\014SandboxLease\022\022\n\nown" +
+      "er_kind\030\001 \001(\t\022\023\n\013owner_agent\030\002 \001(\t\022\030\n\020ow" +
+      "ner_session_id\030\003 \001(\t\022\r\n\005token\030\004 \001(\t\022\023\n\013a" +
+      "cquired_at\030\005 \001(\003\022\022\n\nexpires_at\030\006 \001(\003\022\024\n\014" +
+      "heartbeat_at\030\007 \001(\003\"b\n\024SandboxProcessStat" +
+      "us\022\n\n\002id\030\001 \001(\t\022\017\n\007command\030\002 \001(\t\022\014\n\004args\030" +
+      "\003 \003(\t\022\020\n\010protocol\030\004 \001(\t\022\r\n\005phase\030\005 \001(\t\"\357" +
+      "\001\n\rSandboxStatus\022\033\n\023observed_generation\030" +
+      "\001 \001(\004\022\r\n\005phase\030\002 \001(\t\0226\n\nconditions\030\003 \003(\013" +
+      "2\".talon.resources.ResourceCondition\022\022\n\n" +
+      "backend_id\030\004 \001(\t\022,\n\005lease\030\005 \001(\0132\035.talon." +
+      "resources.SandboxLease\0228\n\tprocesses\030\006 \003(" +
+      "\0132%.talon.resources.SandboxProcessStatus" +
+      "\"\231\001\n\013SandboxSpec\022\022\n\npolicy_ref\030\001 \001(\t\022/\n\t" +
+      "class_ref\030\002 \001(\0132\034.talon.resources.Resour" +
+      "ceRef\022E\n\020runtime_template\030\003 \001(\0132+.talon." +
+      "resources.SandboxRuntimeTemplateSpec\"\226\001\n" +
+      "\007Sandbox\022/\n\010metadata\030\001 \001(\0132\035.talon.resou" +
+      "rces.ResourceMeta\022*\n\004spec\030\002 \001(\0132\034.talon." +
+      "resources.SandboxSpec\022.\n\006status\030\003 \001(\0132\036." +
+      "talon.resources.SandboxStatusb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -11819,72 +14771,90 @@ public final class Sandboxes extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxClassSpec_descriptor,
         new java.lang.String[] { "Provider", "ProviderConfigJson", "CredentialsJson", });
-    internal_static_talon_resources_SandboxWorkspaceSpec_descriptor =
+    internal_static_talon_resources_SandboxClass_descriptor =
       getDescriptor().getMessageType(1);
+    internal_static_talon_resources_SandboxClass_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_SandboxClass_descriptor,
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
+    internal_static_talon_resources_SandboxWorkspaceSpec_descriptor =
+      getDescriptor().getMessageType(2);
     internal_static_talon_resources_SandboxWorkspaceSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxWorkspaceSpec_descriptor,
         new java.lang.String[] { "Mode", "MountPath", });
     internal_static_talon_resources_SandboxSetupSpec_descriptor =
-      getDescriptor().getMessageType(2);
+      getDescriptor().getMessageType(3);
     internal_static_talon_resources_SandboxSetupSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxSetupSpec_descriptor,
         new java.lang.String[] { "Packages", "Commands", });
     internal_static_talon_resources_SandboxNetworkSpec_descriptor =
-      getDescriptor().getMessageType(3);
+      getDescriptor().getMessageType(4);
     internal_static_talon_resources_SandboxNetworkSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxNetworkSpec_descriptor,
         new java.lang.String[] { "Mode", });
     internal_static_talon_resources_SandboxFilesystemSpec_descriptor =
-      getDescriptor().getMessageType(4);
+      getDescriptor().getMessageType(5);
     internal_static_talon_resources_SandboxFilesystemSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxFilesystemSpec_descriptor,
         new java.lang.String[] { "Writable", "Readonly", });
     internal_static_talon_resources_SandboxLeasePolicySpec_descriptor =
-      getDescriptor().getMessageType(5);
+      getDescriptor().getMessageType(6);
     internal_static_talon_resources_SandboxLeasePolicySpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxLeasePolicySpec_descriptor,
         new java.lang.String[] { "Mode", });
     internal_static_talon_resources_SandboxRuntimeTemplateSpec_descriptor =
-      getDescriptor().getMessageType(6);
+      getDescriptor().getMessageType(7);
     internal_static_talon_resources_SandboxRuntimeTemplateSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxRuntimeTemplateSpec_descriptor,
         new java.lang.String[] { "Image", "Workspace", "Setup", "Network", "Filesystem", "LeasePolicy", });
     internal_static_talon_resources_SandboxPolicySpec_descriptor =
-      getDescriptor().getMessageType(7);
+      getDescriptor().getMessageType(8);
     internal_static_talon_resources_SandboxPolicySpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxPolicySpec_descriptor,
         new java.lang.String[] { "ClassRef", "Template", "MaxConcurrent", });
+    internal_static_talon_resources_SandboxPolicy_descriptor =
+      getDescriptor().getMessageType(9);
+    internal_static_talon_resources_SandboxPolicy_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_SandboxPolicy_descriptor,
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
     internal_static_talon_resources_SandboxLease_descriptor =
-      getDescriptor().getMessageType(8);
+      getDescriptor().getMessageType(10);
     internal_static_talon_resources_SandboxLease_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxLease_descriptor,
         new java.lang.String[] { "OwnerKind", "OwnerAgent", "OwnerSessionId", "Token", "AcquiredAt", "ExpiresAt", "HeartbeatAt", });
     internal_static_talon_resources_SandboxProcessStatus_descriptor =
-      getDescriptor().getMessageType(9);
+      getDescriptor().getMessageType(11);
     internal_static_talon_resources_SandboxProcessStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxProcessStatus_descriptor,
         new java.lang.String[] { "Id", "Command", "Args", "Protocol", "Phase", });
     internal_static_talon_resources_SandboxStatus_descriptor =
-      getDescriptor().getMessageType(10);
+      getDescriptor().getMessageType(12);
     internal_static_talon_resources_SandboxStatus_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxStatus_descriptor,
         new java.lang.String[] { "ObservedGeneration", "Phase", "Conditions", "BackendId", "Lease", "Processes", });
     internal_static_talon_resources_SandboxSpec_descriptor =
-      getDescriptor().getMessageType(11);
+      getDescriptor().getMessageType(13);
     internal_static_talon_resources_SandboxSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_talon_resources_SandboxSpec_descriptor,
         new java.lang.String[] { "PolicyRef", "ClassRef", "RuntimeTemplate", });
+    internal_static_talon_resources_Sandbox_descriptor =
+      getDescriptor().getMessageType(14);
+    internal_static_talon_resources_Sandbox_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_talon_resources_Sandbox_descriptor,
+        new java.lang.String[] { "Metadata", "Spec", "Status", });
     descriptor.resolveAllFeaturesImmutable();
     talon.resources.Common.getDescriptor();
   }

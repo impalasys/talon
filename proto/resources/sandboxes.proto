@@ -14,6 +14,12 @@ message SandboxClassSpec {
   string credentials_json = 3;
 }
 
+message SandboxClass {
+  ResourceMeta metadata = 1;
+  SandboxClassSpec spec = 2;
+  CommonResourceStatus status = 3;
+}
+
 message SandboxWorkspaceSpec {
   string mode = 1;
   // Absolute workspace path inside the sandbox. The manifest parser rejects
@@ -54,6 +60,12 @@ message SandboxPolicySpec {
   uint32 max_concurrent = 3;
 }
 
+message SandboxPolicy {
+  ResourceMeta metadata = 1;
+  SandboxPolicySpec spec = 2;
+  CommonResourceStatus status = 3;
+}
+
 message SandboxLease {
   string owner_kind = 1;
   string owner_agent = 2;
@@ -89,4 +101,10 @@ message SandboxSpec {
   string policy_ref = 1;
   ResourceRef class_ref = 2;
   SandboxRuntimeTemplateSpec runtime_template = 3;
+}
+
+message Sandbox {
+  ResourceMeta metadata = 1;
+  SandboxSpec spec = 2;
+  SandboxStatus status = 3;
 }

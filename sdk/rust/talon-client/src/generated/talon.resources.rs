@@ -660,6 +660,15 @@ pub struct TemplateSpec {
     pub spec_json: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Template {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<TemplateSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<CommonResourceStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeploymentPlacement {
     #[prost(message, optional, tag = "1")]
     pub namespace_selector: ::core::option::Option<NamespaceSelector>,
@@ -672,11 +681,29 @@ pub struct DeploymentSpec {
     pub templates: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Deployment {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<DeploymentSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<DeploymentStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeploymentReplicaSpec {
     #[prost(message, optional, tag = "1")]
     pub deployment_ref: ::core::option::Option<ResourceRef>,
     #[prost(string, tag = "2")]
     pub target_namespace: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeploymentReplica {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<DeploymentReplicaSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<DeploymentReplicaStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeploymentStatus {
@@ -726,6 +753,15 @@ pub struct SandboxClassSpec {
     /// `credentials: {...}` and the manifest parser normalizes it here.
     #[prost(string, tag = "3")]
     pub credentials_json: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SandboxClass {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<SandboxClassSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<CommonResourceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SandboxWorkspaceSpec {
@@ -783,6 +819,15 @@ pub struct SandboxPolicySpec {
     pub template: ::core::option::Option<SandboxRuntimeTemplateSpec>,
     #[prost(uint32, tag = "3")]
     pub max_concurrent: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SandboxPolicy {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<SandboxPolicySpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<CommonResourceStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SandboxLease {
@@ -843,6 +888,15 @@ pub struct SandboxSpec {
     pub runtime_template: ::core::option::Option<SandboxRuntimeTemplateSpec>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Sandbox {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<SandboxSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<SandboxStatus>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionSpec {
     #[prost(string, tag = "1")]
     pub agent: ::prost::alloc::string::String,
@@ -851,6 +905,15 @@ pub struct SessionSpec {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Session {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<SessionSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<SessionStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SessionStatus {
@@ -882,6 +945,15 @@ pub struct PermissionRequestSpec {
     pub prompt: ::prost::alloc::string::String,
     #[prost(string, tag = "5")]
     pub payload_json: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PermissionRequest {
+    #[prost(message, optional, tag = "1")]
+    pub metadata: ::core::option::Option<ResourceMeta>,
+    #[prost(message, optional, tag = "2")]
+    pub spec: ::core::option::Option<PermissionRequestSpec>,
+    #[prost(message, optional, tag = "3")]
+    pub status: ::core::option::Option<PermissionRequestStatus>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PermissionRequestStatus {

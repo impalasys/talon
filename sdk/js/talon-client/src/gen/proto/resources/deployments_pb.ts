@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { NamespaceSelector, ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb.js";
+import { CommonResourceStatus, NamespaceSelector, ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.TemplateSpec
@@ -56,6 +56,55 @@ export class TemplateSpec extends Message<TemplateSpec> {
 
   static equals(a: TemplateSpec | PlainMessage<TemplateSpec> | undefined, b: TemplateSpec | PlainMessage<TemplateSpec> | undefined): boolean {
     return proto3.util.equals(TemplateSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.Template
+ */
+export class Template extends Message<Template> {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.TemplateSpec spec = 2;
+   */
+  spec?: TemplateSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
+
+  constructor(data?: PartialMessage<Template>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.Template";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: TemplateSpec },
+    { no: 3, name: "status", kind: "message", T: CommonResourceStatus },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Template {
+    return new Template().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Template {
+    return new Template().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Template {
+    return new Template().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Template | PlainMessage<Template> | undefined, b: Template | PlainMessage<Template> | undefined): boolean {
+    return proto3.util.equals(Template, a, b);
   }
 }
 
@@ -140,6 +189,55 @@ export class DeploymentSpec extends Message<DeploymentSpec> {
 }
 
 /**
+ * @generated from message talon.resources.Deployment
+ */
+export class Deployment extends Message<Deployment> {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.DeploymentSpec spec = 2;
+   */
+  spec?: DeploymentSpec;
+
+  /**
+   * @generated from field: talon.resources.DeploymentStatus status = 3;
+   */
+  status?: DeploymentStatus;
+
+  constructor(data?: PartialMessage<Deployment>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.Deployment";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: DeploymentSpec },
+    { no: 3, name: "status", kind: "message", T: DeploymentStatus },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Deployment {
+    return new Deployment().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Deployment {
+    return new Deployment().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Deployment {
+    return new Deployment().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Deployment | PlainMessage<Deployment> | undefined, b: Deployment | PlainMessage<Deployment> | undefined): boolean {
+    return proto3.util.equals(Deployment, a, b);
+  }
+}
+
+/**
  * @generated from message talon.resources.DeploymentReplicaSpec
  */
 export class DeploymentReplicaSpec extends Message<DeploymentReplicaSpec> {
@@ -179,6 +277,55 @@ export class DeploymentReplicaSpec extends Message<DeploymentReplicaSpec> {
 
   static equals(a: DeploymentReplicaSpec | PlainMessage<DeploymentReplicaSpec> | undefined, b: DeploymentReplicaSpec | PlainMessage<DeploymentReplicaSpec> | undefined): boolean {
     return proto3.util.equals(DeploymentReplicaSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.DeploymentReplica
+ */
+export class DeploymentReplica extends Message<DeploymentReplica> {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.DeploymentReplicaSpec spec = 2;
+   */
+  spec?: DeploymentReplicaSpec;
+
+  /**
+   * @generated from field: talon.resources.DeploymentReplicaStatus status = 3;
+   */
+  status?: DeploymentReplicaStatus;
+
+  constructor(data?: PartialMessage<DeploymentReplica>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.DeploymentReplica";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: DeploymentReplicaSpec },
+    { no: 3, name: "status", kind: "message", T: DeploymentReplicaStatus },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): DeploymentReplica {
+    return new DeploymentReplica().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): DeploymentReplica {
+    return new DeploymentReplica().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): DeploymentReplica {
+    return new DeploymentReplica().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: DeploymentReplica | PlainMessage<DeploymentReplica> | undefined, b: DeploymentReplica | PlainMessage<DeploymentReplica> | undefined): boolean {
+    return proto3.util.equals(DeploymentReplica, a, b);
   }
 }
 

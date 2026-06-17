@@ -5,7 +5,7 @@
 
 import type { BinaryReadOptions, FieldList, JsonReadOptions, JsonValue, PartialMessage, PlainMessage } from "@bufbuild/protobuf";
 import { Message, proto3, protoInt64 } from "@bufbuild/protobuf";
-import { ResourceCondition, ResourceRef } from "./common_pb.js";
+import { CommonResourceStatus, ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb.js";
 
 /**
  * @generated from message talon.resources.SandboxClassSpec
@@ -59,6 +59,55 @@ export class SandboxClassSpec extends Message<SandboxClassSpec> {
 
   static equals(a: SandboxClassSpec | PlainMessage<SandboxClassSpec> | undefined, b: SandboxClassSpec | PlainMessage<SandboxClassSpec> | undefined): boolean {
     return proto3.util.equals(SandboxClassSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.SandboxClass
+ */
+export class SandboxClass extends Message<SandboxClass> {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.SandboxClassSpec spec = 2;
+   */
+  spec?: SandboxClassSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
+
+  constructor(data?: PartialMessage<SandboxClass>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.SandboxClass";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: SandboxClassSpec },
+    { no: 3, name: "status", kind: "message", T: CommonResourceStatus },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SandboxClass {
+    return new SandboxClass().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SandboxClass {
+    return new SandboxClass().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SandboxClass {
+    return new SandboxClass().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SandboxClass | PlainMessage<SandboxClass> | undefined, b: SandboxClass | PlainMessage<SandboxClass> | undefined): boolean {
+    return proto3.util.equals(SandboxClass, a, b);
   }
 }
 
@@ -385,6 +434,55 @@ export class SandboxPolicySpec extends Message<SandboxPolicySpec> {
 }
 
 /**
+ * @generated from message talon.resources.SandboxPolicy
+ */
+export class SandboxPolicy extends Message<SandboxPolicy> {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.SandboxPolicySpec spec = 2;
+   */
+  spec?: SandboxPolicySpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
+
+  constructor(data?: PartialMessage<SandboxPolicy>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.SandboxPolicy";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: SandboxPolicySpec },
+    { no: 3, name: "status", kind: "message", T: CommonResourceStatus },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): SandboxPolicy {
+    return new SandboxPolicy().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): SandboxPolicy {
+    return new SandboxPolicy().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): SandboxPolicy {
+    return new SandboxPolicy().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: SandboxPolicy | PlainMessage<SandboxPolicy> | undefined, b: SandboxPolicy | PlainMessage<SandboxPolicy> | undefined): boolean {
+    return proto3.util.equals(SandboxPolicy, a, b);
+  }
+}
+
+/**
  * @generated from message talon.resources.SandboxLease
  */
 export class SandboxLease extends Message<SandboxLease> {
@@ -639,6 +737,55 @@ export class SandboxSpec extends Message<SandboxSpec> {
 
   static equals(a: SandboxSpec | PlainMessage<SandboxSpec> | undefined, b: SandboxSpec | PlainMessage<SandboxSpec> | undefined): boolean {
     return proto3.util.equals(SandboxSpec, a, b);
+  }
+}
+
+/**
+ * @generated from message talon.resources.Sandbox
+ */
+export class Sandbox extends Message<Sandbox> {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.SandboxSpec spec = 2;
+   */
+  spec?: SandboxSpec;
+
+  /**
+   * @generated from field: talon.resources.SandboxStatus status = 3;
+   */
+  status?: SandboxStatus;
+
+  constructor(data?: PartialMessage<Sandbox>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "talon.resources.Sandbox";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "metadata", kind: "message", T: ResourceMeta },
+    { no: 2, name: "spec", kind: "message", T: SandboxSpec },
+    { no: 3, name: "status", kind: "message", T: SandboxStatus },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Sandbox {
+    return new Sandbox().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): Sandbox {
+    return new Sandbox().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): Sandbox {
+    return new Sandbox().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: Sandbox | PlainMessage<Sandbox> | undefined, b: Sandbox | PlainMessage<Sandbox> | undefined): boolean {
+    return proto3.util.equals(Sandbox, a, b);
   }
 }
 

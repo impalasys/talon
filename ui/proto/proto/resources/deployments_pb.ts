@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { NamespaceSelector, ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb";
+import type { CommonResourceStatus, NamespaceSelector, ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb";
 import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/deployments.proto.
  */
 export const file_proto_resources_deployments: GenFile = /*@__PURE__*/
-  fileDesc("CiFwcm90by9yZXNvdXJjZXMvZGVwbG95bWVudHMucHJvdG8SD3RhbG9uLnJlc291cmNlcyJgCgxUZW1wbGF0ZVNwZWMSDAoEa2luZBgBIAEoCRIvCghtZXRhZGF0YRgCIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESEQoJc3BlY19qc29uGAMgASgJIlUKE0RlcGxveW1lbnRQbGFjZW1lbnQSPgoSbmFtZXNwYWNlX3NlbGVjdG9yGAEgASgLMiIudGFsb24ucmVzb3VyY2VzLk5hbWVzcGFjZVNlbGVjdG9yIlwKDkRlcGxveW1lbnRTcGVjEjcKCXBsYWNlbWVudBgBIAEoCzIkLnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50UGxhY2VtZW50EhEKCXRlbXBsYXRlcxgCIAMoCSJnChVEZXBsb3ltZW50UmVwbGljYVNwZWMSNAoOZGVwbG95bWVudF9yZWYYASABKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYSGAoQdGFyZ2V0X25hbWVzcGFjZRgCIAEoCSKmAQoQRGVwbG95bWVudFN0YXR1cxIbChNvYnNlcnZlZF9nZW5lcmF0aW9uGAEgASgEEg0KBXBoYXNlGAIgASgJEjYKCmNvbmRpdGlvbnMYAyADKAsyIi50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VDb25kaXRpb24SLgoIcmVwbGljYXMYBCADKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYi7AMKF0RlcGxveW1lbnRSZXBsaWNhU3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhIaChJyZW5kZXJlZF9yZXNvdXJjZXMYBCADKAkSVQoPcmVuZGVyZWRfaGFzaGVzGAUgAygLMjwudGFsb24ucmVzb3VyY2VzLkRlcGxveW1lbnRSZXBsaWNhU3RhdHVzLlJlbmRlcmVkSGFzaGVzRW50cnkSEQoJY29uZmxpY3RzGAYgAygJEloKEmxhc3RfcmVuZGVyZWRfanNvbhgHIAMoCzI+LnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50UmVwbGljYVN0YXR1cy5MYXN0UmVuZGVyZWRKc29uRW50cnkSGwoTb3duZWRfanNvbl9wb2ludGVycxgIIAMoCRo1ChNSZW5kZXJlZEhhc2hlc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaNwoVTGFzdFJlbmRlcmVkSnNvbkVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFiBnByb3RvMw", [file_proto_resources_common]);
+  fileDesc("CiFwcm90by9yZXNvdXJjZXMvZGVwbG95bWVudHMucHJvdG8SD3RhbG9uLnJlc291cmNlcyJgCgxUZW1wbGF0ZVNwZWMSDAoEa2luZBgBIAEoCRIvCghtZXRhZGF0YRgCIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESEQoJc3BlY19qc29uGAMgASgJIp8BCghUZW1wbGF0ZRIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESKwoEc3BlYxgCIAEoCzIdLnRhbG9uLnJlc291cmNlcy5UZW1wbGF0ZVNwZWMSNQoGc3RhdHVzGAMgASgLMiUudGFsb24ucmVzb3VyY2VzLkNvbW1vblJlc291cmNlU3RhdHVzIlUKE0RlcGxveW1lbnRQbGFjZW1lbnQSPgoSbmFtZXNwYWNlX3NlbGVjdG9yGAEgASgLMiIudGFsb24ucmVzb3VyY2VzLk5hbWVzcGFjZVNlbGVjdG9yIlwKDkRlcGxveW1lbnRTcGVjEjcKCXBsYWNlbWVudBgBIAEoCzIkLnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50UGxhY2VtZW50EhEKCXRlbXBsYXRlcxgCIAMoCSKfAQoKRGVwbG95bWVudBIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESLQoEc3BlYxgCIAEoCzIfLnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50U3BlYxIxCgZzdGF0dXMYAyABKAsyIS50YWxvbi5yZXNvdXJjZXMuRGVwbG95bWVudFN0YXR1cyJnChVEZXBsb3ltZW50UmVwbGljYVNwZWMSNAoOZGVwbG95bWVudF9yZWYYASABKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYSGAoQdGFyZ2V0X25hbWVzcGFjZRgCIAEoCSK0AQoRRGVwbG95bWVudFJlcGxpY2ESLwoIbWV0YWRhdGEYASABKAsyHS50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VNZXRhEjQKBHNwZWMYAiABKAsyJi50YWxvbi5yZXNvdXJjZXMuRGVwbG95bWVudFJlcGxpY2FTcGVjEjgKBnN0YXR1cxgDIAEoCzIoLnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50UmVwbGljYVN0YXR1cyKmAQoQRGVwbG95bWVudFN0YXR1cxIbChNvYnNlcnZlZF9nZW5lcmF0aW9uGAEgASgEEg0KBXBoYXNlGAIgASgJEjYKCmNvbmRpdGlvbnMYAyADKAsyIi50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VDb25kaXRpb24SLgoIcmVwbGljYXMYBCADKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYi7AMKF0RlcGxveW1lbnRSZXBsaWNhU3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhIaChJyZW5kZXJlZF9yZXNvdXJjZXMYBCADKAkSVQoPcmVuZGVyZWRfaGFzaGVzGAUgAygLMjwudGFsb24ucmVzb3VyY2VzLkRlcGxveW1lbnRSZXBsaWNhU3RhdHVzLlJlbmRlcmVkSGFzaGVzRW50cnkSEQoJY29uZmxpY3RzGAYgAygJEloKEmxhc3RfcmVuZGVyZWRfanNvbhgHIAMoCzI+LnRhbG9uLnJlc291cmNlcy5EZXBsb3ltZW50UmVwbGljYVN0YXR1cy5MYXN0UmVuZGVyZWRKc29uRW50cnkSGwoTb3duZWRfanNvbl9wb2ludGVycxgIIAMoCRo1ChNSZW5kZXJlZEhhc2hlc0VudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAEaNwoVTGFzdFJlbmRlcmVkSnNvbkVudHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoCToCOAFiBnByb3RvMw", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.TemplateSpec
@@ -45,6 +45,33 @@ export const TemplateSpecSchema: GenMessage<TemplateSpec> = /*@__PURE__*/
   messageDesc(file_proto_resources_deployments, 0);
 
 /**
+ * @generated from message talon.resources.Template
+ */
+export type Template = Message<"talon.resources.Template"> & {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.TemplateSpec spec = 2;
+   */
+  spec?: TemplateSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
+};
+
+/**
+ * Describes the message talon.resources.Template.
+ * Use `create(TemplateSchema)` to create a new message.
+ */
+export const TemplateSchema: GenMessage<Template> = /*@__PURE__*/
+  messageDesc(file_proto_resources_deployments, 1);
+
+/**
  * @generated from message talon.resources.DeploymentPlacement
  */
 export type DeploymentPlacement = Message<"talon.resources.DeploymentPlacement"> & {
@@ -59,7 +86,7 @@ export type DeploymentPlacement = Message<"talon.resources.DeploymentPlacement">
  * Use `create(DeploymentPlacementSchema)` to create a new message.
  */
 export const DeploymentPlacementSchema: GenMessage<DeploymentPlacement> = /*@__PURE__*/
-  messageDesc(file_proto_resources_deployments, 1);
+  messageDesc(file_proto_resources_deployments, 2);
 
 /**
  * @generated from message talon.resources.DeploymentSpec
@@ -81,7 +108,34 @@ export type DeploymentSpec = Message<"talon.resources.DeploymentSpec"> & {
  * Use `create(DeploymentSpecSchema)` to create a new message.
  */
 export const DeploymentSpecSchema: GenMessage<DeploymentSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_deployments, 2);
+  messageDesc(file_proto_resources_deployments, 3);
+
+/**
+ * @generated from message talon.resources.Deployment
+ */
+export type Deployment = Message<"talon.resources.Deployment"> & {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.DeploymentSpec spec = 2;
+   */
+  spec?: DeploymentSpec;
+
+  /**
+   * @generated from field: talon.resources.DeploymentStatus status = 3;
+   */
+  status?: DeploymentStatus;
+};
+
+/**
+ * Describes the message talon.resources.Deployment.
+ * Use `create(DeploymentSchema)` to create a new message.
+ */
+export const DeploymentSchema: GenMessage<Deployment> = /*@__PURE__*/
+  messageDesc(file_proto_resources_deployments, 4);
 
 /**
  * @generated from message talon.resources.DeploymentReplicaSpec
@@ -103,7 +157,34 @@ export type DeploymentReplicaSpec = Message<"talon.resources.DeploymentReplicaSp
  * Use `create(DeploymentReplicaSpecSchema)` to create a new message.
  */
 export const DeploymentReplicaSpecSchema: GenMessage<DeploymentReplicaSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_deployments, 3);
+  messageDesc(file_proto_resources_deployments, 5);
+
+/**
+ * @generated from message talon.resources.DeploymentReplica
+ */
+export type DeploymentReplica = Message<"talon.resources.DeploymentReplica"> & {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.DeploymentReplicaSpec spec = 2;
+   */
+  spec?: DeploymentReplicaSpec;
+
+  /**
+   * @generated from field: talon.resources.DeploymentReplicaStatus status = 3;
+   */
+  status?: DeploymentReplicaStatus;
+};
+
+/**
+ * Describes the message talon.resources.DeploymentReplica.
+ * Use `create(DeploymentReplicaSchema)` to create a new message.
+ */
+export const DeploymentReplicaSchema: GenMessage<DeploymentReplica> = /*@__PURE__*/
+  messageDesc(file_proto_resources_deployments, 6);
 
 /**
  * @generated from message talon.resources.DeploymentStatus
@@ -135,7 +216,7 @@ export type DeploymentStatus = Message<"talon.resources.DeploymentStatus"> & {
  * Use `create(DeploymentStatusSchema)` to create a new message.
  */
 export const DeploymentStatusSchema: GenMessage<DeploymentStatus> = /*@__PURE__*/
-  messageDesc(file_proto_resources_deployments, 4);
+  messageDesc(file_proto_resources_deployments, 7);
 
 /**
  * @generated from message talon.resources.DeploymentReplicaStatus
@@ -187,5 +268,5 @@ export type DeploymentReplicaStatus = Message<"talon.resources.DeploymentReplica
  * Use `create(DeploymentReplicaStatusSchema)` to create a new message.
  */
 export const DeploymentReplicaStatusSchema: GenMessage<DeploymentReplicaStatus> = /*@__PURE__*/
-  messageDesc(file_proto_resources_deployments, 5);
+  messageDesc(file_proto_resources_deployments, 8);
 

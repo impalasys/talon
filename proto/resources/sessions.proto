@@ -9,6 +9,12 @@ message SessionSpec {
   map<string, string> labels = 2;
 }
 
+message Session {
+  ResourceMeta metadata = 1;
+  SessionSpec spec = 2;
+  SessionStatus status = 3;
+}
+
 message SessionStatus {
   uint64 observed_generation = 1;
   string phase = 2;
@@ -26,6 +32,12 @@ message PermissionRequestSpec {
   string action = 3;
   string prompt = 4;
   string payload_json = 5;
+}
+
+message PermissionRequest {
+  ResourceMeta metadata = 1;
+  PermissionRequestSpec spec = 2;
+  PermissionRequestStatus status = 3;
 }
 
 message PermissionRequestStatus {

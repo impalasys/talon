@@ -83,6 +83,66 @@ func (x *TemplateSpec) GetSpecJson() string {
 	return ""
 }
 
+type Template struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *TemplateSpec          `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *CommonResourceStatus  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Template) Reset() {
+	*x = Template{}
+	mi := &file_proto_resources_deployments_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Template) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Template) ProtoMessage() {}
+
+func (x *Template) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_deployments_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Template.ProtoReflect.Descriptor instead.
+func (*Template) Descriptor() ([]byte, []int) {
+	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Template) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *Template) GetSpec() *TemplateSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *Template) GetStatus() *CommonResourceStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 type DeploymentPlacement struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	NamespaceSelector *NamespaceSelector     `protobuf:"bytes,1,opt,name=namespace_selector,json=namespaceSelector,proto3" json:"namespace_selector,omitempty"`
@@ -92,7 +152,7 @@ type DeploymentPlacement struct {
 
 func (x *DeploymentPlacement) Reset() {
 	*x = DeploymentPlacement{}
-	mi := &file_proto_resources_deployments_proto_msgTypes[1]
+	mi := &file_proto_resources_deployments_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -104,7 +164,7 @@ func (x *DeploymentPlacement) String() string {
 func (*DeploymentPlacement) ProtoMessage() {}
 
 func (x *DeploymentPlacement) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_deployments_proto_msgTypes[1]
+	mi := &file_proto_resources_deployments_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -117,7 +177,7 @@ func (x *DeploymentPlacement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeploymentPlacement.ProtoReflect.Descriptor instead.
 func (*DeploymentPlacement) Descriptor() ([]byte, []int) {
-	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{1}
+	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *DeploymentPlacement) GetNamespaceSelector() *NamespaceSelector {
@@ -137,7 +197,7 @@ type DeploymentSpec struct {
 
 func (x *DeploymentSpec) Reset() {
 	*x = DeploymentSpec{}
-	mi := &file_proto_resources_deployments_proto_msgTypes[2]
+	mi := &file_proto_resources_deployments_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -149,7 +209,7 @@ func (x *DeploymentSpec) String() string {
 func (*DeploymentSpec) ProtoMessage() {}
 
 func (x *DeploymentSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_deployments_proto_msgTypes[2]
+	mi := &file_proto_resources_deployments_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -162,7 +222,7 @@ func (x *DeploymentSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeploymentSpec.ProtoReflect.Descriptor instead.
 func (*DeploymentSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{2}
+	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *DeploymentSpec) GetPlacement() *DeploymentPlacement {
@@ -179,6 +239,66 @@ func (x *DeploymentSpec) GetTemplates() []string {
 	return nil
 }
 
+type Deployment struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *DeploymentSpec        `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *DeploymentStatus      `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Deployment) Reset() {
+	*x = Deployment{}
+	mi := &file_proto_resources_deployments_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Deployment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Deployment) ProtoMessage() {}
+
+func (x *Deployment) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_deployments_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Deployment.ProtoReflect.Descriptor instead.
+func (*Deployment) Descriptor() ([]byte, []int) {
+	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Deployment) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *Deployment) GetSpec() *DeploymentSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *Deployment) GetStatus() *DeploymentStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 type DeploymentReplicaSpec struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	DeploymentRef   *ResourceRef           `protobuf:"bytes,1,opt,name=deployment_ref,json=deploymentRef,proto3" json:"deployment_ref,omitempty"`
@@ -189,7 +309,7 @@ type DeploymentReplicaSpec struct {
 
 func (x *DeploymentReplicaSpec) Reset() {
 	*x = DeploymentReplicaSpec{}
-	mi := &file_proto_resources_deployments_proto_msgTypes[3]
+	mi := &file_proto_resources_deployments_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -201,7 +321,7 @@ func (x *DeploymentReplicaSpec) String() string {
 func (*DeploymentReplicaSpec) ProtoMessage() {}
 
 func (x *DeploymentReplicaSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_deployments_proto_msgTypes[3]
+	mi := &file_proto_resources_deployments_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -214,7 +334,7 @@ func (x *DeploymentReplicaSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeploymentReplicaSpec.ProtoReflect.Descriptor instead.
 func (*DeploymentReplicaSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{3}
+	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *DeploymentReplicaSpec) GetDeploymentRef() *ResourceRef {
@@ -231,6 +351,66 @@ func (x *DeploymentReplicaSpec) GetTargetNamespace() string {
 	return ""
 }
 
+type DeploymentReplica struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Metadata      *ResourceMeta            `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *DeploymentReplicaSpec   `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *DeploymentReplicaStatus `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeploymentReplica) Reset() {
+	*x = DeploymentReplica{}
+	mi := &file_proto_resources_deployments_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeploymentReplica) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeploymentReplica) ProtoMessage() {}
+
+func (x *DeploymentReplica) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_deployments_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeploymentReplica.ProtoReflect.Descriptor instead.
+func (*DeploymentReplica) Descriptor() ([]byte, []int) {
+	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *DeploymentReplica) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *DeploymentReplica) GetSpec() *DeploymentReplicaSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *DeploymentReplica) GetStatus() *DeploymentReplicaStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 type DeploymentStatus struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	ObservedGeneration uint64                 `protobuf:"varint,1,opt,name=observed_generation,json=observedGeneration,proto3" json:"observed_generation,omitempty"`
@@ -243,7 +423,7 @@ type DeploymentStatus struct {
 
 func (x *DeploymentStatus) Reset() {
 	*x = DeploymentStatus{}
-	mi := &file_proto_resources_deployments_proto_msgTypes[4]
+	mi := &file_proto_resources_deployments_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -255,7 +435,7 @@ func (x *DeploymentStatus) String() string {
 func (*DeploymentStatus) ProtoMessage() {}
 
 func (x *DeploymentStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_deployments_proto_msgTypes[4]
+	mi := &file_proto_resources_deployments_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -268,7 +448,7 @@ func (x *DeploymentStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeploymentStatus.ProtoReflect.Descriptor instead.
 func (*DeploymentStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{4}
+	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *DeploymentStatus) GetObservedGeneration() uint64 {
@@ -315,7 +495,7 @@ type DeploymentReplicaStatus struct {
 
 func (x *DeploymentReplicaStatus) Reset() {
 	*x = DeploymentReplicaStatus{}
-	mi := &file_proto_resources_deployments_proto_msgTypes[5]
+	mi := &file_proto_resources_deployments_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -327,7 +507,7 @@ func (x *DeploymentReplicaStatus) String() string {
 func (*DeploymentReplicaStatus) ProtoMessage() {}
 
 func (x *DeploymentReplicaStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_deployments_proto_msgTypes[5]
+	mi := &file_proto_resources_deployments_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -340,7 +520,7 @@ func (x *DeploymentReplicaStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeploymentReplicaStatus.ProtoReflect.Descriptor instead.
 func (*DeploymentReplicaStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{5}
+	return file_proto_resources_deployments_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DeploymentReplicaStatus) GetObservedGeneration() uint64 {
@@ -407,15 +587,28 @@ const file_proto_resources_deployments_proto_rawDesc = "" +
 	"\fTemplateSpec\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x129\n" +
 	"\bmetadata\x18\x02 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12\x1b\n" +
-	"\tspec_json\x18\x03 \x01(\tR\bspecJson\"h\n" +
+	"\tspec_json\x18\x03 \x01(\tR\bspecJson\"\xb7\x01\n" +
+	"\bTemplate\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x121\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1d.talon.resources.TemplateSpecR\x04spec\x12=\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"h\n" +
 	"\x13DeploymentPlacement\x12Q\n" +
 	"\x12namespace_selector\x18\x01 \x01(\v2\".talon.resources.NamespaceSelectorR\x11namespaceSelector\"r\n" +
 	"\x0eDeploymentSpec\x12B\n" +
 	"\tplacement\x18\x01 \x01(\v2$.talon.resources.DeploymentPlacementR\tplacement\x12\x1c\n" +
-	"\ttemplates\x18\x02 \x03(\tR\ttemplates\"\x87\x01\n" +
+	"\ttemplates\x18\x02 \x03(\tR\ttemplates\"\xb7\x01\n" +
+	"\n" +
+	"Deployment\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x123\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1f.talon.resources.DeploymentSpecR\x04spec\x129\n" +
+	"\x06status\x18\x03 \x01(\v2!.talon.resources.DeploymentStatusR\x06status\"\x87\x01\n" +
 	"\x15DeploymentReplicaSpec\x12C\n" +
 	"\x0edeployment_ref\x18\x01 \x01(\v2\x1c.talon.resources.ResourceRefR\rdeploymentRef\x12)\n" +
-	"\x10target_namespace\x18\x02 \x01(\tR\x0ftargetNamespace\"\xd7\x01\n" +
+	"\x10target_namespace\x18\x02 \x01(\tR\x0ftargetNamespace\"\xcc\x01\n" +
+	"\x11DeploymentReplica\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x12:\n" +
+	"\x04spec\x18\x02 \x01(\v2&.talon.resources.DeploymentReplicaSpecR\x04spec\x12@\n" +
+	"\x06status\x18\x03 \x01(\v2(.talon.resources.DeploymentReplicaStatusR\x06status\"\xd7\x01\n" +
 	"\x10DeploymentStatus\x12/\n" +
 	"\x13observed_generation\x18\x01 \x01(\x04R\x12observedGeneration\x12\x14\n" +
 	"\x05phase\x18\x02 \x01(\tR\x05phase\x12B\n" +
@@ -453,36 +646,49 @@ func file_proto_resources_deployments_proto_rawDescGZIP() []byte {
 	return file_proto_resources_deployments_proto_rawDescData
 }
 
-var file_proto_resources_deployments_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_resources_deployments_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_proto_resources_deployments_proto_goTypes = []any{
 	(*TemplateSpec)(nil),            // 0: talon.resources.TemplateSpec
-	(*DeploymentPlacement)(nil),     // 1: talon.resources.DeploymentPlacement
-	(*DeploymentSpec)(nil),          // 2: talon.resources.DeploymentSpec
-	(*DeploymentReplicaSpec)(nil),   // 3: talon.resources.DeploymentReplicaSpec
-	(*DeploymentStatus)(nil),        // 4: talon.resources.DeploymentStatus
-	(*DeploymentReplicaStatus)(nil), // 5: talon.resources.DeploymentReplicaStatus
-	nil,                             // 6: talon.resources.DeploymentReplicaStatus.RenderedHashesEntry
-	nil,                             // 7: talon.resources.DeploymentReplicaStatus.LastRenderedJsonEntry
-	(*ResourceMeta)(nil),            // 8: talon.resources.ResourceMeta
-	(*NamespaceSelector)(nil),       // 9: talon.resources.NamespaceSelector
-	(*ResourceRef)(nil),             // 10: talon.resources.ResourceRef
-	(*ResourceCondition)(nil),       // 11: talon.resources.ResourceCondition
+	(*Template)(nil),                // 1: talon.resources.Template
+	(*DeploymentPlacement)(nil),     // 2: talon.resources.DeploymentPlacement
+	(*DeploymentSpec)(nil),          // 3: talon.resources.DeploymentSpec
+	(*Deployment)(nil),              // 4: talon.resources.Deployment
+	(*DeploymentReplicaSpec)(nil),   // 5: talon.resources.DeploymentReplicaSpec
+	(*DeploymentReplica)(nil),       // 6: talon.resources.DeploymentReplica
+	(*DeploymentStatus)(nil),        // 7: talon.resources.DeploymentStatus
+	(*DeploymentReplicaStatus)(nil), // 8: talon.resources.DeploymentReplicaStatus
+	nil,                             // 9: talon.resources.DeploymentReplicaStatus.RenderedHashesEntry
+	nil,                             // 10: talon.resources.DeploymentReplicaStatus.LastRenderedJsonEntry
+	(*ResourceMeta)(nil),            // 11: talon.resources.ResourceMeta
+	(*CommonResourceStatus)(nil),    // 12: talon.resources.CommonResourceStatus
+	(*NamespaceSelector)(nil),       // 13: talon.resources.NamespaceSelector
+	(*ResourceRef)(nil),             // 14: talon.resources.ResourceRef
+	(*ResourceCondition)(nil),       // 15: talon.resources.ResourceCondition
 }
 var file_proto_resources_deployments_proto_depIdxs = []int32{
-	8,  // 0: talon.resources.TemplateSpec.metadata:type_name -> talon.resources.ResourceMeta
-	9,  // 1: talon.resources.DeploymentPlacement.namespace_selector:type_name -> talon.resources.NamespaceSelector
-	1,  // 2: talon.resources.DeploymentSpec.placement:type_name -> talon.resources.DeploymentPlacement
-	10, // 3: talon.resources.DeploymentReplicaSpec.deployment_ref:type_name -> talon.resources.ResourceRef
-	11, // 4: talon.resources.DeploymentStatus.conditions:type_name -> talon.resources.ResourceCondition
-	10, // 5: talon.resources.DeploymentStatus.replicas:type_name -> talon.resources.ResourceRef
-	11, // 6: talon.resources.DeploymentReplicaStatus.conditions:type_name -> talon.resources.ResourceCondition
-	6,  // 7: talon.resources.DeploymentReplicaStatus.rendered_hashes:type_name -> talon.resources.DeploymentReplicaStatus.RenderedHashesEntry
-	7,  // 8: talon.resources.DeploymentReplicaStatus.last_rendered_json:type_name -> talon.resources.DeploymentReplicaStatus.LastRenderedJsonEntry
-	9,  // [9:9] is the sub-list for method output_type
-	9,  // [9:9] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	11, // 0: talon.resources.TemplateSpec.metadata:type_name -> talon.resources.ResourceMeta
+	11, // 1: talon.resources.Template.metadata:type_name -> talon.resources.ResourceMeta
+	0,  // 2: talon.resources.Template.spec:type_name -> talon.resources.TemplateSpec
+	12, // 3: talon.resources.Template.status:type_name -> talon.resources.CommonResourceStatus
+	13, // 4: talon.resources.DeploymentPlacement.namespace_selector:type_name -> talon.resources.NamespaceSelector
+	2,  // 5: talon.resources.DeploymentSpec.placement:type_name -> talon.resources.DeploymentPlacement
+	11, // 6: talon.resources.Deployment.metadata:type_name -> talon.resources.ResourceMeta
+	3,  // 7: talon.resources.Deployment.spec:type_name -> talon.resources.DeploymentSpec
+	7,  // 8: talon.resources.Deployment.status:type_name -> talon.resources.DeploymentStatus
+	14, // 9: talon.resources.DeploymentReplicaSpec.deployment_ref:type_name -> talon.resources.ResourceRef
+	11, // 10: talon.resources.DeploymentReplica.metadata:type_name -> talon.resources.ResourceMeta
+	5,  // 11: talon.resources.DeploymentReplica.spec:type_name -> talon.resources.DeploymentReplicaSpec
+	8,  // 12: talon.resources.DeploymentReplica.status:type_name -> talon.resources.DeploymentReplicaStatus
+	15, // 13: talon.resources.DeploymentStatus.conditions:type_name -> talon.resources.ResourceCondition
+	14, // 14: talon.resources.DeploymentStatus.replicas:type_name -> talon.resources.ResourceRef
+	15, // 15: talon.resources.DeploymentReplicaStatus.conditions:type_name -> talon.resources.ResourceCondition
+	9,  // 16: talon.resources.DeploymentReplicaStatus.rendered_hashes:type_name -> talon.resources.DeploymentReplicaStatus.RenderedHashesEntry
+	10, // 17: talon.resources.DeploymentReplicaStatus.last_rendered_json:type_name -> talon.resources.DeploymentReplicaStatus.LastRenderedJsonEntry
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_deployments_proto_init() }
@@ -497,7 +703,7 @@ func file_proto_resources_deployments_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_deployments_proto_rawDesc), len(file_proto_resources_deployments_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

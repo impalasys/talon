@@ -85,6 +85,66 @@ func (x *SandboxClassSpec) GetCredentialsJson() string {
 	return ""
 }
 
+type SandboxClass struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *SandboxClassSpec      `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *CommonResourceStatus  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SandboxClass) Reset() {
+	*x = SandboxClass{}
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SandboxClass) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SandboxClass) ProtoMessage() {}
+
+func (x *SandboxClass) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SandboxClass.ProtoReflect.Descriptor instead.
+func (*SandboxClass) Descriptor() ([]byte, []int) {
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SandboxClass) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *SandboxClass) GetSpec() *SandboxClassSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *SandboxClass) GetStatus() *CommonResourceStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 type SandboxWorkspaceSpec struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Mode  string                 `protobuf:"bytes,1,opt,name=mode,proto3" json:"mode,omitempty"`
@@ -97,7 +157,7 @@ type SandboxWorkspaceSpec struct {
 
 func (x *SandboxWorkspaceSpec) Reset() {
 	*x = SandboxWorkspaceSpec{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[1]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -109,7 +169,7 @@ func (x *SandboxWorkspaceSpec) String() string {
 func (*SandboxWorkspaceSpec) ProtoMessage() {}
 
 func (x *SandboxWorkspaceSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[1]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -122,7 +182,7 @@ func (x *SandboxWorkspaceSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxWorkspaceSpec.ProtoReflect.Descriptor instead.
 func (*SandboxWorkspaceSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{1}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SandboxWorkspaceSpec) GetMode() string {
@@ -149,7 +209,7 @@ type SandboxSetupSpec struct {
 
 func (x *SandboxSetupSpec) Reset() {
 	*x = SandboxSetupSpec{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[2]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -161,7 +221,7 @@ func (x *SandboxSetupSpec) String() string {
 func (*SandboxSetupSpec) ProtoMessage() {}
 
 func (x *SandboxSetupSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[2]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -174,7 +234,7 @@ func (x *SandboxSetupSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxSetupSpec.ProtoReflect.Descriptor instead.
 func (*SandboxSetupSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{2}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SandboxSetupSpec) GetPackages() []string {
@@ -200,7 +260,7 @@ type SandboxNetworkSpec struct {
 
 func (x *SandboxNetworkSpec) Reset() {
 	*x = SandboxNetworkSpec{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[3]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -212,7 +272,7 @@ func (x *SandboxNetworkSpec) String() string {
 func (*SandboxNetworkSpec) ProtoMessage() {}
 
 func (x *SandboxNetworkSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[3]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -225,7 +285,7 @@ func (x *SandboxNetworkSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxNetworkSpec.ProtoReflect.Descriptor instead.
 func (*SandboxNetworkSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{3}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SandboxNetworkSpec) GetMode() string {
@@ -245,7 +305,7 @@ type SandboxFilesystemSpec struct {
 
 func (x *SandboxFilesystemSpec) Reset() {
 	*x = SandboxFilesystemSpec{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[4]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +317,7 @@ func (x *SandboxFilesystemSpec) String() string {
 func (*SandboxFilesystemSpec) ProtoMessage() {}
 
 func (x *SandboxFilesystemSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[4]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +330,7 @@ func (x *SandboxFilesystemSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxFilesystemSpec.ProtoReflect.Descriptor instead.
 func (*SandboxFilesystemSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{4}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SandboxFilesystemSpec) GetWritable() []string {
@@ -296,7 +356,7 @@ type SandboxLeasePolicySpec struct {
 
 func (x *SandboxLeasePolicySpec) Reset() {
 	*x = SandboxLeasePolicySpec{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[5]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -308,7 +368,7 @@ func (x *SandboxLeasePolicySpec) String() string {
 func (*SandboxLeasePolicySpec) ProtoMessage() {}
 
 func (x *SandboxLeasePolicySpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[5]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -321,7 +381,7 @@ func (x *SandboxLeasePolicySpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxLeasePolicySpec.ProtoReflect.Descriptor instead.
 func (*SandboxLeasePolicySpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{5}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SandboxLeasePolicySpec) GetMode() string {
@@ -345,7 +405,7 @@ type SandboxRuntimeTemplateSpec struct {
 
 func (x *SandboxRuntimeTemplateSpec) Reset() {
 	*x = SandboxRuntimeTemplateSpec{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[6]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -357,7 +417,7 @@ func (x *SandboxRuntimeTemplateSpec) String() string {
 func (*SandboxRuntimeTemplateSpec) ProtoMessage() {}
 
 func (x *SandboxRuntimeTemplateSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[6]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -370,7 +430,7 @@ func (x *SandboxRuntimeTemplateSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxRuntimeTemplateSpec.ProtoReflect.Descriptor instead.
 func (*SandboxRuntimeTemplateSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{6}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SandboxRuntimeTemplateSpec) GetImage() string {
@@ -426,7 +486,7 @@ type SandboxPolicySpec struct {
 
 func (x *SandboxPolicySpec) Reset() {
 	*x = SandboxPolicySpec{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[7]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -438,7 +498,7 @@ func (x *SandboxPolicySpec) String() string {
 func (*SandboxPolicySpec) ProtoMessage() {}
 
 func (x *SandboxPolicySpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[7]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -451,7 +511,7 @@ func (x *SandboxPolicySpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxPolicySpec.ProtoReflect.Descriptor instead.
 func (*SandboxPolicySpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{7}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SandboxPolicySpec) GetClassRef() *ResourceRef {
@@ -475,6 +535,66 @@ func (x *SandboxPolicySpec) GetMaxConcurrent() uint32 {
 	return 0
 }
 
+type SandboxPolicy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *SandboxPolicySpec     `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *CommonResourceStatus  `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SandboxPolicy) Reset() {
+	*x = SandboxPolicy{}
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SandboxPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SandboxPolicy) ProtoMessage() {}
+
+func (x *SandboxPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SandboxPolicy.ProtoReflect.Descriptor instead.
+func (*SandboxPolicy) Descriptor() ([]byte, []int) {
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SandboxPolicy) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *SandboxPolicy) GetSpec() *SandboxPolicySpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *SandboxPolicy) GetStatus() *CommonResourceStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 type SandboxLease struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	OwnerKind      string                 `protobuf:"bytes,1,opt,name=owner_kind,json=ownerKind,proto3" json:"owner_kind,omitempty"`
@@ -493,7 +613,7 @@ type SandboxLease struct {
 
 func (x *SandboxLease) Reset() {
 	*x = SandboxLease{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[8]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -505,7 +625,7 @@ func (x *SandboxLease) String() string {
 func (*SandboxLease) ProtoMessage() {}
 
 func (x *SandboxLease) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[8]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -518,7 +638,7 @@ func (x *SandboxLease) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxLease.ProtoReflect.Descriptor instead.
 func (*SandboxLease) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{8}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *SandboxLease) GetOwnerKind() string {
@@ -583,7 +703,7 @@ type SandboxProcessStatus struct {
 
 func (x *SandboxProcessStatus) Reset() {
 	*x = SandboxProcessStatus{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[9]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -595,7 +715,7 @@ func (x *SandboxProcessStatus) String() string {
 func (*SandboxProcessStatus) ProtoMessage() {}
 
 func (x *SandboxProcessStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[9]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -608,7 +728,7 @@ func (x *SandboxProcessStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxProcessStatus.ProtoReflect.Descriptor instead.
 func (*SandboxProcessStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{9}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SandboxProcessStatus) GetId() string {
@@ -660,7 +780,7 @@ type SandboxStatus struct {
 
 func (x *SandboxStatus) Reset() {
 	*x = SandboxStatus{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[10]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -672,7 +792,7 @@ func (x *SandboxStatus) String() string {
 func (*SandboxStatus) ProtoMessage() {}
 
 func (x *SandboxStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[10]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -685,7 +805,7 @@ func (x *SandboxStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxStatus.ProtoReflect.Descriptor instead.
 func (*SandboxStatus) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{10}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SandboxStatus) GetObservedGeneration() uint64 {
@@ -742,7 +862,7 @@ type SandboxSpec struct {
 
 func (x *SandboxSpec) Reset() {
 	*x = SandboxSpec{}
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[11]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -754,7 +874,7 @@ func (x *SandboxSpec) String() string {
 func (*SandboxSpec) ProtoMessage() {}
 
 func (x *SandboxSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_resources_sandboxes_proto_msgTypes[11]
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -767,7 +887,7 @@ func (x *SandboxSpec) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxSpec.ProtoReflect.Descriptor instead.
 func (*SandboxSpec) Descriptor() ([]byte, []int) {
-	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{11}
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SandboxSpec) GetPolicyRef() string {
@@ -791,6 +911,66 @@ func (x *SandboxSpec) GetRuntimeTemplate() *SandboxRuntimeTemplateSpec {
 	return nil
 }
 
+type Sandbox struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Metadata      *ResourceMeta          `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	Spec          *SandboxSpec           `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec,omitempty"`
+	Status        *SandboxStatus         `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Sandbox) Reset() {
+	*x = Sandbox{}
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Sandbox) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Sandbox) ProtoMessage() {}
+
+func (x *Sandbox) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_resources_sandboxes_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Sandbox.ProtoReflect.Descriptor instead.
+func (*Sandbox) Descriptor() ([]byte, []int) {
+	return file_proto_resources_sandboxes_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *Sandbox) GetMetadata() *ResourceMeta {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *Sandbox) GetSpec() *SandboxSpec {
+	if x != nil {
+		return x.Spec
+	}
+	return nil
+}
+
+func (x *Sandbox) GetStatus() *SandboxStatus {
+	if x != nil {
+		return x.Status
+	}
+	return nil
+}
+
 var File_proto_resources_sandboxes_proto protoreflect.FileDescriptor
 
 const file_proto_resources_sandboxes_proto_rawDesc = "" +
@@ -799,7 +979,11 @@ const file_proto_resources_sandboxes_proto_rawDesc = "" +
 	"\x10SandboxClassSpec\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x120\n" +
 	"\x14provider_config_json\x18\x02 \x01(\tR\x12providerConfigJson\x12)\n" +
-	"\x10credentials_json\x18\x03 \x01(\tR\x0fcredentialsJson\"I\n" +
+	"\x10credentials_json\x18\x03 \x01(\tR\x0fcredentialsJson\"\xbf\x01\n" +
+	"\fSandboxClass\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x125\n" +
+	"\x04spec\x18\x02 \x01(\v2!.talon.resources.SandboxClassSpecR\x04spec\x12=\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"I\n" +
 	"\x14SandboxWorkspaceSpec\x12\x12\n" +
 	"\x04mode\x18\x01 \x01(\tR\x04mode\x12\x1d\n" +
 	"\n" +
@@ -826,7 +1010,11 @@ const file_proto_resources_sandboxes_proto_rawDesc = "" +
 	"\x11SandboxPolicySpec\x129\n" +
 	"\tclass_ref\x18\x01 \x01(\v2\x1c.talon.resources.ResourceRefR\bclassRef\x12G\n" +
 	"\btemplate\x18\x02 \x01(\v2+.talon.resources.SandboxRuntimeTemplateSpecR\btemplate\x12%\n" +
-	"\x0emax_concurrent\x18\x03 \x01(\rR\rmaxConcurrent\"\xf1\x01\n" +
+	"\x0emax_concurrent\x18\x03 \x01(\rR\rmaxConcurrent\"\xc1\x01\n" +
+	"\rSandboxPolicy\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x126\n" +
+	"\x04spec\x18\x02 \x01(\v2\".talon.resources.SandboxPolicySpecR\x04spec\x12=\n" +
+	"\x06status\x18\x03 \x01(\v2%.talon.resources.CommonResourceStatusR\x06status\"\xf1\x01\n" +
 	"\fSandboxLease\x12\x1d\n" +
 	"\n" +
 	"owner_kind\x18\x01 \x01(\tR\townerKind\x12\x1f\n" +
@@ -859,7 +1047,11 @@ const file_proto_resources_sandboxes_proto_rawDesc = "" +
 	"\n" +
 	"policy_ref\x18\x01 \x01(\tR\tpolicyRef\x129\n" +
 	"\tclass_ref\x18\x02 \x01(\v2\x1c.talon.resources.ResourceRefR\bclassRef\x12V\n" +
-	"\x10runtime_template\x18\x03 \x01(\v2+.talon.resources.SandboxRuntimeTemplateSpecR\x0fruntimeTemplateb\x06proto3"
+	"\x10runtime_template\x18\x03 \x01(\v2+.talon.resources.SandboxRuntimeTemplateSpecR\x0fruntimeTemplate\"\xae\x01\n" +
+	"\aSandbox\x129\n" +
+	"\bmetadata\x18\x01 \x01(\v2\x1d.talon.resources.ResourceMetaR\bmetadata\x120\n" +
+	"\x04spec\x18\x02 \x01(\v2\x1c.talon.resources.SandboxSpecR\x04spec\x126\n" +
+	"\x06status\x18\x03 \x01(\v2\x1e.talon.resources.SandboxStatusR\x06statusb\x06proto3"
 
 var (
 	file_proto_resources_sandboxes_proto_rawDescOnce sync.Once
@@ -873,41 +1065,55 @@ func file_proto_resources_sandboxes_proto_rawDescGZIP() []byte {
 	return file_proto_resources_sandboxes_proto_rawDescData
 }
 
-var file_proto_resources_sandboxes_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_proto_resources_sandboxes_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_proto_resources_sandboxes_proto_goTypes = []any{
 	(*SandboxClassSpec)(nil),           // 0: talon.resources.SandboxClassSpec
-	(*SandboxWorkspaceSpec)(nil),       // 1: talon.resources.SandboxWorkspaceSpec
-	(*SandboxSetupSpec)(nil),           // 2: talon.resources.SandboxSetupSpec
-	(*SandboxNetworkSpec)(nil),         // 3: talon.resources.SandboxNetworkSpec
-	(*SandboxFilesystemSpec)(nil),      // 4: talon.resources.SandboxFilesystemSpec
-	(*SandboxLeasePolicySpec)(nil),     // 5: talon.resources.SandboxLeasePolicySpec
-	(*SandboxRuntimeTemplateSpec)(nil), // 6: talon.resources.SandboxRuntimeTemplateSpec
-	(*SandboxPolicySpec)(nil),          // 7: talon.resources.SandboxPolicySpec
-	(*SandboxLease)(nil),               // 8: talon.resources.SandboxLease
-	(*SandboxProcessStatus)(nil),       // 9: talon.resources.SandboxProcessStatus
-	(*SandboxStatus)(nil),              // 10: talon.resources.SandboxStatus
-	(*SandboxSpec)(nil),                // 11: talon.resources.SandboxSpec
-	(*ResourceRef)(nil),                // 12: talon.resources.ResourceRef
-	(*ResourceCondition)(nil),          // 13: talon.resources.ResourceCondition
+	(*SandboxClass)(nil),               // 1: talon.resources.SandboxClass
+	(*SandboxWorkspaceSpec)(nil),       // 2: talon.resources.SandboxWorkspaceSpec
+	(*SandboxSetupSpec)(nil),           // 3: talon.resources.SandboxSetupSpec
+	(*SandboxNetworkSpec)(nil),         // 4: talon.resources.SandboxNetworkSpec
+	(*SandboxFilesystemSpec)(nil),      // 5: talon.resources.SandboxFilesystemSpec
+	(*SandboxLeasePolicySpec)(nil),     // 6: talon.resources.SandboxLeasePolicySpec
+	(*SandboxRuntimeTemplateSpec)(nil), // 7: talon.resources.SandboxRuntimeTemplateSpec
+	(*SandboxPolicySpec)(nil),          // 8: talon.resources.SandboxPolicySpec
+	(*SandboxPolicy)(nil),              // 9: talon.resources.SandboxPolicy
+	(*SandboxLease)(nil),               // 10: talon.resources.SandboxLease
+	(*SandboxProcessStatus)(nil),       // 11: talon.resources.SandboxProcessStatus
+	(*SandboxStatus)(nil),              // 12: talon.resources.SandboxStatus
+	(*SandboxSpec)(nil),                // 13: talon.resources.SandboxSpec
+	(*Sandbox)(nil),                    // 14: talon.resources.Sandbox
+	(*ResourceMeta)(nil),               // 15: talon.resources.ResourceMeta
+	(*CommonResourceStatus)(nil),       // 16: talon.resources.CommonResourceStatus
+	(*ResourceRef)(nil),                // 17: talon.resources.ResourceRef
+	(*ResourceCondition)(nil),          // 18: talon.resources.ResourceCondition
 }
 var file_proto_resources_sandboxes_proto_depIdxs = []int32{
-	1,  // 0: talon.resources.SandboxRuntimeTemplateSpec.workspace:type_name -> talon.resources.SandboxWorkspaceSpec
-	2,  // 1: talon.resources.SandboxRuntimeTemplateSpec.setup:type_name -> talon.resources.SandboxSetupSpec
-	3,  // 2: talon.resources.SandboxRuntimeTemplateSpec.network:type_name -> talon.resources.SandboxNetworkSpec
-	4,  // 3: talon.resources.SandboxRuntimeTemplateSpec.filesystem:type_name -> talon.resources.SandboxFilesystemSpec
-	5,  // 4: talon.resources.SandboxRuntimeTemplateSpec.lease_policy:type_name -> talon.resources.SandboxLeasePolicySpec
-	12, // 5: talon.resources.SandboxPolicySpec.class_ref:type_name -> talon.resources.ResourceRef
-	6,  // 6: talon.resources.SandboxPolicySpec.template:type_name -> talon.resources.SandboxRuntimeTemplateSpec
-	13, // 7: talon.resources.SandboxStatus.conditions:type_name -> talon.resources.ResourceCondition
-	8,  // 8: talon.resources.SandboxStatus.lease:type_name -> talon.resources.SandboxLease
-	9,  // 9: talon.resources.SandboxStatus.processes:type_name -> talon.resources.SandboxProcessStatus
-	12, // 10: talon.resources.SandboxSpec.class_ref:type_name -> talon.resources.ResourceRef
-	6,  // 11: talon.resources.SandboxSpec.runtime_template:type_name -> talon.resources.SandboxRuntimeTemplateSpec
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	15, // 0: talon.resources.SandboxClass.metadata:type_name -> talon.resources.ResourceMeta
+	0,  // 1: talon.resources.SandboxClass.spec:type_name -> talon.resources.SandboxClassSpec
+	16, // 2: talon.resources.SandboxClass.status:type_name -> talon.resources.CommonResourceStatus
+	2,  // 3: talon.resources.SandboxRuntimeTemplateSpec.workspace:type_name -> talon.resources.SandboxWorkspaceSpec
+	3,  // 4: talon.resources.SandboxRuntimeTemplateSpec.setup:type_name -> talon.resources.SandboxSetupSpec
+	4,  // 5: talon.resources.SandboxRuntimeTemplateSpec.network:type_name -> talon.resources.SandboxNetworkSpec
+	5,  // 6: talon.resources.SandboxRuntimeTemplateSpec.filesystem:type_name -> talon.resources.SandboxFilesystemSpec
+	6,  // 7: talon.resources.SandboxRuntimeTemplateSpec.lease_policy:type_name -> talon.resources.SandboxLeasePolicySpec
+	17, // 8: talon.resources.SandboxPolicySpec.class_ref:type_name -> talon.resources.ResourceRef
+	7,  // 9: talon.resources.SandboxPolicySpec.template:type_name -> talon.resources.SandboxRuntimeTemplateSpec
+	15, // 10: talon.resources.SandboxPolicy.metadata:type_name -> talon.resources.ResourceMeta
+	8,  // 11: talon.resources.SandboxPolicy.spec:type_name -> talon.resources.SandboxPolicySpec
+	16, // 12: talon.resources.SandboxPolicy.status:type_name -> talon.resources.CommonResourceStatus
+	18, // 13: talon.resources.SandboxStatus.conditions:type_name -> talon.resources.ResourceCondition
+	10, // 14: talon.resources.SandboxStatus.lease:type_name -> talon.resources.SandboxLease
+	11, // 15: talon.resources.SandboxStatus.processes:type_name -> talon.resources.SandboxProcessStatus
+	17, // 16: talon.resources.SandboxSpec.class_ref:type_name -> talon.resources.ResourceRef
+	7,  // 17: talon.resources.SandboxSpec.runtime_template:type_name -> talon.resources.SandboxRuntimeTemplateSpec
+	15, // 18: talon.resources.Sandbox.metadata:type_name -> talon.resources.ResourceMeta
+	13, // 19: talon.resources.Sandbox.spec:type_name -> talon.resources.SandboxSpec
+	12, // 20: talon.resources.Sandbox.status:type_name -> talon.resources.SandboxStatus
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_proto_resources_sandboxes_proto_init() }
@@ -922,7 +1128,7 @@ func file_proto_resources_sandboxes_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_resources_sandboxes_proto_rawDesc), len(file_proto_resources_sandboxes_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   12,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

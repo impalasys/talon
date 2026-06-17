@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { ResourceCondition, ResourceRef } from "./common_pb";
+import type { CommonResourceStatus, ResourceCondition, ResourceMeta, ResourceRef } from "./common_pb";
 import { file_proto_resources_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file proto/resources/sandboxes.proto.
  */
 export const file_proto_resources_sandboxes: GenFile = /*@__PURE__*/
-  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvc2FuZGJveGVzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiXAoQU2FuZGJveENsYXNzU3BlYxIQCghwcm92aWRlchgBIAEoCRIcChRwcm92aWRlcl9jb25maWdfanNvbhgCIAEoCRIYChBjcmVkZW50aWFsc19qc29uGAMgASgJIjgKFFNhbmRib3hXb3Jrc3BhY2VTcGVjEgwKBG1vZGUYASABKAkSEgoKbW91bnRfcGF0aBgCIAEoCSI2ChBTYW5kYm94U2V0dXBTcGVjEhAKCHBhY2thZ2VzGAEgAygJEhAKCGNvbW1hbmRzGAIgAygJIiIKElNhbmRib3hOZXR3b3JrU3BlYxIMCgRtb2RlGAEgASgJIjsKFVNhbmRib3hGaWxlc3lzdGVtU3BlYxIQCgh3cml0YWJsZRgBIAMoCRIQCghyZWFkb25seRgCIAMoCSImChZTYW5kYm94TGVhc2VQb2xpY3lTcGVjEgwKBG1vZGUYASABKAkiyAIKGlNhbmRib3hSdW50aW1lVGVtcGxhdGVTcGVjEg0KBWltYWdlGAEgASgJEjgKCXdvcmtzcGFjZRgCIAEoCzIlLnRhbG9uLnJlc291cmNlcy5TYW5kYm94V29ya3NwYWNlU3BlYxIwCgVzZXR1cBgDIAEoCzIhLnRhbG9uLnJlc291cmNlcy5TYW5kYm94U2V0dXBTcGVjEjQKB25ldHdvcmsYBCABKAsyIy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveE5ldHdvcmtTcGVjEjoKCmZpbGVzeXN0ZW0YBSABKAsyJi50YWxvbi5yZXNvdXJjZXMuU2FuZGJveEZpbGVzeXN0ZW1TcGVjEj0KDGxlYXNlX3BvbGljeRgGIAEoCzInLnRhbG9uLnJlc291cmNlcy5TYW5kYm94TGVhc2VQb2xpY3lTcGVjIpsBChFTYW5kYm94UG9saWN5U3BlYxIvCgljbGFzc19yZWYYASABKAsyHC50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VSZWYSPQoIdGVtcGxhdGUYAiABKAsyKy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFJ1bnRpbWVUZW1wbGF0ZVNwZWMSFgoObWF4X2NvbmN1cnJlbnQYAyABKA0inwEKDFNhbmRib3hMZWFzZRISCgpvd25lcl9raW5kGAEgASgJEhMKC293bmVyX2FnZW50GAIgASgJEhgKEG93bmVyX3Nlc3Npb25faWQYAyABKAkSDQoFdG9rZW4YBCABKAkSEwoLYWNxdWlyZWRfYXQYBSABKAMSEgoKZXhwaXJlc19hdBgGIAEoAxIUCgxoZWFydGJlYXRfYXQYByABKAMiYgoUU2FuZGJveFByb2Nlc3NTdGF0dXMSCgoCaWQYASABKAkSDwoHY29tbWFuZBgCIAEoCRIMCgRhcmdzGAMgAygJEhAKCHByb3RvY29sGAQgASgJEg0KBXBoYXNlGAUgASgJIu8BCg1TYW5kYm94U3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhISCgpiYWNrZW5kX2lkGAQgASgJEiwKBWxlYXNlGAUgASgLMh0udGFsb24ucmVzb3VyY2VzLlNhbmRib3hMZWFzZRI4Cglwcm9jZXNzZXMYBiADKAsyJS50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFByb2Nlc3NTdGF0dXMimQEKC1NhbmRib3hTcGVjEhIKCnBvbGljeV9yZWYYASABKAkSLwoJY2xhc3NfcmVmGAIgASgLMhwudGFsb24ucmVzb3VyY2VzLlJlc291cmNlUmVmEkUKEHJ1bnRpbWVfdGVtcGxhdGUYAyABKAsyKy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFJ1bnRpbWVUZW1wbGF0ZVNwZWNiBnByb3RvMw", [file_proto_resources_common]);
+  fileDesc("Ch9wcm90by9yZXNvdXJjZXMvc2FuZGJveGVzLnByb3RvEg90YWxvbi5yZXNvdXJjZXMiXAoQU2FuZGJveENsYXNzU3BlYxIQCghwcm92aWRlchgBIAEoCRIcChRwcm92aWRlcl9jb25maWdfanNvbhgCIAEoCRIYChBjcmVkZW50aWFsc19qc29uGAMgASgJIqcBCgxTYW5kYm94Q2xhc3MSLwoIbWV0YWRhdGEYASABKAsyHS50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VNZXRhEi8KBHNwZWMYAiABKAsyIS50YWxvbi5yZXNvdXJjZXMuU2FuZGJveENsYXNzU3BlYxI1CgZzdGF0dXMYAyABKAsyJS50YWxvbi5yZXNvdXJjZXMuQ29tbW9uUmVzb3VyY2VTdGF0dXMiOAoUU2FuZGJveFdvcmtzcGFjZVNwZWMSDAoEbW9kZRgBIAEoCRISCgptb3VudF9wYXRoGAIgASgJIjYKEFNhbmRib3hTZXR1cFNwZWMSEAoIcGFja2FnZXMYASADKAkSEAoIY29tbWFuZHMYAiADKAkiIgoSU2FuZGJveE5ldHdvcmtTcGVjEgwKBG1vZGUYASABKAkiOwoVU2FuZGJveEZpbGVzeXN0ZW1TcGVjEhAKCHdyaXRhYmxlGAEgAygJEhAKCHJlYWRvbmx5GAIgAygJIiYKFlNhbmRib3hMZWFzZVBvbGljeVNwZWMSDAoEbW9kZRgBIAEoCSLIAgoaU2FuZGJveFJ1bnRpbWVUZW1wbGF0ZVNwZWMSDQoFaW1hZ2UYASABKAkSOAoJd29ya3NwYWNlGAIgASgLMiUudGFsb24ucmVzb3VyY2VzLlNhbmRib3hXb3Jrc3BhY2VTcGVjEjAKBXNldHVwGAMgASgLMiEudGFsb24ucmVzb3VyY2VzLlNhbmRib3hTZXR1cFNwZWMSNAoHbmV0d29yaxgEIAEoCzIjLnRhbG9uLnJlc291cmNlcy5TYW5kYm94TmV0d29ya1NwZWMSOgoKZmlsZXN5c3RlbRgFIAEoCzImLnRhbG9uLnJlc291cmNlcy5TYW5kYm94RmlsZXN5c3RlbVNwZWMSPQoMbGVhc2VfcG9saWN5GAYgASgLMicudGFsb24ucmVzb3VyY2VzLlNhbmRib3hMZWFzZVBvbGljeVNwZWMimwEKEVNhbmRib3hQb2xpY3lTcGVjEi8KCWNsYXNzX3JlZhgBIAEoCzIcLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZVJlZhI9Cgh0ZW1wbGF0ZRgCIAEoCzIrLnRhbG9uLnJlc291cmNlcy5TYW5kYm94UnVudGltZVRlbXBsYXRlU3BlYxIWCg5tYXhfY29uY3VycmVudBgDIAEoDSKpAQoNU2FuZGJveFBvbGljeRIvCghtZXRhZGF0YRgBIAEoCzIdLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZU1ldGESMAoEc3BlYxgCIAEoCzIiLnRhbG9uLnJlc291cmNlcy5TYW5kYm94UG9saWN5U3BlYxI1CgZzdGF0dXMYAyABKAsyJS50YWxvbi5yZXNvdXJjZXMuQ29tbW9uUmVzb3VyY2VTdGF0dXMinwEKDFNhbmRib3hMZWFzZRISCgpvd25lcl9raW5kGAEgASgJEhMKC293bmVyX2FnZW50GAIgASgJEhgKEG93bmVyX3Nlc3Npb25faWQYAyABKAkSDQoFdG9rZW4YBCABKAkSEwoLYWNxdWlyZWRfYXQYBSABKAMSEgoKZXhwaXJlc19hdBgGIAEoAxIUCgxoZWFydGJlYXRfYXQYByABKAMiYgoUU2FuZGJveFByb2Nlc3NTdGF0dXMSCgoCaWQYASABKAkSDwoHY29tbWFuZBgCIAEoCRIMCgRhcmdzGAMgAygJEhAKCHByb3RvY29sGAQgASgJEg0KBXBoYXNlGAUgASgJIu8BCg1TYW5kYm94U3RhdHVzEhsKE29ic2VydmVkX2dlbmVyYXRpb24YASABKAQSDQoFcGhhc2UYAiABKAkSNgoKY29uZGl0aW9ucxgDIAMoCzIiLnRhbG9uLnJlc291cmNlcy5SZXNvdXJjZUNvbmRpdGlvbhISCgpiYWNrZW5kX2lkGAQgASgJEiwKBWxlYXNlGAUgASgLMh0udGFsb24ucmVzb3VyY2VzLlNhbmRib3hMZWFzZRI4Cglwcm9jZXNzZXMYBiADKAsyJS50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFByb2Nlc3NTdGF0dXMimQEKC1NhbmRib3hTcGVjEhIKCnBvbGljeV9yZWYYASABKAkSLwoJY2xhc3NfcmVmGAIgASgLMhwudGFsb24ucmVzb3VyY2VzLlJlc291cmNlUmVmEkUKEHJ1bnRpbWVfdGVtcGxhdGUYAyABKAsyKy50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFJ1bnRpbWVUZW1wbGF0ZVNwZWMilgEKB1NhbmRib3gSLwoIbWV0YWRhdGEYASABKAsyHS50YWxvbi5yZXNvdXJjZXMuUmVzb3VyY2VNZXRhEioKBHNwZWMYAiABKAsyHC50YWxvbi5yZXNvdXJjZXMuU2FuZGJveFNwZWMSLgoGc3RhdHVzGAMgASgLMh4udGFsb24ucmVzb3VyY2VzLlNhbmRib3hTdGF0dXNiBnByb3RvMw", [file_proto_resources_common]);
 
 /**
  * @generated from message talon.resources.SandboxClassSpec
@@ -48,6 +48,33 @@ export const SandboxClassSpecSchema: GenMessage<SandboxClassSpec> = /*@__PURE__*
   messageDesc(file_proto_resources_sandboxes, 0);
 
 /**
+ * @generated from message talon.resources.SandboxClass
+ */
+export type SandboxClass = Message<"talon.resources.SandboxClass"> & {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.SandboxClassSpec spec = 2;
+   */
+  spec?: SandboxClassSpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
+};
+
+/**
+ * Describes the message talon.resources.SandboxClass.
+ * Use `create(SandboxClassSchema)` to create a new message.
+ */
+export const SandboxClassSchema: GenMessage<SandboxClass> = /*@__PURE__*/
+  messageDesc(file_proto_resources_sandboxes, 1);
+
+/**
  * @generated from message talon.resources.SandboxWorkspaceSpec
  */
 export type SandboxWorkspaceSpec = Message<"talon.resources.SandboxWorkspaceSpec"> & {
@@ -70,7 +97,7 @@ export type SandboxWorkspaceSpec = Message<"talon.resources.SandboxWorkspaceSpec
  * Use `create(SandboxWorkspaceSpecSchema)` to create a new message.
  */
 export const SandboxWorkspaceSpecSchema: GenMessage<SandboxWorkspaceSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 1);
+  messageDesc(file_proto_resources_sandboxes, 2);
 
 /**
  * @generated from message talon.resources.SandboxSetupSpec
@@ -92,7 +119,7 @@ export type SandboxSetupSpec = Message<"talon.resources.SandboxSetupSpec"> & {
  * Use `create(SandboxSetupSpecSchema)` to create a new message.
  */
 export const SandboxSetupSpecSchema: GenMessage<SandboxSetupSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 2);
+  messageDesc(file_proto_resources_sandboxes, 3);
 
 /**
  * @generated from message talon.resources.SandboxNetworkSpec
@@ -109,7 +136,7 @@ export type SandboxNetworkSpec = Message<"talon.resources.SandboxNetworkSpec"> &
  * Use `create(SandboxNetworkSpecSchema)` to create a new message.
  */
 export const SandboxNetworkSpecSchema: GenMessage<SandboxNetworkSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 3);
+  messageDesc(file_proto_resources_sandboxes, 4);
 
 /**
  * @generated from message talon.resources.SandboxFilesystemSpec
@@ -131,7 +158,7 @@ export type SandboxFilesystemSpec = Message<"talon.resources.SandboxFilesystemSp
  * Use `create(SandboxFilesystemSpecSchema)` to create a new message.
  */
 export const SandboxFilesystemSpecSchema: GenMessage<SandboxFilesystemSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 4);
+  messageDesc(file_proto_resources_sandboxes, 5);
 
 /**
  * @generated from message talon.resources.SandboxLeasePolicySpec
@@ -148,7 +175,7 @@ export type SandboxLeasePolicySpec = Message<"talon.resources.SandboxLeasePolicy
  * Use `create(SandboxLeasePolicySpecSchema)` to create a new message.
  */
 export const SandboxLeasePolicySpecSchema: GenMessage<SandboxLeasePolicySpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 5);
+  messageDesc(file_proto_resources_sandboxes, 6);
 
 /**
  * @generated from message talon.resources.SandboxRuntimeTemplateSpec
@@ -190,7 +217,7 @@ export type SandboxRuntimeTemplateSpec = Message<"talon.resources.SandboxRuntime
  * Use `create(SandboxRuntimeTemplateSpecSchema)` to create a new message.
  */
 export const SandboxRuntimeTemplateSpecSchema: GenMessage<SandboxRuntimeTemplateSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 6);
+  messageDesc(file_proto_resources_sandboxes, 7);
 
 /**
  * @generated from message talon.resources.SandboxPolicySpec
@@ -217,7 +244,34 @@ export type SandboxPolicySpec = Message<"talon.resources.SandboxPolicySpec"> & {
  * Use `create(SandboxPolicySpecSchema)` to create a new message.
  */
 export const SandboxPolicySpecSchema: GenMessage<SandboxPolicySpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 7);
+  messageDesc(file_proto_resources_sandboxes, 8);
+
+/**
+ * @generated from message talon.resources.SandboxPolicy
+ */
+export type SandboxPolicy = Message<"talon.resources.SandboxPolicy"> & {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.SandboxPolicySpec spec = 2;
+   */
+  spec?: SandboxPolicySpec;
+
+  /**
+   * @generated from field: talon.resources.CommonResourceStatus status = 3;
+   */
+  status?: CommonResourceStatus;
+};
+
+/**
+ * Describes the message talon.resources.SandboxPolicy.
+ * Use `create(SandboxPolicySchema)` to create a new message.
+ */
+export const SandboxPolicySchema: GenMessage<SandboxPolicy> = /*@__PURE__*/
+  messageDesc(file_proto_resources_sandboxes, 9);
 
 /**
  * @generated from message talon.resources.SandboxLease
@@ -270,7 +324,7 @@ export type SandboxLease = Message<"talon.resources.SandboxLease"> & {
  * Use `create(SandboxLeaseSchema)` to create a new message.
  */
 export const SandboxLeaseSchema: GenMessage<SandboxLease> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 8);
+  messageDesc(file_proto_resources_sandboxes, 10);
 
 /**
  * @generated from message talon.resources.SandboxProcessStatus
@@ -307,7 +361,7 @@ export type SandboxProcessStatus = Message<"talon.resources.SandboxProcessStatus
  * Use `create(SandboxProcessStatusSchema)` to create a new message.
  */
 export const SandboxProcessStatusSchema: GenMessage<SandboxProcessStatus> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 9);
+  messageDesc(file_proto_resources_sandboxes, 11);
 
 /**
  * @generated from message talon.resources.SandboxStatus
@@ -349,7 +403,7 @@ export type SandboxStatus = Message<"talon.resources.SandboxStatus"> & {
  * Use `create(SandboxStatusSchema)` to create a new message.
  */
 export const SandboxStatusSchema: GenMessage<SandboxStatus> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 10);
+  messageDesc(file_proto_resources_sandboxes, 12);
 
 /**
  * @generated from message talon.resources.SandboxSpec
@@ -378,5 +432,32 @@ export type SandboxSpec = Message<"talon.resources.SandboxSpec"> & {
  * Use `create(SandboxSpecSchema)` to create a new message.
  */
 export const SandboxSpecSchema: GenMessage<SandboxSpec> = /*@__PURE__*/
-  messageDesc(file_proto_resources_sandboxes, 11);
+  messageDesc(file_proto_resources_sandboxes, 13);
+
+/**
+ * @generated from message talon.resources.Sandbox
+ */
+export type Sandbox = Message<"talon.resources.Sandbox"> & {
+  /**
+   * @generated from field: talon.resources.ResourceMeta metadata = 1;
+   */
+  metadata?: ResourceMeta;
+
+  /**
+   * @generated from field: talon.resources.SandboxSpec spec = 2;
+   */
+  spec?: SandboxSpec;
+
+  /**
+   * @generated from field: talon.resources.SandboxStatus status = 3;
+   */
+  status?: SandboxStatus;
+};
+
+/**
+ * Describes the message talon.resources.Sandbox.
+ * Use `create(SandboxSchema)` to create a new message.
+ */
+export const SandboxSchema: GenMessage<Sandbox> = /*@__PURE__*/
+  messageDesc(file_proto_resources_sandboxes, 14);
 
