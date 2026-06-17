@@ -4,6 +4,8 @@
 use anyhow::{Context, Result};
 use serde_json::json;
 use std::collections::HashMap;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 use crate::control::ns;
 use crate::control::resource_model::TypedResource;
@@ -16,24 +18,68 @@ use crate::cli::{auth_interceptor, parse_raw_manifest, render_manifest_file, res
 
 #[derive(clap::Args)]
 pub(crate) struct ApplyCommand {
-    #[arg(short, long)]
-    pub(crate) file: String,
+    /// Manifest file or directory. Repeat to apply multiple paths.
+    #[arg(short, long, required = true)]
+    pub(crate) file: Vec<String>,
     /// Template variables in KEY=VALUE form.
     #[arg(long = "var", value_name = "KEY=VALUE")]
     pub(crate) vars: Vec<String>,
 }
 
 pub(super) async fn run(cli: &Cli, command: &ApplyCommand) -> Result<()> {
-    let content = render_manifest_file(&command.file, &command.vars)?;
+    let files = collect_apply_files(&command.file)?;
+    for file in files {
+        let file = file.to_string_lossy().into_owned();
+        let content = render_manifest_file(&file, &command.vars)?;
 
-    if cli.rest {
-        rest_ensure_manifest_namespace(cli, &content).await?;
-        println!("{}", rest_apply_manifest(cli, &content).await?);
+        if cli.rest {
+            rest_ensure_manifest_namespace(cli, &content).await?;
+            println!("{}", rest_apply_manifest(cli, &content).await?);
+        } else {
+            println!("{}", grpc_apply_manifest(cli, &content).await?);
+        }
+    }
+    Ok(())
+}
+
+fn collect_apply_files(inputs: &[String]) -> Result<Vec<PathBuf>> {
+    let mut files = Vec::new();
+    for input in inputs {
+        collect_apply_path(Path::new(input), &mut files)?;
+    }
+    files.sort();
+    Ok(files)
+}
+
+fn collect_apply_path(path: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
+    if path.is_file() {
+        files.push(path.to_path_buf());
         return Ok(());
     }
+    if path.is_dir() {
+        for entry in fs::read_dir(path)
+            .with_context(|| format!("Failed to read directory '{}'", path.display()))?
+        {
+            let entry = entry?;
+            let child = entry.path();
+            if child.is_dir() {
+                collect_apply_path(&child, files)?;
+            } else if is_yaml_file(&child) {
+                files.push(child);
+            }
+        }
+        return Ok(());
+    }
+    anyhow::bail!("Apply path '{}' does not exist", path.display())
+}
 
-    println!("{}", grpc_apply_manifest(cli, &content).await?);
-    Ok(())
+fn is_yaml_file(path: &Path) -> bool {
+    path.extension()
+        .and_then(|extension| extension.to_str())
+        .map(|extension| {
+            extension.eq_ignore_ascii_case("yaml") || extension.eq_ignore_ascii_case("yml")
+        })
+        .unwrap_or(false)
 }
 
 fn namespace_to_ensure(content: &str) -> Result<Option<String>> {
@@ -514,5 +560,50 @@ pub(super) async fn grpc_apply_manifest(cli: &Cli, content: &str) -> Result<Stri
                 kind, ns, name
             ))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::tempdir;
+
+    fn write_file(path: &Path, content: &str) {
+        let mut file = fs::File::create(path).expect("create test file");
+        file.write_all(content.as_bytes()).expect("write test file");
+    }
+
+    #[test]
+    fn collect_apply_files_accepts_multiple_files_and_directories() {
+        let dir = tempdir().expect("tempdir");
+        let root = dir.path();
+        let nested = root.join("nested");
+        fs::create_dir(&nested).expect("create nested dir");
+
+        let b = root.join("b.yaml");
+        let a = nested.join("a.yml");
+        let ignored = root.join("notes.txt");
+        let explicit = root.join("explicit.txt");
+        write_file(&b, "kind: Namespace\nmetadata:\n  name: b\n");
+        write_file(&a, "kind: Namespace\nmetadata:\n  name: a\n");
+        write_file(&ignored, "ignored");
+        write_file(&explicit, "kind: Namespace\nmetadata:\n  name: explicit\n");
+
+        let files = collect_apply_files(&[
+            root.to_string_lossy().into_owned(),
+            explicit.to_string_lossy().into_owned(),
+        ])
+        .expect("collect files");
+
+        assert_eq!(files, vec![b, explicit, a]);
+    }
+
+    #[test]
+    fn collect_apply_files_rejects_missing_paths() {
+        let err = collect_apply_files(&["/definitely/not/a/talon/manifest.yaml".to_string()])
+            .expect_err("missing path should fail");
+
+        assert!(err.to_string().contains("does not exist"));
     }
 }
